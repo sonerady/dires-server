@@ -57,7 +57,7 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
             uuid: request_id,
             request_id: request_id,
             user_id: user_id,
-            status: "processing",
+            status: "pending",
             image_url: image_url, // Include image_url
           },
         ]);
@@ -67,7 +67,7 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
       // If the record exists, update the status to 'processing' and image_url
       const { error: updateError } = await supabase
         .from("generate_requests")
-        .update({ status: "processing", image_url: image_url }) // Include image_url
+        .update({ status: "pending", image_url: image_url }) // Include image_url
         .eq("uuid", request_id);
 
       if (updateError) throw updateError;
@@ -224,8 +224,8 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
           {
             destination: `appdiress/${repoName}`,
             input: {
-              steps: 2000,
-              lora_rank: 16,
+              steps: 1000,
+              lora_rank: 20,
               optimizer: "adamw8bit",
               batch_size: 1,
               resolution: "512,768,1024",

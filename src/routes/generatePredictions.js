@@ -55,49 +55,17 @@ async function generatePrompt(
       console.log("Converted Image URL:", convertedImageUrl);
 
       if (categories === "on_model") {
-        contentMessage = `Create a detailed and professional prompt for the product shown in the provided image. The description should capture the product with an extraordinary level of precision, focusing on every minute detail. Pay special attention to its color, texture, material, and any subtle design features that distinguish it. The product must be showcased on a real-life model, ensuring the natural interaction between the product and the model’s physique is emphasized authentically. This prompt should explicitly specify that no mannequins or artificial displays are to be used. The image should exude the realism, elegance, and sophistication that only a real-life model can provide, with the product fitting seamlessly into a dynamic, lifelike scenario.
-
-        The real-life model should wear the product in a way that highlights its fit, style, and proportions. Describe how the fabric moves and interacts with the model’s body in motion—whether it flows elegantly with each step, drapes gently over the figure, or retains a structured, tailored look. If the product includes intricate details, such as embroidery or embellishments, these should be highlighted as they catch light or create dimension on the model. Mention specific elements like the long sleeves reaching the wrists, the high neckline gracefully framing the face, or how the hemline sweeps along the ground with a subtle train.
-
-        The photograph must embody the quality and artistry of high-fashion editorial photography, with a polished, professional aesthetic. The lighting and composition should focus on bringing out the product’s details while presenting the real-life model in a flattering, elegant manner. The model’s pose, posture, and expression must complement the product, ensuring that it remains the focal point of the image while the model adds to the storytelling. Suggest unique camera angles—such as a close-up to highlight intricate texture and embroidery, a full-length profile to showcase the dress’s silhouette, or a dynamic angle that captures the model in motion.
-
-        Clearly articulate how the product interacts with the model’s physique, noting whether it hugs the figure, flows loosely, or has a structured, regal appearance. If additional environmental details are provided, these should be woven into the narrative to place the model in an authentic or artistic setting. For instance, a soft, floral background or an elegant indoor space could enhance the overall presentation of the product.
-
-        The resulting image must be artistic and professional, evoking the exclusivity and refinement of high-end fashion photography. The prompt should emphasize that the model is real, ensuring a sense of realism and luxury that cannot be replicated by mannequins. Specify the lighting conditions, such as soft, natural light for a dreamy effect, sharp studio lighting for a crisp, editorial look, or dramatic, moody lighting for an artistic flair.
-
-        ${
-          environmentContext
-            ? `The details of the model and the environment where the model will be present are as follows: ${environmentContext}.`
-            : ""
-        }
-
-        ${
-          extraPromptDetail
-            ? `These are additional details about the product, and I want you to include them in the generated prompt as well: ${extraPromptDetail}`
-            : ""
-        }`;
+        contentMessage = `Create a highly detailed, professional prompt describing every minute detail of the product in the provided image with absolute accuracy—its color, fabric, texture, subtle embroidery, intricate stitching, and any unique design elements—ensuring it is worn by a real-life model (no mannequins) and emphasizing how it interacts naturally with the model’s body, how the material drapes, moves, and catches the light, all captured in a refined, high-fashion editorial photography style with masterful lighting, composition, and camera angles; translate and integrate any provided environmental, model, or product details into English if needed, merge all elements into a single continuous line without headings or paragraphs, and make the prompt exceptionally long to cover every nuanced aspect in meticulous detail; ${
+          environmentContext ? `include: ${environmentContext},` : ""
+        } ${extraPromptDetail ? `also include: ${extraPromptDetail}.` : ""}`;
       } else if (categories === "photoshoot") {
-        contentMessage = `Write a very long prompt in English that provides a highly detailed and vivid description of the item, focusing on highlighting it in a creative photoshoot scene with captivating angles and an atmosphere that draws the viewer in. Begin by setting the scene: describe the environment in exquisite detail, such as the way sunlight filters through the leaves of a lush garden, casting dappled light on the product, or the soft shadows. Explain how this setting complements the product, crafting a visual narrative that engages the audience's attention.
-
-        Describe every aspect of the item meticulously. For example, if it is a unique ceramic vase, detail how the light reflects off its glossy surface or how the texture of the ceramic appears under soft shadows. Highlight any intricate patterns or subtle design features that make the item stand out, using sensory language to bring these details to life vividly.
-
-        ${
-          environmentContext
-            ? `Base the scene and all descriptive details on the provided environment context. These details may have been provided in different languages, so translate and write them in English in your prompt: ${environmentContext}.`
-            : ""
-        }
-
-        Bring the environment to life with rich sensory details: describe the interplay of light and shadow, the textures of the surroundings, and how these elements interact with the product. Paint a vivid image of how the product fits into or stands out in the scene. Elaborate on how the product's materials feel to the touch, how it interacts with the environment, and how its colors change under different lighting conditions. Use language that effectively conveys the mood and setting to evoke emotions and spark the viewer’s imagination.
-
-        Do not describe the product as being worn or used by a model. Instead, ensure that the item is presented in the environment on its own, with the background being an AI-generated setting that complements the product's characteristics. ${
-          extraPromptDetail
-            ? `Include these additional details to describe the item in the prompt: ${extraPromptDetail}`
-            : ""
-        }`;
+        contentMessage = `Create an extremely detailed, vividly descriptive, and atmospherically rich English prompt that showcases the product as the focal point of a creative AI-generated photoshoot scene without any model; portray intricate textures, colors, materials, subtle patterns, and how light and shadow play across its surface in a captivating environment that enhances the product’s unique qualities, translating any provided environmental or contextual details into English and seamlessly integrating them, along with additional product information, into a single continuous prompt line without headings or paragraphs; ${
+          environmentContext ? `include: ${environmentContext},` : ""
+        } ${extraPromptDetail ? `also include: ${extraPromptDetail}.` : ""}`;
       } else if (categories === "retouch") {
-        contentMessage = `Create a prompt that begins with a highly detailed and vivid description of the main product in the image. For instance, if the main product is a white lace dress, describe it as follows: 'The product is an exquisite white lace dress featuring intricate floral lace patterns that run seamlessly across the bodice and flow into a delicate, scalloped hemline. The dress is adorned with subtle, almost ethereal embroidery that captures the light, giving it a soft shimmer. Its elegant neckline is framed with fine lace trim, and the fitted bodice accentuates the waist before cascading into a graceful, flowing skirt. The fabric's texture is both soft and structured, with each lace detail carefully woven to create a harmonious and luxurious look. The delicate sleeves add a touch of romance, while the overall silhouette is designed to drape beautifully, creating a captivating and timeless appeal.' Then, proceed with the enhancement instructions: increase the dress's brightness and clarity to make the intricate lace patterns and embroidery stand out, add natural shadows to accentuate its shape, and improve the texture to emphasize the fabric’s delicate yet structured feel. Soften the edges of the dress to ensure it blends smoothly with a pure white background. Reduce any reflections on the fabric to maintain an authentic look and adjust the colors for perfect vibrancy. Remove any dust or imperfections to present the dress flawlessly. Make sure the entire prompt is written as a cohesive and continuous piece of text, focusing only on the main product and excluding any unnecessary or unrelated details. ${
-          extraPromptDetail ? `Extra detail: ${extraPromptDetail}` : ""
-        }`;
+        contentMessage = `Create a single-line English prompt describing and enhancing the main product in the image, focusing on its intricate details, textures, and fabric quality, then refining brightness, clarity, shadows, texture, and color vibrancy on a pure white background without mentioning any other elements; seamlessly integrate any provided context or additional details into this single continuous line; ${
+          environmentContext ? `include: ${environmentContext},` : ""
+        } ${extraPromptDetail ? `also include: ${extraPromptDetail}.` : ""}`;
       }
 
       const completion = await openai.chat.completions.create({

@@ -13,7 +13,7 @@ router.get("/getTrainRequest", async (req, res) => {
     return res.status(400).json({ message: "user_id is required." });
   }
 
-  // Optional: Validate if user_id is a valid UUID (assuming UUIDs are used)
+  // Optional: Validate if user_id is a valid UUID
   const uuidRegex =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if (!uuidRegex.test(user_id)) {
@@ -21,12 +21,34 @@ router.get("/getTrainRequest", async (req, res) => {
   }
 
   try {
-    // Fetch generate_requests from Supabase
+    // 1 saat öncesinin tarihini belirliyoruz.
+    const cutoffTime = new Date(Date.now() - 3600 * 1000).toISOString();
+
+    // 1 saatten daha uzun süredir pending durumunda olan istekleri siliyoruz
+    const { error: deleteError } = await supabase
+      .from("generate_requests")
+      .delete()
+      .eq("user_id", user_id)
+      .eq("status", "pending")
+      .lt("created_at", cutoffTime);
+
+    if (deleteError) {
+      console.error(
+        "Error deleting old pending requests:",
+        deleteError.message
+      );
+      return res.status(500).json({
+        message: "Error deleting old pending requests.",
+        error: deleteError.message,
+      });
+    }
+
+    // Şimdi güncel durumu almak için generate_requests tablosunu çekiyoruz
     const { data, error, status } = await supabase
       .from("generate_requests")
       .select("*")
       .eq("user_id", user_id)
-      .order("created_at", { ascending: false }); // Optional: Order by latest
+      .order("created_at", { ascending: false });
 
     if (error && status !== 406) {
       throw error;
