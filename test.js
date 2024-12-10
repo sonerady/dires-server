@@ -101,16 +101,9 @@ async function generatePrompt(
       console.log("Converted Image URL:", convertedImageUrl);
 
       if (categories === "on_model") {
-        contentMessage = `Create an ultra in-depth, extremely long, meticulously detailed, and highly descriptive English prompt that intensively emphasizes every minute detail of the product in the provided image—its vibrant colors, intricate fabric textures, subtle embroidery, delicate stitching patterns, and any unique design elements—ensuring it is worn by a real-life model (no mannequins) and strongly highlight how the material drapes, moves, and catches the light on the model’s body. Demand the prompt be styled in a refined, high-fashion editorial photography manner, with exceptional lighting, composition, and camera angles. Translate and integrate any provided environmental, model, or product details into English if needed, and merge all elements into a single continuous line without headings or paragraphs. ${
+        contentMessage = `Create a highly detailed, professional prompt describing every minute detail of the product in the provided image with absolute accuracy—its color, fabric, texture, subtle embroidery, intricate stitching, and any unique design elements—ensuring it is worn by a real-life model (no mannequins) and emphasizing how it interacts naturally with the model’s body, how the material drapes, moves, and catches the light, all captured in a refined, high-fashion editorial photography style with masterful lighting, composition, and camera angles; translate and integrate any provided environmental, model, or product details into English if needed, merge all elements into a single continuous line without headings or paragraphs. ${
           environmentContext ? `include: ${environmentContext},` : ""
         } ${extraPromptDetail ? `also include: ${extraPromptDetail}.` : ""}`;
-        if (
-          !environmentContext ||
-          !environmentContext.includes("Model's pose")
-        ) {
-          contentMessage +=
-            " Additionally, instruct the model to adopt a pose that perfectly accentuates and complements the garment’s aesthetic and character.";
-        }
       } else if (categories === "photoshoot") {
         contentMessage = `Create an extremely detailed, vividly descriptive, and atmospherically rich English prompt that showcases the product as the focal point of a creative AI-generated photoshoot scene without any model; portray intricate textures, colors, materials, subtle patterns, and how light and shadow play across its surface in a captivating environment that enhances the product’s unique qualities, translating any provided environmental or contextual details into English and seamlessly integrating them, along with additional product information, into a single continuous prompt line without headings or paragraphs; ${
           environmentContext ? `include: ${environmentContext},` : ""
@@ -264,7 +257,7 @@ async function generateImagesWithReplicate(
         input: {
           prompt: modifiedPrompt,
           hf_loras: combinedHfLoras,
-          lora_scales: [0.9],
+          lora_scales: [0.85],
           num_outputs: imageCount,
           aspect_ratio: imageRatio,
           output_format: imageFormat,
