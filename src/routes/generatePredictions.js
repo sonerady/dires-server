@@ -55,7 +55,7 @@ async function generatePrompt(
       console.log("Converted Image URL:", convertedImageUrl);
 
       if (categories === "on_model") {
-        contentMessage = `Create a highly detailed, professional prompt describing every minute detail of the product in the provided image with absolute accuracy—its color, fabric, texture, subtle embroidery, intricate stitching, and any unique design elements—ensuring it is worn by a real-life model (no mannequins) and emphasizing how it interacts naturally with the model’s body, how the material drapes, moves, and catches the light, all captured in a refined, high-fashion editorial photography style with masterful lighting, composition, and camera angles; translate and integrate any provided environmental, model, or product details into English if needed, merge all elements into a single continuous line without headings or paragraphs, and make the prompt exceptionally long to cover every nuanced aspect in meticulous detail; ${
+        contentMessage = `Create a highly detailed, professional prompt describing every minute detail of the product in the provided image with absolute accuracy—its color, fabric, texture, subtle embroidery, intricate stitching, and any unique design elements—ensuring it is worn by a real-life model (no mannequins) and emphasizing how it interacts naturally with the model’s body, how the material drapes, moves, and catches the light, all captured in a refined, high-fashion editorial photography style with masterful lighting, composition, and camera angles; translate and integrate any provided environmental, model, or product details into English if needed, merge all elements into a single continuous line without headings or paragraphs. ${
           environmentContext ? `include: ${environmentContext},` : ""
         } ${extraPromptDetail ? `also include: ${extraPromptDetail}.` : ""}`;
       } else if (categories === "photoshoot") {
@@ -69,7 +69,7 @@ async function generatePrompt(
       }
 
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: "You are a prompt engineer" },
           {
