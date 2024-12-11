@@ -116,7 +116,7 @@ async function generatePrompt(
           environmentContext ? `include: ${environmentContext},` : ""
         } ${extraPromptDetail ? `also include: ${extraPromptDetail}.` : ""}`;
       } else if (categories === "retouch") {
-        contentMessage = `Create a single-line English prompt describing and enhancing the main product in the image, focusing on its intricate details, textures, and fabric quality, then refining brightness, clarity, shadows, texture, and color vibrancy on a pure white background without mentioning any other elements; seamlessly integrate any provided context or additional details into this single continuous line; ${
+        contentMessage = `Create an extremely long, single-line English prompt that fully describes and enhances the main product in the image with the highest possible level of detail, meticulously emphasizing every tiny intricate aspect of its design—its subtle textures, delicate stitching, fabric quality, and all other minuscule details—and then refine brightness, clarity, shadows, texture, and color vibrancy on a pure white background. Translate and integrate any provided environmental or contextual details into English if needed, merge all elements into a single continuous line without headings or paragraphs, ensure no other elements except the product details are mentioned.${
           environmentContext ? `include: ${environmentContext},` : ""
         } ${extraPromptDetail ? `also include: ${extraPromptDetail}.` : ""}`;
       }
