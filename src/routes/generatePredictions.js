@@ -48,7 +48,7 @@ async function uploadToGemini(filePath, mimeType) {
   return file;
 }
 
-// Function to generate a prompt using Google Gemini
+// Function to generate a prompt using Google Gemini (modified for multiple images)
 async function generatePrompt(
   imageUrl,
   initialPrompt,
@@ -56,7 +56,7 @@ async function generatePrompt(
   extraPromptDetail,
   categories
 ) {
-  const MAX_RETRIES = 20; // Define the maximum number of retries
+  const MAX_RETRIES = 20;
   let attempt = 0;
   let generatedPrompt = "";
 
@@ -68,7 +68,16 @@ async function generatePrompt(
     fs.mkdirSync(tempDir);
   }
 
-  let tempImagePath; // Declare tempImagePath here
+  let convertedImageUrls;
+  try {
+    // imageUrl parametresi bir array'i JSON.string ile verilmiş olabilir.
+    // JSON parse edilebilir ise çoklu görseli bu şekilde alacağız.
+    convertedImageUrls = JSON.parse(imageUrl);
+  } catch (error) {
+    console.error("Error parsing image URL:", error);
+    // Eğer parse edilemez ise tek bir URL olduğunu varsayıyoruz
+    convertedImageUrls = [imageUrl];
+  }
 
   while (attempt < MAX_RETRIES) {
     try {
@@ -86,19 +95,6 @@ async function generatePrompt(
       } else if (initialPrompt) {
         environmentContext = initialPrompt;
       }
-
-      const rawImageString = imageUrl;
-      let convertedImageUrl;
-
-      try {
-        convertedImageUrl = JSON.parse(rawImageString)[0]; // Extract the URL from JSON string
-        console.log("Converted Image URL:", convertedImageUrl);
-      } catch (error) {
-        console.error("Error parsing image URL:", error);
-        convertedImageUrl = rawImageString; // Use original string in case of error
-      }
-
-      console.log("Converted Image URL:", convertedImageUrl);
 
       if (categories === "on_model") {
         contentMessage = `Create an ultra in-depth, extremely long, meticulously detailed, and highly descriptive English prompt that intensively emphasizes every minute detail of the product in the provided image—its vibrant colors, intricate fabric textures, subtle embroidery, delicate stitching patterns, and any unique design elements—ensuring it is worn by a real-life model (no mannequins) and strongly highlight how the material drapes, moves, and catches the light on the model’s body. Demand the prompt be styled in a refined, high-fashion editorial photography manner, with exceptional lighting, composition, and camera angles. Translate and integrate any provided environmental, model, or product details into English if needed, and merge all elements into a single continuous line without headings or paragraphs. ${
@@ -121,15 +117,6 @@ async function generatePrompt(
         } ${extraPromptDetail ? `also include: ${extraPromptDetail}.` : ""}`;
       }
 
-      tempImagePath = path.join(tempDir, `${uuidv4()}.jpg`);
-
-      // Download the image
-      await downloadImage(convertedImageUrl, tempImagePath);
-
-      // Upload the image to Gemini
-      const uploadedFile = await uploadToGemini(tempImagePath, "image/jpeg");
-
-      // Set up the model
       const model = genAI.getGenerativeModel({
         model: "gemini-1.5-flash",
       });
@@ -142,19 +129,30 @@ async function generatePrompt(
         responseMimeType: "text/plain",
       };
 
-      // Build the history
+      // userParts array'i oluşturuyoruz. Her bir image için fileData ekleyeceğiz.
+      const userParts = [];
+
+      for (const imgUrl of convertedImageUrls) {
+        const tempImagePath = path.join(tempDir, `${uuidv4()}.jpg`);
+        await downloadImage(imgUrl, tempImagePath);
+        const uploadedFile = await uploadToGemini(tempImagePath, "image/jpeg");
+        userParts.push({
+          fileData: {
+            mimeType: "image/jpeg",
+            fileUri: uploadedFile.uri,
+          },
+        });
+        // Her resim yüklendikten sonra temp image sil
+        fs.unlinkSync(tempImagePath);
+      }
+
+      // Son olarak metni ekliyoruz
+      userParts.push({ text: contentMessage });
+
       const history = [
         {
           role: "user",
-          parts: [
-            {
-              fileData: {
-                mimeType: "image/jpeg",
-                fileUri: uploadedFile.uri,
-              },
-            },
-            { text: contentMessage },
-          ],
+          parts: userParts,
         },
       ];
 
@@ -173,7 +171,6 @@ async function generatePrompt(
       console.log("Generated prompt:", generatedPrompt);
       const finalWordCount = generatedPrompt.trim().split(/\s+/).length;
 
-      // Check if the response contains the undesired phrase
       if (
         generatedPrompt.includes("I’m sorry") ||
         generatedPrompt.includes("I'm sorry") ||
@@ -188,7 +185,7 @@ async function generatePrompt(
         );
         attempt++;
         // Optional: Add a delay before retrying
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // 1-second delay
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         continue; // Retry the loop
       }
 
@@ -198,12 +195,7 @@ async function generatePrompt(
       console.error("Error generating prompt:", error);
       attempt++;
       // Optional: Add a delay before retrying
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // 1-second delay
-    } finally {
-      // Clean up: delete the temp image file
-      if (tempImagePath && fs.existsSync(tempImagePath)) {
-        fs.unlinkSync(tempImagePath);
-      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   }
 
@@ -350,7 +342,6 @@ router.post("/generatePredictions", async (req, res) => {
     imageFormat,
     imageCount,
     requests_image,
-    // request_id is no longer expected from frontend
   } = req.body;
 
   // Basic validation
@@ -373,9 +364,8 @@ router.post("/generatePredictions", async (req, res) => {
 
     console.log("Starting prompt generation for productId:", productId);
 
-    // Generate the prompt
     const generatedPrompt = await generatePrompt(
-      product_main_image[0],
+      product_main_image, // Artık JSON.stringify kullanmıyoruz
       prompt,
       customPrompt,
       extraPromptDetail,
@@ -383,12 +373,11 @@ router.post("/generatePredictions", async (req, res) => {
     );
 
     console.log("Generated Prompt:", generatedPrompt);
-
     // Fetch current imageCount for the product
     const { data: productData, error: productError } = await supabase
       .from("userproduct")
       .select("imageCount")
-      .eq("product_id", productId) // product_id is varchar
+      .eq("product_id", productId)
       .single();
 
     if (productError) {
@@ -472,12 +461,15 @@ router.post("/generatePredictions", async (req, res) => {
     // Insert each generated image into the 'predictions' table
     const insertPromises = output.map(async (imageUrl) => {
       const { error: insertError } = await supabase.from("predictions").insert({
-        id: uuidv4(), // Generate a new UUID
+        id: uuidv4(),
         user_id: userId,
-        product_id: productId, // Using varchar as intended
+        product_id: productId,
         prediction_image: imageUrl,
         categories,
-        product_main_image,
+        product_main_image:
+          Array.isArray(product_main_image) && product_main_image.length > 0
+            ? product_main_image[0]
+            : product_main_image, // Sadece ilk resmi kullanabiliriz burada
       });
 
       if (insertError) {
@@ -493,7 +485,7 @@ router.post("/generatePredictions", async (req, res) => {
     const { error: updateError } = await supabase
       .from("userproduct")
       .update({ imageCount: newImageCount })
-      .eq("product_id", productId); // product_id is varchar
+      .eq("product_id", productId);
 
     if (updateError) {
       console.error("Error updating image count:", updateError);
@@ -529,7 +521,6 @@ router.post("/generatePredictions", async (req, res) => {
         "Failed to update request status to 'failed':",
         updateStatusError
       );
-      // Optionally, you might want to handle this scenario further
     }
     res.status(500).json({
       success: false,

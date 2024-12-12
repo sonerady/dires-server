@@ -25,6 +25,7 @@ const getBalance = require("./routes/getBalance");
 
 const generatePredictionsRouter = require("./routes/generatePredictions");
 const getPredictionsRouter = require("./routes/getPredictions");
+const registerAnonymousUserRouter = require("./routes/registerAnonymousUser");
 
 const app = express();
 
@@ -56,6 +57,7 @@ app.use("/api", removeBgRouter);
 app.use("/api", generatePredictionsRouter);
 app.use("/api", getPredictionsRouter);
 app.use("/api", getBalance);
+app.use("/api", registerAnonymousUserRouter);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
