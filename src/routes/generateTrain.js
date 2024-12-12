@@ -358,8 +358,9 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
 
           // Use Sharp to composite the image over a white background
           const processedBuffer = await sharp(buffer)
-            .flatten({ background: { r: 255, g: 255, b: 255 } }) // Set background to white
-            .png() // Ensure the output is in PNG format
+            .rotate() // EXIF'e göre resmi doğru konuma çevirir
+            .flatten({ background: { r: 255, g: 255, b: 255 } })
+            .png()
             .toBuffer();
 
           const fileName = `${uuidv4()}.png`;
