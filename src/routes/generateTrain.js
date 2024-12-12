@@ -106,12 +106,21 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
     const removeBgResults = [];
 
     // 2. Upload files to Supabase storage
+    // 2. Upload files to Supabase storage
     for (const file of files) {
+      // Burada sharp ile işlemi yapıyoruz
+      const processedBufferForUpload = await sharp(file.buffer)
+        // Eğer önce JPG'e çevirip kalite düşürüp sonra PNG istiyorsan:
+        .jpeg({ quality: 50 }) // JPEG'e çevir ve kaliteyi %50'ye düşür
+        .png({ compressionLevel: 9 }) // Sonra PNG'ye çevir, maximum sıkıştırma için compressionLevel:9
+        .toBuffer();
+
       const fileName = `${Date.now()}_${file.originalname}`;
+      // Mimetype'ı png yapıyoruz
       const { data, error } = await supabase.storage
         .from("images")
-        .upload(fileName, file.buffer, {
-          contentType: file.mimetype,
+        .upload(fileName, processedBufferForUpload, {
+          contentType: "image/png",
         });
 
       if (error) throw error;
@@ -358,7 +367,6 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
 
           // Use Sharp to composite the image over a white background
           const processedBuffer = await sharp(buffer)
-            .rotate() // EXIF'e göre resmi doğru konuma çevirir
             .flatten({ background: { r: 255, g: 255, b: 255 } })
             .png()
             .toBuffer();
