@@ -106,21 +106,12 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
     const removeBgResults = [];
 
     // 2. Upload files to Supabase storage
-    // 2. Upload files to Supabase storage
     for (const file of files) {
-      // Burada sharp ile işlemi yapıyoruz
-      const processedBufferForUpload = await sharp(file.buffer)
-        // Eğer önce JPG'e çevirip kalite düşürüp sonra PNG istiyorsan:
-        .jpeg({ quality: 50 }) // JPEG'e çevir ve kaliteyi %50'ye düşür
-        .png({ compressionLevel: 9 }) // Sonra PNG'ye çevir, maximum sıkıştırma için compressionLevel:9
-        .toBuffer();
-
       const fileName = `${Date.now()}_${file.originalname}`;
-      // Mimetype'ı png yapıyoruz
       const { data, error } = await supabase.storage
         .from("images")
-        .upload(fileName, processedBufferForUpload, {
-          contentType: "image/png",
+        .upload(fileName, file.buffer, {
+          contentType: file.mimetype,
         });
 
       if (error) throw error;
@@ -353,6 +344,7 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
     archive.pipe(outputStream);
 
     // Upload processed images to Supabase and add to zip
+    // Upload processed images to Supabase and add to zip
     for (const imageUrl of removeBgResults) {
       if (typeof imageUrl === "string") {
         try {
@@ -365,8 +357,15 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
 
           const buffer = Buffer.from(response.data, "binary");
 
-          // Use Sharp to composite the image over a white background
+          // Önce metadata alalım:
+          const metadata = await sharp(buffer).metadata();
+
+          const newWidth = Math.floor(metadata.width / 2);
+          const newHeight = Math.floor(metadata.height / 2);
+
+          // Resmi yarı boyutunda yeniden boyutlandır, PNG'ye çevir ve beyaz arka plan ekle
           const processedBuffer = await sharp(buffer)
+            .resize(newWidth, newHeight)
             .flatten({ background: { r: 255, g: 255, b: 255 } })
             .png()
             .toBuffer();
@@ -396,8 +395,7 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
           archive.append(processedBuffer, { name: fileName });
         } catch (err) {
           console.error("Resim işleme hatası:", err);
-          // Optionally, handle individual image processing errors
-          // You might decide to set processingFailed = true; here if critical
+          // İstersen burada hata durumunda processingFailed = true yaparak işlemi durdurabilirsin.
         }
       } else {
         console.error("Geçersiz resim verisi:", imageUrl);
