@@ -104,17 +104,26 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
     const signedUrls = [];
     const removeBgResults = [];
 
-    // 2. Orientation Düzeltme ve Dosya Yükleme
+    // 2. Orientation Düzeltme, Boyut Yarıya Düşürme ve Dosya Yükleme
     for (const file of files) {
       // Önce Sharp ile rotate:
       const rotatedBuffer = await sharp(file.buffer)
         .rotate() // EXIF bilgisine göre otomatik rotasyon
         .toBuffer();
 
+      // Metadata alıp boyutu yarı oranında küçültüyoruz
+      const metadata = await sharp(rotatedBuffer).metadata();
+      const halfWidth = Math.round(metadata.width / 2);
+      const halfHeight = Math.round(metadata.height / 2);
+
+      const resizedBuffer = await sharp(rotatedBuffer)
+        .resize(halfWidth, halfHeight)
+        .toBuffer();
+
       const fileName = `${Date.now()}_${file.originalname}`;
       const { data, error } = await supabase.storage
         .from("images")
-        .upload(fileName, rotatedBuffer, {
+        .upload(fileName, resizedBuffer, {
           contentType: file.mimetype,
         });
 
@@ -348,7 +357,6 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
 
           const buffer = Buffer.from(response.data, "binary");
 
-          // Burada isterseniz tekrar rotate() kullanabilirsiniz ama artık gerek yok
           const processedBuffer = await sharp(buffer)
             .flatten({ background: { r: 255, g: 255, b: 255 } })
             .png()
