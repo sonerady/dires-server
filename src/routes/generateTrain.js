@@ -44,7 +44,6 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
       .single();
 
     if (requestError && requestError.code !== "PGRST116") {
-      // PGRST116 means no rows returned; proceed to insert
       throw requestError;
     }
 
@@ -105,12 +104,17 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
     const signedUrls = [];
     const removeBgResults = [];
 
-    // 2. Upload files to Supabase storage
+    // 2. Orientation Düzeltme ve Dosya Yükleme
     for (const file of files) {
+      // Önce Sharp ile rotate:
+      const rotatedBuffer = await sharp(file.buffer)
+        .rotate() // EXIF bilgisine göre otomatik rotasyon
+        .toBuffer();
+
       const fileName = `${Date.now()}_${file.originalname}`;
       const { data, error } = await supabase.storage
         .from("images")
-        .upload(fileName, file.buffer, {
+        .upload(fileName, rotatedBuffer, {
           contentType: file.mimetype,
         });
 
@@ -134,7 +138,6 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
           { input: { image: url } }
         );
 
-        // Get the first item of the output
         if (Array.isArray(output) && output.length > 0) {
           removeBgResults.push(output[0]);
         } else {
@@ -184,7 +187,6 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
     const outputStream = fs.createWriteStream(zipFilePath);
     const archive = archiver("zip", { zlib: { level: 9 } });
 
-    // Handle 'close' event with try/catch
     outputStream.on("close", async () => {
       try {
         console.log(`${archive.pointer()} byte'lık zip dosyası oluşturuldu.`);
@@ -205,7 +207,6 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
 
         if (zipUrlError) throw zipUrlError;
 
-        // Start the training process (Replicate)
         const repoName = uuidv4()
           .toLowerCase()
           .replace(/\s+/g, "-")
@@ -240,22 +241,20 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
 
         const replicateId = training.id;
 
-        // Save to database with cover_images and request_id
         const { data: insertData, error: insertError } = await supabase
           .from("userproduct")
           .insert({
             user_id,
             product_id: replicateId,
             status: "pending",
-            image_urls: JSON.stringify(processedImageUrls.slice(0, 3)), // First 3 processed image URLs
-            cover_images: JSON.stringify([image_url]), // Store as a JSON array
+            image_urls: JSON.stringify(processedImageUrls.slice(0, 3)),
+            cover_images: JSON.stringify([image_url]),
             isPaid: true,
-            request_id: request_id, // **Add request_id here**
+            request_id: request_id,
           });
 
         if (insertError) throw insertError;
 
-        // Update the status to 'succeeded' in generate_requests table
         const { error: statusUpdateError } = await supabase
           .from("generate_requests")
           .update({ status: "succeeded" })
@@ -273,13 +272,11 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
       } catch (error) {
         console.error("Zip işlemleri sırasında hata:", error);
 
-        // Update the status to 'failed' in generate_requests table
         await supabase
           .from("generate_requests")
           .update({ status: "failed" })
           .eq("uuid", request_id);
 
-        // Re-add 100 credits if deducted
         if (creditsDeducted) {
           const { error: refundError } = await supabase
             .from("users")
@@ -296,7 +293,6 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
           error: error.message || "Unknown error",
         });
       } finally {
-        // Clean up the temporary zip file
         fs.unlink(zipFilePath, (err) => {
           if (err) {
             console.error("Geçici zip dosyası silinemedi:", err);
@@ -305,18 +301,15 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
       }
     });
 
-    // Handle 'error' event with try/catch
     archive.on("error", async (err) => {
       try {
         console.error("Zip oluşturma hatası:", err);
 
-        // Update the status to 'failed' in generate_requests table
         await supabase
           .from("generate_requests")
           .update({ status: "failed" })
           .eq("uuid", request_id);
 
-        // Re-add 100 credits if deducted
         if (creditsDeducted) {
           const { error: refundError } = await supabase
             .from("users")
@@ -347,7 +340,6 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
     for (const imageUrl of removeBgResults) {
       if (typeof imageUrl === "string") {
         try {
-          // Download the image
           const response = await axios({
             method: "get",
             url: imageUrl,
@@ -356,7 +348,7 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
 
           const buffer = Buffer.from(response.data, "binary");
 
-          // Use Sharp to composite the image over a white background
+          // Burada isterseniz tekrar rotate() kullanabilirsiniz ama artık gerek yok
           const processedBuffer = await sharp(buffer)
             .flatten({ background: { r: 255, g: 255, b: 255 } })
             .png()
@@ -364,49 +356,40 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
 
           const fileName = `${uuidv4()}.png`;
 
-          // Upload to Supabase
           const { data: uploadData, error: uploadError } =
             await supabase.storage
-              .from("images") // Use an existing bucket
+              .from("images")
               .upload(fileName, processedBuffer, {
                 contentType: "image/png",
               });
 
           if (uploadError) throw uploadError;
 
-          // Get public URL
           const { data: publicUrlData, error: publicUrlError } =
             await supabase.storage.from("images").getPublicUrl(fileName);
 
           if (publicUrlError) throw publicUrlError;
 
-          // Add URL to array
           processedImageUrls.push(publicUrlData.publicUrl);
 
-          // Add to zip archive
           archive.append(processedBuffer, { name: fileName });
         } catch (err) {
           console.error("Resim işleme hatası:", err);
-          // Optionally, handle individual image processing errors
-          // You might decide to set processingFailed = true; here if critical
         }
       } else {
         console.error("Geçersiz resim verisi:", imageUrl);
       }
     }
 
-    // Finalize the zip archive
     archive.finalize();
   } catch (error) {
     console.error("İşlem başarısız:", error);
 
-    // Update the status to 'failed' in generate_requests table
     await supabase
       .from("generate_requests")
       .update({ status: "failed" })
       .eq("uuid", request_id);
 
-    // Re-add 100 credits if deducted
     if (creditsDeducted) {
       const { error: refundError } = await supabase
         .from("users")
