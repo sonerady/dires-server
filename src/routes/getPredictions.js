@@ -1,12 +1,51 @@
 const express = require("express");
 const supabase = require("../supabaseClient");
+const axios = require("axios");
 
 const router = express.Router();
+
+const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+
+// Replicate'ten gelen logs içerisinden progress yüzdesini çıkaran fonksiyon
+// Bu fonksiyon, log satırlarında "%|" desenini arar ve yakalarsa yüzde değerini döndürür.
+function extractProgressFromLogs(logs) {
+  if (!logs || typeof logs !== "string") return 0;
+
+  const lines = logs.split("\n").reverse();
+  for (const line of lines) {
+    const match = line.match(/(\d+)%\|/);
+    if (match) {
+      return parseInt(match[1], 10);
+    }
+  }
+  return 0;
+}
+
+// Belirli bir prediction_id için Replicate API'sinden detayları alan fonksiyon
+async function fetchPredictionDetails(predictionId) {
+  try {
+    const response = await axios.get(
+      `https://api.replicate.com/v1/predictions/${predictionId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      `Error fetching prediction ${predictionId} from Replicate:`,
+      error.response ? error.response.data : error.message
+    );
+    return null;
+  }
+}
 
 router.get("/getPredictions/:userId", async (req, res) => {
   const { userId } = req.params;
 
-  // Parse the 'limit' query parameter if it exists
+  // limit parametresini al
   const limitParam = req.query.limit;
   let limit = null;
 
@@ -21,7 +60,6 @@ router.get("/getPredictions/:userId", async (req, res) => {
       });
     }
 
-    // Optional: Enforce a maximum limit to prevent excessive data retrieval
     const MAX_LIMIT = 100;
     if (limit > MAX_LIMIT) {
       return res.status(400).json({
@@ -32,11 +70,11 @@ router.get("/getPredictions/:userId", async (req, res) => {
   }
 
   try {
-    // Calculate the timestamp for one hour ago
+    // Bir saat önceki zaman damgası
     const oneHourAgo = new Date();
     oneHourAgo.setHours(oneHourAgo.getHours() - 1);
 
-    // Delete predictions older than one hour for the user
+    // Kullanıcının 1 saatten eski tahminlerini sil
     const { error: deleteError } = await supabase
       .from("predictions")
       .delete()
@@ -51,15 +89,15 @@ router.get("/getPredictions/:userId", async (req, res) => {
       });
     }
 
-    // Calculate the timestamp for one day ago
+    // Bir gün önceki zaman damgası
     const oneDayAgo = new Date();
     oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
-    // Build the Supabase query with optional limit
+    // Supabase sorgusu
     let query = supabase
       .from("predictions")
       .select(
-        "id, prediction_image, categories, product_id, product_main_image, created_at"
+        "id, prediction_id, categories, product_id, product_main_image, created_at"
       )
       .eq("user_id", userId)
       .gte("created_at", oneDayAgo.toISOString())
@@ -70,7 +108,6 @@ router.get("/getPredictions/:userId", async (req, res) => {
       query = query.limit(limit);
     }
 
-    // Execute the query
     const { data: predictions, error: fetchError } = await query;
 
     if (fetchError) {
@@ -83,10 +120,42 @@ router.get("/getPredictions/:userId", async (req, res) => {
 
     console.log(`Fetched ${predictions.length} predictions`);
 
-    // Respond with the fetched predictions
+    // Her bir prediction için Replicate detaylarını al
+    const predictionsWithDetails = await Promise.all(
+      predictions.map(async (prediction) => {
+        const replicateData = await fetchPredictionDetails(
+          prediction.prediction_id
+        );
+
+        if (!replicateData) {
+          // Replicate datasına ulaşılamazsa unknown durum, null output, 0 progress
+          return {
+            ...prediction,
+            replicate_status: "unknown",
+            replicate_output: null,
+            replicate_error: null,
+            progress: 0,
+            image_count: 0,
+          };
+        }
+
+        // logs içinden progress bul
+        const progress = extractProgressFromLogs(replicateData.logs);
+
+        return {
+          ...prediction,
+          replicate_status: replicateData.status,
+          replicate_output: replicateData.output || null,
+          replicate_error: replicateData.error || null,
+          progress: progress,
+          image_count: replicateData.input.num_outputs || 0,
+        };
+      })
+    );
+
     return res.status(200).json({
       success: true,
-      data: predictions,
+      data: predictionsWithDetails,
     });
   } catch (error) {
     console.error("Error fetching predictions:", error);
