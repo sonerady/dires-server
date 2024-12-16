@@ -22,11 +22,16 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
   const files = req.files;
   const { user_id, request_id, image_url } = req.body; // Accept image_url
 
-  // İstek gelir gelmez hemen front-end'e yanıt dönüyoruz.
+  // Front-end'e hemen yanıt dön
   res.status(200).json({ message: "İşlem başlatıldı, lütfen bekleyin..." });
 
   (async () => {
     let creditsDeducted = false; // Flag to track if credits were deducted
+    let zipFileName = null;
+    let processedImageUrls = [];
+    let replicateId = null;
+    let userData = null; // Kullanıcı verisini globalde tut
+    let intervalId = null; // Polling interval'ı globalde tut
 
     try {
       if (!request_id) {
@@ -35,7 +40,7 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
       }
 
       if (!files || files.length === 0) {
-        // Dosya yoksa direkt failed durumuna al.
+        // Dosya yoksa failed
         await supabase
           .from("generate_requests")
           .update({ status: "failed" })
@@ -43,7 +48,7 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
         return;
       }
 
-      // generate_requests tablosunda kaydı oluştur veya güncelle
+      // generate_requests kaydını oluştur veya güncelle
       const { data: existingRequest, error: requestError } = await supabase
         .from("generate_requests")
         .select("*")
@@ -55,7 +60,6 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
       }
 
       if (!existingRequest) {
-        // Kayıt yoksa ekle
         const { error: insertError } = await supabase
           .from("generate_requests")
           .insert([
@@ -69,7 +73,6 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
           ]);
         if (insertError) throw insertError;
       } else {
-        // Varsa güncelle
         const { error: updateError } = await supabase
           .from("generate_requests")
           .update({ status: "pending", image_url: image_url })
@@ -78,8 +81,8 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
         if (updateError) throw updateError;
       }
 
-      // Kullanıcının kredi bakiyesini kontrol et
-      const { data: userData, error: userError } = await supabase
+      // Kullanıcının kredi bakiyesi
+      const { data: uData, error: userError } = await supabase
         .from("users")
         .select("credit_balance")
         .eq("id", user_id)
@@ -87,8 +90,10 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
 
       if (userError) throw userError;
 
+      userData = uData;
+
       if (userData.credit_balance < 100) {
-        // Kredi yetersiz, failed yap
+        // Kredi yetersiz
         await supabase
           .from("generate_requests")
           .update({ status: "failed" })
@@ -97,7 +102,7 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
         return;
       }
 
-      // Hemen 100 kredi düş
+      // 100 kredi düş
       const newCreditBalance = userData.credit_balance - 100;
       const { error: updateCreditError } = await supabase
         .from("users")
@@ -177,15 +182,12 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
         return;
       }
 
-      const processedImageUrls = [];
-
       // Zip dosyası oluştur
-      const zipFileName = `images_${Date.now()}.zip`;
+      zipFileName = `images_${Date.now()}.zip`;
       const zipFilePath = `${os.tmpdir()}/${zipFileName}`;
       const outputStream = fs.createWriteStream(zipFilePath);
       const archive = archiver("zip", { zlib: { level: 9 } });
 
-      // Zip oluşturma tamamlandığında
       outputStream.on("close", async () => {
         try {
           console.log(`${archive.pointer()} byte'lık zip dosyası oluşturuldu.`);
@@ -211,11 +213,13 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
             .replace(/[^a-z0-9-_.]/g, "")
             .replace(/^-+|-+$/g, "");
 
+          // Model oluştur
           const model = await replicate.models.create("appdiress", repoName, {
             visibility: "private",
             hardware: "gpu-a100-large",
           });
 
+          // Eğitim başlat
           const training = await replicate.trainings.create(
             "ostris",
             "flux-dev-lora-trainer",
@@ -237,39 +241,93 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
             }
           );
 
-          // Zip linkini replicate'e gönderdikten hemen sonra zip'i bucket'tan silelim
-          const { error: removeZipError } = await supabase.storage
-            .from("zips")
-            .remove([zipFileName]);
-          if (removeZipError) {
-            console.error("Zip dosyası bucket'tan silinemedi:", removeZipError);
-          }
+          replicateId = training.id;
 
-          console.log("Eğitim başlatıldı:", zipFileName);
+          // Eğitim durumu polling fonksiyonu
+          const checkTrainingStatus = async () => {
+            try {
+              const statusResponse = await replicate.trainings.get(
+                "ostris",
+                "flux-dev-lora-trainer",
+                replicateId
+              );
+              const status = statusResponse.status;
 
-          const replicateId = training.id;
+              console.log(`Eğitim durumu: ${status}`);
 
-          const { error: insertError } = await supabase
-            .from("userproduct")
-            .insert({
-              user_id,
-              product_id: replicateId,
-              status: "pending",
-              image_urls: JSON.stringify(processedImageUrls.slice(0, 3)),
-              cover_images: JSON.stringify([image_url]),
-              isPaid: true,
-              request_id: request_id,
-            });
-          if (insertError) throw insertError;
+              if (status === "succeeded" || status === "failed") {
+                // Zip'i sil
+                const { error: removeZipError } = await supabase.storage
+                  .from("zips")
+                  .remove([zipFileName]);
+                if (removeZipError) {
+                  console.error(
+                    "Zip dosyası bucket'tan silinemedi:",
+                    removeZipError
+                  );
+                } else {
+                  console.log(
+                    "Zip dosyası eğitim tamamlandıktan sonra başarıyla silindi."
+                  );
+                }
 
-          const { error: statusUpdateError } = await supabase
-            .from("generate_requests")
-            .update({ status: "succeeded" })
-            .eq("uuid", request_id);
+                if (status === "succeeded") {
+                  // Eğitim başarılı: userproduct kaydı ekle
+                  const { error: insertError } = await supabase
+                    .from("userproduct")
+                    .insert({
+                      user_id,
+                      product_id: replicateId,
+                      status: "pending",
+                      image_urls: JSON.stringify(
+                        processedImageUrls.slice(0, 3)
+                      ),
+                      cover_images: JSON.stringify([image_url]),
+                      isPaid: true,
+                      request_id: request_id,
+                    });
+                  if (insertError) throw insertError;
 
-          if (statusUpdateError) throw statusUpdateError;
+                  // generate_requests tablosunu güncelle
+                  const { error: statusUpdateError } = await supabase
+                    .from("generate_requests")
+                    .update({ status: "succeeded" })
+                    .eq("uuid", request_id);
 
-          console.log("Eğitim başlatıldı ve başarıyla sonlandı.");
+                  if (statusUpdateError) throw statusUpdateError;
+                } else {
+                  // Eğitim başarısız: krediyi iade et
+                  if (creditsDeducted) {
+                    const { error: refundError } = await supabase
+                      .from("users")
+                      .update({ credit_balance: userData.credit_balance })
+                      .eq("id", user_id);
+
+                    if (refundError) {
+                      console.error("Credits refund failed:", refundError);
+                    }
+                  }
+
+                  // generate_requests tablosunu güncelle
+                  const { error: statusUpdateError } = await supabase
+                    .from("generate_requests")
+                    .update({ status: "failed" })
+                    .eq("uuid", request_id);
+
+                  if (statusUpdateError) throw statusUpdateError;
+                }
+
+                // Polling'i durdur
+                clearInterval(intervalId);
+              }
+            } catch (err) {
+              console.error("Eğitim durumunu sorgularken hata oluştu:", err);
+              // Hata durumunda tekrar deneyebiliriz, polling devam edecek.
+            }
+          };
+
+          // Her 30 saniyede bir durum kontrolü
+          intervalId = setInterval(checkTrainingStatus, 30000);
         } catch (error) {
           console.error("Zip işlemleri sırasında hata:", error);
 
