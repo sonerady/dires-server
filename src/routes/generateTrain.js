@@ -245,6 +245,8 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
             console.error("Zip dosyası bucket'tan silinemedi:", removeZipError);
           }
 
+          console.log("Eğitim başlatıldı:", zipFileName);
+
           const replicateId = training.id;
 
           const { error: insertError } = await supabase
