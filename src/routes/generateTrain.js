@@ -25,7 +25,6 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
   // İstek gelir gelmez hemen front-end'e yanıt dönüyoruz.
   res.status(200).json({ message: "İşlem başlatıldı, lütfen bekleyin..." });
 
-  // Ana işlemleri asenkron bir IIFE içinde yapacağız.
   (async () => {
     let creditsDeducted = false; // Flag to track if credits were deducted
 
@@ -237,6 +236,14 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
               },
             }
           );
+
+          // Zip linkini replicate'e gönderdikten hemen sonra zip'i bucket'tan silelim
+          const { error: removeZipError } = await supabase.storage
+            .from("zips")
+            .remove([zipFileName]);
+          if (removeZipError) {
+            console.error("Zip dosyası bucket'tan silinemedi:", removeZipError);
+          }
 
           const replicateId = training.id;
 
