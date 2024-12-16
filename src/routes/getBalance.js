@@ -109,7 +109,7 @@ router.get("/getBalance/:userId", async (req, res) => {
               console.log("User has insufficient credit balance or not found.");
             }
           }
-        } else if (status === "canceled" || status === "failed") {
+        } else if ((status === "canceled" || status === "failed") && isPaid) {
           if (isPaid) {
             const { data: userData, error: userFetchError } = await supabase
               .from("users")
