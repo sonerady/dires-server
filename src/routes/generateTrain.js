@@ -223,7 +223,7 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
             {
               destination: `appdiress/${repoName}`,
               input: {
-                steps: 2000,
+                steps: 1000,
                 lora_rank: 16,
                 optimizer: "adamw8bit",
                 batch_size: 1,
