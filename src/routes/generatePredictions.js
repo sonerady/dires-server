@@ -85,10 +85,6 @@ async function generatePrompt(
     try {
       let contentMessage = "";
 
-      console.log("Initial Prompt:", initialPrompt);
-      console.log("Custom Prompt:", customPrompt);
-      console.log("Extra Prompt Detail:", extraPromptDetail);
-
       let environmentContext = "";
       if (customPrompt && initialPrompt) {
         environmentContext = `${initialPrompt}, ${customPrompt}`;
@@ -250,8 +246,6 @@ async function generateImagesWithReplicate(
         ? [...hf_loras_default, ...filteredHfLoras]
         : hf_loras_default;
 
-    console.log("Combined hf_loras:", combinedHfLoras);
-
     const prediction = await predictions.create({
       version:
         "2389224e115448d9a77c07d7d45672b3f0aa45acacf1c5bcf51857ac295e3aec",
@@ -270,9 +264,6 @@ async function generateImagesWithReplicate(
       },
     });
 
-    console.log("Prediction created:", prediction);
-
-    // Return the prediction ID
     return prediction.id;
   } catch (error) {
     console.error("Error generating images:", error);

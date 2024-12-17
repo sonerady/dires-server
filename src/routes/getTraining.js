@@ -21,7 +21,7 @@ router.get("/:training_id", async (req, res) => {
       throw new Error(`API responded with status ${response.status}`);
     }
 
-    const { status, logs, output } = response.data;
+    const { status, logs, output, input } = response.data;
 
     function extractProgressPercentage(logs, status) {
       if (status === "succeeded") {
@@ -47,55 +47,17 @@ router.get("/:training_id", async (req, res) => {
 
     if (fetchError) {
       console.error("Error fetching product data:", fetchError);
-    } else if (productData.length === 0) {
+    } else if (!productData || productData.length === 0) {
       console.log(`No product found with ID: ${training_id}`);
     }
 
-    // Status güncelleme işlemi
+    // Training başarıyla tamamlandığında
     if (status === "succeeded" && output && output.weights) {
-      const userId = productData[0].user_id;
-
-      if (!productData[0].isPaid) {
-        const { data: userData, error: userFetchError } = await supabase
-          .from("users")
-          .select("credit_balance")
-          .eq("id", userId)
-          .single();
-
-        if (userFetchError) {
-          console.error("Error fetching user data:", userFetchError);
-        } else if (userData && userData.credit_balance >= 100) {
-          const newBalance = userData.credit_balance - 100;
-
-          const { error: updateUserError } = await supabase
-            .from("users")
-            .update({ credit_balance: newBalance })
-            .eq("id", userId);
-
-          if (updateUserError) {
-            throw new Error(
-              `Error updating user credit balance: ${updateUserError.message}`
-            );
-          }
-
-          const { error } = await supabase
-            .from("userproduct")
-            .update({ isPaid: true })
-            .eq("product_id", training_id);
-
-          if (error) {
-            throw new Error(`Supabase error: ${error.message}`);
-          }
-        } else {
-          console.log("User has insufficient credit balance or not found.");
-        }
-      }
-
+      // Training bilgilerini güncelle
       const { error } = await supabase
         .from("userproduct")
         .update({
           weights: output.weights,
-          isPaid: true,
           status: "succeeded",
         })
         .eq("product_id", training_id);
@@ -103,50 +65,31 @@ router.get("/:training_id", async (req, res) => {
       if (error) {
         throw new Error(`Supabase error: ${error.message}`);
       }
-    } else if (status === "canceled" || status === "failed") {
-      if (productData[0].isPaid) {
-        const userId = productData[0].user_id;
 
-        const { data: userData, error: userFetchError } = await supabase
-          .from("users")
-          .select("credit_balance")
-          .eq("id", userId)
-          .single();
+      // Burada input_images linkini parçalayarak dosya adını bulup silme işlemini gerçekleştirelim
+      if (input && input.input_images) {
+        const imageUrl = input.input_images;
+        // Örnek URL: "https://xxxxx.supabase.co/storage/v1/object/public/zips/images_123456.zip"
+        const fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
 
-        // if (userFetchError) {
-        //   console.error("Error fetching user data:", userFetchError);
-        // } else if (userData) {
-        //   const newBalance = userData.credit_balance + 100;
+        const { error: removeZipError } = await supabase.storage
+          .from("zips")
+          .remove([fileName]);
 
-        //   const { error: updateUserError } = await supabase
-        //     .from("users")
-        //     .update({ credit_balance: newBalance })
-        //     .eq("id", userId);
-
-        //   if (updateUserError) {
-        //     throw new Error(
-        //       `Error updating user credit balance: ${updateUserError.message}`
-        //     );
-        //   }
-
-        //   const { error } = await supabase
-        //     .from("userproduct")
-        //     .update({ isPaid: false, status })
-        //     .eq("product_id", training_id);
-
-        //   if (error) {
-        //     throw new Error(`Supabase error: ${error.message}`);
-        //   }
-        // }
-      } else {
-        const { error } = await supabase
-          .from("userproduct")
-          .update({ status })
-          .eq("product_id", training_id);
-
-        if (error) {
-          throw new Error(`Supabase error: ${error.message}`);
+        if (removeZipError) {
+          console.error("Zip dosyası bucket'tan silinemedi:", removeZipError);
+        } else {
+          console.log("Zip dosyası başarıyla silindi:", fileName);
         }
+      }
+    } else if (status === "canceled" || status === "failed") {
+      const { error } = await supabase
+        .from("userproduct")
+        .update({ status })
+        .eq("product_id", training_id);
+
+      if (error) {
+        throw new Error(`Supabase error: ${error.message}`);
       }
     }
 

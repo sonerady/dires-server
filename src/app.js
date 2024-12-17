@@ -24,6 +24,7 @@ const getRequests = require("./routes/getRequests");
 const getBalance = require("./routes/getBalance");
 
 const generatePredictionsRouter = require("./routes/generatePredictions");
+const generateImgToVidRouter = require("./routes/generateImgToVid");
 const getPredictionsRouter = require("./routes/getPredictions");
 const registerAnonymousUserRouter = require("./routes/registerAnonymousUser");
 
@@ -58,6 +59,7 @@ app.use("/api", generatePredictionsRouter);
 app.use("/api", getPredictionsRouter);
 app.use("/api", getBalance);
 app.use("/api", registerAnonymousUserRouter);
+app.use("/api", generateImgToVidRouter);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
