@@ -332,7 +332,7 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
 
           const model = await replicate.models.create("appdiress", repoName, {
             visibility: "private",
-            hardware: "gpu-h100",
+            hardware: "gpu-a100-large",
           });
 
           console.log("Model eğitimi başlatılıyor...");
