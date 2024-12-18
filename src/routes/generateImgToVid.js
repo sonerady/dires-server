@@ -48,8 +48,7 @@ router.post("/generateImgToVid", async (req, res) => {
     };
 
     const prediction = await predictions.create({
-      version:
-        "359b9915544a2a60a4687304f58669a9af7fad1e92cc5943a197f6139b6d7ecb",
+      model: "minimax/video-01-live",
       input: input,
     });
 
