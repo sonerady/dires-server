@@ -439,7 +439,7 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
                   steps: 1000,
                   lora_rank: 16,
                   optimizer: "adamw8bit",
-                  batch_size: 1,
+                  batch_size: 4,
                   resolution: "512,768,1024",
                   autocaption: true,
                   input_images: zipUrlData.publicUrl,
