@@ -121,6 +121,7 @@ router.get("/getPredictions/:userId", async (req, res) => {
     console.log(`Fetched ${predictions.length} predictions`);
 
     // Her bir prediction için Replicate detaylarını al
+    // Her bir prediction için Replicate detaylarını alırken:
     const predictionsWithDetails = await Promise.all(
       predictions.map(async (prediction) => {
         const replicateData = await fetchPredictionDetails(
@@ -128,7 +129,6 @@ router.get("/getPredictions/:userId", async (req, res) => {
         );
 
         if (!replicateData) {
-          // Replicate datasına ulaşılamazsa unknown durum, null output, 0 progress
           return {
             ...prediction,
             replicate_status: "unknown",
@@ -136,10 +136,10 @@ router.get("/getPredictions/:userId", async (req, res) => {
             replicate_error: null,
             progress: 0,
             image_count: 0,
+            replicate_logs: "", // Boş log
           };
         }
 
-        // logs içinden progress bul
         const progress = extractProgressFromLogs(replicateData.logs);
 
         return {
@@ -149,6 +149,7 @@ router.get("/getPredictions/:userId", async (req, res) => {
           replicate_error: replicateData.error || null,
           progress: progress,
           image_count: replicateData.input.num_outputs || 0,
+          replicate_logs: replicateData.logs || "",
         };
       })
     );

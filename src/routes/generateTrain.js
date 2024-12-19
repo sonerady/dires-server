@@ -1,3 +1,7 @@
+// Bu kodda generate_requests tablosunda credits_deducted (boolean) alanının var olduğu varsayılmaktadır.
+// Örneğin:
+// ALTER TABLE generate_requests ADD COLUMN credits_deducted boolean DEFAULT false;
+
 // Required modules
 const express = require("express");
 const supabase = require("../supabaseClient");
@@ -19,6 +23,70 @@ const replicate = new Replicate({
 });
 
 const predictions = replicate.predictions;
+
+// Sunucu başlatıldığında, pending durumundaki tüm kayıtları failed yap ve gerekiyorsa kredi iade et
+(async () => {
+  try {
+    // Pending durumundaki istekleri çek
+    const { data: pendingRequests, error: pendingError } = await supabase
+      .from("generate_requests")
+      .select("uuid, user_id, credits_deducted")
+      .eq("status", "pending");
+
+    if (pendingError) {
+      console.error("Pending istekler okunurken hata oluştu:", pendingError);
+    } else if (pendingRequests && pendingRequests.length > 0) {
+      for (const req of pendingRequests) {
+        // İstekleri failed yap
+        const { error: failError } = await supabase
+          .from("generate_requests")
+          .update({ status: "failed" })
+          .eq("uuid", req.uuid);
+
+        if (failError) {
+          console.error(
+            `İstek failed yapılırken hata oluştu (uuid: ${req.uuid}):`,
+            failError
+          );
+        } else {
+          console.log(`İstek failed yapıldı (uuid: ${req.uuid})`);
+
+          // Eğer bu istek için kredi düşülmüşse iade et
+          if (req.credits_deducted) {
+            // Kullanıcının güncel bakiyesini çek
+            const { data: userData, error: userError } = await supabase
+              .from("users")
+              .select("credit_balance")
+              .eq("id", req.user_id)
+              .single();
+
+            if (userError) {
+              console.error("Kullanıcı kredisi okunamadı:", userError);
+            } else {
+              const refundedBalance = userData.credit_balance + 100;
+              const { error: refundError } = await supabase
+                .from("users")
+                .update({ credit_balance: refundedBalance })
+                .eq("id", req.user_id);
+              if (refundError) {
+                console.error("Kredi iadesi başarısız:", refundError);
+              } else {
+                console.log(
+                  "Kredi başarıyla iade edildi (pending istek için):",
+                  req.user_id
+                );
+              }
+            }
+          }
+        }
+      }
+    } else {
+      console.log("Pending istek yok. Sunucu temiz başlatıldı.");
+    }
+  } catch (err) {
+    console.error("Sunucu başlatılırken hata:", err);
+  }
+})();
 
 // Prediction tamamlana kadar bekleme fonksiyonu
 async function waitForPredictionToComplete(
@@ -64,6 +132,7 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
 
   (async () => {
     let creditsDeducted = false; // Flag to track if credits were deducted
+    let userData; // userData'yı try'ın en üstünde tanımlıyoruz, hata durumunda da erişebilelim
 
     try {
       if (!request_id) {
@@ -103,6 +172,7 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
               user_id: user_id,
               status: "pending",
               image_url: image_url,
+              // credits_deducted varsayılan olarak false (tablo default değeri)
             },
           ]);
         if (insertError) throw insertError;
@@ -117,13 +187,14 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
       }
 
       console.log("Kullanıcı kredi bakiyesi kontrol ediliyor...");
-      const { data: userData, error: userError } = await supabase
+      const { data: ud, error: userError } = await supabase
         .from("users")
         .select("credit_balance")
         .eq("id", user_id)
         .single();
 
       if (userError) throw userError;
+      userData = ud;
 
       if (userData.credit_balance < 100) {
         console.error("Kredi yetersiz. failed durumuna geçiliyor...");
@@ -141,6 +212,14 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
         .update({ credit_balance: newCreditBalance })
         .eq("id", user_id);
       if (updateCreditError) throw updateCreditError;
+
+      // Kredi düşüldüğünü generate_requests tablosuna yansıtıyoruz
+      const { error: creditsDeductedError } = await supabase
+        .from("generate_requests")
+        .update({ credits_deducted: true })
+        .eq("uuid", request_id);
+      if (creditsDeductedError) throw creditsDeductedError;
+
       creditsDeducted = true;
 
       const signedUrls = [];
@@ -419,7 +498,7 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
         .eq("uuid", request_id);
 
       // Krediyi iade et
-      if (creditsDeducted) {
+      if (creditsDeducted && userData) {
         console.log("Krediler iade ediliyor...");
         const { error: refundError } = await supabase
           .from("users")
