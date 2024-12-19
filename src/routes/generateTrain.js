@@ -402,8 +402,7 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
 
           if (zipUrlError) throw zipUrlError;
 
-          // --- DEĞİŞİKLİK BURADA ---
-          // Zip başarıyla yüklendikten ve public URL alındıktan sonra isteği succeeded yapıyoruz
+          // Bu noktada zip başarıyla oluşturuldu ve yüklendi, başarısızlık olmasın diye succeeded yapıyoruz
           console.log("generate_requests durumu succeeded yapılıyor...");
           const { error: statusUpdateError } = await supabase
             .from("generate_requests")
@@ -416,7 +415,7 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
           console.log(
             "Şimdi replicate API'ye model oluşturma isteği gönderiliyor..."
           );
-          // Bu kısımdan sonra hata olsa da generate_requests succeeded durumunda kalacaktır.
+          // Bu aşamada hata olsa bile artık generate_requests failed yapmıyoruz.
           try {
             const repoName = uuidv4()
               .toLowerCase()
@@ -472,36 +471,12 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
             console.log("İşlem başarıyla tamamlandı (Replicate aşaması).");
           } catch (repErr) {
             console.error("Replicate API çağrısında hata oluştu:", repErr);
-            // Artık burada generate_requests durumunu değiştirmiyoruz, succeeded olarak kalıyor.
+            // Bu noktada generate_requests'i failed yapmıyoruz, succeeded kalacak.
           }
         } catch (error) {
           console.error("Zip sonrası işlemlerde hata:", error);
-
-          // Eğer zip sonrası işlemlerde hata oluşursa bile
-          // generate_requests succeeded yapıldıktan sonra hata olursa
-          // isterseniz burayı değiştirerek failed yapmayabilirsiniz.
-          // Ancak son istek bunu istemiyor.
-          // Bu durumda biz de yeniden failed'e almayacağız.
-          // Eğer isterseniz failed'e çekmeyi silebilirsiniz.
-          // Aşağıdaki kod satırlarını yorum yapıyoruz ki succeeded kalsın.
-          /*
-          await supabase
-            .from("generate_requests")
-            .update({ status: "failed" })
-            .eq("uuid", request_id);
-
-          if (creditsDeducted) {
-            console.log("Krediler iade ediliyor...");
-            const { error: refundError } = await supabase
-              .from("users")
-              .update({ credit_balance: userData.credit_balance })
-              .eq("id", user_id);
-
-            if (refundError) {
-              console.error("Credits refund failed:", refundError);
-            }
-          }
-          */
+          // Bu aşamada hata olsa bile generate_requests succeeded durumunda bırakıyoruz.
+          // failed yapmıyoruz, çünkü kullanıcı bunu istemiyor.
         } finally {
           fs.unlink(zipFilePath, (err) => {
             if (err) {
@@ -513,7 +488,7 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
     } catch (error) {
       console.error("İşlem başarısız:", error);
 
-      // Hata durumunda failed yap
+      // Bu noktada zip öncesi hatada failed yap
       await supabase
         .from("generate_requests")
         .update({ status: "failed" })

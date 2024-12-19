@@ -110,49 +110,40 @@ router.get("/getBalance/:userId", async (req, res) => {
             }
           }
         } else if ((status === "canceled" || status === "failed") && isPaid) {
-          if (isPaid) {
-            const { data: userData, error: userFetchError } = await supabase
+          // Önce ürünü güncelle, isPaid: false yap. Böylece tekrar istek atıldığında aynı ürün için tekrar iade yapılmaz.
+          const { error: productUpdateError } = await supabase
+            .from("userproduct")
+            .update({ isPaid: false, status })
+            .eq("product_id", product_id);
+
+          if (productUpdateError) {
+            throw new Error(`Supabase error: ${productUpdateError.message}`);
+          }
+
+          // Ardından kullanıcıya kredi iadesi yap
+          const { data: userData, error: userFetchError } = await supabase
+            .from("users")
+            .select("credit_balance")
+            .eq("id", userId)
+            .single();
+
+          if (userFetchError) {
+            console.error("Error fetching user data:", userFetchError);
+          } else if (userData) {
+            const newBalance = userData.credit_balance + 100;
+
+            const { error: updateUserError } = await supabase
               .from("users")
-              .select("credit_balance")
-              .eq("id", userId)
-              .single();
+              .update({ credit_balance: newBalance })
+              .eq("id", userId);
 
-            if (userFetchError) {
-              console.error("Error fetching user data:", userFetchError);
-            } else if (userData) {
-              const newBalance = userData.credit_balance + 100;
-
-              // Kullanıcının kredi bakiyesini geri yükle
-              const { error: updateUserError } = await supabase
-                .from("users")
-                .update({ credit_balance: newBalance })
-                .eq("id", userId);
-
-              if (updateUserError) {
-                throw new Error(
-                  `Error updating user credit balance: ${updateUserError.message}`
-                );
-              }
-
-              // Ürünü güncelle
-              const { error } = await supabase
-                .from("userproduct")
-                .update({ isPaid: false, status })
-                .eq("product_id", product_id);
-
-              if (error) {
-                throw new Error(`Supabase error: ${error.message}`);
-              }
+            if (updateUserError) {
+              throw new Error(
+                `Error updating user credit balance: ${updateUserError.message}`
+              );
             }
-          } else {
-            const { error } = await supabase
-              .from("userproduct")
-              .update({ status })
-              .eq("product_id", product_id);
 
-            if (error) {
-              throw new Error(`Supabase error: ${error.message}`);
-            }
+            console.log("Kredi iade edildi ve isPaid false yapıldı.");
           }
         }
       } catch (error) {
