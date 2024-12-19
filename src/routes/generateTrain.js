@@ -402,56 +402,8 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
 
           if (zipUrlError) throw zipUrlError;
 
-          console.log("Model oluşturuluyor...");
-          const repoName = uuidv4()
-            .toLowerCase()
-            .replace(/\s+/g, "-")
-            .replace(/[^a-z0-9-_.]/g, "")
-            .replace(/^-+|-+$/g, "");
-
-          const model = await replicate.models.create("appdiress", repoName, {
-            visibility: "private",
-            hardware: "gpu-a100-large",
-          });
-
-          console.log("Model eğitimi başlatılıyor...");
-          const training = await replicate.trainings.create(
-            "ostris",
-            "flux-dev-lora-trainer",
-            "e440909d3512c31646ee2e0c7d6f6f4923224863a6a10c494606e79fb5844497",
-            {
-              destination: `appdiress/${repoName}`,
-              input: {
-                steps: 1000,
-                lora_rank: 20,
-                optimizer: "adamw8bit",
-                batch_size: 1,
-                resolution: "512,768,1024",
-                autocaption: true,
-                input_images: zipUrlData.publicUrl,
-                trigger_word: "TOK",
-                learning_rate: 0.0004,
-                autocaption_prefix: "a photo of TOK",
-              },
-            }
-          );
-
-          const replicateId = training.id;
-
-          console.log("userproduct kaydı yapılıyor...");
-          const { error: insertError } = await supabase
-            .from("userproduct")
-            .insert({
-              user_id,
-              product_id: replicateId,
-              status: "pending",
-              image_urls: JSON.stringify(processedImageUrls.slice(0, 3)),
-              cover_images: JSON.stringify([image_url]),
-              isPaid: true,
-              request_id: request_id,
-            });
-          if (insertError) throw insertError;
-
+          // --- DEĞİŞİKLİK BURADA ---
+          // Zip başarıyla yüklendikten ve public URL alındıktan sonra isteği succeeded yapıyoruz
           console.log("generate_requests durumu succeeded yapılıyor...");
           const { error: statusUpdateError } = await supabase
             .from("generate_requests")
@@ -459,11 +411,80 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
             .eq("uuid", request_id);
 
           if (statusUpdateError) throw statusUpdateError;
+          console.log("generate_requests succeeded durumunda.");
 
-          console.log("İşlem başarıyla tamamlandı.");
+          console.log(
+            "Şimdi replicate API'ye model oluşturma isteği gönderiliyor..."
+          );
+          // Bu kısımdan sonra hata olsa da generate_requests succeeded durumunda kalacaktır.
+          try {
+            const repoName = uuidv4()
+              .toLowerCase()
+              .replace(/\s+/g, "-")
+              .replace(/[^a-z0-9-_.]/g, "")
+              .replace(/^-+|-+$/g, "");
+
+            const model = await replicate.models.create("appdiress", repoName, {
+              visibility: "private",
+              hardware: "gpu-a100-large",
+            });
+
+            console.log("Model eğitimi başlatılıyor...");
+            const training = await replicate.trainings.create(
+              "ostris",
+              "flux-dev-lora-trainer",
+              "e440909d3512c31646ee2e0c7d6f6f4923224863a6a10c494606e79fb5844497",
+              {
+                destination: `appdiress/${repoName}`,
+                input: {
+                  steps: 1000,
+                  lora_rank: 20,
+                  optimizer: "adamw8bit",
+                  batch_size: 1,
+                  resolution: "512,768,1024",
+                  autocaption: true,
+                  input_images: zipUrlData.publicUrl,
+                  trigger_word: "TOK",
+                  learning_rate: 0.0004,
+                  autocaption_prefix: "a photo of TOK",
+                },
+              }
+            );
+
+            const replicateId = training.id;
+
+            console.log("userproduct kaydı yapılıyor...");
+            const { error: insertError } = await supabase
+              .from("userproduct")
+              .insert({
+                user_id,
+                product_id: replicateId,
+                status: "pending",
+                image_urls: JSON.stringify(processedImageUrls.slice(0, 3)),
+                cover_images: JSON.stringify([image_url]),
+                isPaid: true,
+                request_id: request_id,
+              });
+            if (insertError)
+              console.error("userproduct insert hatası:", insertError);
+            else console.log("userproduct kaydı yapıldı.");
+
+            console.log("İşlem başarıyla tamamlandı (Replicate aşaması).");
+          } catch (repErr) {
+            console.error("Replicate API çağrısında hata oluştu:", repErr);
+            // Artık burada generate_requests durumunu değiştirmiyoruz, succeeded olarak kalıyor.
+          }
         } catch (error) {
           console.error("Zip sonrası işlemlerde hata:", error);
 
+          // Eğer zip sonrası işlemlerde hata oluşursa bile
+          // generate_requests succeeded yapıldıktan sonra hata olursa
+          // isterseniz burayı değiştirerek failed yapmayabilirsiniz.
+          // Ancak son istek bunu istemiyor.
+          // Bu durumda biz de yeniden failed'e almayacağız.
+          // Eğer isterseniz failed'e çekmeyi silebilirsiniz.
+          // Aşağıdaki kod satırlarını yorum yapıyoruz ki succeeded kalsın.
+          /*
           await supabase
             .from("generate_requests")
             .update({ status: "failed" })
@@ -480,6 +501,7 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
               console.error("Credits refund failed:", refundError);
             }
           }
+          */
         } finally {
           fs.unlink(zipFilePath, (err) => {
             if (err) {
