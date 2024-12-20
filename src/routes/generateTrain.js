@@ -162,9 +162,10 @@ async function generateCaptionForSingleImage(imageUrl) {
 
   const contentMessage = `
   Please look at this single product image and produce an extremely detailed,
-  rich, and highly descriptive English caption focusing on its intricate details, materials, craftsmanship, 
-  colors, textures, subtle features, and overall luxury. The caption should be a single long paragraph that 
-  brings the image to life in the reader’s mind.
+  rich, and highly descriptive English caption focusing on its intricate details, materials, craftsmanship,
+  colors, textures, subtle features, and overall luxury. The caption should also specify the exact placement or location
+  of these details on the product (e.g., along the upper edge, on the lower left corner, adorning the central panel, etc.).
+  The caption should be a single long paragraph that brings the image to life in the reader’s mind.
   `;
 
   for (let attempt = 1; attempt <= MAX_RETRY; attempt++) {
