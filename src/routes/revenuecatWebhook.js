@@ -13,16 +13,22 @@ router.post("/webhook", async (req, res) => {
       return res.status(400).json({ message: "Invalid event structure" });
     }
 
+    // requestte $RCAnonymousID vs diye birşey yoksa bu kısımları kaldırıyoruz
     const {
       type,
       app_user_id,
       product_id,
       original_transaction_id,
-      purchase_date,
+      purchased_at_ms,
     } = rcEvent;
 
-    // Örnek senaryo: type 'RENEWED' ise yenileme işlenir
-    if (type === "RENEWED") {
+    // purchased_at_ms'den ISO formatında bir tarih oluşturuyoruz
+    const purchase_date = purchased_at_ms
+      ? new Date(purchased_at_ms).toISOString()
+      : new Date().toISOString(); // güvenlik için, eğer yoksa mevcut zaman
+
+    // Eğer gerçek yenileme event’i "RENEWAL" olarak geliyorsa
+    if (type === "RENEWAL") {
       const { data: userData, error: userError } = await supabase
         .from("users")
         .select("*")
