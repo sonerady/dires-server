@@ -13,6 +13,9 @@ const fs = require("fs");
 const os = require("os");
 const axios = require("axios");
 const sharp = require("sharp"); // Import Sharp
+const path = require("path");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleAIFileManager } = require("@google/generative-ai/server");
 
 const upload = multer();
 const router = express.Router();
@@ -24,10 +27,14 @@ const replicate = new Replicate({
 
 const predictions = replicate.predictions;
 
+// Gemini ayarları
+const apiKey = process.env.GEMINI_API_KEY;
+const genAI = new GoogleGenerativeAI(apiKey);
+const fileManager = new GoogleAIFileManager(apiKey);
+
 // Sunucu başlatıldığında, pending durumundaki tüm kayıtları failed yap ve gerekiyorsa kredi iade et
 (async () => {
   try {
-    // Pending durumundaki istekleri çek
     const { data: pendingRequests, error: pendingError } = await supabase
       .from("generate_requests")
       .select("uuid, user_id, credits_deducted")
@@ -37,7 +44,6 @@ const predictions = replicate.predictions;
       console.error("Pending istekler okunurken hata oluştu:", pendingError);
     } else if (pendingRequests && pendingRequests.length > 0) {
       for (const req of pendingRequests) {
-        // İstekleri failed yap
         const { error: failError } = await supabase
           .from("generate_requests")
           .update({ status: "failed" })
@@ -53,7 +59,6 @@ const predictions = replicate.predictions;
 
           // Eğer bu istek için kredi düşülmüşse iade et
           if (req.credits_deducted) {
-            // Kullanıcının güncel bakiyesini çek
             const { data: userData, error: userError } = await supabase
               .from("users")
               .select("credit_balance")
@@ -120,19 +125,138 @@ async function waitForPredictionToComplete(
   }
 }
 
+// Tek görsel için gemini caption üretme fonksiyonu
+async function downloadImage(url, filepath) {
+  const writer = fs.createWriteStream(filepath);
+
+  const response = await axios({
+    url,
+    method: "GET",
+    responseType: "stream",
+  });
+
+  response.data.pipe(writer);
+
+  return new Promise((resolve, reject) => {
+    writer.on("finish", resolve);
+    writer.on("error", reject);
+  });
+}
+
+async function uploadToGemini(filePath, mimeType) {
+  const uploadResult = await fileManager.uploadFile(filePath, {
+    mimeType,
+    displayName: path.basename(filePath),
+  });
+  const file = uploadResult.file;
+  console.log(`Uploaded file ${file.displayName} as: ${file.name}`);
+  return file;
+}
+
+async function generateCaptionForSingleImage(imageUrl) {
+  const MAX_RETRY = 5;
+  const tempDir = path.join(__dirname, "temp");
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir);
+  }
+
+  const contentMessage = `
+  Please look at this single product image and produce an extremely detailed,
+  rich, and highly descriptive English caption focusing on its intricate details, materials, craftsmanship, 
+  colors, textures, subtle features, and overall luxury. The caption should be a single long paragraph that 
+  brings the image to life in the reader’s mind.
+  `;
+
+  for (let attempt = 1; attempt <= MAX_RETRY; attempt++) {
+    try {
+      const userParts = [];
+      const tempImagePath = path.join(tempDir, `${uuidv4()}.jpg`);
+      await downloadImage(imageUrl, tempImagePath);
+      const uploadedFile = await uploadToGemini(tempImagePath, "image/jpeg");
+      fs.unlinkSync(tempImagePath);
+
+      userParts.push({
+        fileData: {
+          mimeType: "image/jpeg",
+          fileUri: uploadedFile.uri,
+        },
+      });
+      userParts.push({ text: contentMessage });
+
+      const history = [
+        {
+          role: "user",
+          parts: userParts,
+        },
+      ];
+
+      const model = genAI.getGenerativeModel({
+        model: "gemini-1.5-flash",
+      });
+
+      const generationConfig = {
+        temperature: 1,
+        topP: 0.95,
+        topK: 40,
+        maxOutputTokens: 8192,
+        responseMimeType: "text/plain",
+      };
+
+      const chatSession = model.startChat({
+        generationConfig,
+        history,
+      });
+
+      const result = await chatSession.sendMessage("");
+      const generatedCaption = result.response.text().trim();
+
+      console.log(`Generated Caption for single image: ${generatedCaption}`);
+
+      if (
+        generatedCaption.toLowerCase().includes("please provide the image") ||
+        generatedCaption.toLowerCase().includes("i need to see the product") ||
+        generatedCaption.toLowerCase().includes("i’m sorry") ||
+        generatedCaption.toLowerCase().includes("i'm sorry") ||
+        generatedCaption.split(/\s+/).length < 20
+      ) {
+        console.log(`Single image caption not valid. Attempt: ${attempt}`);
+        if (attempt === MAX_RETRY) {
+          throw new Error(
+            "Gemini could not generate a valid caption for the image."
+          );
+        }
+        await new Promise((res) => setTimeout(res, 1000));
+        continue;
+      }
+
+      return generatedCaption;
+    } catch (err) {
+      console.error("Error generating caption for single image:", err);
+      if (attempt === MAX_RETRY) {
+        throw err;
+      }
+      await new Promise((res) => setTimeout(res, 1000));
+    }
+  }
+
+  throw new Error(
+    "Gemini could not generate a valid caption after multiple attempts for single image."
+  );
+}
+
 router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
   const files = req.files;
-  const { user_id, request_id, image_url } = req.body; // Accept image_url
+  const { user_id, request_id, image_url } = req.body;
 
-  // İstek gelir gelmez hemen front-end'e yanıt dönüyoruz.
   console.log(
     `Yeni istek alındı: request_id=${request_id}, user_id=${user_id}`
   );
   res.status(200).json({ message: "İşlem başlatıldı, lütfen bekleyin..." });
 
   (async () => {
-    let creditsDeducted = false; // Flag to track if credits were deducted
-    let userData; // userData'yı try'ın en üstünde tanımlıyoruz, hata durumunda da erişebilelim
+    let creditsDeducted = false;
+    let userData;
+    let fallbackAutocaption = false;
 
     try {
       if (!request_id) {
@@ -172,7 +296,6 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
               user_id: user_id,
               status: "pending",
               image_url: image_url,
-              // credits_deducted varsayılan olarak false (tablo default değeri)
             },
           ]);
         if (insertError) throw insertError;
@@ -226,26 +349,32 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
 
       console.log("Resimler işleniyor ve yükleniyor...");
       for (const file of files) {
+        // Görüntüyü döndür (exif rotasyonunu düzeltmek için)
         const rotatedBuffer = await sharp(file.buffer).rotate().toBuffer();
         const metadata = await sharp(rotatedBuffer).metadata();
-        const halfWidth = Math.round(metadata.width / 2);
-        const halfHeight = Math.round(metadata.height / 2);
 
-        const resizedBuffer = await sharp(rotatedBuffer)
-          .resize(halfWidth, halfHeight)
-          .toBuffer();
+        let finalBuffer = rotatedBuffer; // Varsayılan olarak yeniden boyutlandırma yapma
 
-        const fileName = `${Date.now()}_${file.originalname}`;
+        // Eğer genişlik 1024 pikselden büyükse yeniden boyutlandır
+        if (metadata.width > 2048) {
+          const halfWidth = Math.round(metadata.width / 2);
+          const halfHeight = Math.round(metadata.height / 2);
+          finalBuffer = await sharp(rotatedBuffer)
+            .resize(halfWidth, halfHeight)
+            .toBuffer();
+        }
+
+        const uniqueName = `${Date.now()}_${uuidv4()}_${file.originalname}`;
         const { data, error } = await supabase.storage
           .from("images")
-          .upload(fileName, resizedBuffer, {
+          .upload(uniqueName, finalBuffer, {
             contentType: file.mimetype,
           });
 
         if (error) throw error;
 
         const { data: publicUrlData, error: publicUrlError } =
-          await supabase.storage.from("images").getPublicUrl(fileName);
+          await supabase.storage.from("images").getPublicUrl(uniqueName);
 
         if (publicUrlError) throw publicUrlError;
 
@@ -267,7 +396,7 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
           const completedPrediction = await waitForPredictionToComplete(
             prediction.id,
             replicate,
-            120000, // Timeout'ı 2 dakikaya çıkar
+            120000,
             3000
           );
 
@@ -306,8 +435,9 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
       }
 
       console.log("Zip dosyası oluşturuluyor...");
-      const processedImageUrls = [];
-      const zipFileName = `images_${Date.now()}.zip`;
+      // processedImages hem publicUrl hem de dosya ismini tutacak
+      const processedImages = [];
+      const zipFileName = `images_${Date.now()}_${uuidv4()}.zip`;
       const zipFilePath = `${os.tmpdir()}/${zipFileName}`;
       const outputStream = fs.createWriteStream(zipFilePath);
       const archive = archiver("zip", { zlib: { level: 9 } });
@@ -336,6 +466,8 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
       archive.pipe(outputStream);
 
       console.log("RemoveBg sonuçları işlenip zip'e ekleniyor...");
+      let imageIndex = 0;
+
       for (const imageUrl of removeBgResults) {
         if (typeof imageUrl === "string") {
           try {
@@ -351,33 +483,51 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
               .png()
               .toBuffer();
 
-            const fileName = `${uuidv4()}.png`;
+            const imgFileName = `product_${imageIndex}_${uuidv4()}.png`;
 
             const { error: uploadError } = await supabase.storage
               .from("images")
-              .upload(fileName, processedBuffer, {
+              .upload(imgFileName, processedBuffer, {
                 contentType: "image/png",
               });
 
             if (uploadError) {
               console.error("Resim upload hatası:", uploadError);
-              // Bu noktada hata olsa bile zip finalize edilmeli
             } else {
               const { data: publicUrlData, error: publicUrlError } =
-                await supabase.storage.from("images").getPublicUrl(fileName);
+                await supabase.storage.from("images").getPublicUrl(imgFileName);
 
               if (!publicUrlError) {
-                processedImageUrls.push(publicUrlData.publicUrl);
+                processedImages.push({
+                  url: publicUrlData.publicUrl,
+                  fileName: imgFileName,
+                });
               }
             }
 
-            archive.append(processedBuffer, { name: fileName });
+            archive.append(processedBuffer, { name: imgFileName });
+            imageIndex++;
           } catch (err) {
             console.error("Resim işleme hatası:", err);
           }
         } else {
           console.error("Geçersiz resim verisi:", imageUrl);
         }
+      }
+
+      // Her görsel için ayrı caption, aynı isimde .txt
+      try {
+        for (const imageObj of processedImages) {
+          const caption = await generateCaptionForSingleImage(imageObj.url);
+          const txtFileName = imageObj.fileName.replace(".png", ".txt");
+          archive.append(caption, { name: txtFileName });
+        }
+      } catch (captionErr) {
+        console.error(
+          "En az bir görsel için caption oluşturulamadı, fallbackAutocaption=true",
+          captionErr
+        );
+        fallbackAutocaption = true;
       }
 
       console.log("Zip finalize ediliyor...");
@@ -402,7 +552,7 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
 
           if (zipUrlError) throw zipUrlError;
 
-          // Bu noktada zip başarıyla oluşturuldu ve yüklendi, başarısızlık olmasın diye succeeded yapıyoruz
+          // generate_requests succeeded yap
           console.log("generate_requests durumu succeeded yapılıyor...");
           const { error: statusUpdateError } = await supabase
             .from("generate_requests")
@@ -415,7 +565,6 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
           console.log(
             "Şimdi replicate API'ye model oluşturma isteği gönderiliyor..."
           );
-          // Bu aşamada hata olsa bile artık generate_requests failed yapmıyoruz.
           try {
             const repoName = uuidv4()
               .toLowerCase()
@@ -441,11 +590,10 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
                   optimizer: "adamw8bit",
                   batch_size: 1,
                   resolution: "512,768,1024",
-                  autocaption: true,
+                  autocaption: fallbackAutocaption ? true : false,
                   input_images: zipUrlData.publicUrl,
                   trigger_word: "TOK",
                   learning_rate: 0.0004,
-                  autocaption_prefix: "a photo of TOK",
                 },
               }
             );
@@ -459,7 +607,9 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
                 user_id,
                 product_id: replicateId,
                 status: "pending",
-                image_urls: JSON.stringify(processedImageUrls.slice(0, 3)),
+                image_urls: JSON.stringify(
+                  processedImages.map((img) => img.url).slice(0, 3)
+                ),
                 cover_images: JSON.stringify([image_url]),
                 isPaid: true,
                 request_id: request_id,
@@ -476,7 +626,6 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
         } catch (error) {
           console.error("Zip sonrası işlemlerde hata:", error);
           // Bu aşamada hata olsa bile generate_requests succeeded durumunda bırakıyoruz.
-          // failed yapmıyoruz, çünkü kullanıcı bunu istemiyor.
         } finally {
           fs.unlink(zipFilePath, (err) => {
             if (err) {
