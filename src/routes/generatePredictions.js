@@ -94,6 +94,14 @@ async function generatePrompt(
         environmentContext = initialPrompt;
       }
 
+      // "Accessories included:" ifadesini burada değiştiriyoruz
+      if (environmentContext.includes("Accessories included:")) {
+        environmentContext = environmentContext.replace(
+          "Accessories included:",
+          "the model is wearing these accessories:"
+        );
+      }
+
       if (categories === "on_model") {
         contentMessage = `Create an ultra in-depth, extremely long, meticulously detailed, and highly descriptive English prompt that intensively emphasizes every minute detail of the product in the provided image—its vibrant colors, intricate fabric textures, subtle embroidery, delicate stitching patterns, and any unique design elements—ensuring it is worn by a real-life model (no mannequins) and strongly highlight how the material drapes, moves, and catches the light on the model’s body. Additionally, if the product or environment details indicate a clothing item, specify whether it is sleeveless, strapless, or long-sleeved, and exactly how far it extends on the wearer's body (e.g., waist-length, knee-length, or ankle-length), emphasizing these critical details within this single continuous line. Demand the prompt be styled in a refined, high-fashion editorial photography manner, with exceptional lighting, composition, and camera angles. Translate and integrate any provided environmental, model, or product details into English if needed, and merge all elements into a single continuous line without headings or paragraphs. ${
           environmentContext ? `include: ${environmentContext},` : ""
