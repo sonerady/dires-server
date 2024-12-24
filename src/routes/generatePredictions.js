@@ -101,7 +101,7 @@ async function generatePrompt(
           every minute detail of the product in the provided image—its vibrant 
           colors, intricate fabric textures, subtle embroidery, delicate stitching 
           patterns, and any unique design elements—ensuring it is worn by a 
-          **real-life, photorealistic human model (no mannequins, no CGI)**, 
+          real-life, photorealistic human model (no mannequins, no CGI), 
           strongly highlighting how the material drapes, moves, and catches the 
           light on the model’s body in a physically plausible manner. Additionally, 
           if the product or environment details indicate a clothing item, specify 
@@ -112,13 +112,17 @@ async function generatePrompt(
           manner, with exceptional lighting, composition, and camera angles. 
           Translate and integrate any provided environmental, model, or product details 
           into English if needed, and merge all elements into a single continuous line 
-          without headings or paragraphs. 
-          
+          without headings or paragraphs.
+      
+          Importantly, specify precisely **where each detail is located** on the garment 
+          (for example, on the collar, sleeve, chest area, or hem) because it's **extremely important** 
+          to mention the exact location of every design element to ensure thorough clarity.
+      
           ${environmentContext ? `include: ${environmentContext},` : ""} 
           ${extraPromptDetail ? `also include: ${extraPromptDetail}.` : ""}
         `;
 
-        // Eğer environmentContext'te "Model's pose" yoksa, ek bir cümle ekleyebilirsin:
+        // Eğer environmentContext'te "Model's pose" ibaresi yoksa ek cümle ekleyebilirsin:
         if (
           !environmentContext ||
           !environmentContext.includes("Model's pose")
