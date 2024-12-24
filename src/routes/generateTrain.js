@@ -165,8 +165,11 @@ async function generateCaptionForSingleImage(imageUrl) {
   rich, and highly descriptive English caption focusing exclusively on the product’s intricate details, 
   materials, craftsmanship, colors, textures, subtle features, and overall luxury. 
   Do not mention any mannequins, backgrounds, or unrelated elements. 
-  The caption must be contained within a single long paragraph that vividly brings only the product to life in the reader's mind.
-  `;
+  The caption must be contained within a single long paragraph that vividly brings only the product to life 
+  in the reader's mind, specifying **exactly where each detail is located** on the product 
+  (for example, on the collar, sleeve, chest area, or hem), 
+  as it is **extremely important** to identify the precise position of each design element.
+`;
 
   for (let attempt = 1; attempt <= MAX_RETRY; attempt++) {
     try {
