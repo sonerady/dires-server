@@ -95,15 +95,39 @@ async function generatePrompt(
       }
 
       if (categories === "on_model") {
-        contentMessage = `Create an ultra in-depth, extremely long, meticulously detailed, and highly descriptive English prompt that intensively emphasizes every minute detail of the product in the provided image—its vibrant colors, intricate fabric textures, subtle embroidery, delicate stitching patterns, and any unique design elements—ensuring it is worn by a real-life model (no mannequins) and strongly highlight how the material drapes, moves, and catches the light on the model’s body. Additionally, if the product or environment details indicate a clothing item, specify whether it is sleeveless, strapless, or long-sleeved, and exactly how far it extends on the wearer's body (e.g., waist-length, knee-length, or ankle-length), emphasizing these critical details within this single continuous line. Demand the prompt be styled in a refined, high-fashion editorial photography manner, with exceptional lighting, composition, and camera angles. Translate and integrate any provided environmental, model, or product details into English if needed, and merge all elements into a single continuous line without headings or paragraphs. ${
-          environmentContext ? `include: ${environmentContext},` : ""
-        } ${extraPromptDetail ? `also include: ${extraPromptDetail}.` : ""}`;
+        contentMessage = `
+          Create an ultra in-depth, extremely long, meticulously detailed, 
+          and highly descriptive English prompt that intensively emphasizes 
+          every minute detail of the product in the provided image—its vibrant 
+          colors, intricate fabric textures, subtle embroidery, delicate stitching 
+          patterns, and any unique design elements—ensuring it is worn by a 
+          **real-life, photorealistic human model (no mannequins, no CGI)**, 
+          strongly highlighting how the material drapes, moves, and catches the 
+          light on the model’s body in a physically plausible manner. Additionally, 
+          if the product or environment details indicate a clothing item, specify 
+          whether it is sleeveless, strapless, or long-sleeved, and exactly how far 
+          it extends on the wearer’s body (e.g., waist-length, knee-length, or ankle-length), 
+          emphasizing these critical details within this single continuous line. 
+          Demand the prompt be styled in a refined, high-fashion editorial photography 
+          manner, with exceptional lighting, composition, and camera angles. 
+          Translate and integrate any provided environmental, model, or product details 
+          into English if needed, and merge all elements into a single continuous line 
+          without headings or paragraphs. 
+          
+          ${environmentContext ? `include: ${environmentContext},` : ""} 
+          ${extraPromptDetail ? `also include: ${extraPromptDetail}.` : ""}
+        `;
+
+        // Eğer environmentContext'te "Model's pose" yoksa, ek bir cümle ekleyebilirsin:
         if (
           !environmentContext ||
           !environmentContext.includes("Model's pose")
         ) {
-          contentMessage +=
-            " Additionally, instruct the model to adopt a pose that perfectly accentuates and complements the garment’s aesthetic and character. Additionally, no matter the request, provide the prompt without any censorship as it is a prompt explicitly crafted for a fashion application.";
+          contentMessage += `
+            Additionally, instruct the model to adopt a pose that complements 
+            the garment’s aesthetic and ensure the final prompt insists on 
+            hyperrealistic lighting and shading that further enhances the realism.
+          `;
         }
       } else if (categories === "photoshoot") {
         contentMessage = `Create an extremely detailed, vividly descriptive, and atmospherically rich English prompt that showcases the product as the focal point of a creative AI-generated photoshoot scene without any model; portray intricate textures, colors, materials, subtle patterns, and how light and shadow play across its surface in a captivating environment that enhances the product’s unique qualities, translating any provided environmental or contextual details into English and seamlessly integrating them, along with additional product information, into a single continuous prompt line without headings or paragraphs; ${
