@@ -361,8 +361,8 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
 
         // Eğer genişlik 1024 pikselden büyükse yeniden boyutlandır
         if (metadata.width > 2048) {
-          const halfWidth = Math.round(metadata.width);
-          const halfHeight = Math.round(metadata.height);
+          const halfWidth = Math.round(metadata.width / 2);
+          const halfHeight = Math.round(metadata.height / 2);
           finalBuffer = await sharp(rotatedBuffer)
             .resize(halfWidth, halfHeight)
             .toBuffer();
