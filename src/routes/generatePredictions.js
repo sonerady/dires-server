@@ -306,7 +306,7 @@ async function updateImageCount(productId, imageCount) {
     .from("userproduct")
     .select("imageCount")
     .eq("product_id", productId)
-    .single();
+    .maybeSingle();
 
   if (productError) {
     console.error("Error fetching product data:", productError);
