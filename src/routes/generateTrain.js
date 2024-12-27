@@ -162,13 +162,19 @@ async function generateCaptionForSingleImage(imageUrl) {
 
   const contentMessage = `
   Please look at this single product image and produce an extremely detailed,
-  rich, and highly descriptive English caption focusing exclusively on the product’s intricate details, 
-  materials, craftsmanship, colors, textures, subtle features, and overall luxury. 
-  Do not mention any mannequins, backgrounds, or unrelated elements. 
-  The caption must be contained within a single long paragraph that vividly brings only the product to life 
-  in the reader's mind, specifying **exactly where each detail is located** on the product 
+  rich, and highly descriptive English caption focusing exclusively on the product’s intricate details,
+  materials, craftsmanship, colors, textures, subtle features, and overall luxury.
+  Do not mention any mannequins, backgrounds, or unrelated elements.
+  The caption must be contained within a single long paragraph that vividly brings only the product to life
+  in the reader's mind, specifying **exactly where each detail is located** on the product
   (for example, on the collar, sleeve, chest area, or hem), 
   as it is **extremely important** to identify the precise position of each design element.
+
+  Additionally, please include details about the camera angle and the portion of the product that is visible:
+  - If the shot is a full-body view, state that the entire piece from head to toe is captured.
+  - If only the upper part of the product is shown, note that it focuses on the bodice/upper section.
+  - If it is taken from the side or at an angle, describe how this perspective reveals the silhouette or side details.
+  - If the product is facing the camera directly or slightly turned, mention how that view highlights certain design elements.
 `;
 
   for (let attempt = 1; attempt <= MAX_RETRY; attempt++) {
