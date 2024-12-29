@@ -280,7 +280,7 @@ async function generateImagesWithReplicate(
       input: {
         prompt: modifiedPrompt,
         hf_loras: combinedHfLoras,
-        lora_scales: [0.9],
+        lora_scales: [1],
         num_outputs: imageCount,
         aspect_ratio: imageRatio,
         output_format: imageFormat,
