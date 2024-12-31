@@ -582,10 +582,14 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
               .replace(/[^a-z0-9-_.]/g, "")
               .replace(/^-+|-+$/g, "");
 
-            const model = await replicate.models.create("appdiress", repoName, {
-              visibility: "private",
-              hardware: "gpu-a100-large",
-            });
+            const model = await replicate.models.create(
+              "nodselemen",
+              repoName,
+              {
+                visibility: "private",
+                hardware: "gpu-a100-large",
+              }
+            );
 
             console.log("Model eğitimi başlatılıyor...");
             const training = await replicate.trainings.create(
