@@ -204,6 +204,44 @@ router.post("/generateImgToVid", async (req, res) => {
       });
     }
 
+    // Kredi düşme işlemi
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("credit_balance")
+      .eq("id", userId)
+      .single();
+
+    if (userError) {
+      console.error("Error fetching user credit balance:", userError);
+      return res.status(500).json({
+        success: false,
+        message: "Error fetching user credit balance",
+        error: userError.message,
+      });
+    }
+
+    if (!userData || userData.credit_balance < 50) {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient credit balance",
+      });
+    }
+
+    // Krediyi düş
+    const { error: creditUpdateError } = await supabase
+      .from("users")
+      .update({ credit_balance: userData.credit_balance - 50 })
+      .eq("id", userId);
+
+    if (creditUpdateError) {
+      console.error("Error updating credit balance:", creditUpdateError);
+      return res.status(500).json({
+        success: false,
+        message: "Error updating credit balance",
+        error: creditUpdateError.message,
+      });
+    }
+
     // 1) firstFrameUrl (Base64 -> Supabase) (tek resim)
     let firstFrameUrl = first_frame_image;
     if (firstFrameUrl.startsWith("data:image/")) {
@@ -289,10 +327,10 @@ router.post("/generateImgToVid", async (req, res) => {
  * 2) GET /api/predictionStatus/:predictionId
  *
  * Bu endpoint:
- * - DB’den kaydı bulur.
+ * - DB'den kaydı bulur.
  * - replicate.predictions.get(...) ile durumu (status, output vb.) çeker.
- * - DB’yi günceller (ancak 'status' kolonunu artık güncellemiyoruz).
- * - Sonucu front-end’e döner.
+ * - DB'yi günceller (ancak 'status' kolonunu artık güncellemiyoruz).
+ * - Sonucu front-end'e döner.
  */
 router.get("/predictionStatus/:predictionId", async (req, res) => {
   try {
@@ -303,7 +341,7 @@ router.get("/predictionStatus/:predictionId", async (req, res) => {
         .json({ success: false, message: "No ID provided" });
     }
 
-    // DB’den kaydı al
+    // DB'den kaydı al
     const { data: rows, error } = await supabase
       .from("predictions")
       .select("*")
@@ -331,22 +369,54 @@ router.get("/predictionStatus/:predictionId", async (req, res) => {
     // replicate üzerinden güncel durumu sorgula
     const replicatePrediction = await predictions.get(predictionId);
 
+    // Status'ü console'a yaz
+    console.log(
+      `Prediction status for ${predictionId}:`,
+      replicatePrediction.status
+    );
+
     // Artık status'u güncellemiyoruz, sadece outputu güncelliyoruz:
     const updateData = {};
 
     if (replicatePrediction.status === "succeeded") {
-      // Bazen replicatePrediction.output bir dizi link olabilir:
-      // Tek string ise => "https://..."
-      // Array ise => ["https://...", "https://..."]
       updateData.product_main_image = replicatePrediction.output
         ? JSON.stringify(replicatePrediction.output)
         : null;
-    } else if (replicatePrediction.status === "failed") {
-      // Başarısızsa null çekiyoruz
+    } else if (
+      replicatePrediction.status === "failed" ||
+      replicatePrediction.status === "canceled"
+    ) {
       updateData.product_main_image = null;
+
+      // Krediyi iade et
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("credit_balance")
+        .eq("id", predictionRow.user_id)
+        .single();
+
+      if (userError) {
+        console.error(
+          "Error fetching user credit balance for refund:",
+          userError
+        );
+      } else if (userData) {
+        const { error: creditRefundError } = await supabase
+          .from("users")
+          .update({ credit_balance: userData.credit_balance + 50 })
+          .eq("id", predictionRow.user_id);
+
+        if (creditRefundError) {
+          console.error("Error refunding credit balance:", creditRefundError);
+        } else {
+          console.log(
+            `Refunded 50 credits to user ${predictionRow.user_id} due to ${replicatePrediction.status} status`
+          );
+        }
+      }
     }
 
-    // DB’de product_main_image kolonunu güncelle
+    // DB'de product_main_image kolonunu güncelle
     // (status kolonu olmadığı için artık ekleme yapmıyoruz)
     const { error: updateError } = await supabase
       .from("predictions")
