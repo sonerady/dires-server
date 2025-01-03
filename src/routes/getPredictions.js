@@ -142,6 +142,44 @@ router.get("/getPredictions/:userId", async (req, res) => {
 
         const progress = extractProgressFromLogs(replicateData.logs);
 
+        // Kredi iadesi kontrolü
+        if (
+          (replicateData.status === "failed" ||
+            replicateData.status === "canceled") &&
+          replicateData.version ===
+            "0315be12f26fe9bc3b3205c1287b6d5a045859bc404723c000893947f1891f36"
+        ) {
+          // Krediyi iade et
+          const { data: userData, error: userError } = await supabase
+            .from("users")
+            .select("credit_balance")
+            .eq("id", prediction.user_id)
+            .single();
+
+          if (userError) {
+            console.error(
+              "Error fetching user credit balance for refund:",
+              userError
+            );
+          } else if (userData) {
+            const { error: creditRefundError } = await supabase
+              .from("users")
+              .update({ credit_balance: userData.credit_balance + 50 })
+              .eq("id", prediction.user_id);
+
+            if (creditRefundError) {
+              console.error(
+                "Error refunding credit balance:",
+                creditRefundError
+              );
+            } else {
+              console.log(
+                `Refunded 50 credits to user ${prediction.user_id} due to ${replicateData.status} status`
+              );
+            }
+          }
+        }
+
         return {
           ...prediction,
           replicate_status: replicateData.status,
