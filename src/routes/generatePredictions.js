@@ -108,6 +108,12 @@ async function generatePrompt(
           whether it is sleeveless, strapless, or long-sleeved, and exactly how far 
           it extends on the wearer’s body (e.g., waist-length, knee-length, or ankle-length), 
           emphasizing these critical details within this single continuous line. 
+
+If any specific color information is provided in the additional details, 
+          it is ABSOLUTELY CRUCIAL to prioritize and emphasize that exact color 
+          in the product description, making it the dominant color characteristic 
+          of the item regardless of the original image.
+
           Demand the prompt be styled in a refined, high-fashion editorial photography 
           manner, with exceptional lighting, composition, and camera angles. 
           Translate and integrate any provided environmental, model, or product details 

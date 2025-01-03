@@ -141,42 +141,68 @@ router.get("/getPredictions/:userId", async (req, res) => {
         }
 
         const progress = extractProgressFromLogs(replicateData.logs);
+        console.log("Kredi iadesi kontrolü 1", replicateData);
 
         // Kredi iadesi kontrolü
         if (
           (replicateData.status === "failed" ||
             replicateData.status === "canceled") &&
-          replicateData.version ===
-            "0315be12f26fe9bc3b3205c1287b6d5a045859bc404723c000893947f1891f36"
+          replicateData.model === "minimax/video-01"
         ) {
-          // Krediyi iade et
-          const { data: userData, error: userError } = await supabase
-            .from("users")
-            .select("credit_balance")
-            .eq("id", prediction.user_id)
-            .single();
+          // Önce bu prediction için daha önce iade yapılıp yapılmadığını kontrol et
+          const { data: predictionData, error: predictionError } =
+            await supabase
+              .from("predictions")
+              .select("credit_refunded")
+              .eq("prediction_id", prediction.prediction_id)
+              .single();
 
-          if (userError) {
-            console.error(
-              "Error fetching user credit balance for refund:",
-              userError
-            );
-          } else if (userData) {
-            const { error: creditRefundError } = await supabase
+          if (predictionError) {
+            console.error("Error checking refund status:", predictionError);
+          } else if (!predictionData.credit_refunded) {
+            // Krediyi iade et
+            const { data: userData, error: userError } = await supabase
               .from("users")
-              .update({ credit_balance: userData.credit_balance + 50 })
-              .eq("id", prediction.user_id);
+              .select("credit_balance")
+              .eq("id", userId)
+              .single();
 
-            if (creditRefundError) {
+            if (userError) {
               console.error(
-                "Error refunding credit balance:",
-                creditRefundError
+                "Error fetching user credit balance for refund:",
+                userError
               );
-            } else {
-              console.log(
-                `Refunded 50 credits to user ${prediction.user_id} due to ${replicateData.status} status`
-              );
+            } else if (userData) {
+              const { error: creditRefundError } = await supabase
+                .from("users")
+                .update({ credit_balance: userData.credit_balance + 50 })
+                .eq("id", userId);
+
+              if (creditRefundError) {
+                console.error(
+                  "Error refunding credit balance:",
+                  creditRefundError
+                );
+              } else {
+                // İade başarılı olduysa, prediction'ı güncelle
+                const { error: updateError } = await supabase
+                  .from("predictions")
+                  .update({ credit_refunded: true })
+                  .eq("prediction_id", prediction.prediction_id);
+
+                if (updateError) {
+                  console.error("Error updating refund status:", updateError);
+                } else {
+                  console.log(
+                    `Refunded 50 credits to user ${userId} due to ${replicateData.status} status`
+                  );
+                }
+              }
             }
+          } else {
+            console.log(
+              `Credits already refunded for prediction ${prediction.prediction_id}`
+            );
           }
         }
 
