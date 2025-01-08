@@ -61,6 +61,7 @@ async function generatePrompt(
   const MAX_RETRIES = 20;
   let attempt = 0;
   let generatedPrompt = "";
+  console.log("Extra Prompt Detail:", extraPromptDetail);
 
   console.log("Image URL:", imageUrl);
 
@@ -353,6 +354,8 @@ router.post("/generatePredictions", async (req, res) => {
     imageFormat,
     imageCount,
   } = req.body;
+
+  console.log("Extra Prompt Detail:", prompt);
 
   // Basic validation
   if (!userId || !productId || !product_main_image || !imageCount) {

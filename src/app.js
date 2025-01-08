@@ -27,6 +27,9 @@ const generatePredictionsRouter = require("./routes/generatePredictions");
 const generateImgToVidRouter = require("./routes/generateImgToVid");
 const getPredictionsRouter = require("./routes/getPredictions");
 const registerAnonymousUserRouter = require("./routes/registerAnonymousUser");
+const posesRouter = require("./routes/posesRoutes");
+const generateImagesJsonRouter = require("./routes/generateImagesJson");
+const locationRoutes = require("./routes/locationRoutes");
 
 // RevenueCat webhook route import
 const revenuecatWebhookRouter = require("./routes/revenuecatWebhook");
@@ -61,6 +64,9 @@ app.use("/api", getPredictionsRouter);
 app.use("/api", getBalance);
 app.use("/api", registerAnonymousUserRouter);
 app.use("/api", generateImgToVidRouter);
+app.use("/api", posesRouter);
+app.use("/api", generateImagesJsonRouter);
+app.use("/api", locationRoutes);
 
 // RevenueCat webhook route ekle
 app.use("/revenuecat", revenuecatWebhookRouter);

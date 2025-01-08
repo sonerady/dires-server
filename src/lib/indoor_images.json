@@ -1,0 +1,366 @@
+[
+  {
+    "name": "Antique_Furniture_Store.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Antique_Furniture_Store.png"
+  },
+  {
+    "name": "Antique_Library.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Antique_Library.png"
+  },
+  {
+    "name": "Antique_Living_Room.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Antique_Living_Room.png"
+  },
+  {
+    "name": "Antique_Showroom.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Antique_Showroom.png"
+  },
+  {
+    "name": "Art_Deco_Apartment.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Art_Deco_Apartment.png"
+  },
+  {
+    "name": "Art_Deco_Hotel_Lobby.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Art_Deco_Hotel_Lobby.png"
+  },
+  {
+    "name": "Art_Gallery.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Art_Gallery.png"
+  },
+  {
+    "name": "Artists_Loft.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Artists_Loft.png"
+  },
+  {
+    "name": "Artists_Studio_with_Skylight.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Artists_Studio_with_Skylight.png"
+  },
+  {
+    "name": "Art_Studio_Loft.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Art_Studio_Loft.png"
+  },
+  {
+    "name": "Art_Studio_with_Large_Windows.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Art_Studio_with_Large_Windows.png"
+  },
+  {
+    "name": "Baroque-Style_Castle_Hall.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Baroque-Style_Castle_Hall.png"
+  },
+  {
+    "name": "Boutique_Antique_Store.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Boutique_Antique_Store.png"
+  },
+  {
+    "name": "Boutique_Bridal_Shop.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Boutique_Bridal_Shop.png"
+  },
+  {
+    "name": "Boutique_Clothing_Store.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Boutique_Clothing_Store.png"
+  },
+  {
+    "name": "Boutique_Fashion_House.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Boutique_Fashion_House.png"
+  },
+  {
+    "name": "Boutique_Hair_Salon.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Boutique_Hair_Salon.png"
+  },
+  {
+    "name": "Boutique_Hotel_Lobby.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Boutique_Hotel_Lobby.png"
+  },
+  {
+    "name": "Boutique_Hotel_Room.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Boutique_Hotel_Room.png"
+  },
+  {
+    "name": "Boutique_Office_Space.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Boutique_Office_Space.png"
+  },
+  {
+    "name": "Chic_Apartment_Kitchen.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Chic_Apartment_Kitchen.png"
+  },
+  {
+    "name": "Chic_Boutique_Store.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Chic_Boutique_Store.png"
+  },
+  {
+    "name": "Chic_Cocktail_Lounge.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Chic_Cocktail_Lounge.png"
+  },
+  {
+    "name": "Chic_Hotel_Room.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Chic_Hotel_Room.png"
+  },
+  {
+    "name": "Chic_Penthouse_Loft.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Chic_Penthouse_Loft.png"
+  },
+  {
+    "name": "Classic_Ballroom.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Classic_Ballroom.png"
+  },
+  {
+    "name": "Classic_English_Library.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Classic_English_Library.png"
+  },
+  {
+    "name": "Classic_Mansion_Parlor.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Classic_Mansion_Parlor.png"
+  },
+  {
+    "name": "Classic_Parisian_Apartment.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Classic_Parisian_Apartment.png"
+  },
+  {
+    "name": "Classic_Theater_Hall.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Classic_Theater_Hall.png"
+  },
+  {
+    "name": "Contemporary_Art_Studio.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Contemporary_Art_Studio.png"
+  },
+  {
+    "name": "Contemporary_Boutique_Store.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Contemporary_Boutique_Store.png"
+  },
+  {
+    "name": "Contemporary_Exhibition_Hall.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Contemporary_Exhibition_Hall.png"
+  },
+  {
+    "name": "Contemporary_Living_Space.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Contemporary_Living_Space.png"
+  },
+  {
+    "name": "Contemporary_Lounge.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Contemporary_Lounge.png"
+  },
+  {
+    "name": "Contemporary_Mansion_Hall.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Contemporary_Mansion_Hall.png"
+  },
+  {
+    "name": "Contemporary_Office_Space.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Contemporary_Office_Space.png"
+  },
+  {
+    "name": "Contemporary_Open-Plan_Office.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Contemporary_Open-Plan_Office.png"
+  },
+  {
+    "name": "Contemporary_Open-Plan_Studio.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Contemporary_Open-Plan_Studio.png"
+  },
+  {
+    "name": "Contemporary_Retail_Space.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Contemporary_Retail_Space.png"
+  },
+  {
+    "name": "Contemporary_Showroom.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Contemporary_Showroom.png"
+  },
+  {
+    "name": "Contemporary_Studio_Loft.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Contemporary_Studio_Loft.png"
+  },
+  {
+    "name": "Cozy_Coffee_Shop.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Cozy_Coffee_Shop.png"
+  },
+  {
+    "name": "Cozy_Fireplace_Room.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Cozy_Fireplace_Room.png"
+  },
+  {
+    "name": "Cozy_Hotel_Lounge.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Cozy_Hotel_Lounge.png"
+  },
+  {
+    "name": "Cozy_Industrial_Loft.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Cozy_Industrial_Loft.png"
+  },
+  {
+    "name": "Cozy_Library_Lounge.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Cozy_Library_Lounge.png"
+  },
+  {
+    "name": "Cozy_Reading_Nook.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Cozy_Reading_Nook.png"
+  },
+  {
+    "name": "Cozy_Studio_Loft.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Cozy_Studio_Loft.png"
+  },
+  {
+    "name": "Creative_Fashion_Studio.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Creative_Fashion_Studio.png"
+  },
+  {
+    "name": "Creative_Workshop.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Creative_Workshop.png"
+  },
+  {
+    "name": "Creative_Workspace.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Creative_Workspace.png"
+  },
+  {
+    "name": "Designer_Boutique_Studio.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Designer_Boutique_Studio.png"
+  },
+  {
+    "name": "Designer_Concept_Store.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Designer_Concept_Store.png"
+  },
+  {
+    "name": "Designer_Hotel_Suite.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Designer_Hotel_Suite.png"
+  },
+  {
+    "name": "Designer_Living_Space.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Designer_Living_Space.png"
+  },
+  {
+    "name": "Designer_Loft_Space.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Designer_Loft_Space.png"
+  },
+  {
+    "name": "Designer_Showroom.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Designer_Showroom.png"
+  },
+  {
+    "name": "Elegant_Ballroom.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Elegant_Ballroom.png"
+  },
+  {
+    "name": "Elegant_Bridal_Showroom.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Elegant_Bridal_Showroom.png"
+  },
+  {
+    "name": "Elegant_Hotel_Bar.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Elegant_Hotel_Bar.png"
+  },
+  {
+    "name": "Elegant_Hotel_Suite.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Elegant_Hotel_Suite.png"
+  },
+  {
+    "name": "Elegant_Music_Room.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Elegant_Music_Room.png"
+  },
+  {
+    "name": "Elegant_Restaurant_Interior.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Elegant_Restaurant_Interior.png"
+  },
+  {
+    "name": "Enclosed_Lounge_Deck.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Enclosed_Lounge_Deck.png"
+  },
+  {
+    "name": "Enclosed_Outdoor_Courtyard.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Enclosed_Outdoor_Courtyard.png"
+  },
+  {
+    "name": "Enclosed_Patio_Space.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Enclosed_Patio_Space.png"
+  },
+  {
+    "name": "Enclosed_Rooftop_Bar.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Enclosed_Rooftop_Bar.png"
+  },
+  {
+    "name": "Enclosed_Rooftop_Greenhouse.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Enclosed_Rooftop_Greenhouse.png"
+  },
+  {
+    "name": "Enclosed_Spa_Room.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Enclosed_Spa_Room.png"
+  },
+  {
+    "name": "Enclosed_Tropical_Garden.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Enclosed_Tropical_Garden.png"
+  },
+  {
+    "name": "Enclosed_Urban_Terrace.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Enclosed_Urban_Terrace.png"
+  },
+  {
+    "name": "Enclosed_Winter_Lounge.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Enclosed_Winter_Lounge.png"
+  },
+  {
+    "name": "Fashion_Boutique_Interior.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Fashion_Boutique_Interior.png"
+  },
+  {
+    "name": "Fashion_Design_Atelier.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Fashion_Design_Atelier.png"
+  },
+  {
+    "name": "Fashion_House_Interior.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Fashion_House_Interior.png"
+  },
+  {
+    "name": "Fashion_Photography_Studio.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Fashion_Photography_Studio.png"
+  },
+  {
+    "name": "Fashion_Runway_Stage.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Fashion_Runway_Stage.png"
+  },
+  {
+    "name": "Fashion_Studio_with_Natural_Light.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Fashion_Studio_with_Natural_Light.png"
+  },
+  {
+    "name": "Fashion_Styling_Studio.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Fashion_Styling_Studio.png"
+  },
+  {
+    "name": "Fashion_Warehouse.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Fashion_Warehouse.png"
+  },
+  {
+    "name": "Glass_Atrium.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Glass_Atrium.png"
+  },
+  {
+    "name": "Glass_Conservatory.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Glass_Conservatory.png"
+  },
+  {
+    "name": "Glass-Enclosed_Conservatory.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Glass-Enclosed_Conservatory.png"
+  },
+  {
+    "name": "Glass-Enclosed_Living_Room.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Glass-Enclosed_Living_Room.png"
+  },
+  {
+    "name": "Glass-Walled_Study.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Glass-Walled_Study.png"
+  },
+  {
+    "name": "Gothic_Cathedral_Interior.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Gothic_Cathedral_Interior.png"
+  },
+  {
+    "name": "Grand_Piano_Room.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Grand_Piano_Room.png"
+  },
+  {
+    "name": "Heritage_Building_Interior.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/Heritage_Building_Interior.png"
+  },
+  {
+    "name": "High-Ceiling_Living_Room.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/High-Ceiling_Living_Room.png"
+  },
+  {
+    "name": "High-Ceiling_Studio_Loft.png",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/indoor_images/High-Ceiling_Studio_Loft.png"
+  }
+]
