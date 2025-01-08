@@ -141,10 +141,11 @@ router.get("/getPredictions/:userId", async (req, res) => {
         }
 
         const progress = extractProgressFromLogs(replicateData.logs);
-        console.log("Kredi iadesi kontrolü 1", replicateData);
 
         // Kredi iadesi kontrolü
         if (
+          (replicateData.status === "failed" ||
+            replicateData.status === "canceled") &&
           (replicateData.status === "failed" ||
             replicateData.status === "canceled") &&
           replicateData.model === "minimax/video-01"

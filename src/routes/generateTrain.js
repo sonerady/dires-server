@@ -153,18 +153,23 @@ async function uploadToGemini(filePath, mimeType) {
   return file;
 }
 
-async function generateCaptionForSingleImage(imageUrl) {
+async function generateCaptionForSingleImage(imageUrl, productDetails) {
   const MAX_RETRY = 5;
   const tempDir = path.join(__dirname, "temp");
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
   }
+  console.log("Product Details:", productDetails);
 
   const contentMessage = `
   Please look at this single product image and produce an extremely detailed,
-  rich, and highly descriptive English caption focusing exclusively on the product’s intricate details,
+  rich, and highly descriptive English caption focusing exclusively on the product's intricate details,
   materials, craftsmanship, colors, textures, subtle features, and overall luxury.
   Do not mention any mannequins, backgrounds, or unrelated elements.
+
+  Product Details:
+  ${productDetails || "No additional details provided"}
+
   The caption must be contained within a single long paragraph that vividly brings only the product to life
   in the reader's mind, specifying **exactly where each detail is located** on the product
   (for example, on the collar, sleeve, chest area, or hem), 
@@ -225,7 +230,7 @@ async function generateCaptionForSingleImage(imageUrl) {
       if (
         generatedCaption.toLowerCase().includes("please provide the image") ||
         generatedCaption.toLowerCase().includes("i need to see the product") ||
-        generatedCaption.toLowerCase().includes("i’m sorry") ||
+        generatedCaption.toLowerCase().includes("i'm sorry") ||
         generatedCaption.toLowerCase().includes("i'm sorry") ||
         generatedCaption.split(/\s+/).length < 20
       ) {
@@ -256,10 +261,11 @@ async function generateCaptionForSingleImage(imageUrl) {
 
 router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
   const files = req.files;
-  const { user_id, request_id, image_url } = req.body;
+  const { user_id, request_id, image_url, product_details } = req.body;
 
   console.log(
-    `Yeni istek alındı: request_id=${request_id}, user_id=${user_id}`
+    `Yeni istek alındı: request_id=${request_id}, user_id=${user_id}, product_details=`,
+    product_details
   );
   res.status(200).json({ message: "İşlem başlatıldı, lütfen bekleyin..." });
 
@@ -528,7 +534,10 @@ router.post("/generateTrain", upload.array("files", 20), async (req, res) => {
       // Her görsel için ayrı caption, aynı isimde .txt
       try {
         for (const imageObj of processedImages) {
-          const caption = await generateCaptionForSingleImage(imageObj.url);
+          const caption = await generateCaptionForSingleImage(
+            imageObj.url,
+            product_details
+          );
           const txtFileName = imageObj.fileName.replace(".png", ".txt");
           archive.append(caption, { name: txtFileName });
         }
