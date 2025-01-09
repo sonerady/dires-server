@@ -77,12 +77,7 @@
     "title": "Hand on the chest, with a sincere and honest expression.",
     "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_chest_honest.webp"
   },
-  {
-    "id": 14,
-    "key": "pose_fingers_snapping_playful",
-    "title": "Snapping fingers in a playful pose.",
-    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_fingers_snapping_playful.webp"
-  },
+
   {
     "id": 15,
     "key": "pose_kneeling_on_one_knee",
@@ -323,12 +318,7 @@
     "title": "Laying on the back with hands behind the head, relaxed.",
     "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_laying_on_back_hands_behind_head.webp"
   },
-  {
-    "id": 55,
-    "key": "pose_fist_on_chin_strong",
-    "title": "Fist resting under the chin, in a strong and thoughtful stance.",
-    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_fist_on_chin_strong.webp"
-  },
+
   {
     "id": 56,
     "key": "pose_standing_bent_over_tired",
@@ -341,12 +331,7 @@
     "title": "Hand on the back of the neck, looking slightly awkward.",
     "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_neck_awkward.webp"
   },
-  {
-    "id": 58,
-    "key": "pose_standing_shrugging",
-    "title": "Standing while shrugging shoulders, with a puzzled or indifferent expression.",
-    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_standing_shrugging.webp"
-  },
+
   {
     "id": 59,
     "key": "pose_arms_open_presentation",
@@ -389,12 +374,7 @@
     "title": "Hand on the forehead, looking tired or stressed.",
     "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_forehead_tired.webp"
   },
-  {
-    "id": 66,
-    "key": "pose_leaning_back_hands_behind",
-    "title": "Leaning back with hands behind, looking relaxed.",
-    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_leaning_back_hands_behind.webp"
-  },
+
   {
     "id": 67,
     "key": "pose_hand_on_chair_back_support",
@@ -419,12 +399,7 @@
     "title": "Sitting with legs apart, looking confident and relaxed.",
     "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_sitting_legs_apart.webp"
   },
-  {
-    "id": 71,
-    "key": "pose_hand_on_back_stretching",
-    "title": "Hand on the lower back, stretching in relief.",
-    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_back_stretching.webp"
-  },
+
   {
     "id": 72,
     "key": "pose_side_glance_suspicious",
@@ -437,18 +412,7 @@
     "title": "One knee on the ground, looking poised and strong.",
     "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_one_knee_up_ground.webp"
   },
-  {
-    "id": 74,
-    "key": "pose_arms_crossed_leaning",
-    "title": "Leaning back with arms crossed, exuding confidence.",
-    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_arms_crossed_leaning.webp"
-  },
-  {
-    "id": 75,
-    "key": "pose_fist_to_fist_greeting",
-    "title": "Fist to fist greeting, showing camaraderie.",
-    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_fist_to_fist_greeting.webp"
-  },
+
   {
     "id": 76,
     "key": "pose_hand_through_hair_relaxed",
@@ -479,12 +443,7 @@
     "title": "Jumping up in the air, full of excitement and energy.",
     "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_jumping_up_excited.webp"
   },
-  {
-    "id": 81,
-    "key": "pose_hand_on_collar_adjusting",
-    "title": "Adjusting the collar of the shirt, looking stylish.",
-    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_collar_adjusting.webp"
-  },
+
   {
     "id": 82,
     "key": "pose_side_step_confident",
@@ -497,12 +456,7 @@
     "title": "Hand on elbow, looking thoughtful.",
     "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_elbow_thinking.webp"
   },
-  {
-    "id": 84,
-    "key": "pose_standing_back_to_camera",
-    "title": "Back to the camera, with a slight head turn.",
-    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_standing_back_to_camera.webp"
-  },
+
   {
     "id": 85,
     "key": "pose_hand_on_chest_proud",
@@ -515,12 +469,7 @@
     "title": "Arms spread wide, embracing the surroundings.",
     "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_arms_spread_outside.webp"
   },
-  {
-    "id": 87,
-    "key": "pose_hand_under_nose_mysterious",
-    "title": "Hand under the nose, with a mysterious expression.",
-    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_under_nose_mysterious.webp"
-  },
+
   {
     "id": 88,
     "key": "pose_head_down_hands_on_hips",
