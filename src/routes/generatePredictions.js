@@ -97,20 +97,20 @@ async function generatePrompt(
 
       if (categories === "on_model") {
         contentMessage = `
-          Create an ultra in-depth, extremely long prompt that MUST BE EXACTLY 1200 WORDS (this is a strict requirement), 
-          meticulously detailed, and highly descriptive English prompt that intensively emphasizes 
+          Create an ultra in-depth, extremely long, meticulously detailed, 
+          and highly descriptive English prompt that intensively emphasizes 
           every minute detail of the product in the provided image—its vibrant 
           colors, intricate fabric textures, subtle embroidery, delicate stitching 
           patterns, and any unique design elements—ensuring it is worn by a 
           real-life, photorealistic human model (no mannequins, no CGI), 
           strongly highlighting how the material drapes, moves, and catches the 
-          light on the model's body in a physically plausible manner. Additionally, 
+          light on the model’s body in a physically plausible manner. Additionally, 
           if the product or environment details indicate a clothing item, specify 
           whether it is sleeveless, strapless, or long-sleeved, and exactly how far 
-          it extends on the wearer's body (e.g., waist-length, knee-length, or ankle-length), 
+          it extends on the wearer’s body (e.g., waist-length, knee-length, or ankle-length), 
           emphasizing these critical details within this single continuous line. 
 
-          If any specific color information is provided in the additional details, 
+If any specific color information is provided in the additional details, 
           it is ABSOLUTELY CRUCIAL to prioritize and emphasize that exact color 
           in the product description, making it the dominant color characteristic 
           of the item regardless of the original image.
@@ -124,8 +124,6 @@ async function generatePrompt(
           Importantly, specify precisely **where each detail is located** on the garment 
           (for example, on the collar, sleeve, chest area, or hem) because it's **extremely important** 
           to mention the exact location of every design element to ensure thorough clarity.
-          
-          THE FINAL PROMPT MUST BE EXACTLY 1200 WORDS - NO MORE, NO LESS. THIS IS A CRITICAL REQUIREMENT.
       
           ${environmentContext ? `include: ${environmentContext},` : ""} 
           ${extraPromptDetail ? `also include: ${extraPromptDetail}.` : ""}
@@ -138,9 +136,8 @@ async function generatePrompt(
         ) {
           contentMessage += `
             Additionally, instruct the model to adopt a pose that complements 
-            the garment's aesthetic and ensure the final prompt insists on 
+            the garment’s aesthetic and ensure the final prompt insists on 
             hyperrealistic lighting and shading that further enhances the realism.
-            Remember, the total prompt length must be exactly 1200 words.
           `;
         }
       } else if (categories === "photoshoot") {
