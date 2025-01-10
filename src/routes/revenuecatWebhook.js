@@ -27,7 +27,23 @@ router.post("/webhook", async (req, res) => {
       ? new Date(purchased_at_ms).toISOString()
       : new Date().toISOString(); // güvenlik için, eğer yoksa mevcut zaman
 
-    // Eğer gerçek yenileme event’i "RENEWAL" olarak geliyorsa
+    // Subscription expiration handling
+    if (type === "EXPIRATION" || type === "CANCELLATION") {
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({ is_pro: false })
+        .eq("id", app_user_id);
+
+      if (updateError) {
+        console.error("Error updating user pro status:", updateError);
+        return res.status(500).json({ message: "Failed to update pro status" });
+      }
+
+      console.log("User pro status updated to false for user:", app_user_id);
+      return res.status(200).json({ message: "Pro status updated" });
+    }
+
+    // Eğer gerçek yenileme event'i "RENEWAL" olarak geliyorsa
     if (type === "RENEWAL") {
       const { data: userData, error: userError } = await supabase
         .from("users")

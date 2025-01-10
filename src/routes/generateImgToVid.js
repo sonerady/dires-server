@@ -204,7 +204,7 @@ router.post("/generateImgToVid", async (req, res) => {
       });
     }
 
-    // Kredi düşme işlemi
+    // Kredi kontrolü ve düşme işlemi - En başta yap
     const { data: userData, error: userError } = await supabase
       .from("users")
       .select("credit_balance")
@@ -227,7 +227,7 @@ router.post("/generateImgToVid", async (req, res) => {
       });
     }
 
-    // Krediyi düş
+    // Krediyi hemen düş
     const { error: creditUpdateError } = await supabase
       .from("users")
       .update({ credit_balance: userData.credit_balance - 50 })

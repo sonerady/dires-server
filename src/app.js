@@ -31,6 +31,7 @@ const posesRouter = require("./routes/posesRoutes");
 const generateImagesJsonRouter = require("./routes/generateImagesJson");
 const locationRoutes = require("./routes/locationRoutes");
 const imageEnhancementRouter = require("./routes/imageEnhancement");
+const faceSwapRouter = require("./routes/faceSwap");
 
 // RevenueCat webhook route import
 const revenuecatWebhookRouter = require("./routes/revenuecatWebhook");
@@ -50,6 +51,7 @@ app.use("/api/getModel", getModelRouter);
 app.use("/api/listTrainings", listTraingsRouter);
 app.use("/api/getTraining", getTraining);
 app.use("/api/imageEnhancement", imageEnhancementRouter);
+app.use("/api/faceSwap", faceSwapRouter);
 app.use("/api", updateCreditRouter);
 app.use("/api", getUserRouter);
 app.use("/api", notificationRoutes);
