@@ -399,8 +399,27 @@ router.post("/generatePredictions", async (req, res) => {
     // Her resim başına 1 imageCount ekliyoruz
     const newImageCount = (productData?.imageCount || 0) + imageCount;
 
-    // Eğer yeni imageCount 30 veya daha büyükse kredilerden düşülmesi gerekiyor
-    if (newImageCount >= 30) {
+    // Fetch user's pro status
+    const { data: userProData, error: userProError } = await supabase
+      .from("users")
+      .select("is_pro")
+      .eq("id", userId)
+      .single();
+
+    if (userProError) {
+      console.error("Error fetching user pro status:", userProError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch user pro status",
+        error: userProError.message,
+      });
+    }
+
+    // Determine the threshold based on pro status
+    const imageCountThreshold = userProData.is_pro ? 60 : 30;
+
+    // Check if newImageCount exceeds the threshold
+    if (newImageCount >= imageCountThreshold) {
       // Her resim başına 5 kredi düş
       const creditsToDeduct = imageCount * 5;
 
