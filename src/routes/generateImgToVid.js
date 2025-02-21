@@ -16,75 +16,68 @@ const replicate = new Replicate({
 });
 const predictions = replicate.predictions;
 
-// Gemini ile ilgili importlar
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-const { GoogleAIFileManager } = require("@google/generative-ai/server");
-const apiKey = process.env.GEMINI_API_KEY;
-const genAI = new GoogleGenerativeAI(apiKey);
-const fileManager = new GoogleAIFileManager(apiKey);
+// OpenAI imports
+const OpenAI = require("openai");
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 /**
  * generateVideoPrompt
- *  - imageUrl: Supabase’ten aldığımız public URL
+ *  - imageUrl: Supabase'ten aldığımız public URL
  *  - userPrompt: Kullanıcının girdiği prompt (farklı dilde olabilir)
  *
- * Bu fonksiyon, Gemini'ye resmi ve kullanıcı prompt'unu göndererek
+ * Bu fonksiyon, GPT-4 Vision'a resmi ve kullanıcı prompt'unu göndererek
  * bize kısa, İngilizce bir "video prompt" geri döndürür.
  */
 async function generateVideoPrompt(imageUrl, userPrompt) {
-  // 0) Temp klasörü hazırla
-  const tempDir = path.join(__dirname, "temp");
-  if (!fs.existsSync(tempDir)) {
-    fs.mkdirSync(tempDir);
-  }
+  try {
+    // Download the image and convert to base64
+    const imageResponse = await axios.get(imageUrl, {
+      responseType: "arraybuffer",
+    });
+    const base64Image = Buffer.from(imageResponse.data).toString("base64");
 
-  // 1) Resmi indir
-  const tempImagePath = path.join(tempDir, `${uuidv4()}.jpg`);
-  await downloadImage(imageUrl, tempImagePath);
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+    };
 
-  // 2) Gemini’ye upload
-  const uploadedFile = await uploadToGemini(tempImagePath, "image/jpeg");
-  fs.unlinkSync(tempImagePath); // Temp dosyasını sildik
-
-  // 3) Prompt içeriği
-  const contentMessage = `Given the user prompt: "${userPrompt}", which may be in any language, create a short, single-line English prompt describing a romantic couple video scenario. The video should capture an intimate, loving, and aesthetically pleasing couple shot. No headings, no paragraphs, no line breaks, just one continuous line in English.`;
-
-  // 4) Gemini config
-  const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-  });
-  const generationConfig = {
-    temperature: 1,
-    topP: 0.95,
-    topK: 40,
-    maxOutputTokens: 8192,
-    responseMimeType: "text/plain",
-  };
-  const history = [
-    {
-      role: "user",
-      parts: [
+    const payload = {
+      model: "gpt-4o",
+      messages: [
         {
-          fileData: {
-            mimeType: "image/jpeg",
-            fileUri: uploadedFile.uri,
-          },
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `Based on the user's input: "${userPrompt}" (which may be in any language) and the provided image, create a concise English prompt for image-to-video generation. Describe how the image should naturally animate and move in a short video sequence. Focus on smooth transitions, subtle movements, and natural flow. Keep it under 50 words and provide only the prompt without any additional formatting or explanations.`,
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${base64Image}`,
+              },
+            },
+          ],
         },
-        { text: contentMessage },
       ],
-    },
-  ];
+      max_tokens: 300,
+    };
 
-  // 5) Chat Session
-  const chatSession = model.startChat({
-    generationConfig,
-    history,
-  });
-  const result = await chatSession.sendMessage("");
-  const generatedPrompt = result.response.text();
-  console.log("Generated Video Prompt:", generatedPrompt);
+    const response = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      payload,
+      { headers }
+    );
 
-  return generatedPrompt;
+    const generatedPrompt = response.data.choices[0].message.content;
+    console.log("Generated Video Prompt:", generatedPrompt);
+    return generatedPrompt;
+  } catch (error) {
+    console.error("Error in GPT-4 Vision API call:", error);
+    throw error;
+  }
 }
 
 // Yardımcı fonksiyonlar
@@ -171,7 +164,7 @@ async function uploadToSupabaseAsArray(base64String, prefix = "product_main_") {
  * Bu endpoint:
  * - Kullanıcıdan gelen ürün resmi (product_main_image) ve first_frame_image base64'lerini
  *   Supabase'e yükler, oradan URL'ler alır. (Birden fazla resim geliyorsa array'e çevirir.)
- * - Gemini ile prompt oluşturur.
+ * - GPT-4 Vision ile prompt oluşturur.
  * - Replicate Minimax'e istek atar, asenkron bir prediction döner.
  * - Supabase'e prediction kaydı ekler (prediction_id, user_id, vb.).
  * - 202 Accepted döner, statüyü /api/predictionStatus/:id ile sorgulayabilirsin.
@@ -186,25 +179,55 @@ router.post("/generateImgToVid", async (req, res) => {
       prompt,
       categories,
       first_frame_image,
+      aspect_ratio,
     } = req.body;
 
-    // Zorunlu alanlar
+    // Zorunlu alanları kontrol et
     if (
       !userId ||
       !productId ||
       !product_main_image ||
       !imageCount ||
       !prompt ||
-      !first_frame_image
+      !first_frame_image ||
+      !aspect_ratio
     ) {
       return res.status(400).json({
         success: false,
         message:
-          "Missing required fields. Make sure userId, productId, product_main_image, imageCount, prompt and first_frame_image are provided.",
+          "Missing required fields. Make sure userId, productId, product_main_image, imageCount, prompt, aspect_ratio and first_frame_image are provided.",
       });
     }
 
-    // Kredi kontrolü ve düşme işlemi - En başta yap
+    // Base64 string'i temizle (DOCTYPE veya diğer HTML etiketlerini kaldır)
+    const cleanBase64 = (base64String) => {
+      // Eğer base64 string değilse (URL ise) direkt döndür
+      if (!base64String || !base64String.includes("base64")) {
+        return base64String;
+      }
+
+      // base64 kısmını ayıkla
+      const matches = base64String.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      if (matches && matches.length === 3) {
+        const contentType = matches[1];
+        const base64Data = matches[2];
+        return `data:${contentType};base64,${base64Data}`;
+      }
+
+      return base64String;
+    };
+
+    // Resimleri temizle
+    const cleanedFirstFrame = cleanBase64(first_frame_image);
+    let cleanedProductMain;
+
+    if (Array.isArray(product_main_image)) {
+      cleanedProductMain = product_main_image.map((img) => cleanBase64(img));
+    } else {
+      cleanedProductMain = cleanBase64(product_main_image);
+    }
+
+    // Check user's credit balance
     const { data: userData, error: userError } = await supabase
       .from("users")
       .select("credit_balance")
@@ -212,81 +235,77 @@ router.post("/generateImgToVid", async (req, res) => {
       .single();
 
     if (userError) {
-      console.error("Error fetching user credit balance:", userError);
+      console.error("Error fetching user data:", userError);
       return res.status(500).json({
         success: false,
-        message: "Error fetching user credit balance",
+        message: "Failed to fetch user data",
         error: userError.message,
       });
     }
 
-    if (!userData || userData.credit_balance < 50) {
+    // Check if user has enough credits
+    if (userData.credit_balance < 100) {
       return res.status(400).json({
         success: false,
-        message: "Insufficient credit balance",
+        message: "Insufficient credit balance. Required: 100 credits",
       });
     }
 
-    // Krediyi hemen düş
+    // Deduct credits
     const { error: creditUpdateError } = await supabase
       .from("users")
-      .update({ credit_balance: userData.credit_balance - 50 })
+      .update({ credit_balance: userData.credit_balance - 100 })
       .eq("id", userId);
 
     if (creditUpdateError) {
       console.error("Error updating credit balance:", creditUpdateError);
       return res.status(500).json({
         success: false,
-        message: "Error updating credit balance",
+        message: "Failed to deduct credits",
         error: creditUpdateError.message,
       });
     }
 
-    // 1) firstFrameUrl (Base64 -> Supabase) (tek resim)
-    let firstFrameUrl = first_frame_image;
+    // 1) firstFrameUrl işleme
+    let firstFrameUrl = cleanedFirstFrame;
     if (firstFrameUrl.startsWith("data:image/")) {
       const uploadedFirstFrame = await uploadToSupabaseAsArray(
-        first_frame_image,
+        firstFrameUrl,
         "first_frame_"
       );
-      // Bu bize bir array döner. firstFrameUrl ise o array'in ilk elemanı olsun
       firstFrameUrl = uploadedFirstFrame[0];
     }
 
-    // 2) productMainUrl (Base64 -> Supabase) => JSON array
+    // 2) productMainUrl işleme
     let productMainUrlArray = [];
-    if (Array.isArray(product_main_image)) {
-      // eğer array geldiyse
-      for (const singleBase64 of product_main_image) {
-        const uploaded = await uploadToSupabaseAsArray(
-          singleBase64,
-          "product_main_"
-        );
-        // uploaded array dönüyor, hepsini push
+    if (Array.isArray(cleanedProductMain)) {
+      for (const image of cleanedProductMain) {
+        const uploaded = await uploadToSupabaseAsArray(image, "product_main_");
         productMainUrlArray.push(...uploaded);
       }
     } else {
-      // tek string
       const uploaded = await uploadToSupabaseAsArray(
-        product_main_image,
+        cleanedProductMain,
         "product_main_"
       );
       productMainUrlArray.push(...uploaded);
     }
 
-    // productMainUrlJSON => ["url1","url2",...]
     const productMainUrlJSON = JSON.stringify(productMainUrlArray);
 
-    // 3) Gemini ile prompt oluştur
+    // GPT-4 Vision ile prompt oluştur
     const finalPrompt = await generateVideoPrompt(firstFrameUrl, prompt);
 
     // 4) Replicate'e asenkron istek (Minimax)
     const prediction = await predictions.create({
-      model: "minimax/video-01",
+      model: "kwaivgi/kling-v1.6-pro",
       input: {
         prompt: finalPrompt,
-        prompt_optimizer: true,
-        first_frame_image: firstFrameUrl,
+        duration: 10,
+        cfg_scale: 0.5,
+        start_image: firstFrameUrl,
+        aspect_ratio: aspect_ratio,
+        negative_prompt: "",
       },
     });
 
@@ -369,51 +388,19 @@ router.get("/predictionStatus/:predictionId", async (req, res) => {
     // replicate üzerinden güncel durumu sorgula
     const replicatePrediction = await predictions.get(predictionId);
 
-    // Status'ü console'a yaz
-    console.log(
-      `Prediction status for ${predictionId}:`,
-      replicatePrediction.status
-    );
-
     // Artık status'u güncellemiyoruz, sadece outputu güncelliyoruz:
     const updateData = {};
 
     if (replicatePrediction.status === "succeeded") {
+      // Bazen replicatePrediction.output bir dizi link olabilir:
+      // Tek string ise => "https://..."
+      // Array ise => ["https://...", "https://..."]
       updateData.product_main_image = replicatePrediction.output
         ? JSON.stringify(replicatePrediction.output)
         : null;
-    } else if (
-      replicatePrediction.status === "failed" ||
-      replicatePrediction.status === "canceled"
-    ) {
+    } else if (replicatePrediction.status === "failed") {
+      // Başarısızsa null çekiyoruz
       updateData.product_main_image = null;
-
-      // Krediyi iade et
-      const { data: userData, error: userError } = await supabase
-        .from("users")
-        .select("credit_balance")
-        .eq("id", predictionRow.user_id)
-        .single();
-
-      if (userError) {
-        console.error(
-          "Error fetching user credit balance for refund:",
-          userError
-        );
-      } else if (userData) {
-        const { error: creditRefundError } = await supabase
-          .from("users")
-          .update({ credit_balance: userData.credit_balance + 50 })
-          .eq("id", predictionRow.user_id);
-
-        if (creditRefundError) {
-          console.error("Error refunding credit balance:", creditRefundError);
-        } else {
-          console.log(
-            `Refunded 50 credits to user ${predictionRow.user_id} due to ${replicatePrediction.status} status`
-          );
-        }
-      }
     }
 
     // DB'de product_main_image kolonunu güncelle
