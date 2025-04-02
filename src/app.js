@@ -2,6 +2,7 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const path = require("path");
 
 // Mevcut route'ların import'ları
 const imageRoutes = require("./routes/imageRoutes");
@@ -32,15 +33,47 @@ const generateImagesJsonRouter = require("./routes/generateImagesJson");
 const locationRoutes = require("./routes/locationRoutes");
 const imageEnhancementRouter = require("./routes/imageEnhancement");
 const faceSwapRouter = require("./routes/faceSwap");
+const geminiImageProcessRouter = require("./routes/geminiImageProcess");
+const imageClarityProcessRouter = require("./routes/imageClarityProcess");
 
 // RevenueCat webhook route import
 const revenuecatWebhookRouter = require("./routes/revenuecatWebhook");
 
 const app = express();
 
-app.use(cors());
+// CORS ayarlarını daha esnek hale getir
+app.use(
+  cors({
+    origin: "*", // Tüm originlere izin ver
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
+
+// Results klasörüne statik dosya erişimi sağla
+app.use("/results", express.static(path.join(__dirname, "../results")));
+
+// Basit test endpointi ekle
+app.get("/test", (req, res) => {
+  console.log("Test endpoint was called from:", req.ip);
+  res.json({
+    success: true,
+    message: "API bağlantı testi başarılı!",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// API durumunu kontrol endpointi
+app.get("/api/status", (req, res) => {
+  console.log("Status check called from:", req.ip);
+  res.json({
+    status: "online",
+    version: "1.0.0",
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // Mevcut route tanımlamaları
 app.use("/api", backgroundGeneratorRouter);
@@ -71,11 +104,17 @@ app.use("/api", generateImgToVidRouter);
 app.use("/api", posesRouter);
 app.use("/api", generateImagesJsonRouter);
 app.use("/api", locationRoutes);
+app.use("/api", geminiImageProcessRouter);
+app.use("/api", imageClarityProcessRouter);
 
 // RevenueCat webhook route ekle
 app.use("/revenuecat", revenuecatWebhookRouter);
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is accessible at http://localhost:${PORT}`);
+  console.log(
+    `For mobile devices use your machine's IP address: http://192.168.1.100:${PORT}`
+  );
 });

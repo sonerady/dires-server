@@ -15,6 +15,79 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
 
+// URL'den arkaplan kaldırma için yeni endpoint
+router.post("/remove-background", async (req, res) => {
+  const { imageUrl } = req.body;
+
+  if (!imageUrl) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Image URL is required" });
+  }
+
+  try {
+    console.log("Replicate API ile arkaplan kaldırma başlatılıyor:", imageUrl);
+
+    // Replicate API ile arkaplan kaldırma
+    const output = await replicate.run(
+      "codeplugtech/background_remover:37ff2aa89897c0de4a140a3d50969dc62b663ea467e1e2bde18008e3d3731b2b",
+      {
+        input: {
+          image: imageUrl,
+        },
+      }
+    );
+
+    console.log("Replicate API yanıtı:", output);
+
+    if (!output) {
+      throw new Error("Replicate API'den geçerli bir yanıt alınamadı");
+    }
+
+    // PNG formatında işlenmiş görüntüyü indir
+    const response = await axios({
+      method: "get",
+      url: output,
+      responseType: "arraybuffer",
+    });
+
+    const buffer = Buffer.from(response.data, "binary");
+
+    // Supabase'e yükle
+    const fileName = `nobg_${uuidv4()}.png`;
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("images")
+      .upload(fileName, buffer, {
+        contentType: "image/png",
+      });
+
+    if (uploadError) throw uploadError;
+
+    // Public URL al
+    const { data: publicUrlData, error: publicUrlError } =
+      await supabase.storage.from("images").getPublicUrl(fileName);
+
+    if (publicUrlError) throw publicUrlError;
+
+    // Başarılı yanıtı döndür
+    res.status(200).json({
+      success: true,
+      removedBgUrl: publicUrlData.publicUrl,
+      originalUrl: imageUrl,
+      result: {
+        removed_bg_url: publicUrlData.publicUrl,
+      },
+    });
+  } catch (error) {
+    console.error("Replicate API ile arkaplan kaldırma hatası:", error);
+    res.status(500).json({
+      success: false,
+      message: "Arkaplan kaldırma işlemi sırasında bir hata oluştu",
+      error: error.message || "Unknown error",
+    });
+  }
+});
+
 router.post("/remove-bg", upload.array("files", 20), async (req, res) => {
   const files = req.files;
   const { user_id, image_url } = req.body; // Retain user_id and image_url if needed
