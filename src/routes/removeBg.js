@@ -15,6 +15,42 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
 
+// Replicate predictions API
+const predictions = replicate.predictions;
+
+// Prediction tamamlana kadar bekleme fonksiyonu
+async function waitForPredictionToComplete(
+  predictionId,
+  timeout = 50000,
+  interval = 2000
+) {
+  const startTime = Date.now();
+  console.log(`Prediction ${predictionId} bekleniyor...`);
+
+  while (true) {
+    const currentPrediction = await predictions.get(predictionId);
+    console.log(
+      `Prediction ${predictionId} durumu: ${currentPrediction.status}`
+    );
+
+    if (currentPrediction.status === "succeeded") {
+      console.log(`Prediction ${predictionId} tamamlandı.`);
+      return currentPrediction;
+    } else if (
+      currentPrediction.status === "failed" ||
+      currentPrediction.status === "canceled"
+    ) {
+      throw new Error(`Prediction ${predictionId} failed or was canceled.`);
+    }
+
+    if (Date.now() - startTime > timeout) {
+      throw new Error(`Prediction ${predictionId} timed out.`);
+    }
+
+    await new Promise((res) => setTimeout(res, interval));
+  }
+}
+
 // URL'den arkaplan kaldırma için yeni endpoint
 router.post("/remove-background", async (req, res) => {
   const { imageUrl } = req.body;
@@ -27,59 +63,52 @@ router.post("/remove-background", async (req, res) => {
 
   try {
     console.log("Replicate API ile arkaplan kaldırma başlatılıyor:", imageUrl);
-
-    // Replicate API ile arkaplan kaldırma
-    const output = await replicate.run(
-      "codeplugtech/background_remover:37ff2aa89897c0de4a140a3d50969dc62b663ea467e1e2bde18008e3d3731b2b",
-      {
-        input: {
-          image: imageUrl,
-        },
-      }
+    console.log(
+      "REPLICATE_API_TOKEN:",
+      process.env.REPLICATE_API_TOKEN
+        ? "Mevcut (uzunluk: " + process.env.REPLICATE_API_TOKEN.length + ")"
+        : "Eksik"
     );
 
-    console.log("Replicate API yanıtı:", output);
+    // Replicate prediction oluştur
+    console.log("Prediction oluşturuluyor...");
+    const prediction = await predictions.create({
+      version:
+        "4067ee2a58f6c161d434a9c077cfa012820b8e076efa2772aa171e26557da919",
+      input: { image: imageUrl },
+    });
 
-    if (!output) {
+    console.log("Prediction ID:", prediction.id);
+
+    // Prediction'ın tamamlanmasını bekle
+    const completedPrediction = await waitForPredictionToComplete(
+      prediction.id,
+      120000, // 2 dakika timeout
+      3000 // 3 saniyede bir kontrol
+    );
+
+    console.log("Completed prediction:", completedPrediction);
+
+    if (!completedPrediction.output) {
       throw new Error("Replicate API'den geçerli bir yanıt alınamadı");
     }
 
-    // PNG formatında işlenmiş görüntüyü indir
-    const response = await axios({
-      method: "get",
-      url: output,
-      responseType: "arraybuffer",
-    });
-
-    const buffer = Buffer.from(response.data, "binary");
-
-    // Supabase'e yükle
-    const fileName = `nobg_${uuidv4()}.png`;
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("images")
-      .upload(fileName, buffer, {
-        contentType: "image/png",
-      });
-
-    if (uploadError) throw uploadError;
-
-    // Public URL al
-    const { data: publicUrlData, error: publicUrlError } =
-      await supabase.storage.from("images").getPublicUrl(fileName);
-
-    if (publicUrlError) throw publicUrlError;
+    // Çıktıyı al
+    const output = completedPrediction.output;
+    console.log("Çıktı alındı:", output);
 
     // Başarılı yanıtı döndür
     res.status(200).json({
       success: true,
-      removedBgUrl: publicUrlData.publicUrl,
+      removedBgUrl: output,
       originalUrl: imageUrl,
       result: {
-        removed_bg_url: publicUrlData.publicUrl,
+        removed_bg_url: output,
       },
     });
   } catch (error) {
     console.error("Replicate API ile arkaplan kaldırma hatası:", error);
+    console.error("Hata detayları:", error.stack);
     res.status(500).json({
       success: false,
       message: "Arkaplan kaldırma işlemi sırasında bir hata oluştu",
@@ -126,19 +155,27 @@ router.post("/remove-bg", upload.array("files", 20), async (req, res) => {
 
     for (const url of signedUrls) {
       try {
-        const output = await replicate.run(
-          "smoretalk/rembg-enhance:4067ee2a58f6c161d434a9c077cfa012820b8e076efa2772aa171e26557da919",
-          { input: { image: url } }
+        // Prediction oluştur
+        const prediction = await predictions.create({
+          version:
+            "4067ee2a58f6c161d434a9c077cfa012820b8e076efa2772aa171e26557da919",
+          input: { image: url },
+        });
+
+        // Prediction'ın tamamlanmasını bekle
+        const completedPrediction = await waitForPredictionToComplete(
+          prediction.id,
+          120000, // 2 dakika timeout
+          3000 // 3 saniyede bir kontrol
         );
 
-        // Get the first item of the output
-        if (Array.isArray(output) && output.length > 0) {
-          removeBgResults.push(output[0]);
+        if (completedPrediction.output) {
+          removeBgResults.push(completedPrediction.output);
         } else {
-          removeBgResults.push(output);
+          console.error("Çıktı alınamadı");
+          removeBgResults.push({ error: "Çıktı alınamadı" });
+          processingFailed = true;
         }
-
-        console.log("Arka plan kaldırma başarılı:", output);
       } catch (error) {
         console.error("Arka plan kaldırma hatası:", error);
         removeBgResults.push({ error: error.message || "Unknown error" });
