@@ -1,0 +1,538 @@
+[
+  {
+    "id": 1,
+    "key": "pose_arms_crossed_confident",
+    "title": "Arms crossed over the chest, exuding confidence.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_arms_crossed_confident.webp"
+  },
+  {
+    "id": 2,
+    "key": "pose_hands_in_pockets_relaxed",
+    "title": "Hands in pockets, standing relaxed and confident.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hands_in_pockets_relaxed.webp"
+  },
+  {
+    "id": 3,
+    "key": "pose_one_hand_on_chin_thoughtful",
+    "title": "One hand on the chin, with a thoughtful expression.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_one_hand_on_chin_thoughtful.webp"
+  },
+  {
+    "id": 4,
+    "key": "pose_leaning_against_wall_casual",
+    "title": "Leaning against a wall, standing casually.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_leaning_against_wall_casual.webp"
+  },
+  {
+    "id": 5,
+    "key": "pose_hands_on_hips_powerful",
+    "title": "Hands on hips, standing strong and determined.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hands_on_hips_powerful.webp"
+  },
+  {
+    "id": 6,
+    "key": "pose_sitting_hands_on_knees",
+    "title": "Sitting with hands on knees, in a formal yet relaxed pose.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_sitting_hands_on_knees.webp"
+  },
+  {
+    "id": 7,
+    "key": "pose_pointing_forward_direct",
+    "title": "Pointing forward with a determined expression.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_pointing_forward_direct.webp"
+  },
+  {
+    "id": 8,
+    "key": "pose_running_pose_active",
+    "title": "One leg forward, ready to run, in an active stance.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_running_pose_active.webp"
+  },
+  {
+    "id": 9,
+    "key": "pose_hand_behind_neck_shy",
+    "title": "One hand behind the neck, with a slightly shy or hesitant look.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_behind_neck_shy.webp"
+  },
+  {
+    "id": 10,
+    "key": "pose_waving_hand_friendly",
+    "title": "Waving hand in a friendly greeting.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_waving_hand_friendly.webp"
+  },
+  {
+    "id": 11,
+    "key": "pose_thumbs_up_approving",
+    "title": "Giving a thumbs-up, with an approving expression.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_thumbs_up_approving.webp"
+  },
+  {
+    "id": 12,
+    "key": "pose_arms_stretched_open_welcome",
+    "title": "Arms stretched wide open, offering a warm welcome.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_arms_stretched_open_welcome.webp"
+  },
+  {
+    "id": 13,
+    "key": "pose_hand_on_chest_honest",
+    "title": "Hand on the chest, with a sincere and honest expression.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_chest_honest.webp"
+  },
+
+  {
+    "id": 15,
+    "key": "pose_kneeling_on_one_knee",
+    "title": "Kneeling on one knee, in a serious or proposing stance.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_kneeling_on_one_knee.webp"
+  },
+  {
+    "id": 16,
+    "key": "pose_arms_up_flexing_muscles",
+    "title": "Arms raised, flexing muscles, showing strength.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_arms_up_flexing_muscles.webp"
+  },
+  {
+    "id": 17,
+    "key": "pose_sitting_back_in_chair",
+    "title": "Sitting back in a chair, looking relaxed and confident.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_sitting_back_in_chair.webp"
+  },
+  {
+    "id": 18,
+    "key": "pose_leaning_forward_interested",
+    "title": "Leaning forward, with a look of interest and attentiveness.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_leaning_forward_interested.webp"
+  },
+  {
+    "id": 19,
+    "key": "pose_hand_out_stop_gesture",
+    "title": "Hand extended forward in a 'stop' gesture.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_out_stop_gesture.webp"
+  },
+  {
+    "id": 20,
+    "key": "pose_side_profile_serious",
+    "title": "Side profile with a serious and thoughtful look.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_side_profile_serious.webp"
+  },
+  {
+    "id": 21,
+    "key": "pose_hands_clasped_formal",
+    "title": "Hands clasped in front, standing in a formal pose.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hands_clasped_formal.webp"
+  },
+  {
+    "id": 22,
+    "key": "pose_hand_in_hair_stressed",
+    "title": "Hand running through hair, with a stressed or pensive expression.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_in_hair_stressed.webp"
+  },
+  {
+    "id": 23,
+    "key": "pose_fist_pump_victorious",
+    "title": "Fist raised in the air in a victorious gesture.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_fist_pump_victorious.webp"
+  },
+  {
+    "id": 24,
+    "key": "pose_sitting_cross_legged",
+    "title": "Sitting cross-legged on the ground, relaxed and natural.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_sitting_cross_legged.webp"
+  },
+  {
+    "id": 25,
+    "key": "pose_leaning_on_table_talking",
+    "title": "Leaning on a table, talking or explaining something.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_leaning_on_table_talking.webp"
+  },
+  {
+    "id": 26,
+    "key": "pose_both_hands_on_head_shocked",
+    "title": "Both hands on the head, with a shocked expression.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_both_hands_on_head_shocked.webp"
+  },
+  {
+    "id": 27,
+    "key": "pose_hands_behind_back",
+    "title": "Hands clasped behind the back, standing formally and disciplined.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hands_behind_back.webp"
+  },
+  {
+    "id": 28,
+    "key": "pose_hand_on_chin_smiling",
+    "title": "Hand on chin, with a slight smile.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_chin_smiling.webp"
+  },
+  {
+    "id": 29,
+    "key": "pose_standing_one_leg_up",
+    "title": "Standing with one leg slightly lifted, in a dynamic stance.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_standing_one_leg_up.webp"
+  },
+  {
+    "id": 30,
+    "key": "pose_clapping_hands_excited",
+    "title": "Clapping hands, looking joyful and excited.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_clapping_hands_excited.webp"
+  },
+  {
+    "id": 31,
+    "key": "pose_arms_open_confident",
+    "title": "Arms open wide, exuding confidence and invitation.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_arms_open_confident.webp"
+  },
+  {
+    "id": 32,
+    "key": "pose_standing_arms_folded",
+    "title": "Standing with arms folded in front, showing confidence.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_standing_arms_folded.webp"
+  },
+  {
+    "id": 33,
+    "key": "pose_hand_under_chin_thinking",
+    "title": "Hand under chin, lost in deep thought.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_under_chin_thinking.webp"
+  },
+  {
+    "id": 34,
+    "key": "pose_squatting_balanced",
+    "title": "Squatting down, balanced and relaxed.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_squatting_balanced.webp"
+  },
+  {
+    "id": 35,
+    "key": "pose_holding_coffee_cup",
+    "title": "Holding a coffee cup, in a modern and casual pose.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_holding_coffee_cup.webp"
+  },
+  {
+    "id": 36,
+    "key": "pose_hand_on_waist_proud",
+    "title": "Hand on waist, standing proud and tall.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_waist_proud.webp"
+  },
+  {
+    "id": 37,
+    "key": "pose_stretching_arms_above_head",
+    "title": "Stretching arms above the head, looking relaxed and natural.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_stretching_arms_above_head.webp"
+  },
+  {
+    "id": 38,
+    "key": "pose_hand_on_ear_listening",
+    "title": "Hand cupped over the ear, as if listening intently.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_ear_listening.webp"
+  },
+  {
+    "id": 39,
+    "key": "pose_finger_gun_playful",
+    "title": "Making a finger gun gesture in a playful manner.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_finger_gun_playful.webp"
+  },
+  {
+    "id": 40,
+    "key": "pose_laying_on_stomach_relaxed",
+    "title": "Laying on the stomach, looking relaxed and thoughtful.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_laying_on_stomach_relaxed.webp"
+  },
+  {
+    "id": 41,
+    "key": "pose_sitting_on_desk_casual",
+    "title": "Sitting on the edge of a desk, looking casual and cool.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_sitting_on_desk_casual.webp"
+  },
+  {
+    "id": 42,
+    "key": "pose_hand_out_shaking",
+    "title": "Hand extended out for a handshake.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_out_shaking.webp"
+  },
+  {
+    "id": 43,
+    "key": "pose_standing_leg_crossed",
+    "title": "Standing with legs crossed, relaxed and confident.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_standing_leg_crossed.webp"
+  },
+  {
+    "id": 44,
+    "key": "pose_palm_up_questioning",
+    "title": "Palms turned upward, with a questioning or puzzled look.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_palm_up_questioning.webp"
+  },
+  {
+    "id": 45,
+    "key": "pose_running_hand_on_ground",
+    "title": "One hand on the ground, ready to sprint forward.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_running_hand_on_ground.webp"
+  },
+  {
+    "id": 46,
+    "key": "pose_holding_phone_smiling",
+    "title": "Holding a phone, smiling and looking approachable.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_holding_phone_smiling.webp"
+  },
+  {
+    "id": 47,
+    "key": "pose_arms_stretched_up_yawning",
+    "title": "Stretching arms up while yawning, morning relaxation.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_arms_stretched_up_yawning.webp"
+  },
+  {
+    "id": 48,
+    "key": "pose_tapping_wrist_waiting",
+    "title": "Tapping wrist as if waiting, with a slightly impatient look.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_tapping_wrist_waiting.webp"
+  },
+  {
+    "id": 49,
+    "key": "pose_hands_in_air_excited",
+    "title": "Hands raised high in the air, full of excitement.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hands_in_air_excited.webp"
+  },
+  {
+    "id": 50,
+    "key": "pose_hand_on_table_assertive",
+    "title": "Hand placed firmly on a table, looking assertive.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_table_assertive.webp"
+  },
+  {
+    "id": 51,
+    "key": "pose_side_leap_active",
+    "title": "Leaping to the side, dynamic and energetic.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_side_leap_active.webp"
+  },
+  {
+    "id": 52,
+    "key": "pose_hand_out_offer",
+    "title": "Hand extended forward, offering something or helping.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_out_offer.webp"
+  },
+  {
+    "id": 53,
+    "key": "pose_sitting_one_leg_up",
+    "title": "Sitting with one leg propped up, relaxed and confident.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_sitting_one_leg_up.webp"
+  },
+  {
+    "id": 54,
+    "key": "pose_laying_on_back_hands_behind_head",
+    "title": "Laying on the back with hands behind the head, relaxed.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_laying_on_back_hands_behind_head.webp"
+  },
+
+  {
+    "id": 56,
+    "key": "pose_standing_bent_over_tired",
+    "title": "Bent over, hands on knees, looking tired or exhausted.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_standing_bent_over_tired.webp"
+  },
+  {
+    "id": 57,
+    "key": "pose_hand_on_neck_awkward",
+    "title": "Hand on the back of the neck, looking slightly awkward.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_neck_awkward.webp"
+  },
+
+  {
+    "id": 59,
+    "key": "pose_arms_open_presentation",
+    "title": "Arms open wide as if giving a presentation.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_arms_open_presentation.webp"
+  },
+  {
+    "id": 60,
+    "key": "pose_fist_bump_friendly",
+    "title": "Giving a friendly fist bump.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_fist_bump_friendly.webp"
+  },
+  {
+    "id": 61,
+    "key": "pose_leaning_on_knee_serious",
+    "title": "Leaning on one knee, looking serious and contemplative.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_leaning_on_knee_serious.webp"
+  },
+  {
+    "id": 62,
+    "key": "pose_hand_over_mouth_surprise",
+    "title": "Hand over the mouth, with a surprised expression.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_over_mouth_surprise.webp"
+  },
+  {
+    "id": 63,
+    "key": "pose_standing_straight_tall",
+    "title": "Standing tall and straight, exuding strength and confidence.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_standing_straight_tall.webp"
+  },
+  {
+    "id": 64,
+    "key": "pose_finger_on_lips_secret",
+    "title": "Finger on the lips, as if keeping a secret.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_finger_on_lips_secret.webp"
+  },
+  {
+    "id": 65,
+    "key": "pose_hand_on_forehead_tired",
+    "title": "Hand on the forehead, looking tired or stressed.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_forehead_tired.webp"
+  },
+
+  {
+    "id": 67,
+    "key": "pose_hand_on_chair_back_support",
+    "title": "Hand resting on the back of a chair for support.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_chair_back_support.webp"
+  },
+  {
+    "id": 68,
+    "key": "pose_thumbs_in_pockets_relaxed",
+    "title": "Thumbs tucked into pockets, standing relaxed.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_thumbs_in_pockets_relaxed.webp"
+  },
+  {
+    "id": 69,
+    "key": "pose_fist_raised_determined",
+    "title": "Fist raised in the air, showing determination.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_fist_raised_determined.webp"
+  },
+  {
+    "id": 70,
+    "key": "pose_sitting_legs_apart",
+    "title": "Sitting with legs apart, looking confident and relaxed.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_sitting_legs_apart.webp"
+  },
+
+  {
+    "id": 72,
+    "key": "pose_side_glance_suspicious",
+    "title": "Looking sideways, with a suspicious or curious glance.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_side_glance_suspicious.webp"
+  },
+  {
+    "id": 73,
+    "key": "pose_one_knee_up_ground",
+    "title": "One knee on the ground, looking poised and strong.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_one_knee_up_ground.webp"
+  },
+
+  {
+    "id": 76,
+    "key": "pose_hand_through_hair_relaxed",
+    "title": "Hand running through hair, looking relaxed.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_through_hair_relaxed.webp"
+  },
+  {
+    "id": 77,
+    "key": "pose_standing_one_arm_up",
+    "title": "One arm raised high, looking energetic and relaxed.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_standing_one_arm_up.webp"
+  },
+  {
+    "id": 78,
+    "key": "pose_pulling_sleeves_ready",
+    "title": "Pulling up sleeves, looking ready and confident.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_pulling_sleeves_ready.webp"
+  },
+  {
+    "id": 79,
+    "key": "pose_sitting_head_in_hands",
+    "title": "Head in hands, looking upset or stressed.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_sitting_head_in_hands.webp"
+  },
+  {
+    "id": 80,
+    "key": "pose_jumping_up_excited",
+    "title": "Jumping up in the air, full of excitement and energy.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_jumping_up_excited.webp"
+  },
+
+  {
+    "id": 82,
+    "key": "pose_side_step_confident",
+    "title": "Taking a confident side step.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_side_step_confident.webp"
+  },
+  {
+    "id": 83,
+    "key": "pose_hand_on_elbow_thinking",
+    "title": "Hand on elbow, looking thoughtful.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_elbow_thinking.webp"
+  },
+
+  {
+    "id": 85,
+    "key": "pose_hand_on_chest_proud",
+    "title": "Hand on the chest, standing proudly.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_chest_proud.webp"
+  },
+  {
+    "id": 86,
+    "key": "pose_arms_spread_outside",
+    "title": "Arms spread wide, embracing the surroundings.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_arms_spread_outside.webp"
+  },
+
+  {
+    "id": 88,
+    "key": "pose_head_down_hands_on_hips",
+    "title": "Head down, hands on hips, looking deep in thought.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_head_down_hands_on_hips.webp"
+  },
+  {
+    "id": 89,
+    "key": "pose_kicking_back_playful",
+    "title": "Playfully kicking back with energy.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_kicking_back_playful.webp"
+  },
+  {
+    "id": 90,
+    "key": "pose_hand_on_face_concerned",
+    "title": "Hand on face, looking concerned or worried.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_face_concerned.webp"
+  },
+  {
+    "id": 91,
+    "key": "pose_finger_snapping_thoughtful",
+    "title": "Snapping fingers, as if remembering something.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_finger_snapping_thoughtful.webp"
+  },
+  {
+    "id": 92,
+    "key": "pose_standing_feet_apart",
+    "title": "Standing with feet shoulder-width apart, looking strong.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_standing_feet_apart.webp"
+  },
+  {
+    "id": 93,
+    "key": "pose_arms_folded_leaning_side",
+    "title": "Arms folded, leaning to the side, relaxed.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_arms_folded_leaning_side.webp"
+  },
+  {
+    "id": 94,
+    "key": "pose_hand_in_air_questioning",
+    "title": "Hand raised in the air, with a questioning look.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_in_air_questioning.webp"
+  },
+  {
+    "id": 95,
+    "key": "pose_shoulder_turn_back_smile",
+    "title": "Turning shoulder back to give a warm smile.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_shoulder_turn_back_smile.webp"
+  },
+  {
+    "id": 96,
+    "key": "pose_head_tilted_arm_crossed",
+    "title": "Head tilted, arms crossed, with a slight smile.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_head_tilted_arm_crossed.webp"
+  },
+  {
+    "id": 97,
+    "key": "pose_sitting_hands_clasped",
+    "title": "Sitting with hands clasped, serious and thoughtful."
+  },
+  {
+    "id": 98,
+    "key": "pose_open_arms_ready_hug",
+    "title": "Arms open, ready for a warm hug.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_open_arms_ready_hug.webp"
+  }
+]

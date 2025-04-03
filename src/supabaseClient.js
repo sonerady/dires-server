@@ -2,7 +2,7 @@
 const { createClient } = require("@supabase/supabase-js");
 
 // Supabase URL ve Key bilgilerini ekleyin
-const supabaseUrl = "https://vxhrlkavqqwesobhbuln.supabase.co";
+const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 
 // Supabase client oluştur
