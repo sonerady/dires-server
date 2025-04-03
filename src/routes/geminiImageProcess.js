@@ -257,6 +257,44 @@ router.post("/gemini-process", upload.single("image"), async (req, res) => {
           userDescription
         );
 
+        // Get checkbox options from request body
+        const hasShadow =
+          req.body.hasShadow === "true" || req.body.hasShadow === true;
+        const hasReflection =
+          req.body.hasReflection === "true" || req.body.hasReflection === true;
+        const keepPose =
+          req.body.keepPose === "true" || req.body.keepPose === true;
+
+        console.log("Selected options:", {
+          hasShadow,
+          hasReflection,
+          keepPose,
+          rawValues: {
+            hasShadow: req.body.hasShadow,
+            hasReflection: req.body.hasReflection,
+            keepPose: req.body.keepPose,
+          },
+        });
+
+        // Create options text for the prompt
+        const optionsArray = [];
+        if (hasShadow) optionsArray.push("with soft shadow");
+        if (hasReflection) optionsArray.push("with reflection");
+        if (keepPose) optionsArray.push("maintaining original pose");
+
+        const optionsText =
+          optionsArray.length > 0
+            ? `Include these specific requirements: ${optionsArray.join(", ")}.`
+            : "";
+
+        // Format user description
+        const userDescriptionText = userDescription.trim()
+          ? `The user has provided this product description (translate to English if in another language): "${userDescription}". Incorporate this information into your prompt.`
+          : "";
+
+        console.log("Options text for prompt:", optionsText);
+        console.log("User description text for prompt:", userDescriptionText);
+
         // Create a content request with the uploaded image for prompt generation
         const promptContent = [
           {
@@ -266,7 +304,25 @@ router.post("/gemini-process", upload.single("image"), async (req, res) => {
             },
           },
           {
-            text: 'Analyze this product image and create a detailed prompt for transforming it into a high-quality professional studio product photo specifically for e-commerce display. The prompt MUST begin with a detailed description of the product itself - describing its materials, design elements, shape, color, and any distinctive features. Then include these exact requirements: perfectly white background, soft natural shadow beneath the product, sharp high-resolution final image, close studio camera angle to show product details clearly, removal of all distractions, dust, scratches, and imperfections, and ensuring the surface appears perfectly smooth. Also ensure all metal surfaces appear crisp, reflective, and highly polished. Your response must be ONLY the prompt itself with no additional commentary or introductory phrases. The prompt must be in English and limited to 150 words. Reference example: "A white gold ring showcasing two pear-shaped gemstones—one a soft pink and the other a deep blue—each encircled by a halo of round diamonds. The band features a split shank design adorned with additional diamonds. Transform it into a sharp, high-resolution studio product photo on a perfectly white background with a soft, natural shadow. Remove all distractions and imperfections, ensuring the metal appears polished and reflective, the gemstones show vibrant color and clarity, and the diamonds exhibit maximum brilliance."',
+            text: `Analyze this product image and create a detailed prompt for transforming it into a high-quality professional studio product photo specifically for e-commerce display. ${userDescriptionText}
+
+The prompt MUST begin with a detailed description of the product itself - describing its materials, design elements, shape, color, and any distinctive features. Then include these exact requirements: perfectly white background, ${
+              hasShadow
+                ? "soft natural shadow beneath the product"
+                : "no shadow"
+            }, ${
+              hasReflection
+                ? "reflective surface showing product reflections"
+                : ""
+            }, sharp high-resolution final image, ${
+              keepPose
+                ? "maintain the exact same pose and composition as the original"
+                : "optimal composition for product display"
+            }, close studio camera angle to show product details clearly, removal of all distractions, dust, scratches, and imperfections, and ensuring the surface appears perfectly smooth. Also ensure all metal surfaces appear crisp, reflective, and highly polished. ${optionsText} 
+
+IMPORTANT: If the product is a clothing item (such as shirt, pants, dress, t-shirt, skirt, or any apparel), the clothing should appear three-dimensional and filled out as if worn by an invisible body. The clothing should maintain its natural shape with proper volume, realistic folds and draping, showing how it would look when worn, without showing any visible mannequin. The garment should appear to be floating naturally with proper form and structure, not flat or collapsed.
+
+Your response must be ONLY the prompt itself with no additional commentary or introductory phrases. The prompt must be in English (regardless of what language the user description is in) and limited to 150 words.`,
           },
         ];
 
@@ -335,7 +391,15 @@ router.post("/gemini-process", upload.single("image"), async (req, res) => {
               fileUri: uploadedFile.uri,
             },
           },
-          { text: generatedPrompt },
+          {
+            text: `${generatedPrompt} ${optionsText} ${
+              userDescription
+                ? `Take into account this product description (translate it if not in English): "${userDescription}"`
+                : ""
+            }
+
+If this is a clothing item, make it appear three-dimensional with natural volume as if worn by an invisible person. The garment should be properly filled out with realistic folds and shape, maintaining its proper structure and form as if on a body, but without showing any visible mannequin or model. The clothing should float naturally in 3D space, showing its intended fit and silhouette.`,
+          },
         ];
 
         // Generate the content
