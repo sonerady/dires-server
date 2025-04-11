@@ -14,6 +14,7 @@ const listTraingsRouter = require("./routes/listModels");
 const getTraining = require("./routes/getTraining");
 const updateCreditRouter = require("./routes/updateCredit");
 const getUserRouter = require("./routes/getUser");
+const geminiImageEditRouter = require("./routes/geminiImageEdit");
 const notificationRoutes = require("./routes/notificationRoutes");
 const addProductRouter = require("./routes/addProduct");
 const getUserProductRouter = require("./routes/getUserProduct");
@@ -106,6 +107,7 @@ app.use("/api", generateImagesJsonRouter);
 app.use("/api", locationRoutes);
 app.use("/api", geminiImageProcessRouter);
 app.use("/api", imageClarityProcessRouter);
+app.use("/api", geminiImageEditRouter);
 
 // RevenueCat webhook route ekle
 app.use("/revenuecat", revenuecatWebhookRouter);
