@@ -35,7 +35,9 @@ const locationRoutes = require("./routes/locationRoutes");
 const imageEnhancementRouter = require("./routes/imageEnhancement");
 const faceSwapRouter = require("./routes/faceSwap");
 const geminiImageProcessRouter = require("./routes/geminiImageProcess");
+const createAiBackgroundRouter = require("./routes/createAiBackground");
 const imageClarityProcessRouter = require("./routes/imageClarityProcess");
+const aiBackgroundsRouter = require("./routes/aiBackgroundsRoutes");
 
 // RevenueCat webhook route import
 const revenuecatWebhookRouter = require("./routes/revenuecatWebhook");
@@ -108,7 +110,8 @@ app.use("/api", locationRoutes);
 app.use("/api", geminiImageProcessRouter);
 app.use("/api", imageClarityProcessRouter);
 app.use("/api", geminiImageEditRouter);
-
+app.use("/api", aiBackgroundsRouter);
+app.use("/api", createAiBackgroundRouter);
 // RevenueCat webhook route ekle
 app.use("/revenuecat", revenuecatWebhookRouter);
 
