@@ -68,8 +68,10 @@ router.get("/backgrounds", (req, res) => {
 
 /**
  * @route GET /api/backgrounds/categories
- * @desc Get all available background categories
- * @returns {object} JSON response with all categories
+ * @desc Get available background categories with pagination
+ * @query {number} page - Page number (default: 1)
+ * @query {number} limit - Number of categories per page (default: 4)
+ * @returns {object} JSON response with paginated categories
  */
 router.get("/backgrounds/categories", (req, res) => {
   try {
@@ -78,8 +80,12 @@ router.get("/backgrounds/categories", (req, res) => {
       fs.readFileSync(backgroundsFilePath, "utf8")
     );
 
+    // Parse query parameters
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 4;
+
     // Extract unique categories
-    const categories = [
+    const allCategories = [
       ...new Set(
         backgroundsData
           .filter((item) => item && item.category)
@@ -87,9 +93,24 @@ router.get("/backgrounds/categories", (req, res) => {
       ),
     ];
 
+    // Calculate pagination values
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    // Get the paginated categories
+    const paginatedCategories = allCategories.slice(startIndex, endIndex);
+
     res.json({
       success: true,
-      data: categories,
+      pagination: {
+        total: allCategories.length,
+        totalPages: Math.ceil(allCategories.length / limit),
+        currentPage: page,
+        limit: limit,
+        hasNext: endIndex < allCategories.length,
+        hasPrev: page > 1,
+      },
+      data: paginatedCategories,
     });
   } catch (error) {
     console.error("Error retrieving background categories:", error);

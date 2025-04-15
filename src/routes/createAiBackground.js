@@ -99,8 +99,8 @@ Keep it simple, direct, and under 100 words. Provide only the edit instructions 
     return enhancedPrompt;
   } catch (error) {
     console.error("Error generating enhanced prompt:", error);
-    // Fallback to a default prompt in case of error
-    return `Edit this product image to make it look professional with good lighting and clean background.`;
+    // Fallback to a product-focused default prompt in case of error
+    return `A highly detailed product with every physical characteristic clearly visible. The product's materials, colors, textures, and unique design elements are prominently featured. Placed in a simple, minimal environment with soft lighting that highlights only the product itself. The product is the absolute focus of the image with no distracting elements.`;
   }
 }
 
@@ -260,7 +260,7 @@ router.post(
               },
             },
             {
-              text: `Look at this product image and create a concise, effective edit prompt based on what you see. 
+              text: `Look at this product image and create a detailed, effective text-to-image prompt that will transform it into a professional photo.
 
 ${
   userDescription
@@ -268,16 +268,31 @@ ${
     : "No specific user instructions were provided."
 }
 
-Write a clear, effective image editing prompt that would:
-1. Focus EXCLUSIVELY on the main product - identify what the actual product is and ignore anything not related to the product itself
-2. Describe ONLY the key details and features of this main product without including background elements or accessories that aren't part of the product
-3. Place this product on the background category specified in the user instructions
-4. Transform this into a professional product photo with appropriate lighting, shadows, and perspective for the specified background
-5. Ensure the product is prominently displayed and properly integrated with the background
+Your prompt should have two main parts:
 
-IMPORTANT: Your prompt should ONLY describe the main product itself and how to place it on the background. Do not include any elements unrelated to the product.
+PART 1: PRODUCT DESCRIPTION - THIS IS THE MOST IMPORTANT PART
+Focus EXCLUSIVELY on the actual product itself. Describe ONLY the product in rich, vivid detail:
+- The product's exact shape, materials, colors, and textures
+- Every unique feature, pattern, and design element of the product itself
+- The product's quality, finish, and all visual characteristics
+- DO NOT include any elements that are not part of the actual product (no props, accessories, etc.)
+- ONLY describe what is physically part of the product itself
 
-Your prompt should be in English, under 100 words, and only contain the edit instructions with no additional commentary.`,
+PART 2: ENVIRONMENTAL INTEGRATION
+Based on the category/background mentioned in the user instructions (or choose an appropriate one if none specified):
+- Simply state how the product should be placed in this environment
+- Keep the environment description minimal and focused on how it complements the product
+- Ensure the product remains the CLEAR and DOMINANT focal point of the entire image
+
+EXAMPLE FORMAT:
+"A [extremely detailed product description with ALL visual characteristics of ONLY the product itself] placed in a [brief environment description]. The light [simple lighting description] highlights the product's [key features]. The product is the clear focal point of the image."
+
+For example, if the product is a tumbler:
+"A crystal-cut glass tumbler with intricate geometric patterns etched into its transparent surface. The glass has a slight blue tint and features precise 45-degree angle cuts creating a diamond-like texture. The rim is polished to a perfect smooth edge while the base has a solid weighted bottom with the manufacturer's subtle logo etched in the center. The tumbler's walls are exactly 3mm thick with light-catching facets that create prismatic reflections. Placed on a simple beach setting with soft natural lighting that highlights the geometric patterns and transparency of the glass. The tumbler is the dominant focal point of the image."
+
+FORMAT: Write as a unified text-to-image prompt where the product description is extremely detailed but the environment is minimal, ensuring the product is the absolute focus.
+
+Your prompt should be in English, clear, product-focused (150-250 words with 80% describing ONLY the product itself), and contain no additional commentary.`,
             },
           ];
 
@@ -307,6 +322,7 @@ Your prompt should be in English, under 100 words, and only contain the edit ins
                 /^(here is|here's) (the|a) prompt( for you)?(:|\.)?\s*/i,
                 ""
               )
+              .replace(/^prompt(:|\.)?\s*/i, "")
               .trim();
 
             console.log(
@@ -318,8 +334,23 @@ Your prompt should be in English, under 100 words, and only contain the edit ins
             );
 
             // Log the prompt in a more visible way for debugging
-            console.log("\x1b[32m%s\x1b[0m", "OLUŞTURULAN PROMPT:");
+            console.log("\x1b[32m%s\x1b[0m", "OLUŞTURULAN DETAYLI PROMPT:");
             console.log("\x1b[33m%s\x1b[0m", generatedPrompt);
+
+            // Add explanation about the prompt structure
+            console.log("\x1b[36m%s\x1b[0m", "PROMPT YAPISI AÇIKLAMASI:");
+            console.log(
+              "\x1b[36m%s\x1b[0m",
+              "1. ÜRÜN DETAYLARI (%80) - SADECE ürünün kendisine ait tüm fiziksel özellikleri (şekil, malzeme, renk, doku, desenleri, kalitesi)"
+            );
+            console.log(
+              "\x1b[36m%s\x1b[0m",
+              "2. MİNİMAL ORTAM ENTEGRASYONU (%20) - Ürünün yerleştirileceği ortamın kısa açıklaması"
+            );
+            console.log(
+              "\x1b[36m%s\x1b[0m",
+              "3. Ürün, görüntünün mutlak odak noktası olarak vurgulanmalı"
+            );
           } else {
             console.log(
               "Prompt oluşturulamadı, varsayılan prompt kullanılacak."
@@ -353,11 +384,7 @@ Your prompt should be in English, under 100 words, and only contain the edit ins
             {
               text: `${generatedPrompt}
 
-${
-  userDescription
-    ? `Also consider these user instructions: "${userDescription}"`
-    : ""
-}`,
+${userDescription ? `Additional context from user: "${userDescription}"` : ""}`,
             },
           ];
 
