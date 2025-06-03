@@ -32,13 +32,21 @@ const registerAnonymousUserRouter = require("./routes/registerAnonymousUser");
 const posesRouter = require("./routes/posesRoutes");
 const generateImagesJsonRouter = require("./routes/generateImagesJson");
 const locationRoutes = require("./routes/locationRoutes");
+const backgroundRoutes = require("./routes/backgroundRoutes");
 const imageEnhancementRouter = require("./routes/imageEnhancement");
 const faceSwapRouter = require("./routes/faceSwap");
 const geminiImageProcessRouter = require("./routes/geminiImageProcess");
 const createAiBackgroundRouter = require("./routes/createAiBackground");
 const imageClarityProcessRouter = require("./routes/imageClarityProcess");
+const referenceBrowserRoutes = require("./routes/referenceBrowserRoutes");
+const referencePhotoshootRoutes = require("./routes/referencePhotoshootRoutes");
+const referenceRefinerRoutes = require("./routes/referenceRefinerRoutes");
+const bodyShapeRoutes = require("./routes/bodyShapeRoutes");
+const hairStyleRoutes = require("./routes/hairStyleRoutes");
+const hairColorRoutes = require("./routes/hairColorRoutes");
 const aiBackgroundsRouter = require("./routes/aiBackgroundsRoutes");
-
+const poseRoutes = require("./routes/poseRoutes");
+const purchaseRoutes = require("./routes/purchaseRoutes");
 // RevenueCat webhook route import
 const revenuecatWebhookRouter = require("./routes/revenuecatWebhook");
 
@@ -91,7 +99,7 @@ app.use("/api/faceSwap", faceSwapRouter);
 app.use("/api", updateCreditRouter);
 app.use("/api", getUserRouter);
 app.use("/api", notificationRoutes);
-app.use("/api", uploadImageRouter);
+app.use("/api/uploadImage", uploadImageRouter);
 app.use("/api", generateTrain);
 app.use("/api/checkStatus", checkStatusRouter);
 app.use("/api", getTrainRequestRouter);
@@ -107,13 +115,22 @@ app.use("/api", generateImgToVidRouter);
 app.use("/api", posesRouter);
 app.use("/api", generateImagesJsonRouter);
 app.use("/api", locationRoutes);
+app.use("/api/backgrounds", backgroundRoutes);
+app.use("/api/bodyshapes", bodyShapeRoutes);
+app.use("/api/hairstyles", hairStyleRoutes);
+app.use("/api/haircolors", hairColorRoutes);
 app.use("/api", geminiImageProcessRouter);
 app.use("/api", imageClarityProcessRouter);
 app.use("/api", geminiImageEditRouter);
 app.use("/api", aiBackgroundsRouter);
 app.use("/api", createAiBackgroundRouter);
+app.use("/api/referenceBrowser", referenceBrowserRoutes);
+app.use("/api/referencePhotoshoot", referencePhotoshootRoutes);
+app.use("/api/referenceRefiner", referenceRefinerRoutes);
+app.use("/api/poses", poseRoutes);
 // RevenueCat webhook route ekle
 app.use("/revenuecat", revenuecatWebhookRouter);
+app.use("/purchase", purchaseRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, "0.0.0.0", () => {

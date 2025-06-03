@@ -1,78 +1,181 @@
 const express = require("express");
 const router = express.Router();
-const fs = require("fs").promises;
+const fs = require("fs");
 const path = require("path");
 
-const VALID_LOCATIONS = ["studio_images", "outdoor_images", "indoor_images"];
+// JSON dosyalarının yolları - src/lib dizinine işaret edecek şekilde güncellendi
+const indoorImagesPath = path.join(__dirname, "../lib/indoor_images.json");
+const studioImagesPath = path.join(__dirname, "../lib/studio_images.json");
+const outdoorImagesPath = path.join(__dirname, "../lib/outdoor_images.json");
 
-router.get("/locations/:type", async (req, res) => {
+// Dosya yollarını konsola yazdırarak kontrol et
+console.log("Indoor images path:", indoorImagesPath);
+console.log("Studio images path:", studioImagesPath);
+console.log("Outdoor images path:", outdoorImagesPath);
+
+// Resim URL'lerine boyut parametresi ekleyen yardımcı fonksiyon
+const optimizeImageUrl = (imageUrl) => {
+  if (!imageUrl) return imageUrl;
+  // Sadece supabase URL'lerini işle
+  if (imageUrl.includes("supabase.co/storage")) {
+    const hasParams = imageUrl.includes("?");
+    return `${imageUrl}${hasParams ? "&" : "?"}width=512&height=512`;
+  }
+  return imageUrl;
+};
+
+// Dosya adından başlık oluşturan yardımcı fonksiyon - KÜÇÜK HARFLERLE
+const formatTitle = (filename) => {
+  if (!filename) return "location";
+  return (
+    filename
+      .replace(/\.png|\.jpg|\.jpeg/gi, "") // Uzantıları kaldır
+      // Baş harfleri büyütme kısmını kaldırdık
+      .toLowerCase()
+  ); // Tüm metni küçük harfe çevir
+};
+
+// Diziyi karıştıran yardımcı fonksiyon - HER SORGUDA FARKLI SIRALAMA İÇİN
+const shuffleArray = (array) => {
+  // Dizinin bir kopyasını oluştur
+  const shuffled = [...array];
+  // Fisher-Yates (Knuth) Shuffle algoritması
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; // Elemanları değiştir
+  }
+  return shuffled;
+};
+
+// JSON dosyalarını oku ve işle
+const loadAndProcessLocations = (filePath, category) => {
   try {
-    const { type } = req.params;
-    const { page = 1, limit = 20 } = req.query;
+    const fileData = fs.readFileSync(filePath, "utf8");
+    let items = JSON.parse(fileData);
+    items = items.map((item, index) => ({
+      id: `${category}-${item.name || index}`, // Benzersiz ID oluştur (dosya adı + kategori)
+      title: formatTitle(item.name),
+      image: optimizeImageUrl(item.image),
+      category: category,
+    }));
+    console.log(`${items.length} ${category} lokasyonu yüklendi.`);
+    return items;
+  } catch (error) {
+    console.error(`${category} lokasyonları yüklenirken hata:`, error);
+    return [];
+  }
+};
 
-    // Location tipini kontrol et
-    if (!VALID_LOCATIONS.includes(type)) {
-      return res.status(400).json({
-        success: false,
-        error:
-          "Geçersiz location tipi. Geçerli tipler: " +
-          VALID_LOCATIONS.join(", "),
-      });
-    }
+const indoorLocations = loadAndProcessLocations(indoorImagesPath, "indoor");
+const studioLocations = loadAndProcessLocations(studioImagesPath, "studio");
+const outdoorLocations = loadAndProcessLocations(outdoorImagesPath, "outdoor");
 
-    // JSON dosyasını oku
-    const filePath = path.join(__dirname, "..", "lib", `${type}.json`);
-    const jsonData = await fs.readFile(filePath, "utf8");
-    const images = JSON.parse(jsonData);
+// Test endpointi
+router.get("/test", (req, res) => {
+  res.json({
+    success: true,
+    message: "Lokasyon API çalışıyor",
+    indoorCount: indoorLocations.length,
+    studioCount: studioLocations.length,
+    outdoorCount: outdoorLocations.length,
+    totalLocations:
+      indoorLocations.length + studioLocations.length + outdoorLocations.length,
+  });
+});
 
-    // Pagination hesaplamaları
-    const startIndex = (parseInt(page) - 1) * parseInt(limit);
-    const endIndex = startIndex + parseInt(limit);
+const paginateData = (data, page, limit) => {
+  // Veriyi önce karıştır
+  const shuffledData = shuffleArray(data);
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  const paginatedItems = shuffledData.slice(startIndex, endIndex);
+  return {
+    paginatedItems,
+    hasMore: endIndex < data.length,
+    total: data.length,
+  };
+};
 
-    const paginatedImages = images.slice(startIndex, endIndex);
+// Indoor lokasyonlarını getir
+router.get("/indoor", (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const { paginatedItems, hasMore, total } = paginateData(
+      indoorLocations,
+      page,
+      limit
+    );
 
     res.json({
       success: true,
-      data: {
-        images: paginatedImages,
-        pagination: {
-          total: images.length,
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(images.length / parseInt(limit)),
-          hasMore: endIndex < images.length,
-        },
-      },
+      total,
+      page,
+      limit,
+      hasMore,
+      data: paginatedItems,
     });
   } catch (error) {
-    console.error("Error fetching locations:", error);
     res.status(500).json({
       success: false,
-      error: "Lokasyon bilgileri yüklenirken bir hata oluştu",
+      message: "Indoor lokasyonları yüklenirken hata oluştu",
+      error: error.message,
     });
   }
 });
 
-// Tüm lokasyonları listele
-router.get("/locations", async (req, res) => {
+// Studio lokasyonlarını getir
+router.get("/studio", (req, res) => {
   try {
-    const allLocations = {};
-
-    // Her lokasyon tipi için JSON dosyasını oku
-    for (const type of VALID_LOCATIONS) {
-      const filePath = path.join(__dirname, "..", "lib", `${type}.json`);
-      const jsonData = await fs.readFile(filePath, "utf8");
-      allLocations[type] = JSON.parse(jsonData);
-    }
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const { paginatedItems, hasMore, total } = paginateData(
+      studioLocations,
+      page,
+      limit
+    );
 
     res.json({
       success: true,
-      data: allLocations,
+      total,
+      page,
+      limit,
+      hasMore,
+      data: paginatedItems,
     });
   } catch (error) {
-    console.error("Error fetching all locations:", error);
     res.status(500).json({
       success: false,
-      error: "Lokasyon bilgileri yüklenirken bir hata oluştu",
+      message: "Studio lokasyonları yüklenirken hata oluştu",
+      error: error.message,
+    });
+  }
+});
+
+// Outdoor lokasyonlarını getir
+router.get("/outdoor", (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const { paginatedItems, hasMore, total } = paginateData(
+      outdoorLocations,
+      page,
+      limit
+    );
+
+    res.json({
+      success: true,
+      total,
+      page,
+      limit,
+      hasMore,
+      data: paginatedItems,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Outdoor lokasyonları yüklenirken hata oluştu",
+      error: error.message,
     });
   }
 });

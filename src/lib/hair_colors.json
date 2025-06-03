@@ -1,0 +1,97 @@
+[
+  {
+    "id": 1,
+    "title": "auburn",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/auburn.jpg"
+  },
+  {
+    "id": 2,
+    "title": "black",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/black.jpg"
+  },
+  {
+    "id": 3,
+    "title": "blonde",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/blonde.jpg"
+  },
+  {
+    "id": 4,
+    "title": "blue",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/blue.jpg"
+  },
+  {
+    "id": 5,
+    "title": "brown",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/brown.jpg"
+  },
+  {
+    "id": 6,
+    "title": "caramel",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/caramel.jpg"
+  },
+  {
+    "id": 7,
+    "title": "chestnut",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/chestnut.jpg"
+  },
+  {
+    "id": 8,
+    "title": "copper",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/copper.jpg"
+  },
+  {
+    "id": 9,
+    "title": "golden",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/golden.jpg"
+  },
+  {
+    "id": 10,
+    "title": "gray",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/gray.jpg"
+  },
+  {
+    "id": 11,
+    "title": "green",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/green.jpg"
+  },
+  {
+    "id": 12,
+    "title": "honey",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/honey.jpg"
+  },
+  {
+    "id": 13,
+    "title": "mahogany",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/mahogany.jpg"
+  },
+  {
+    "id": 14,
+    "title": "pink",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/pink.jpg"
+  },
+  {
+    "id": 15,
+    "title": "platinum",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/platinum.jpg"
+  },
+  {
+    "id": 16,
+    "title": "purple",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/purple.jpg"
+  },
+  {
+    "id": 17,
+    "title": "red",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/red.jpg"
+  },
+  {
+    "id": 18,
+    "title": "silver",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/silver.jpg"
+  },
+  {
+    "id": 19,
+    "title": "white",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/white.jpg"
+  }
+]

@@ -1,0 +1,252 @@
+[
+  {
+    "id": 1,
+    "title": "afro",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Afro.png"
+  },
+  {
+    "id": 2,
+    "title": "angular_fringe",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Angular_Fringe.png"
+  },
+  {
+    "id": 3,
+    "title": "bowl_cut",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Bowl_Cut.png"
+  },
+  {
+    "id": 4,
+    "title": "bro_flow",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Bro_Flow.png"
+  },
+  {
+    "id": 5,
+    "title": "burst_fade",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Burst_Fade.png"
+  },
+  {
+    "id": 6,
+    "title": "business_professional",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Business_Professional.png"
+  },
+  {
+    "id": 7,
+    "title": "buzz_cut",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Buzz_Cut.png"
+  },
+  {
+    "id": 8,
+    "title": "caesar_cut",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Caesar_Cut.png"
+  },
+  {
+    "id": 9,
+    "title": "center_part",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Center_Part.png"
+  },
+  {
+    "id": 10,
+    "title": "classic_pompadour",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Classic_Pompadour.png"
+  },
+  {
+    "id": 11,
+    "title": "classic_taper",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Classic_Taper.png"
+  },
+  {
+    "id": 12,
+    "title": "comb_over",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Comb_Over.png"
+  },
+  {
+    "id": 13,
+    "title": "crew_cut",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Crew_Cut.png"
+  },
+  {
+    "id": 14,
+    "title": "curly_hair",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Curly_Hair.png"
+  },
+  {
+    "id": 15,
+    "title": "disconnected_undercut",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Disconnected_Undercut.png"
+  },
+  {
+    "id": 16,
+    "title": "dreadlocks",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Dreadlocks.png"
+  },
+  {
+    "id": 17,
+    "title": "fade",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Fade.png"
+  },
+  {
+    "id": 18,
+    "title": "faux_hawk",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Faux_Hawk.png"
+  },
+  {
+    "id": 19,
+    "title": "flat_top",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Flat_Top.png"
+  },
+  {
+    "id": 20,
+    "title": "french_crop",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/French_Crop.png"
+  },
+  {
+    "id": 21,
+    "title": "high_and_tight",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/High_and_Tight.png"
+  },
+  {
+    "id": 22,
+    "title": "high_fade",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/High_Fade.png"
+  },
+  {
+    "id": 23,
+    "title": "ivy_league",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Ivy_League.png"
+  },
+  {
+    "id": 24,
+    "title": "long_hair",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Long_Hair.png"
+  },
+  {
+    "id": 25,
+    "title": "long_layers",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Long_Layers.png"
+  },
+  {
+    "id": 26,
+    "title": "long_slick_back",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Long_Slick_Back.png"
+  },
+  {
+    "id": 27,
+    "title": "low_fade",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Low_Fade.png"
+  },
+  {
+    "id": 28,
+    "title": "man_bun",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Man_Bun.png"
+  },
+  {
+    "id": 29,
+    "title": "medium_length_layers",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Medium_Length_Layers.png"
+  },
+  {
+    "id": 30,
+    "title": "mid_fade",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Mid_Fade.png"
+  },
+  {
+    "id": 31,
+    "title": "modern_pompadour",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Modern_Pompadour.png"
+  },
+  {
+    "id": 32,
+    "title": "mohawk",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Mohawk.png"
+  },
+  {
+    "id": 33,
+    "title": "mullet",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Mullet.png"
+  },
+  {
+    "id": 34,
+    "title": "pompadour",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Pompadour.png"
+  },
+  {
+    "id": 35,
+    "title": "quiff",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Quiff.png"
+  },
+  {
+    "id": 36,
+    "title": "receding_hairline",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Receding_Hairline.png"
+  },
+  {
+    "id": 37,
+    "title": "shaggy_hair",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Shaggy_Hair.png"
+  },
+  {
+    "id": 38,
+    "title": "short_and_spiky",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Short_and_Spiky.png"
+  },
+  {
+    "id": 39,
+    "title": "short_pompadour",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Short_Pompadour.png"
+  },
+  {
+    "id": 40,
+    "title": "short_textured",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Short_Textured.png"
+  },
+  {
+    "id": 41,
+    "title": "side_part",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Side_Part.png"
+  },
+  {
+    "id": 42,
+    "title": "side_swept",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Side_Swept.png"
+  },
+  {
+    "id": 43,
+    "title": "slicked_back",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Slicked_Back.png"
+  },
+  {
+    "id": 44,
+    "title": "taper_cut",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Taper_Cut.png"
+  },
+  {
+    "id": 45,
+    "title": "temple_fade",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Temple_Fade.png"
+  },
+  {
+    "id": 46,
+    "title": "textured_crop",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Textured_Crop.png"
+  },
+  {
+    "id": 47,
+    "title": "textured_pompadour",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Textured_Pompadour.png"
+  },
+  {
+    "id": 48,
+    "title": "top_knot",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Top_Knot.png"
+  },
+  {
+    "id": 49,
+    "title": "undercut",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Undercut.png"
+  },
+  {
+    "id": 50,
+    "title": "wavy_hair",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_hair_style_images/Wavy_Hair.png"
+  }
+]

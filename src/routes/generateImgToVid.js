@@ -16,67 +16,110 @@ const replicate = new Replicate({
 });
 const predictions = replicate.predictions;
 
-// OpenAI imports
-const OpenAI = require("openai");
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Gemini imports (OpenAI yerine)
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 /**
  * generateVideoPrompt
  *  - imageUrl: Supabase'ten aldığımız public URL
  *  - userPrompt: Kullanıcının girdiği prompt (farklı dilde olabilir)
  *
- * Bu fonksiyon, GPT-4 Vision'a resmi ve kullanıcı prompt'unu göndererek
+ * Bu fonksiyon, Gemini'ye resmi ve kullanıcı prompt'unu göndererek
  * bize kısa, İngilizce bir "video prompt" geri döndürür.
  */
 async function generateVideoPrompt(imageUrl, userPrompt) {
   try {
-    // Download the image and convert to base64
-    const imageResponse = await axios.get(imageUrl, {
-      responseType: "arraybuffer",
-    });
-    const base64Image = Buffer.from(imageResponse.data).toString("base64");
+    console.log("Gemini ile video prompt oluşturma başlatılıyor");
 
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-    };
+    // Gemini modeli
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-exp" });
 
-    const payload = {
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: `Based on the user's input: "${userPrompt}" (which may be in any language) and the provided image, create a concise English prompt for image-to-video generation. Describe how the image should naturally animate and move in a short video sequence. Focus on smooth transitions, subtle movements, and natural flow. Keep it under 50 words and provide only the prompt without any additional formatting or explanations.`,
-            },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:image/jpeg;base64,${base64Image}`,
-              },
-            },
-          ],
+    // Gemini'ye gönderilecek metin
+    const promptForGemini = `
+    Based on the user's input: "${userPrompt}" (which may be in any language) and the provided image, create a concise English prompt for image-to-video generation. 
+
+    Describe how the image should naturally animate and move in a short video sequence. Focus on:
+    - Smooth transitions and subtle movements
+    - Natural flow and realistic motion
+    - How objects, people, or elements in the image should move
+    - Camera movements if appropriate (zoom, pan, etc.)
+    - Lighting changes or environmental effects
+    
+    Keep it under 50 words and provide only the prompt without any additional formatting or explanations.
+    
+    User's request: ${userPrompt}
+    `;
+
+    // Resim verilerini içerecek parts dizisini hazırla
+    const parts = [{ text: promptForGemini }];
+
+    // Referans görseli Gemini'ye gönder
+    try {
+      console.log(
+        `Video prompt için görsel Gemini'ye gönderiliyor: ${imageUrl}`
+      );
+
+      const imageResponse = await axios.get(imageUrl, {
+        responseType: "arraybuffer",
+      });
+      const imageBuffer = imageResponse.data;
+
+      // Base64'e çevir
+      const base64Image = Buffer.from(imageBuffer).toString("base64");
+
+      parts.push({
+        inlineData: {
+          mimeType: "image/jpeg",
+          data: base64Image,
         },
-      ],
-      max_tokens: 300,
-    };
+      });
 
-    const response = await axios.post(
-      "https://api.openai.com/v1/chat/completions",
-      payload,
-      { headers }
-    );
+      console.log("Video prompt için görsel başarıyla Gemini'ye yüklendi");
+    } catch (imageError) {
+      console.error(
+        `Video prompt görseli yüklenirken hata: ${imageError.message}`
+      );
+    }
 
-    const generatedPrompt = response.data.choices[0].message.content;
-    console.log("Generated Video Prompt:", generatedPrompt);
-    return generatedPrompt;
+    // Gemini'den cevap al (retry mekanizması ile)
+    let enhancedPrompt;
+    const maxRetries = 3;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await model.generateContent({
+          contents: [{ parts }],
+        });
+
+        enhancedPrompt = result.response.text().trim();
+        console.log("🎬 Gemini'nin ürettiği video prompt:", enhancedPrompt);
+        break; // Başarılı olursa loop'tan çık
+      } catch (geminiError) {
+        console.error(
+          `Gemini API attempt ${attempt} failed:`,
+          geminiError.message
+        );
+
+        if (attempt === maxRetries) {
+          console.error(
+            "Gemini API all attempts failed, using original prompt"
+          );
+          enhancedPrompt = userPrompt;
+          break;
+        }
+
+        // Exponential backoff: 1s, 2s, 4s
+        const waitTime = Math.pow(2, attempt - 1) * 1000;
+        console.log(`Waiting ${waitTime}ms before retry...`);
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
+      }
+    }
+
+    return enhancedPrompt;
   } catch (error) {
-    console.error("Error in GPT-4 Vision API call:", error);
-    throw error;
+    console.error("Video prompt oluşturma hatası:", error);
+    return userPrompt; // Hata durumunda orijinal prompt'u döndür
   }
 }
 

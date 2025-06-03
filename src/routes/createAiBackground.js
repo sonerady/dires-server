@@ -360,7 +360,7 @@ Your prompt should be in English, clear, product-focused (150-250 words with 80%
 
           // Now, use the generated prompt to process the image with Gemini 2.0 Flash
           const model = genAI.getGenerativeModel({
-            model: "gemini-2.0-flash-exp",
+            model: "gemini-1.5-flash-exp",
             generationConfig: {
               responseModalities: ["Text", "Image"],
               temperature: 1,
@@ -370,7 +370,7 @@ Your prompt should be in English, clear, product-focused (150-250 words with 80%
           });
 
           console.log(
-            "Generating new image with gemini-2.0-flash-exp using the generated prompt..."
+            "Generating new image with gemini-1.5-flash-exp using the generated prompt..."
           );
 
           // Prepare the content with the uploaded image and generated prompt
