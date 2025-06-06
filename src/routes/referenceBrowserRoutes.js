@@ -1297,7 +1297,7 @@ router.post("/generate", async (req, res) => {
 
     // Replicate API'ye istek gönder
     const replicateResponse = await axios.post(
-      "https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-pro/predictions",
+      "https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-max/predictions",
       {
         input: {
           prompt: enhancedPrompt,

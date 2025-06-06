@@ -337,6 +337,13 @@ router.get("/user/:userId", async (req, res) => {
       });
     }
 
+    // Cache kontrolünü devre dışı bırak
+    res.set({
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+    });
+
     // Get user data from database - önce subscription_type ile dene
     let userData, userError;
     try {
@@ -371,9 +378,98 @@ router.get("/user/:userId", async (req, res) => {
       credit_balance: userData.credit_balance || 0,
       is_pro: userData.is_pro || false,
       subscription_type: userData.subscription_type || null,
+      timestamp: new Date().toISOString(), // Cache busting için timestamp ekle
     });
   } catch (error) {
     console.error("Get user data error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+});
+
+// Get paywall packages endpoint - hızlı fallback paketleri
+router.get("/packages", async (req, res) => {
+  try {
+    // Cache kontrolünü devre dışı bırak
+    res.set({
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+    });
+
+    // Hızlı fallback paketleri döndür
+    const packages = {
+      coinPackages: [
+        {
+          coins: "300",
+          identifier: "backend_300_coins",
+          price: "$12.99",
+          pricePerCoin: "$0.043",
+          originalPrice: 12.99,
+          bestValue: false,
+          description: "300 Credits Pack",
+          currencyCode: "USD",
+        },
+        {
+          coins: "1000",
+          identifier: "backend_1000_coins",
+          price: "$29.99",
+          pricePerCoin: "$0.030",
+          originalPrice: 29.99,
+          bestValue: true,
+          description: "1000 Credits Pack - Best Value!",
+          currencyCode: "USD",
+        },
+        {
+          coins: "2200",
+          identifier: "backend_2200_coins",
+          price: "$54.99",
+          pricePerCoin: "$0.025",
+          originalPrice: 54.99,
+          bestValue: false,
+          description: "2200 Credits Pack",
+          currencyCode: "USD",
+        },
+        {
+          coins: "5000",
+          identifier: "backend_5000_coins",
+          price: "$99.99",
+          pricePerCoin: "$0.020",
+          originalPrice: 99.99,
+          bestValue: false,
+          description: "5000 Credits Pack - Maximum Value!",
+          currencyCode: "USD",
+        },
+      ],
+      subscriptionPackages: [
+        {
+          type: "weekly",
+          identifier: "backend_weekly_sub",
+          price: "$2.99",
+          coins: 600,
+          period: "week",
+          description: "Weekly Pro 600",
+        },
+        {
+          type: "monthly",
+          identifier: "backend_monthly_sub",
+          price: "$24.99",
+          coins: 2400,
+          period: "month",
+          description: "Monthly Pro 2400",
+        },
+      ],
+      timestamp: new Date().toISOString(),
+    };
+
+    return res.status(200).json({
+      success: true,
+      ...packages,
+    });
+  } catch (error) {
+    console.error("Get packages error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
