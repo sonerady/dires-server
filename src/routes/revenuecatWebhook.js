@@ -57,10 +57,10 @@ router.post("/webhook", async (req, res) => {
       }
 
       let addedCoins = 0;
-      if (product_id === "com.monailisa.1200coinmonthly") {
-        addedCoins = 1200;
-      } else if (product_id === "com.monailisa.3000coinmonthly") {
-        addedCoins = 3000;
+      if (product_id === "com.monailisa.pro_weekly600") {
+        addedCoins = 600;
+      } else if (product_id === "com.monailisa.pro_monthly2400") {
+        addedCoins = 2400;
       }
 
       const currentBalance = userData.credit_balance || 0;
