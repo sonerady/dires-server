@@ -34,21 +34,26 @@ router.post("/verify", async (req, res) => {
       });
     }
 
-    // GÜVENLIK: Demo/fallback transaction'ları engelle
-    if (
-      !transactionId ||
-      transactionId.includes("demo_") ||
-      transactionId.includes("fallback_") ||
-      productId.includes("demo_") ||
-      productId.includes("fallback_") ||
-      packageType === "demo_one_time"
-    ) {
+    // GÜVENLIK: Sadece gerçek demo/fallback transaction'ları engelle
+    // RevenueCat gerçek product ID'leri (com.monailisa.*) geçirebilir
+    const isRealRevenueCatProduct =
+      productId && productId.startsWith("com.monailisa.");
+    const isDemoTransaction =
+      (transactionId &&
+        (transactionId.includes("demo_") ||
+          transactionId.includes("fallback_"))) ||
+      (productId &&
+        (productId.includes("demo_") || productId.includes("fallback_"))) ||
+      packageType === "demo_one_time";
+
+    if (isDemoTransaction && !isRealRevenueCatProduct) {
       console.log(
         "Purchase verification BLOCKED - Demo/fallback transaction detected:",
         {
           transactionId,
           productId,
           packageType,
+          isRealRevenueCatProduct,
         }
       );
       return res.status(400).json({
@@ -57,8 +62,23 @@ router.post("/verify", async (req, res) => {
       });
     }
 
-    // Demo transaction ID oluştur eğer yoksa
-    const finalTransactionId = transactionId || `demo_${userId}_${Date.now()}`;
+    // Test modunda transaction ID olmayabilir - gerçek RevenueCat product'ları için izin ver
+    if (!transactionId && isRealRevenueCatProduct) {
+      console.log(
+        "Test mode detected - allowing RevenueCat product without transaction ID:",
+        {
+          productId,
+          userId,
+        }
+      );
+    }
+
+    // Transaction ID oluştur eğer yoksa (test modunda)
+    const finalTransactionId =
+      transactionId ||
+      (isRealRevenueCatProduct
+        ? `test_${productId.replace(/\./g, "_")}_${userId}_${Date.now()}`
+        : `demo_${userId}_${Date.now()}`);
 
     // Check if transaction already processed
     const { data: existingPurchase, error: checkError } = await supabase
