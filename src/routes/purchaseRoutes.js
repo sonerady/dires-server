@@ -34,6 +34,29 @@ router.post("/verify", async (req, res) => {
       });
     }
 
+    // GÜVENLIK: Demo/fallback transaction'ları engelle
+    if (
+      !transactionId ||
+      transactionId.includes("demo_") ||
+      transactionId.includes("fallback_") ||
+      productId.includes("demo_") ||
+      productId.includes("fallback_") ||
+      packageType === "demo_one_time"
+    ) {
+      console.log(
+        "Purchase verification BLOCKED - Demo/fallback transaction detected:",
+        {
+          transactionId,
+          productId,
+          packageType,
+        }
+      );
+      return res.status(400).json({
+        success: false,
+        message: "Demo transactions are not allowed",
+      });
+    }
+
     // Demo transaction ID oluştur eğer yoksa
     const finalTransactionId = transactionId || `demo_${userId}_${Date.now()}`;
 

@@ -85,12 +85,79 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
   }
 }
 
+// Reference images'ları Supabase'e upload eden fonksiyon
+async function uploadReferenceImagesToSupabase(referenceImages, userId) {
+  try {
+    console.log(
+      "📤 Reference images Supabase'e yükleniyor...",
+      referenceImages.length,
+      "adet"
+    );
+
+    const uploadedUrls = [];
+
+    for (let i = 0; i < referenceImages.length; i++) {
+      const referenceImage = referenceImages[i];
+
+      try {
+        let imageSourceForUpload;
+
+        // Eğer base64 data varsa onu kullan, yoksa URI'yi kullan
+        if (referenceImage.base64) {
+          imageSourceForUpload = `data:image/jpeg;base64,${referenceImage.base64}`;
+          console.log(`📤 Reference image ${i + 1}: Base64 data kullanılıyor`);
+        } else if (
+          referenceImage.uri.startsWith("http://") ||
+          referenceImage.uri.startsWith("https://")
+        ) {
+          imageSourceForUpload = referenceImage.uri;
+          console.log(`📤 Reference image ${i + 1}: HTTP URI kullanılıyor`);
+        } else {
+          console.log(
+            `⚠️ Reference image ${i + 1}: Desteklenmeyen format, atlanıyor`
+          );
+          uploadedUrls.push(referenceImage.uri); // Fallback olarak original URI'yi kullan
+          continue;
+        }
+
+        const uploadedUrl = await uploadReferenceImageToSupabase(
+          imageSourceForUpload,
+          userId
+        );
+        uploadedUrls.push(uploadedUrl);
+        console.log(
+          `✅ Reference image ${i + 1} başarıyla upload edildi:`,
+          uploadedUrl
+        );
+      } catch (uploadError) {
+        console.error(
+          `❌ Reference image ${i + 1} upload hatası:`,
+          uploadError.message
+        );
+        // Hata durumunda original URI'yi fallback olarak kullan
+        uploadedUrls.push(referenceImage.uri);
+      }
+    }
+
+    console.log(
+      "📤 Toplam",
+      uploadedUrls.length,
+      "reference image URL'si hazırlandı"
+    );
+    return uploadedUrls;
+  } catch (error) {
+    console.error("❌ Reference images upload genel hatası:", error);
+    // Fallback: Original URI'leri döndür
+    return referenceImages.map((img) => img.uri);
+  }
+}
+
 // Görsel oluşturma sonuçlarını veritabanına kaydetme fonksiyonu
 async function saveGenerationToDatabase(
   userId,
   data,
   originalPrompt,
-  referenceImages
+  referenceImageUrls // Artık URL'ler gelecek
 ) {
   try {
     // User ID yoksa, "anonymous" olarak kaydedelim
@@ -104,7 +171,7 @@ async function saveGenerationToDatabase(
           image_url: data.result.imageUrl,
           prompt: originalPrompt,
           enhanced_prompt: data.result.enhancedPrompt,
-          reference_images: referenceImages.map((img) => img.uri),
+          reference_images: referenceImageUrls, // Artık Supabase URL'leri
           created_at: new Date().toISOString(),
         },
       ]);
@@ -960,6 +1027,13 @@ router.post("/generate", async (req, res) => {
         }
       }
 
+      // 📤 Reference images'ları Supabase'e upload et
+      console.log("📤 Reference images Supabase'e upload ediliyor...");
+      const referenceImageUrls = await uploadReferenceImagesToSupabase(
+        referenceImages,
+        userId
+      );
+
       const responseData = {
         success: true,
         result: {
@@ -975,7 +1049,7 @@ router.post("/generate", async (req, res) => {
         userId,
         responseData,
         promptText,
-        referenceImages
+        referenceImageUrls // Artık Supabase URL'leri
       );
 
       return res.status(200).json(responseData);
