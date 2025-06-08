@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+// Updated Gemini API with latest gemini-2.0-flash model
+// Using @google/generative-ai with new safety settings configuration
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { createClient } = require("@supabase/supabase-js");
 const axios = require("axios");
@@ -306,15 +308,42 @@ async function enhancePromptWithGemini(
   isMultipleProducts = false
 ) {
   try {
-    console.log("Gemini ile prompt iyileştirme başlatılıyor (tek resim için)");
+    console.log(
+      "🤖 Gemini 2.0 Flash ile prompt iyileştirme başlatılıyor (tek resim için)"
+    );
     console.log("🏞️ [GEMINI] Location image parametresi:", locationImage);
     console.log("🤸 [GEMINI] Pose image parametresi:", poseImage);
     console.log("💇 [GEMINI] Hair style image parametresi:", hairStyleImage);
     console.log("🛍️ [GEMINI] Multiple products mode:", isMultipleProducts);
 
-    // Gemini modeli
+    // Gemini 2.0 Flash modeli - En yeni API yapısı
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.0-flash",
+      safetySettings: [
+        {
+          category: "HARM_CATEGORY_HARASSMENT",
+          threshold: "BLOCK_LOW_AND_ABOVE", // Block most
+        },
+        {
+          category: "HARM_CATEGORY_HATE_SPEECH",
+          threshold: "BLOCK_LOW_AND_ABOVE", // Block most
+        },
+        {
+          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+          threshold: "BLOCK_LOW_AND_ABOVE", // Block most
+        },
+        {
+          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+          threshold: "BLOCK_LOW_AND_ABOVE", // Block most
+        },
+      ],
+      generationConfig: {
+        responseMimeType: "text/plain",
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 8192,
+      },
     });
 
     // Settings'in var olup olmadığını kontrol et
@@ -399,6 +428,29 @@ async function enhancePromptWithGemini(
     console.log("👶 [GEMINI] Gelen age ayarı:", age);
     console.log("👤 [GEMINI] Final model türü:", modelGenderText);
 
+    // ⚠️ CRITICAL: Yaş bilgisinin önemi için özel section
+    let ageSection = "";
+    if (age) {
+      console.log("👶 [GEMINI] CRITICAL: Yaş bilgisi tespit edildi:", age);
+      ageSection = `
+    
+    🚨 CRITICAL AGE REQUIREMENT - ABSOLUTE PRIORITY:
+    The user has specified a very important age requirement: "${age}"
+    
+    THIS IS EXTREMELY IMPORTANT AND MUST BE FOLLOWED:
+    - You MUST incorporate this exact age specification into your enhanced prompt
+    - The age "${age}" MUST appear explicitly in your generated prompt
+    - This age specification is CRITICAL for the image generation process
+    - Do NOT skip or ignore this age requirement under any circumstances
+    - The model description MUST reflect the characteristics appropriate for this age: "${age}"
+    - This is a mandatory requirement that cannot be omitted or changed
+    
+    EXAMPLE: If age is "25 years old", your prompt MUST include something like "25 years old model" or "25-year-old professional model"
+    EXAMPLE: If age is "young adult", your prompt MUST include "young adult model" or similar appropriate age-specific language
+    
+    ⚠️ FAILURE TO INCLUDE THE AGE SPECIFICATION WILL RESULT IN INCORRECT IMAGE GENERATION ⚠️`;
+    }
+
     let settingsPromptSection = "";
 
     if (hasValidSettings) {
@@ -427,7 +479,12 @@ async function enhancePromptWithGemini(
       )
       .join("\n    ")}
     
-    IMPORTANT: Please incorporate the user settings above into your description when appropriate.`;
+    IMPORTANT: Please incorporate ALL user settings above into your description when appropriate.
+    ${
+      age
+        ? `\n    SPECIAL ATTENTION: The age setting "${age}" is MANDATORY and must appear in your final prompt.`
+        : ""
+    }`;
     }
 
     // Pose ve perspective için akıllı öneri sistemi
@@ -594,19 +651,49 @@ async function enhancePromptWithGemini(
     let promptForGemini = `
     IMPORTANT INSTRUCTION: Please generate ONLY the requested prompt without any introduction, explanation, or commentary. Do not start with phrases like "Here's a detailed prompt" or "Editorial Photography Prompt" or any descriptive text. Return ONLY the direct prompt content that will be used for image generation.
 
+    🌍 CRITICAL LANGUAGE REQUIREMENT - MANDATORY ENGLISH TRANSLATION:
+    The user may provide input in ANY LANGUAGE (Turkish, German, Spanish, French, Italian, Japanese, Korean, Chinese, Russian, Portuguese, etc.). 
+    
+    YOU MUST TRANSLATE EVERYTHING TO ENGLISH:
+    - If user writes "model pembe şort giysin" (Turkish) → translate to "model wearing pink shorts"
+    - If user writes "modèle avec chemise rouge" (French) → translate to "model with red shirt"  
+    - If user writes "modelo con pantalones negros" (Spanish) → translate to "model with black pants"
+    - If user writes "모델이 파란 드레스를 입는다" (Korean) → translate to "model wearing blue dress"
+    - If user writes "モデルが白いシャツを着る" (Japanese) → translate to "model wearing white shirt"
+    
+    ABSOLUTE RULE: Your final prompt MUST be 100% in English. Do NOT mix languages. Do NOT keep original language words like "pembe", "rouge", "azul", "파란", "白い" etc. TRANSLATE EVERYTHING to English equivalents.
+    
+    EXAMPLE OF WRONG APPROACH: "model wearing pembe shorts" ❌
+    EXAMPLE OF CORRECT APPROACH: "model wearing pink shorts" ✅
+
     PROMPT LENGTH REQUIREMENT: Generate a comprehensive, detailed prompt that is AT LEAST 500 words long. Include extensive descriptions of fabric details, lighting conditions, environmental elements, model positioning, garment construction, textures, colors, styling elements, and photographic composition. The prompt should be richly detailed and descriptive to ensure high-quality image generation.
 
     CRITICAL MODEL DESCRIPTION REQUIREMENT: You MUST provide extensive descriptions of the ${modelGenderText} throughout the prompt. This includes:
-    - Physical appearance and body characteristics appropriate for the garment
-    - Posture, stance, and body positioning details
-    - Facial expression and overall demeanor
+    - Physical appearance and body characteristics appropriate for the garment${
+      age ? ` AND specifically for age "${age}"` : ""
+    }
+    - Posture, stance, and body positioning details appropriate for the specified age${
+      age ? ` ("${age}")` : ""
+    }
+    - Facial expression and overall demeanor that matches the age specification${
+      age ? ` ("${age}")` : ""
+    }
     - Body lines, silhouette, and how the model carries themselves
     - Hand positioning, arm placement, and leg positioning
     - Model's interaction with the garment and how they wear it
-    - Professional modeling presence and confidence
+    - Professional modeling presence and confidence appropriate for the age${
+      age ? ` ("${age}")` : ""
+    }
     - How the model's physique complements the garment design
     - Natural movement and body language that enhances the garment presentation
-    The ${modelGenderText} should be mentioned frequently throughout the description, not just briefly at the beginning.
+    ${
+      age
+        ? `- MANDATORY: Age-appropriate characteristics and appearance for "${age}" must be clearly described`
+        : ""
+    }
+    The ${modelGenderText}${
+      age ? ` (age: ${age})` : ""
+    } should be mentioned frequently throughout the description, not just briefly at the beginning.
 
     MANDATORY COMPLETE STYLING REQUIREMENT: You MUST create a complete, cohesive outfit that perfectly complements the main reference garment. Analyze the reference garment carefully and determine what additional clothing items would:
     - Best complement and enhance the main garment
@@ -676,7 +763,30 @@ async function enhancePromptWithGemini(
     - Neckline finishes: Bias binding, facing, self-fabric binding, contrast piping
     - Sleeve attachments: Set-in sleeves, raglan sleeves, dolman sleeves, cap sleeves
 
-    Create a detailed English prompt for high-fashion editorial photography featuring the main product/garment from the provided reference image worn by a ${modelGenderText}. Absolutely avoid terms like transparent, see-through, sheer, revealing, exposed, decolletage, cleavage, low-cut, plunging, bare skin, provocative, sensual, sexy, seductive, tight-fitting for sensitive areas, body-hugging, form-fitting, or fabric opacity levels. Use safe alternatives like lightweight, delicate, fine-weave, airy, modern cut, contemporary style, elegant neckline, refined cut instead. Never mention brand names, designer names, or commercial labels like Nike, Adidas, Zara, H&M, Louis Vuitton etc. Describe items as premium garment, high-quality piece, professional design instead. 
+    SAFETY NOTICE: Please ensure that all descriptions avoid potentially sensitive or flagged content. Do NOT include any language or terms that could be interpreted as:
+- Sexualized or body-focused descriptions (e.g., "slender", "curvy", "inviting", "provocative", "youthful", "bare skin", "revealing", "tight-fitting", etc.)
+- Any reference to age, body type, or attractiveness in a way that could trigger moderation
+- References to minors in suggestive settings or poses
+Always prefer neutral, professional, and editorial-style language that emphasizes garment craftsmanship, fashion styling, and photographic composition. If a description includes a model, ensure the portrayal is professional, respectful, and appropriate for a fashion editorial setting.
+
+
+    Create a detailed English prompt for high-fashion editorial photography featuring the main product/garment from the provided reference image worn by a ${modelGenderText}. 
+    
+    🌍 MANDATORY TRANSLATION REQUIREMENT: If any user input contains non-English words or phrases, YOU MUST translate them to English. Examples:
+    - "pembe" (Turkish) → "pink"  
+    - "rouge" (French) → "red"
+    - "azul" (Spanish) → "blue"
+    - "schwarz" (German) → "black"
+    - "bianco" (Italian) → "white"
+    - "πράσινο" (Greek) → "green"
+    - "黄色" (Chinese) → "yellow"
+    - "紫" (Japanese) → "purple"
+    - "оранжевый" (Russian) → "orange"
+    - And any other foreign language terms
+    
+    YOUR FINAL PROMPT MUST BE 100% ENGLISH - NO EXCEPTIONS!
+    
+    Absolutely avoid terms like transparent, see-through, sheer, revealing, exposed, decolletage, cleavage, low-cut, plunging, bare skin, provocative, sensual, sexy, seductive, tight-fitting for sensitive areas, body-hugging, form-fitting, or fabric opacity levels. Use safe alternatives like lightweight, delicate, fine-weave, airy, modern cut, contemporary style, elegant neckline, refined cut instead. Never mention brand names, designer names, or commercial labels like Nike, Adidas, Zara, H&M, Louis Vuitton etc. Describe items as premium garment, high-quality piece, professional design instead. 
 
     CRITICAL FOCUS REQUIREMENT: COMPLETELY IGNORE and DO NOT mention any of the following elements that may appear in the reference image:
     - Background furniture, objects, or environmental items unrelated to the main garment
@@ -715,13 +825,32 @@ async function enhancePromptWithGemini(
         : ""
     }
     
+    ${ageSection}
     ${settingsPromptSection}
     ${locationPromptSection}
     ${posePromptSection}
     ${perspectivePromptSection}
     ${hairStylePromptSection}
     
-    Generate a single, flowing description that reads like a master craftsperson's analysis of premium garment construction, emphasizing professional quality, material excellence, and attention to detail throughout. The ${modelGenderText} should be prominently featured and described extensively throughout the prompt - their posture, stance, body lines, professional presence, and how they embody the garment's style and quality. Describe how the ${modelGenderText} demonstrates natural movement showcasing how the fabric behaves when worn, with poses appropriate for the garment category and facial expressions matching the intended style and quality level. Include detailed descriptions of the model's physical interaction with the garment, their professional modeling presence, and how their body positioning enhances the overall presentation. The complete styled outfit should be described as a cohesive ensemble where the main garment is the star piece perfectly complemented by thoughtfully selected additional clothing items. Ensure no suggestive words, focus only on fashion and craftsmanship, use professional technical terminology, maintain editorial magazine tone, avoid content moderation triggers, emphasize construction over inappropriate body descriptions, and use no brand names whatsoever.
+    Generate a single, flowing description that reads like a master craftsperson's analysis of premium garment construction, emphasizing professional quality, material excellence, and attention to detail throughout. The ${modelGenderText}${
+      age ? ` (age: ${age})` : ""
+    } should be prominently featured and described extensively throughout the prompt - their posture, stance, body lines, professional presence, and how they embody the garment's style and quality. ${
+      age
+        ? `CRITICAL REMINDER: The model's age specification "${age}" MUST be explicitly mentioned and reflected in all physical descriptions, facial characteristics, and overall presentation style.`
+        : ""
+    } Describe how the ${modelGenderText} demonstrates natural movement showcasing how the fabric behaves when worn, with poses appropriate for the garment category${
+      age ? ` and the model's age (${age})` : ""
+    } and facial expressions matching the intended style and quality level. Include detailed descriptions of the model's physical interaction with the garment, their professional modeling presence${
+      age ? ` appropriate for their age (${age})` : ""
+    }, and how their body positioning enhances the overall presentation. The complete styled outfit should be described as a cohesive ensemble where the main garment is the star piece perfectly complemented by thoughtfully selected additional clothing items. 
+    
+    🌍 FINAL LANGUAGE CHECK: Before finishing your prompt, scan through your entire description and ensure EVERY SINGLE WORD is in English. If you find ANY non-English words (like "pembe", "rouge", "azul", "schwarz", etc.), immediately replace them with their English translations. Your prompt must be 100% English without any foreign language contamination.
+    
+    ${
+      age
+        ? `FINAL REQUIREMENT: Ensure the model's age "${age}" is clearly specified in your enhanced prompt and all descriptions reflect age-appropriate characteristics.`
+        : ""
+    } Ensure no suggestive words, focus only on fashion and craftsmanship, use professional technical terminology, maintain editorial magazine tone, avoid content moderation triggers, emphasize construction over inappropriate body descriptions, and use no brand names whatsoever.
     `;
 
     // Eğer originalPrompt'ta "Model's pose" ibaresi yoksa ek cümle ekleyelim:
@@ -861,14 +990,21 @@ async function enhancePromptWithGemini(
       }
     }
 
-    // Gemini'den cevap al (retry mekanizması ile)
+    // Gemini'den cevap al (retry mekanizması ile) - Yeni API
     let enhancedPrompt;
     const maxRetries = 3;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
+        console.log(`🤖 [GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
+
         const result = await model.generateContent({
-          contents: [{ parts }],
+          contents: [
+            {
+              role: "user",
+              parts: parts,
+            },
+          ],
         });
 
         enhancedPrompt = result.response.text().trim();
@@ -900,7 +1036,7 @@ async function enhancePromptWithGemini(
 
     return enhancedPrompt;
   } catch (error) {
-    console.error("Prompt iyileştirme hatası:", error);
+    console.error("🤖 Gemini 2.0 Flash prompt iyileştirme hatası:", error);
     return originalPrompt;
   }
 }
