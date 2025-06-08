@@ -651,21 +651,6 @@ async function enhancePromptWithGemini(
     let promptForGemini = `
     IMPORTANT INSTRUCTION: Please generate ONLY the requested prompt without any introduction, explanation, or commentary. Do not start with phrases like "Here's a detailed prompt" or "Editorial Photography Prompt" or any descriptive text. Return ONLY the direct prompt content that will be used for image generation.
 
-    🌍 CRITICAL LANGUAGE REQUIREMENT - MANDATORY ENGLISH TRANSLATION:
-    The user may provide input in ANY LANGUAGE (Turkish, German, Spanish, French, Italian, Japanese, Korean, Chinese, Russian, Portuguese, etc.). 
-    
-    YOU MUST TRANSLATE EVERYTHING TO ENGLISH:
-    - If user writes "model pembe şort giysin" (Turkish) → translate to "model wearing pink shorts"
-    - If user writes "modèle avec chemise rouge" (French) → translate to "model with red shirt"  
-    - If user writes "modelo con pantalones negros" (Spanish) → translate to "model with black pants"
-    - If user writes "모델이 파란 드레스를 입는다" (Korean) → translate to "model wearing blue dress"
-    - If user writes "モデルが白いシャツを着る" (Japanese) → translate to "model wearing white shirt"
-    
-    ABSOLUTE RULE: Your final prompt MUST be 100% in English. Do NOT mix languages. Do NOT keep original language words like "pembe", "rouge", "azul", "파란", "白い" etc. TRANSLATE EVERYTHING to English equivalents.
-    
-    EXAMPLE OF WRONG APPROACH: "model wearing pembe shorts" ❌
-    EXAMPLE OF CORRECT APPROACH: "model wearing pink shorts" ✅
-
     PROMPT LENGTH REQUIREMENT: Generate a comprehensive, detailed prompt that is AT LEAST 500 words long. Include extensive descriptions of fabric details, lighting conditions, environmental elements, model positioning, garment construction, textures, colors, styling elements, and photographic composition. The prompt should be richly detailed and descriptive to ensure high-quality image generation.
 
     CRITICAL MODEL DESCRIPTION REQUIREMENT: You MUST provide extensive descriptions of the ${modelGenderText} throughout the prompt. This includes:
@@ -770,23 +755,7 @@ async function enhancePromptWithGemini(
 Always prefer neutral, professional, and editorial-style language that emphasizes garment craftsmanship, fashion styling, and photographic composition. If a description includes a model, ensure the portrayal is professional, respectful, and appropriate for a fashion editorial setting.
 
 
-    Create a detailed English prompt for high-fashion editorial photography featuring the main product/garment from the provided reference image worn by a ${modelGenderText}. 
-    
-    🌍 MANDATORY TRANSLATION REQUIREMENT: If any user input contains non-English words or phrases, YOU MUST translate them to English. Examples:
-    - "pembe" (Turkish) → "pink"  
-    - "rouge" (French) → "red"
-    - "azul" (Spanish) → "blue"
-    - "schwarz" (German) → "black"
-    - "bianco" (Italian) → "white"
-    - "πράσινο" (Greek) → "green"
-    - "黄色" (Chinese) → "yellow"
-    - "紫" (Japanese) → "purple"
-    - "оранжевый" (Russian) → "orange"
-    - And any other foreign language terms
-    
-    YOUR FINAL PROMPT MUST BE 100% ENGLISH - NO EXCEPTIONS!
-    
-    Absolutely avoid terms like transparent, see-through, sheer, revealing, exposed, decolletage, cleavage, low-cut, plunging, bare skin, provocative, sensual, sexy, seductive, tight-fitting for sensitive areas, body-hugging, form-fitting, or fabric opacity levels. Use safe alternatives like lightweight, delicate, fine-weave, airy, modern cut, contemporary style, elegant neckline, refined cut instead. Never mention brand names, designer names, or commercial labels like Nike, Adidas, Zara, H&M, Louis Vuitton etc. Describe items as premium garment, high-quality piece, professional design instead. 
+    Create a detailed English prompt for high-fashion editorial photography featuring the main product/garment from the provided reference image worn by a ${modelGenderText}. Absolutely avoid terms like transparent, see-through, sheer, revealing, exposed, decolletage, cleavage, low-cut, plunging, bare skin, provocative, sensual, sexy, seductive, tight-fitting for sensitive areas, body-hugging, form-fitting, or fabric opacity levels. Use safe alternatives like lightweight, delicate, fine-weave, airy, modern cut, contemporary style, elegant neckline, refined cut instead. Never mention brand names, designer names, or commercial labels like Nike, Adidas, Zara, H&M, Louis Vuitton etc. Describe items as premium garment, high-quality piece, professional design instead. 
 
     CRITICAL FOCUS REQUIREMENT: COMPLETELY IGNORE and DO NOT mention any of the following elements that may appear in the reference image:
     - Background furniture, objects, or environmental items unrelated to the main garment
@@ -842,11 +811,7 @@ Always prefer neutral, professional, and editorial-style language that emphasize
       age ? ` and the model's age (${age})` : ""
     } and facial expressions matching the intended style and quality level. Include detailed descriptions of the model's physical interaction with the garment, their professional modeling presence${
       age ? ` appropriate for their age (${age})` : ""
-    }, and how their body positioning enhances the overall presentation. The complete styled outfit should be described as a cohesive ensemble where the main garment is the star piece perfectly complemented by thoughtfully selected additional clothing items. 
-    
-    🌍 FINAL LANGUAGE CHECK: Before finishing your prompt, scan through your entire description and ensure EVERY SINGLE WORD is in English. If you find ANY non-English words (like "pembe", "rouge", "azul", "schwarz", etc.), immediately replace them with their English translations. Your prompt must be 100% English without any foreign language contamination.
-    
-    ${
+    }, and how their body positioning enhances the overall presentation. The complete styled outfit should be described as a cohesive ensemble where the main garment is the star piece perfectly complemented by thoughtfully selected additional clothing items. ${
       age
         ? `FINAL REQUIREMENT: Ensure the model's age "${age}" is clearly specified in your enhanced prompt and all descriptions reflect age-appropriate characteristics.`
         : ""
