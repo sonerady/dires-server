@@ -81,9 +81,9 @@ router.post("/webhook", async (req, res) => {
       const purchaseData = {
         user_id: app_user_id,
         product_id: product_id,
-        product_title: product_id.includes("1200coinmonthly")
-          ? "1200 Coin Monthly"
-          : "3000 Coin Monthly",
+        product_title: product_id.includes("monthly2400")
+          ? "2400 Coin Monthly"
+          : "600 Coin Weekly",
         purchase_date: purchase_date,
         package_type: "monthly_subscriptions",
         price: 0,
