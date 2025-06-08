@@ -596,6 +596,40 @@ async function enhancePromptWithGemini(
 
     PROMPT LENGTH REQUIREMENT: Generate a comprehensive, detailed prompt that is AT LEAST 500 words long. Include extensive descriptions of fabric details, lighting conditions, environmental elements, model positioning, garment construction, textures, colors, styling elements, and photographic composition. The prompt should be richly detailed and descriptive to ensure high-quality image generation.
 
+    CRITICAL MODEL DESCRIPTION REQUIREMENT: You MUST provide extensive descriptions of the ${modelGenderText} throughout the prompt. This includes:
+    - Physical appearance and body characteristics appropriate for the garment
+    - Posture, stance, and body positioning details
+    - Facial expression and overall demeanor
+    - Body lines, silhouette, and how the model carries themselves
+    - Hand positioning, arm placement, and leg positioning
+    - Model's interaction with the garment and how they wear it
+    - Professional modeling presence and confidence
+    - How the model's physique complements the garment design
+    - Natural movement and body language that enhances the garment presentation
+    The ${modelGenderText} should be mentioned frequently throughout the description, not just briefly at the beginning.
+
+    MANDATORY COMPLETE STYLING REQUIREMENT: You MUST create a complete, cohesive outfit that perfectly complements the main reference garment. Analyze the reference garment carefully and determine what additional clothing items would:
+    - Best complement and enhance the main garment
+    - Create a harmonious color palette and style coordination
+    - Match the occasion and style aesthetic of the main piece
+    - Provide proper proportional balance to the overall look
+    - Showcase the main garment as the hero piece while supporting it with appropriate items
+
+    STYLING GUIDELINES:
+    - If the reference is a TOP (shirt, blouse, sweater, etc.): Specify complementary bottoms (pants, skirts, shorts) that enhance the top's design, color, and style
+    - If the reference is a BOTTOM (pants, skirt, shorts, etc.): Specify complementary tops that work perfectly with the bottom piece's style and color
+    - If the reference is a DRESS: Specify appropriate outerwear, accessories, or layering pieces that complement without overwhelming
+    - If the reference is OUTERWEAR: Specify appropriate underlying garments that show through or peek out in a stylish way
+    - Always consider seasonal appropriateness and style cohesion
+    - Mention specific colors, textures, and styles that work harmoniously with the main piece
+    - Ensure the additional items don't compete with but rather enhance the main garment's visual impact
+
+    EXAMPLES OF COMPLETE STYLING:
+    - Red floral blouse → Pair with high-waisted cream or navy tailored trousers, or a flowing midi skirt in complementary neutral tones
+    - Dark wash jeans → Style with a crisp white button-down shirt or a soft cashmere sweater in earth tones
+    - Floral summer dress → Add a light denim jacket or linen blazer for layering depth
+    - Black leather jacket → Show with a fitted white t-shirt and dark skinny jeans underneath
+
     CRITICAL GARMENT ANALYSIS REQUIREMENT: You MUST conduct a thorough visual analysis of the reference garment image and describe EVERY visible construction detail, fit characteristic, and structural element. This is essential for accurate representation:
 
     MANDATORY GARMENT INSPECTION CHECKLIST:
@@ -676,7 +710,7 @@ async function enhancePromptWithGemini(
     ${perspectivePromptSection}
     ${hairStylePromptSection}
     
-    Generate a single, flowing description that reads like a master craftsperson's analysis of premium garment construction, emphasizing professional quality, material excellence, and attention to detail throughout. The ${modelGenderText} should demonstrate natural movement showcasing how the fabric behaves when worn, with poses appropriate for the garment category and facial expressions matching the intended style and quality level. Ensure no suggestive words, focus only on fashion and craftsmanship, use professional technical terminology, maintain editorial magazine tone, avoid content moderation triggers, emphasize construction over body descriptions, and use no brand names whatsoever.
+    Generate a single, flowing description that reads like a master craftsperson's analysis of premium garment construction, emphasizing professional quality, material excellence, and attention to detail throughout. The ${modelGenderText} should be prominently featured and described extensively throughout the prompt - their posture, stance, body lines, professional presence, and how they embody the garment's style and quality. Describe how the ${modelGenderText} demonstrates natural movement showcasing how the fabric behaves when worn, with poses appropriate for the garment category and facial expressions matching the intended style and quality level. Include detailed descriptions of the model's physical interaction with the garment, their professional modeling presence, and how their body positioning enhances the overall presentation. The complete styled outfit should be described as a cohesive ensemble where the main garment is the star piece perfectly complemented by thoughtfully selected additional clothing items. Ensure no suggestive words, focus only on fashion and craftsmanship, use professional technical terminology, maintain editorial magazine tone, avoid content moderation triggers, emphasize construction over inappropriate body descriptions, and use no brand names whatsoever.
     `;
 
     // Eğer originalPrompt'ta "Model's pose" ibaresi yoksa ek cümle ekleyelim:
