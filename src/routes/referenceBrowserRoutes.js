@@ -676,7 +676,64 @@ async function enhancePromptWithGemini(
     - Neckline finishes: Bias binding, facing, self-fabric binding, contrast piping
     - Sleeve attachments: Set-in sleeves, raglan sleeves, dolman sleeves, cap sleeves
 
-    Create a detailed English prompt for high-fashion editorial photography featuring the main product/garment from the provided reference image worn by a ${modelGenderText}. Absolutely avoid terms like transparent, see-through, sheer, revealing, exposed, decolletage, cleavage, low-cut, plunging, bare skin, provocative, sensual, sexy, seductive, tight-fitting for sensitive areas, body-hugging, form-fitting, or fabric opacity levels. Use safe alternatives like lightweight, delicate, fine-weave, airy, modern cut, contemporary style, elegant neckline, refined cut instead. Never mention brand names, designer names, or commercial labels like Nike, Adidas, Zara, H&M, Louis Vuitton etc. Describe items as premium garment, high-quality piece, professional design instead. Ignore all background elements, supporting materials, fabric cloths, or photography aids and focus only on the actual product meant to be showcased.
+    Create a detailed English prompt for high-fashion editorial photography featuring the main product/garment from the provided reference image worn by a ${modelGenderText}. Absolutely avoid terms like transparent, see-through, sheer, revealing, exposed, decolletage, cleavage, low-cut, plunging, bare skin, provocative, sensual, sexy, seductive, tight-fitting for sensitive areas, body-hugging, form-fitting, or fabric opacity levels. Use safe alternatives like lightweight, delicate, fine-weave, airy, modern cut, contemporary style, elegant neckline, refined cut instead. Never mention brand names, designer names, or commercial labels like Nike, Adidas, Zara, H&M, Louis Vuitton etc. Describe items as premium garment, high-quality piece, professional design instead. 
+
+    CRITICAL FOCUS REQUIREMENT: COMPLETELY IGNORE and DO NOT mention any of the following elements that may appear in the reference image:
+    - Background furniture, objects, or environmental items unrelated to the main garment
+    - Sales tags, price tags, hangtags, or any commercial labeling on the garment
+    - Photography equipment, mannequins, hangers, or display materials
+    - Supporting fabrics, background cloths, or photography aids used in the reference shot
+    - Irrelevant objects, decorative items, or clutter in the background
+    - Store fixtures, retail displays, or commercial photography setups
+    - Any visual elements that are not part of the actual garment/product itself
+    
+    Focus EXCLUSIVELY on analyzing and describing only the main garment/product that is meant to be showcased, treating it as if it's being worn by the ${modelGenderText} in a clean, professional editorial environment.
+
+    PRODUCT-SPECIFIC CAMERA ANGLE REQUIREMENT: You MUST select the optimal camera angle and perspective based on the specific product category to showcase the item at its best. Analyze the main product and apply these specialized photography approaches:
+
+    FOR FOOTWEAR (shoes, boots, sneakers, sandals):
+    - Use dynamic foot-level angles that show the shoe's silhouette and construction details
+    - Include full foot and ankle positioning shots from slightly below eye level
+    - Capture side profile angles that display the shoe's shape and heel structure
+    - Show walking or posed stance that demonstrates how the footwear moves and fits
+
+    FOR JEWELRY & ACCESSORIES (necklaces, rings, earrings, watches, bracelets):
+    - Employ close-up detail shots that highlight craftsmanship and material quality
+    - Use macro photography perspectives for intricate design elements
+    - Capture the jewelry worn on the appropriate body part with flattering angles
+    - Show reflective properties and surface textures through strategic lighting angles
+
+    FOR HEADWEAR (hats, caps, headbands, hair accessories):
+    - Use head and shoulder framing from slightly above or at eye level
+    - Include profile shots that show the hat's shape and how it sits on the head
+    - Capture front-facing angles that display the hat's design and fit on the face
+    - Show the headwear's interaction with hairstyle and facial features
+
+    FOR BAGS (handbags, backpacks, purses, clutches):
+    - Use hand-held and shoulder/arm positioning shots that show scale and functionality
+    - Include detail shots of hardware, textures, and construction elements
+    - Capture the bag's silhouette and proportions from multiple flattering angles
+    - Show how the bag is carried and interacts with the outfit
+
+    FOR UPPER GARMENTS (shirts, jackets, sweaters, blazers):
+    - Focus on torso and upper body framing that highlights fit and drape
+    - Use angles that showcase neckline, sleeve construction, and garment length
+    - Include movement shots that show fabric behavior and garment construction
+    - Capture front, side, and three-quarter angles for comprehensive presentation
+
+    FOR LOWER GARMENTS (pants, skirts, shorts):
+    - Use full-length and waist-down framing that shows fit and silhouette
+    - Include walking or posed shots that demonstrate fabric drape and movement
+    - Capture the garment's length, proportions, and how it falls on the body
+    - Show side and front angles that highlight construction and design details
+
+    FOR DRESSES & FULL OUTFITS:
+    - Use full-length shots that capture the complete silhouette and proportions
+    - Include dynamic poses that show fabric flow and garment structure
+    - Capture multiple angles that highlight both detail work and overall design
+    - Show how the dress moves and behaves with the model's movement
+
+    Ensure the camera angle you select creates the most appealing and professional presentation specifically optimized for the identified product category.
 
     The ${modelGenderText} must always be wearing the product. Describe the exact fabric type, weave pattern, weight, texture, finish, stretch properties, and coverage in natural flowing sentences. Detail every visible seam type, stitching patterns, thread visibility, seam finishing quality, hemming techniques, edge treatments, topstitching, and construction methods as part of the description. Analyze all design elements including prints, patterns, embroidery, color techniques, decorative elements like buttons, zippers, trim details, and hardware. Specify exact fit type, how the garment drapes, silhouette shape, proportions, length, sleeve style, and neckline construction. Include surface treatments, finishes, pleating, gathering, wash effects, coatings, embellishments, and quality indicators. The photography should be hyper-realistic with perfect studio lighting showcasing fabric texture and construction details, professional camera angles highlighting craftsmanship, and composition emphasizing garment excellence.
 
