@@ -220,6 +220,34 @@ router.post("/subscription/verify", async (req, res) => {
     const finalTransactionId =
       transactionId || `demo_sub_${userId}_${Date.now()}`;
 
+    // ÖNCE webhook tarafından işlenmiş mi kontrol et (productId + userId kombinasyonu)
+    if (!transactionId) {
+      // TransactionId yoksa (frontend test), son 5 dakika içinde aynı productId ile işlem var mı bak
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const { data: recentWebhookPurchase, error: webhookError } =
+        await supabase
+          .from("user_purchase")
+          .select("*")
+          .eq("user_id", userId)
+          .eq("product_id", productId)
+          .gte("purchase_date", fiveMinutesAgo)
+          .order("purchase_date", { ascending: false })
+          .limit(1)
+          .single();
+
+      if (recentWebhookPurchase) {
+        console.log(
+          "Subscription already processed by webhook within last 5 minutes:",
+          recentWebhookPurchase.transaction_id
+        );
+        return res.status(200).json({
+          success: true,
+          message: "Subscription already processed by webhook",
+          alreadyProcessed: true,
+        });
+      }
+    }
+
     // Check if transaction already processed
     const { data: existingPurchase, error: checkError } = await supabase
       .from("user_purchase")

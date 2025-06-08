@@ -45,6 +45,23 @@ router.post("/webhook", async (req, res) => {
 
     // Eğer gerçek yenileme event'i "RENEWAL" olarak geliyorsa
     if (type === "RENEWAL") {
+      // DUPLICATE CHECK: Aynı transaction_id ile işlem yapılmış mı kontrol et
+      const { data: existingTransaction, error: checkError } = await supabase
+        .from("user_purchase")
+        .select("*")
+        .eq("transaction_id", original_transaction_id)
+        .single();
+
+      if (existingTransaction) {
+        console.log(
+          "Webhook - Transaction already processed:",
+          original_transaction_id
+        );
+        return res
+          .status(200)
+          .json({ message: "Transaction already processed" });
+      }
+
       const { data: userData, error: userError } = await supabase
         .from("users")
         .select("*")
