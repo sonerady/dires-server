@@ -1,0 +1,9 @@
+{
+  "previous_details": "以前の詳細",
+  "items": "項目",
+  "no_previous_details": "以前の詳細が見つかりません",
+  "clear_history": "履歴をクリア",
+  "clear_history_confirm": "すべての以前の詳細を削除してもよろしいですか？",
+  "cancel": "キャンセル",
+  "clear": "クリア"
+}

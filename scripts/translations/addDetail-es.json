@@ -1,0 +1,9 @@
+{
+  "previous_details": "Detalles Anteriores",
+  "items": "elementos",
+  "no_previous_details": "No se encontraron detalles anteriores",
+  "clear_history": "Borrar Historial",
+  "clear_history_confirm": "¿Estás seguro de que quieres borrar todos los detalles anteriores?",
+  "cancel": "Cancelar",
+  "clear": "Borrar"
+}
