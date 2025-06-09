@@ -319,31 +319,6 @@ async function enhancePromptWithGemini(
     // Gemini 2.0 Flash modeli - En yeni API yapısı
     const model = genAI.getGenerativeModel({
       model: "gemini-2.0-flash",
-      safetySettings: [
-        {
-          category: "HARM_CATEGORY_HARASSMENT",
-          threshold: "BLOCK_LOW_AND_ABOVE", // Block most
-        },
-        {
-          category: "HARM_CATEGORY_HATE_SPEECH",
-          threshold: "BLOCK_LOW_AND_ABOVE", // Block most
-        },
-        {
-          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-          threshold: "BLOCK_LOW_AND_ABOVE", // Block most
-        },
-        {
-          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-          threshold: "BLOCK_LOW_AND_ABOVE", // Block most
-        },
-      ],
-      generationConfig: {
-        responseMimeType: "text/plain",
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 20000,
-      },
     });
 
     // Settings'in var olup olmadığını kontrol et
@@ -680,13 +655,6 @@ async function enhancePromptWithGemini(
       age ? ` (age: ${age})` : ""
     } should be mentioned frequently throughout the description, not just briefly at the beginning.
 
-    MANDATORY COMPLETE STYLING REQUIREMENT: You MUST create a complete, cohesive outfit that perfectly complements the main reference garment. Analyze the reference garment carefully and determine what additional clothing items would:
-    - Best complement and enhance the main garment
-    - Create a harmonious color palette and style coordination
-    - Match the occasion and style aesthetic of the main piece
-    - Provide proper proportional balance to the overall look
-    - Showcase the main garment as the hero piece while supporting it with appropriate items
-
     STYLING GUIDELINES:
     - If the reference is a TOP (shirt, blouse, sweater, etc.): Specify complementary bottoms (pants, skirts, shorts) that enhance the top's design, color, and style
     - If the reference is a BOTTOM (pants, skirt, shorts, etc.): Specify complementary tops that work perfectly with the bottom piece's style and color
@@ -767,6 +735,23 @@ Always prefer neutral, professional, and editorial-style language that emphasize
     - Any visual elements that are not part of the actual garment/product itself
     
     Focus EXCLUSIVELY on analyzing and describing only the main garment/product that is meant to be showcased, treating it as if it's being worn by the ${modelGenderText} in a clean, professional editorial environment.
+
+
+CRITICAL GARMENT COVERAGE REQUIREMENT:
+You MUST carefully examine the reference image to accurately determine the garment’s sleeve type and arm coverage. This includes:
+- Whether the garment is sleeveless, has cap sleeves, short sleeves, or long sleeves
+- Do NOT assume or invent sleeve types that are not clearly visible in the reference image
+- If the garment is sleeveless, your prompt MUST clearly state it as “sleeveless” or “strapless” as appropriate
+- If sleeves are present, describe their exact length (e.g., “short set-in sleeves ending mid-bicep”) and construction
+- Avoid adding any sleeve detail not visible in the original product image
+Failure to follow this instruction will result in incorrect garment generation.
+
+🔍 CRITICAL GARMENT FEATURES YOU MUST DETECT FROM THE IMAGE:
+- Sleeve structure (e.g., sleeveless, cap sleeve, short sleeve, set-in sleeve)
+- All visible seam lines: center front seam, panel seams, side seams, dart lines
+- Construction elements that define silhouette
+- Do not assume features that are not visually confirmed
+
 
     The ${modelGenderText} must always be wearing the product. Describe the exact fabric type, weave pattern, weight, texture, finish, stretch properties, and coverage in natural flowing sentences. Detail every visible seam type, stitching patterns, thread visibility, seam finishing quality, hemming techniques, edge treatments, topstitching, and construction methods as part of the description. Analyze all design elements including prints, patterns, embroidery, color techniques, decorative elements like buttons, zippers, trim details, and hardware. Specify exact fit type, how the garment drapes, silhouette shape, proportions, length, sleeve style, and neckline construction. Include surface treatments, finishes, pleating, gathering, wash effects, coatings, embellishments, and quality indicators. The photography should be hyper-realistic with perfect studio lighting showcasing fabric texture and construction details, professional camera angles highlighting craftsmanship, and composition emphasizing garment excellence.
 
