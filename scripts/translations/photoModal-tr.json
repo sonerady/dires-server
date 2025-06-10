@@ -1,0 +1,17 @@
+{
+  "photoModal": {
+    "title": "Fotoğraf Örnekleri",
+    "avoidThis": "Böyle Yapma",
+    "doThisInstead": "Böyle Yap",
+    "incorrectTitle": "Kötü Işık ve Belirsiz Elbise Detayları",
+    "incorrectDescription": "Bu fotoğrafta birkaç sorun var: elbise asılı duruyor ve bu kırışıklık ve gölge oluşturuyor, arkaplan karışık ve dikkat dağıtıcı, ışık loş ve yapay. Elbise detayları, kumaş dokusu ve gerçek renkler net görünmüyor.",
+    "correctTitle": "Mükemmel Ürün Sunumu",
+    "correctDescription": "Harika örnek! Elbise düz yatırılmış ve doğal şeklini gösteriyor, temiz beyaz arkaplan dikkat dağıtıcı unsurları ortadan kaldırıyor, doğal ışık gerçek renkleri ve kumaş detaylarını ortaya çıkarıyor. Her dikiş, doku ve tasarım elementi kristal netliğinde.",
+    "quickTips": "Hızlı İpuçları",
+    "tip1": "Tüm ürün detaylarının net görünmesini sağlayın",
+    "tip2": "En iyi sonuçlar için doğal ışık kullanın",
+    "tip3": "Gölge ve yansımalardan kaçının",
+    "tip4": "Daha iyi sonuçlar için birden fazla açıdan çekin",
+    "continueButton": "Fotoğraf Seçmeye Devam Et"
+  }
+}

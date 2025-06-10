@@ -1,0 +1,17 @@
+{
+  "photoModal": {
+    "title": "Photo Examples",
+    "avoidThis": "Avoid This",
+    "doThisInstead": "Do This Instead",
+    "incorrectTitle": "Poor Lighting & Unclear Dress Details",
+    "incorrectDescription": "This photo has several issues: the garment is hanging which creates wrinkles and shadows, the background is busy and distracting, the lighting is dim and unnatural. The dress details, fabric texture, and true colors are not clearly visible.",
+    "correctTitle": "Perfect Product Presentation",
+    "correctDescription": "Excellent example! The dress is laid flat showing its natural shape, clean white background eliminates distractions, natural lighting reveals true colors and fabric details. Every seam, texture, and design element is crystal clear.",
+    "quickTips": "Quick Tips",
+    "tip1": "Ensure all product details are clearly visible",
+    "tip2": "Use natural lighting for best results",
+    "tip3": "Avoid shadows and reflections",
+    "tip4": "Take multiple angles for better results",
+    "continueButton": "Continue to Select Photos"
+  }
+}

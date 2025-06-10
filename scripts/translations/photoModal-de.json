@@ -1,0 +1,17 @@
+{
+  "photoModal": {
+    "title": "Fotobeispiele",
+    "avoidThis": "Vermeide das",
+    "doThisInstead": "Mach das stattdessen",
+    "incorrectTitle": "Schlechte Beleuchtung & Unklare Kleiderdetails",
+    "incorrectDescription": "Dieses Foto hat mehrere Probleme: Das Kleidungsstück hängt, was Falten und Schatten erzeugt, der Hintergrund ist unruhig und ablenkend, die Beleuchtung ist düster und unnatürlich. Die Kleiderdetails, Stofftextur und wahren Farben sind nicht klar sichtbar.",
+    "correctTitle": "Perfekte Produktpräsentation",
+    "correctDescription": "Ausgezeichnetes Beispiel! Das Kleid liegt flach und zeigt seine natürliche Form, sauberer weißer Hintergrund eliminiert Ablenkungen, natürliche Beleuchtung enthüllt wahre Farben und Stoffdetails. Jede Naht, Textur und Designelement ist kristallklar.",
+    "quickTips": "Schnelle Tipps",
+    "tip1": "Stelle sicher, dass alle Produktdetails klar sichtbar sind",
+    "tip2": "Verwende natürliche Beleuchtung für beste Ergebnisse",
+    "tip3": "Vermeide Schatten und Reflexionen",
+    "tip4": "Nimm mehrere Winkel für bessere Ergebnisse auf",
+    "continueButton": "Weiter zur Fotoauswahl"
+  }
+}

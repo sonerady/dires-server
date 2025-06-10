@@ -1,0 +1,17 @@
+{
+  "photoModal": {
+    "title": "Esempi di Foto",
+    "avoidThis": "Evita Questo",
+    "doThisInstead": "Fai Questo Invece",
+    "incorrectTitle": "Illuminazione Scadente e Dettagli del Vestito Poco Chiari",
+    "incorrectDescription": "Questa foto ha diversi problemi: l'indumento è appeso il che crea pieghe e ombre, lo sfondo è confuso e distraente, l'illuminazione è fioca e innaturale. I dettagli del vestito, la texture del tessuto e i veri colori non sono chiaramente visibili.",
+    "correctTitle": "Presentazione Perfetta del Prodotto",
+    "correctDescription": "Esempio eccellente! Il vestito è steso piatto mostrando la sua forma naturale, lo sfondo bianco pulito elimina le distrazioni, l'illuminazione naturale rivela i veri colori e i dettagli del tessuto. Ogni cucitura, texture ed elemento di design è cristallino.",
+    "quickTips": "Suggerimenti Rapidi",
+    "tip1": "Assicurati che tutti i dettagli del prodotto siano chiaramente visibili",
+    "tip2": "Usa l'illuminazione naturale per i migliori risultati",
+    "tip3": "Evita ombre e riflessi",
+    "tip4": "Scatta da più angolazioni per risultati migliori",
+    "continueButton": "Continua per Selezionare le Foto"
+  }
+}

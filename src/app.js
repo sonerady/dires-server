@@ -49,6 +49,7 @@ const poseRoutes = require("./routes/poseRoutes");
 const purchaseRoutes = require("./routes/purchaseRoutes");
 const consRoutes = require("./routes/consRoutes");
 const changeColorRoutes = require("./routes/changeColorRoutes");
+const infoModalRoutes = require("./routes/infoModalRoutes");
 // RevenueCat webhook route import
 const revenuecatWebhookRouter = require("./routes/revenuecatWebhook");
 
@@ -132,6 +133,7 @@ app.use("/api/referenceRefiner", referenceRefinerRoutes);
 app.use("/api", consRoutes);
 app.use("/api", changeColorRoutes);
 app.use("/api/poses", poseRoutes);
+app.use("/api/user", infoModalRoutes);
 // RevenueCat webhook route ekle
 app.use("/revenuecat", revenuecatWebhookRouter);
 app.use("/purchase", purchaseRoutes);
