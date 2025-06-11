@@ -1501,6 +1501,7 @@ router.post("/generate", async (req, res) => {
           prompt: enhancedPrompt,
           input_image: finalImage,
           aspect_ratio: formattedRatio,
+          safety_tolerance: 2,
         },
       },
       {
