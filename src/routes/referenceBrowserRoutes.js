@@ -1176,42 +1176,106 @@ async function removeBackgroundFromImage(imageUrl, userId) {
         )})`
       );
 
-      // Oranları karşılaştır - eğer resim döndüyse düzelt
+      // Orientation kontrolü ve düzeltme
       let finalProcessedBuffer = processedImageBuffer;
-      const ratioThreshold = 0.1; // %10 tolerans
 
-      // Resmin döndüğünü tespit et (landscape -> portrait veya portrait -> landscape)
-      const isOriginalLandscape = originalRatio > 1;
-      const isProcessedLandscape = processedRatio > 1;
+      // Orijinal resmin orientation'ını net olarak belirle
+      const isOriginalVertical = originalHeight > originalWidth; // Portrait/Dikey
+      const isOriginalHorizontal = originalWidth > originalHeight; // Landscape/Yatay
 
-      if (isOriginalLandscape !== isProcessedLandscape) {
-        console.log("🔄 Resim döndüğü tespit edildi, düzeltiliyor...");
+      // İşlenmiş resmin orientation'ını net olarak belirle
+      const isProcessedVertical = processedHeight > processedWidth; // Portrait/Dikey
+      const isProcessedHorizontal = processedWidth > processedHeight; // Landscape/Yatay
+
+      console.log(`📐 ORİJİNAL RESIM: ${originalWidth}x${originalHeight}`);
+      console.log(
+        `📐 Orijinal orientation: ${
+          isOriginalVertical
+            ? "🔼 VERTICAL (Portrait)"
+            : "🔄 HORIZONTAL (Landscape)"
+        }`
+      );
+
+      console.log(`📐 İŞLENMİŞ RESIM: ${processedWidth}x${processedHeight}`);
+      console.log(
+        `📐 İşlenmiş orientation: ${
+          isProcessedVertical
+            ? "🔼 VERTICAL (Portrait)"
+            : "🔄 HORIZONTAL (Landscape)"
+        }`
+      );
+
+      // Resmin orientation'ı değişmiş mi kontrol et
+      let rotationNeeded = false;
+      let rotationAngle = 0;
+
+      if (isOriginalVertical && isProcessedHorizontal) {
+        // Orijinal VERTICAL iken İşlenmiş HORIZONTAL olmuş
         console.log(
-          `📐 Orijinal orientation: ${
-            isOriginalLandscape ? "Landscape" : "Portrait"
-          }`
+          "🚨 PROBLEM TESPİT EDİLDİ: Resim VERTICAL'dan HORIZONTAL'a döndü!"
         );
         console.log(
-          `📐 İşlenmiş orientation: ${
-            isProcessedLandscape ? "Landscape" : "Portrait"
-          }`
+          "🔄 Düzeltme: Resmi tekrar VERTICAL yapmak için döndürülecek"
         );
+        rotationNeeded = true;
+        rotationAngle = 90; // Saat yönünde 90 derece
+      } else if (isOriginalHorizontal && isProcessedVertical) {
+        // Orijinal HORIZONTAL iken İşlenmiş VERTICAL olmuş
+        console.log(
+          "🚨 PROBLEM TESPİT EDİLDİ: Resim HORIZONTAL'dan VERTICAL'a döndü!"
+        );
+        console.log(
+          "🔄 Düzeltme: Resmi tekrar HORIZONTAL yapmak için döndürülecek"
+        );
+        rotationNeeded = true;
+        rotationAngle = -90; // Saat yönünün tersine 90 derece
+      } else {
+        console.log("✅ Resim orientation'ı DEĞIŞMEDE: Düzeltme gerekli değil");
+        console.log(
+          `   📋 Her ikisi de ${isOriginalVertical ? "VERTICAL" : "HORIZONTAL"}`
+        );
+      }
 
-        // Resmi 90 derece döndür
+      // Eğer rotation gerekiyorsa uygula
+      if (rotationNeeded) {
+        console.log(`🔄 Resim ${rotationAngle}° döndürülüyor...`);
+
         finalProcessedBuffer = await sharp(processedImageBuffer)
-          .rotate(90)
+          .rotate(rotationAngle)
           .png()
           .toBuffer();
 
-        console.log("✅ Resim 90 derece döndürüldü");
+        console.log(`✅ Resim ${rotationAngle}° döndürüldü`);
 
-        // Döndürülen resmin boyutunu kontrol et
+        // Döndürme sonrası kontrolü
         const rotatedMetadata = await sharp(finalProcessedBuffer).metadata();
+        const isRotatedVertical =
+          rotatedMetadata.height > rotatedMetadata.width;
+
         console.log(
-          `📐 Döndürülen resim boyutu: ${rotatedMetadata.width}x${rotatedMetadata.height}`
+          `📐 DÖNDÜRÜLMÜŞ RESIM: ${rotatedMetadata.width}x${rotatedMetadata.height}`
         );
-      } else {
-        console.log("✅ Resim orientation'ı doğru, döndürme gerekli değil");
+        console.log(
+          `📐 Döndürülmüş orientation: ${
+            isRotatedVertical
+              ? "🔼 VERTICAL (Portrait)"
+              : "🔄 HORIZONTAL (Landscape)"
+          }`
+        );
+
+        // Düzeltme başarılı mı kontrol et
+        if (
+          (isOriginalVertical && isRotatedVertical) ||
+          (isOriginalHorizontal && !isRotatedVertical)
+        ) {
+          console.log(
+            "🎉 BAŞARILI: Resim orijinal orientation'ına geri döndürüldü!"
+          );
+        } else {
+          console.log(
+            "⚠️ DİKKAT: Döndürme tam olarak düzeltmedi, ek kontrol gerekebilir"
+          );
+        }
       }
 
       // Düzeltilmiş resmi Supabase'e yükle
