@@ -1150,34 +1150,6 @@ async function generateControlNetCanny(imageUrl, userId) {
   try {
     console.log("🎨 ControlNet Canny çıkarma işlemi başlatılıyor:", imageUrl);
 
-    // Önce orijinal resmin boyutlarını al
-    let originalWidth = 768;
-    let originalHeight = 768;
-
-    try {
-      console.log("📐 Orijinal resmin boyutları alınıyor...");
-      const imageResponse = await axios.get(imageUrl, {
-        responseType: "arraybuffer",
-        timeout: 10000,
-      });
-      const imageBuffer = Buffer.from(imageResponse.data);
-
-      // Sharp ile metadata al
-      const metadata = await sharp(imageBuffer).metadata();
-      originalWidth = metadata.width || 768;
-      originalHeight = metadata.height || 768;
-
-      console.log(
-        `📐 Orijinal resim boyutları: ${originalWidth}x${originalHeight}`
-      );
-    } catch (dimensionError) {
-      console.error(
-        "❌ Resim boyutları alınırken hata:",
-        dimensionError.message
-      );
-      console.log("⚠️ Varsayılan boyutlar kullanılacak: 768x768");
-    }
-
     // Replicate ControlNet Canny API'ye istek gönder
     const controlNetResponse = await axios.post(
       "https://api.replicate.com/v1/predictions",
@@ -1185,8 +1157,8 @@ async function generateControlNetCanny(imageUrl, userId) {
         version:
           "fofr/realvisxl-v3-multi-controlnet-lora:90a4a3604cd637cb9f1a2bdae1cfa9ed869362ca028814cdce310a78e27daade",
         input: {
-          width: originalWidth,
-          height: originalHeight,
+          width: 768,
+          height: 768,
           prompt: "a photo of garment",
           refine: "no_refiner",
           scheduler: "K_EULER",
