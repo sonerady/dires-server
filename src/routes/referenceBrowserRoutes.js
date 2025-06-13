@@ -319,7 +319,7 @@ async function enhancePromptWithGemini(
 
     // Gemini 2.0 Flash modeli - En yeni API yapısı
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
+      model: "gemini-1.5-flash",
     });
 
     // Settings'in var olup olmadığını kontrol et
@@ -1102,6 +1102,23 @@ async function removeBackgroundFromImage(imageUrl, userId) {
   try {
     console.log("🖼️ Arkaplan silme işlemi başlatılıyor:", imageUrl);
 
+    // Orijinal resmin boyutunu al
+    console.log("📐 Orijinal resmin boyutları alınıyor...");
+    const originalImageResponse = await axios.get(imageUrl, {
+      responseType: "arraybuffer",
+    });
+    const originalImageBuffer = Buffer.from(originalImageResponse.data);
+    const originalMetadata = await sharp(originalImageBuffer).metadata();
+    const originalWidth = originalMetadata.width;
+    const originalHeight = originalMetadata.height;
+    const originalRatio = originalWidth / originalHeight;
+
+    console.log(
+      `📐 Orijinal resim boyutu: ${originalWidth}x${originalHeight} (ratio: ${originalRatio.toFixed(
+        2
+      )})`
+    );
+
     // Replicate API'ye arkaplan silme isteği gönder
     const backgroundRemovalResponse = await axios.post(
       "https://api.replicate.com/v1/predictions",
@@ -1142,9 +1159,64 @@ async function removeBackgroundFromImage(imageUrl, userId) {
     if (finalResult.status === "succeeded" && finalResult.output) {
       console.log("✅ Arkaplan silme işlemi başarılı:", finalResult.output);
 
-      // Arkaplanı silinmiş resmi Supabase'e yükle
-      const processedImageUrl = await uploadProcessedImageToSupabase(
-        finalResult.output,
+      // Arkaplanı silinmiş resmin boyutunu kontrol et
+      console.log("📐 Arkaplanı silinmiş resmin boyutları kontrol ediliyor...");
+      const processedImageResponse = await axios.get(finalResult.output, {
+        responseType: "arraybuffer",
+      });
+      const processedImageBuffer = Buffer.from(processedImageResponse.data);
+      const processedMetadata = await sharp(processedImageBuffer).metadata();
+      const processedWidth = processedMetadata.width;
+      const processedHeight = processedMetadata.height;
+      const processedRatio = processedWidth / processedHeight;
+
+      console.log(
+        `📐 İşlenmiş resim boyutu: ${processedWidth}x${processedHeight} (ratio: ${processedRatio.toFixed(
+          2
+        )})`
+      );
+
+      // Oranları karşılaştır - eğer resim döndüyse düzelt
+      let finalProcessedBuffer = processedImageBuffer;
+      const ratioThreshold = 0.1; // %10 tolerans
+
+      // Resmin döndüğünü tespit et (landscape -> portrait veya portrait -> landscape)
+      const isOriginalLandscape = originalRatio > 1;
+      const isProcessedLandscape = processedRatio > 1;
+
+      if (isOriginalLandscape !== isProcessedLandscape) {
+        console.log("🔄 Resim döndüğü tespit edildi, düzeltiliyor...");
+        console.log(
+          `📐 Orijinal orientation: ${
+            isOriginalLandscape ? "Landscape" : "Portrait"
+          }`
+        );
+        console.log(
+          `📐 İşlenmiş orientation: ${
+            isProcessedLandscape ? "Landscape" : "Portrait"
+          }`
+        );
+
+        // Resmi 90 derece döndür
+        finalProcessedBuffer = await sharp(processedImageBuffer)
+          .rotate(90)
+          .png()
+          .toBuffer();
+
+        console.log("✅ Resim 90 derece döndürüldü");
+
+        // Döndürülen resmin boyutunu kontrol et
+        const rotatedMetadata = await sharp(finalProcessedBuffer).metadata();
+        console.log(
+          `📐 Döndürülen resim boyutu: ${rotatedMetadata.width}x${rotatedMetadata.height}`
+        );
+      } else {
+        console.log("✅ Resim orientation'ı doğru, döndürme gerekli değil");
+      }
+
+      // Düzeltilmiş resmi Supabase'e yükle
+      const processedImageUrl = await uploadProcessedImageToSupabaseWithBuffer(
+        finalProcessedBuffer,
         userId,
         "background_removed"
       );
@@ -1172,6 +1244,59 @@ async function uploadProcessedImageToSupabase(imageUrl, userId, processType) {
       responseType: "arraybuffer",
     });
     const imageBuffer = Buffer.from(imageResponse.data);
+
+    // Dosya adı oluştur
+    const timestamp = Date.now();
+    const randomId = uuidv4().substring(0, 8);
+    const fileName = `${processType}_${
+      userId || "anonymous"
+    }_${timestamp}_${randomId}.png`;
+
+    console.log(`📤 Supabase'e yüklenecek ${processType} dosya adı:`, fileName);
+
+    // Supabase'e yükle
+    const { data, error } = await supabase.storage
+      .from("reference")
+      .upload(fileName, imageBuffer, {
+        contentType: "image/png",
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (error) {
+      console.error(`❌ ${processType} resmi Supabase'e yüklenemedi:`, error);
+      throw new Error(`Supabase upload error: ${error.message}`);
+    }
+
+    console.log(`✅ ${processType} resmi Supabase'e yüklendi:`, data);
+
+    // Public URL al
+    const { data: urlData } = supabase.storage
+      .from("reference")
+      .getPublicUrl(fileName);
+
+    console.log(
+      `📤 ${processType} resmi Supabase public URL:`,
+      urlData.publicUrl
+    );
+    return urlData.publicUrl;
+  } catch (error) {
+    console.error(
+      `❌ ${processType} resmi Supabase'e yüklenirken hata:`,
+      error
+    );
+    throw error;
+  }
+}
+
+// Buffer'dan direkt Supabase'e yükleyen fonksiyon
+async function uploadProcessedImageToSupabaseWithBuffer(
+  imageBuffer,
+  userId,
+  processType
+) {
+  try {
+    console.log(`📤 ${processType} resmi buffer'dan Supabase'e yükleniyor...`);
 
     // Dosya adı oluştur
     const timestamp = Date.now();
