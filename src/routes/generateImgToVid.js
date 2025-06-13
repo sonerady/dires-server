@@ -287,7 +287,7 @@ router.post("/generateImgToVid", async (req, res) => {
     }
 
     // Check if user has enough credits
-    if (userData.credit_balance < 100) {
+    if (userData.credit_balance < 150) {
       return res.status(400).json({
         success: false,
         message: "Insufficient credit balance. Required: 100 credits",
@@ -297,7 +297,7 @@ router.post("/generateImgToVid", async (req, res) => {
     // Deduct credits
     const { error: creditUpdateError } = await supabase
       .from("users")
-      .update({ credit_balance: userData.credit_balance - 100 })
+      .update({ credit_balance: userData.credit_balance - 150 })
       .eq("id", userId);
 
     if (creditUpdateError) {

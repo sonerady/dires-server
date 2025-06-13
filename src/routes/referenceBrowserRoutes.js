@@ -319,7 +319,7 @@ async function enhancePromptWithGemini(
 
     // Gemini 2.0 Flash modeli - En yeni API yapısı
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.0-flash",
     });
 
     // Settings'in var olup olmadığını kontrol et
@@ -1102,22 +1102,29 @@ async function removeBackgroundFromImage(imageUrl, userId) {
   try {
     console.log("🖼️ Arkaplan silme işlemi başlatılıyor:", imageUrl);
 
-    // Orijinal resmin boyutunu al
-    console.log("📐 Orijinal resmin boyutları alınıyor...");
-    const originalImageResponse = await axios.get(imageUrl, {
-      responseType: "arraybuffer",
-    });
-    const originalImageBuffer = Buffer.from(originalImageResponse.data);
-    const originalMetadata = await sharp(originalImageBuffer).metadata();
-    const originalWidth = originalMetadata.width;
-    const originalHeight = originalMetadata.height;
-    const originalRatio = originalWidth / originalHeight;
+    // Orijinal fotoğrafın metadata bilgilerini al (orientation için)
+    let originalMetadata = null;
+    let originalImageBuffer = null;
 
-    console.log(
-      `📐 Orijinal resim boyutu: ${originalWidth}x${originalHeight} (ratio: ${originalRatio.toFixed(
-        2
-      )})`
-    );
+    try {
+      console.log("📐 Orijinal fotoğrafın metadata bilgileri alınıyor...");
+      const originalResponse = await axios.get(imageUrl, {
+        responseType: "arraybuffer",
+        timeout: 15000,
+      });
+      originalImageBuffer = Buffer.from(originalResponse.data);
+
+      // Sharp ile metadata al
+      originalMetadata = await sharp(originalImageBuffer).metadata();
+      console.log("📐 Orijinal metadata:", {
+        width: originalMetadata.width,
+        height: originalMetadata.height,
+        orientation: originalMetadata.orientation,
+        format: originalMetadata.format,
+      });
+    } catch (metadataError) {
+      console.error("⚠️ Orijinal metadata alınamadı:", metadataError.message);
+    }
 
     // Replicate API'ye arkaplan silme isteği gönder
     const backgroundRemovalResponse = await axios.post(
@@ -1159,131 +1166,147 @@ async function removeBackgroundFromImage(imageUrl, userId) {
     if (finalResult.status === "succeeded" && finalResult.output) {
       console.log("✅ Arkaplan silme işlemi başarılı:", finalResult.output);
 
-      // Arkaplanı silinmiş resmin boyutunu kontrol et
-      console.log("📐 Arkaplanı silinmiş resmin boyutları kontrol ediliyor...");
-      const processedImageResponse = await axios.get(finalResult.output, {
-        responseType: "arraybuffer",
-      });
-      const processedImageBuffer = Buffer.from(processedImageResponse.data);
-      const processedMetadata = await sharp(processedImageBuffer).metadata();
-      const processedWidth = processedMetadata.width;
-      const processedHeight = processedMetadata.height;
-      const processedRatio = processedWidth / processedHeight;
+      // Arkaplanı silinmiş resmi indir ve orientation düzeltmesi yap
+      let processedImageUrl;
 
-      console.log(
-        `📐 İşlenmiş resim boyutu: ${processedWidth}x${processedHeight} (ratio: ${processedRatio.toFixed(
-          2
-        )})`
-      );
-
-      // Orientation kontrolü ve düzeltme
-      let finalProcessedBuffer = processedImageBuffer;
-
-      // Orijinal resmin orientation'ını net olarak belirle
-      const isOriginalVertical = originalHeight > originalWidth; // Portrait/Dikey
-      const isOriginalHorizontal = originalWidth > originalHeight; // Landscape/Yatay
-
-      // İşlenmiş resmin orientation'ını net olarak belirle
-      const isProcessedVertical = processedHeight > processedWidth; // Portrait/Dikey
-      const isProcessedHorizontal = processedWidth > processedHeight; // Landscape/Yatay
-
-      console.log(`📐 ORİJİNAL RESIM: ${originalWidth}x${originalHeight}`);
-      console.log(
-        `📐 Orijinal orientation: ${
-          isOriginalVertical
-            ? "🔼 VERTICAL (Portrait)"
-            : "🔄 HORIZONTAL (Landscape)"
-        }`
-      );
-
-      console.log(`📐 İŞLENMİŞ RESIM: ${processedWidth}x${processedHeight}`);
-      console.log(
-        `📐 İşlenmiş orientation: ${
-          isProcessedVertical
-            ? "🔼 VERTICAL (Portrait)"
-            : "🔄 HORIZONTAL (Landscape)"
-        }`
-      );
-
-      // Resmin orientation'ı değişmiş mi kontrol et
-      let rotationNeeded = false;
-      let rotationAngle = 0;
-
-      if (isOriginalVertical && isProcessedHorizontal) {
-        // Orijinal VERTICAL iken İşlenmiş HORIZONTAL olmuş
+      try {
         console.log(
-          "🚨 PROBLEM TESPİT EDİLDİ: Resim VERTICAL'dan HORIZONTAL'a döndü!"
-        );
-        console.log(
-          "🔄 Düzeltme: Resmi tekrar VERTICAL yapmak için döndürülecek"
-        );
-        rotationNeeded = true;
-        rotationAngle = 90; // Saat yönünde 90 derece
-      } else if (isOriginalHorizontal && isProcessedVertical) {
-        // Orijinal HORIZONTAL iken İşlenmiş VERTICAL olmuş
-        console.log(
-          "🚨 PROBLEM TESPİT EDİLDİ: Resim HORIZONTAL'dan VERTICAL'a döndü!"
-        );
-        console.log(
-          "🔄 Düzeltme: Resmi tekrar HORIZONTAL yapmak için döndürülecek"
-        );
-        rotationNeeded = true;
-        rotationAngle = -90; // Saat yönünün tersine 90 derece
-      } else {
-        console.log("✅ Resim orientation'ı DEĞIŞMEDE: Düzeltme gerekli değil");
-        console.log(
-          `   📋 Her ikisi de ${isOriginalVertical ? "VERTICAL" : "HORIZONTAL"}`
-        );
-      }
-
-      // Eğer rotation gerekiyorsa uygula
-      if (rotationNeeded) {
-        console.log(`🔄 Resim ${rotationAngle}° döndürülüyor...`);
-
-        finalProcessedBuffer = await sharp(processedImageBuffer)
-          .rotate(rotationAngle)
-          .png()
-          .toBuffer();
-
-        console.log(`✅ Resim ${rotationAngle}° döndürüldü`);
-
-        // Döndürme sonrası kontrolü
-        const rotatedMetadata = await sharp(finalProcessedBuffer).metadata();
-        const isRotatedVertical =
-          rotatedMetadata.height > rotatedMetadata.width;
-
-        console.log(
-          `📐 DÖNDÜRÜLMÜŞ RESIM: ${rotatedMetadata.width}x${rotatedMetadata.height}`
-        );
-        console.log(
-          `📐 Döndürülmüş orientation: ${
-            isRotatedVertical
-              ? "🔼 VERTICAL (Portrait)"
-              : "🔄 HORIZONTAL (Landscape)"
-          }`
+          "🔄 Arkaplanı silinmiş resim orientation kontrolü yapılıyor..."
         );
 
-        // Düzeltme başarılı mı kontrol et
-        if (
-          (isOriginalVertical && isRotatedVertical) ||
-          (isOriginalHorizontal && !isRotatedVertical)
-        ) {
-          console.log(
-            "🎉 BAŞARILI: Resim orijinal orientation'ına geri döndürüldü!"
-          );
-        } else {
-          console.log(
-            "⚠️ DİKKAT: Döndürme tam olarak düzeltmedi, ek kontrol gerekebilir"
-          );
+        // Arkaplanı silinmiş resmi indir
+        const processedResponse = await axios.get(finalResult.output, {
+          responseType: "arraybuffer",
+          timeout: 15000,
+        });
+        let processedImageBuffer = Buffer.from(processedResponse.data);
+
+        // Eğer orijinal metadata varsa orientation kontrolü yap
+        if (originalMetadata) {
+          const processedMetadata = await sharp(
+            processedImageBuffer
+          ).metadata();
+          console.log("📐 İşlenmiş resim metadata:", {
+            width: processedMetadata.width,
+            height: processedMetadata.height,
+            orientation: processedMetadata.orientation,
+            format: processedMetadata.format,
+          });
+
+          // Orientation farkını kontrol et
+          const originalOrientation = originalMetadata.orientation || 1;
+          const processedOrientation = processedMetadata.orientation || 1;
+
+          // Boyut oranlarını karşılaştır (dikey/yatay değişim kontrolü)
+          const originalIsPortrait =
+            originalMetadata.height > originalMetadata.width;
+          const processedIsPortrait =
+            processedMetadata.height > processedMetadata.width;
+
+          console.log("📐 Orientation karşılaştırması:", {
+            originalOrientation,
+            processedOrientation,
+            originalIsPortrait,
+            processedIsPortrait,
+            orientationChanged: originalOrientation !== processedOrientation,
+            aspectRatioChanged: originalIsPortrait !== processedIsPortrait,
+          });
+
+          // Eğer orientation farklıysa veya aspect ratio değiştiyse düzelt
+          if (
+            originalOrientation !== processedOrientation ||
+            originalIsPortrait !== processedIsPortrait
+          ) {
+            console.log("🔄 Orientation düzeltmesi yapılıyor...");
+
+            let sharpInstance = sharp(processedImageBuffer);
+
+            // Orijinal orientation'ı uygula
+            if (originalOrientation && originalOrientation !== 1) {
+              // EXIF orientation değerlerine göre döndürme
+              switch (originalOrientation) {
+                case 2:
+                  sharpInstance = sharpInstance.flop();
+                  break;
+                case 3:
+                  sharpInstance = sharpInstance.rotate(180);
+                  break;
+                case 4:
+                  sharpInstance = sharpInstance.flip();
+                  break;
+                case 5:
+                  sharpInstance = sharpInstance.rotate(270).flop();
+                  break;
+                case 6:
+                  sharpInstance = sharpInstance.rotate(90);
+                  break;
+                case 7:
+                  sharpInstance = sharpInstance.rotate(90).flop();
+                  break;
+                case 8:
+                  sharpInstance = sharpInstance.rotate(270);
+                  break;
+                default:
+                  // Eğer aspect ratio değiştiyse basit döndürme yap
+                  if (originalIsPortrait && !processedIsPortrait) {
+                    sharpInstance = sharpInstance.rotate(90);
+                  } else if (!originalIsPortrait && processedIsPortrait) {
+                    sharpInstance = sharpInstance.rotate(-90);
+                  }
+              }
+            } else if (originalIsPortrait !== processedIsPortrait) {
+              // EXIF bilgisi yoksa sadece aspect ratio kontrolü yap
+              if (originalIsPortrait && !processedIsPortrait) {
+                console.log("🔄 Yataydan dikeye döndürülüyor...");
+                sharpInstance = sharpInstance.rotate(90);
+              } else if (!originalIsPortrait && processedIsPortrait) {
+                console.log("🔄 Dikeyden yataya döndürülüyor...");
+                sharpInstance = sharpInstance.rotate(-90);
+              }
+            }
+
+            // Düzeltilmiş resmi buffer'a çevir
+            processedImageBuffer = await sharpInstance
+              .png({ quality: 100, progressive: true })
+              .toBuffer();
+
+            const correctedMetadata = await sharp(
+              processedImageBuffer
+            ).metadata();
+            console.log("✅ Orientation düzeltmesi tamamlandı:", {
+              width: correctedMetadata.width,
+              height: correctedMetadata.height,
+              orientation: correctedMetadata.orientation,
+            });
+          } else {
+            console.log(
+              "✅ Orientation düzeltmesi gerekmiyor, resim doğru pozisyonda"
+            );
+          }
         }
-      }
 
-      // Düzeltilmiş resmi Supabase'e yükle
-      const processedImageUrl = await uploadProcessedImageToSupabaseWithBuffer(
-        finalProcessedBuffer,
-        userId,
-        "background_removed"
-      );
+        // Düzeltilmiş resmi Supabase'e yükle
+        processedImageUrl = await uploadProcessedImageBufferToSupabase(
+          processedImageBuffer,
+          userId,
+          "background_removed"
+        );
+      } catch (orientationError) {
+        console.error(
+          "❌ Orientation düzeltme hatası:",
+          orientationError.message
+        );
+        console.log(
+          "⚠️ Orientation düzeltmesi başarısız, orijinal işlenmiş resim kullanılacak"
+        );
+
+        // Fallback: Orijinal işlenmiş resmi direkt yükle
+        processedImageUrl = await uploadProcessedImageToSupabase(
+          finalResult.output,
+          userId,
+          "background_removed"
+        );
+      }
 
       return processedImageUrl;
     } else {
@@ -1353,19 +1376,21 @@ async function uploadProcessedImageToSupabase(imageUrl, userId, processType) {
   }
 }
 
-// Buffer'dan direkt Supabase'e yükleyen fonksiyon
-async function uploadProcessedImageToSupabaseWithBuffer(
+// Buffer'dan direkt Supabase'e yükleme fonksiyonu (orientation düzeltmesi için)
+async function uploadProcessedImageBufferToSupabase(
   imageBuffer,
   userId,
   processType
 ) {
   try {
-    console.log(`📤 ${processType} resmi buffer'dan Supabase'e yükleniyor...`);
+    console.log(
+      `📤 ${processType} buffer'ı Supabase'e yükleniyor (${imageBuffer.length} bytes)`
+    );
 
     // Dosya adı oluştur
     const timestamp = Date.now();
     const randomId = uuidv4().substring(0, 8);
-    const fileName = `${processType}_${
+    const fileName = `${processType}_corrected_${
       userId || "anonymous"
     }_${timestamp}_${randomId}.png`;
 
@@ -1381,11 +1406,14 @@ async function uploadProcessedImageToSupabaseWithBuffer(
       });
 
     if (error) {
-      console.error(`❌ ${processType} resmi Supabase'e yüklenemedi:`, error);
+      console.error(
+        `❌ ${processType} buffer'ı Supabase'e yüklenemedi:`,
+        error
+      );
       throw new Error(`Supabase upload error: ${error.message}`);
     }
 
-    console.log(`✅ ${processType} resmi Supabase'e yüklendi:`, data);
+    console.log(`✅ ${processType} buffer'ı Supabase'e yüklendi:`, data);
 
     // Public URL al
     const { data: urlData } = supabase.storage
@@ -1399,7 +1427,7 @@ async function uploadProcessedImageToSupabaseWithBuffer(
     return urlData.publicUrl;
   } catch (error) {
     console.error(
-      `❌ ${processType} resmi Supabase'e yüklenirken hata:`,
+      `❌ ${processType} buffer'ı Supabase'e yüklenirken hata:`,
       error
     );
     throw error;
