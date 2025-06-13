@@ -119,7 +119,6 @@ async function uploadReferenceImagesToSupabase(referenceImages, userId) {
         // Eğer base64 data varsa onu kullan, yoksa URI'yi kullan
         if (referenceImage.base64) {
           imageSourceForUpload = `data:image/jpeg;base64,${referenceImage.base64}`;
-          console.log(`📤 Reference image ${i + 1}: Base64 data kullanılıyor`);
         } else if (
           referenceImage.uri.startsWith("http://") ||
           referenceImage.uri.startsWith("https://")
@@ -738,16 +737,32 @@ Always prefer neutral, professional, and editorial-style language that emphasize
 
     Create a detailed English prompt for high-fashion editorial photography featuring the main product/garment from the provided reference image worn by a ${modelGenderText}. Absolutely avoid terms like transparent, see-through, sheer, revealing, exposed, decolletage, cleavage, low-cut, plunging, bare skin, provocative, sensual, sexy, seductive, tight-fitting for sensitive areas, body-hugging, form-fitting, or fabric opacity levels. Use safe alternatives like lightweight, delicate, fine-weave, airy, modern cut, contemporary style, elegant neckline, refined cut instead. Never mention brand names, designer names, or commercial labels like Nike, Adidas, Zara, H&M, Louis Vuitton etc. Describe items as premium garment, high-quality piece, professional design instead. 
 
-    CRITICAL FOCUS REQUIREMENT: COMPLETELY IGNORE and DO NOT mention any of the following elements that may appear in the reference image:
+    🚨 CRITICAL PRODUCT FOCUS REQUIREMENT - ABSOLUTE PRIORITY:
+    
+    COMPLETELY IGNORE and DO NOT mention ANY of the following background elements that may appear in the reference image:
     - Background furniture, objects, or environmental items unrelated to the main garment
+    - People, crowds, or any human figures in the background
+    - Buildings, architecture, or street scenes behind the product
+    - Cars, vehicles, or transportation elements
+    - Store fixtures, retail displays, or commercial photography setups
     - Sales tags, price tags, hangtags, or any commercial labeling on the garment
     - Photography equipment, mannequins, hangers, or display materials
     - Supporting fabrics, background cloths, or photography aids used in the reference shot
     - Irrelevant objects, decorative items, or clutter in the background
-    - Store fixtures, retail displays, or commercial photography setups
     - Any visual elements that are not part of the actual garment/product itself
+    - Background textures, patterns, or surfaces (walls, floors, etc.)
+    - Lighting equipment, studio setups, or photography accessories
     
-    Focus EXCLUSIVELY on analyzing and describing only the main garment/product that is meant to be showcased, treating it as if it's being worn by the ${modelGenderText} in a clean, professional editorial environment.
+    ⚠️ MANDATORY INSTRUCTION: Focus EXCLUSIVELY on analyzing and describing ONLY the main garment/product that is meant to be showcased. Treat the garment as if it's being worn by the ${modelGenderText} in a clean, professional editorial environment with NO background distractions.
+    
+    🎯 PRODUCT-ONLY ANALYSIS: Your entire description must center around:
+    - The garment's fabric, texture, and material properties
+    - Construction details, seams, and craftsmanship
+    - Fit, silhouette, and how it drapes on the body
+    - Color, pattern, and design elements of the product
+    - Styling suggestions that complement the main garment
+    
+    ❌ DO NOT DESCRIBE: Any background elements, environmental details, or non-product related visual information from the reference image.
 
 
 CRITICAL GARMENT COVERAGE REQUIREMENT:
@@ -977,7 +992,7 @@ Failure to follow this instruction will result in incorrect garment generation.
 
         // ControlNet direktifini dinamik olarak ekle
         let controlNetDirective = "";
-        if (hasControlNet) {
+        if (!hasControlNet) {
           controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
 
 `;
@@ -1167,132 +1182,69 @@ async function uploadProcessedImageToSupabase(imageUrl, userId, processType) {
   }
 }
 
-// ControlNet Canny çıkarma fonksiyonu
-async function generateControlNetCanny(imageUrl, userId) {
+// Sharp ile yerel ControlNet Canny çıkarma fonksiyonu (API'siz)
+async function generateLocalControlNetCanny(imageUrl, userId) {
   try {
-    console.log("🎨 ControlNet Canny çıkarma işlemi başlatılıyor:", imageUrl);
-
-    // Önce orijinal resmin boyutlarını al
-    let originalWidth = 768;
-    let originalHeight = 768;
-
-    try {
-      console.log("📐 Orijinal resmin boyutları alınıyor...");
-      const imageResponse = await axios.get(imageUrl, {
-        responseType: "arraybuffer",
-        timeout: 10000,
-      });
-      const imageBuffer = Buffer.from(imageResponse.data);
-
-      // Sharp ile metadata al
-      const metadata = await sharp(imageBuffer).metadata();
-      const fullWidth = metadata.width || 768;
-      const fullHeight = metadata.height || 768;
-
-      // Boyutları yarıya düşür
-      originalWidth = Math.round(fullWidth / 2);
-      originalHeight = Math.round(fullHeight / 2);
-
-      console.log(`📐 Orijinal resim boyutları: ${fullWidth}x${fullHeight}`);
-      console.log(
-        `🎨 ControlNet boyutları (yarı): ${originalWidth}x${originalHeight}`
-      );
-    } catch (dimensionError) {
-      console.error(
-        "❌ Resim boyutları alınırken hata:",
-        dimensionError.message
-      );
-      console.log("⚠️ Varsayılan boyutlar kullanılacak: 384x384 (768/2)");
-      originalWidth = 384;
-      originalHeight = 384;
-    }
-
-    // Replicate ControlNet Canny API'ye istek gönder
-    const controlNetResponse = await axios.post(
-      "https://api.replicate.com/v1/predictions",
-      {
-        version:
-          "fofr/realvisxl-v3-multi-controlnet-lora:90a4a3604cd637cb9f1a2bdae1cfa9ed869362ca028814cdce310a78e27daade",
-        input: {
-          width: originalWidth,
-          height: originalHeight,
-          prompt: "a photo of garment",
-          refine: "no_refiner",
-          scheduler: "K_EULER",
-          lora_scale: 0.8,
-          num_outputs: 1,
-          controlnet_1: "edge_canny",
-          controlnet_2: "none",
-          controlnet_3: "none",
-          guidance_scale: 7.5,
-          apply_watermark: false,
-          negative_prompt: "",
-          prompt_strength: 0.8,
-          sizing_strategy: "width_height",
-          controlnet_1_end: 1,
-          controlnet_2_end: 1,
-          controlnet_3_end: 1,
-          controlnet_1_image: imageUrl,
-          controlnet_1_start: 0,
-          controlnet_2_start: 0,
-          controlnet_3_start: 0,
-          num_inference_steps: 30,
-          controlnet_1_conditioning_scale: 0.8,
-          controlnet_2_conditioning_scale: 0.8,
-          controlnet_3_conditioning_scale: 0.75,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-          "Content-Type": "application/json",
-          Prefer: "wait",
-        },
-      }
+    console.log(
+      "🎨 Yerel ControlNet Canny çıkarma işlemi başlatılıyor:",
+      imageUrl
     );
 
-    const initialResult = controlNetResponse.data;
-    console.log("🎨 ControlNet Canny başlangıç yanıtı:", initialResult);
+    // Resmi indir
+    const imageResponse = await axios.get(imageUrl, {
+      responseType: "arraybuffer",
+      timeout: 15000,
+    });
+    const imageBuffer = Buffer.from(imageResponse.data);
 
-    if (!initialResult.id) {
-      console.error(
-        "❌ ControlNet Canny prediction ID alınamadı:",
-        initialResult
-      );
-      throw new Error("ControlNet Canny prediction başlatılamadı");
+    console.log("📐 Resim boyutları alınıyor ve edge detection yapılıyor...");
+
+    // Sharp ile edge detection (Canny benzeri)
+    const cannyBuffer = await sharp(imageBuffer)
+      .greyscale() // Önce gri tonlama
+      .normalize() // Kontrast artırma
+      .convolve({
+        width: 3,
+        height: 3,
+        kernel: [-1, -1, -1, -1, 8, -1, -1, -1, -1], // Edge detection kernel
+      })
+      .threshold(128) // Eşikleme (siyah-beyaz)
+      .negate() // Renkleri ters çevir (beyaz kenarlar için)
+      .png()
+      .toBuffer();
+
+    console.log("✅ Yerel edge detection tamamlandı");
+
+    // İşlenmiş resmi Supabase'e yükle
+    const timestamp = Date.now();
+    const randomId = require("uuid").v4().substring(0, 8);
+    const fileName = `local_canny_${
+      userId || "anonymous"
+    }_${timestamp}_${randomId}.png`;
+
+    const { data, error } = await supabase.storage
+      .from("reference")
+      .upload(fileName, cannyBuffer, {
+        contentType: "image/png",
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (error) {
+      console.error("❌ Yerel Canny resmi Supabase'e yüklenemedi:", error);
+      throw new Error(`Supabase upload error: ${error.message}`);
     }
 
-    // Prediction durumunu polling ile takip et
-    console.log("🔄 ControlNet Canny işlemi polling başlatılıyor...");
-    const finalResult = await pollReplicateResult(initialResult.id, 30); // 30 deneme
+    // Public URL al
+    const { data: urlData } = supabase.storage
+      .from("reference")
+      .getPublicUrl(fileName);
 
-    if (finalResult.status === "succeeded" && finalResult.output) {
-      console.log("✅ ControlNet Canny işlemi başarılı:", finalResult.output);
-
-      // ControlNet output'ı al
-      const cannyImageUrl = Array.isArray(finalResult.output)
-        ? finalResult.output[0]
-        : finalResult.output;
-
-      console.log("🎨 Canny resim URL'si:", cannyImageUrl);
-
-      // Canny resmini Supabase'e yükle
-      const cannySupabaseUrl = await uploadProcessedImageToSupabase(
-        cannyImageUrl,
-        userId,
-        "controlnet_canny"
-      );
-
-      return cannySupabaseUrl;
-    } else {
-      console.error("❌ ControlNet Canny işlemi başarısız:", finalResult);
-      throw new Error(finalResult.error || "ControlNet Canny failed");
-    }
+    console.log("✅ Yerel ControlNet Canny URL'si:", urlData.publicUrl);
+    return urlData.publicUrl;
   } catch (error) {
-    console.error("❌ ControlNet Canny hatası:", error);
-    // Hata durumunda exception fırlat ki üst seviyede yakalanabilsin
-    console.log("⚠️ ControlNet Canny başarısız, hata fırlatılıyor");
-    throw new Error(`ControlNet Canny failed: ${error.message}`);
+    console.error("❌ Yerel ControlNet Canny hatası:", error);
+    throw new Error(`Local ControlNet Canny failed: ${error.message}`);
   }
 }
 
@@ -1580,7 +1532,6 @@ async function combineImagesOnCanvas(
       try {
         // Base64 veya HTTP URL'den resmi yükle
         if (imgData.base64) {
-          console.log(`📐 Resim ${i + 1}: Base64 formatından yükleniyor`);
           imageBuffer = Buffer.from(imgData.base64, "base64");
         } else if (
           imgData.uri.startsWith("http://") ||
@@ -1907,15 +1858,6 @@ router.post("/generate", async (req, res) => {
       }
 
       console.log("Referans görseli:", referenceImage.uri);
-      console.log(
-        "🔍 [DEBUG] Reference Image Object:",
-        JSON.stringify(referenceImage, null, 2)
-      );
-      console.log("🔍 [DEBUG] Base64 data var mı?", !!referenceImage.base64);
-      console.log(
-        "🔍 [DEBUG] Base64 data uzunluğu:",
-        referenceImage.base64 ? referenceImage.base64.length : "yok"
-      );
 
       // Referans resmini önce Supabase'e yükle ve URL al
       let imageSourceForUpload;
@@ -1923,16 +1865,11 @@ router.post("/generate", async (req, res) => {
       // Eğer base64 data varsa onu kullan, yoksa URI'yi kullan
       if (referenceImage.base64) {
         imageSourceForUpload = `data:image/jpeg;base64,${referenceImage.base64}`;
-        console.log("Base64 data kullanılıyor Supabase upload için");
       } else if (
         referenceImage.uri.startsWith("http://") ||
         referenceImage.uri.startsWith("https://")
       ) {
         imageSourceForUpload = referenceImage.uri;
-        console.log(
-          "HTTP URI kullanılıyor Supabase upload için:",
-          imageSourceForUpload
-        );
       } else {
         // file:// protokolü için frontend'de base64 dönüştürme zorunlu
         return res.status(400).json({
@@ -1951,77 +1888,93 @@ router.post("/generate", async (req, res) => {
 
     console.log("Supabase'den alınan final resim URL'si:", finalImage);
 
-    // 🖼️ Arkaplan silme işlemi - Ana görsel oluşturmadan önce
-    console.log("🖼️ Ürün fotoğrafının arkaplanı siliniyor...");
-    const backgroundRemovedImage = await removeBackgroundFromImage(
-      finalImage,
-      userId
-    );
-    console.log("✅ Arkaplan silme tamamlandı:", backgroundRemovedImage);
-
-    // 🎨 ControlNet Canny çıkarma işlemi
-    console.log("🎨 ControlNet Canny çıkarılıyor...");
-    let cannyImage = null;
-    try {
-      cannyImage = await generateControlNetCanny(
-        backgroundRemovedImage,
-        userId
-      );
-      console.log("✅ ControlNet Canny tamamlandı:", cannyImage);
-    } catch (controlNetError) {
-      console.error("❌ ControlNet Canny hatası:", controlNetError.message);
-      console.log(
-        "⚠️ ControlNet hatası nedeniyle sadece arkaplanı silinmiş resim kullanılacak"
-      );
-      cannyImage = null;
-    }
-
-    // 🖼️ İki resmi yan yana birleştirme (orijinal + canny)
-    let combinedImageForPrompt = backgroundRemovedImage; // Fallback - her zaman arkaplanı silinmiş resim
-    if (cannyImage) {
-      try {
-        console.log("🎨 Orijinal ve Canny resimleri birleştiriliyor...");
-        combinedImageForPrompt = await combineTwoImagesWithBlackLine(
-          backgroundRemovedImage,
-          cannyImage,
-          userId
-        );
-        console.log(
-          "✅ İki resim birleştirme tamamlandı:",
-          combinedImageForPrompt
-        );
-      } catch (combineError) {
-        console.error("❌ Resim birleştirme hatası:", combineError.message);
-        console.log(
-          "⚠️ Birleştirme hatası nedeniyle sadece arkaplanı silinmiş resim kullanılacak"
-        );
-        combinedImageForPrompt = backgroundRemovedImage;
-      }
-    } else {
-      console.log(
-        "⚠️ ControlNet Canny mevcut değil, sadece arkaplanı silinmiş resim kullanılacak"
-      );
-    }
-
     // Aspect ratio'yu formatla
     const formattedRatio = formatAspectRatio(ratio || "9:16");
     console.log(
       `İstenen ratio: ${ratio}, formatlanmış ratio: ${formattedRatio}`
     );
 
-    // Kullanıcının prompt'unu Gemini ile iyileştir - MANKEN + ÜRÜN ANALİZİ + CONTROLNET (birleştirilmiş resmi kullan)
-    const hasControlNetData =
-      cannyImage !== null && combinedImageForPrompt !== backgroundRemovedImage;
-    const enhancedPrompt = await enhancePromptWithGemini(
+    // 🚀 Paralel işlemler başlat
+    console.log(
+      "🚀 Paralel işlemler başlatılıyor: Gemini + Arkaplan silme + ControlNet hazırlığı..."
+    );
+
+    // 🤖 Gemini'ye orijinal ham resmi gönder (paralel)
+    const geminiPromise = enhancePromptWithGemini(
       promptText,
-      combinedImageForPrompt,
+      finalImage, // Ham orijinal resim
       settings || {},
       locationImage,
       poseImage,
       hairStyleImage,
       isMultipleProducts,
-      hasControlNetData
+      false // ControlNet yok, ham resim
     );
+
+    // 🖼️ Arkaplan silme işlemi (paralel)
+    const backgroundRemovalPromise = removeBackgroundFromImage(
+      finalImage,
+      userId
+    );
+
+    // ⏳ Gemini ve arkaplan silme işlemlerini paralel bekle
+    console.log("⏳ Gemini ve arkaplan silme paralel olarak bekleniyor...");
+    const [enhancedPrompt, backgroundRemovedImage] = await Promise.all([
+      geminiPromise,
+      backgroundRemovalPromise,
+    ]);
+
+    console.log("✅ Gemini prompt iyileştirme tamamlandı");
+    console.log("✅ Arkaplan silme tamamlandı:", backgroundRemovedImage);
+
+    // 🎨 Yerel ControlNet Canny çıkarma işlemi - Arkaplan silindikten sonra
+    console.log("🎨 Yerel ControlNet Canny çıkarılıyor (Sharp ile)...");
+    let cannyImage = null;
+    try {
+      cannyImage = await generateLocalControlNetCanny(
+        backgroundRemovedImage,
+        userId
+      );
+      console.log("✅ Yerel ControlNet Canny tamamlandı:", cannyImage);
+    } catch (controlNetError) {
+      console.error(
+        "❌ Yerel ControlNet Canny hatası:",
+        controlNetError.message
+      );
+      console.log(
+        "⚠️ Yerel ControlNet hatası nedeniyle sadece arkaplanı silinmiş resim kullanılacak"
+      );
+      cannyImage = null;
+    }
+
+    // 🖼️ İki resmi yan yana birleştirme (orijinal + canny) - Replicate için
+    let combinedImageForReplicate = backgroundRemovedImage; // Fallback - her zaman arkaplanı silinmiş resim
+    if (cannyImage) {
+      try {
+        console.log(
+          "🎨 Orijinal ve Canny resimleri birleştiriliyor (Replicate için)..."
+        );
+        combinedImageForReplicate = await combineTwoImagesWithBlackLine(
+          backgroundRemovedImage,
+          cannyImage,
+          userId
+        );
+        console.log(
+          "✅ İki resim birleştirme tamamlandı:",
+          combinedImageForReplicate
+        );
+      } catch (combineError) {
+        console.error("❌ Resim birleştirme hatası:", combineError.message);
+        console.log(
+          "⚠️ Birleştirme hatası nedeniyle sadece arkaplanı silinmiş resim kullanılacak"
+        );
+        combinedImageForReplicate = backgroundRemovedImage;
+      }
+    } else {
+      console.log(
+        "⚠️ ControlNet Canny mevcut değil, sadece arkaplanı silinmiş resim kullanılacak"
+      );
+    }
 
     console.log("📝 [BACKEND MAIN] Original prompt:", promptText);
     console.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
@@ -2032,7 +1985,7 @@ router.post("/generate", async (req, res) => {
       {
         input: {
           prompt: enhancedPrompt,
-          input_image: combinedImageForPrompt,
+          input_image: combinedImageForReplicate, // Birleştirilmiş resim Replicate için
           aspect_ratio: formattedRatio,
           safety_tolerance: 6,
         },

@@ -119,7 +119,6 @@ async function uploadReferenceImagesToSupabase(referenceImages, userId) {
         // Eğer base64 data varsa onu kullan, yoksa URI'yi kullan
         if (referenceImage.base64) {
           imageSourceForUpload = `data:image/jpeg;base64,${referenceImage.base64}`;
-          console.log(`📤 Reference image ${i + 1}: Base64 data kullanılıyor`);
         } else if (
           referenceImage.uri.startsWith("http://") ||
           referenceImage.uri.startsWith("https://")
@@ -655,7 +654,6 @@ async function combineImagesOnCanvas(
       try {
         // Base64 veya HTTP URL'den resmi yükle
         if (imgData.base64) {
-          console.log(`📐 Resim ${i + 1}: Base64 formatından yükleniyor`);
           imageBuffer = Buffer.from(imgData.base64, "base64");
         } else if (
           imgData.uri.startsWith("http://") ||

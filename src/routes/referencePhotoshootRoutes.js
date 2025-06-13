@@ -105,7 +105,6 @@ async function uploadReferenceImagesToSupabase(referenceImages, userId) {
         // Eğer base64 data varsa onu kullan, yoksa URI'yi kullan
         if (referenceImage.base64) {
           imageSourceForUpload = `data:image/jpeg;base64,${referenceImage.base64}`;
-          console.log(`📤 Reference image ${i + 1}: Base64 data kullanılıyor`);
         } else if (
           referenceImage.uri.startsWith("http://") ||
           referenceImage.uri.startsWith("https://")
@@ -885,7 +884,7 @@ router.post("/generate", async (req, res) => {
         "🔍 [DEBUG] Reference Image Object:",
         JSON.stringify(referenceImage, null, 2)
       );
-      console.log("🔍 [DEBUG] Base64 data var mı?", !!referenceImage.base64);
+
       console.log(
         "🔍 [DEBUG] Base64 data uzunluğu:",
         referenceImage.base64 ? referenceImage.base64.length : "yok"
@@ -897,7 +896,6 @@ router.post("/generate", async (req, res) => {
       // Eğer base64 data varsa onu kullan, yoksa URI'yi kullan
       if (referenceImage.base64) {
         imageSourceForUpload = `data:image/jpeg;base64,${referenceImage.base64}`;
-        console.log("Base64 data kullanılıyor Supabase upload için");
       } else if (
         referenceImage.uri.startsWith("http://") ||
         referenceImage.uri.startsWith("https://")
