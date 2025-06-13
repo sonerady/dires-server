@@ -656,7 +656,7 @@ async function enhancePromptWithGemini(
       age ? ` (age: ${age})` : ""
     } should be mentioned frequently throughout the description, not just briefly at the beginning.
 
-     POSE REFERENCE: A pose reference image has been provided to show the desired body position and posture for the ${modelGenderText}. Please analyze this pose image carefully and incorporate the exact body positioning, hand placement, stance, facial expression, and overall posture into your enhanced prompt. The ${modelGenderText} should adopt this specific pose naturally and convincingly.
+    
 
     STYLING GUIDELINES:
     - If the reference is a TOP (shirt, blouse, sweater, etc.): Specify complementary bottoms (pants, skirts, shorts) that enhance the top's design, color, and style
