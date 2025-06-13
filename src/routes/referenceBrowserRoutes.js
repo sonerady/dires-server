@@ -756,13 +756,41 @@ Always prefer neutral, professional, and editorial-style language that emphasize
     - Lighting equipment, studio setups, or photography accessories
     
     ⚠️ MANDATORY INSTRUCTION: Focus EXCLUSIVELY on analyzing and describing ONLY the main garment/product that is meant to be showcased. Treat the garment as if it's being worn by the ${modelGenderText} in a clean, professional editorial environment with NO background distractions.
+
+    🔍 CRITICAL DETAIL PRESERVATION REQUIREMENT - MAXIMUM PRIORITY:
+    
+    ⚠️ ABSOLUTELY CRITICAL: Every single detail, design element, and feature visible on the original garment MUST be preserved and accurately represented in the generated image. This is of UTMOST IMPORTANCE and cannot be compromised under any circumstances.
+    
+    MANDATORY DETAIL PRESERVATION CHECKLIST - ALL MUST BE MAINTAINED:
+    ✅ EXACT COLOR MATCHING: Preserve the precise colors, color combinations, gradients, and color transitions of the original garment
+    ✅ PATTERN ACCURACY: Maintain all patterns, prints, graphics, logos, text, embroidery, and decorative elements exactly as they appear
+    ✅ TEXTURE FIDELITY: Reproduce the exact fabric texture, weave pattern, surface finish, and material characteristics
+    ✅ CONSTRUCTION DETAILS: Preserve all seams, stitching lines, topstitching, hemlines, and construction elements
+    ✅ HARDWARE PRESERVATION: Maintain all buttons, zippers, buckles, snaps, grommets, and metal hardware exactly as shown
+    ✅ TRIM AND EMBELLISHMENTS: Keep all decorative trims, lace, ribbons, appliqués, sequins, beads, and embellishments
+    ✅ PROPORTIONAL ACCURACY: Maintain the exact proportions, sizing, and dimensional relationships of all design elements
+    ✅ PLACEMENT PRECISION: Preserve the exact positioning and placement of all design features, pockets, and details
+    ✅ EDGE TREATMENTS: Maintain all edge finishes, binding, piping, contrast edges, and finishing details
+    ✅ FUNCTIONAL ELEMENTS: Preserve all functional details like pocket flaps, collar styles, cuff treatments, and closures
+    
+    🚨 CRITICAL WARNING: The AI generation system MUST NOT alter, modify, simplify, or omit ANY visible detail from the original garment. Every element that exists on the reference product must appear identically in the final generated image. This includes but is not limited to:
+    - Brand logos, text, and graphics (maintain exact fonts, sizes, and positioning)
+    - Decorative stitching patterns and thread colors
+    - Fabric panels and color blocking arrangements
+    - Hardware finishes (gold, silver, brass, matte, glossy)
+    - Pattern scales and repeat alignments
+    - Texture variations within the same garment
+    - Layering effects and transparency elements
+    - Reflective or metallic surface treatments
+    
+    ⚠️ FAILURE TO PRESERVE THESE DETAILS WILL RESULT IN AN UNACCEPTABLE GENERATION. The generated garment must be indistinguishable from the original in terms of all visible design elements and details.
     
     🎯 PRODUCT-ONLY ANALYSIS: Your entire description must center around:
-    - The garment's fabric, texture, and material properties
-    - Construction details, seams, and craftsmanship
-    - Fit, silhouette, and how it drapes on the body
-    - Color, pattern, and design elements of the product
-    - Styling suggestions that complement the main garment
+    - The garment's fabric, texture, and material properties WITH EXACT DETAIL PRESERVATION
+    - Construction details, seams, and craftsmanship WITH PRECISE ACCURACY
+    - Fit, silhouette, and how it drapes on the body WHILE MAINTAINING ALL ORIGINAL DETAILS
+    - Color, pattern, and design elements of the product WITH PERFECT FIDELITY
+    - Styling suggestions that complement the main garment WITHOUT COMPROMISING ORIGINAL DETAILS
     
     ❌ DO NOT DESCRIBE: Any background elements, environmental details, or non-product related visual information from the reference image.
 
@@ -830,7 +858,12 @@ Failure to follow this instruction will result in incorrect garment generation.
       age
         ? `FINAL REQUIREMENT: Ensure the model's age "${age}" is clearly specified in your enhanced prompt and all descriptions reflect age-appropriate characteristics.`
         : ""
-    } Ensure no suggestive words, focus only on fashion and craftsmanship, use professional technical terminology, maintain editorial magazine tone, avoid content moderation triggers, emphasize construction over inappropriate body descriptions, and use no brand names whatsoever.
+    } 
+
+    🔥 FINAL CRITICAL DETAIL PRESERVATION MANDATE:
+    Your enhanced prompt MUST include explicit instructions that EVERY SINGLE DETAIL from the reference garment must be preserved with 100% accuracy. This includes all colors, patterns, textures, hardware, stitching, logos, graphics, embellishments, and construction elements. The generated image must be a perfect replica of the original garment's design details while being worn by the ${modelGenderText}. NO detail should be altered, simplified, or omitted. This is the most important requirement and overrides all other considerations.
+
+    Ensure no suggestive words, focus only on fashion and craftsmanship, use professional technical terminology, maintain editorial magazine tone, avoid content moderation triggers, emphasize construction over inappropriate body descriptions, and use no brand names whatsoever.
     `;
 
     // Eğer originalPrompt'ta "Model's pose" ibaresi yoksa ek cümle ekleyelim:
@@ -993,24 +1026,24 @@ Failure to follow this instruction will result in incorrect garment generation.
         const geminiGeneratedPrompt = result.response.text().trim();
 
         // ControlNet direktifini dinamik olarak ekle
-        let controlNetDirective = "";
-        if (!hasControlNet) {
-          controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
+        // let controlNetDirective = "";
+        // if (!hasControlNet) {
+        //   controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
 
-`;
-        } else {
-          controlNetDirective = `BACKGROUND REMOVED IMAGE GUIDANCE: The input image shows the original garment with background removed (white background) for clear color and texture reference. Focus on analyzing the garment's design, construction details, fabric characteristics, and styling elements. Use this clean product image to understand the garment's true colors, textures, patterns, and structural features without any background distractions.
+        // `;
+        // } else {
+        //   controlNetDirective = `BACKGROUND REMOVED IMAGE GUIDANCE: The input image shows the original garment with background removed (white background) for clear color and texture reference. Focus on analyzing the garment's design, construction details, fabric characteristics, and styling elements. Use this clean product image to understand the garment's true colors, textures, patterns, and structural features without any background distractions.
 
-`;
-        }
+        // `;
+        // }
 
-        enhancedPrompt = controlNetDirective + geminiGeneratedPrompt;
+        enhancedPrompt = geminiGeneratedPrompt;
         console.log(
           "🤖 [BACKEND GEMINI] Gemini'nin ürettiği prompt:",
           geminiGeneratedPrompt
         );
         console.log(
-          "🎨 [BACKEND CONTROLNET] ControlNet direktifi eklendi, final prompt:",
+          "✨ [BACKEND GEMINI] Final enhanced prompt:",
           enhancedPrompt
         );
         break; // Başarılı olursa loop'tan çık
@@ -1025,17 +1058,17 @@ Failure to follow this instruction will result in incorrect garment generation.
             "Gemini API all attempts failed, using original prompt"
           );
           // Hata durumunda da uygun direktifi ekle
-          let controlNetDirective = "";
-          if (hasControlNet) {
-            controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
+          // let controlNetDirective = "";
+          // if (hasControlNet) {
+          //   controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
 
-`;
-          } else {
-            controlNetDirective = `BACKGROUND REMOVED IMAGE GUIDANCE: The input image shows the original garment with background removed (white background) for clear color and texture reference. Focus on analyzing the garment's design, construction details, fabric characteristics, and styling elements. Use this clean product image to understand the garment's true colors, textures, patterns, and structural features without any background distractions.
+          // `;
+          // } else {
+          //   controlNetDirective = `BACKGROUND REMOVED IMAGE GUIDANCE: The input image shows the original garment with background removed (white background) for clear color and texture reference. Focus on analyzing the garment's design, construction details, fabric characteristics, and styling elements. Use this clean product image to understand the garment's true colors, textures, patterns, and structural features without any background distractions.
 
-`;
-          }
-          enhancedPrompt = controlNetDirective + originalPrompt;
+          // `;
+          // }
+          enhancedPrompt = originalPrompt;
           break;
         }
 
@@ -1050,17 +1083,17 @@ Failure to follow this instruction will result in incorrect garment generation.
   } catch (error) {
     console.error("🤖 Gemini 2.0 Flash prompt iyileştirme hatası:", error);
     // Hata durumunda da uygun direktifi ekle
-    let controlNetDirective = "";
-    if (hasControlNet) {
-      controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
+    // let controlNetDirective = "";
+    // if (hasControlNet) {
+    //   controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
 
-`;
-    } else {
-      controlNetDirective = `BACKGROUND REMOVED IMAGE GUIDANCE: The input image shows the original garment with background removed (white background) for clear color and texture reference. Focus on analyzing the garment's design, construction details, fabric characteristics, and styling elements. Use this clean product image to understand the garment's true colors, textures, patterns, and structural features without any background distractions.
+    // `;
+    // } else {
+    //   controlNetDirective = `BACKGROUND REMOVED IMAGE GUIDANCE: The input image shows the original garment with background removed (white background) for clear color and texture reference. Focus on analyzing the garment's design, construction details, fabric characteristics, and styling elements. Use this clean product image to understand the garment's true colors, textures, patterns, and structural features without any background distractions.
 
-`;
-    }
-    return controlNetDirective + originalPrompt;
+    // `;
+    // }
+    return originalPrompt;
   }
 }
 
@@ -1185,243 +1218,243 @@ async function uploadProcessedImageToSupabase(imageUrl, userId, processType) {
 }
 
 // Sharp ile yerel ControlNet Canny çıkarma fonksiyonu (API'siz)
-async function generateLocalControlNetCanny(imageUrl, userId) {
-  try {
-    console.log(
-      "🎨 Yerel ControlNet Canny çıkarma işlemi başlatılıyor:",
-      imageUrl
-    );
+// async function generateLocalControlNetCanny(imageUrl, userId) {
+//   try {
+//     console.log(
+//       "🎨 Yerel ControlNet Canny çıkarma işlemi başlatılıyor:",
+//       imageUrl
+//     );
 
-    // Resmi indir
-    const imageResponse = await axios.get(imageUrl, {
-      responseType: "arraybuffer",
-      timeout: 15000,
-    });
-    const imageBuffer = Buffer.from(imageResponse.data);
+//     // Resmi indir
+//     const imageResponse = await axios.get(imageUrl, {
+//       responseType: "arraybuffer",
+//       timeout: 15000,
+//     });
+//     const imageBuffer = Buffer.from(imageResponse.data);
 
-    console.log("📐 Resim boyutları alınıyor ve edge detection yapılıyor...");
+//     console.log("📐 Resim boyutları alınıyor ve edge detection yapılıyor...");
 
-    // Sharp ile edge detection (Canny benzeri)
-    const cannyBuffer = await sharp(imageBuffer)
-      .greyscale() // Önce gri tonlama
-      .normalize() // Kontrast artırma
-      .convolve({
-        width: 3,
-        height: 3,
-        kernel: [-1, -1, -1, -1, 8, -1, -1, -1, -1], // Edge detection kernel
-      })
-      .threshold(128) // Eşikleme (siyah-beyaz)
-      .negate() // Renkleri ters çevir (beyaz kenarlar için)
-      .png()
-      .toBuffer();
+//     // Sharp ile edge detection (Canny benzeri)
+//     const cannyBuffer = await sharp(imageBuffer)
+//       .greyscale() // Önce gri tonlama
+//       .normalize() // Kontrast artırma
+//       .convolve({
+//         width: 3,
+//         height: 3,
+//         kernel: [-1, -1, -1, -1, 8, -1, -1, -1, -1], // Edge detection kernel
+//       })
+//       .threshold(128) // Eşikleme (siyah-beyaz)
+//       .negate() // Renkleri ters çevir (beyaz kenarlar için)
+//       .png()
+//       .toBuffer();
 
-    console.log("✅ Yerel edge detection tamamlandı");
+//     console.log("✅ Yerel edge detection tamamlandı");
 
-    // İşlenmiş resmi Supabase'e yükle
-    const timestamp = Date.now();
-    const randomId = require("uuid").v4().substring(0, 8);
-    const fileName = `local_canny_${
-      userId || "anonymous"
-    }_${timestamp}_${randomId}.png`;
+//     // İşlenmiş resmi Supabase'e yükle
+//     const timestamp = Date.now();
+//     const randomId = require("uuid").v4().substring(0, 8);
+//     const fileName = `local_canny_${
+//       userId || "anonymous"
+//     }_${timestamp}_${randomId}.png`;
 
-    const { data, error } = await supabase.storage
-      .from("reference")
-      .upload(fileName, cannyBuffer, {
-        contentType: "image/png",
-        cacheControl: "3600",
-        upsert: false,
-      });
+//     const { data, error } = await supabase.storage
+//       .from("reference")
+//       .upload(fileName, cannyBuffer, {
+//         contentType: "image/png",
+//         cacheControl: "3600",
+//         upsert: false,
+//       });
 
-    if (error) {
-      console.error("❌ Yerel Canny resmi Supabase'e yüklenemedi:", error);
-      throw new Error(`Supabase upload error: ${error.message}`);
-    }
+//     if (error) {
+//       console.error("❌ Yerel Canny resmi Supabase'e yüklenemedi:", error);
+//       throw new Error(`Supabase upload error: ${error.message}`);
+//     }
 
-    // Public URL al
-    const { data: urlData } = supabase.storage
-      .from("reference")
-      .getPublicUrl(fileName);
+//     // Public URL al
+//     const { data: urlData } = supabase.storage
+//       .from("reference")
+//       .getPublicUrl(fileName);
 
-    console.log("✅ Yerel ControlNet Canny URL'si:", urlData.publicUrl);
-    return urlData.publicUrl;
-  } catch (error) {
-    console.error("❌ Yerel ControlNet Canny hatası:", error);
-    throw new Error(`Local ControlNet Canny failed: ${error.message}`);
-  }
-}
+//     console.log("✅ Yerel ControlNet Canny URL'si:", urlData.publicUrl);
+//     return urlData.publicUrl;
+//   } catch (error) {
+//     console.error("❌ Yerel ControlNet Canny hatası:", error);
+//     throw new Error(`Local ControlNet Canny failed: ${error.message}`);
+//   }
+// }
 
 // İki resmi yan yana birleştiren fonksiyon (orijinal + canny)
-async function combineTwoImagesWithBlackLine(
-  originalImageUrl,
-  cannyImageUrl,
-  userId
-) {
-  try {
-    console.log("🎨 İki resim yan yana birleştiriliyor (siyah çizgi ile)...");
-    console.log("🖼️ Orijinal resim:", originalImageUrl);
-    console.log("🎨 Canny resim:", cannyImageUrl);
+// async function combineTwoImagesWithBlackLine(
+//   originalImageUrl,
+//   cannyImageUrl,
+//   userId
+// ) {
+//   try {
+//     console.log("🎨 İki resim yan yana birleştiriliyor (siyah çizgi ile)...");
+//     console.log("🖼️ Orijinal resim:", originalImageUrl);
+//     console.log("🎨 Canny resim:", cannyImageUrl);
 
-    const loadedImages = [];
+//     const loadedImages = [];
 
-    // Orijinal resmi yükle
-    try {
-      const originalResponse = await axios.get(originalImageUrl, {
-        responseType: "arraybuffer",
-        timeout: 15000,
-      });
-      const originalBuffer = Buffer.from(originalResponse.data);
+//     // Orijinal resmi yükle
+//     try {
+//       const originalResponse = await axios.get(originalImageUrl, {
+//         responseType: "arraybuffer",
+//         timeout: 15000,
+//       });
+//       const originalBuffer = Buffer.from(originalResponse.data);
 
-      const processedOriginalBuffer = await sharp(originalBuffer)
-        .jpeg({ quality: 100, progressive: true, mozjpeg: true })
-        .toBuffer();
+//       const processedOriginalBuffer = await sharp(originalBuffer)
+//         .jpeg({ quality: 100, progressive: true, mozjpeg: true })
+//         .toBuffer();
 
-      const originalImg = await loadImage(processedOriginalBuffer);
-      loadedImages.push({ img: originalImg, type: "original" });
+//       const originalImg = await loadImage(processedOriginalBuffer);
+//       loadedImages.push({ img: originalImg, type: "original" });
 
-      console.log(
-        `✅ Orijinal resim yüklendi: ${originalImg.width}x${originalImg.height}`
-      );
-    } catch (originalError) {
-      console.error(
-        "❌ Orijinal resim yüklenirken hata:",
-        originalError.message
-      );
-      throw new Error("Orijinal resim yüklenemedi");
-    }
+//       console.log(
+//         `✅ Orijinal resim yüklendi: ${originalImg.width}x${originalImg.height}`
+//       );
+//     } catch (originalError) {
+//       console.error(
+//         "❌ Orijinal resim yüklenirken hata:",
+//         originalError.message
+//       );
+//       throw new Error("Orijinal resim yüklenemedi");
+//     }
 
-    // Canny resmi yükle
-    if (cannyImageUrl) {
-      try {
-        const cannyResponse = await axios.get(cannyImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 15000,
-        });
-        const cannyBuffer = Buffer.from(cannyResponse.data);
+//     // Canny resmi yükle
+//     if (cannyImageUrl) {
+//       try {
+//         const cannyResponse = await axios.get(cannyImageUrl, {
+//           responseType: "arraybuffer",
+//           timeout: 15000,
+//         });
+//         const cannyBuffer = Buffer.from(cannyResponse.data);
 
-        const processedCannyBuffer = await sharp(cannyBuffer)
-          .jpeg({ quality: 100, progressive: true, mozjpeg: true })
-          .toBuffer();
+//         const processedCannyBuffer = await sharp(cannyBuffer)
+//           .jpeg({ quality: 100, progressive: true, mozjpeg: true })
+//           .toBuffer();
 
-        const cannyImg = await loadImage(processedCannyBuffer);
-        loadedImages.push({ img: cannyImg, type: "canny" });
+//         const cannyImg = await loadImage(processedCannyBuffer);
+//         loadedImages.push({ img: cannyImg, type: "canny" });
 
-        console.log(
-          `✅ Canny resim yüklendi: ${cannyImg.width}x${cannyImg.height}`
-        );
-      } catch (cannyError) {
-        console.error("❌ Canny resim yüklenirken hata:", cannyError.message);
-        // Canny yüklenemezse orijinal resmi tekrar kullan
-        loadedImages.push({ img: loadedImages[0].img, type: "canny_fallback" });
-      }
-    } else {
-      // Canny yoksa orijinal resmi tekrar kullan
-      loadedImages.push({ img: loadedImages[0].img, type: "canny_fallback" });
-    }
+//         console.log(
+//           `✅ Canny resim yüklendi: ${cannyImg.width}x${cannyImg.height}`
+//         );
+//       } catch (cannyError) {
+//         console.error("❌ Canny resim yüklenirken hata:", cannyError.message);
+//         // Canny yüklenemezse orijinal resmi tekrar kullan
+//         loadedImages.push({ img: loadedImages[0].img, type: "canny_fallback" });
+//       }
+//     } else {
+//       // Canny yoksa orijinal resmi tekrar kullan
+//       loadedImages.push({ img: loadedImages[0].img, type: "canny_fallback" });
+//     }
 
-    // Aynı yüksekliğe getir
-    const targetHeight = Math.min(
-      ...loadedImages.map((item) => item.img.height)
-    );
+//     // Aynı yüksekliğe getir
+//     const targetHeight = Math.min(
+//       ...loadedImages.map((item) => item.img.height)
+//     );
 
-    const originalScaledWidth =
-      (loadedImages[0].img.width * targetHeight) / loadedImages[0].img.height;
-    const cannyScaledWidth =
-      (loadedImages[1].img.width * targetHeight) / loadedImages[1].img.height;
+//     const originalScaledWidth =
+//       (loadedImages[0].img.width * targetHeight) / loadedImages[0].img.height;
+//     const cannyScaledWidth =
+//       (loadedImages[1].img.width * targetHeight) / loadedImages[1].img.height;
 
-    const blackLineWidth = 4; // Siyah çizgi kalınlığı
-    const canvasWidth = originalScaledWidth + cannyScaledWidth + blackLineWidth;
-    const canvasHeight = targetHeight;
+//     const blackLineWidth = 4; // Siyah çizgi kalınlığı
+//     const canvasWidth = originalScaledWidth + cannyScaledWidth + blackLineWidth;
+//     const canvasHeight = targetHeight;
 
-    console.log(
-      `📏 İki resimli birleştirilmiş canvas boyutu: ${canvasWidth}x${canvasHeight}`
-    );
+//     console.log(
+//       `📏 İki resimli birleştirilmiş canvas boyutu: ${canvasWidth}x${canvasHeight}`
+//     );
 
-    // Canvas oluştur
-    const canvas = createCanvas(canvasWidth, canvasHeight);
-    const ctx = canvas.getContext("2d");
+//     // Canvas oluştur
+//     const canvas = createCanvas(canvasWidth, canvasHeight);
+//     const ctx = canvas.getContext("2d");
 
-    // Canvas kalite ayarları
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
-    ctx.patternQuality = "best";
-    ctx.textRenderingOptimization = "optimizeQuality";
+//     // Canvas kalite ayarları
+//     ctx.imageSmoothingEnabled = true;
+//     ctx.imageSmoothingQuality = "high";
+//     ctx.patternQuality = "best";
+//     ctx.textRenderingOptimization = "optimizeQuality";
 
-    // Beyaz arka plan
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+//     // Beyaz arka plan
+//     ctx.fillStyle = "white";
+//     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-    // 1. Orijinal resmi sol tarafa yerleştir
-    ctx.drawImage(loadedImages[0].img, 0, 0, originalScaledWidth, targetHeight);
-    console.log(
-      `🖼️ Orijinal resim yerleştirildi: (0, 0) - ${originalScaledWidth}x${targetHeight}`
-    );
+//     // 1. Orijinal resmi sol tarafa yerleştir
+//     ctx.drawImage(loadedImages[0].img, 0, 0, originalScaledWidth, targetHeight);
+//     console.log(
+//       `🖼️ Orijinal resim yerleştirildi: (0, 0) - ${originalScaledWidth}x${targetHeight}`
+//     );
 
-    // Siyah çizgi
-    ctx.fillStyle = "black";
-    ctx.fillRect(originalScaledWidth, 0, blackLineWidth, targetHeight);
-    console.log(
-      `⚫ Siyah çizgi çizildi: (${originalScaledWidth}, 0) - ${blackLineWidth}x${targetHeight}`
-    );
+//     // Siyah çizgi
+//     ctx.fillStyle = "black";
+//     ctx.fillRect(originalScaledWidth, 0, blackLineWidth, targetHeight);
+//     console.log(
+//       `⚫ Siyah çizgi çizildi: (${originalScaledWidth}, 0) - ${blackLineWidth}x${targetHeight}`
+//     );
 
-    // 2. Canny resmi sağ tarafa yerleştir
-    ctx.drawImage(
-      loadedImages[1].img,
-      originalScaledWidth + blackLineWidth,
-      0,
-      cannyScaledWidth,
-      targetHeight
-    );
-    console.log(
-      `🎨 Canny resim yerleştirildi: (${
-        originalScaledWidth + blackLineWidth
-      }, 0) - ${cannyScaledWidth}x${targetHeight}`
-    );
+//     // 2. Canny resmi sağ tarafa yerleştir
+//     ctx.drawImage(
+//       loadedImages[1].img,
+//       originalScaledWidth + blackLineWidth,
+//       0,
+//       cannyScaledWidth,
+//       targetHeight
+//     );
+//     console.log(
+//       `🎨 Canny resim yerleştirildi: (${
+//         originalScaledWidth + blackLineWidth
+//       }, 0) - ${cannyScaledWidth}x${targetHeight}`
+//     );
 
-    // Canvas'ı buffer'a çevir
-    const buffer = canvas.toBuffer("image/png");
-    console.log(
-      "📊 İki resimli birleştirilmiş resim boyutu:",
-      buffer.length,
-      "bytes"
-    );
+//     // Canvas'ı buffer'a çevir
+//     const buffer = canvas.toBuffer("image/png");
+//     console.log(
+//       "📊 İki resimli birleştirilmiş resim boyutu:",
+//       buffer.length,
+//       "bytes"
+//     );
 
-    // Supabase'e yükle
-    const timestamp = Date.now();
-    const randomId = uuidv4().substring(0, 8);
-    const fileName = `combined_canny_controlnet_${
-      userId || "anonymous"
-    }_${timestamp}_${randomId}.png`;
+//     // Supabase'e yükle
+//     const timestamp = Date.now();
+//     const randomId = uuidv4().substring(0, 8);
+//     const fileName = `combined_canny_controlnet_${
+//       userId || "anonymous"
+//     }_${timestamp}_${randomId}.png`;
 
-    const { data, error } = await supabase.storage
-      .from("reference")
-      .upload(fileName, buffer, {
-        contentType: "image/png",
-        cacheControl: "3600",
-        upsert: false,
-      });
+//     const { data, error } = await supabase.storage
+//       .from("reference")
+//       .upload(fileName, buffer, {
+//         contentType: "image/png",
+//         cacheControl: "3600",
+//         upsert: false,
+//       });
 
-    if (error) {
-      console.error(
-        "❌ İki resimli birleştirilmiş resim Supabase'e yüklenemedi:",
-        error
-      );
-      throw new Error(`Supabase upload error: ${error.message}`);
-    }
+//     if (error) {
+//       console.error(
+//         "❌ İki resimli birleştirilmiş resim Supabase'e yüklenemedi:",
+//         error
+//       );
+//       throw new Error(`Supabase upload error: ${error.message}`);
+//     }
 
-    const { data: urlData } = supabase.storage
-      .from("reference")
-      .getPublicUrl(fileName);
+//     const { data: urlData } = supabase.storage
+//       .from("reference")
+//       .getPublicUrl(fileName);
 
-    console.log(
-      "✅ 🎉 İki resimli ControlNet birleştirilmiş resim URL'si:",
-      urlData.publicUrl
-    );
-    return urlData.publicUrl;
-  } catch (error) {
-    console.error("❌ İki resimli ControlNet birleştirme hatası:", error);
-    throw error;
-  }
-}
+//     console.log(
+//       "✅ 🎉 İki resimli ControlNet birleştirilmiş resim URL'si:",
+//       urlData.publicUrl
+//     );
+//     return urlData.publicUrl;
+//   } catch (error) {
+//     console.error("❌ İki resimli ControlNet birleştirme hatası:", error);
+//     throw error;
+//   }
+// }
 
 // Replicate prediction durumunu kontrol eden fonksiyon
 async function pollReplicateResult(predictionId, maxAttempts = 60) {
@@ -1930,53 +1963,53 @@ router.post("/generate", async (req, res) => {
     console.log("✅ Arkaplan silme tamamlandı:", backgroundRemovedImage);
 
     // 🎨 Yerel ControlNet Canny çıkarma işlemi - Arkaplan silindikten sonra
-    console.log("🎨 Yerel ControlNet Canny çıkarılıyor (Sharp ile)...");
+    // console.log("🎨 Yerel ControlNet Canny çıkarılıyor (Sharp ile)...");
     let cannyImage = null;
-    try {
-      cannyImage = await generateLocalControlNetCanny(
-        backgroundRemovedImage,
-        userId
-      );
-      console.log("✅ Yerel ControlNet Canny tamamlandı:", cannyImage);
-    } catch (controlNetError) {
-      console.error(
-        "❌ Yerel ControlNet Canny hatası:",
-        controlNetError.message
-      );
-      console.log(
-        "⚠️ Yerel ControlNet hatası nedeniyle sadece arkaplanı silinmiş resim kullanılacak"
-      );
-      cannyImage = null;
-    }
+    // try {
+    //   cannyImage = await generateLocalControlNetCanny(
+    //     backgroundRemovedImage,
+    //     userId
+    //   );
+    //   console.log("✅ Yerel ControlNet Canny tamamlandı:", cannyImage);
+    // } catch (controlNetError) {
+    //   console.error(
+    //     "❌ Yerel ControlNet Canny hatası:",
+    //     controlNetError.message
+    //   );
+    //   console.log(
+    //     "⚠️ Yerel ControlNet hatası nedeniyle sadece arkaplanı silinmiş resim kullanılacak"
+    //   );
+    //   cannyImage = null;
+    // }
 
     // 🖼️ İki resmi yan yana birleştirme (orijinal + canny) - Replicate için
     let combinedImageForReplicate = backgroundRemovedImage; // Fallback - her zaman arkaplanı silinmiş resim
-    if (cannyImage) {
-      try {
-        console.log(
-          "🎨 Orijinal ve Canny resimleri birleştiriliyor (Replicate için)..."
-        );
-        combinedImageForReplicate = await combineTwoImagesWithBlackLine(
-          backgroundRemovedImage,
-          cannyImage,
-          userId
-        );
-        console.log(
-          "✅ İki resim birleştirme tamamlandı:",
-          combinedImageForReplicate
-        );
-      } catch (combineError) {
-        console.error("❌ Resim birleştirme hatası:", combineError.message);
-        console.log(
-          "⚠️ Birleştirme hatası nedeniyle sadece arkaplanı silinmiş resim kullanılacak"
-        );
-        combinedImageForReplicate = backgroundRemovedImage;
-      }
-    } else {
-      console.log(
-        "⚠️ ControlNet Canny mevcut değil, sadece arkaplanı silinmiş resim kullanılacak"
-      );
-    }
+    // if (cannyImage) {
+    //   try {
+    //     console.log(
+    //       "🎨 Orijinal ve Canny resimleri birleştiriliyor (Replicate için)..."
+    //     );
+    //     combinedImageForReplicate = await combineTwoImagesWithBlackLine(
+    //       backgroundRemovedImage,
+    //       cannyImage,
+    //       userId
+    //     );
+    //     console.log(
+    //       "✅ İki resim birleştirme tamamlandı:",
+    //       combinedImageForReplicate
+    //     );
+    //   } catch (combineError) {
+    //     console.error("❌ Resim birleştirme hatası:", combineError.message);
+    //     console.log(
+    //       "⚠️ Birleştirme hatası nedeniyle sadece arkaplanı silinmiş resim kullanılacak"
+    //     );
+    //     combinedImageForReplicate = backgroundRemovedImage;
+    //   }
+    // } else {
+    //   console.log(
+    //     "⚠️ ControlNet Canny mevcut değil, sadece arkaplanı silinmiş resim kullanılacak"
+    //   );
+    // }
 
     console.log("📝 [BACKEND MAIN] Original prompt:", promptText);
     console.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
