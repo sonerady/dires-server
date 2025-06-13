@@ -305,7 +305,8 @@ async function enhancePromptWithGemini(
   locationImage,
   poseImage,
   hairStyleImage,
-  isMultipleProducts = false
+  isMultipleProducts = false,
+  hasControlNet = false
 ) {
   try {
     console.log(
@@ -974,12 +975,19 @@ Failure to follow this instruction will result in incorrect garment generation.
 
         const geminiGeneratedPrompt = result.response.text().trim();
 
-        // Sabit ControlNet direktifini prompt'un başına ekle
-        const controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
+        // ControlNet direktifini dinamik olarak ekle
+        let controlNetDirective = "";
+        if (hasControlNet) {
+          controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
 
 `;
+        } else {
+          controlNetDirective = `BACKGROUND REMOVED IMAGE GUIDANCE: The input image shows the original garment with background removed (white background) for clear color and texture reference. Focus on analyzing the garment's design, construction details, fabric characteristics, and styling elements. Use this clean product image to understand the garment's true colors, textures, patterns, and structural features without any background distractions.
 
-        enhancedPrompt = geminiGeneratedPrompt;
+`;
+        }
+
+        enhancedPrompt = controlNetDirective + geminiGeneratedPrompt;
         console.log(
           "🤖 [BACKEND GEMINI] Gemini'nin ürettiği prompt:",
           geminiGeneratedPrompt
@@ -999,11 +1007,18 @@ Failure to follow this instruction will result in incorrect garment generation.
           console.error(
             "Gemini API all attempts failed, using original prompt"
           );
-          // Hata durumunda da ControlNet direktifini ekle
-          const controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
+          // Hata durumunda da uygun direktifi ekle
+          let controlNetDirective = "";
+          if (hasControlNet) {
+            controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
 
 `;
-          enhancedPrompt = originalPrompt;
+          } else {
+            controlNetDirective = `BACKGROUND REMOVED IMAGE GUIDANCE: The input image shows the original garment with background removed (white background) for clear color and texture reference. Focus on analyzing the garment's design, construction details, fabric characteristics, and styling elements. Use this clean product image to understand the garment's true colors, textures, patterns, and structural features without any background distractions.
+
+`;
+          }
+          enhancedPrompt = controlNetDirective + originalPrompt;
           break;
         }
 
@@ -1017,11 +1032,18 @@ Failure to follow this instruction will result in incorrect garment generation.
     return enhancedPrompt;
   } catch (error) {
     console.error("🤖 Gemini 2.0 Flash prompt iyileştirme hatası:", error);
-    // Hata durumunda da ControlNet direktifini ekle
-    const controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
+    // Hata durumunda da uygun direktifi ekle
+    let controlNetDirective = "";
+    if (hasControlNet) {
+      controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
 
 `;
-    return originalPrompt;
+    } else {
+      controlNetDirective = `BACKGROUND REMOVED IMAGE GUIDANCE: The input image shows the original garment with background removed (white background) for clear color and texture reference. Focus on analyzing the garment's design, construction details, fabric characteristics, and styling elements. Use this clean product image to understand the garment's true colors, textures, patterns, and structural features without any background distractions.
+
+`;
+    }
+    return controlNetDirective + originalPrompt;
   }
 }
 
@@ -1164,18 +1186,25 @@ async function generateControlNetCanny(imageUrl, userId) {
 
       // Sharp ile metadata al
       const metadata = await sharp(imageBuffer).metadata();
-      originalWidth = metadata.width || 768;
-      originalHeight = metadata.height || 768;
+      const fullWidth = metadata.width || 768;
+      const fullHeight = metadata.height || 768;
 
+      // Boyutları yarıya düşür
+      originalWidth = Math.round(fullWidth / 2);
+      originalHeight = Math.round(fullHeight / 2);
+
+      console.log(`📐 Orijinal resim boyutları: ${fullWidth}x${fullHeight}`);
       console.log(
-        `📐 Orijinal resim boyutları: ${originalWidth}x${originalHeight}`
+        `🎨 ControlNet boyutları (yarı): ${originalWidth}x${originalHeight}`
       );
     } catch (dimensionError) {
       console.error(
         "❌ Resim boyutları alınırken hata:",
         dimensionError.message
       );
-      console.log("⚠️ Varsayılan boyutlar kullanılacak: 768x768");
+      console.log("⚠️ Varsayılan boyutlar kullanılacak: 384x384 (768/2)");
+      originalWidth = 384;
+      originalHeight = 384;
     }
 
     // Replicate ControlNet Canny API'ye istek gönder
@@ -1261,9 +1290,9 @@ async function generateControlNetCanny(imageUrl, userId) {
     }
   } catch (error) {
     console.error("❌ ControlNet Canny hatası:", error);
-    // Hata durumunda null döndür
-    console.log("⚠️ ControlNet Canny başarısız, işlem devam edecek");
-    return null;
+    // Hata durumunda exception fırlat ki üst seviyede yakalanabilsin
+    console.log("⚠️ ControlNet Canny başarısız, hata fırlatılıyor");
+    throw new Error(`ControlNet Canny failed: ${error.message}`);
   }
 }
 
@@ -1932,28 +1961,45 @@ router.post("/generate", async (req, res) => {
 
     // 🎨 ControlNet Canny çıkarma işlemi
     console.log("🎨 ControlNet Canny çıkarılıyor...");
-    const cannyImage = await generateControlNetCanny(
-      backgroundRemovedImage,
-      userId
-    );
-    console.log("✅ ControlNet Canny tamamlandı:", cannyImage);
-
-    // 🖼️ İki resmi yan yana birleştirme (orijinal + canny)
-    let combinedImageForPrompt = backgroundRemovedImage; // Fallback
-    if (cannyImage) {
-      console.log("🎨 Orijinal ve Canny resimleri birleştiriliyor...");
-      combinedImageForPrompt = await combineTwoImagesWithBlackLine(
+    let cannyImage = null;
+    try {
+      cannyImage = await generateControlNetCanny(
         backgroundRemovedImage,
-        cannyImage,
         userId
       );
+      console.log("✅ ControlNet Canny tamamlandı:", cannyImage);
+    } catch (controlNetError) {
+      console.error("❌ ControlNet Canny hatası:", controlNetError.message);
       console.log(
-        "✅ İki resim birleştirme tamamlandı:",
-        combinedImageForPrompt
+        "⚠️ ControlNet hatası nedeniyle sadece arkaplanı silinmiş resim kullanılacak"
       );
+      cannyImage = null;
+    }
+
+    // 🖼️ İki resmi yan yana birleştirme (orijinal + canny)
+    let combinedImageForPrompt = backgroundRemovedImage; // Fallback - her zaman arkaplanı silinmiş resim
+    if (cannyImage) {
+      try {
+        console.log("🎨 Orijinal ve Canny resimleri birleştiriliyor...");
+        combinedImageForPrompt = await combineTwoImagesWithBlackLine(
+          backgroundRemovedImage,
+          cannyImage,
+          userId
+        );
+        console.log(
+          "✅ İki resim birleştirme tamamlandı:",
+          combinedImageForPrompt
+        );
+      } catch (combineError) {
+        console.error("❌ Resim birleştirme hatası:", combineError.message);
+        console.log(
+          "⚠️ Birleştirme hatası nedeniyle sadece arkaplanı silinmiş resim kullanılacak"
+        );
+        combinedImageForPrompt = backgroundRemovedImage;
+      }
     } else {
       console.log(
-        "⚠️ ControlNet Canny başarısız, sadece arkaplanı silinmiş resim kullanılacak"
+        "⚠️ ControlNet Canny mevcut değil, sadece arkaplanı silinmiş resim kullanılacak"
       );
     }
 
@@ -1964,6 +2010,8 @@ router.post("/generate", async (req, res) => {
     );
 
     // Kullanıcının prompt'unu Gemini ile iyileştir - MANKEN + ÜRÜN ANALİZİ + CONTROLNET (birleştirilmiş resmi kullan)
+    const hasControlNetData =
+      cannyImage !== null && combinedImageForPrompt !== backgroundRemovedImage;
     const enhancedPrompt = await enhancePromptWithGemini(
       promptText,
       combinedImageForPrompt,
@@ -1971,7 +2019,8 @@ router.post("/generate", async (req, res) => {
       locationImage,
       poseImage,
       hairStyleImage,
-      isMultipleProducts
+      isMultipleProducts,
+      hasControlNetData
     );
 
     console.log("📝 [BACKEND MAIN] Original prompt:", promptText);
