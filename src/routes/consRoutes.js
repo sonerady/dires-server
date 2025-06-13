@@ -310,35 +310,9 @@ async function enhanceConsistentCharacterPrompt(
     // Gemini 2.0 Flash modeli - En yeni API yapısı
     const model = genAI.getGenerativeModel({
       model: "gemini-2.0-flash",
-      safetySettings: [
-        {
-          category: "HARM_CATEGORY_HARASSMENT",
-          threshold: "BLOCK_LOW_AND_ABOVE", // Block most
-        },
-        {
-          category: "HARM_CATEGORY_HATE_SPEECH",
-          threshold: "BLOCK_LOW_AND_ABOVE", // Block most
-        },
-        {
-          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-          threshold: "BLOCK_LOW_AND_ABOVE", // Block most
-        },
-        {
-          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-          threshold: "BLOCK_LOW_AND_ABOVE", // Block most
-        },
-      ],
-      generationConfig: {
-        responseMimeType: "text/plain",
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 8000,
-      },
     });
 
     // Consistent character için basit settings
-    console.log("🎯 [CONSISTENT GEMINI] Settings kontrolü:", settings);
 
     // Consistent character için özel prompt hazırlama
 

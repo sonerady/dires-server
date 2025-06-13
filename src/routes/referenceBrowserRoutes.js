@@ -780,7 +780,7 @@ Always prefer neutral, professional, and editorial-style language that emphasize
     - Hardware finishes (gold, silver, brass, matte, glossy)
     - Pattern scales and repeat alignments
     - Texture variations within the same garment
-    - Layering effects and transparency elements
+    - Layering effects and transparency elements 
     - Reflective or metallic surface treatments
     
     ⚠️ FAILURE TO PRESERVE THESE DETAILS WILL RESULT IN AN UNACCEPTABLE GENERATION. The generated garment must be indistinguishable from the original in terms of all visible design elements and details.
