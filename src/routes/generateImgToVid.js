@@ -341,7 +341,8 @@ router.post("/generateImgToVid", async (req, res) => {
 
     // GPT-4 Vision ile prompt oluştur (prompt boşsa default kullan)
     const userPrompt =
-      prompt || "Create a natural and smooth video animation from this image";
+      prompt ||
+      "Model highlights special details of the outfit, smiling while gently turning left and right to showcase product details from both sides. While turning left and right, model maintains a smile and strikes various poses";
     const finalPrompt = await generateVideoPrompt(firstFrameUrl, userPrompt);
 
     // 4) Replicate'e asenkron istek (Minimax)

@@ -804,11 +804,12 @@ You MUST carefully examine the reference image to accurately determine the garme
 - Avoid adding any sleeve detail not visible in the original product image
 Failure to follow this instruction will result in incorrect garment generation.
 
-🔍 CRITICAL GARMENT FEATURES YOU MUST DETECT FROM THE IMAGE:
-- Sleeve structure (e.g., sleeveless, cap sleeve, short sleeve, set-in sleeve)
-- All visible seam lines: center front seam, panel seams, side seams, dart lines
-- Construction elements that define silhouette
-- Do not assume features that are not visually confirmed
+    🔍 CRITICAL GARMENT FEATURES YOU MUST DETECT FROM THE IMAGE:
+    - Sleeve structure (e.g., sleeveless, cap sleeve, short sleeve, set-in sleeve)
+    - All visible seam lines: center front seam, panel seams, side seams, dart lines
+    - Construction elements that define silhouette
+    - Do not assume features that are not visually confirmed
+
 
 
     The ${modelGenderText} must always be wearing the product. Describe the exact fabric type, weave pattern, weight, texture, finish, stretch properties, and coverage in natural flowing sentences. Detail every visible seam type, stitching patterns, thread visibility, seam finishing quality, hemming techniques, edge treatments, topstitching, and construction methods as part of the description. Analyze all design elements including prints, patterns, embroidery, color techniques, decorative elements like buttons, zippers, trim details, and hardware. Specify exact fit type, how the garment drapes, silhouette shape, proportions, length, sleeve style, and neckline construction. Include surface treatments, finishes, pleating, gathering, wash effects, coatings, embellishments, and quality indicators. The photography should be hyper-realistic with perfect studio lighting showcasing fabric texture and construction details, professional camera angles highlighting craftsmanship, and composition emphasizing garment excellence.
@@ -859,6 +860,20 @@ Failure to follow this instruction will result in incorrect garment generation.
         ? `FINAL REQUIREMENT: Ensure the model's age "${age}" is clearly specified in your enhanced prompt and all descriptions reflect age-appropriate characteristics.`
         : ""
     } 
+
+    🧹 CRITICAL PRODUCT QUALITY ENHANCEMENT REQUIREMENT:
+    While preserving all design details, you MUST also include instructions to ELIMINATE any imperfections, defects, or unwanted elements that may be present on the original garment:
+    - Remove any dirt, stains, spots, or discoloration from the fabric
+    - Eliminate wrinkles, creases, or fabric distortions (unless they are intentional design elements)
+    - Clean up any dust, lint, or debris on the garment surface
+    - Correct any lighting artifacts, shadows, or color casts from the original photography
+    - Eliminate any wear marks, fading, or signs of use
+    - Clean up any background reflections or unwanted lighting effects on the fabric
+    - Ensure the garment appears in pristine, brand-new condition
+    - Maintain perfect fabric texture and surface quality throughout
+    - Present the garment as if it's fresh from premium manufacturing
+    
+    The final garment should appear flawless and professionally finished while maintaining all original design elements, colors, patterns, and construction details exactly as intended by the designer.
 
     🔥 FINAL CRITICAL DETAIL PRESERVATION MANDATE:
     Your enhanced prompt MUST include explicit instructions that EVERY SINGLE DETAIL from the reference garment must be preserved with 100% accuracy. This includes all colors, patterns, textures, hardware, stitching, logos, graphics, embellishments, and construction elements. The generated image must be a perfect replica of the original garment's design details while being worn by the ${modelGenderText}. NO detail should be altered, simplified, or omitted. This is the most important requirement and overrides all other considerations.
