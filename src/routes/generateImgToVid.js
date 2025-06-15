@@ -33,7 +33,7 @@ async function generateVideoPrompt(imageUrl, userPrompt) {
     console.log("Gemini ile video prompt oluşturma başlatılıyor");
 
     // Gemini modeli
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-exp" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     // Gemini'ye gönderilecek metin
     const promptForGemini = `
@@ -223,24 +223,27 @@ router.post("/generateImgToVid", async (req, res) => {
       categories,
       first_frame_image,
       aspect_ratio,
+      duration = 10, // Default 10 saniye
     } = req.body;
 
-    // Zorunlu alanları kontrol et
+    // Zorunlu alanları kontrol et (prompt opsiyonel)
     if (
       !userId ||
       !productId ||
       !product_main_image ||
       !imageCount ||
-      !prompt ||
       !first_frame_image ||
       !aspect_ratio
     ) {
       return res.status(400).json({
         success: false,
         message:
-          "Missing required fields. Make sure userId, productId, product_main_image, imageCount, prompt, aspect_ratio and first_frame_image are provided.",
+          "Missing required fields. Make sure userId, productId, product_main_image, imageCount, aspect_ratio and first_frame_image are provided.",
       });
     }
+
+    // Video süresine göre kredi hesapla
+    const creditCost = duration === 10 ? 200 : 100; // 10s = 200 kredi, 5s = 100 kredi
 
     // Base64 string'i temizle (DOCTYPE veya diğer HTML etiketlerini kaldır)
     const cleanBase64 = (base64String) => {
@@ -287,17 +290,17 @@ router.post("/generateImgToVid", async (req, res) => {
     }
 
     // Check if user has enough credits
-    if (userData.credit_balance < 150) {
+    if (userData.credit_balance < creditCost) {
       return res.status(400).json({
         success: false,
-        message: "Insufficient credit balance. Required: 100 credits",
+        message: `Insufficient credit balance. Required: ${creditCost} credits`,
       });
     }
 
     // Deduct credits
     const { error: creditUpdateError } = await supabase
       .from("users")
-      .update({ credit_balance: userData.credit_balance - 150 })
+      .update({ credit_balance: userData.credit_balance - creditCost })
       .eq("id", userId);
 
     if (creditUpdateError) {
@@ -336,15 +339,17 @@ router.post("/generateImgToVid", async (req, res) => {
 
     const productMainUrlJSON = JSON.stringify(productMainUrlArray);
 
-    // GPT-4 Vision ile prompt oluştur
-    const finalPrompt = await generateVideoPrompt(firstFrameUrl, prompt);
+    // GPT-4 Vision ile prompt oluştur (prompt boşsa default kullan)
+    const userPrompt =
+      prompt || "Create a natural and smooth video animation from this image";
+    const finalPrompt = await generateVideoPrompt(firstFrameUrl, userPrompt);
 
     // 4) Replicate'e asenkron istek (Minimax)
     const prediction = await predictions.create({
       model: "kwaivgi/kling-v1.6-pro",
       input: {
         prompt: finalPrompt,
-        duration: 10,
+        duration: duration, // Kullanıcının seçtiği süre
         cfg_scale: 0.5,
         start_image: firstFrameUrl,
         aspect_ratio: aspect_ratio,

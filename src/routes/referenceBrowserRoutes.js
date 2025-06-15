@@ -2239,7 +2239,7 @@ router.post("/generate", async (req, res) => {
           prompt: enhancedPrompt,
           input_image: combinedImageForReplicate, // Birleştirilmiş resim Replicate için
           aspect_ratio: formattedRatio,
-          safety_tolerance: 6,
+          safety_tolerance: 2,
         },
       },
       {
