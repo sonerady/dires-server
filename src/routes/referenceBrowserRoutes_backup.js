@@ -38,7 +38,6 @@ if (!fs.existsSync(tempDir)) {
 // Referans resmini Supabase'e yükleyip URL alan fonksiyon
 async function uploadReferenceImageToSupabase(imageUri, userId) {
   try {
-    console.log("Referans resmi Supabase'e yükleniyor:", imageUri);
 
     let imageBuffer;
 

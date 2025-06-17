@@ -348,71 +348,26 @@ async function enhancePromptWithGemini(
       modelGenderText = "female model"; // varsayılan
     }
 
-    // Yaş aralığına göre model türünü belirle
+    // Client'dan gelen yaşı olduğu gibi kullan
     if (age) {
-      const ageLower = age.toLowerCase();
-      if (ageLower.includes("baby") || ageLower.includes("bebek")) {
-        modelGenderText =
-          genderLower === "male" || genderLower === "man"
-            ? "baby male model"
-            : "baby female model";
-      } else if (
-        ageLower.includes("child") ||
-        ageLower.includes("çocuk") ||
-        ageLower.includes("kid")
-      ) {
-        modelGenderText =
-          genderLower === "male" || genderLower === "man"
-            ? "young adult male model"
-            : "young adult female model";
-      } else if (
-        ageLower.includes("young") ||
-        ageLower.includes("genç") ||
-        ageLower.includes("teen")
-      ) {
-        modelGenderText =
-          genderLower === "male" || genderLower === "man"
-            ? "young adult male model"
-            : "young adult female model";
-      } else if (ageLower.includes("adult") || ageLower.includes("yetişkin")) {
-        modelGenderText =
-          genderLower === "male" || genderLower === "man"
-            ? "adult male model"
-            : "adult female model";
-      } else if (ageLower.includes("years old") || /\d+/.test(age)) {
-        // Özel girilen yaş (örn: "25 years old" veya sayı içeren)
-        const ageNumber = parseInt(age.match(/\d+/)?.[0]);
-        let ageCategory = "adult";
-
-        if (ageNumber && ageNumber < 3) {
-          ageCategory = "baby";
-        } else if (ageNumber && ageNumber < 13) {
-          ageCategory = "young";
-        } else if (ageNumber && ageNumber < 18) {
-          ageCategory = "teenage";
-        } else if (ageNumber && ageNumber >= 18) {
-          ageCategory = "adult";
-        }
-
-        modelGenderText =
-          genderLower === "male" || genderLower === "man"
-            ? `${ageCategory} male model`
-            : `${ageCategory} female model`;
-      }
+      modelGenderText =
+        genderLower === "male" || genderLower === "man"
+          ? `${age} male model`
+          : `${age} female model`;
     }
 
     console.log("👤 [GEMINI] Gelen gender ayarı:", gender);
     console.log("👶 [GEMINI] Gelen age ayarı:", age);
     console.log("👤 [GEMINI] Final model türü:", modelGenderText);
 
-    // Age policy - simplified to avoid over-repetition
+    // Age specification - use client's age info naturally
     let ageSection = "";
     if (age) {
       console.log("👶 [GEMINI] Yaş bilgisi tespit edildi:", age);
 
       ageSection = `
     AGE SPECIFICATION:
-    The user provided age information is "${age}". Ensure the model appears age-appropriate and professional. If the age implies under 18, use "young adult (18+)" instead.`;
+    The user provided age information is "${age}". Use this age information naturally in your description while maintaining professional and editorial presentation.`;
     }
 
     let settingsPromptSection = "";
