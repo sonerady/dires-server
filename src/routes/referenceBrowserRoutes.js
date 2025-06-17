@@ -346,7 +346,10 @@ async function enhancePromptWithGemini(
       modelGenderText = "female model"; // varsayılan
     }
 
-    // Client'dan gelen yaşı olduğu gibi kullan
+    // Base model text for frequent usage (without age)
+    const baseModelText = modelGenderText;
+
+    // Client'dan gelen yaşı olduğu gibi kullan - sadece gerekli yerlerde
     if (age) {
       modelGenderText =
         genderLower === "male" || genderLower === "man"
@@ -356,16 +359,17 @@ async function enhancePromptWithGemini(
 
     console.log("👤 [GEMINI] Gelen gender ayarı:", gender);
     console.log("👶 [GEMINI] Gelen age ayarı:", age);
-    console.log("👤 [GEMINI] Final model türü:", modelGenderText);
+    console.log("👤 [GEMINI] Base model türü:", baseModelText);
+    console.log("👤 [GEMINI] Age'li model türü:", modelGenderText);
 
-    // Age specification - use client's age info naturally
+    // Age specification - use client's age info naturally but limited
     let ageSection = "";
     if (age) {
       console.log("👶 [GEMINI] Yaş bilgisi tespit edildi:", age);
 
       ageSection = `
     AGE SPECIFICATION:
-    The user provided age information is "${age}". Use this age information naturally in your description while maintaining professional and editorial presentation.`;
+    The user provided age information is "${age}". IMPORTANT: Mention this age information ONLY 2 times maximum in your entire prompt - once when first introducing the model, and once more naturally in the description. Do not repeat the age information more than twice throughout the prompt.`;
     }
 
     let settingsPromptSection = "";
@@ -410,7 +414,7 @@ async function enhancePromptWithGemini(
         : "garment/product";
       posePromptSection = `
     
-    INTELLIGENT POSE SELECTION: Since no specific pose was selected by the user, please analyze the ${garmentText} in the reference image and intelligently select the MOST APPROPRIATE pose for the ${modelGenderText} that will:
+    INTELLIGENT POSE SELECTION: Since no specific pose was selected by the user, please analyze the ${garmentText} in the reference image and intelligently select the MOST APPROPRIATE pose for the ${baseModelText} that will:
     - Best showcase ${
       isMultipleProducts
         ? "all products in the ensemble and their coordination"
@@ -456,7 +460,7 @@ async function enhancePromptWithGemini(
     } else if (poseImage) {
       posePromptSection = `
     
-    POSE REFERENCE: A pose reference image has been provided to show the desired body position and posture for the ${modelGenderText}. Please analyze this pose image carefully and incorporate the exact body positioning, hand placement, stance, facial expression, and overall posture into your enhanced prompt. The ${modelGenderText} should adopt this specific pose naturally and convincingly${
+    POSE REFERENCE: A pose reference image has been provided to show the desired body position and posture for the ${baseModelText}. Please analyze this pose image carefully and incorporate the exact body positioning, hand placement, stance, facial expression, and overall posture into your enhanced prompt. The ${baseModelText} should adopt this specific pose naturally and convincingly${
         isMultipleProducts
           ? ", ensuring all products in the ensemble remain clearly visible and well-positioned"
           : ""
@@ -468,7 +472,7 @@ async function enhancePromptWithGemini(
     
     SPECIFIC POSE REQUIREMENT: The user has selected a specific pose: "${
       settings.pose
-    }". Please ensure the ${modelGenderText} adopts this pose while maintaining natural movement and ensuring the pose complements ${
+    }". Please ensure the ${baseModelText} adopts this pose while maintaining natural movement and ensuring the pose complements ${
         isMultipleProducts
           ? "all products in the ensemble being showcased"
           : "the garment being showcased"
@@ -552,7 +556,7 @@ async function enhancePromptWithGemini(
     if (hairStyleImage) {
       hairStylePromptSection = `
     
-    HAIR STYLE REFERENCE: A hair style reference image has been provided to show the desired hairstyle for the ${modelGenderText}. Please analyze this hair style image carefully and incorporate the exact hair length, texture, cut, styling, and overall hair appearance into your enhanced prompt. The ${modelGenderText} should have this specific hairstyle that complements ${
+    HAIR STYLE REFERENCE: A hair style reference image has been provided to show the desired hairstyle for the ${baseModelText}. Please analyze this hair style image carefully and incorporate the exact hair length, texture, cut, styling, and overall hair appearance into your enhanced prompt. The ${baseModelText} should have this specific hairstyle that complements ${
         isMultipleProducts ? "the multi-product ensemble" : "the garment"
       } and overall aesthetic.`;
 
@@ -568,7 +572,7 @@ async function enhancePromptWithGemini(
     LANGUAGE NORMALIZATION RULES:
     - Translate every word and phrase that is not in English (e.g., colors, locations, garment descriptors) into English in the generated prompt. Example: convert "beyaz studio" to "white studio". The final prompt MUST be entirely in English.
 
-    CRITICAL MODEL DESCRIPTION REQUIREMENT: You MUST provide extensive descriptions of the ${modelGenderText} throughout the prompt. This includes:
+    CRITICAL MODEL DESCRIPTION REQUIREMENT: You MUST provide extensive descriptions of the ${baseModelText} throughout the prompt. This includes:
     - Physical appearance and body characteristics appropriate for the garment
     - Posture, stance, and body positioning details
     - Facial expression and overall demeanor
@@ -579,7 +583,7 @@ async function enhancePromptWithGemini(
     - How the model's physique complements the garment design
     - Natural movement and body language that enhances the garment presentation
     
-    The ${modelGenderText} should be described naturally throughout the prompt.
+    The ${baseModelText} should be described naturally throughout the prompt.
 
     
 
@@ -661,7 +665,7 @@ Always prefer neutral, professional, and editorial-style language that emphasize
 
 
 
-    Create a detailed English prompt for high-fashion editorial photography featuring the main product/garment from the provided reference image worn by a ${modelGenderText}. Absolutely avoid terms like transparent, see-through, sheer, revealing, exposed, decolletage, cleavage, low-cut, plunging, bare skin, provocative, sensual, sexy, seductive, tight-fitting for sensitive areas, body-hugging, form-fitting, or fabric opacity levels. Use safe alternatives like lightweight, delicate, fine-weave, airy, modern cut, contemporary style, elegant neckline, refined cut instead. Never mention brand names, designer names, or commercial labels like Nike, Adidas, Zara, H&M, Louis Vuitton etc. Describe items as premium garment, high-quality piece, professional design instead. 
+    Create a detailed English prompt for high-fashion editorial photography featuring the main product/garment from the provided reference image worn by a ${modelGenderText}. IMPORTANT: This is the FIRST of only 2 times you should mention the age. For all other model references, simply use "${baseModelText}". Absolutely avoid terms like transparent, see-through, sheer, revealing, exposed, decolletage, cleavage, low-cut, plunging, bare skin, provocative, sensual, sexy, seductive, tight-fitting for sensitive areas, body-hugging, form-fitting, or fabric opacity levels. Use safe alternatives like lightweight, delicate, fine-weave, airy, modern cut, contemporary style, elegant neckline, refined cut instead. Never mention brand names, designer names, or commercial labels like Nike, Adidas, Zara, H&M, Louis Vuitton etc. Describe items as premium garment, high-quality piece, professional design instead. 
 
     🚨 CRITICAL PRODUCT FOCUS REQUIREMENT - ABSOLUTE PRIORITY:
     
@@ -679,7 +683,7 @@ Always prefer neutral, professional, and editorial-style language that emphasize
     - Background textures, patterns, or surfaces (walls, floors, etc.)
     - Lighting equipment, studio setups, or photography accessories
     
-    ⚠️ MANDATORY INSTRUCTION: Focus EXCLUSIVELY on analyzing and describing ONLY the main garment/product that is meant to be showcased. Treat the garment as if it's being worn by the ${modelGenderText} in a clean, professional editorial environment with NO background distractions.
+    ⚠️ MANDATORY INSTRUCTION: Focus EXCLUSIVELY on analyzing and describing ONLY the main garment/product that is meant to be showcased. Treat the garment as if it's being worn by the ${baseModelText} in a clean, professional editorial environment with NO background distractions.
 
     🔍 CRITICAL DETAIL PRESERVATION REQUIREMENT - MAXIMUM PRIORITY:
     
@@ -736,7 +740,7 @@ Failure to follow this instruction will result in incorrect garment generation.
 
 
 
-    The ${modelGenderText} must always be wearing the product. Describe the exact fabric type, weave pattern, weight, texture, finish, stretch properties, and coverage in natural flowing sentences. Detail every visible seam type, stitching patterns, thread visibility, seam finishing quality, hemming techniques, edge treatments, topstitching, and construction methods as part of the description. Analyze all design elements including prints, patterns, embroidery, color techniques, decorative elements like buttons, zippers, trim details, and hardware. Specify exact fit type, how the garment drapes, silhouette shape, proportions, length, sleeve style, and neckline construction. Include surface treatments, finishes, pleating, gathering, wash effects, coatings, embellishments, and quality indicators. The photography should be hyper-realistic with perfect studio lighting showcasing fabric texture and construction details, professional camera angles highlighting craftsmanship, and composition emphasizing garment excellence.
+    The ${baseModelText} must always be wearing the product. Describe the exact fabric type, weave pattern, weight, texture, finish, stretch properties, and coverage in natural flowing sentences. Detail every visible seam type, stitching patterns, thread visibility, seam finishing quality, hemming techniques, edge treatments, topstitching, and construction methods as part of the description. Analyze all design elements including prints, patterns, embroidery, color techniques, decorative elements like buttons, zippers, trim details, and hardware. Specify exact fit type, how the garment drapes, silhouette shape, proportions, length, sleeve style, and neckline construction. Include surface treatments, finishes, pleating, gathering, wash effects, coatings, embellishments, and quality indicators. The photography should be hyper-realistic with perfect studio lighting showcasing fabric texture and construction details, professional camera angles highlighting craftsmanship, and composition emphasizing garment excellence.
 
     ESSENTIAL GARMENT BEHAVIOR DESCRIPTION: You must describe how this specific garment behaves when worn:
     - How the fabric moves and flows with body movement
@@ -769,7 +773,7 @@ Failure to follow this instruction will result in incorrect garment generation.
     ${perspectivePromptSection}
     ${hairStylePromptSection}
     
-    Generate a single, flowing description that reads like a master craftsperson's analysis of premium garment construction, emphasizing professional quality, material excellence, and attention to detail throughout. The ${modelGenderText} should be prominently featured and described extensively throughout the prompt - their posture, stance, body lines, professional presence, and how they embody the garment's style and quality. Describe how the ${modelGenderText} demonstrates natural movement showcasing how the fabric behaves when worn, with poses appropriate for the garment category and facial expressions matching the intended style and quality level. Include detailed descriptions of the model's physical interaction with the garment, their professional modeling presence, and how their body positioning enhances the overall presentation. The complete styled outfit should be described as a cohesive ensemble where the main garment is the star piece perfectly complemented by thoughtfully selected additional clothing items. 
+    Generate a single, flowing description that reads like a master craftsperson's analysis of premium garment construction, emphasizing professional quality, material excellence, and attention to detail throughout. The ${modelGenderText} should be introduced initially and referenced once more naturally later in the description. Use "${baseModelText}" for all other references to avoid age repetition. Describe how the model demonstrates natural movement showcasing how the fabric behaves when worn, with poses appropriate for the garment category and facial expressions matching the intended style and quality level. Include detailed descriptions of the model's physical interaction with the garment, their professional modeling presence, and how their body positioning enhances the overall presentation. The complete styled outfit should be described as a cohesive ensemble where the main garment is the star piece perfectly complemented by thoughtfully selected additional clothing items. 
 
     🧹 CRITICAL PRODUCT QUALITY ENHANCEMENT REQUIREMENT:
     While preserving all design details, you MUST also include instructions to ELIMINATE any imperfections, defects, or unwanted elements that may be present on the original garment:
@@ -786,7 +790,7 @@ Failure to follow this instruction will result in incorrect garment generation.
     The final garment should appear flawless and professionally finished while maintaining all original design elements, colors, patterns, and construction details exactly as intended by the designer.
 
     🔥 FINAL CRITICAL DETAIL PRESERVATION MANDATE:
-    Your enhanced prompt MUST include explicit instructions that EVERY SINGLE DETAIL from the reference garment must be preserved with 100% accuracy. This includes all colors, patterns, textures, hardware, stitching, logos, graphics, embellishments, and construction elements. The generated image must be a perfect replica of the original garment's design details while being worn by the ${modelGenderText}. NO detail should be altered, simplified, or omitted. This is the most important requirement and overrides all other considerations.
+    Your enhanced prompt MUST include explicit instructions that EVERY SINGLE DETAIL from the reference garment must be preserved with 100% accuracy. This includes all colors, patterns, textures, hardware, stitching, logos, graphics, embellishments, and construction elements. The generated image must be a perfect replica of the original garment's design details while being worn by the ${baseModelText}. NO detail should be altered, simplified, or omitted. This is the most important requirement and overrides all other considerations.
 
     Ensure no suggestive words, focus only on fashion and craftsmanship, use professional technical terminology, maintain editorial magazine tone, avoid content moderation triggers, emphasize construction over inappropriate body descriptions, and use no brand names whatsoever.
     `;
@@ -795,7 +799,7 @@ Failure to follow this instruction will result in incorrect garment generation.
     if (!originalPrompt || !originalPrompt.includes("Model's pose")) {
       // Eğer poz seçilmemişse akıllı poz seçimi, seçilmişse belirtilen poz
       if (!settings?.pose && !poseImage) {
-        promptForGemini += `Since no specific pose was provided, intelligently select the most suitable pose and camera angle for the ${modelGenderText} that showcases the garment's design features, fit, and construction quality. Choose poses appropriate for the garment category with body language that complements the style and allows clear visibility of craftsmanship details. Select camera perspectives that create appealing commercial presentations highlighting the garment's key selling points.`;
+        promptForGemini += `Since no specific pose was provided, intelligently select the most suitable pose and camera angle for the ${baseModelText} that showcases the garment's design features, fit, and construction quality. Choose poses appropriate for the garment category with body language that complements the style and allows clear visibility of craftsmanship details. Select camera perspectives that create appealing commercial presentations highlighting the garment's key selling points.`;
       }
     }
 
@@ -2201,7 +2205,7 @@ router.post("/generate", async (req, res) => {
               prompt: enhancedPrompt,
               input_image: combinedImageForReplicate, // Birleştirilmiş resim Replicate için
               aspect_ratio: formattedRatio,
-              safety_tolerance: 2,
+              safety_tolerance: 6,
             },
           },
           {
