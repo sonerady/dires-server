@@ -569,6 +569,22 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
       } else if (result.status === "failed") {
         console.error("Replicate işlemi başarısız:", result.error);
 
+        // PA (Prediction interrupted) hatası kontrolü - DERHAL DURDUR
+        if (
+          result.error &&
+          typeof result.error === "string" &&
+          (result.error.includes("Prediction interrupted") ||
+            result.error.includes("code: PA"))
+        ) {
+          console.error(
+            "❌ PA hatası tespit edildi, polling DERHAL durduruluyor:",
+            result.error
+          );
+          throw new Error(
+            "PREDICTION_INTERRUPTED: Replicate sunucusunda kesinti oluştu. Lütfen tekrar deneyin."
+          );
+        }
+
         // Sensitive content hatasını kontrol et
         if (
           result.error &&
@@ -581,7 +597,7 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
             "❌ Sensitive content hatası tespit edildi, polling durduruluyor"
           );
           throw new Error(
-            "SENSITIVE_CONTENT: Your content has been flagged as inappropriate. Please try again with a different image or settings."
+            "SENSITIVE_CONTENT: İlgili ürün işlenirken uygunsuz içerikler tespit edildi. Lütfen farklı bir görsel veya ayarlarla yeniden deneyin."
           );
         }
 
@@ -603,6 +619,19 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
       if (error.message.startsWith("SENSITIVE_CONTENT:")) {
         console.error("❌ Sensitive content hatası, polling durduruluyor");
         throw error; // Hata mesajını olduğu gibi fırlat
+      }
+
+      // PA (Prediction interrupted) hatası için özel retry mantığı - KESIN DURDUR
+      if (
+        error.message.includes("Prediction interrupted") ||
+        error.message.includes("code: PA") ||
+        error.message.includes("PREDICTION_INTERRUPTED")
+      ) {
+        console.error(
+          `❌ PA hatası tespit edildi, polling KESIN DURDURULUYOR: ${error.message}`
+        );
+        console.log("🛑 PA hatası - Polling döngüsü derhal sonlandırılıyor");
+        throw error; // Orijinal hatayı fırlat ki üst seviyede yakalanabilsin
       }
 
       // Eğer hata "failed" status'dan kaynaklanıyorsa derhal durdur
@@ -1209,13 +1238,20 @@ router.post("/change-color/generate", async (req, res) => {
 
     // Sensitive content hatasını özel olarak handle et
     if (error.message && error.message.startsWith("SENSITIVE_CONTENT:")) {
-      const cleanMessage = error.message.replace("SENSITIVE_CONTENT: ", "");
       return res.status(400).json({
         success: false,
         result: {
-          message: cleanMessage,
+          message: "sensitiveContent.message", // i18n key
+          title: "sensitiveContent.title", // i18n key
+          shortMessage: "sensitiveContent.shortMessage", // i18n key
           error_type: "sensitive_content",
           user_friendly: true,
+          i18n_keys: {
+            message: "sensitiveContent.message",
+            title: "sensitiveContent.title",
+            shortMessage: "sensitiveContent.shortMessage",
+            understood: "sensitiveContent.understood",
+          },
         },
       });
     }

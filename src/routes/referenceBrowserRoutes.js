@@ -47,6 +47,7 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
       // HTTP URL - normal indirme
       const imageResponse = await axios.get(imageUri, {
         responseType: "arraybuffer",
+        timeout: 30000, // 30 saniye timeout
       });
       imageBuffer = Buffer.from(imageResponse.data);
     } else if (imageUri.startsWith("data:image/")) {
@@ -796,11 +797,11 @@ Always prefer neutral, professional, and editorial-style language that emphasize
 
 
 CRITICAL GARMENT COVERAGE REQUIREMENT:
-You MUST carefully examine the reference image to accurately determine the garment’s sleeve type and arm coverage. This includes:
+You MUST carefully examine the reference image to accurately determine the garment's sleeve type and arm coverage. This includes:
 - Whether the garment is sleeveless, has cap sleeves, short sleeves, or long sleeves
 - Do NOT assume or invent sleeve types that are not clearly visible in the reference image
-- If the garment is sleeveless, your prompt MUST clearly state it as “sleeveless” or “strapless” as appropriate
-- If sleeves are present, describe their exact length (e.g., “short set-in sleeves ending mid-bicep”) and construction
+- If the garment is sleeveless, your prompt MUST clearly state it as "sleeveless" or "strapless" as appropriate
+- If sleeves are present, describe their exact length (e.g., "short set-in sleeves ending mid-bicep") and construction
 - Avoid adding any sleeve detail not visible in the original product image
 Failure to follow this instruction will result in incorrect garment generation.
 
@@ -905,6 +906,7 @@ Failure to follow this instruction will result in incorrect garment generation.
 
       const imageResponse = await axios.get(imageUrl, {
         responseType: "arraybuffer",
+        timeout: 30000, // 30 saniye timeout
       });
       const imageBuffer = imageResponse.data;
 
@@ -934,6 +936,7 @@ Failure to follow this instruction will result in incorrect garment generation.
 
         const locationImageResponse = await axios.get(cleanLocationImageUrl, {
           responseType: "arraybuffer",
+          timeout: 30000, // 30 saniye timeout
         });
         const locationImageBuffer = locationImageResponse.data;
 
@@ -967,6 +970,7 @@ Failure to follow this instruction will result in incorrect garment generation.
 
         const poseImageResponse = await axios.get(cleanPoseImageUrl, {
           responseType: "arraybuffer",
+          timeout: 30000, // 30 saniye timeout
         });
         const poseImageBuffer = poseImageResponse.data;
 
@@ -999,6 +1003,7 @@ Failure to follow this instruction will result in incorrect garment generation.
 
         const hairStyleImageResponse = await axios.get(cleanHairStyleImageUrl, {
           responseType: "arraybuffer",
+          timeout: 30000, // 30 saniye timeout
         });
         const hairStyleImageBuffer = hairStyleImageResponse.data;
 
@@ -1125,7 +1130,7 @@ async function removeBackgroundFromImage(imageUrl, userId) {
       console.log("📐 Orijinal fotoğrafın metadata bilgileri alınıyor...");
       const originalResponse = await axios.get(imageUrl, {
         responseType: "arraybuffer",
-        timeout: 15000,
+        timeout: 30000, // 30 saniye timeout
       });
       originalImageBuffer = Buffer.from(originalResponse.data);
 
@@ -1192,7 +1197,7 @@ async function removeBackgroundFromImage(imageUrl, userId) {
         // Arkaplanı silinmiş resmi indir
         const processedResponse = await axios.get(finalResult.output, {
           responseType: "arraybuffer",
-          timeout: 15000,
+          timeout: 30000, // 30 saniye timeout
         });
         let processedImageBuffer = Buffer.from(processedResponse.data);
 
@@ -1344,6 +1349,7 @@ async function uploadProcessedImageToSupabase(imageUrl, userId, processType) {
     // Resmi indir
     const imageResponse = await axios.get(imageUrl, {
       responseType: "arraybuffer",
+      timeout: 30000, // 30 saniye timeout
     });
     const imageBuffer = Buffer.from(imageResponse.data);
 
@@ -1702,6 +1708,7 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
             "Content-Type": "application/json",
           },
           responseType: "json",
+          timeout: 30000, // 30 saniye timeout polling için
         }
       );
 
@@ -1713,6 +1720,22 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
         return result;
       } else if (result.status === "failed") {
         console.error("Replicate işlemi başarısız:", result.error);
+
+        // PA (Prediction interrupted) hatası kontrolü - DERHAL DURDUR
+        if (
+          result.error &&
+          typeof result.error === "string" &&
+          (result.error.includes("Prediction interrupted") ||
+            result.error.includes("code: PA"))
+        ) {
+          console.error(
+            "❌ PA hatası tespit edildi, polling DERHAL durduruluyor:",
+            result.error
+          );
+          throw new Error(
+            "PREDICTION_INTERRUPTED: Replicate sunucusunda kesinti oluştu. Lütfen tekrar deneyin."
+          );
+        }
 
         // Sensitive content hatasını kontrol et
         if (
@@ -1726,7 +1749,7 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
             "❌ Sensitive content hatası tespit edildi, polling durduruluyor"
           );
           throw new Error(
-            "SENSITIVE_CONTENT: Your content has been flagged as inappropriate. Please try again with a different image or settings."
+            "SENSITIVE_CONTENT: İlgili ürün işlenirken uygunsuz içerikler tespit edildi. Lütfen farklı bir görsel veya ayarlarla yeniden deneyin."
           );
         }
 
@@ -1748,6 +1771,19 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
       if (error.message.startsWith("SENSITIVE_CONTENT:")) {
         console.error("❌ Sensitive content hatası, polling durduruluyor");
         throw error; // Hata mesajını olduğu gibi fırlat
+      }
+
+      // PA (Prediction interrupted) hatası için özel retry mantığı - KESIN DURDUR
+      if (
+        error.message.includes("Prediction interrupted") ||
+        error.message.includes("code: PA") ||
+        error.message.includes("PREDICTION_INTERRUPTED")
+      ) {
+        console.error(
+          `❌ PA hatası tespit edildi, polling KESIN DURDURULUYOR: ${error.message}`
+        );
+        console.log("🛑 PA hatası - Polling döngüsü derhal sonlandırılıyor");
+        throw error; // Orijinal hatayı fırlat ki üst seviyede yakalanabilsin
       }
 
       // Eğer hata "failed" status'dan kaynaklanıyorsa derhal durdur
@@ -1809,7 +1845,7 @@ async function combineImagesOnCanvas(
           );
           const response = await axios.get(imgData.uri, {
             responseType: "arraybuffer",
-            timeout: 10000, // 10 saniye timeout
+            timeout: 30000, // 30 saniye timeout
           });
           imageBuffer = Buffer.from(response.data);
         } else if (imgData.uri.startsWith("file://")) {
@@ -2246,24 +2282,59 @@ router.post("/generate", async (req, res) => {
     console.log("📝 [BACKEND MAIN] Original prompt:", promptText);
     console.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
 
-    // Replicate API'ye istek gönder (ControlNet ile birleştirilmiş resmi kullan)
-    const replicateResponse = await axios.post(
-      "https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-max/predictions",
-      {
-        input: {
-          prompt: enhancedPrompt,
-          input_image: combinedImageForReplicate, // Birleştirilmiş resim Replicate için
-          aspect_ratio: formattedRatio,
-          safety_tolerance: 2,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-          "Content-Type": "application/json",
-        },
+    // Replicate API'ye retry mekanizması ile istek gönder
+    let replicateResponse;
+    const maxRetries = 3;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`🔄 Replicate API attempt ${attempt}/${maxRetries}`);
+
+        replicateResponse = await axios.post(
+          "https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-max/predictions",
+          {
+            input: {
+              prompt: enhancedPrompt,
+              input_image: combinedImageForReplicate, // Birleştirilmiş resim Replicate için
+              aspect_ratio: formattedRatio,
+              safety_tolerance: 2,
+            },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+              "Content-Type": "application/json",
+            },
+            timeout: 120000, // 2 dakika timeout
+          }
+        );
+
+        console.log(`✅ Replicate API başarılı (attempt ${attempt})`);
+        break; // Başarılı olursa loop'tan çık
+      } catch (apiError) {
+        console.error(
+          `❌ Replicate API attempt ${attempt} failed:`,
+          apiError.message
+        );
+
+        // Son deneme değilse ve timeout hatası ise tekrar dene
+        if (
+          attempt < maxRetries &&
+          (apiError.code === "ETIMEDOUT" ||
+            apiError.code === "ECONNRESET" ||
+            apiError.code === "ENOTFOUND" ||
+            apiError.message.includes("timeout"))
+        ) {
+          const waitTime = attempt * 2000; // 2s, 4s, 6s bekle
+          console.log(`⏳ ${waitTime}ms bekleniyor, sonra tekrar denenecek...`);
+          await new Promise((resolve) => setTimeout(resolve, waitTime));
+          continue;
+        }
+
+        // Son deneme veya farklı hata türü ise fırlat
+        throw apiError;
       }
-    );
+    }
 
     const initialResult = replicateResponse.data;
     console.log("Replicate API başlangıç yanıtı:", initialResult);
@@ -2430,13 +2501,34 @@ router.post("/generate", async (req, res) => {
 
     // Sensitive content hatasını özel olarak handle et
     if (error.message && error.message.startsWith("SENSITIVE_CONTENT:")) {
-      const cleanMessage = error.message.replace("SENSITIVE_CONTENT: ", "");
       return res.status(400).json({
         success: false,
         result: {
-          message: cleanMessage,
+          message: "sensitiveContent.message", // i18n key
+          title: "sensitiveContent.title", // i18n key
+          shortMessage: "sensitiveContent.shortMessage", // i18n key
           error_type: "sensitive_content",
           user_friendly: true,
+          i18n_keys: {
+            message: "sensitiveContent.message",
+            title: "sensitiveContent.title",
+            shortMessage: "sensitiveContent.shortMessage",
+            understood: "sensitiveContent.understood",
+          },
+        },
+      });
+    }
+
+    // Prediction interrupted (PA) hatasını özel olarak handle et
+    if (error.message && error.message.startsWith("PREDICTION_INTERRUPTED:")) {
+      return res.status(503).json({
+        success: false,
+        result: {
+          message:
+            "Replicate sunucusunda geçici bir kesinti oluştu. Lütfen birkaç dakika sonra tekrar deneyin.",
+          error_type: "prediction_interrupted",
+          user_friendly: true,
+          retry_after: 30, // 30 saniye sonra tekrar dene
         },
       });
     }
