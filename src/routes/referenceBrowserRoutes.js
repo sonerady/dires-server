@@ -405,18 +405,14 @@ async function enhancePromptWithGemini(
     console.log("👶 [GEMINI] Gelen age ayarı:", age);
     console.log("👤 [GEMINI] Final model türü:", modelGenderText);
 
-    // ⚠️ CRITICAL: Yaş bilgisinin önemi için özel section
+    // Age policy - simplified to avoid over-repetition
     let ageSection = "";
     if (age) {
-      console.log("👶 [GEMINI] CRITICAL: Yaş bilgisi tespit edildi:", age);
+      console.log("👶 [GEMINI] Yaş bilgisi tespit edildi:", age);
 
       ageSection = `
-    🚨 AGE POLICY & USAGE INSTRUCTION:
-    The user provided age information is "${age}".
-    • If this specification implies a person under 18 years old (including descriptors like "young", "teen", "child", equivalents in any language, or any numeric age < 18), you MUST REPLACE it with the phrase "young adult (18+)" in every part of your generated prompt.
-    • Do NOT mention or imply minors under any circumstance. Always portray an 18+ model.
-    • If the supplied age clearly indicates 18 or above (e.g., "25 years old", "adult"), incorporate it verbatim in your prompt.
-    This rule is mandatory for safety compliance.`;
+    AGE SPECIFICATION:
+    The user provided age information is "${age}". Ensure the model appears age-appropriate and professional. If the age implies under 18, use "young adult (18+)" instead.`;
     }
 
     let settingsPromptSection = "";
@@ -447,12 +443,7 @@ async function enhancePromptWithGemini(
       )
       .join("\n    ")}
     
-    IMPORTANT: Please incorporate ALL user settings above into your description when appropriate.
-    ${
-      age
-        ? `\n    SPECIAL ATTENTION: The age setting "${age}" is MANDATORY and must appear in your final prompt.`
-        : ""
-    }`;
+    IMPORTANT: Please incorporate ALL user settings above into your description when appropriate.`;
     }
 
     // Pose ve perspective için akıllı öneri sistemi
@@ -626,31 +617,17 @@ async function enhancePromptWithGemini(
     - Translate every word and phrase that is not in English (e.g., colors, locations, garment descriptors) into English in the generated prompt. Example: convert "beyaz studio" to "white studio". The final prompt MUST be entirely in English.
 
     CRITICAL MODEL DESCRIPTION REQUIREMENT: You MUST provide extensive descriptions of the ${modelGenderText} throughout the prompt. This includes:
-    - Physical appearance and body characteristics appropriate for the garment${
-      age ? ` AND specifically for age "${age}"` : ""
-    }
-    - Posture, stance, and body positioning details appropriate for the specified age${
-      age ? ` ("${age}")` : ""
-    }
-    - Facial expression and overall demeanor that matches the age specification${
-      age ? ` ("${age}")` : ""
-    }
+    - Physical appearance and body characteristics appropriate for the garment
+    - Posture, stance, and body positioning details
+    - Facial expression and overall demeanor
     - Body lines, silhouette, and how the model carries themselves
     - Hand positioning, arm placement, and leg positioning
     - Model's interaction with the garment and how they wear it
-    - Professional modeling presence and confidence appropriate for the age${
-      age ? ` ("${age}")` : ""
-    }
+    - Professional modeling presence and confidence
     - How the model's physique complements the garment design
     - Natural movement and body language that enhances the garment presentation
-    ${
-      age
-        ? `- MANDATORY: Age-appropriate characteristics and appearance for "${age}" must be clearly described`
-        : ""
-    }
-    The ${modelGenderText}${
-      age ? ` (age: ${age})` : ""
-    } should be mentioned frequently throughout the description, not just briefly at the beginning.
+    
+    The ${modelGenderText} should be described naturally throughout the prompt.
 
     
 
@@ -841,21 +818,7 @@ Failure to follow this instruction will result in incorrect garment generation.
     ${perspectivePromptSection}
     ${hairStylePromptSection}
     
-    Generate a single, flowing description that reads like a master craftsperson's analysis of premium garment construction, emphasizing professional quality, material excellence, and attention to detail throughout. The ${modelGenderText}${
-      age ? ` (age: ${age})` : ""
-    } should be prominently featured and described extensively throughout the prompt - their posture, stance, body lines, professional presence, and how they embody the garment's style and quality. ${
-      age
-        ? `CRITICAL REMINDER: The model's age specification "${age}" MUST be explicitly mentioned and reflected in all physical descriptions, facial characteristics, and overall presentation style.`
-        : ""
-    } Describe how the ${modelGenderText} demonstrates natural movement showcasing how the fabric behaves when worn, with poses appropriate for the garment category${
-      age ? ` and the model's age (${age})` : ""
-    } and facial expressions matching the intended style and quality level. Include detailed descriptions of the model's physical interaction with the garment, their professional modeling presence${
-      age ? ` appropriate for their age (${age})` : ""
-    }, and how their body positioning enhances the overall presentation. The complete styled outfit should be described as a cohesive ensemble where the main garment is the star piece perfectly complemented by thoughtfully selected additional clothing items. ${
-      age
-        ? `FINAL REQUIREMENT: Ensure the model's age "${age}" is clearly specified in your enhanced prompt and all descriptions reflect age-appropriate characteristics.`
-        : ""
-    } 
+    Generate a single, flowing description that reads like a master craftsperson's analysis of premium garment construction, emphasizing professional quality, material excellence, and attention to detail throughout. The ${modelGenderText} should be prominently featured and described extensively throughout the prompt - their posture, stance, body lines, professional presence, and how they embody the garment's style and quality. Describe how the ${modelGenderText} demonstrates natural movement showcasing how the fabric behaves when worn, with poses appropriate for the garment category and facial expressions matching the intended style and quality level. Include detailed descriptions of the model's physical interaction with the garment, their professional modeling presence, and how their body positioning enhances the overall presentation. The complete styled outfit should be described as a cohesive ensemble where the main garment is the star piece perfectly complemented by thoughtfully selected additional clothing items. 
 
     🧹 CRITICAL PRODUCT QUALITY ENHANCEMENT REQUIREMENT:
     While preserving all design details, you MUST also include instructions to ELIMINATE any imperfections, defects, or unwanted elements that may be present on the original garment:
@@ -882,11 +845,6 @@ Failure to follow this instruction will result in incorrect garment generation.
       // Eğer poz seçilmemişse akıllı poz seçimi, seçilmişse belirtilen poz
       if (!settings?.pose && !poseImage) {
         promptForGemini += `Since no specific pose was provided, intelligently select the most suitable pose and camera angle for the ${modelGenderText} that showcases the garment's design features, fit, and construction quality. Choose poses appropriate for the garment category with body language that complements the style and allows clear visibility of craftsmanship details. Select camera perspectives that create appealing commercial presentations highlighting the garment's key selling points.`;
-      } else {
-        promptForGemini += `The ${modelGenderText}${
-          age ? ` (age: ${age})` : ""
-        } should be mentioned frequently throughout the description, not just briefly at the beginning.
-`;
       }
     }
 
