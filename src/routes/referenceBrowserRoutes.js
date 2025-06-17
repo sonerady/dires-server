@@ -563,8 +563,24 @@ async function enhancePromptWithGemini(
       console.log("💇 [GEMINI] Hair style prompt section eklendi");
     }
 
+    const FLUX_PROMPT_FRAME = `
+    FLUX PROMPT GUIDELINE (DO NOT REMOVE):
+    • Structure every enhanced prompt in exactly three clauses, separated by semicolons:
+    1) [MAIN_ACTION] – concise verb + object (e.g. "Change the blazer color to black")
+    2) [PRESERVE]    – "while keeping..." + list of elements that must stay unchanged
+    3) [DETAILS]     – camera/lighting/fabric/style refinements
+    • Always English; stay under 512 tokens.
+    • Chain multiple edits in a single sentence with "and".
+    • Prefer high-impact verbs: Change/Replace/Remove/Add.
+    • Never omit [PRESERVE]; it prevents unintended artefacts.
+    • Do NOT wrap the three clauses in separate lines – keep them as one flowing sentence to maximise Kontext consistency.
+    `;
+
     // Gemini'ye gönderilecek metin
     let promptForGemini = `
+    
+    ${FLUX_PROMPT_FRAME}
+
     IMPORTANT INSTRUCTION: Please generate ONLY the requested prompt without any introduction, explanation, or commentary. Do not start with phrases like "Here's a detailed prompt" or "Editorial Photography Prompt" or any descriptive text. Return ONLY the direct prompt content that will be used for image generation.
 
     PROMPT LENGTH REQUIREMENT: Generate a comprehensive, detailed prompt that is AT LEAST 500 words long. Include extensive descriptions of fabric details, lighting conditions, environmental elements, model positioning, garment construction, textures, colors, styling elements, and photographic composition. The prompt should be richly detailed and descriptive to ensure high-quality image generation.
