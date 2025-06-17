@@ -38,8 +38,6 @@ if (!fs.existsSync(tempDir)) {
 // Referans resmini Supabase'e yükleyip URL alan fonksiyon
 async function uploadReferenceImageToSupabase(imageUri, userId) {
   try {
-    console.log("Referans resmi Supabase'e yükleniyor:", imageUri);
-
     let imageBuffer;
 
     // HTTP URL ise indir, değilse base64 olarak kabul et
@@ -567,8 +565,7 @@ async function enhancePromptWithGemini(
 
     PROMPT LENGTH REQUIREMENT: Generate a comprehensive, detailed prompt that is AT LEAST 500 words long. Include extensive descriptions of fabric details, lighting conditions, environmental elements, model positioning, garment construction, textures, colors, styling elements, and photographic composition. The prompt should be richly detailed and descriptive to ensure high-quality image generation.
 
-    LANGUAGE & AGE NORMALIZATION RULES:
-    - If the user-specified age is "young", "teen", "teenage", "genç" or any equivalent, interpret it strictly as "young adult (18+)" and use the exact phrase "young adult" in the prompt. Do NOT depict or mention minors.
+    LANGUAGE NORMALIZATION RULES:
     - Translate every word and phrase that is not in English (e.g., colors, locations, garment descriptors) into English in the generated prompt. Example: convert "beyaz studio" to "white studio". The final prompt MUST be entirely in English.
 
     CRITICAL MODEL DESCRIPTION REQUIREMENT: You MUST provide extensive descriptions of the ${modelGenderText} throughout the prompt. This includes:
@@ -657,9 +654,8 @@ If the target scene or outfit setting is an outdoor location (e.g., street, beac
     - Sleeve attachments: Set-in sleeves, raglan sleeves, dolman sleeves, cap sleeves
 
     SAFETY NOTICE: Please ensure that all descriptions avoid potentially sensitive or flagged content. Do NOT include any language or terms that could be interpreted as:
-- Sexualized or body-focused descriptions (e.g., "slender", "curvy", "inviting", "provocative", "youthful", "bare skin", "revealing", "tight-fitting", etc.)
-- Any reference to age, body type, or attractiveness in a way that could trigger moderation
-- References to minors in suggestive settings or poses
+- Sexualized or body-focused descriptions (e.g., "slender", "curvy", "inviting", "provocative", "bare skin", "revealing", "tight-fitting", etc.)
+- Any inappropriate reference to body type or attractiveness in a way that could trigger moderation
 Always prefer neutral, professional, and editorial-style language that emphasizes garment craftsmanship, fashion styling, and photographic composition. If a description includes a model, ensure the portrayal is professional, respectful, and appropriate for a fashion editorial setting.
 
 
