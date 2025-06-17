@@ -363,8 +363,8 @@ async function enhancePromptWithGemini(
       ) {
         modelGenderText =
           genderLower === "male" || genderLower === "man"
-            ? "young male model"
-            : "young female model"; // AI content policy için "child" yerine "young" kullan
+            ? "young adult male model"
+            : "young adult female model";
       } else if (
         ageLower.includes("young") ||
         ageLower.includes("genç") ||
@@ -372,8 +372,8 @@ async function enhancePromptWithGemini(
       ) {
         modelGenderText =
           genderLower === "male" || genderLower === "man"
-            ? "teenage male model"
-            : "teenage female model";
+            ? "young adult male model"
+            : "young adult female model";
       } else if (ageLower.includes("adult") || ageLower.includes("yetişkin")) {
         modelGenderText =
           genderLower === "male" || genderLower === "man"
@@ -409,23 +409,14 @@ async function enhancePromptWithGemini(
     let ageSection = "";
     if (age) {
       console.log("👶 [GEMINI] CRITICAL: Yaş bilgisi tespit edildi:", age);
+
       ageSection = `
-    
-    🚨 CRITICAL AGE REQUIREMENT - ABSOLUTE PRIORITY:
-    The user has specified a very important age requirement: "${age}"
-    
-    THIS IS EXTREMELY IMPORTANT AND MUST BE FOLLOWED:
-    - You MUST incorporate this exact age specification into your enhanced prompt
-    - The age "${age}" MUST appear explicitly in your generated prompt
-    - This age specification is CRITICAL for the image generation process
-    - Do NOT skip or ignore this age requirement under any circumstances
-    - The model description MUST reflect the characteristics appropriate for this age: "${age}"
-    - This is a mandatory requirement that cannot be omitted or changed
-    
-    EXAMPLE: If age is "25 years old", your prompt MUST include something like "25 years old model" or "25-year-old professional model"
-    EXAMPLE: If age is "young adult", your prompt MUST include "young adult model" or similar appropriate age-specific language
-    
-    ⚠️ FAILURE TO INCLUDE THE AGE SPECIFICATION WILL RESULT IN INCORRECT IMAGE GENERATION ⚠️`;
+    🚨 AGE POLICY & USAGE INSTRUCTION:
+    The user provided age information is "${age}".
+    • If this specification implies a person under 18 years old (including descriptors like "young", "teen", "child", equivalents in any language, or any numeric age < 18), you MUST REPLACE it with the phrase "young adult (18+)" in every part of your generated prompt.
+    • Do NOT mention or imply minors under any circumstance. Always portray an 18+ model.
+    • If the supplied age clearly indicates 18 or above (e.g., "25 years old", "adult"), incorporate it verbatim in your prompt.
+    This rule is mandatory for safety compliance.`;
     }
 
     let settingsPromptSection = "";
@@ -629,6 +620,10 @@ async function enhancePromptWithGemini(
     IMPORTANT INSTRUCTION: Please generate ONLY the requested prompt without any introduction, explanation, or commentary. Do not start with phrases like "Here's a detailed prompt" or "Editorial Photography Prompt" or any descriptive text. Return ONLY the direct prompt content that will be used for image generation.
 
     PROMPT LENGTH REQUIREMENT: Generate a comprehensive, detailed prompt that is AT LEAST 500 words long. Include extensive descriptions of fabric details, lighting conditions, environmental elements, model positioning, garment construction, textures, colors, styling elements, and photographic composition. The prompt should be richly detailed and descriptive to ensure high-quality image generation.
+
+    LANGUAGE & AGE NORMALIZATION RULES:
+    - If the user-specified age is "young", "teen", "teenage", "genç" or any equivalent, interpret it strictly as "young adult (18+)" and use the exact phrase "young adult" in the prompt. Do NOT depict or mention minors.
+    - Translate every word and phrase that is not in English (e.g., colors, locations, garment descriptors) into English in the generated prompt. Example: convert "beyaz studio" to "white studio". The final prompt MUST be entirely in English.
 
     CRITICAL MODEL DESCRIPTION REQUIREMENT: You MUST provide extensive descriptions of the ${modelGenderText} throughout the prompt. This includes:
     - Physical appearance and body characteristics appropriate for the garment${
