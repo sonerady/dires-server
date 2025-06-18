@@ -567,9 +567,37 @@ async function enhancePromptWithGemini(
     let promptForGemini = `
   
 
-    IMPORTANT INSTRUCTION: Please generate ONLY the requested prompt without any introduction, explanation, or commentary. Do not start with phrases like "Here's a detailed prompt" or "Editorial Photography Prompt" or any descriptive text. Return ONLY the direct prompt content that will be used for image generation.
-
-    PROMPT LENGTH REQUIREMENT: Generate a comprehensive, detailed prompt that is AT LEAST 500 words long. Include extensive descriptions of fabric details, lighting conditions, environmental elements, model positioning, garment construction, textures, colors, styling elements, and photographic composition. The prompt should be richly detailed and descriptive to ensure high-quality image generation.
+    FLUX KONTEXT PROMPT OPTIMIZATION (CRITICAL FOR BEST RESULTS):
+    
+    You are generating a prompt for FLUX Kontext, a surgical image editing model. Follow these MANDATORY guidelines:
+    
+    🔧 PROMPT STRUCTURE (EXACTLY 3 CLAUSES):
+    1) [MAIN_ACTION] - Start with precise action verb (Change/Transform/Add/Remove/Replace) + specific target
+    2) [PRESERVE] - "while keeping" + ALL elements that must remain unchanged
+    3) [DETAILS] - Camera, lighting, style refinements, scene context
+    
+    📏 CRITICAL LIMITS:
+    - MAXIMUM 512 tokens (Kontext will cut off longer prompts)
+    - ONE flowing sentence with semicolons separating the 3 clauses
+    - NO line breaks or multiple sentences
+    
+    🎯 ACTION VERBS (Use these proven high-impact verbs):
+    - Change (for color, material, style modifications)
+    - Transform (for style transfers)
+    - Replace (for object substitution)
+    - Add (for new elements)
+    - Remove (for deletions)
+    
+    🛡️ PRESERVE CLAUSE (NEVER OMIT):
+    Essential to prevent unwanted artifacts. Always include "while keeping" + specify:
+    - Pose and body positioning
+    - Facial features and expression
+    - Background elements
+    - Lighting conditions
+    - All original garment details not being changed
+    - Construction, fit, and proportions
+    
+    IMPORTANT INSTRUCTION: Generate ONLY a single, flowing FLUX Kontext prompt following the 3-clause structure. Do not include explanations, introductions, or commentary. The prompt should be surgical and specific, not descriptive scene creation.
 
     LANGUAGE NORMALIZATION RULES:
     - Translate every word and phrase that is not in English (e.g., colors, locations, garment descriptors) into English in the generated prompt. Example: convert "beyaz studio" to "white studio". The final prompt MUST be entirely in English.
