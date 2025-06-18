@@ -565,20 +565,27 @@ async function enhancePromptWithGemini(
 
     const FLUX_PROMPT_FRAME = `
     FLUX PROMPT GUIDELINE (DO NOT REMOVE):
-    • Structure every enhanced prompt in exactly three clauses, separated by semicolons:
-    1) [MAIN_ACTION] – concise verb + object (e.g. "Change the blazer color to black")
-    2) [PRESERVE]    – "while keeping..." + list of elements that must stay unchanged
-    3) [DETAILS]     – camera/lighting/fabric/style refinements
-    • Always English; stay under 512 tokens.
-    • Chain multiple edits in a single sentence with "and".
-    • Prefer high-impact verbs: Change/Replace/Remove/Add.
-    • Never omit [PRESERVE]; it prevents unintended artefacts.
-    • Do NOT wrap the three clauses in separate lines – keep them as one flowing sentence to maximise Kontext consistency.
-    `;
+  
+    • Structure every enhanced prompt in exactly three clauses separated by semicolons:
+      1) [MAIN_ACTION] – concise verb + object (e.g. "Change the blazer color to black")
+      2) [PRESERVE]    – "while keeping..." + every element that must remain unchanged (pose, lighting, colours, textures, logos, hairstyle, etc.)
+      3) [DETAILS]     – camera / lighting / fabric / styling refinements and any extra scene context
+  
+    • Always write in English and keep the entire sentence under 512 tokens.  
+    • Chain multiple edits inside the same sentence with “and”.  
+    • Prefer high-impact verbs: Change / Replace / Remove / Add.  
+    • **Never omit the [PRESERVE] clause**; it prevents unintended artefacts.  
+    • Do NOT break the sentence into new lines – keep all three clauses on a single flowing line for maximum Kontext consistency.
+  
+    --- Additional compliance rules ---
+    • Mention model age at most **two times** in the whole prompt; thereafter refer simply to “model”.  
+    • Use neutral, professional fashion language; avoid sexualised or suggestive adjectives.  
+    • Do **not** cite brand names or commercial labels; describe logos generically (e.g. “abstract crest-logo”).  
+    • Use standard English descriptors (no underscores or camelCase: write “sleek low ponytail”, not “sleek_low_pony”).  
+  `;
 
     // Gemini'ye gönderilecek metin
     let promptForGemini = `
-    
     ${FLUX_PROMPT_FRAME}
 
     IMPORTANT INSTRUCTION: Please generate ONLY the requested prompt without any introduction, explanation, or commentary. Do not start with phrases like "Here's a detailed prompt" or "Editorial Photography Prompt" or any descriptive text. Return ONLY the direct prompt content that will be used for image generation.
