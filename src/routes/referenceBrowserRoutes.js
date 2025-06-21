@@ -2228,6 +2228,10 @@ router.post("/generate", async (req, res) => {
       try {
         console.log(`🔄 Replicate API attempt ${attempt}/${maxRetries}`);
 
+        // Random seed her seferinde farklı olsun
+        const seed = Math.floor(Math.random() * 2 ** 32);
+        console.log(`🎲 Random seed: ${seed}`);
+
         replicateResponse = await axios.post(
           "https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-max/predictions",
           {
@@ -2236,6 +2240,7 @@ router.post("/generate", async (req, res) => {
               input_image: combinedImageForReplicate, // Birleştirilmiş resim Replicate için
               aspect_ratio: formattedRatio,
               safety_tolerance: 2,
+              seed: seed, // Random seed eklendi
             },
           },
           {
