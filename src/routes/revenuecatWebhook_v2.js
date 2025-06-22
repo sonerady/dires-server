@@ -1,4 +1,4 @@
-// routes/revenuecatWebhook.js - DIRESS (Original App) Webhook
+// routes/revenuecatWebhook.js
 const express = require("express");
 const router = express.Router();
 const supabase = require("../supabaseClient"); // supabaseClient.js dosyanın yolu
@@ -7,7 +7,7 @@ router.post("/webhook", async (req, res) => {
   try {
     const event = req.body;
     console.log(
-      "🎯 DIRESS (Original App) RevenueCat webhook event received:",
+      "RevenueCat webhook v2 event received:",
       JSON.stringify(event, null, 2)
     );
 
@@ -25,7 +25,7 @@ router.post("/webhook", async (req, res) => {
       purchased_at_ms,
     } = rcEvent;
 
-    console.log("Webhook - Processing event:", {
+    console.log("Webhook v2 - Processing event:", {
       type,
       app_user_id,
       product_id,
@@ -40,7 +40,7 @@ router.post("/webhook", async (req, res) => {
     // Subscription expiration handling
     if (type === "EXPIRATION" || type === "CANCELLATION") {
       console.log(
-        "Webhook - Handling subscription expiration/cancellation for:",
+        "Webhook v2 - Handling subscription expiration/cancellation for:",
         app_user_id
       );
 
@@ -61,7 +61,7 @@ router.post("/webhook", async (req, res) => {
     // INITIAL_PURCHASE - İlk subscription satın alımı
     if (type === "INITIAL_PURCHASE") {
       console.log(
-        "Webhook - Handling initial subscription purchase for:",
+        "Webhook v2 - Handling initial subscription purchase for:",
         app_user_id
       );
 
@@ -74,7 +74,7 @@ router.post("/webhook", async (req, res) => {
 
       if (existingTransaction) {
         console.log(
-          "Webhook - Initial purchase already processed:",
+          "Webhook v2 - Initial purchase already processed:",
           original_transaction_id
         );
         return res
@@ -96,18 +96,13 @@ router.post("/webhook", async (req, res) => {
       let addedCoins = 0;
       let subscriptionTitle = "";
 
-      // Diress (orijinal app) subscription product ID'leri
-      if (product_id === "com.monailisa.pro_weekly600") {
-        addedCoins = 600;
-        subscriptionTitle = "Weekly Pro 600";
-      } else if (product_id === "com.monailisa.pro_monthly2400") {
-        addedCoins = 2400;
-        subscriptionTitle = "Monthly Pro 2400";
-      } else {
-        console.log("⚠️ UNKNOWN SUBSCRIPTION PRODUCT ID:", product_id);
-        // Fallback - varsayılan değerler
-        addedCoins = 600;
-        subscriptionTitle = "Unknown Subscription";
+      // V2 app specific subscription products
+      if (product_id === "com.monailisa.minipi_500coin_weekly") {
+        addedCoins = 500;
+        subscriptionTitle = "500 Coin Weekly";
+      } else if (product_id === "com.minipi.1500coin_yearly") {
+        addedCoins = 1500;
+        subscriptionTitle = "1500 Coin Yearly";
       }
 
       const currentBalance = userData.credit_balance || 0;
@@ -160,7 +155,7 @@ router.post("/webhook", async (req, res) => {
 
     // NON_RENEWING_PURCHASE - One-time paket satın alımı (ÖNEMLİ!)
     if (type === "NON_RENEWING_PURCHASE") {
-      console.log("Webhook - Handling one-time purchase for:", app_user_id);
+      console.log("Webhook v2 - Handling one-time purchase for:", app_user_id);
 
       // DUPLICATE CHECK
       const { data: existingTransaction, error: checkError } = await supabase
@@ -171,7 +166,7 @@ router.post("/webhook", async (req, res) => {
 
       if (existingTransaction) {
         console.log(
-          "Webhook - One-time purchase already processed:",
+          "Webhook v2 - One-time purchase already processed:",
           original_transaction_id
         );
         return res
@@ -190,45 +185,44 @@ router.post("/webhook", async (req, res) => {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Product ID'ye göre coin miktarını belirle
+      // V2 app specific one-time products (doğru product ID'leri)
       let addedCoins = 0;
       let productTitle = "";
 
-      // Diress (orijinal app) one-time paketlerin GERÇEK product ID'lerini kontrol et
-      if (product_id === "com.monailisa.creditpack300") {
+      if (product_id === "com.monailisa.minipi_300coin") {
         addedCoins = 300;
         productTitle = "300 Credits Pack";
-      } else if (product_id === "com.monailisa.creditpack1000") {
+      } else if (product_id === "com.monailisa.minipi_500coin") {
+        addedCoins = 500;
+        productTitle = "500 Credits Pack";
+      } else if (product_id === "com.monailisa.minipi_1000coin") {
         addedCoins = 1000;
         productTitle = "1000 Credits Pack";
-      } else if (product_id === "com.monailisa.creditpack2200") {
+      } else if (product_id === "com.monailisa.minipi_1500coin") {
+        addedCoins = 1500;
+        productTitle = "1500 Credits Pack";
+      } else if (product_id === "com.monailisa.minipi_2200coin") {
         addedCoins = 2200;
         productTitle = "2200 Credits Pack";
-      } else if (product_id === "com.monailisa.creditpack5000") {
-        addedCoins = 5000;
-        productTitle = "5000 Credits Pack";
-      } else if (product_id.includes("300")) {
-        // Fallback pattern matching
-        addedCoins = 300;
-        productTitle = "300 Credits Pack";
-      } else if (product_id.includes("1000")) {
-        addedCoins = 1000;
-        productTitle = "1000 Credits Pack";
-      } else if (product_id.includes("2200")) {
-        addedCoins = 2200;
-        productTitle = "2200 Credits Pack";
-      } else if (product_id.includes("5000")) {
+      } else if (product_id === "com.monailisa.minipi_5000coin") {
         addedCoins = 5000;
         productTitle = "5000 Credits Pack";
       } else {
-        // Final fallback - product title'dan çıkarmaya çalış
-        const coinMatch = product_id.match(/(\d+)/);
+        // Fallback - product ID'den coin miktarını çıkarmaya çalış
+        const coinMatch = product_id.match(/(\d+)coin/);
         if (coinMatch) {
           addedCoins = parseInt(coinMatch[1]);
           productTitle = `${addedCoins} Credits Pack`;
         } else {
-          addedCoins = 300; // Default
-          productTitle = "Credits Pack";
+          // Son fallback - generic sayı arama
+          const numberMatch = product_id.match(/(\d+)/);
+          if (numberMatch) {
+            addedCoins = parseInt(numberMatch[1]);
+            productTitle = `${addedCoins} Credits Pack`;
+          } else {
+            addedCoins = 300; // Default
+            productTitle = "Credits Pack";
+          }
         }
       }
 
@@ -290,7 +284,10 @@ router.post("/webhook", async (req, res) => {
 
     // Eğer gerçek yenileme event'i "RENEWAL" olarak geliyorsa
     if (type === "RENEWAL") {
-      console.log("Webhook - Handling subscription renewal for:", app_user_id);
+      console.log(
+        "Webhook v2 - Handling subscription renewal for:",
+        app_user_id
+      );
 
       // DUPLICATE CHECK: Aynı transaction_id ile işlem yapılmış mı kontrol et
       const { data: existingTransaction, error: checkError } = await supabase
@@ -301,7 +298,7 @@ router.post("/webhook", async (req, res) => {
 
       if (existingTransaction) {
         console.log(
-          "Webhook - Transaction already processed:",
+          "Webhook v2 - Transaction already processed:",
           original_transaction_id
         );
         return res
@@ -321,14 +318,18 @@ router.post("/webhook", async (req, res) => {
       }
 
       let addedCoins = 0;
-      // Diress (orijinal app) subscription renewal product ID'leri
-      if (product_id === "com.monailisa.pro_weekly600") {
-        addedCoins = 600;
-      } else if (product_id === "com.monailisa.pro_monthly2400") {
-        addedCoins = 2400;
-      } else {
-        console.log("⚠️ UNKNOWN RENEWAL PRODUCT ID:", product_id);
-        addedCoins = 600; // Fallback
+      let productTitle = "";
+      let packageType = "";
+
+      // V2 app specific subscription renewals (orijinal paket isimleri korundu)
+      if (product_id === "com.monailisa.minipi_500coin_weekly") {
+        addedCoins = 500;
+        productTitle = "500 Coin Weekly";
+        packageType = "CUSTOM";
+      } else if (product_id === "com.minipi.1500coin_yearly") {
+        addedCoins = 1500;
+        productTitle = "1500 Coin Yearly";
+        packageType = "AUTO_RENEWABLE_SUBSCRIPTION";
       }
 
       const currentBalance = userData.credit_balance || 0;
@@ -352,11 +353,9 @@ router.post("/webhook", async (req, res) => {
       const purchaseData = {
         user_id: app_user_id,
         product_id: product_id,
-        product_title: product_id.includes("monthly2400")
-          ? "2400 Coin Monthly"
-          : "600 Coin Weekly",
+        product_title: productTitle,
         purchase_date: purchase_date,
-        package_type: "subscription",
+        package_type: packageType,
         price: 0,
         coins_added: addedCoins,
         transaction_id: original_transaction_id,
@@ -378,19 +377,11 @@ router.post("/webhook", async (req, res) => {
       return res.status(200).json({ message: "Renewal processed" });
     }
 
-    // PRODUCT_CHANGE - Plan değişikliği
-    if (type === "PRODUCT_CHANGE") {
-      console.log("Webhook - Handling product change for:", app_user_id);
-      // Bu durumda kullanıcı farklı bir subscription planına geçmiş
-      // Şimdilik sadece log'la, gerekirse daha sonra implement ederiz
-      return res.status(200).json({ message: "Product change noted" });
-    }
-
     // Diğer bilinmeyen event tipleri
-    console.log("Webhook - Unknown event type:", type);
+    console.log("Webhook v2 - Unknown event type:", type);
     return res.status(200).json({ message: "Event handled - unknown type" });
   } catch (err) {
-    console.error("Error handling webhook:", err);
+    console.error("Error handling webhook v2:", err);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
