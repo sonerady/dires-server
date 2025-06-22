@@ -1,0 +1,9 @@
+{
+  "editRoom": {
+    "title": "Комната Редактирования",
+    "uploadPhoto": "Выбрать Фото",
+    "uploadPhotoInfo": "Загрузите фото, которое хотите отредактировать",
+    "pleaseEnterDescription": "Пожалуйста, опишите что вы хотите",
+    "imageGenerationFailed": "Ошибка генерации изображения"
+  }
+}

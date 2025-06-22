@@ -1,0 +1,20 @@
+{
+  "aiReferansFusion": {
+    "example1": {
+      "text": "Add professional glasses, elegant necklace and trendy hat to the model",
+      "title": "Accessory Combination"
+    },
+    "example2": {
+      "text": "Transform the model's dress color to elegant red tone",
+      "title": "Color Transformation"
+    },
+    "example3": {
+      "text": "Change the model's hair color to natural brown tone",
+      "title": "Hair Color Modification"
+    },
+    "example4": {
+      "text": "Make the model's expression and pose more dynamic and attractive",
+      "title": "Pose and Expression Adjustment"
+    }
+  }
+}

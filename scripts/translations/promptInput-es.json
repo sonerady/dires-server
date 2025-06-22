@@ -1,0 +1,208 @@
+{
+  "promptInput": {
+    "title": "Describe lo que quieres",
+    "hint": "Ejemplo: Cambia el color de la camiseta a verde",
+    "placeholder": "Ingresa tu solicitud...",
+    "readyPrompts": "Prompts Listos",
+    "showAll": "Mostrar Todo",
+    "showLess": "Mostrar Menos",
+    "prompts": [
+      {
+        "title": "Cambiar Color de Cabello",
+        "detail": "Cambiar cabello a rubio, castaño, negro, rojo, etc."
+      },
+      {
+        "title": "Agregar Accesorios",
+        "detail": "Agregar sombrero, gafas, reloj, joyas, etc."
+      },
+      {
+        "title": "Cambiar Color de Ropa",
+        "detail": "Cambiar color de camiseta, vestido, pantalones"
+      },
+      {
+        "title": "Agregar Maquillaje",
+        "detail": "Agregar lápiz labial, sombra de ojos, rubor, etc."
+      },
+      {
+        "title": "Cambiar Fondo",
+        "detail": "Cambiar a playa, bosque, ciudad, etc."
+      },
+      {
+        "title": "Agregar Gafas",
+        "detail": "Agregar gafas de sol, gafas de lectura, etc."
+      },
+      {
+        "title": "Cambiar Peinado",
+        "detail": "Cambiar a cabello corto, largo, rizado, liso"
+      },
+      {
+        "title": "Agregar Sombrero",
+        "detail": "Agregar gorra, boina, fedora, etc."
+      },
+      {
+        "title": "Cambiar Color de Zapatos",
+        "detail": "Cambiar color de zapatillas, tacones, botas"
+      },
+      {
+        "title": "Agregar Joyas",
+        "detail": "Agregar collar, aretes, pulsera, etc."
+      },
+      {
+        "title": "Cambiar Estilo de Vestido",
+        "detail": "Cambiar a estilo casual, formal, deportivo"
+      },
+      {
+        "title": "Agregar Sonrisa",
+        "detail": "Agregar sonrisa natural, amplia, sutil"
+      },
+      {
+        "title": "Cambiar Color de Ojos",
+        "detail": "Cambiar a ojos azules, verdes, cafés, grises"
+      },
+      {
+        "title": "Agregar Bolsa",
+        "detail": "Agregar bolso, mochila, clutch, etc."
+      },
+      {
+        "title": "Cambiar Iluminación",
+        "detail": "Cambiar a luz brillante, tenue, natural"
+      },
+      {
+        "title": "Agregar Bufanda",
+        "detail": "Agregar bufanda de cuello, pañuelo, etc."
+      },
+      {
+        "title": "Cambiar Estilo de Pantalón",
+        "detail": "Cambiar a jeans, pantalón de tela, shorts"
+      },
+      {
+        "title": "Agregar Reloj",
+        "detail": "Agregar reloj de pulsera, smartwatch, etc."
+      },
+      {
+        "title": "Cambiar Tono de Piel",
+        "detail": "Ajustar tono de piel más claro u oscuro"
+      },
+      {
+        "title": "Agregar Aretes",
+        "detail": "Agregar aretes de botón, argollas, colgantes"
+      },
+      {
+        "title": "Cambiar Patrón de Camisa",
+        "detail": "Agregar rayas, puntos, patrón floral"
+      },
+      {
+        "title": "Agregar Vello Facial",
+        "detail": "Agregar barba, bigote, perilla"
+      },
+      {
+        "title": "Cambiar Pose",
+        "detail": "Cambiar a pose de pie, sentado, caminando"
+      },
+      {
+        "title": "Agregar Esmalte de Uñas",
+        "detail": "Agregar esmalte rojo, rosa, negro"
+      },
+      {
+        "title": "Cambiar Clima",
+        "detail": "Cambiar a clima soleado, lluvioso, nevado"
+      },
+      {
+        "title": "Agregar Gafas de Sol",
+        "detail": "Agregar aviador, ojo de gato, gafas redondas"
+      },
+      {
+        "title": "Cambiar Edad",
+        "detail": "Hacer ver más joven o mayor"
+      },
+      {
+        "title": "Agregar Tatuaje",
+        "detail": "Agregar tatuaje en brazo, cuello, mano"
+      },
+      {
+        "title": "Cambiar Expresión",
+        "detail": "Cambiar a expresión feliz, seria, sorprendida"
+      },
+      {
+        "title": "Agregar Flores",
+        "detail": "Agregar flores en cabello, mano, fondo"
+      },
+      {
+        "title": "Cambiar Temporada",
+        "detail": "Cambiar a primavera, verano, otoño, invierno"
+      },
+      {
+        "title": "Agregar Máscara",
+        "detail": "Agregar máscara facial, antifaz, etc."
+      },
+      {
+        "title": "Cambiar Tipo de Cuerpo",
+        "detail": "Ajustar forma y tamaño del cuerpo"
+      },
+      {
+        "title": "Agregar Mascota",
+        "detail": "Agregar gato, perro, pájaro a la foto"
+      },
+      {
+        "title": "Cambiar Hora del Día",
+        "detail": "Cambiar a mañana, mediodía, tarde, noche"
+      },
+      {
+        "title": "Agregar Comida",
+        "detail": "Agregar café, pizza, helado en la mano"
+      },
+      {
+        "title": "Cambiar Ubicación",
+        "detail": "Cambiar a parque, playa, café, casa"
+      },
+      {
+        "title": "Agregar Teléfono",
+        "detail": "Agregar smartphone, tablet en la mano"
+      },
+      {
+        "title": "Cambiar Estado de Ánimo",
+        "detail": "Cambiar a feliz, triste, emocionado, tranquilo"
+      },
+      {
+        "title": "Agregar Espejo",
+        "detail": "Agregar reflejo de espejo en el fondo"
+      },
+      {
+        "title": "Cambiar Tela",
+        "detail": "Cambiar a seda, algodón, cuero, mezclilla"
+      },
+      {
+        "title": "Agregar Sombra",
+        "detail": "Agregar efectos de sombra natural"
+      },
+      {
+        "title": "Cambiar Perspectiva",
+        "detail": "Cambiar ángulo de cámara y vista"
+      },
+      {
+        "title": "Agregar Texto",
+        "detail": "Colocar superposición de texto en imagen"
+      },
+      {
+        "title": "Cambiar Calidad",
+        "detail": "Mejorar calidad y nitidez de imagen"
+      },
+      {
+        "title": "Agregar Filtro",
+        "detail": "Agregar filtro vintage, sepia, blanco y negro"
+      },
+      {
+        "title": "Cambiar Contraste",
+        "detail": "Ajustar brillo y contraste"
+      },
+      {
+        "title": "Agregar Brillo",
+        "detail": "Agregar brillo suave o efecto de resaltado"
+      },
+      {
+        "title": "Cambiar Estilo",
+        "detail": "Cambiar a estilo artístico, realista, caricatura"
+      }
+    ]
+  }
+}

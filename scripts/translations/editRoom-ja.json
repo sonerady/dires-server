@@ -1,0 +1,9 @@
+{
+  "editRoom": {
+    "title": "編集ルーム",
+    "uploadPhoto": "写真を選択",
+    "uploadPhotoInfo": "編集したい写真をアップロードしてください",
+    "pleaseEnterDescription": "ご希望の内容を説明してください",
+    "imageGenerationFailed": "画像生成に失敗しました"
+  }
+}

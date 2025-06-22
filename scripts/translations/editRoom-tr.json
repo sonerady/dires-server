@@ -1,0 +1,9 @@
+{
+  "editRoom": {
+    "title": "Düzenleme Odası",
+    "uploadPhoto": "Fotoğraf Seç",
+    "uploadPhotoInfo": "Düzenlemek istediğiniz fotoğrafı yükleyin",
+    "pleaseEnterDescription": "Lütfen ne istediğinizi açıklayın",
+    "imageGenerationFailed": "Görsel oluşturulamadı"
+  }
+}

@@ -1,0 +1,208 @@
+{
+  "promptInput": {
+    "title": "Beschreiben Sie, was Sie wollen",
+    "hint": "Beispiel: Ändere die T-Shirt-Farbe zu grün",
+    "placeholder": "Geben Sie Ihre Anfrage ein...",
+    "readyPrompts": "Fertige Prompts",
+    "showAll": "Alle anzeigen",
+    "showLess": "Weniger anzeigen",
+    "prompts": [
+      {
+        "title": "Haarfarbe ändern",
+        "detail": "Haare zu blond, braun, schwarz, rot usw. ändern"
+      },
+      {
+        "title": "Accessoires hinzufügen",
+        "detail": "Hut, Brille, Uhr, Schmuck usw. hinzufügen"
+      },
+      {
+        "title": "Kleidungsfarbe ändern",
+        "detail": "Farbe von T-Shirt, Kleid, Hose ändern"
+      },
+      {
+        "title": "Make-up hinzufügen",
+        "detail": "Lippenstift, Lidschatten, Rouge usw. hinzufügen"
+      },
+      {
+        "title": "Hintergrund ändern",
+        "detail": "Zu Strand, Wald, Stadt usw. ändern"
+      },
+      {
+        "title": "Brille hinzufügen",
+        "detail": "Sonnenbrille, Lesebrille usw. hinzufügen"
+      },
+      {
+        "title": "Frisur ändern",
+        "detail": "Zu kurzen, langen, lockigen, glatten Haaren ändern"
+      },
+      {
+        "title": "Hut hinzufügen",
+        "detail": "Kappe, Mütze, Fedora usw. hinzufügen"
+      },
+      {
+        "title": "Schuhfarbe ändern",
+        "detail": "Farbe von Sneakers, Absätzen, Stiefeln ändern"
+      },
+      {
+        "title": "Schmuck hinzufügen",
+        "detail": "Halskette, Ohrringe, Armband usw. hinzufügen"
+      },
+      {
+        "title": "Kleidstil ändern",
+        "detail": "Zu lässig, formal, sportlich ändern"
+      },
+      {
+        "title": "Lächeln hinzufügen",
+        "detail": "Natürliches, breites, leichtes Lächeln hinzufügen"
+      },
+      {
+        "title": "Augenfarbe ändern",
+        "detail": "Zu blauen, grünen, braunen, grauen Augen ändern"
+      },
+      {
+        "title": "Tasche hinzufügen",
+        "detail": "Handtasche, Rucksack, Clutch usw. hinzufügen"
+      },
+      {
+        "title": "Beleuchtung ändern",
+        "detail": "Zu hellem, gedämpftem, natürlichem Licht ändern"
+      },
+      {
+        "title": "Schal hinzufügen",
+        "detail": "Halsschal, Kopftuch usw. hinzufügen"
+      },
+      {
+        "title": "Hosenstil ändern",
+        "detail": "Zu Jeans, Stoffhose, Shorts ändern"
+      },
+      {
+        "title": "Uhr hinzufügen",
+        "detail": "Armbanduhr, Smartwatch usw. hinzufügen"
+      },
+      {
+        "title": "Hautton ändern",
+        "detail": "Hautton heller oder dunkler einstellen"
+      },
+      {
+        "title": "Ohrringe hinzufügen",
+        "detail": "Stecker, Ringe, hängende Ohrringe hinzufügen"
+      },
+      {
+        "title": "Hemdmuster ändern",
+        "detail": "Streifen, Punkte, Blumenmuster hinzufügen"
+      },
+      {
+        "title": "Gesichtsbehaarung hinzufügen",
+        "detail": "Bart, Schnurrbart, Ziegenbart hinzufügen"
+      },
+      {
+        "title": "Pose ändern",
+        "detail": "Zu stehender, sitzender, gehender Pose ändern"
+      },
+      {
+        "title": "Nagellack hinzufügen",
+        "detail": "Roten, rosa, schwarzen Nagellack hinzufügen"
+      },
+      {
+        "title": "Wetter ändern",
+        "detail": "Zu sonnigem, regnerischem, schneeigem Wetter ändern"
+      },
+      {
+        "title": "Sonnenbrille hinzufügen",
+        "detail": "Piloten-, Katzenauge-, runde Sonnenbrille hinzufügen"
+      },
+      {
+        "title": "Alter ändern",
+        "detail": "Jünger oder älter aussehen lassen"
+      },
+      {
+        "title": "Tattoo hinzufügen",
+        "detail": "Arm-, Hals-, Handtattoo hinzufügen"
+      },
+      {
+        "title": "Ausdruck ändern",
+        "detail": "Zu glücklichem, ernstem, überraschtem Ausdruck ändern"
+      },
+      {
+        "title": "Blumen hinzufügen",
+        "detail": "Blumen in Haaren, Hand, Hintergrund hinzufügen"
+      },
+      {
+        "title": "Jahreszeit ändern",
+        "detail": "Zu Frühling, Sommer, Herbst, Winter ändern"
+      },
+      {
+        "title": "Maske hinzufügen",
+        "detail": "Gesichtsmaske, Augenmaske usw. hinzufügen"
+      },
+      {
+        "title": "Körpertyp ändern",
+        "detail": "Körperform und -größe anpassen"
+      },
+      {
+        "title": "Haustier hinzufügen",
+        "detail": "Katze, Hund, Vogel zum Foto hinzufügen"
+      },
+      {
+        "title": "Tageszeit ändern",
+        "detail": "Zu Morgen, Mittag, Abend, Nacht ändern"
+      },
+      {
+        "title": "Essen hinzufügen",
+        "detail": "Kaffee, Pizza, Eis in die Hand hinzufügen"
+      },
+      {
+        "title": "Ort ändern",
+        "detail": "Zu Park, Strand, Café, Zuhause ändern"
+      },
+      {
+        "title": "Telefon hinzufügen",
+        "detail": "Smartphone, Tablet in die Hand hinzufügen"
+      },
+      {
+        "title": "Stimmung ändern",
+        "detail": "Zu glücklich, traurig, aufgeregt, ruhig ändern"
+      },
+      {
+        "title": "Spiegel hinzufügen",
+        "detail": "Spiegelreflexion im Hintergrund hinzufügen"
+      },
+      {
+        "title": "Stoff ändern",
+        "detail": "Zu Seide, Baumwolle, Leder, Denim ändern"
+      },
+      {
+        "title": "Schatten hinzufügen",
+        "detail": "Natürliche Schatteneffekte hinzufügen"
+      },
+      {
+        "title": "Perspektive ändern",
+        "detail": "Kamerawinkel und Ansicht ändern"
+      },
+      {
+        "title": "Text hinzufügen",
+        "detail": "Textüberlagerung auf Bild platzieren"
+      },
+      {
+        "title": "Qualität ändern",
+        "detail": "Bildqualität und Schärfe verbessern"
+      },
+      {
+        "title": "Filter hinzufügen",
+        "detail": "Vintage-, Sepia-, Schwarz-Weiß-Filter hinzufügen"
+      },
+      {
+        "title": "Kontrast ändern",
+        "detail": "Helligkeit und Kontrast anpassen"
+      },
+      {
+        "title": "Glanz hinzufügen",
+        "detail": "Sanften Glanz oder Highlight-Effekt hinzufügen"
+      },
+      {
+        "title": "Stil ändern",
+        "detail": "Zu künstlerischem, realistischem, cartoonartigem Stil ändern"
+      }
+    ]
+  }
+}

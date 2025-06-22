@@ -18,6 +18,7 @@ const geminiImageEditRouter = require("./routes/geminiImageEdit");
 const notificationRoutes = require("./routes/notificationRoutes");
 const addProductRouter = require("./routes/addProduct");
 const getUserProductRouter = require("./routes/getUserProduct");
+const editRoomRoutes = require("./routes/editRoomRoutes");
 const removeBgRouter = require("./routes/removeBg");
 const uploadImageRouter = require("./routes/uploadImage");
 const generateTrain = require("./routes/generateTrain");
@@ -134,6 +135,8 @@ app.use("/api", consRoutes);
 app.use("/api", changeColorRoutes);
 app.use("/api/poses", poseRoutes);
 app.use("/api/user", infoModalRoutes);
+app.use("/api/editRoom", editRoomRoutes);
+
 // RevenueCat webhook route ekle
 app.use("/revenuecat", revenuecatWebhookRouter);
 app.use("/purchase", purchaseRoutes);

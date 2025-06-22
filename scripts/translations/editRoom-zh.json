@@ -1,0 +1,9 @@
+{
+  "editRoom": {
+    "title": "编辑室",
+    "uploadPhoto": "选择照片",
+    "uploadPhotoInfo": "上传您想要编辑的照片",
+    "pleaseEnterDescription": "请描述您想要的内容",
+    "imageGenerationFailed": "图像生成失败"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "editRoom": {
+    "title": "Bearbeitungsraum",
+    "uploadPhoto": "Foto auswählen",
+    "uploadPhotoInfo": "Laden Sie das Foto hoch, das Sie bearbeiten möchten",
+    "pleaseEnterDescription": "Bitte beschreiben Sie, was Sie wollen",
+    "imageGenerationFailed": "Bilderzeugung fehlgeschlagen"
+  }
+}
