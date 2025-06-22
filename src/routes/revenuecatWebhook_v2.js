@@ -1,4 +1,4 @@
-// routes/revenuecatWebhook.js
+// routes/revenuecatWebhook_v2.js - DIRESS2 (MiniPI) Webhook
 const express = require("express");
 const router = express.Router();
 const supabase = require("../supabaseClient"); // supabaseClient.js dosyanın yolu
@@ -7,7 +7,7 @@ router.post("/webhook", async (req, res) => {
   try {
     const event = req.body;
     console.log(
-      "RevenueCat webhook v2 event received:",
+      "🎯 DIRESS2 (MiniPI) RevenueCat webhook v2 event received:",
       JSON.stringify(event, null, 2)
     );
 
@@ -96,13 +96,18 @@ router.post("/webhook", async (req, res) => {
       let addedCoins = 0;
       let subscriptionTitle = "";
 
-      // V2 app specific subscription products
+      // V2 app (MiniPI) GERÇEK subscription product ID'leri
       if (product_id === "com.monailisa.minipi_500coin_weekly") {
         addedCoins = 500;
         subscriptionTitle = "500 Coin Weekly";
       } else if (product_id === "com.minipi.1500coin_yearly") {
         addedCoins = 1500;
         subscriptionTitle = "1500 Coin Yearly";
+      } else {
+        console.log("⚠️ UNKNOWN V2 SUBSCRIPTION PRODUCT ID:", product_id);
+        // Fallback - varsayılan değerler
+        addedCoins = 500;
+        subscriptionTitle = "Unknown Subscription";
       }
 
       const currentBalance = userData.credit_balance || 0;
@@ -185,28 +190,22 @@ router.post("/webhook", async (req, res) => {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // V2 app specific one-time products (doğru product ID'leri)
+      // V2 app (MiniPI) GERÇEK one-time product ID'leri
       let addedCoins = 0;
       let productTitle = "";
 
-      if (product_id === "com.monailisa.minipi_300coin") {
-        addedCoins = 300;
-        productTitle = "300 Credits Pack";
-      } else if (product_id === "com.monailisa.minipi_500coin") {
+      if (product_id === "com.monailisa.minipi.250coin") {
+        addedCoins = 250;
+        productTitle = "250 Credits Pack";
+      } else if (product_id === "com.monailisa.minipi.500coin") {
         addedCoins = 500;
         productTitle = "500 Credits Pack";
-      } else if (product_id === "com.monailisa.minipi_1000coin") {
+      } else if (product_id === "com.monailisa.minipi.1000coin") {
         addedCoins = 1000;
         productTitle = "1000 Credits Pack";
-      } else if (product_id === "com.monailisa.minipi_1500coin") {
-        addedCoins = 1500;
-        productTitle = "1500 Credits Pack";
-      } else if (product_id === "com.monailisa.minipi_2200coin") {
-        addedCoins = 2200;
-        productTitle = "2200 Credits Pack";
-      } else if (product_id === "com.monailisa.minipi_5000coin") {
-        addedCoins = 5000;
-        productTitle = "5000 Credits Pack";
+      } else if (product_id === "com.monailisa.minipi.2000coin") {
+        addedCoins = 2000;
+        productTitle = "2000 Credits Pack";
       } else {
         // Fallback - product ID'den coin miktarını çıkarmaya çalış
         const coinMatch = product_id.match(/(\d+)coin/);
@@ -321,7 +320,7 @@ router.post("/webhook", async (req, res) => {
       let productTitle = "";
       let packageType = "";
 
-      // V2 app specific subscription renewals (orijinal paket isimleri korundu)
+      // V2 app (MiniPI) GERÇEK subscription renewal product ID'leri
       if (product_id === "com.monailisa.minipi_500coin_weekly") {
         addedCoins = 500;
         productTitle = "500 Coin Weekly";
@@ -330,6 +329,11 @@ router.post("/webhook", async (req, res) => {
         addedCoins = 1500;
         productTitle = "1500 Coin Yearly";
         packageType = "AUTO_RENEWABLE_SUBSCRIPTION";
+      } else {
+        console.log("⚠️ UNKNOWN V2 RENEWAL PRODUCT ID:", product_id);
+        addedCoins = 500; // Fallback
+        productTitle = "Unknown Renewal";
+        packageType = "subscription";
       }
 
       const currentBalance = userData.credit_balance || 0;

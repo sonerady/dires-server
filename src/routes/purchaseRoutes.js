@@ -17,13 +17,14 @@ router.post("/verify", async (req, res) => {
       receiptData,
     } = req.body;
 
-    console.log("Purchase verification request:", {
+    console.log("🔍 FRONTEND - Purchase verification request:", {
       userId,
       productId,
       transactionId,
       coinsAdded,
       price,
       packageType,
+      timestamp: new Date().toISOString(),
     });
 
     // Input validation
@@ -60,6 +61,49 @@ router.post("/verify", async (req, res) => {
         success: false,
         message: "Demo transactions are not allowed",
       });
+    }
+
+    // ÇİFTE KREDİ SORUNU ÇÖZÜMÜ: Gerçek RevenueCat one-time purchase'ları için webhook kontrolü
+    if (isRealRevenueCatProduct && packageType === "one_time") {
+      // Son 5 dakika içinde webhook tarafından aynı productId ile işlem var mı kontrol et
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const { data: recentWebhookPurchase, error: webhookError } =
+        await supabase
+          .from("user_purchase")
+          .select("*")
+          .eq("user_id", userId)
+          .eq("product_id", productId)
+          .eq("package_type", "one_time")
+          .gte("purchase_date", fiveMinutesAgo)
+          .order("purchase_date", { ascending: false })
+          .limit(1)
+          .single();
+
+      if (recentWebhookPurchase) {
+        console.log(
+          "Purchase verification SKIPPED - Already processed by webhook within last 5 minutes:",
+          {
+            webhookTransactionId: recentWebhookPurchase.transaction_id,
+            productId,
+            userId,
+          }
+        );
+
+        // Webhook'dan işlenmiş, sadece mevcut balance'ı döndür
+        const { data: currentUser } = await supabase
+          .from("users")
+          .select("credit_balance")
+          .eq("id", userId)
+          .single();
+
+        return res.status(200).json({
+          success: true,
+          message: "Purchase already processed by webhook",
+          newBalance: currentUser?.credit_balance || 0,
+          coinsAdded: parseInt(coinsAdded),
+          alreadyProcessed: true,
+        });
+      }
     }
 
     // Test modunda transaction ID olmayabilir - gerçek RevenueCat product'ları için izin ver
@@ -173,11 +217,13 @@ router.post("/verify", async (req, res) => {
       // Don't return error here, purchase was successful
     }
 
-    console.log("Purchase verified successfully:", {
+    console.log("✅ FRONTEND - Purchase verified successfully:", {
       userId,
       transactionId: finalTransactionId,
       newBalance,
       coinsAdded,
+      productId,
+      timestamp: new Date().toISOString(),
     });
 
     return res.status(200).json({
