@@ -17,7 +17,7 @@ router.post("/verify", async (req, res) => {
       receiptData,
     } = req.body;
 
-    console.log("🔍 FRONTEND - Purchase verification request:", {
+    console.log("🔍 V2 FRONTEND - Purchase verification request:", {
       userId,
       productId,
       transactionId,
@@ -27,7 +27,6 @@ router.post("/verify", async (req, res) => {
       timestamp: new Date().toISOString(),
     });
 
-    // Input validation
     if (!userId || !productId || !coinsAdded) {
       return res.status(400).json({
         success: false,
@@ -35,7 +34,6 @@ router.post("/verify", async (req, res) => {
       });
     }
 
-    // GÜVENLIK: Sadece gerçek demo/fallback transaction'ları engelle
     // RevenueCat gerçek product ID'leri (com.monailisa.*) geçirebilir
     const isRealRevenueCatProduct =
       productId && productId.startsWith("com.monailisa.");
@@ -63,37 +61,29 @@ router.post("/verify", async (req, res) => {
       });
     }
 
-    // ÇİFTE KREDİ SORUNU ÇÖZÜMÜ: Tüm RevenueCat purchase'ları için webhook kontrolü
-    if (isRealRevenueCatProduct) {
-      console.log(
-        "🔒 FRONTEND - Real RevenueCat product detected, checking for webhook processing..."
-      );
-
-      // Son 10 dakika içinde webhook tarafından aynı productId + userId ile işlem var mı kontrol et
-      const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-      const { data: recentWebhookPurchases, error: webhookError } =
+    // ÇİFTE KREDİ SORUNU ÇÖZÜMÜ V2: Gerçek RevenueCat one-time purchase'ları için webhook kontrolü
+    if (isRealRevenueCatProduct && packageType === "one_time") {
+      // Son 5 dakika içinde webhook tarafından aynı productId ile işlem var mı kontrol et
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const { data: recentWebhookPurchase, error: webhookError } =
         await supabase
           .from("user_purchase")
           .select("*")
           .eq("user_id", userId)
           .eq("product_id", productId)
-          .gte("purchase_date", tenMinutesAgo)
-          .order("purchase_date", { ascending: false });
+          .eq("package_type", "one_time")
+          .gte("purchase_date", fiveMinutesAgo)
+          .order("purchase_date", { ascending: false })
+          .limit(1)
+          .single();
 
-      if (webhookError) {
-        console.error("Error checking webhook purchases:", webhookError);
-      } else if (recentWebhookPurchases && recentWebhookPurchases.length > 0) {
+      if (recentWebhookPurchase) {
         console.log(
-          "🚫 FRONTEND - Purchase BLOCKED - Already processed by webhook:",
+          "V2 Purchase verification SKIPPED - Already processed by webhook within last 5 minutes:",
           {
-            webhookPurchases: recentWebhookPurchases.map((p) => ({
-              transactionId: p.transaction_id,
-              purchaseDate: p.purchase_date,
-              coinsAdded: p.coins_added,
-            })),
+            webhookTransactionId: recentWebhookPurchase.transaction_id,
             productId,
             userId,
-            timestamp: new Date().toISOString(),
           }
         );
 
@@ -184,12 +174,10 @@ router.post("/verify", async (req, res) => {
       });
     }
 
-    console.log("✅ FRONTEND - User balance updated successfully:", {
+    console.log("User balance updated successfully:", {
       userId,
       newBalance,
       coinsAdded,
-      productId,
-      transactionId: finalTransactionId,
     });
 
     // Verify the update by fetching user data again
@@ -227,7 +215,7 @@ router.post("/verify", async (req, res) => {
       // Don't return error here, purchase was successful
     }
 
-    console.log("✅ FRONTEND - Purchase verified successfully:", {
+    console.log("✅ V2 FRONTEND - Purchase verified successfully:", {
       userId,
       transactionId: finalTransactionId,
       newBalance,
@@ -257,7 +245,7 @@ router.post("/subscription/verify", async (req, res) => {
     const { userId, productId, transactionId, subscriptionType, receiptData } =
       req.body;
 
-    console.log("🔍 FRONTEND - Subscription verification request:", {
+    console.log("🔍 V2 FRONTEND - Subscription verification request:", {
       userId,
       productId,
       transactionId,
@@ -273,64 +261,37 @@ router.post("/subscription/verify", async (req, res) => {
       });
     }
 
-    // ÇİFTE KREDİ SORUNU ÇÖZÜMÜ: Gerçek RevenueCat subscription'ları için webhook kontrolü
-    const isRealRevenueCatProduct =
-      productId && productId.startsWith("com.monailisa.");
+    // Demo transaction ID oluştur eğer yoksa (test modunda)
+    const finalTransactionId =
+      transactionId || `demo_sub_${userId}_${Date.now()}`;
 
-    if (isRealRevenueCatProduct) {
-      console.log(
-        "🔒 FRONTEND - Real RevenueCat subscription detected, checking for webhook processing..."
-      );
-
-      // Son 10 dakika içinde webhook tarafından aynı productId + userId ile işlem var mı kontrol et
-      const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-      const { data: recentWebhookPurchases, error: webhookError } =
+    // ÖNCE webhook tarafından işlenmiş mi kontrol et (productId + userId kombinasyonu)
+    if (!transactionId) {
+      // TransactionId yoksa (frontend test), son 5 dakika içinde aynı productId ile işlem var mı bak
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const { data: recentWebhookPurchase, error: webhookError } =
         await supabase
           .from("user_purchase")
           .select("*")
           .eq("user_id", userId)
           .eq("product_id", productId)
-          .eq("package_type", "subscription")
-          .gte("purchase_date", tenMinutesAgo)
-          .order("purchase_date", { ascending: false });
-
-      if (webhookError) {
-        console.error("Error checking webhook subscriptions:", webhookError);
-      } else if (recentWebhookPurchases && recentWebhookPurchases.length > 0) {
-        console.log(
-          "🚫 FRONTEND - Subscription BLOCKED - Already processed by webhook:",
-          {
-            webhookPurchases: recentWebhookPurchases.map((p) => ({
-              transactionId: p.transaction_id,
-              purchaseDate: p.purchase_date,
-              coinsAdded: p.coins_added,
-            })),
-            productId,
-            userId,
-            timestamp: new Date().toISOString(),
-          }
-        );
-
-        // Webhook'dan işlenmiş, sadece mevcut balance'ı döndür
-        const { data: currentUser } = await supabase
-          .from("users")
-          .select("credit_balance")
-          .eq("id", userId)
+          .gte("purchase_date", fiveMinutesAgo)
+          .order("purchase_date", { ascending: false })
+          .limit(1)
           .single();
 
+      if (recentWebhookPurchase) {
+        console.log(
+          "V2 Subscription already processed by webhook within last 5 minutes:",
+          recentWebhookPurchase.transaction_id
+        );
         return res.status(200).json({
           success: true,
           message: "Subscription already processed by webhook",
-          newBalance: currentUser?.credit_balance || 0,
-          coinsAdded: recentWebhookPurchases[0]?.coins_added || 0,
           alreadyProcessed: true,
         });
       }
     }
-
-    // Demo transaction ID oluştur eğer yoksa (test modunda)
-    const finalTransactionId =
-      transactionId || `demo_sub_${userId}_${Date.now()}`;
 
     // Check if transaction already processed
     const { data: existingPurchase, error: checkError } = await supabase
@@ -415,12 +376,10 @@ router.post("/subscription/verify", async (req, res) => {
       });
     }
 
-    console.log("✅ FRONTEND - User subscription updated successfully:", {
+    console.log("User subscription updated successfully:", {
       userId,
       newBalance,
       coinsToAdd,
-      productId,
-      transactionId: finalTransactionId,
     });
 
     // Verify the update by fetching user data again
@@ -458,7 +417,7 @@ router.post("/subscription/verify", async (req, res) => {
       // Don't return error here, subscription was successful
     }
 
-    console.log("✅ FRONTEND - Subscription verified successfully:", {
+    console.log("✅ V2 FRONTEND - Subscription verified successfully:", {
       userId,
       transactionId: finalTransactionId,
       newBalance,

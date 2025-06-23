@@ -171,8 +171,14 @@ router.post("/webhook", async (req, res) => {
 
       if (existingTransaction) {
         console.log(
-          "Webhook v2 - One-time purchase already processed:",
-          original_transaction_id
+          "⚠️ WEBHOOK V2 - One-time purchase already processed (DUPLICATE BLOCKED):",
+          {
+            transactionId: original_transaction_id,
+            userId: app_user_id,
+            productId: product_id,
+            existingPurchaseDate: existingTransaction.purchase_date,
+            timestamp: new Date().toISOString(),
+          }
         );
         return res
           .status(200)
@@ -228,6 +234,15 @@ router.post("/webhook", async (req, res) => {
       const currentBalance = userData.credit_balance || 0;
       const newBalance = currentBalance + addedCoins;
 
+      console.log("🎯 WEBHOOK V2 - One-time purchase balance calculation:", {
+        userId: app_user_id,
+        productId: product_id,
+        currentBalance,
+        addedCoins,
+        newBalance,
+        transactionId: original_transaction_id,
+      });
+
       // SADECE bakiyeyi güncelle - is_pro'yu değiştirme!
       // Çünkü kullanıcının zaten aktif subscription'ı var
       const { error: updateErr } = await supabase
@@ -267,11 +282,13 @@ router.post("/webhook", async (req, res) => {
           .json({ message: "Failed to record one-time purchase" });
       }
 
-      console.log("One-time purchase processed successfully:", {
+      console.log("✅ WEBHOOK V2 - One-time purchase processed successfully:", {
         user: app_user_id,
         product: product_id,
         coins: addedCoins,
         newBalance: newBalance,
+        transactionId: original_transaction_id,
+        timestamp: new Date().toISOString(),
       });
 
       return res.status(200).json({
