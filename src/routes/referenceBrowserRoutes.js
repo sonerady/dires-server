@@ -594,6 +594,18 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       console.log("💇 [GEMINI] Hair style prompt section eklendi");
     }
 
+    // Text-based hair style requirement if user selected hairStyle string
+    let hairStyleTextSection = "";
+    if (settings?.hairStyle) {
+      hairStyleTextSection = `
+    
+    SPECIFIC HAIR STYLE REQUIREMENT: The user has selected a specific hair style: "${settings.hairStyle}". Please ensure the ${baseModelText} is styled with this exact hair style, matching its length, texture and overall look naturally.`;
+      console.log(
+        "💇 [GEMINI] Hair style text section eklendi:",
+        settings.hairStyle
+      );
+    }
+
     // Gemini'ye gönderilecek metin
     let promptForGemini = `
   
@@ -603,7 +615,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
     You are generating a prompt for FLUX Kontext, a surgical image editing model. Follow these MANDATORY guidelines:
     
     🔧 PROMPT STRUCTURE (EXACTLY 3 CLAUSES):
-    1) [MAIN_ACTION] - Start with precise action verb (Change/Transform/Add/Remove/Replace) + specific target
+    1) [MAIN_ACTION] - Start with precise action verb (Replace) + specific target
     2) [PRESERVE] - "while keeping" + ALL elements that must remain unchanged
     3) [DETAILS] - Camera, lighting, style refinements, scene context
     
@@ -834,6 +846,7 @@ Failure to follow this instruction will result in incorrect garment generation.
     ${posePromptSection}
     ${perspectivePromptSection}
     ${hairStylePromptSection}
+    ${hairStyleTextSection}
     
     Generate a single, flowing description that reads like a master craftsperson's analysis of premium garment construction, emphasizing professional quality, material excellence, and attention to detail throughout. The ${modelGenderText} should be introduced initially and referenced once more naturally later in the description. Use "${baseModelText}" for all other references to avoid age repetition. Describe how the model demonstrates natural movement showcasing how the fabric behaves when worn, with poses appropriate for the garment category and facial expressions matching the intended style and quality level. Include detailed descriptions of the model's physical interaction with the garment, their professional modeling presence, and how their body positioning enhances the overall presentation. The complete styled outfit should be described as a cohesive ensemble where the main garment is the star piece perfectly complemented by thoughtfully selected additional clothing items. 
 
@@ -998,7 +1011,7 @@ Failure to follow this instruction will result in incorrect garment generation.
 
     // Gemini'den cevap al (retry mekanizması ile) - Yeni API
     let enhancedPrompt;
-    const maxRetries = 3;
+    const maxRetries = 10;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -1066,6 +1079,59 @@ Failure to follow this instruction will result in incorrect garment generation.
         const waitTime = Math.pow(2, attempt - 1) * 1000;
         console.log(`Waiting ${waitTime}ms before retry...`);
         await new Promise((resolve) => setTimeout(resolve, waitTime));
+      }
+    }
+
+    // Eğer Gemini sonuç üretemediyse (enhancedPrompt orijinal prompt ile aynıysa) Replicate GPT-4o-mini ile yedek dene
+    if (enhancedPrompt === originalPrompt) {
+      try {
+        console.log(
+          "🤖 [FALLBACK] Gemini başarısız, Replicate GPT-4o-mini deneniyor"
+        );
+
+        const replicateInput = {
+          top_p: 1,
+          prompt: promptForGemini,
+          image_input: [imageUrl],
+          temperature: 1,
+          system_prompt: "You are a helpful assistant.",
+          presence_penalty: 0,
+          frequency_penalty: 0,
+          max_completion_tokens: 512,
+        };
+
+        const replicateResponse = await axios.post(
+          "https://api.replicate.com/v1/models/openai/gpt-4o-mini/predictions",
+          { input: replicateInput },
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+              "Content-Type": "application/json",
+              Prefer: "wait",
+            },
+            timeout: 120000,
+          }
+        );
+
+        const replicateData = replicateResponse.data;
+        if (replicateData.status === "succeeded") {
+          const outArr = replicateData.output;
+          enhancedPrompt = Array.isArray(outArr) ? outArr.join("") : outArr;
+          enhancedPrompt = enhancedPrompt.trim();
+          console.log(
+            "🤖 [FALLBACK] Replicate GPT-4o-mini prompt üretimi başarılı"
+          );
+        } else {
+          console.warn(
+            "⚠️ [FALLBACK] Replicate GPT-4o-mini status:",
+            replicateData.status
+          );
+        }
+      } catch (repErr) {
+        console.error(
+          "❌ [FALLBACK] Replicate GPT-4o-mini hatası:",
+          repErr.message
+        );
       }
     }
 
