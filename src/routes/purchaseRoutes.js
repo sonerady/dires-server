@@ -154,30 +154,33 @@ router.post("/verify", async (req, res) => {
       });
     }
 
-    // WEBHOOK PRIORITY: Check if webhook already processed this purchase in last 10 seconds
-    if (isRealRevenueCatProduct && transactionId) {
-      const tenSecondsAgo = new Date(Date.now() - 10 * 1000).toISOString();
+    // WEBHOOK PRIORITY: Check if webhook already processed this purchase in last 15 seconds
+    // This applies to both real transactions and test mode for one-time purchases
+    if (isRealRevenueCatProduct) {
+      const fifteenSecondsAgo = new Date(Date.now() - 15 * 1000).toISOString();
       const { data: recentWebhookPurchase, error: webhookError } =
         await supabase
           .from("user_purchase")
           .select("*")
           .eq("user_id", userId)
           .eq("product_id", productId)
-          .gte("purchase_date", tenSecondsAgo)
+          .eq("package_type", "one_time")
+          .gte("purchase_date", fifteenSecondsAgo)
           .order("purchase_date", { ascending: false })
           .limit(1)
           .single();
 
-      if (
-        recentWebhookPurchase &&
-        recentWebhookPurchase.transaction_id === transactionId
-      ) {
+      if (recentWebhookPurchase) {
         console.log(
-          "Purchase already processed by webhook within last 10 seconds:",
+          "🚨 ONE-TIME PURCHASE VERIFICATION BLOCKED - Webhook already processed within last 15 seconds:",
           {
-            transactionId,
-            userId,
+            webhookTransactionId: recentWebhookPurchase.transaction_id,
+            clientTransactionId: transactionId || "test_mode",
             productId,
+            userId,
+            coinsAdded: recentWebhookPurchase.coins_added,
+            webhookProcessedAt: recentWebhookPurchase.purchase_date,
+            preventingDoubleCredit: true,
           }
         );
 
@@ -189,9 +192,11 @@ router.post("/verify", async (req, res) => {
 
         return res.status(200).json({
           success: true,
-          message: "Purchase already processed by webhook",
+          message: "One-time purchase already processed by webhook",
           alreadyProcessed: true,
           newBalance: currentUser?.credit_balance || 0,
+          coinsAdded: recentWebhookPurchase.coins_added || 0,
+          webhookProcessed: true,
         });
       }
     }
@@ -274,12 +279,19 @@ router.post("/verify", async (req, res) => {
       // Don't return error here, purchase was successful
     }
 
-    console.log("Purchase verified successfully:", {
-      userId,
-      transactionId: finalTransactionId,
-      newBalance,
-      coinsAdded,
-    });
+    console.log(
+      "✅ CLIENT VERIFICATION - One-time purchase verified successfully:",
+      {
+        userId,
+        transactionId: finalTransactionId,
+        newBalance,
+        coinsAdded,
+        productId,
+        packageType: "one_time",
+        source: "client_verification",
+        timestamp: new Date().toISOString(),
+      }
+    );
 
     // Cleanup ongoing request before responding
     if (typeof cleanupOngoingRequest === "function") {

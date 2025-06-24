@@ -348,11 +348,20 @@ router.post("/webhook", async (req, res) => {
           .json({ message: "Failed to record renewal purchase" });
       }
 
-      console.log(`${type} processed successfully for user:`, app_user_id, {
-        addedCoins,
-        newBalance,
-        packageType,
-      });
+      console.log(
+        `✅ WEBHOOK - ${type} processed successfully for user:`,
+        app_user_id,
+        {
+          addedCoins,
+          newBalance,
+          packageType,
+          product_id,
+          original_transaction_id,
+          mappingMethod,
+          source: "webhook_processing",
+          timestamp: new Date().toISOString(),
+        }
+      );
       return res.status(200).json({ message: `${type} processed` });
     }
 
