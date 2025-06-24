@@ -1,3 +1,4 @@
+// routes/purchaseRoutes.js
 const express = require("express");
 const router = express.Router();
 const supabase = require("../supabaseClient");
@@ -208,7 +209,7 @@ router.post("/subscription/verify", async (req, res) => {
     });
 
     // Input validation
-    if (!userId || !productId || !subscriptionType) {
+    if (!userId || !productId) {
       return res.status(400).json({
         success: false,
         message: "Missing required fields",
@@ -286,21 +287,26 @@ router.post("/subscription/verify", async (req, res) => {
     // Determine coins to add based on subscription type and product
     let coinsToAdd = 0;
     let subscriptionTitle = "";
+    let resolvedSubscriptionType = subscriptionType; // Gelen değer yoksa, productId üzerinden belirlenecek
 
     if (
-      subscriptionType === "weekly" ||
+      productId === "com.monailisa.pro_weekly600" ||
+      (subscriptionType && subscriptionType === "weekly") ||
       productId.includes("weekly") ||
       productId.includes("600")
     ) {
       coinsToAdd = 600;
       subscriptionTitle = "Weekly Pro 600";
+      resolvedSubscriptionType = "weekly";
     } else if (
-      subscriptionType === "monthly" ||
+      productId === "com.monailisa.pro_monthly2400" ||
+      (subscriptionType && subscriptionType === "monthly") ||
       productId.includes("monthly") ||
       productId.includes("2400")
     ) {
       coinsToAdd = 2400;
       subscriptionTitle = "Monthly Pro 2400";
+      resolvedSubscriptionType = "monthly";
     }
 
     const currentBalance = userData.credit_balance || 0;
@@ -376,7 +382,7 @@ router.post("/subscription/verify", async (req, res) => {
       transactionId: finalTransactionId,
       newBalance,
       coinsToAdd,
-      subscriptionType,
+      subscriptionType: resolvedSubscriptionType,
     });
 
     return res.status(200).json({
@@ -384,7 +390,7 @@ router.post("/subscription/verify", async (req, res) => {
       message: "Subscription verified successfully",
       newBalance: newBalance,
       coinsAdded: coinsToAdd,
-      subscriptionType: subscriptionType,
+      subscriptionType: resolvedSubscriptionType,
     });
   } catch (error) {
     console.error("Subscription verification error:", error);

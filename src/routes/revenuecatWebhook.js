@@ -1,4 +1,4 @@
-// routes/revenuecatWebhook.js - DIRESS (Original App) Webhook
+// routes/revenuecatWebhook.jsMore actions
 const express = require("express");
 const router = express.Router();
 const supabase = require("../supabaseClient"); // supabaseClient.js dosyanın yolu
@@ -6,10 +6,7 @@ const supabase = require("../supabaseClient"); // supabaseClient.js dosyanın yo
 router.post("/webhook", async (req, res) => {
   try {
     const event = req.body;
-    console.log(
-      "🎯 WEBHOOK - DIRESS (Original App) RevenueCat webhook event received:",
-      JSON.stringify(event, null, 2)
-    );
+    console.log("RevenueCat webhook event received:", event);
 
     const rcEvent = event.event;
     if (!rcEvent) {
@@ -25,14 +22,6 @@ router.post("/webhook", async (req, res) => {
       purchased_at_ms,
     } = rcEvent;
 
-    console.log("🔍 WEBHOOK - Processing event:", {
-      type,
-      app_user_id,
-      product_id,
-      original_transaction_id,
-      timestamp: new Date().toISOString(),
-    });
-
     // purchased_at_ms'den ISO formatında bir tarih oluşturuyoruz
     const purchase_date = purchased_at_ms
       ? new Date(purchased_at_ms).toISOString()
@@ -40,11 +29,6 @@ router.post("/webhook", async (req, res) => {
 
     // Subscription expiration handling
     if (type === "EXPIRATION" || type === "CANCELLATION") {
-      console.log(
-        "WEBHOOK - Handling subscription expiration/cancellation for:",
-        app_user_id
-      );
-
       const { error: updateError } = await supabase
         .from("users")
         .update({ is_pro: false })
@@ -59,333 +43,20 @@ router.post("/webhook", async (req, res) => {
       return res.status(200).json({ message: "Pro status updated" });
     }
 
-    // INITIAL_PURCHASE - İlk subscription satın alımı
-    if (type === "INITIAL_PURCHASE") {
-      console.log(
-        "🔍 WEBHOOK - Handling initial subscription purchase for:",
-        app_user_id
-      );
-
-      // GÜÇLÜ DUPLICATE CHECK - Hem transaction_id hem de productId + userId kombinasyonu
-      const { data: existingTransactions, error: checkError } = await supabase
-        .from("user_purchase")
-        .select("*")
-        .or(
-          `transaction_id.eq.${original_transaction_id},and(user_id.eq.${app_user_id},product_id.eq.${product_id},package_type.eq.subscription)`
-        )
-        .order("purchase_date", { ascending: false });
-
-      if (checkError) {
-        console.error("Error checking existing transactions:", checkError);
-      } else if (existingTransactions && existingTransactions.length > 0) {
-        console.log(
-          "🚫 WEBHOOK - Initial purchase BLOCKED - Already processed:",
-          {
-            existingTransactions: existingTransactions.map((t) => ({
-              transactionId: t.transaction_id,
-              purchaseDate: t.purchase_date,
-              coinsAdded: t.coins_added,
-            })),
-            newTransactionId: original_transaction_id,
-            productId: product_id,
-            userId: app_user_id,
-            timestamp: new Date().toISOString(),
-          }
-        );
-        return res
-          .status(200)
-          .json({ message: "Transaction already processed" });
-      }
-
-      const { data: userData, error: userError } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", app_user_id)
-        .single();
-
-      if (userError || !userData) {
-        console.error("User not found:", userError);
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      let addedCoins = 0;
-      let subscriptionTitle = "";
-
-      // Diress (orijinal app) subscription product ID'leri
-      if (
-        product_id === "com.monailisa.pro_weekly600" ||
-        product_id === "com.monailisa.pro_weekly600"
-      ) {
-        addedCoins = 600;
-        subscriptionTitle = "Weekly Pro 600";
-      } else if (
-        product_id === "com.monailisa.pro_monthly2400" ||
-        product_id === "com.monailisa.pro_monthly2400"
-      ) {
-        addedCoins = 2400;
-        subscriptionTitle = "Monthly Pro 2400";
-      } else {
-        console.log("⚠️ UNKNOWN SUBSCRIPTION PRODUCT ID:", product_id);
-        // Fallback - varsayılan değerler
-        addedCoins = 600;
-        subscriptionTitle = "Unknown Subscription";
-      }
-
-      const currentBalance = userData.credit_balance || 0;
-      const newBalance = currentBalance + addedCoins;
-
-      console.log("🔍 WEBHOOK - Initial purchase balance calculation:", {
-        userId: app_user_id,
-        productId: product_id,
-        currentBalance,
-        addedCoins,
-        newBalance,
-        transactionId: original_transaction_id,
-      });
-
-      // Kullanıcıyı pro yap ve bakiyeyi güncelle
-      const { error: updateErr } = await supabase
-        .from("users")
-        .update({
-          credit_balance: newBalance,
-          is_pro: true,
-        })
-        .eq("id", app_user_id);
-
-      if (updateErr) {
-        console.error("Error updating user for initial purchase:", updateErr);
-        return res.status(500).json({ message: "Failed to update user" });
-      }
-
-      // user_purchase tablosuna kayıt ekle
-      const purchaseData = {
-        user_id: app_user_id,
-        product_id: product_id,
-        product_title: subscriptionTitle,
-        purchase_date: purchase_date,
-        package_type: "subscription",
-        price: 0,
-        coins_added: addedCoins,
-        transaction_id: original_transaction_id,
-        purchase_number: null,
-      };
-
-      const { error: insertError } = await supabase
-        .from("user_purchase")
-        .insert([purchaseData]);
-
-      if (insertError) {
-        console.error("Error inserting initial purchase data:", insertError);
-        return res
-          .status(500)
-          .json({ message: "Failed to record initial purchase" });
-      }
-
-      console.log(
-        "✅ WEBHOOK - Initial subscription purchase processed successfully:",
-        {
-          user: app_user_id,
-          product: product_id,
-          coins: addedCoins,
-          newBalance: newBalance,
-          transactionId: original_transaction_id,
-          timestamp: new Date().toISOString(),
-        }
-      );
-      return res.status(200).json({ message: "Initial purchase processed" });
-    }
-
-    // NON_RENEWING_PURCHASE - One-time paket satın alımı (ÖNEMLİ!)
-    if (type === "NON_RENEWING_PURCHASE") {
-      console.log("🔍 WEBHOOK - Handling one-time purchase for:", app_user_id);
-
-      // GÜÇLÜ DUPLICATE CHECK - Hem transaction_id hem de productId + userId kombinasyonu
-      const { data: existingTransactions, error: checkError } = await supabase
-        .from("user_purchase")
-        .select("*")
-        .or(
-          `transaction_id.eq.${original_transaction_id},and(user_id.eq.${app_user_id},product_id.eq.${product_id},package_type.eq.one_time)`
-        )
-        .order("purchase_date", { ascending: false });
-
-      if (checkError) {
-        console.error(
-          "Error checking existing one-time transactions:",
-          checkError
-        );
-      } else if (existingTransactions && existingTransactions.length > 0) {
-        console.log(
-          "🚫 WEBHOOK - One-time purchase BLOCKED - Already processed:",
-          {
-            existingTransactions: existingTransactions.map((t) => ({
-              transactionId: t.transaction_id,
-              purchaseDate: t.purchase_date,
-              coinsAdded: t.coins_added,
-            })),
-            newTransactionId: original_transaction_id,
-            productId: product_id,
-            userId: app_user_id,
-            timestamp: new Date().toISOString(),
-          }
-        );
-        return res
-          .status(200)
-          .json({ message: "Transaction already processed" });
-      }
-
-      const { data: userData, error: userError } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", app_user_id)
-        .single();
-
-      if (userError || !userData) {
-        console.error("User not found:", userError);
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      // Product ID'ye göre coin miktarını belirle
-      let addedCoins = 0;
-      let productTitle = "";
-
-      // Diress (orijinal app) one-time paketlerin GERÇEK product ID'lerini kontrol et
-      if (product_id === "com.monailisa.creditpack300") {
-        addedCoins = 300;
-        productTitle = "300 Credits Pack";
-      } else if (product_id === "com.monailisa.creditpack1000") {
-        addedCoins = 1000;
-        productTitle = "1000 Credits Pack";
-      } else if (product_id === "com.monailisa.creditpack2200") {
-        addedCoins = 2200;
-        productTitle = "2200 Credits Pack";
-      } else if (product_id === "com.monailisa.creditpack5000") {
-        addedCoins = 5000;
-        productTitle = "5000 Credits Pack";
-      } else if (product_id.includes("300")) {
-        // Fallback pattern matching
-        addedCoins = 300;
-        productTitle = "300 Credits Pack";
-      } else if (product_id.includes("1000")) {
-        addedCoins = 1000;
-        productTitle = "1000 Credits Pack";
-      } else if (product_id.includes("2200")) {
-        addedCoins = 2200;
-        productTitle = "2200 Credits Pack";
-      } else if (product_id.includes("5000")) {
-        addedCoins = 5000;
-        productTitle = "5000 Credits Pack";
-      } else {
-        // Final fallback - product title'dan çıkarmaya çalış
-        const coinMatch = product_id.match(/(\d+)/);
-        if (coinMatch) {
-          addedCoins = parseInt(coinMatch[1]);
-          productTitle = `${addedCoins} Credits Pack`;
-        } else {
-          addedCoins = 300; // Default
-          productTitle = "Credits Pack";
-        }
-      }
-
-      const currentBalance = userData.credit_balance || 0;
-      const newBalance = currentBalance + addedCoins;
-
-      console.log("🔍 WEBHOOK - One-time purchase balance calculation:", {
-        userId: app_user_id,
-        productId: product_id,
-        currentBalance,
-        addedCoins,
-        newBalance,
-        transactionId: original_transaction_id,
-      });
-
-      // SADECE bakiyeyi güncelle - is_pro'yu değiştirme!
-      // Çünkü kullanıcının zaten aktif subscription'ı var
-      const { error: updateErr } = await supabase
-        .from("users")
-        .update({ credit_balance: newBalance })
-        .eq("id", app_user_id);
-
-      if (updateErr) {
-        console.error(
-          "Error updating user balance for one-time purchase:",
-          updateErr
-        );
-        return res.status(500).json({ message: "Failed to update balance" });
-      }
-
-      // user_purchase tablosuna kayıt ekle
-      const purchaseData = {
-        user_id: app_user_id,
-        product_id: product_id,
-        product_title: productTitle,
-        purchase_date: purchase_date,
-        package_type: "one_time",
-        price: 0,
-        coins_added: addedCoins,
-        transaction_id: original_transaction_id,
-        purchase_number: null,
-      };
-
-      const { error: insertError } = await supabase
-        .from("user_purchase")
-        .insert([purchaseData]);
-
-      if (insertError) {
-        console.error("Error inserting one-time purchase data:", insertError);
-        return res
-          .status(500)
-          .json({ message: "Failed to record one-time purchase" });
-      }
-
-      console.log("✅ WEBHOOK - One-time purchase processed successfully:", {
-        user: app_user_id,
-        product: product_id,
-        coins: addedCoins,
-        newBalance: newBalance,
-        transactionId: original_transaction_id,
-        timestamp: new Date().toISOString(),
-      });
-
-      return res.status(200).json({
-        message: "One-time purchase processed",
-        coinsAdded: addedCoins,
-        newBalance: newBalance,
-      });
-    }
-
     // Eğer gerçek yenileme event'i "RENEWAL" olarak geliyorsa
     if (type === "RENEWAL") {
-      console.log(
-        "🔍 WEBHOOK - Handling subscription renewal for:",
-        app_user_id
-      );
-
-      // GÜÇLÜ DUPLICATE CHECK - Hem transaction_id hem de productId + userId kombinasyonu
-      const { data: existingTransactions, error: checkError } = await supabase
+      // DUPLICATE CHECK: Aynı transaction_id ile işlem yapılmış mı kontrol et
+      const { data: existingTransaction, error: checkError } = await supabase
         .from("user_purchase")
         .select("*")
-        .or(
-          `transaction_id.eq.${original_transaction_id},and(user_id.eq.${app_user_id},product_id.eq.${product_id},package_type.eq.subscription)`
-        )
-        .order("purchase_date", { ascending: false });
+        .eq("transaction_id", original_transaction_id)
+        .single();
 
-      if (checkError) {
-        console.error(
-          "Error checking existing renewal transactions:",
-          checkError
+      if (existingTransaction) {
+        console.log(
+          "Webhook - Transaction already processed:",
+          original_transaction_id
         );
-      } else if (existingTransactions && existingTransactions.length > 0) {
-        console.log("🚫 WEBHOOK - Renewal BLOCKED - Already processed:", {
-          existingTransactions: existingTransactions.map((t) => ({
-            transactionId: t.transaction_id,
-            purchaseDate: t.purchase_date,
-            coinsAdded: t.coins_added,
-          })),
-          newTransactionId: original_transaction_id,
-          productId: product_id,
-          userId: app_user_id,
-          timestamp: new Date().toISOString(),
-        });
         return res
           .status(200)
           .json({ message: "Transaction already processed" });
@@ -403,35 +74,20 @@ router.post("/webhook", async (req, res) => {
       }
 
       let addedCoins = 0;
-      // Diress (orijinal app) subscription renewal product ID'leri
       if (product_id === "com.monailisa.pro_weekly600") {
         addedCoins = 600;
       } else if (product_id === "com.monailisa.pro_monthly2400") {
         addedCoins = 2400;
-      } else {
-        console.log("⚠️ UNKNOWN RENEWAL PRODUCT ID:", product_id);
-        addedCoins = 600; // Fallback
       }
 
       const currentBalance = userData.credit_balance || 0;
       const newBalance = currentBalance + addedCoins;
 
-      console.log("🔍 WEBHOOK - Renewal balance calculation:", {
-        userId: app_user_id,
-        productId: product_id,
-        currentBalance,
-        addedCoins,
-        newBalance,
-        transactionId: original_transaction_id,
-      });
-
-      // Bakiyeyi güncelle ve pro statusu garanti et
+      // Bakiyeyi güncelle
       const { error: updateErr } = await supabase
         .from("users")
-        .update({
-          credit_balance: newBalance,
-          is_pro: true,
-        })
+        .update({ credit_balance: newBalance })
+
         .eq("id", app_user_id);
 
       if (updateErr) {
@@ -447,7 +103,7 @@ router.post("/webhook", async (req, res) => {
           ? "2400 Coin Monthly"
           : "600 Coin Weekly",
         purchase_date: purchase_date,
-        package_type: "subscription",
+        package_type: "monthly_subscriptions",
         price: 0,
         coins_added: addedCoins,
         transaction_id: original_transaction_id,
@@ -465,28 +121,12 @@ router.post("/webhook", async (req, res) => {
           .json({ message: "Failed to record renewal purchase" });
       }
 
-      console.log("✅ WEBHOOK - Renewal processed successfully:", {
-        user: app_user_id,
-        product: product_id,
-        coins: addedCoins,
-        newBalance: newBalance,
-        transactionId: original_transaction_id,
-        timestamp: new Date().toISOString(),
-      });
+      console.log("Renewal processed successfully for user:", app_user_id);
       return res.status(200).json({ message: "Renewal processed" });
     }
 
-    // PRODUCT_CHANGE - Plan değişikliği
-    if (type === "PRODUCT_CHANGE") {
-      console.log("WEBHOOK - Handling product change for:", app_user_id);
-      // Bu durumda kullanıcı farklı bir subscription planına geçmiş
-      // Şimdilik sadece log'la, gerekirse daha sonra implement ederiz
-      return res.status(200).json({ message: "Product change noted" });
-    }
-
-    // Diğer bilinmeyen event tipleri
-    console.log("WEBHOOK - Unknown event type:", type);
-    return res.status(200).json({ message: "Event handled - unknown type" });
+    // Diğer event tipleri için farklı işlemler ekleyebilirsin
+    return res.status(200).json({ message: "Event handled" });
   } catch (err) {
     console.error("Error handling webhook:", err);
     return res.status(500).json({ message: "Internal server error" });
