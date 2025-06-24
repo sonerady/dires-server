@@ -334,22 +334,31 @@ router.post("/subscription/verify", async (req, res) => {
     let subscriptionTitle = "";
     let resolvedSubscriptionType = subscriptionType; // Otomatik belirlenecek
 
-    if (
+    // Gerçek App Store Connect product ID'leri ile eşleştir
+    if (productId === "com.monailisa.minipi_500coin_weekly") {
+      coinsToAdd = 500;
+      subscriptionTitle = "Weekly Pro 500";
+      resolvedSubscriptionType = "weekly";
+    } else if (productId === "com.minipi.1500coin_yearly") {
+      coinsToAdd = 1500;
+      subscriptionTitle = "Yearly Pro 1500";
+      resolvedSubscriptionType = "yearly";
+    } else if (
       (subscriptionType && subscriptionType === "weekly") ||
       productId.includes("weekly") ||
-      productId.includes("600")
+      productId.includes("500")
     ) {
-      coinsToAdd = 600;
-      subscriptionTitle = "Weekly Pro 600";
+      coinsToAdd = 500;
+      subscriptionTitle = "Weekly Pro 500";
       resolvedSubscriptionType = "weekly";
     } else if (
-      (subscriptionType && subscriptionType === "monthly") ||
-      productId.includes("monthly") ||
-      productId.includes("2400")
+      (subscriptionType && subscriptionType === "yearly") ||
+      productId.includes("yearly") ||
+      productId.includes("1500")
     ) {
-      coinsToAdd = 2400;
-      subscriptionTitle = "Monthly Pro 2400";
-      resolvedSubscriptionType = "monthly";
+      coinsToAdd = 1500;
+      subscriptionTitle = "Yearly Pro 1500";
+      resolvedSubscriptionType = "yearly";
     }
 
     const currentBalance = userData.credit_balance || 0;
