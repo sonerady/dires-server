@@ -333,28 +333,39 @@ async function enhancePromptWithGemini(
     // Cinsiyet belirleme - varsayılan olarak kadın
     const gender = settings?.gender || "female";
     const age = settings?.age || "";
+    const parsedAgeInt = parseInt(age, 10);
 
     // Gender mapping'ini düzelt - hem man/woman hem de male/female değerlerini handle et
     let modelGenderText;
+    let baseModelText;
     const genderLower = gender.toLowerCase();
 
-    if (genderLower === "male" || genderLower === "man") {
-      modelGenderText = "male model";
-    } else if (genderLower === "female" || genderLower === "woman") {
-      modelGenderText = "female model";
+    // Çocuk yaş grubu (0-12) için özel tanımlamalar
+    if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
+      // 0-3 => toddler, 4-12 => child
+      const ageGroupWord = parsedAgeInt <= 3 ? "toddler" : "child";
+      const genderWord =
+        genderLower === "male" || genderLower === "man" ? "boy" : "girl";
+      modelGenderText = `${parsedAgeInt} year old ${ageGroupWord} ${genderWord}`;
+      baseModelText = `${ageGroupWord} ${genderWord}`;
     } else {
-      modelGenderText = "female model"; // varsayılan
-    }
+      // Yetişkin mantığı
+      if (genderLower === "male" || genderLower === "man") {
+        modelGenderText = "male model";
+      } else if (genderLower === "female" || genderLower === "woman") {
+        modelGenderText = "female model";
+      } else {
+        modelGenderText = "female model"; // varsayılan
+      }
+      baseModelText = modelGenderText; // age'siz sürüm
 
-    // Base model text for frequent usage (without age)
-    const baseModelText = modelGenderText;
-
-    // Client'dan gelen yaşı olduğu gibi kullan - sadece gerekli yerlerde
-    if (age) {
-      modelGenderText =
-        genderLower === "male" || genderLower === "man"
-          ? `${age} male model`
-          : `${age} female model`;
+      // Eğer yaş bilgisini yetişkinlerde kullanmak istersen
+      if (age) {
+        modelGenderText =
+          genderLower === "male" || genderLower === "man"
+            ? `${age} male model`
+            : `${age} female model`;
+      }
     }
 
     console.log("👤 [GEMINI] Gelen gender ayarı:", gender);
