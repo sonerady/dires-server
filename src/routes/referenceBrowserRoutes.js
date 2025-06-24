@@ -372,6 +372,26 @@ async function enhancePromptWithGemini(
     The user provided age information is "${age}". IMPORTANT: Mention this age information ONLY 2 times maximum in your entire prompt - once when first introducing the model, and once more naturally in the description. Do not repeat the age information more than twice throughout the prompt.`;
     }
 
+    // Eğer yaş 0-12 arası ise bebek/çocuk stili prompt yönlendirmesi ver
+    let childPromptSection = "";
+    const parsedAge = parseInt(age, 10);
+    if (!isNaN(parsedAge) && parsedAge <= 12) {
+      childPromptSection = `
+    
+⚠️ AGE-SPECIFIC STYLE RULES FOR CHILD MODELS:
+The model described is a child aged ${parsedAge}. Please follow these mandatory restrictions and stylistic adjustments:
+- Use age-appropriate physical descriptions, such as "toddler proportions", "chubby cheeks", "gentle expression", "soft hair", "short limbs", or "round facial features".
+- Avoid all adult modeling language (e.g., "confident pose", "elegant posture", "sharp cheekbones", "stylish demeanor").
+- The model must appear natural, playful, and age-authentic — do NOT exaggerate facial structure or maturity.
+- Clothing must match the model's age group: for infants use soft babywear; for toddlers use simple, comfortable children's fashion (e.g., cotton tees, soft pants).
+- The model's pose should be passive, playful, or relaxed. DO NOT use assertive, posed, or seductive body language.
+- Do NOT reference any makeup, mature accessories, or adult modeling presence.
+- Ensure lighting and presentation is soft, clean, and suited for editorial children's fashion catalogs.
+- Overall expression and body language must align with innocence, comfort, and simplicity.
+
+This is a child model. Avoid inappropriate styling, body-focused language, or any pose/expression that could be misinterpreted.`;
+    }
+
     let settingsPromptSection = "";
 
     if (hasValidSettings) {
@@ -797,6 +817,7 @@ Failure to follow this instruction will result in incorrect garment generation.
     }
     
     ${ageSection}
+    ${childPromptSection}
     ${settingsPromptSection}
     ${locationPromptSection}
     ${posePromptSection}

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RevenueCat Sandbox User Cleanup</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 28px;
+        margin-bottom: 10px;
+      }
+
+      .header p {
+        opacity: 0.9;
+        font-size: 16px;
+      }
+
+      .content {
+        padding: 30px;
+      }
+
+      .section {
+        margin-bottom: 30px;
+        padding: 20px;
+        border: 2px solid #f1f2f6;
+        border-radius: 15px;
+        background: #f8f9fa;
+      }
+
+      .section h3 {
+        color: #2f3542;
+        margin-bottom: 15px;
+        font-size: 20px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #2f3542;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+      }
+
+      input:focus,
+      textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 120px;
+        font-family: monospace;
+      }
+
+      .btn {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-bottom: 10px;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .btn-danger {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+      }
+
+      .btn-success {
+        background: linear-gradient(135deg, #55a3ff, #003d82);
+      }
+
+      .result {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 10px;
+        font-family: monospace;
+        font-size: 14px;
+        white-space: pre-wrap;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .result.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .result.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      .result.info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+
+      .progress {
+        width: 100%;
+        height: 6px;
+        background: #f1f2f6;
+        border-radius: 3px;
+        overflow: hidden;
+        margin: 10px 0;
+      }
+
+      .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        width: 0%;
+        transition: width 0.3s ease;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .stat-card {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        border: 2px solid #f1f2f6;
+      }
+
+      .stat-number {
+        font-size: 24px;
+        font-weight: bold;
+        color: #667eea;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+      }
+
+      .warning {
+        background: #fff3cd;
+        color: #856404;
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #ffeaa7;
+        margin-bottom: 20px;
+      }
+
+      .example {
+        background: #e3f2fd;
+        padding: 15px;
+        border-radius: 10px;
+        border-left: 4px solid #2196f3;
+        margin-top: 10px;
+      }
+
+      .example code {
+        background: rgba(0, 0, 0, 0.1);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🧹 RevenueCat Sandbox Cleanup</h1>
+        <p>Sandbox ortamındaki test user'larını temizle</p>
+      </div>
+
+      <div class="content">
+        <!-- API Ayarları -->
+        <div class="section">
+          <h3>🔑 API Ayarları</h3>
+          <div class="warning">
+            <strong>⚠️ Dikkat:</strong> Bu araç sadece sandbox ortamı için
+            kullanılmalıdır. Production key'leri kullanmayın!
+          </div>
+
+          <div class="form-group">
+            <label for="secretKey">RevenueCat Secret Key (sk_...)</label>
+            <input
+              type="password"
+              id="secretKey"
+              placeholder="sk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="publicKey">RevenueCat Public Key (appl_...)</label>
+            <input
+              type="text"
+              id="publicKey"
+              placeholder="appl_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            />
+          </div>
+
+          <button class="btn btn-success" onclick="testConnection()">
+            🔗 Bağlantıyı Test Et
+          </button>
+        </div>
+
+        <!-- Manuel User Silme -->
+        <div class="section">
+          <h3>🎯 Manuel User Silme</h3>
+          <p>
+            RevenueCat Dashboard'dan kopyaladığın user ID'leri buraya yapıştır
+            (her satırda bir tane):
+          </p>
+
+          <div class="form-group">
+            <label for="userIds">User ID'leri (Her satırda bir tane)</label>
+            <textarea
+              id="userIds"
+              placeholder="d874632c-a011-46b3-9e39-cd544c915cc8
+f07xxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+cc56d5f0d9d64acc86bf65e2b3b607d9"
+            ></textarea>
+          </div>
+
+          <div class="example">
+            <strong>💡 Nasıl User ID Bulunur:</strong><br />
+            1. RevenueCat Dashboard → Customers<br />
+            2. Son 24 saatteki user'ları filtrele<br />
+            3. User ID'leri kopyala (UUID formatında)
+          </div>
+
+          <button class="btn btn-danger" onclick="deleteUsers()">
+            🗑️ Seçili User'ları Sil
+          </button>
+
+          <div class="progress" id="progressContainer" style="display: none">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+
+          <div class="stats" id="statsContainer" style="display: none">
+            <div class="stat-card">
+              <div class="stat-number" id="totalUsers">0</div>
+              <div class="stat-label">Toplam</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number" id="deletedUsers">0</div>
+              <div class="stat-label">Silinen</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number" id="failedUsers">0</div>
+              <div class="stat-label">Başarısız</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Otomatik Temizlik -->
+        <div class="section">
+          <h3>⚡ Otomatik Temizlik (Gelişmiş)</h3>
+          <p>Son 24 saatteki tüm sandbox user'ları otomatik bul ve sil:</p>
+
+          <div class="warning">
+            <strong>🚨 Uyarı:</strong> Bu özellik tüm son 24 saatteki user'ları
+            silecek. Dikkatli kullanın!
+          </div>
+
+          <button class="btn btn-danger" onclick="autoCleanup()" disabled>
+            🤖 Otomatik Temizlik (Yakında)
+          </button>
+        </div>
+
+        <!-- Sonuçlar -->
+        <div id="results"></div>
+      </div>
+    </div>
+
+    <script>
+      let isProcessing = false;
+
+      function showResult(message, type = "info") {
+        const resultsDiv = document.getElementById("results");
+        const resultDiv = document.createElement("div");
+        resultDiv.className = `result ${type}`;
+        resultDiv.textContent = message;
+        resultsDiv.appendChild(resultDiv);
+        resultsDiv.scrollTop = resultsDiv.scrollHeight;
+      }
+
+      function clearResults() {
+        document.getElementById("results").innerHTML = "";
+      }
+
+      function updateStats(total, deleted, failed) {
+        document.getElementById("totalUsers").textContent = total;
+        document.getElementById("deletedUsers").textContent = deleted;
+        document.getElementById("failedUsers").textContent = failed;
+        document.getElementById("statsContainer").style.display = "grid";
+      }
+
+      function updateProgress(current, total) {
+        const percentage = (current / total) * 100;
+        document.getElementById("progressBar").style.width = percentage + "%";
+        document.getElementById("progressContainer").style.display = "block";
+      }
+
+      async function testConnection() {
+        const secretKey = document.getElementById("secretKey").value.trim();
+
+        if (!secretKey) {
+          showResult("❌ Secret Key gerekli!", "error");
+          return;
+        }
+
+        if (!secretKey.startsWith("sk_")) {
+          showResult('❌ Secret Key "sk_" ile başlamalı!', "error");
+          return;
+        }
+
+        clearResults();
+        showResult("🔍 RevenueCat bağlantısı test ediliyor...", "info");
+
+        try {
+          const response = await fetch(
+            "https://api.revenuecat.com/v1/subscribers",
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${secretKey}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (response.ok) {
+            showResult("✅ Bağlantı başarılı! API key çalışıyor.", "success");
+          } else {
+            const errorText = await response.text();
+            showResult(
+              `❌ API Hatası: ${response.status} ${response.statusText}\n${errorText}`,
+              "error"
+            );
+          }
+        } catch (error) {
+          showResult(`❌ Bağlantı hatası: ${error.message}`, "error");
+        }
+      }
+
+      async function deleteRevenueCatUser(userId, secretKey) {
+        try {
+          const response = await fetch(
+            `https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(
+              userId
+            )}`,
+            {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${secretKey}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (response.ok) {
+            return { success: true, message: `✅ ${userId} silindi` };
+          } else {
+            const errorText = await response.text();
+            return {
+              success: false,
+              message: `❌ ${userId} silinemedi: ${response.status} ${errorText}`,
+            };
+          }
+        } catch (error) {
+          return {
+            success: false,
+            message: `❌ ${userId} silinemedi: ${error.message}`,
+          };
+        }
+      }
+
+      async function deleteUsers() {
+        if (isProcessing) {
+          showResult("⏳ İşlem devam ediyor, lütfen bekleyin...", "info");
+          return;
+        }
+
+        const secretKey = document.getElementById("secretKey").value.trim();
+        const userIdsText = document.getElementById("userIds").value.trim();
+
+        if (!secretKey) {
+          showResult("❌ Secret Key gerekli!", "error");
+          return;
+        }
+
+        if (!userIdsText) {
+          showResult("❌ En az bir User ID gerekli!", "error");
+          return;
+        }
+
+        // User ID'leri parse et
+        const userIds = userIdsText
+          .split("\n")
+          .map((id) => id.trim())
+          .filter((id) => id.length > 0);
+
+        if (userIds.length === 0) {
+          showResult("❌ Geçerli User ID bulunamadı!", "error");
+          return;
+        }
+
+        // Onay iste
+        if (!confirm(`${userIds.length} user silinecek. Emin misiniz?`)) {
+          return;
+        }
+
+        isProcessing = true;
+        clearResults();
+        showResult(
+          `🚀 ${userIds.length} user silme işlemi başlatılıyor...`,
+          "info"
+        );
+
+        let deletedCount = 0;
+        let failedCount = 0;
+
+        for (let i = 0; i < userIds.length; i++) {
+          const userId = userIds[i];
+          updateProgress(i + 1, userIds.length);
+
+          showResult(
+            `🔄 ${i + 1}/${userIds.length} - ${userId} siliniyor...`,
+            "info"
+          );
+
+          const result = await deleteRevenueCatUser(userId, secretKey);
+
+          if (result.success) {
+            deletedCount++;
+            showResult(result.message, "success");
+          } else {
+            failedCount++;
+            showResult(result.message, "error");
+          }
+
+          updateStats(userIds.length, deletedCount, failedCount);
+
+          // Rate limiting - 1 saniye bekle
+          if (i < userIds.length - 1) {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+          }
+        }
+
+        // Özet
+        showResult(
+          `\n🎉 İşlem tamamlandı!
+📊 Toplam: ${userIds.length}
+✅ Silinen: ${deletedCount}
+❌ Başarısız: ${failedCount}`,
+          "success"
+        );
+
+        isProcessing = false;
+      }
+
+      async function autoCleanup() {
+        showResult("🚧 Bu özellik henüz geliştirilme aşamasında...", "info");
+      }
+
+      // Sayfa yüklendiğinde bilinen user'ları örnek olarak ekle
+      window.onload = function () {
+        const exampleUsers = `d874632c-a011-46b3-9e39-cd544c915cc8
+cc56d5f0d9d64acc86bf65e2b3b607d9`;
+
+        document.getElementById("userIds").placeholder =
+          exampleUsers +
+          "\n\n(RevenueCat Dashboard'dan kopyaladığın user ID'leri buraya yapıştır)";
+      };
+    </script>
+  </body>
+</html>
