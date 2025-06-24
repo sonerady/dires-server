@@ -289,16 +289,8 @@ router.post("/subscription/verify", async (req, res) => {
     let subscriptionTitle = "";
     let resolvedSubscriptionType = subscriptionType; // Gelen değer yoksa, productId üzerinden belirlenecek
 
-    // MiniPI (V2) paketleri önce kontrol et
-    if (productId === "com.monailisa.minipi_500coin_weekly") {
-      coinsToAdd = 500;
-      subscriptionTitle = "Weekly Pro 500";
-      resolvedSubscriptionType = "weekly";
-    } else if (productId === "com.minipi.1500coin_yearly") {
-      coinsToAdd = 1500;
-      subscriptionTitle = "Yearly Pro 1500";
-      resolvedSubscriptionType = "yearly";
-    } else if (
+    if (
+      productId === "com.monailisa.pro_weekly600" ||
       (subscriptionType && subscriptionType === "weekly") ||
       productId.includes("weekly") ||
       productId.includes("600")
@@ -307,6 +299,7 @@ router.post("/subscription/verify", async (req, res) => {
       subscriptionTitle = "Weekly Pro 600";
       resolvedSubscriptionType = "weekly";
     } else if (
+      productId === "com.monailisa.pro_monthly2400" ||
       (subscriptionType && subscriptionType === "monthly") ||
       productId.includes("monthly") ||
       productId.includes("2400")
@@ -314,14 +307,6 @@ router.post("/subscription/verify", async (req, res) => {
       coinsToAdd = 2400;
       subscriptionTitle = "Monthly Pro 2400";
       resolvedSubscriptionType = "monthly";
-    } else if (
-      (subscriptionType && subscriptionType === "yearly") ||
-      productId.includes("yearly") ||
-      productId.includes("1500")
-    ) {
-      coinsToAdd = 1500;
-      subscriptionTitle = "Yearly Pro 1500";
-      resolvedSubscriptionType = "yearly";
     }
 
     const currentBalance = userData.credit_balance || 0;

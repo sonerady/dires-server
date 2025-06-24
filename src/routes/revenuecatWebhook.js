@@ -112,10 +112,16 @@ router.post("/webhook", async (req, res) => {
       let subscriptionTitle = "";
 
       // Diress (orijinal app) subscription product ID'leri
-      if (product_id === "com.monailisa.pro_weekly600") {
+      if (
+        product_id === "com.monailisa.pro_weekly600" ||
+        product_id === "com.monailisa.pro_weekly600"
+      ) {
         addedCoins = 600;
         subscriptionTitle = "Weekly Pro 600";
-      } else if (product_id === "com.monailisa.pro_monthly2400") {
+      } else if (
+        product_id === "com.monailisa.pro_monthly2400" ||
+        product_id === "com.monailisa.pro_monthly2400"
+      ) {
         addedCoins = 2400;
         subscriptionTitle = "Monthly Pro 2400";
       } else {
