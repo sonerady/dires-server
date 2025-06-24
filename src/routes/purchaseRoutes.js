@@ -23,7 +23,57 @@ router.post("/verify", async (req, res) => {
       coinsAdded,
       price,
       packageType,
+      isOneTimePackage:
+        packageType === "one_time" ||
+        (productId &&
+          (productId.includes("creditpack") || productId.includes("coin"))),
+      timestamp: new Date().toISOString(),
     });
+
+    // DOUBLE PURCHASE PREVENTION: Check for rapid duplicate requests
+    const requestKey = `${userId}_${productId}_${Date.now()}`;
+    const duplicateCheckWindow = 2000; // 2 seconds
+
+    // Store ongoing requests in memory (production'da Redis kullanılabilir)
+    if (!global.ongoingPurchaseRequests) {
+      global.ongoingPurchaseRequests = new Map();
+    }
+
+    // Check for ongoing request for same user+product
+    const ongoingKey = `${userId}_${productId}`;
+    const ongoingRequest = global.ongoingPurchaseRequests.get(ongoingKey);
+
+    if (
+      ongoingRequest &&
+      Date.now() - ongoingRequest.timestamp < duplicateCheckWindow
+    ) {
+      console.warn(`Double purchase prevention triggered for ${ongoingKey}`, {
+        currentTime: Date.now(),
+        ongoingTimestamp: ongoingRequest.timestamp,
+        timeDiff: Date.now() - ongoingRequest.timestamp,
+      });
+
+      return res.status(429).json({
+        success: false,
+        message: "Purchase request already in progress, please wait",
+        retryAfter: duplicateCheckWindow,
+      });
+    }
+
+    // Mark this request as ongoing
+    global.ongoingPurchaseRequests.set(ongoingKey, {
+      timestamp: Date.now(),
+      transactionId,
+      productId,
+    });
+
+    // Cleanup function to remove ongoing request
+    const cleanupOngoingRequest = () => {
+      global.ongoingPurchaseRequests.delete(ongoingKey);
+    };
+
+    // Set timeout to cleanup after window expires
+    setTimeout(cleanupOngoingRequest, duplicateCheckWindow);
 
     // Input validation
     if (!userId || !productId || !coinsAdded) {
@@ -92,7 +142,58 @@ router.post("/verify", async (req, res) => {
         success: true,
         message: "Transaction already processed",
         alreadyProcessed: true,
+        newBalance: existingPurchase.coins_added
+          ? (
+              await supabase
+                .from("users")
+                .select("credit_balance")
+                .eq("id", userId)
+                .single()
+            ).data?.credit_balance || 0
+          : null,
       });
+    }
+
+    // WEBHOOK PRIORITY: Check if webhook already processed this purchase in last 10 seconds
+    if (isRealRevenueCatProduct && transactionId) {
+      const tenSecondsAgo = new Date(Date.now() - 10 * 1000).toISOString();
+      const { data: recentWebhookPurchase, error: webhookError } =
+        await supabase
+          .from("user_purchase")
+          .select("*")
+          .eq("user_id", userId)
+          .eq("product_id", productId)
+          .gte("purchase_date", tenSecondsAgo)
+          .order("purchase_date", { ascending: false })
+          .limit(1)
+          .single();
+
+      if (
+        recentWebhookPurchase &&
+        recentWebhookPurchase.transaction_id === transactionId
+      ) {
+        console.log(
+          "Purchase already processed by webhook within last 10 seconds:",
+          {
+            transactionId,
+            userId,
+            productId,
+          }
+        );
+
+        const { data: currentUser } = await supabase
+          .from("users")
+          .select("credit_balance, is_pro")
+          .eq("id", userId)
+          .single();
+
+        return res.status(200).json({
+          success: true,
+          message: "Purchase already processed by webhook",
+          alreadyProcessed: true,
+          newBalance: currentUser?.credit_balance || 0,
+        });
+      }
     }
 
     // Get current user data
@@ -157,7 +258,8 @@ router.post("/verify", async (req, res) => {
       transaction_id: finalTransactionId,
       product_title: productTitle || `${coinsAdded} Credits`,
       purchase_date: new Date().toISOString(),
-      package_type: packageType || "one_time",
+      package_type:
+        packageType === "subscription" ? "subscription" : "one_time",
       price: price || 0,
       coins_added: parseInt(coinsAdded),
       purchase_number: null,
@@ -179,6 +281,11 @@ router.post("/verify", async (req, res) => {
       coinsAdded,
     });
 
+    // Cleanup ongoing request before responding
+    if (typeof cleanupOngoingRequest === "function") {
+      cleanupOngoingRequest();
+    }
+
     return res.status(200).json({
       success: true,
       message: "Purchase verified successfully",
@@ -187,6 +294,15 @@ router.post("/verify", async (req, res) => {
     });
   } catch (error) {
     console.error("Purchase verification error:", error);
+
+    // Cleanup ongoing request on error
+    if (req.body && req.body.userId && req.body.productId) {
+      const ongoingKey = `${req.body.userId}_${req.body.productId}`;
+      if (global.ongoingPurchaseRequests) {
+        global.ongoingPurchaseRequests.delete(ongoingKey);
+      }
+    }
+
     return res.status(500).json({
       success: false,
       message: "Internal server error",
