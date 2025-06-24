@@ -369,7 +369,7 @@ async function enhancePromptWithGemini(
 
       ageSection = `
     AGE SPECIFICATION:
-    The user provided age information is "${age}". IMPORTANT: Mention this age information ONLY 2 times maximum in your entire prompt - once when first introducing the model, and once more naturally in the description. Do not repeat the age information more than twice throughout the prompt.`;
+    The user provided age information is "${age}". IMPORTANT: Mention this age information EXACTLY 2 times in your entire prompt — once when first introducing the model, and once more naturally later in the description. Do not mention the age a third time.`;
     }
 
     // Eğer yaş 0-12 arası ise bebek/çocuk stili prompt yönlendirmesi ver
