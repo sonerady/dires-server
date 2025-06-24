@@ -154,52 +154,17 @@ router.post("/verify", async (req, res) => {
       });
     }
 
-    // WEBHOOK PRIORITY: Check if webhook already processed this purchase in last 15 seconds
-    // This applies to both real transactions and test mode for one-time purchases
-    if (isRealRevenueCatProduct) {
-      const fifteenSecondsAgo = new Date(Date.now() - 15 * 1000).toISOString();
-      const { data: recentWebhookPurchase, error: webhookError } =
-        await supabase
-          .from("user_purchase")
-          .select("*")
-          .eq("user_id", userId)
-          .eq("product_id", productId)
-          .eq("package_type", "one_time")
-          .gte("purchase_date", fifteenSecondsAgo)
-          .order("purchase_date", { ascending: false })
-          .limit(1)
-          .single();
-
-      if (recentWebhookPurchase) {
-        console.log(
-          "🚨 ONE-TIME PURCHASE VERIFICATION BLOCKED - Webhook already processed within last 15 seconds:",
-          {
-            webhookTransactionId: recentWebhookPurchase.transaction_id,
-            clientTransactionId: transactionId || "test_mode",
-            productId,
-            userId,
-            coinsAdded: recentWebhookPurchase.coins_added,
-            webhookProcessedAt: recentWebhookPurchase.purchase_date,
-            preventingDoubleCredit: true,
-          }
-        );
-
-        const { data: currentUser } = await supabase
-          .from("users")
-          .select("credit_balance, is_pro")
-          .eq("id", userId)
-          .single();
-
-        return res.status(200).json({
-          success: true,
-          message: "One-time purchase already processed by webhook",
-          alreadyProcessed: true,
-          newBalance: currentUser?.credit_balance || 0,
-          coinsAdded: recentWebhookPurchase.coins_added || 0,
-          webhookProcessed: true,
-        });
+    // STRATEGY: One-time purchases are ONLY handled by client verification
+    // Webhooks skip NON_RENEWING_PURCHASE events, so no coordination needed
+    console.log(
+      "✅ ONE-TIME PURCHASE - Processing via client verification only (webhooks skip these):",
+      {
+        userId,
+        productId,
+        transactionId: transactionId || "test_mode",
+        strategy: "client_verification_only",
       }
-    }
+    );
 
     // Get current user data
     const { data: userData, error: userError } = await supabase

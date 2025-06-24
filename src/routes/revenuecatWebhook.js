@@ -109,6 +109,25 @@ router.post("/webhook", async (req, res) => {
       type === "RENEWAL" ||
       type === "NON_RENEWING_PURCHASE"
     ) {
+      // STRATEGY: Skip NON_RENEWING_PURCHASE - handled by client verification only
+      if (type === "NON_RENEWING_PURCHASE") {
+        console.log(
+          "⏭️ SKIPPING NON_RENEWING_PURCHASE - One-time purchases handled by client verification only:",
+          {
+            product_id,
+            app_user_id,
+            transaction_id: original_transaction_id,
+            reason: "one_time_purchases_client_only",
+          }
+        );
+
+        return res.status(200).json({
+          received: true,
+          skipped: true,
+          reason: "one_time_purchases_handled_by_client_verification",
+        });
+      }
+
       console.log(`🎯 WEBHOOK - Processing ${type} event for:`, {
         app_user_id,
         product_id,
