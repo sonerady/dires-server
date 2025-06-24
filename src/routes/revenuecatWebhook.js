@@ -109,11 +109,16 @@ router.post("/webhook", async (req, res) => {
       type === "RENEWAL" ||
       type === "NON_RENEWING_PURCHASE"
     ) {
-      console.log(`Webhook - Processing ${type} event for:`, {
+      console.log(`🎯 WEBHOOK - Processing ${type} event for:`, {
         app_user_id,
         product_id,
         original_transaction_id,
         event_timestamp: new Date().toISOString(),
+        event_explanation: {
+          INITIAL_PURCHASE: "First time subscription or one-time purchase",
+          RENEWAL: "Subscription renewal (should be recurring)",
+          NON_RENEWING_PURCHASE: "One-time purchase (not subscription)",
+        }[type],
       });
 
       // DUPLICATE CHECK: Aynı transaction_id ile işlem yapılmış mı kontrol et
@@ -287,11 +292,20 @@ router.post("/webhook", async (req, res) => {
       const currentBalance = userData.credit_balance || 0;
       const newBalance = currentBalance + addedCoins;
 
-      // Bakiyeyi güncelle
+      // Bakiyeyi güncelle ve subscription için pro status'unu set et
+      const updateData = { credit_balance: newBalance };
+
+      // Subscription ise is_pro'yu true yap
+      if (packageType === "subscription") {
+        updateData.is_pro = true;
+        console.log(
+          `Webhook - Setting is_pro = true for subscription: ${product_id}`
+        );
+      }
+
       const { error: updateErr } = await supabase
         .from("users")
-        .update({ credit_balance: newBalance })
-
+        .update(updateData)
         .eq("id", app_user_id);
 
       if (updateErr) {
@@ -318,6 +332,9 @@ router.post("/webhook", async (req, res) => {
         coins_added: addedCoins,
         transaction_id: original_transaction_id,
         purchase_number: null,
+        // TODO: Add webhook_event_type and webhook_processed after migration
+        // webhook_event_type: type,
+        // webhook_processed: true,
       };
 
       const { error: insertError } = await supabase

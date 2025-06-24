@@ -335,32 +335,49 @@ router.post("/subscription/verify", async (req, res) => {
     const finalTransactionId =
       transactionId || `demo_sub_${userId}_${Date.now()}`;
 
-    // ÖNCE webhook tarafından işlenmiş mi kontrol et (productId + userId kombinasyonu)
-    if (!transactionId) {
-      // TransactionId yoksa (frontend test), son 5 dakika içinde aynı productId ile işlem var mı bak
-      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-      const { data: recentWebhookPurchase, error: webhookError } =
-        await supabase
-          .from("user_purchase")
-          .select("*")
-          .eq("user_id", userId)
-          .eq("product_id", productId)
-          .gte("purchase_date", fiveMinutesAgo)
-          .order("purchase_date", { ascending: false })
-          .limit(1)
-          .single();
+    // WEBHOOK PRIORITY: Check if webhook already processed this subscription in last 15 seconds
+    // This applies to both real transactions and test mode
+    const fifteenSecondsAgo = new Date(Date.now() - 15 * 1000).toISOString();
+    const { data: recentWebhookPurchase, error: webhookError } = await supabase
+      .from("user_purchase")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("product_id", productId)
+      .eq("package_type", "subscription")
+      .gte("purchase_date", fifteenSecondsAgo)
+      .order("purchase_date", { ascending: false })
+      .limit(1)
+      .single();
 
-      if (recentWebhookPurchase) {
-        console.log(
-          "Subscription already processed by webhook within last 5 minutes:",
-          recentWebhookPurchase.transaction_id
-        );
-        return res.status(200).json({
-          success: true,
-          message: "Subscription already processed by webhook",
-          alreadyProcessed: true,
-        });
-      }
+    if (recentWebhookPurchase) {
+      console.log(
+        "🚨 SUBSCRIPTION VERIFICATION BLOCKED - Webhook already processed within last 15 seconds:",
+        {
+          webhookTransactionId: recentWebhookPurchase.transaction_id,
+          productId,
+          userId,
+          coinsAdded: recentWebhookPurchase.coins_added,
+          webhookProcessedAt: recentWebhookPurchase.purchase_date,
+          clientTransactionId: transactionId || "test_mode",
+        }
+      );
+
+      // Get current user balance
+      const { data: currentUser } = await supabase
+        .from("users")
+        .select("credit_balance, is_pro")
+        .eq("id", userId)
+        .single();
+
+      return res.status(200).json({
+        success: true,
+        message: "Subscription already processed by webhook",
+        alreadyProcessed: true,
+        newBalance: currentUser?.credit_balance || 0,
+        coinsAdded: recentWebhookPurchase.coins_added || 0,
+        subscriptionType: subscriptionType,
+        webhookProcessed: true,
+      });
     }
 
     // Check if transaction already processed
@@ -487,13 +504,19 @@ router.post("/subscription/verify", async (req, res) => {
       // Don't return error here, subscription was successful
     }
 
-    console.log("Subscription verified successfully:", {
-      userId,
-      transactionId: finalTransactionId,
-      newBalance,
-      coinsToAdd,
-      subscriptionType,
-    });
+    console.log(
+      "✅ CLIENT VERIFICATION - Subscription verified successfully:",
+      {
+        userId,
+        transactionId: finalTransactionId,
+        newBalance,
+        coinsToAdd,
+        subscriptionType,
+        productId,
+        source: "client_verification",
+        timestamp: new Date().toISOString(),
+      }
+    );
 
     return res.status(200).json({
       success: true,
