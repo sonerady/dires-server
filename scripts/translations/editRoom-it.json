@@ -1,9 +1,0 @@
-{
-  "editRoom": {
-    "title": "Sala di Modifica",
-    "uploadPhoto": "Seleziona Foto",
-    "uploadPhotoInfo": "Carica la foto che vuoi modificare",
-    "pleaseEnterDescription": "Per favore descrivi cosa vuoi",
-    "imageGenerationFailed": "Generazione immagine fallita"
-  }
-}

@@ -157,6 +157,46 @@ router.post("/webhook", async (req, res) => {
           .json({ message: "Transaction already processed" });
       }
 
+      // CLIENT VERIFICATION PRIORITY: Check if client already processed this subscription in last 2 minutes
+      if (type === "INITIAL_PURCHASE" || type === "RENEWAL") {
+        const twoMinutesAgo = new Date(
+          Date.now() - 2 * 60 * 1000
+        ).toISOString();
+        const { data: recentClientPurchase, error: clientError } =
+          await supabase
+            .from("user_purchase")
+            .select("*")
+            .eq("user_id", app_user_id)
+            .eq("product_id", product_id)
+            .eq("package_type", "subscription")
+            .gte("purchase_date", twoMinutesAgo)
+            .order("purchase_date", { ascending: false })
+            .limit(1);
+
+        if (recentClientPurchase && recentClientPurchase.length > 0) {
+          const clientPurchase = recentClientPurchase[0];
+          console.log(
+            "🚨 WEBHOOK BLOCKED - Client verification already processed this subscription:",
+            {
+              webhookTransactionId: original_transaction_id,
+              clientTransactionId: clientPurchase.transaction_id,
+              productId: product_id,
+              userId: app_user_id,
+              coinsAlreadyAdded: clientPurchase.coins_added,
+              clientProcessedAt: clientPurchase.purchase_date,
+              preventedDoubleCredit: true,
+            }
+          );
+
+          return res.status(200).json({
+            received: true,
+            blocked: true,
+            reason: "client_verification_already_processed",
+            message: "Subscription already processed by client verification",
+          });
+        }
+      }
+
       const { data: userData, error: userError } = await supabase
         .from("users")
         .select("*")

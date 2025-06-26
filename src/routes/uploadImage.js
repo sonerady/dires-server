@@ -28,7 +28,7 @@ router.post("/upload", upload.array("files", 10), async (req, res) => {
       if (error) {
         throw error;
       }
-
+      
       // Dosyanın herkese açık URL'sini alıyoruz
       const { data: publicUrlData, error: urlError } = await supabase.storage
         .from("images")

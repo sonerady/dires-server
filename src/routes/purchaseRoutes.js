@@ -312,23 +312,86 @@ router.post("/subscription/verify", async (req, res) => {
     const finalTransactionId =
       transactionId || `demo_sub_${userId}_${Date.now()}`;
 
-    // WEBHOOK PRIORITY: Check if webhook already processed this subscription in last 15 seconds
+    // DOUBLE CREDIT PREVENTION: Check if webhook already processed this subscription in last 60 seconds
     // This applies to both real transactions and test mode
-    const fifteenSecondsAgo = new Date(Date.now() - 15 * 1000).toISOString();
+    const sixtySecondsAgo = new Date(Date.now() - 60 * 1000).toISOString();
     const { data: recentWebhookPurchase, error: webhookError } = await supabase
       .from("user_purchase")
       .select("*")
       .eq("user_id", userId)
       .eq("product_id", productId)
       .eq("package_type", "subscription")
-      .gte("purchase_date", fifteenSecondsAgo)
+      .gte("purchase_date", sixtySecondsAgo)
       .order("purchase_date", { ascending: false })
       .limit(1)
       .single();
 
+    // ADDITIONAL CHECK: Look for any recent subscription for this user (different product IDs)
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+    const { data: anyRecentSubscription, error: anySubError } = await supabase
+      .from("user_purchase")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("package_type", "subscription")
+      .gte("purchase_date", twoMinutesAgo)
+      .order("purchase_date", { ascending: false })
+      .limit(1);
+
+    // Check if user just got subscription credits (any subscription type)
+    if (anyRecentSubscription && anyRecentSubscription.length > 0) {
+      const recentSub = anyRecentSubscription[0];
+      const expectedCoins = subscriptionType === "weekly" ? 600 : 2400;
+
+      console.log("🔍 SUBSCRIPTION DOUBLE-CHECK:", {
+        userId,
+        requestedType: subscriptionType,
+        requestedCoins: expectedCoins,
+        recentSubscription: {
+          product_id: recentSub.product_id,
+          coins_added: recentSub.coins_added,
+          purchase_date: recentSub.purchase_date,
+          transaction_id: recentSub.transaction_id,
+        },
+        timeDifference:
+          Date.now() - new Date(recentSub.purchase_date).getTime(),
+      });
+
+      // If same subscription type with same coins was just processed
+      if (recentSub.coins_added === expectedCoins) {
+        console.log(
+          "🚨 SUBSCRIPTION VERIFICATION BLOCKED - Same subscription type already processed recently:",
+          {
+            recentTransactionId: recentSub.transaction_id,
+            recentProductId: recentSub.product_id,
+            coinsAlreadyAdded: recentSub.coins_added,
+            requestedProductId: productId,
+            requestedCoins: expectedCoins,
+            preventedDoubleCredit: true,
+          }
+        );
+
+        // Get current user balance
+        const { data: currentUser } = await supabase
+          .from("users")
+          .select("credit_balance, is_pro")
+          .eq("id", userId)
+          .single();
+
+        return res.status(200).json({
+          success: true,
+          message: "Subscription already processed recently",
+          alreadyProcessed: true,
+          newBalance: currentUser?.credit_balance || 0,
+          coinsAdded: recentSub.coins_added || 0,
+          subscriptionType: subscriptionType,
+          recentlyProcessed: true,
+        });
+      }
+    }
+
     if (recentWebhookPurchase) {
       console.log(
-        "🚨 SUBSCRIPTION VERIFICATION BLOCKED - Webhook already processed within last 15 seconds:",
+        "🚨 SUBSCRIPTION VERIFICATION BLOCKED - Webhook already processed within last 60 seconds:",
         {
           webhookTransactionId: recentWebhookPurchase.transaction_id,
           productId,

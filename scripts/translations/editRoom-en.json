@@ -1,9 +1,0 @@
-{
-  "editRoom": {
-    "title": "Editing Room",
-    "uploadPhoto": "Select Photo",
-    "uploadPhotoInfo": "Upload the photo you want to edit",
-    "pleaseEnterDescription": "Please describe what you want",
-    "imageGenerationFailed": "Image generation failed"
-  }
-}

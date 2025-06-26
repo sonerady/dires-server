@@ -340,10 +340,29 @@ async function enhancePromptWithGemini(
     let baseModelText;
     const genderLower = gender.toLowerCase();
 
-    // Çocuk yaş grubu (0-12) için özel tanımlamalar
-    if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
-      // 0-3 => toddler, 4-12 => child
-      const ageGroupWord = parsedAgeInt <= 3 ? "toddler" : "child";
+    // Yaş grupları tanımlaması
+    // 0-3   : toddler
+    // 4-12  : child
+    // 13-16 : teenage
+    // 17+   : adult
+
+    if (!isNaN(parsedAgeInt) && parsedAgeInt <= 3) {
+      // Toddler
+      const ageGroupWord = "toddler";
+      const genderWord =
+        genderLower === "male" || genderLower === "man" ? "boy" : "girl";
+      modelGenderText = `${parsedAgeInt} year old ${ageGroupWord} ${genderWord}`;
+      baseModelText = `${ageGroupWord} ${genderWord}`;
+    } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
+      // Child
+      const ageGroupWord = "child";
+      const genderWord =
+        genderLower === "male" || genderLower === "man" ? "boy" : "girl";
+      modelGenderText = `${parsedAgeInt} year old ${ageGroupWord} ${genderWord}`;
+      baseModelText = `${ageGroupWord} ${genderWord}`;
+    } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
+      // Teenage
+      const ageGroupWord = "teenage";
       const genderWord =
         genderLower === "male" || genderLower === "man" ? "boy" : "girl";
       modelGenderText = `${parsedAgeInt} year old ${ageGroupWord} ${genderWord}`;
@@ -386,7 +405,7 @@ async function enhancePromptWithGemini(
     // Eğer yaş 0-12 arası ise bebek/çocuk stili prompt yönlendirmesi ver
     let childPromptSection = "";
     const parsedAge = parseInt(age, 10);
-    if (!isNaN(parsedAge) && parsedAge <= 12) {
+    if (!isNaN(parsedAge) && parsedAge <= 16) {
       childPromptSection = `
     
 ⚠️ AGE-SPECIFIC STYLE RULES FOR CHILD MODELS:
@@ -403,13 +422,41 @@ The model described is a child aged ${parsedAge}. Please follow these mandatory 
 This is a child model. Avoid inappropriate styling, body-focused language, or any pose/expression that could be misinterpreted.`;
     }
 
+    // Body shape measurements handling
+    let bodyShapeMeasurementsSection = "";
+    if (settings?.type === "custom_measurements" && settings?.measurements) {
+      const { bust, waist, hips, height, weight } = settings.measurements;
+      console.log(
+        "📏 [BACKEND GEMINI] Custom body measurements alındı:",
+        settings.measurements
+      );
+
+      bodyShapeMeasurementsSection = `
+    
+    CUSTOM BODY MEASUREMENTS PROVIDED:
+    The user has provided custom body measurements for the ${baseModelText}:
+    - Bust: ${bust} cm
+    - Waist: ${waist} cm  
+    - Hips: ${hips} cm
+    ${height ? `- Height: ${height} cm` : ""}
+    ${weight ? `- Weight: ${weight} kg` : ""}
+    
+    IMPORTANT: Use these exact measurements to ensure the ${baseModelText} has realistic body proportions that match the provided measurements. The garment should fit naturally on a body with these specific measurements. Consider how the garment would drape and fit on someone with these proportions. The model's body should reflect these measurements in a natural and proportional way.`;
+
+      console.log("📏 [BACKEND GEMINI] Body measurements section oluşturuldu");
+    }
+
     let settingsPromptSection = "";
 
     if (hasValidSettings) {
       const settingsText = Object.entries(settings)
         .filter(
           ([key, value]) =>
-            value !== null && value !== undefined && value !== ""
+            value !== null &&
+            value !== undefined &&
+            value !== "" &&
+            key !== "measurements" &&
+            key !== "type" // Body measurements'ları hariç tut
         )
         .map(([key, value]) => `${key}: ${value}`)
         .join(", ");
@@ -423,7 +470,12 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
     SETTINGS DETAIL FOR BETTER PROMPT CREATION:
     ${Object.entries(settings)
       .filter(
-        ([key, value]) => value !== null && value !== undefined && value !== ""
+        ([key, value]) =>
+          value !== null &&
+          value !== undefined &&
+          value !== "" &&
+          key !== "measurements" &&
+          key !== "type" // Body measurements'ları hariç tut
       )
       .map(
         ([key, value]) =>
@@ -438,7 +490,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
     let posePromptSection = "";
     let perspectivePromptSection = "";
 
-    // Eğer pose seçilmemişse, Gemini'ye kıyafete uygun poz önerisi yap
+    // Pose handling - enhanced with detailed descriptions
     if (!settings?.pose && !poseImage) {
       const garmentText = isMultipleProducts
         ? "multiple garments/products ensemble"
@@ -499,15 +551,61 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
       console.log("🤸 [GEMINI] Pose prompt section eklendi");
     } else if (settings?.pose) {
-      posePromptSection = `
+      // Check if we have a detailed pose description (from our new Gemini pose system)
+      let detailedPoseDescription = null;
+
+      // Try to get detailed pose description from Gemini
+      try {
+        console.log(
+          "🤸 [GEMINI] Pose için detaylı açıklama oluşturuluyor:",
+          settings.pose
+        );
+        detailedPoseDescription = await generatePoseDescriptionWithGemini(
+          settings.pose,
+          poseImage,
+          settings.gender || "female",
+          "clothing"
+        );
+        console.log(
+          "🤸 [GEMINI] Detaylı pose açıklaması alındı:",
+          detailedPoseDescription
+        );
+      } catch (poseDescError) {
+        console.error("🤸 [GEMINI] Pose açıklaması hatası:", poseDescError);
+      }
+
+      if (detailedPoseDescription) {
+        posePromptSection = `
+    
+    DETAILED POSE INSTRUCTION: The user has selected the pose "${
+      settings.pose
+    }". Use this detailed pose instruction for the ${baseModelText}:
+    
+    "${detailedPoseDescription}"
+    
+    Ensure the ${baseModelText} follows this pose instruction precisely while maintaining natural movement and ensuring the pose complements ${
+          isMultipleProducts
+            ? "all products in the ensemble being showcased"
+            : "the garment being showcased"
+        }. The pose should enhance the presentation of the clothing and create an appealing commercial photography composition.`;
+
+        console.log("🤸 [GEMINI] Detaylı pose açıklaması kullanılıyor");
+      } else {
+        // Fallback to simple pose mention
+        posePromptSection = `
     
     SPECIFIC POSE REQUIREMENT: The user has selected a specific pose: "${
       settings.pose
     }". Please ensure the ${baseModelText} adopts this pose while maintaining natural movement and ensuring the pose complements ${
-        isMultipleProducts
-          ? "all products in the ensemble being showcased"
-          : "the garment being showcased"
-      }.`;
+          isMultipleProducts
+            ? "all products in the ensemble being showcased"
+            : "the garment being showcased"
+        }.`;
+
+        console.log(
+          "🤸 [GEMINI] Basit pose açıklaması kullanılıyor (fallback)"
+        );
+      }
 
       console.log(
         "🤸 [GEMINI] Kullanıcı tarafından seçilen poz:",
@@ -605,6 +703,41 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
         settings.hairStyle
       );
     }
+
+    // Dinamik yüz tanımı - çeşitlilik için
+    const faceDescriptorsAdult = [
+      "soft angular jawline with friendly eyes",
+      "gentle oval face and subtle dimples",
+      "defined cheekbones with warm smile",
+      "rounded face with expressive eyebrows",
+      "heart-shaped face and bright eyes",
+      "slightly sharp chin and relaxed expression",
+      "broad forehead with calm gaze",
+    ];
+    const faceDescriptorsChild = [
+      "round cheeks and bright curious eyes",
+      "button nose and playful grin",
+      "soft chubby cheeks with gentle smile",
+      "big innocent eyes and tiny nose",
+      "freckled cheeks and joyful expression",
+    ];
+
+    let faceDescriptor;
+    if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
+      faceDescriptor =
+        faceDescriptorsChild[
+          Math.floor(Math.random() * faceDescriptorsChild.length)
+        ];
+    } else {
+      faceDescriptor =
+        faceDescriptorsAdult[
+          Math.floor(Math.random() * faceDescriptorsAdult.length)
+        ];
+    }
+
+    const faceDescriptionSection = `
+    
+    FACE DESCRIPTION GUIDELINE: Below is *one example* of a possible face description → "${faceDescriptor}". This is **only an example**; do NOT reuse it verbatim. Instead, create your own natural-sounding, age-appropriate face description for the ${baseModelText} so that each generation features a unique and photogenic look.`;
 
     // Gemini'ye gönderilecek metin
     let promptForGemini = `
@@ -841,12 +974,14 @@ Failure to follow this instruction will result in incorrect garment generation.
     
     ${ageSection}
     ${childPromptSection}
+    ${bodyShapeMeasurementsSection}
     ${settingsPromptSection}
     ${locationPromptSection}
     ${posePromptSection}
     ${perspectivePromptSection}
     ${hairStylePromptSection}
     ${hairStyleTextSection}
+    ${faceDescriptionSection}
     
     Generate a single, flowing description that reads like a master craftsperson's analysis of premium garment construction, emphasizing professional quality, material excellence, and attention to detail throughout. The ${modelGenderText} should be introduced initially and referenced once more naturally later in the description. Use "${baseModelText}" for all other references to avoid age repetition. Describe how the model demonstrates natural movement showcasing how the fabric behaves when worn, with poses appropriate for the garment category and facial expressions matching the intended style and quality level. Include detailed descriptions of the model's physical interaction with the garment, their professional modeling presence, and how their body positioning enhances the overall presentation. The complete styled outfit should be described as a cohesive ensemble where the main garment is the star piece perfectly complemented by thoughtfully selected additional clothing items. 
 
@@ -2337,8 +2472,10 @@ router.post("/generate", async (req, res) => {
               prompt: enhancedPrompt,
               input_image: combinedImageForReplicate, // Birleştirilmiş resim Replicate için
               aspect_ratio: formattedRatio,
-              safety_tolerance: 2,
+              disable_safety_checker: true,
               seed: seed, // Random seed eklendi
+              num_inference_steps: 50,
+              output_quality: 100,
             },
           },
           {
@@ -2765,6 +2902,169 @@ router.get("/credit/:userId", async (req, res) => {
       success: false,
       result: {
         message: "Kredi bilgisi alınırken hata oluştu",
+        error: error.message,
+      },
+    });
+  }
+});
+
+// Pose açıklaması için Gemini'yi kullan (sadece pose tarifi)
+async function generatePoseDescriptionWithGemini(
+  poseTitle,
+  poseImage,
+  gender = "female",
+  garmentType = "clothing"
+) {
+  try {
+    console.log("🤸 Gemini ile pose açıklaması oluşturuluyor...");
+    console.log("🤸 Pose title:", poseTitle);
+    console.log("🤸 Gender:", gender);
+    console.log("🤸 Garment type:", garmentType);
+
+    // Gemini 2.0 Flash modeli
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.0-flash",
+    });
+
+    // Gender mapping
+    const modelGenderText =
+      gender.toLowerCase() === "male" || gender.toLowerCase() === "man"
+        ? "male model"
+        : "female model";
+
+    // Pose açıklaması için özel prompt
+    const posePrompt = `
+    POSE DESCRIPTION TASK:
+    
+    You are a professional fashion photography director. Create a detailed, technical pose description for a ${modelGenderText} wearing ${garmentType}.
+    
+    POSE TITLE: "${poseTitle}"
+    
+    REQUIREMENTS:
+    - Generate ONLY a detailed pose description/instruction
+    - Do NOT create image generation prompts or visual descriptions
+    - Focus on body positioning, hand placement, stance, and posture
+    - Include specific technical directions for the model
+    - Keep it professional and suitable for fashion photography
+    - Make it clear and actionable for a model to follow
+    - Consider how the pose will showcase the garment effectively
+    
+    OUTPUT FORMAT:
+    Provide only the pose instruction in a clear, professional manner. Start directly with the pose description without any introductory text.
+    
+    EXAMPLE OUTPUT STYLE:
+    "Stand with feet shoulder-width apart, weight shifted to the back leg. Turn torso slightly at a 45-degree angle to the camera. Place left hand on hip with thumb pointing backward, fingers curved naturally. Extend right arm down and slightly away from body. Keep shoulders relaxed and down. Tilt head slightly toward the raised shoulder. Maintain confident eye contact with camera."
+    
+    Generate a similar detailed pose instruction for the given pose title "${poseTitle}" for a ${modelGenderText}.
+    `;
+
+    console.log("🤸 Gemini'ye gönderilen pose prompt:", posePrompt);
+
+    // Resim verilerini içerecek parts dizisini hazırla
+    const parts = [{ text: posePrompt }];
+
+    // Pose image'ını da Gemini'ye gönder (eğer varsa)
+    if (poseImage) {
+      try {
+        console.log("🤸 Pose görseli Gemini'ye ekleniyor:", poseImage);
+
+        const cleanPoseImageUrl = poseImage.split("?")[0];
+        const poseImageResponse = await axios.get(cleanPoseImageUrl, {
+          responseType: "arraybuffer",
+          timeout: 30000,
+        });
+        const poseImageBuffer = poseImageResponse.data;
+
+        // Base64'e çevir
+        const base64PoseImage = Buffer.from(poseImageBuffer).toString("base64");
+
+        parts.push({
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: base64PoseImage,
+          },
+        });
+
+        console.log("🤸 Pose görseli başarıyla Gemini'ye eklendi");
+      } catch (poseImageError) {
+        console.error(
+          "🤸 Pose görseli eklenirken hata:",
+          poseImageError.message
+        );
+      }
+    }
+
+    // Gemini'den cevap al
+    const result = await model.generateContent({
+      contents: [
+        {
+          role: "user",
+          parts: parts,
+        },
+      ],
+    });
+
+    const poseDescription = result.response.text().trim();
+    console.log("🤸 Gemini'nin ürettiği pose açıklaması:", poseDescription);
+
+    return poseDescription;
+  } catch (error) {
+    console.error("🤸 Gemini pose açıklaması hatası:", error);
+    // Fallback: Basit pose açıklaması
+    return `Professional ${gender.toLowerCase()} model pose: ${poseTitle}. Stand naturally with good posture, position body to showcase the garment effectively.`;
+  }
+}
+
+// Pose açıklaması oluşturma endpoint'i
+router.post("/generatePoseDescription", async (req, res) => {
+  try {
+    const {
+      poseTitle,
+      poseImage,
+      gender = "female",
+      garmentType = "clothing",
+    } = req.body;
+
+    console.log("🤸 Pose açıklaması isteği alındı:");
+    console.log("🤸 Pose title:", poseTitle);
+    console.log("🤸 Gender:", gender);
+    console.log("🤸 Garment type:", garmentType);
+    console.log("🤸 Pose image:", poseImage ? "Mevcut" : "Yok");
+
+    if (!poseTitle) {
+      return res.status(400).json({
+        success: false,
+        result: {
+          message: "Pose title gereklidir",
+        },
+      });
+    }
+
+    // Gemini ile pose açıklaması oluştur
+    const poseDescription = await generatePoseDescriptionWithGemini(
+      poseTitle,
+      poseImage,
+      gender,
+      garmentType
+    );
+
+    console.log("🤸 Pose açıklaması başarıyla oluşturuldu");
+
+    return res.status(200).json({
+      success: true,
+      result: {
+        poseTitle: poseTitle,
+        poseDescription: poseDescription,
+        gender: gender,
+        garmentType: garmentType,
+      },
+    });
+  } catch (error) {
+    console.error("🤸 Pose açıklaması endpoint hatası:", error);
+    return res.status(500).json({
+      success: false,
+      result: {
+        message: "Pose açıklaması oluşturulurken hata oluştu",
         error: error.message,
       },
     });

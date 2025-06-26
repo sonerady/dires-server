@@ -53,6 +53,8 @@ const changeColorRoutes = require("./routes/changeColorRoutes");
 const infoModalRoutes = require("./routes/infoModalRoutes");
 // RevenueCat webhook route import
 const revenuecatWebhookRouter = require("./routes/revenuecatWebhook");
+// Custom Pose routes import
+const customPoseRoutes = require("./routes/customPoseRoutes");
 
 const app = express();
 
@@ -140,6 +142,9 @@ app.use("/api/editRoom", editRoomRoutes);
 // RevenueCat webhook route ekle
 app.use("/revenuecat", revenuecatWebhookRouter);
 app.use("/purchase", purchaseRoutes);
+
+// Custom Pose routes ekle
+app.use("/api/customPose", customPoseRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, "0.0.0.0", () => {

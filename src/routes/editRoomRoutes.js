@@ -129,7 +129,7 @@ async function enhancePromptWithGemini(
     console.log("Original prompt:", originalPrompt);
 
     // Gemini modeli
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     // Basit prompt talimatı
     const promptForGemini = `
@@ -321,7 +321,7 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
 // Ana generate endpoint'i
 router.post("/generate", async (req, res) => {
   // Kredi kontrolü ve düşme (V2'den eklendi)
-  const CREDIT_COST = 20; // Her oluşturma 20 kredi
+  const CREDIT_COST = 10; // Her oluşturma 10 kredi
   let creditDeducted = false;
   let userId; // Scope için önceden tanımla
 
@@ -519,7 +519,7 @@ router.post("/generate", async (req, res) => {
     }
 
     const replicateResponse = await axios.post(
-      "https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-max/predictions",
+      "https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-pro/predictions",
       {
         input: fluxInput,
       },
