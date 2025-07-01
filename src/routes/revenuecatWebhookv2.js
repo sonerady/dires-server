@@ -241,9 +241,6 @@ router.post("/webhookv2", async (req, res) => {
           credit_balance: 0,
           is_pro: false,
           created_at: new Date().toISOString(),
-          // Test kullanıcısı için varsayılan değerler
-          username: `test_user_${userId.substring(0, 8)}`,
-          email: `test_${userId.substring(0, 8)}@test.com`,
         })
         .select("credit_balance")
         .single();
