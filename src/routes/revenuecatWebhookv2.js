@@ -21,6 +21,9 @@ const getCreditsForPackage = (productId) => {
     growth_10000: 10000,
     pro_15000: 15000,
     enterprise_20000: 20000,
+
+    // Test paketleri (RevenueCat test webhook'ları için)
+    test_product: 1000, // Test için 1000 kredi
   };
 
   return packageCredits[productId] || 0;
@@ -88,6 +91,7 @@ router.post(
         "INITIAL_PURCHASE", // İlk satın alma
         "NON_RENEWING_PURCHASE", // Tek seferlik satın alma
         "RENEWAL", // Yenileme
+        "TEST", // RevenueCat test webhook'ları
       ];
 
       // Cancellation ve expiration eventleri için özel işlem
@@ -167,6 +171,11 @@ router.post(
       // Test/Sandbox satın almaları için uyarı
       if (environment === "SANDBOX") {
         console.log("⚠️ SANDBOX purchase detected - processing anyway");
+      }
+
+      // Test event'i için özel uyarı
+      if (type === "TEST") {
+        console.log("🧪 TEST event detected - processing test webhook");
       }
 
       // Kullanıcı ID'sini belirle (önce app_user_id, sonra original_app_user_id)
@@ -276,15 +285,15 @@ router.post(
           .from("purchase_history")
           .insert({
             user_id: userId,
-            product_id: product_id,
-            transaction_id: transaction_id,
+            product_id: product_id || "unknown",
+            transaction_id: transaction_id || `test_${Date.now()}`,
             credits_added: creditsToAdd,
-            price: price,
-            currency: currency,
-            store: store,
-            environment: environment,
+            price: price || 0,
+            currency: currency || "USD",
+            store: store || "unknown",
+            environment: environment || "unknown",
             event_type: type,
-            purchased_at: new Date(purchased_at_ms),
+            purchased_at: new Date(purchased_at_ms || Date.now()),
             created_at: new Date().toISOString(),
           });
 
@@ -303,19 +312,25 @@ router.post(
       }
 
       // Başarılı response
+      const responseMessage =
+        type === "TEST"
+          ? `TEST webhook processed successfully - ${creditsToAdd} credits added to test user`
+          : planType
+          ? `Credits added successfully and user upgraded to PRO with ${planType} plan`
+          : "Credits added successfully and user upgraded to PRO (coin pack)";
+
       res.status(200).json({
         success: true,
-        message: planType
-          ? `Credits added successfully and user upgraded to PRO with ${planType} plan`
-          : "Credits added successfully and user upgraded to PRO (coin pack)",
+        message: responseMessage,
         user_id: userId,
         credits_added: creditsToAdd,
         new_balance: newBalance,
         subscription_type: planType,
         is_pro: isPro,
         event_type: type,
-        transaction_id: transaction_id,
+        transaction_id: transaction_id || `test_${Date.now()}`,
         product_id: product_id,
+        is_test: type === "TEST",
       });
     } catch (error) {
       console.error("💥 Webhook error:", error);
