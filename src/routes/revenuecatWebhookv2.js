@@ -6,7 +6,7 @@ const router = express.Router();
 // Paket ID'sine göre kredi miktarlarını belirle
 const getCreditsForPackage = (productId) => {
   const packageCredits = {
-    // Subscription paketleri
+    // Subscription paketleri - Kısa format
     standard_weekly_600: 600,
     standard_monthly_2400: 2400,
     plus_weekly_1200: 1200,
@@ -14,13 +14,29 @@ const getCreditsForPackage = (productId) => {
     premium_weekly_2400: 2400,
     premium_monthly_9600: 9600,
 
-    // Coin paketleri (one-time purchases)
+    // Subscription paketleri - RevenueCat gerçek product ID'leri
+    "com.diress.standard.weekly.600": 600,
+    "com.diress.standard.monthly.2400": 2400,
+    "com.diress.plus.weekly.1200": 1200,
+    "com.diress.plus.monthly.4800": 4800,
+    "com.diress.premium.weekly.2400": 2400,
+    "com.diress.premium.monthly.9600": 9600,
+
+    // Coin paketleri - Kısa format (one-time purchases)
     micro_1000: 1000,
     small_2500: 2500,
     boost_5000: 5000,
     growth_10000: 10000,
     pro_15000: 15000,
     enterprise_20000: 20000,
+
+    // Coin paketleri - RevenueCat gerçek product ID'leri
+    "com.diress.micro.1000": 1000,
+    "com.diress.small.2500": 2500,
+    "com.diress.boost.5000": 5000,
+    "com.diress.growth.10000": 10000,
+    "com.diress.pro.15000": 15000,
+    "com.diress.enterprise.20000": 20000,
 
     // Test paketleri (RevenueCat test webhook'ları için)
     test_product: 1000, // Test için 1000 kredi
@@ -192,18 +208,31 @@ router.post("/webhookv2", async (req, res) => {
     let planType = null;
     let isPro = false;
 
-    if (product_id.startsWith("standard_")) {
+    // Standard paketler (hem kısa hem uzun format)
+    if (
+      product_id.startsWith("standard_") ||
+      product_id.includes(".standard.")
+    ) {
       planType = "standard";
       isPro = true;
-    } else if (product_id.startsWith("plus_")) {
+    }
+    // Plus paketler (hem kısa hem uzun format)
+    else if (product_id.startsWith("plus_") || product_id.includes(".plus.")) {
       planType = "plus";
       isPro = true;
-    } else if (product_id.startsWith("premium_")) {
+    }
+    // Premium paketler (hem kısa hem uzun format)
+    else if (
+      product_id.startsWith("premium_") ||
+      product_id.includes(".premium.")
+    ) {
       planType = "premium";
       isPro = true;
-    } else if (
-      // Coin paketleri için - sadece PRO yapar ama plan tipi vermez
+    }
+    // Coin paketleri için - sadece PRO yapar ama plan tipi vermez
+    else if (
       [
+        // Kısa formatlar
         "micro_1000",
         "small_2500",
         "boost_5000",
@@ -211,7 +240,14 @@ router.post("/webhookv2", async (req, res) => {
         "pro_15000",
         "enterprise_20000",
         "test_product", // Test ürünü de PRO yapıyor
-      ].includes(product_id)
+      ].includes(product_id) ||
+      // Uzun formatlar
+      product_id.includes(".micro.") ||
+      product_id.includes(".small.") ||
+      product_id.includes(".boost.") ||
+      product_id.includes(".growth.") ||
+      product_id.includes(".pro.") ||
+      product_id.includes(".enterprise.")
     ) {
       planType = null; // Coin paketleri plan tipi vermiyor
       isPro = true; // Ama kullanıcıyı PRO yapıyor
