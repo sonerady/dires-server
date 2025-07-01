@@ -52,6 +52,7 @@ const consRoutes = require("./routes/consRoutes");
 const changeColorRoutes = require("./routes/changeColorRoutes");
 const infoModalRoutes = require("./routes/infoModalRoutes");
 // RevenueCat webhook route import
+const revenuecatWebhookRouterv2 = require("./routes/revenuecatWebhookv2");
 const revenuecatWebhookRouter = require("./routes/revenuecatWebhook");
 // Custom Pose routes import
 const customPoseRoutes = require("./routes/customPoseRoutes");
@@ -138,9 +139,9 @@ app.use("/api", changeColorRoutes);
 app.use("/api/poses", poseRoutes);
 app.use("/api/user", infoModalRoutes);
 app.use("/api/editRoom", editRoomRoutes);
-
-// RevenueCat webhook route ekle
 app.use("/revenuecat", revenuecatWebhookRouter);
+app.use("/revenuecatv2", revenuecatWebhookRouterv2);
+
 app.use("/purchase", purchaseRoutes);
 
 // Custom Pose routes ekle
