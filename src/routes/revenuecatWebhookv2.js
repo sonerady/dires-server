@@ -30,7 +30,15 @@ const getCreditsForPackage = (productId) => {
     pro_15000: 15000,
     enterprise_20000: 20000,
 
-    // Coin paketleri - RevenueCat gerçek product ID'leri
+    // Coin paketleri - RevenueCat gerçek product ID'leri (yeni format)
+    "com.micro.diress": 1000,
+    "com.small.diress": 2500,
+    "com.boost.diress": 5000,
+    "com.growth.diress": 10000,
+    "com.pro.diress": 15000,
+    "com.enterprise.diress": 20000,
+
+    // Coin paketleri - Eski format (compat)
     "com.diress.micro.1000": 1000,
     "com.diress.small.2500": 2500,
     "com.diress.boost.5000": 5000,
@@ -240,8 +248,15 @@ router.post("/webhookv2", async (req, res) => {
         "pro_15000",
         "enterprise_20000",
         "test_product", // Test ürünü de PRO yapıyor
+        // Yeni formatlar (gerçek product ID'ler)
+        "com.micro.diress",
+        "com.small.diress",
+        "com.boost.diress",
+        "com.growth.diress",
+        "com.pro.diress",
+        "com.enterprise.diress",
       ].includes(product_id) ||
-      // Uzun formatlar
+      // Eski uzun formatlar (compat)
       product_id.includes(".micro.") ||
       product_id.includes(".small.") ||
       product_id.includes(".boost.") ||
