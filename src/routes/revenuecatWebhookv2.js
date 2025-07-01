@@ -210,6 +210,7 @@ router.post("/webhookv2", async (req, res) => {
         "growth_10000",
         "pro_15000",
         "enterprise_20000",
+        "test_product", // Test ürünü de PRO yapıyor
       ].includes(product_id)
     ) {
       planType = null; // Coin paketleri plan tipi vermiyor
@@ -222,19 +223,45 @@ router.post("/webhookv2", async (req, res) => {
     console.log(`✨ Making user PRO: ${isPro}`);
 
     // Önce kullanıcının mevcut kredi bakiyesini al
-    const { data: userData, error: fetchError } = await supabase
+    let { data: userData, error: fetchError } = await supabase
       .from("users")
       .select("credit_balance")
       .eq("id", userId)
       .single();
 
-    if (fetchError) {
+    // Eğer kullanıcı bulunamazsa (özellikle test webhook'ları için)
+    if (fetchError && fetchError.code === "PGRST116") {
+      console.log(`🔄 User not found, creating test user: ${userId}`);
+
+      // Test kullanıcısı oluştur
+      const { data: newUserData, error: createError } = await supabase
+        .from("users")
+        .insert({
+          id: userId,
+          credit_balance: 0,
+          is_pro: false,
+          created_at: new Date().toISOString(),
+          // Test kullanıcısı için varsayılan değerler
+          username: `test_user_${userId.substring(0, 8)}`,
+          email: `test_${userId.substring(0, 8)}@test.com`,
+        })
+        .select("credit_balance")
+        .single();
+
+      if (createError) {
+        console.error("❌ Error creating test user:", createError);
+        return res.status(500).json({ error: "Test user creation failed" });
+      }
+
+      userData = newUserData;
+      console.log(`✅ Test user created successfully: ${userId}`);
+    } else if (fetchError) {
       console.error("❌ Error fetching user:", fetchError);
       return res.status(500).json({ error: "User fetch failed" });
     }
 
     if (!userData) {
-      console.error(`❌ User not found: ${userId}`);
+      console.error(`❌ User data not available: ${userId}`);
       return res.status(404).json({ error: "User not found" });
     }
 
