@@ -1,0 +1,99 @@
+{
+  "paywallV3": {
+    "weekly": "Wöchentlich",
+    "monthly": "Monatlich",
+    "aiCredit": "KI-Guthaben",
+    "unlimited": "Unbegrenzt",
+    "pleaseWait": "Bitte warten",
+    "buyNow": "Jetzt kaufen",
+    "terms": "Keine Verpflichtung - Jederzeit kündbar",
+    "period": {
+      "week": "Woche",
+      "month": "Monat"
+    },
+    "features": {
+      "standard": {
+        "credits": {
+          "subtitle": "Präsentieren Sie {{products}} verschiedene Produkte professionell auf KI-Modellen mit {{credits}} Guthaben"
+        }
+      },
+      "plus": {
+        "credits": {
+          "subtitle": "Präsentieren Sie {{products}} verschiedene Produkte mit mehreren Kombinationen auf KI-Modellen mit {{credits}} Guthaben"
+        }
+      },
+      "premium": {
+        "credits": {
+          "subtitle": "Präsentieren Sie {{products}} verschiedene Produkte auf Premium-Modellen mit ultraschneller KI-Verarbeitung mit {{credits}} Guthaben"
+        }
+      },
+      "aiModelDisplay": {
+        "title": "KI-Modell-Display",
+        "subtitle": "Präsentieren Sie Ihre Produkte professionell mit realistischen Modellen"
+      },
+      "creativeBackgrounds": {
+        "title": "100+ Kreative KI-Hintergründe",
+        "subtitle": "Professionelle Produktfotos in verschiedenen Umgebungen"
+      },
+      "photoEnhancement": {
+        "title": "KI-Foto-Verbesserung",
+        "subtitle": "Studio-Qualität Foto-Verbesserung"
+      },
+      "videoGeneration": {
+        "title": "KI-Video-Generierung",
+        "subtitle": "Verwandeln Sie statische Fotos in dynamische Videos"
+      },
+      "multiProduct": {
+        "title": "Paralleles Verarbeitungssystem",
+        "subtitle": "Sparen Sie Zeit durch gleichzeitige Verarbeitung verschiedener Produkte"
+      },
+      "allStandardFeatures": {
+        "title": "Alle Standard-Paket-Features",
+        "subtitle": "KI-Modell, Hintergrund, Video und alle Grundfunktionen"
+      },
+      "premiumBackgrounds": {
+        "title": "Premium KI-Hintergründe",
+        "subtitle": "200+ speziell entworfene luxuriöse Umgebungsoptionen"
+      },
+      "ultraFastProcessing": {
+        "title": "Ultra-schnelle KI-Verarbeitung (20 Sek)",
+        "subtitle": "Sofortige Ergebnisse mit der fortschrittlichsten KI-Technologie"
+      },
+      "allFeatures": {
+        "title": "Alle Standard + Plus Features",
+        "subtitle": "KI-Modell, Multi-Produkt, Premium-Hintergrund und alle Features"
+      },
+      "earlyAccess": {
+        "title": "Früher Zugang zu neuen Features",
+        "subtitle": "Privileg, die neuesten Features zuerst zu erleben"
+      }
+    },
+    "savings": {
+      "standardMonthly": "12% Ersparnis",
+      "plusWeekly": "10% Ersparnis",
+      "plusMonthly": "25% Ersparnis",
+      "premiumWeekly": "25% Ersparnis",
+      "premiumMonthly": "38% Ersparnis"
+    },
+    "plans": {
+      "weekly": {
+        "title": "WÖCHENTLICHER ZUGANG",
+        "subtitle": "Beliebteste Wahl"
+      },
+      "monthly": {
+        "title": "MONATLICHER ZUGANG",
+        "subtitle": "Wirtschaftlichste Wahl"
+      }
+    },
+    "alerts": {
+      "samePackage": "🎉 Sie haben bereits dieses Paket!\\n\\nSie verwenden bereits dieses Paket. Ihr aktuelles Abonnement läuft weiter und Ihr Guthaben wird regelmäßig erneuert.",
+      "activeSubscription": "⚠️ Sie haben bereits ein aktives Abonnement!\\n\\nUm Pakete zu wechseln, müssen Sie zunächst Ihr aktuelles Abonnement kündigen. Sie können Ihr aktuelles Abonnement unter Einstellungen > Abonnements verwalten.",
+      "packageNotFound": "Paket nicht gefunden. Bitte versuchen Sie es später erneut.",
+      "alreadyHasSubscription": "🎉 Sie haben bereits ein aktives Abonnement!\\n\\nSie haben bereits dieses Paket. Ihr aktuelles Abonnement läuft weiter und Ihr Guthaben wird monatlich automatisch erneuert.",
+      "purchaseCancelled": "❌ Kauf abgebrochen.\\n\\nSie haben auf Apples Bestätigungsbildschirm 'Abbrechen' geklickt. Um den Kauf abzuschließen, drücken Sie erneut 'Jetzt kaufen' und klicken Sie auf Apples Bestätigungsbildschirm auf 'Kaufen'.",
+      "productNotAvailable": "Dieses Produkt ist derzeit nicht zum Kauf verfügbar.",
+      "paymentPending": "Ihre Zahlung wird verarbeitet. Bitte warten Sie.",
+      "unknownError": "Ein Fehler ist beim Kauf aufgetreten. Bitte versuchen Sie es später erneut."
+    }
+  }
+}

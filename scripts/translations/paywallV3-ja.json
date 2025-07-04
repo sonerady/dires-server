@@ -1,0 +1,99 @@
+{
+  "paywallV3": {
+    "weekly": "週間",
+    "monthly": "月間",
+    "aiCredit": "AIクレジット",
+    "unlimited": "無制限",
+    "pleaseWait": "お待ちください",
+    "buyNow": "今すぐ購入",
+    "terms": "制約なし - いつでもキャンセル可能",
+    "period": {
+      "week": "週",
+      "month": "月"
+    },
+    "features": {
+      "standard": {
+        "credits": {
+          "subtitle": "{{credits}}クレジットで{{products}}の異なる製品をAIモデルで専門的に表示"
+        }
+      },
+      "plus": {
+        "credits": {
+          "subtitle": "{{credits}}クレジットを使用して{{products}}の異なる製品をAIモデルで複数の組み合わせで表示"
+        }
+      },
+      "premium": {
+        "credits": {
+          "subtitle": "{{credits}}クレジットを使用して{{products}}の異なる製品を超高速AI処理でプレミアムモデルに表示"
+        }
+      },
+      "aiModelDisplay": {
+        "title": "AIモデル表示",
+        "subtitle": "リアルなモデルで製品を専門的に表示"
+      },
+      "creativeBackgrounds": {
+        "title": "100+創造的AIバックグラウンド",
+        "subtitle": "様々な環境でのプロフェッショナル製品写真"
+      },
+      "photoEnhancement": {
+        "title": "AI写真強化",
+        "subtitle": "スタジオ品質の写真強化"
+      },
+      "videoGeneration": {
+        "title": "AIビデオ生成",
+        "subtitle": "静的写真をダイナミックビデオに変換"
+      },
+      "multiProduct": {
+        "title": "並列処理システム",
+        "subtitle": "複数の製品を同時に処理して時間を節約"
+      },
+      "allStandardFeatures": {
+        "title": "すべてのスタンダードパッケージ機能",
+        "subtitle": "AIモデル、バックグラウンド、ビデオ、すべての基本機能"
+      },
+      "premiumBackgrounds": {
+        "title": "プレミアムAIバックグラウンド",
+        "subtitle": "200+特別に設計された高級環境オプション"
+      },
+      "ultraFastProcessing": {
+        "title": "超高速AI処理（20秒）",
+        "subtitle": "最先端AI技術による即座の結果"
+      },
+      "allFeatures": {
+        "title": "すべてのスタンダード+プラス機能",
+        "subtitle": "AIモデル、マルチ製品、プレミアムバックグラウンド、すべての機能"
+      },
+      "earlyAccess": {
+        "title": "新機能への早期アクセス",
+        "subtitle": "最新機能を最初に体験する特権"
+      }
+    },
+    "savings": {
+      "standardMonthly": "12%節約",
+      "plusWeekly": "10%節約",
+      "plusMonthly": "25%節約",
+      "premiumWeekly": "25%節約",
+      "premiumMonthly": "38%節約"
+    },
+    "plans": {
+      "weekly": {
+        "title": "週間アクセス",
+        "subtitle": "最も人気のある選択"
+      },
+      "monthly": {
+        "title": "月間アクセス",
+        "subtitle": "最も経済的な選択"
+      }
+    },
+    "alerts": {
+      "samePackage": "🎉 すでにこのパッケージをお持ちです！\\n\\nすでにこのパッケージをご利用中です。現在のサブスクリプションが継続され、クレジットが定期的に更新されます。",
+      "activeSubscription": "⚠️ すでにアクティブなサブスクリプションがあります！\\n\\nパッケージを変更するには、まず現在のサブスクリプションをキャンセルする必要があります。設定 > サブスクリプションから現在のサブスクリプションを管理できます。",
+      "packageNotFound": "パッケージが見つかりません。後でもう一度お試しください。",
+      "alreadyHasSubscription": "🎉 すでにアクティブなサブスクリプションがあります！\\n\\nすでにこのパッケージをお持ちです。現在のサブスクリプションが継続され、クレジットが毎月自動的に更新されます。",
+      "purchaseCancelled": "❌ 購入がキャンセルされました。\\n\\nAppleの確認画面で「キャンセル」をクリックしました。購入を完了するには、「今すぐ購入」をもう一度押して、Appleの確認画面で「購入」をクリックしてください。",
+      "productNotAvailable": "この製品は現在購入できません。",
+      "paymentPending": "お支払いが処理中です。お待ちください。",
+      "unknownError": "購入中にエラーが発生しました。後でもう一度お試しください。"
+    }
+  }
+}

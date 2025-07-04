@@ -1,0 +1,99 @@
+{
+  "paywallV3": {
+    "weekly": "Settimanale",
+    "monthly": "Mensile",
+    "aiCredit": "Credito AI",
+    "unlimited": "Illimitato",
+    "pleaseWait": "Attendere prego",
+    "buyNow": "Acquista ora",
+    "terms": "Nessun impegno - Cancella quando vuoi",
+    "period": {
+      "week": "settimana",
+      "month": "mese"
+    },
+    "features": {
+      "standard": {
+        "credits": {
+          "subtitle": "Presenta {{products}} prodotti diversi professionalmente su modelli AI con {{credits}} crediti"
+        }
+      },
+      "plus": {
+        "credits": {
+          "subtitle": "Presenta {{products}} prodotti diversi con combinazioni multiple su modelli AI usando {{credits}} crediti"
+        }
+      },
+      "premium": {
+        "credits": {
+          "subtitle": "Presenta {{products}} prodotti diversi su modelli premium con elaborazione AI ultra-veloce usando {{credits}} crediti"
+        }
+      },
+      "aiModelDisplay": {
+        "title": "Display Modello AI",
+        "subtitle": "Presenta i tuoi prodotti professionalmente con modelli realistici"
+      },
+      "creativeBackgrounds": {
+        "title": "100+ Sfondi AI Creativi",
+        "subtitle": "Foto professionali di prodotti in vari ambienti"
+      },
+      "photoEnhancement": {
+        "title": "Miglioramento Foto AI",
+        "subtitle": "Miglioramento foto di qualità studio"
+      },
+      "videoGeneration": {
+        "title": "Generazione Video AI",
+        "subtitle": "Trasforma foto statiche in video dinamici"
+      },
+      "multiProduct": {
+        "title": "Sistema di Elaborazione Parallela",
+        "subtitle": "Risparmia tempo elaborando diversi prodotti simultaneamente"
+      },
+      "allStandardFeatures": {
+        "title": "Tutte le Funzionalità del Pacchetto Standard",
+        "subtitle": "Modello AI, Sfondo, Video e tutte le funzionalità di base"
+      },
+      "premiumBackgrounds": {
+        "title": "Sfondi AI Premium",
+        "subtitle": "200+ opzioni di ambienti lussuosi appositamente progettati"
+      },
+      "ultraFastProcessing": {
+        "title": "Elaborazione AI Ultra-Veloce (20 sec)",
+        "subtitle": "Risultati istantanei con la tecnologia AI più avanzata"
+      },
+      "allFeatures": {
+        "title": "Tutte le Funzionalità Standard + Plus",
+        "subtitle": "Modello AI, Multi-Prodotto, Sfondo Premium e tutte le funzionalità"
+      },
+      "earlyAccess": {
+        "title": "Accesso Anticipato alle Nuove Funzionalità",
+        "subtitle": "Privilegio di sperimentare le ultime funzionalità per primi"
+      }
+    },
+    "savings": {
+      "standardMonthly": "12% di risparmio",
+      "plusWeekly": "10% di risparmio",
+      "plusMonthly": "25% di risparmio",
+      "premiumWeekly": "25% di risparmio",
+      "premiumMonthly": "38% di risparmio"
+    },
+    "plans": {
+      "weekly": {
+        "title": "ACCESSO SETTIMANALE",
+        "subtitle": "Scelta più popolare"
+      },
+      "monthly": {
+        "title": "ACCESSO MENSILE",
+        "subtitle": "Scelta più economica"
+      }
+    },
+    "alerts": {
+      "samePackage": "🎉 Hai già questo pacchetto!\\n\\nStai già utilizzando questo pacchetto. Il tuo abbonamento attuale continua e i tuoi crediti vengono rinnovati regolarmente.",
+      "activeSubscription": "⚠️ Hai già un abbonamento attivo!\\n\\nPer cambiare pacchetti, devi prima cancellare il tuo abbonamento attuale. Puoi gestire il tuo abbonamento attuale da Impostazioni > Abbonamenti.",
+      "packageNotFound": "Pacchetto non trovato. Riprova più tardi.",
+      "alreadyHasSubscription": "🎉 Hai già un abbonamento attivo!\\n\\nHai già questo pacchetto. Il tuo abbonamento attuale continua e i tuoi crediti vengono rinnovati automaticamente ogni mese.",
+      "purchaseCancelled": "❌ Acquisto annullato.\\n\\nHai cliccato 'Annulla' sulla schermata di conferma di Apple. Per completare l'acquisto, premi 'Acquista ora' di nuovo e clicca 'Acquista' sulla schermata di conferma di Apple.",
+      "productNotAvailable": "Questo prodotto non è attualmente disponibile per l'acquisto.",
+      "paymentPending": "Il tuo pagamento è in elaborazione. Attendere prego.",
+      "unknownError": "Si è verificato un errore durante l'acquisto. Riprova più tardi."
+    }
+  }
+}

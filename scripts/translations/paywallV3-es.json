@@ -1,0 +1,99 @@
+{
+  "paywallV3": {
+    "weekly": "Semanal",
+    "monthly": "Mensual",
+    "aiCredit": "Crédito IA",
+    "unlimited": "Ilimitado",
+    "pleaseWait": "Por favor espere",
+    "buyNow": "Comprar ahora",
+    "terms": "Sin compromiso - Cancela cuando quieras",
+    "period": {
+      "week": "semana",
+      "month": "mes"
+    },
+    "features": {
+      "standard": {
+        "credits": {
+          "subtitle": "Presenta {{products}} productos diferentes profesionalmente en modelos IA con {{credits}} créditos"
+        }
+      },
+      "plus": {
+        "credits": {
+          "subtitle": "Presenta {{products}} productos diferentes con combinaciones múltiples en modelos IA usando {{credits}} créditos"
+        }
+      },
+      "premium": {
+        "credits": {
+          "subtitle": "Presenta {{products}} productos diferentes en modelos premium con procesamiento IA ultra-rápido usando {{credits}} créditos"
+        }
+      },
+      "aiModelDisplay": {
+        "title": "Exhibición en Modelo IA",
+        "subtitle": "Presenta tus productos profesionalmente con modelos realistas"
+      },
+      "creativeBackgrounds": {
+        "title": "100+ Fondos IA Creativos",
+        "subtitle": "Fotos de productos profesionales en varios entornos"
+      },
+      "photoEnhancement": {
+        "title": "Mejora de Fotos IA",
+        "subtitle": "Mejora de fotos con calidad de estudio"
+      },
+      "videoGeneration": {
+        "title": "Generación de Video IA",
+        "subtitle": "Transforma fotos estáticas en videos dinámicos"
+      },
+      "multiProduct": {
+        "title": "Sistema de Procesamiento Paralelo",
+        "subtitle": "Ahorra tiempo procesando diferentes productos simultáneamente"
+      },
+      "allStandardFeatures": {
+        "title": "Todas las Características del Paquete Estándar",
+        "subtitle": "Modelo IA, Fondo, Video y todas las características básicas"
+      },
+      "premiumBackgrounds": {
+        "title": "Fondos IA Premium",
+        "subtitle": "200+ opciones de entornos lujosos especialmente diseñados"
+      },
+      "ultraFastProcessing": {
+        "title": "Procesamiento IA Ultra Rápido (20 seg)",
+        "subtitle": "Resultados instantáneos con la tecnología IA más avanzada"
+      },
+      "allFeatures": {
+        "title": "Todas las Características Estándar + Plus",
+        "subtitle": "Modelo IA, Multi-Producto, Fondo Premium y todas las características"
+      },
+      "earlyAccess": {
+        "title": "Acceso Temprano a Nuevas Características",
+        "subtitle": "Privilegio de experimentar las últimas características primero"
+      }
+    },
+    "savings": {
+      "standardMonthly": "12% de ahorro",
+      "plusWeekly": "10% de ahorro",
+      "plusMonthly": "25% de ahorro",
+      "premiumWeekly": "25% de ahorro",
+      "premiumMonthly": "38% de ahorro"
+    },
+    "plans": {
+      "weekly": {
+        "title": "ACCESO SEMANAL",
+        "subtitle": "Opción más popular"
+      },
+      "monthly": {
+        "title": "ACCESO MENSUAL",
+        "subtitle": "Opción más económica"
+      }
+    },
+    "alerts": {
+      "samePackage": "🎉 ¡Ya tienes este paquete!\\n\\nYa estás usando este paquete. Tu suscripción actual continúa y tus créditos se renuevan regularmente.",
+      "activeSubscription": "⚠️ ¡Ya tienes una suscripción activa!\\n\\nPara cambiar paquetes, necesitas cancelar tu suscripción actual primero. Puedes gestionar tu suscripción actual desde Configuración > Suscripciones.",
+      "packageNotFound": "Paquete no encontrado. Por favor intenta de nuevo más tarde.",
+      "alreadyHasSubscription": "🎉 ¡Ya tienes una suscripción activa!\\n\\nYa tienes este paquete. Tu suscripción actual continúa y tus créditos se renuevan automáticamente cada mes.",
+      "purchaseCancelled": "❌ Compra cancelada.\\n\\nHiciste clic en 'Cancelar' en la pantalla de confirmación de Apple. Para completar la compra, presiona 'Comprar ahora' nuevamente y haz clic en 'Comprar' en la pantalla de confirmación de Apple.",
+      "productNotAvailable": "Este producto no está disponible para compra actualmente.",
+      "paymentPending": "Tu pago está siendo procesado. Por favor espera.",
+      "unknownError": "Ocurrió un error durante la compra. Por favor intenta de nuevo más tarde."
+    }
+  }
+}

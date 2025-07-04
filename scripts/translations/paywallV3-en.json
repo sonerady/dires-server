@@ -1,0 +1,99 @@
+{
+  "paywallV3": {
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "aiCredit": "AI Credit",
+    "unlimited": "Unlimited",
+    "pleaseWait": "Please wait",
+    "buyNow": "Buy Now",
+    "terms": "No commitment - Cancel anytime",
+    "period": {
+      "week": "week",
+      "month": "month"
+    },
+    "features": {
+      "standard": {
+        "credits": {
+          "subtitle": "Display {{products}} different products professionally on AI models with {{credits}} credits"
+        }
+      },
+      "plus": {
+        "credits": {
+          "subtitle": "Display {{products}} different products with multiple combinations on AI models using {{credits}} credits"
+        }
+      },
+      "premium": {
+        "credits": {
+          "subtitle": "Display {{products}} different products on premium models with ultra-fast AI processing using {{credits}} credits"
+        }
+      },
+      "aiModelDisplay": {
+        "title": "AI Model Display",
+        "subtitle": "Present your products professionally with realistic models"
+      },
+      "creativeBackgrounds": {
+        "title": "100+ Creative AI Backgrounds",
+        "subtitle": "Professional product photos in various environments"
+      },
+      "photoEnhancement": {
+        "title": "AI Photo Enhancement",
+        "subtitle": "Studio-quality photo enhancement"
+      },
+      "videoGeneration": {
+        "title": "AI Video Generation",
+        "subtitle": "Transform static photos into dynamic videos"
+      },
+      "multiProduct": {
+        "title": "Parallel Processing System",
+        "subtitle": "Save time by processing different products simultaneously"
+      },
+      "allStandardFeatures": {
+        "title": "All Standard Package Features",
+        "subtitle": "AI Model, Background, Video and all basic features"
+      },
+      "premiumBackgrounds": {
+        "title": "Premium AI Backgrounds",
+        "subtitle": "200+ specially designed luxury environment options"
+      },
+      "ultraFastProcessing": {
+        "title": "Ultra Fast AI Processing (20 sec)",
+        "subtitle": "Instant results with the most advanced AI technology"
+      },
+      "allFeatures": {
+        "title": "All Standard + Plus Features",
+        "subtitle": "AI Model, Multi-Product, Premium Background and all features"
+      },
+      "earlyAccess": {
+        "title": "Early Access to New Features",
+        "subtitle": "Privilege to experience the latest features first"
+      }
+    },
+    "savings": {
+      "standardMonthly": "12% savings",
+      "plusWeekly": "10% savings",
+      "plusMonthly": "25% savings",
+      "premiumWeekly": "25% savings",
+      "premiumMonthly": "38% savings"
+    },
+    "plans": {
+      "weekly": {
+        "title": "WEEKLY ACCESS",
+        "subtitle": "Most popular choice"
+      },
+      "monthly": {
+        "title": "MONTHLY ACCESS",
+        "subtitle": "Most economical choice"
+      }
+    },
+    "alerts": {
+      "samePackage": "🎉 You already have this package!\\n\\nYou are already using this package. Your current subscription continues and your credits are renewed regularly.",
+      "activeSubscription": "⚠️ You already have an active subscription!\\n\\nTo change packages, you need to cancel your current subscription first. You can manage your current subscription from Settings > Subscriptions.",
+      "packageNotFound": "Package not found. Please try again later.",
+      "alreadyHasSubscription": "🎉 You already have an active subscription!\\n\\nYou already have this package. Your current subscription continues and your credits are automatically renewed monthly.",
+      "purchaseCancelled": "❌ Purchase cancelled.\\n\\nYou clicked 'Cancel' on Apple's confirmation screen. To complete the purchase, press 'Buy Now' again and click 'Buy' on Apple's confirmation screen.",
+      "productNotAvailable": "This product is currently not available for purchase.",
+      "paymentPending": "Your payment is being processed. Please wait.",
+      "unknownError": "An error occurred during purchase. Please try again later."
+    }
+  }
+}

@@ -22,6 +22,10 @@ const getCreditsForPackage = (productId) => {
     "com.diress.premium.weekly.2400": 2400,
     "com.diress.premium.monthly.9600": 9600,
 
+    // Legacy subscription paketleri (revenuecatWebhook.js'ten)
+    "com.monailisa.pro_weekly600": 600,
+    "com.monailisa.pro_monthly2400": 2400,
+
     // Coin paketleri - Kısa format (one-time purchases)
     micro_1000: 1000,
     small_2500: 2500,
@@ -45,6 +49,12 @@ const getCreditsForPackage = (productId) => {
     "com.diress.growth.10000": 10000,
     "com.diress.pro.15000": 15000,
     "com.diress.enterprise.20000": 20000,
+
+    // Legacy coin paketleri (revenuecatWebhook.js'ten)
+    "com.monailisa.creditpack5000": 5000,
+    "com.monailisa.creditpack1000": 1000,
+    "com.monailisa.creditpack300": 300,
+    "com.monailisa.100coin": 100,
 
     // Test paketleri (RevenueCat test webhook'ları için)
     test_product: 1000, // Test için 1000 kredi
@@ -202,6 +212,89 @@ router.post("/webhookv2", async (req, res) => {
       return res.status(400).json({ error: "No user ID found" });
     }
 
+    // ✅ GÜÇLÜ DUPLICATE KONTROLÜ - MULTIPLE CHECK
+    // Aynı transaction_id daha önce işlenmiş mi kontrol et
+    if (transaction_id) {
+      console.log(`🔍 Checking for duplicate transaction: ${transaction_id}`);
+
+      const { data: existingTransaction, error: duplicateError } =
+        await supabase
+          .from("purchase_history")
+          .select("transaction_id, product_id, event_type, created_at")
+          .eq("transaction_id", transaction_id)
+          .eq("user_id", userId)
+          .limit(1);
+
+      if (duplicateError) {
+        console.error(
+          "❌ Error checking duplicate transaction:",
+          duplicateError
+        );
+        // Devam et ama log'la
+      } else if (existingTransaction && existingTransaction.length > 0) {
+        const existing = existingTransaction[0];
+        console.log(`🚫 DUPLICATE TRANSACTION DETECTED: ${transaction_id}`);
+        console.log("❌ This transaction has already been processed:", {
+          existing_transaction_id: existing.transaction_id,
+          existing_product_id: existing.product_id,
+          existing_event_type: existing.event_type,
+          existing_processed_at: existing.created_at,
+          current_product_id: product_id,
+          current_event_type: type,
+          prevention_level: "STRICT_DUPLICATE_PROTECTION",
+        });
+
+        return res.status(200).json({
+          success: true,
+          message: "Transaction already processed - duplicate ignored",
+          transaction_id: transaction_id,
+          user_id: userId,
+          duplicate: true,
+          existing_record: existing,
+        });
+      }
+
+      console.log("✅ Transaction is new - proceeding with processing");
+    } else {
+      console.log(
+        "⚠️ No transaction_id provided - will create unique identifier"
+      );
+
+      // Transaction ID yoksa da aynı event'in yakın zamanda işlenip işlenmediğini kontrol et
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const { data: recentSimilarEvent, error: recentError } = await supabase
+        .from("purchase_history")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("product_id", product_id)
+        .eq("event_type", type)
+        .gte("created_at", fiveMinutesAgo)
+        .limit(1);
+
+      if (recentSimilarEvent && recentSimilarEvent.length > 0) {
+        console.log(
+          `🚫 SIMILAR EVENT RECENTLY PROCESSED: ${type} for ${product_id}`
+        );
+        console.log(
+          "❌ Preventing potential duplicate without transaction_id:",
+          {
+            recent_event: recentSimilarEvent[0],
+            prevention_level: "TIME_BASED_DUPLICATE_PROTECTION",
+          }
+        );
+
+        return res.status(200).json({
+          success: true,
+          message:
+            "Similar event recently processed - potential duplicate ignored",
+          user_id: userId,
+          product_id: product_id,
+          event_type: type,
+          time_based_protection: true,
+        });
+      }
+    }
+
     // Product ID'den kredi miktarını belirle
     const creditsToAdd = getCreditsForPackage(product_id);
 
@@ -237,6 +330,14 @@ router.post("/webhookv2", async (req, res) => {
       planType = "premium";
       isPro = true;
     }
+    // Legacy subscription paketleri (revenuecatWebhook.js'ten)
+    else if (
+      product_id === "com.monailisa.pro_weekly600" ||
+      product_id === "com.monailisa.pro_monthly2400"
+    ) {
+      planType = "standard"; // Legacy paketleri standard olarak kabul et
+      isPro = true;
+    }
     // Coin paketleri için - sadece PRO yapar ama plan tipi vermez
     else if (
       [
@@ -255,6 +356,11 @@ router.post("/webhookv2", async (req, res) => {
         "com.growth.diress",
         "com.pro.diress",
         "com.enterprise.diress",
+        // Legacy coin paketleri (revenuecatWebhook.js'ten)
+        "com.monailisa.creditpack5000",
+        "com.monailisa.creditpack1000",
+        "com.monailisa.creditpack300",
+        "com.monailisa.100coin",
       ].includes(product_id) ||
       // Eski uzun formatlar (compat)
       product_id.includes(".micro.") ||

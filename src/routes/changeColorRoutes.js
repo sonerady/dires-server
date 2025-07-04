@@ -35,6 +35,57 @@ if (!fs.existsSync(tempDir)) {
   fs.mkdirSync(tempDir, { recursive: true });
 }
 
+// Geçici dosyaları hemen silme fonksiyonu (işlem biter bitmez)
+async function cleanupTemporaryFiles(fileUrls) {
+  if (!fileUrls || fileUrls.length === 0) return;
+
+  const filesToDelete = [];
+
+  for (const url of fileUrls) {
+    if (
+      typeof url === "string" &&
+      url.includes("/storage/v1/object/public/reference/")
+    ) {
+      // URL'den dosya adını çıkar
+      const fileName = url.split("/reference/")[1]?.split("?")[0];
+
+      if (
+        fileName &&
+        fileName.includes("temp_") &&
+        (fileName.includes("reference_") ||
+          fileName.includes("background_removed") ||
+          fileName.includes("combined_") ||
+          fileName.includes("corrected_"))
+      ) {
+        filesToDelete.push(fileName);
+      }
+    }
+  }
+
+  if (filesToDelete.length > 0) {
+    try {
+      console.log(
+        `🗑️ [CLEANUP] ${filesToDelete.length} geçici dosya siliniyor:`,
+        filesToDelete
+      );
+
+      const { error } = await supabase.storage
+        .from("reference")
+        .remove(filesToDelete);
+
+      if (error) {
+        console.error("❌ [CLEANUP] Geçici dosya silme hatası:", error);
+      } else {
+        console.log(
+          `✅ [CLEANUP] ${filesToDelete.length} geçici dosya başarıyla silindi`
+        );
+      }
+    } catch (cleanupError) {
+      console.error("❌ [CLEANUP] Cleanup işlem hatası:", cleanupError);
+    }
+  }
+}
+
 // Referans resmini Supabase'e yükleyip URL alan fonksiyon
 async function uploadReferenceImageToSupabase(imageUri, userId) {
   try {
@@ -60,12 +111,12 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
       );
     }
 
-    // Dosya adı oluştur
+    // Dosya adı oluştur (otomatik temizleme için timestamp prefix)
     const timestamp = Date.now();
     const randomId = uuidv4().substring(0, 8);
-    const fileName = `reference_${
+    const fileName = `temp_${timestamp}_reference_${
       userId || "anonymous"
-    }_${timestamp}_${randomId}.jpg`;
+    }_${randomId}.jpg`;
 
     console.log("Supabase'e yüklenecek dosya adı:", fileName);
 
@@ -840,6 +891,7 @@ router.post("/change-color/generate", async (req, res) => {
   const CREDIT_COST = 20; // Her oluşturma 5 kredi
   let creditDeducted = false;
   let userId; // Scope için önceden tanımla
+  let temporaryFiles = []; // Silinecek geçici dosyalar
 
   try {
     const {
@@ -998,6 +1050,9 @@ router.post("/change-color/generate", async (req, res) => {
 
     console.log("Supabase'den alınan final resim URL'si:", finalImage);
 
+    // Geçici dosyayı silme listesine ekle
+    temporaryFiles.push(finalImage);
+
     // Aspect ratio'yu formatla
     const formattedRatio = formatAspectRatio(ratio || "9:16");
     console.log(
@@ -1149,6 +1204,12 @@ router.post("/change-color/generate", async (req, res) => {
         false // isMultipleProducts
       );
 
+      // 🗑️ İşlem başarıyla tamamlandı, geçici dosyaları hemen temizle
+      console.log(
+        "🧹 [CHANGE COLOR] İşlem başarılı, geçici dosyalar temizleniyor..."
+      );
+      await cleanupTemporaryFiles(temporaryFiles);
+
       return res.status(200).json(responseData);
     } else {
       console.error("Replicate API başarısız:", finalResult);
@@ -1187,6 +1248,12 @@ router.post("/change-color/generate", async (req, res) => {
     }
   } catch (error) {
     console.error("Resim oluşturma hatası:", error);
+
+    // 🗑️ Hata durumunda da geçici dosyaları temizle
+    console.log(
+      "🧹 [CHANGE COLOR] Hata durumunda geçici dosyalar temizleniyor..."
+    );
+    await cleanupTemporaryFiles(temporaryFiles);
 
     // Kredi iade et
     if (creditDeducted && userId && userId !== "anonymous_user") {

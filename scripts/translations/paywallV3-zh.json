@@ -1,0 +1,99 @@
+{
+  "paywallV3": {
+    "weekly": "每周",
+    "monthly": "每月",
+    "aiCredit": "AI积分",
+    "unlimited": "无限",
+    "pleaseWait": "请稍候",
+    "buyNow": "立即购买",
+    "terms": "无承诺 - 随时取消",
+    "period": {
+      "week": "周",
+      "month": "月"
+    },
+    "features": {
+      "standard": {
+        "credits": {
+          "subtitle": "使用{{credits}}积分在AI模型上专业展示{{products}}种不同产品"
+        }
+      },
+      "plus": {
+        "credits": {
+          "subtitle": "使用{{credits}}积分在AI模型上以多种组合展示{{products}}种不同产品"
+        }
+      },
+      "premium": {
+        "credits": {
+          "subtitle": "使用{{credits}}积分通过超快AI处理在高级模型上展示{{products}}种不同产品"
+        }
+      },
+      "aiModelDisplay": {
+        "title": "AI模型展示",
+        "subtitle": "用逼真的模型专业展示您的产品"
+      },
+      "creativeBackgrounds": {
+        "title": "100+创意AI背景",
+        "subtitle": "在各种环境中的专业产品照片"
+      },
+      "photoEnhancement": {
+        "title": "AI照片增强",
+        "subtitle": "工作室品质的照片增强"
+      },
+      "videoGeneration": {
+        "title": "AI视频生成",
+        "subtitle": "将静态照片转换为动态视频"
+      },
+      "multiProduct": {
+        "title": "并行处理系统",
+        "subtitle": "通过同时处理不同产品节省时间"
+      },
+      "allStandardFeatures": {
+        "title": "所有标准套餐功能",
+        "subtitle": "AI模型、背景、视频和所有基本功能"
+      },
+      "premiumBackgrounds": {
+        "title": "高级AI背景",
+        "subtitle": "200+专门设计的豪华环境选项"
+      },
+      "ultraFastProcessing": {
+        "title": "超快速AI处理（20秒）",
+        "subtitle": "使用最先进的AI技术获得即时结果"
+      },
+      "allFeatures": {
+        "title": "所有标准+增强功能",
+        "subtitle": "AI模型、多产品、高级背景和所有功能"
+      },
+      "earlyAccess": {
+        "title": "新功能抢先体验",
+        "subtitle": "抢先体验最新功能的特权"
+      }
+    },
+    "savings": {
+      "standardMonthly": "节省12%",
+      "plusWeekly": "节省10%",
+      "plusMonthly": "节省25%",
+      "premiumWeekly": "节省25%",
+      "premiumMonthly": "节省38%"
+    },
+    "plans": {
+      "weekly": {
+        "title": "每周访问",
+        "subtitle": "最受欢迎的选择"
+      },
+      "monthly": {
+        "title": "每月访问",
+        "subtitle": "最经济的选择"
+      }
+    },
+    "alerts": {
+      "samePackage": "🎉 您已经拥有此套餐！\\n\\n您已经在使用此套餐。您当前的订阅继续有效，积分定期更新。",
+      "activeSubscription": "⚠️ 您已经有活跃订阅！\\n\\n要更改套餐，您需要先取消当前订阅。您可以在设置 > 订阅中管理当前订阅。",
+      "packageNotFound": "未找到套餐。请稍后重试。",
+      "alreadyHasSubscription": "🎉 您已经有活跃订阅！\\n\\n您已经拥有此套餐。您当前的订阅继续有效，积分每月自动更新。",
+      "purchaseCancelled": "❌ 购买已取消。\\n\\n您在Apple确认屏幕上点击了\\\"取消\\\"。要完成购买，请再次按\\\"立即购买\\\"并在Apple确认屏幕上点击\\\"购买\\\"。",
+      "productNotAvailable": "此产品目前无法购买。",
+      "paymentPending": "您的付款正在处理中。请稍候。",
+      "unknownError": "购买过程中发生错误。请稍后重试。"
+    }
+  }
+}

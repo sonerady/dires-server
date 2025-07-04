@@ -53,9 +53,10 @@ const changeColorRoutes = require("./routes/changeColorRoutes");
 const infoModalRoutes = require("./routes/infoModalRoutes");
 // RevenueCat webhook route import
 const revenuecatWebhookRouterv2 = require("./routes/revenuecatWebhookv2");
-const revenuecatWebhookRouter = require("./routes/revenuecatWebhook");
+// const revenuecatWebhookRouter = require("./routes/revenuecatWebhook"); // ESKİ WEBHOOK DEVRE DIŞI
 // Custom Pose routes import
 const customPoseRoutes = require("./routes/customPoseRoutes");
+// Generation Status routes import
 
 const app = express();
 
@@ -139,7 +140,8 @@ app.use("/api", changeColorRoutes);
 app.use("/api/poses", poseRoutes);
 app.use("/api/user", infoModalRoutes);
 app.use("/api/editRoom", editRoomRoutes);
-app.use("/revenuecat", revenuecatWebhookRouter);
+// ESKİ WEBHOOK DEVRE DIŞI - Duplicate kredi sorunu yüzünden kapatıldı
+// app.use("/revenuecat", revenuecatWebhookRouter);
 app.use("/revenuecatv2", revenuecatWebhookRouterv2);
 
 app.use("/purchase", purchaseRoutes);

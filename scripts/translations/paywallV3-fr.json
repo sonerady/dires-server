@@ -1,0 +1,99 @@
+{
+  "paywallV3": {
+    "weekly": "Hebdomadaire",
+    "monthly": "Mensuel",
+    "aiCredit": "Crédit IA",
+    "unlimited": "Illimité",
+    "pleaseWait": "Veuillez patienter",
+    "buyNow": "Acheter maintenant",
+    "terms": "Aucun engagement - Annulez quand vous voulez",
+    "period": {
+      "week": "semaine",
+      "month": "mois"
+    },
+    "features": {
+      "standard": {
+        "credits": {
+          "subtitle": "{{credits}} crédits pour présenter {{products}} produits différents de manière professionnelle sur des modèles IA"
+        }
+      },
+      "plus": {
+        "credits": {
+          "subtitle": "{{credits}} crédits pour présenter {{products}} produits différents avec des combinaisons multiples sur des modèles IA"
+        }
+      },
+      "premium": {
+        "credits": {
+          "subtitle": "{{credits}} crédits pour présenter {{products}} produits différents avec un traitement IA ultra-rapide sur des modèles premium"
+        }
+      },
+      "aiModelDisplay": {
+        "title": "Affichage sur Modèle IA",
+        "subtitle": "Présentez vos produits de manière professionnelle avec des modèles réalistes"
+      },
+      "creativeBackgrounds": {
+        "title": "100+ Arrière-plans IA Créatifs",
+        "subtitle": "Photos de produits professionnelles dans divers environnements"
+      },
+      "photoEnhancement": {
+        "title": "Amélioration Photo IA",
+        "subtitle": "Amélioration photo de qualité studio"
+      },
+      "videoGeneration": {
+        "title": "Génération Vidéo IA",
+        "subtitle": "Transformez les photos statiques en vidéos animées"
+      },
+      "multiProduct": {
+        "title": "Système de Traitement Parallèle",
+        "subtitle": "Économisez du temps en traitant différents produits simultanément"
+      },
+      "allStandardFeatures": {
+        "title": "Toutes les Fonctionnalités Standard",
+        "subtitle": "Modèle IA, Arrière-plan, Vidéo et toutes les fonctionnalités de base"
+      },
+      "premiumBackgrounds": {
+        "title": "Arrière-plans IA Premium",
+        "subtitle": "200+ options d'environnements luxueux spécialement conçus"
+      },
+      "ultraFastProcessing": {
+        "title": "Traitement IA Ultra-Rapide (20 sec)",
+        "subtitle": "Résultats instantanés avec la technologie IA la plus avancée"
+      },
+      "allFeatures": {
+        "title": "Toutes les Fonctionnalités Standard + Plus",
+        "subtitle": "Modèle IA, Multi-Produit, Arrière-plan Premium et toutes les fonctionnalités"
+      },
+      "earlyAccess": {
+        "title": "Accès Anticipé aux Nouvelles Fonctionnalités",
+        "subtitle": "Privilège d'expérimenter les dernières fonctionnalités en premier"
+      }
+    },
+    "savings": {
+      "standardMonthly": "12% d'économie",
+      "plusWeekly": "10% d'économie",
+      "plusMonthly": "25% d'économie",
+      "premiumWeekly": "25% d'économie",
+      "premiumMonthly": "38% d'économie"
+    },
+    "plans": {
+      "weekly": {
+        "title": "ACCÈS HEBDOMADAIRE",
+        "subtitle": "Choix le plus populaire"
+      },
+      "monthly": {
+        "title": "ACCÈS MENSUEL",
+        "subtitle": "Choix le plus économique"
+      }
+    },
+    "alerts": {
+      "samePackage": "🎉 Vous avez déjà ce forfait !\\n\\nVous utilisez déjà ce forfait. Votre abonnement actuel se poursuit et vos crédits se renouvellent régulièrement.",
+      "activeSubscription": "⚠️ Vous avez déjà un abonnement actif !\\n\\nPour changer de forfait, vous devez d'abord annuler votre abonnement actuel. Vous pouvez gérer votre abonnement actuel depuis Réglages > Abonnements.",
+      "packageNotFound": "Forfait introuvable. Veuillez réessayer plus tard.",
+      "alreadyHasSubscription": "🎉 Vous avez déjà un abonnement actif !\\n\\nVous avez déjà ce forfait. Votre abonnement actuel se poursuit et vos crédits se renouvellent automatiquement chaque mois.",
+      "purchaseCancelled": "❌ Achat annulé.\\n\\nVous avez cliqué sur 'Annuler' sur l'écran de confirmation d'Apple. Pour finaliser l'achat, appuyez à nouveau sur 'Acheter maintenant' et cliquez sur 'Acheter' sur l'écran de confirmation d'Apple.",
+      "productNotAvailable": "Ce produit n'est actuellement pas disponible à l'achat.",
+      "paymentPending": "Votre paiement est en cours de traitement. Veuillez patienter.",
+      "unknownError": "Une erreur s'est produite lors de l'achat. Veuillez réessayer plus tard."
+    }
+  }
+}
