@@ -1174,12 +1174,6 @@ router.post("/consistent/generate", async (req, res) => {
         false // isMultipleProducts
       );
 
-      // 🗑️ İşlem başarıyla tamamlandı, geçici dosyaları hemen temizle
-      console.log(
-        "🧹 [CONSISTENT] İşlem başarılı, geçici dosyalar temizleniyor..."
-      );
-      await cleanupTemporaryFiles(temporaryFiles);
-
       return res.status(200).json(responseData);
     } else {
       console.error("Replicate API başarısız:", finalResult);

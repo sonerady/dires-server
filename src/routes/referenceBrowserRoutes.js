@@ -37,48 +37,9 @@ if (!fs.existsSync(tempDir)) {
 
 // Geçici dosyaları hemen silme fonksiyonu (işlem biter bitmez)
 async function cleanupTemporaryFiles(fileUrls) {
-  if (!fileUrls || fileUrls.length === 0) return;
-
-  const filesToDelete = [];
-
-  for (const url of fileUrls) {
-    if (
-      typeof url === "string" &&
-      url.includes("/storage/v1/object/public/reference/")
-    ) {
-      // URL'den dosya adını çıkar
-      const fileName = url.split("/reference/")[1]?.split("?")[0];
-
-      if (
-        fileName &&
-        (fileName.includes("background_removed") ||
-          fileName.includes("combined_") ||
-          fileName.includes("corrected_") ||
-          fileName.includes("local_canny"))
-      ) {
-        filesToDelete.push(fileName);
-        console.log(`🗑️ Geçici dosya silmeye işaretlendi: ${fileName}`);
-      }
-    }
-  }
-
-  if (filesToDelete.length > 0) {
-    try {
-      const { error } = await supabase.storage
-        .from("reference")
-        .remove(filesToDelete);
-
-      if (error) {
-        console.error("❌ Geçici dosya silme hatası:", error);
-      } else {
-        console.log(`✅ ${filesToDelete.length} geçici dosya hemen silindi`);
-      }
-    } catch (cleanupError) {
-      console.error("❌ Cleanup fonksiyonu hatası:", cleanupError);
-    }
-  } else {
-    console.log("🆗 Silinecek geçici dosya bulunamadı");
-  }
+  // Bu fonksiyon artık dosya silme işlemi yapmıyor.
+  console.log("🧹 cleanupTemporaryFiles çağrıldı fakat dosya silme işlemi devre dışı bırakıldı.");
+  // İleride log veya başka bir işlem eklenebilir.
 }
 
 // Referans resmini Supabase'e yükleyip URL alan fonksiyon

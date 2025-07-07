@@ -669,12 +669,6 @@ router.post("/generate", async (req, res) => {
         referenceImages
       );
 
-      // 🗑️ İşlem başarıyla tamamlandı, geçici dosyaları hemen temizle
-      console.log(
-        "🧹 [EDIT ROOM] İşlem başarılı, geçici dosyalar temizleniyor..."
-      );
-      await cleanupTemporaryFiles(temporaryFiles);
-
       return res.status(200).json(responseData);
     } else {
       console.error("Replicate API başarısız:", finalResult);

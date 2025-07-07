@@ -1204,12 +1204,6 @@ router.post("/change-color/generate", async (req, res) => {
         false // isMultipleProducts
       );
 
-      // 🗑️ İşlem başarıyla tamamlandı, geçici dosyaları hemen temizle
-      console.log(
-        "🧹 [CHANGE COLOR] İşlem başarılı, geçici dosyalar temizleniyor..."
-      );
-      await cleanupTemporaryFiles(temporaryFiles);
-
       return res.status(200).json(responseData);
     } else {
       console.error("Replicate API başarısız:", finalResult);
@@ -1248,12 +1242,6 @@ router.post("/change-color/generate", async (req, res) => {
     }
   } catch (error) {
     console.error("Resim oluşturma hatası:", error);
-
-    // 🗑️ Hata durumunda da geçici dosyaları temizle
-    console.log(
-      "🧹 [CHANGE COLOR] Hata durumunda geçici dosyalar temizleniyor..."
-    );
-    await cleanupTemporaryFiles(temporaryFiles);
 
     // Kredi iade et
     if (creditDeducted && userId && userId !== "anonymous_user") {
