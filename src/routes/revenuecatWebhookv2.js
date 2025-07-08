@@ -120,6 +120,7 @@ router.post("/webhookv2", async (req, res) => {
       "INITIAL_PURCHASE", // İlk satın alma
       "NON_RENEWING_PURCHASE", // Tek seferlik satın alma
       "RENEWAL", // Yenileme
+      "PRODUCT_CHANGE", // Plan değişikliği (aynı kullanıcı ID'si durumunda)
       "TEST", // RevenueCat test webhook'ları
     ];
 
@@ -128,6 +129,199 @@ router.post("/webhookv2", async (req, res) => {
       "CANCELLATION", // İptal
       "EXPIRATION", // Süresi dolmuş
     ];
+
+    // Product change eventi için özel işlem
+    if (type === "PRODUCT_CHANGE") {
+      console.log(`🔄 Processing PRODUCT_CHANGE event`);
+
+      const oldUserId = original_app_user_id;
+      const newUserId = app_user_id;
+
+      if (!oldUserId || !newUserId) {
+        console.error("❌ Missing user IDs for product change");
+        return res.status(400).json({
+          error: "Product change requires both old and new user IDs",
+        });
+      }
+
+      if (oldUserId === newUserId) {
+        console.log("ℹ️ Same user ID - treating as plan upgrade/downgrade");
+        // Aynı kullanıcı, farklı plana geçiş - normal kredi ekleme işlemi devam edecek
+      } else {
+        console.log(`🔄 Transferring data from ${oldUserId} to ${newUserId}`);
+
+        // Eski kullanıcının verilerini al
+        const { data: oldUserData, error: oldUserError } = await supabase
+          .from("users")
+          .select("credit_balance, is_pro, subscription_type")
+          .eq("id", oldUserId)
+          .single();
+
+        if (oldUserError) {
+          console.error("❌ Error fetching old user data:", oldUserError);
+          return res
+            .status(500)
+            .json({ error: "Failed to fetch old user data" });
+        }
+
+        // Yeni kullanıcının mevcut verilerini al veya oluştur
+        let { data: newUserData, error: newUserError } = await supabase
+          .from("users")
+          .select("credit_balance")
+          .eq("id", newUserId)
+          .single();
+
+        // Yeni kullanıcı yoksa oluştur
+        if (newUserError && newUserError.code === "PGRST116") {
+          console.log(`🆕 Creating new user: ${newUserId}`);
+
+          const { data: createdUser, error: createError } = await supabase
+            .from("users")
+            .insert({
+              id: newUserId,
+              credit_balance: 0,
+              is_pro: false,
+              created_at: new Date().toISOString(),
+            })
+            .select("credit_balance")
+            .single();
+
+          if (createError) {
+            console.error("❌ Error creating new user:", createError);
+            return res.status(500).json({ error: "Failed to create new user" });
+          }
+
+          newUserData = createdUser;
+        } else if (newUserError) {
+          console.error("❌ Error fetching new user data:", newUserError);
+          return res
+            .status(500)
+            .json({ error: "Failed to fetch new user data" });
+        }
+
+        // Product ID'den yeni plan bilgilerini belirle
+        const creditsToAdd = getCreditsForPackage(product_id);
+        let planType = null;
+        let isPro = false;
+
+        // Plan tipini belirle (önceki koddan alınan mantık)
+        if (
+          product_id.startsWith("standard_") ||
+          product_id.includes(".standard.")
+        ) {
+          planType = "standard";
+          isPro = true;
+        } else if (
+          product_id.startsWith("plus_") ||
+          product_id.includes(".plus.")
+        ) {
+          planType = "plus";
+          isPro = true;
+        } else if (
+          product_id.startsWith("premium_") ||
+          product_id.includes(".premium.")
+        ) {
+          planType = "premium";
+          isPro = true;
+        }
+
+        // Eski kullanıcının tüm kredi bakiyesini + yeni plan kredilerini yeni kullanıcıya transfer et
+        const totalCredits =
+          (oldUserData?.credit_balance || 0) +
+          (newUserData?.credit_balance || 0) +
+          creditsToAdd;
+
+        // Yeni kullanıcıyı güncelle
+        const updateFields = {
+          credit_balance: totalCredits,
+          is_pro: isPro,
+        };
+
+        if (planType) {
+          updateFields.subscription_type = planType;
+        }
+
+        const { data: transferData, error: transferError } = await supabase
+          .from("users")
+          .update(updateFields)
+          .eq("id", newUserId)
+          .select();
+
+        if (transferError) {
+          console.error("❌ Error transferring data:", transferError);
+          return res.status(500).json({ error: "Data transfer failed" });
+        }
+
+        // Eski kullanıcıyı deaktive et (kredi bakiyesini sıfırla ve PRO'dan çıkar)
+        const { error: deactivateError } = await supabase
+          .from("users")
+          .update({
+            credit_balance: 0,
+            is_pro: false,
+            subscription_type: null,
+          })
+          .eq("id", oldUserId);
+
+        if (deactivateError) {
+          console.error(
+            "⚠️ Warning: Could not deactivate old user:",
+            deactivateError
+          );
+        }
+
+        // Purchase history'ye kaydet
+        try {
+          await supabase.from("purchase_history").insert({
+            user_id: newUserId,
+            product_id: product_id || "product_change",
+            transaction_id: transaction_id || `transfer_${Date.now()}`,
+            credits_added: creditsToAdd,
+            price: price || 0,
+            currency: currency || "USD",
+            store: store || "unknown",
+            environment: environment || "unknown",
+            event_type: "PRODUCT_CHANGE",
+            purchased_at: new Date(purchased_at_ms || Date.now()),
+            created_at: new Date().toISOString(),
+          });
+        } catch (historyError) {
+          console.error(
+            "⚠️ Warning: Product change history error:",
+            historyError
+          );
+        }
+
+        console.log(`✅ Product change completed successfully!`);
+        console.log(`📊 Transfer summary:`);
+        console.log(
+          `   Old user (${oldUserId}): ${
+            oldUserData?.credit_balance || 0
+          } credits -> deactivated`
+        );
+        console.log(
+          `   New user (${newUserId}): ${totalCredits} total credits (${creditsToAdd} new + ${
+            (oldUserData?.credit_balance || 0) +
+            (newUserData?.credit_balance || 0)
+          } transferred)`
+        );
+
+        return res.status(200).json({
+          success: true,
+          message:
+            "Product change processed - user data transferred successfully",
+          old_user_id: oldUserId,
+          new_user_id: newUserId,
+          credits_transferred:
+            (oldUserData?.credit_balance || 0) +
+            (newUserData?.credit_balance || 0),
+          credits_added: creditsToAdd,
+          total_credits: totalCredits,
+          subscription_type: planType,
+          is_pro: isPro,
+          event_type: "PRODUCT_CHANGE",
+        });
+      }
+    }
 
     // Eğer cancellation/expiration event'i ise kullanıcıyı free yap
     if (cancellationEvents.includes(type)) {
