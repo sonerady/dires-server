@@ -38,7 +38,9 @@ if (!fs.existsSync(tempDir)) {
 // Geçici dosyaları hemen silme fonksiyonu (işlem biter bitmez)
 async function cleanupTemporaryFiles(fileUrls) {
   // Bu fonksiyon artık dosya silme işlemi yapmıyor.
-  console.log("🧹 cleanupTemporaryFiles çağrıldı fakat dosya silme işlemi devre dışı bırakıldı.");
+  console.log(
+    "🧹 cleanupTemporaryFiles çağrıldı fakat dosya silme işlemi devre dışı bırakıldı."
+  );
   // İleride log veya başka bir işlem eklenebilir.
 }
 
@@ -1891,6 +1893,51 @@ async function uploadProcessedImageBufferToSupabase(
 // }
 
 // Replicate prediction durumunu kontrol eden fonksiyon
+// Flux-kontext-dev ile alternatif API çağrısı
+async function callFluxKontextDevAPI(
+  enhancedPrompt,
+  inputImageUrl,
+  aspectRatio
+) {
+  try {
+    console.log("🔄 Flux-kontext-dev API'ye geçiş yapılıyor...");
+
+    const seed = Math.floor(Math.random() * 2 ** 32);
+    console.log(`🎲 Alternatif API için random seed: ${seed}`);
+
+    const response = await axios.post(
+      "https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-dev/predictions",
+      {
+        input: {
+          prompt: enhancedPrompt,
+          go_fast: false,
+          guidance: 2.5,
+          input_image: inputImageUrl,
+          aspect_ratio: aspectRatio,
+          output_format: "jpg",
+          output_quality: 100,
+          num_inference_steps: 30,
+          disable_safety_checker: true,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+          "Content-Type": "application/json",
+          Prefer: "wait",
+        },
+        timeout: 300000, // 5 dakika timeout (flux-kontext-dev daha uzun sürebilir)
+      }
+    );
+
+    console.log("✅ Flux-kontext-dev API başarılı:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("❌ Flux-kontext-dev API hatası:", error.message);
+    throw error;
+  }
+}
+
 async function pollReplicateResult(predictionId, maxAttempts = 60) {
   console.log(`Replicate prediction polling başlatılıyor: ${predictionId}`);
 
@@ -1942,11 +1989,9 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
             result.error.includes("sensitive content"))
         ) {
           console.error(
-            "❌ Sensitive content hatası tespit edildi, polling durduruluyor"
+            "❌ Sensitive content hatası tespit edildi, flux-kontext-dev'e geçiş yapılacak"
           );
-          throw new Error(
-            "SENSITIVE_CONTENT: İlgili ürün işlenirken uygunsuz içerikler tespit edildi. Lütfen farklı bir görsel veya ayarlarla yeniden deneyin."
-          );
+          throw new Error("SENSITIVE_CONTENT_FLUX_FALLBACK");
         }
 
         throw new Error(result.error || "Replicate processing failed");
@@ -1964,8 +2009,10 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
       console.error(`Polling attempt ${attempt + 1} hatası:`, error.message);
 
       // Sensitive content hatasını özel olarak handle et
-      if (error.message.startsWith("SENSITIVE_CONTENT:")) {
-        console.error("❌ Sensitive content hatası, polling durduruluyor");
+      if (error.message === "SENSITIVE_CONTENT_FLUX_FALLBACK") {
+        console.error(
+          "❌ Sensitive content hatası, flux-kontext-dev'e geçiş için polling durduruluyor"
+        );
         throw error; // Hata mesajını olduğu gibi fırlat
       }
 
@@ -2594,12 +2641,131 @@ router.post("/generate", async (req, res) => {
 
     // Prediction durumunu polling ile takip et
     const startTime = Date.now();
-    const finalResult = await pollReplicateResult(initialResult.id);
-    const processingTime = Math.round((Date.now() - startTime) / 1000);
+    let finalResult;
+    let processingTime;
+
+    try {
+      finalResult = await pollReplicateResult(initialResult.id);
+      processingTime = Math.round((Date.now() - startTime) / 1000);
+    } catch (pollingError) {
+      console.error("❌ Polling hatası:", pollingError.message);
+
+      // Sensitive content hatası yakalandıysa flux-kontext-dev'e geç
+      if (pollingError.message === "SENSITIVE_CONTENT_FLUX_FALLBACK") {
+        console.log(
+          "🔄 Sensitive content hatası nedeniyle flux-kontext-dev'e geçiliyor..."
+        );
+
+        try {
+          // Flux-kontext-dev API'ye geçiş yap
+          const fallbackStartTime = Date.now();
+          finalResult = await callFluxKontextDevAPI(
+            enhancedPrompt,
+            combinedImageForReplicate,
+            formattedRatio
+          );
+          processingTime = Math.round((Date.now() - fallbackStartTime) / 1000);
+
+          console.log("✅ Flux-kontext-dev API'den başarılı sonuç alındı");
+        } catch (fallbackError) {
+          console.error(
+            "❌ Flux-kontext-dev API'si de başarısız:",
+            fallbackError.message
+          );
+
+          // 🗑️ Fallback API hatası durumunda geçici dosyaları temizle
+          console.log(
+            "🧹 Fallback API hatası sonrası geçici dosyalar temizleniyor..."
+          );
+          await cleanupTemporaryFiles(temporaryFiles);
+
+          // Kredi iade et
+          if (creditDeducted && userId && userId !== "anonymous_user") {
+            try {
+              const { data: currentUserCredit } = await supabase
+                .from("users")
+                .select("credit_balance")
+                .eq("id", userId)
+                .single();
+
+              await supabase
+                .from("users")
+                .update({
+                  credit_balance:
+                    (currentUserCredit?.credit_balance || 0) + CREDIT_COST,
+                })
+                .eq("id", userId);
+
+              console.log(
+                `💰 ${CREDIT_COST} kredi iade edildi (Fallback API hatası)`
+              );
+            } catch (refundError) {
+              console.error("❌ Kredi iade hatası:", refundError);
+            }
+          }
+
+          return res.status(500).json({
+            success: false,
+            result: {
+              message: "Görsel işleme işlemi başarısız oldu",
+              error:
+                "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
+            },
+          });
+        }
+      } else {
+        // Diğer polling hataları için mevcut mantığı kullan
+
+        // 🗑️ Polling hatası durumunda geçici dosyaları temizle
+        console.log(
+          "🧹 Polling hatası sonrası geçici dosyalar temizleniyor..."
+        );
+        await cleanupTemporaryFiles(temporaryFiles);
+
+        // Kredi iade et
+        if (creditDeducted && userId && userId !== "anonymous_user") {
+          try {
+            const { data: currentUserCredit } = await supabase
+              .from("users")
+              .select("credit_balance")
+              .eq("id", userId)
+              .single();
+
+            await supabase
+              .from("users")
+              .update({
+                credit_balance:
+                  (currentUserCredit?.credit_balance || 0) + CREDIT_COST,
+              })
+              .eq("id", userId);
+
+            console.log(`💰 ${CREDIT_COST} kredi iade edildi (Polling hatası)`);
+          } catch (refundError) {
+            console.error("❌ Kredi iade hatası:", refundError);
+          }
+        }
+
+        return res.status(500).json({
+          success: false,
+          result: {
+            message: "Görsel işleme işlemi başarısız oldu",
+            error: pollingError.message.includes("PREDICTION_INTERRUPTED")
+              ? "Sunucu kesintisi oluştu. Lütfen tekrar deneyin."
+              : "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
+          },
+        });
+      }
+    }
 
     console.log("Replicate final result:", finalResult);
 
-    if (finalResult.status === "succeeded" && finalResult.output) {
+    // Flux-kontext-dev API'den gelen sonuç farklı format olabilir (Prefer: wait nedeniyle)
+    const isFluxKontextDevResult =
+      finalResult && !finalResult.status && finalResult.output;
+    const isStandardResult =
+      finalResult.status === "succeeded" && finalResult.output;
+
+    if (isFluxKontextDevResult || isStandardResult) {
       console.log("Replicate API işlemi başarılı");
 
       // 💳 API başarılı olduktan sonra güncel kredi bilgisini al
