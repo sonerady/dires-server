@@ -327,25 +327,7 @@ async function enhancePromptWithGemini(
 
     // Gemini 2.0 Flash modeli - En yeni API yapısı
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
-      safetySettings: [
-        {
-          category: "HARM_CATEGORY_HARASSMENT",
-          threshold: "BLOCK_ONLY_HIGH",
-        },
-        {
-          category: "HARM_CATEGORY_HATE_SPEECH",
-          threshold: "BLOCK_ONLY_HIGH",
-        },
-        {
-          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-          threshold: "BLOCK_ONLY_HIGH",
-        },
-        {
-          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-          threshold: "BLOCK_ONLY_HIGH",
-        },
-      ],
+      model: "gemini-2.5-flash",
     });
 
     // Settings'in var olup olmadığını kontrol et
@@ -384,7 +366,7 @@ async function enhancePromptWithGemini(
       }
       const genderWord =
         genderLower === "male" || genderLower === "man" ? "boy" : "girl";
-      
+
       if (parsedAgeInt <= 1) {
         // Baby için daha spesifik tanım
         modelGenderText = `${parsedAgeInt}-year-old ${ageGroupWord} ${genderWord} (infant)`;
@@ -463,7 +445,9 @@ BABY PHYSICAL CHARACTERISTICS (MANDATORY):
 - NO mature or adult-like features whatsoever
 
 BABY DESCRIPTION FORMAT (MANDATORY):
-Start the description like this: "A ${parsedAge}-year-old baby ${genderLower === "male" || genderLower === "man" ? "boy" : "girl"} (infant) is wearing..."
+Start the description like this: "A ${parsedAge}-year-old baby ${
+          genderLower === "male" || genderLower === "man" ? "boy" : "girl"
+        } (infant) is wearing..."
 Then add: "Make sure he/she is clearly a baby: chubby cheeks, small body proportions, baby hands and feet."
 
 BABY POSE REQUIREMENTS:
