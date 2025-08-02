@@ -368,18 +368,31 @@ async function enhancePromptWithGemini(
     const genderLower = gender.toLowerCase();
 
     // Yaş grupları tanımlaması
-    // 0-3   : toddler
+    // 0-1   : baby (infant)
+    // 2-3   : toddler
     // 4-12  : child
     // 13-16 : teenage
     // 17+   : adult
 
     if (!isNaN(parsedAgeInt) && parsedAgeInt <= 3) {
-      // Toddler
-      const ageGroupWord = "toddler";
+      // Baby/Toddler
+      let ageGroupWord;
+      if (parsedAgeInt <= 1) {
+        ageGroupWord = "baby"; // 0-1 yaş için baby
+      } else {
+        ageGroupWord = "toddler"; // 2-3 yaş için toddler
+      }
       const genderWord =
         genderLower === "male" || genderLower === "man" ? "boy" : "girl";
-      modelGenderText = `${parsedAgeInt} year old ${ageGroupWord} ${genderWord}`;
-      baseModelText = `${ageGroupWord} ${genderWord}`;
+      
+      if (parsedAgeInt <= 1) {
+        // Baby için daha spesifik tanım
+        modelGenderText = `${parsedAgeInt}-year-old ${ageGroupWord} ${genderWord} (infant)`;
+        baseModelText = `${ageGroupWord} ${genderWord} (infant)`;
+      } else {
+        modelGenderText = `${parsedAgeInt} year old ${ageGroupWord} ${genderWord}`;
+        baseModelText = `${ageGroupWord} ${genderWord}`;
+      }
     } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
       // Child
       const ageGroupWord = "child";
@@ -433,20 +446,67 @@ async function enhancePromptWithGemini(
     let childPromptSection = "";
     const parsedAge = parseInt(age, 10);
     if (!isNaN(parsedAge) && parsedAge <= 16) {
-      childPromptSection = `
+      if (parsedAge <= 1) {
+        // Baby-specific instructions (0-1 yaş)
+        childPromptSection = `
+    
+🍼 BABY MODEL REQUIREMENTS (Age: ${parsedAge}):
+CRITICAL: The model is a BABY (infant). This is MANDATORY - the model MUST clearly appear as a baby, not a child or adult.
+
+BABY PHYSICAL CHARACTERISTICS (MANDATORY):
+- Round, chubby baby cheeks
+- Large head proportional to baby body
+- Small baby hands and feet  
+- Soft baby skin texture
+- Infant body proportions (large head, short limbs, rounded belly)
+- Baby-appropriate facial features (button nose, wide eyes, soft expressions)
+- NO mature or adult-like features whatsoever
+
+BABY DESCRIPTION FORMAT (MANDATORY):
+Start the description like this: "A ${parsedAge}-year-old baby ${genderLower === "male" || genderLower === "man" ? "boy" : "girl"} (infant) is wearing..."
+Then add: "Make sure he/she is clearly a baby: chubby cheeks, small body proportions, baby hands and feet."
+
+BABY POSE REQUIREMENTS:
+- Sitting, lying, or being gently supported poses only
+- Natural baby movements (reaching, playing, looking around)
+- NO standing poses unless developmentally appropriate
+- NO complex or posed gestures
+- Relaxed, natural baby positioning
+
+This is an INFANT/BABY model. The result MUST show a clear baby, not a child or adult.`;
+      } else if (parsedAge <= 3) {
+        // Toddler-specific instructions (2-3 yaş)
+        childPromptSection = `
+    
+👶 TODDLER MODEL REQUIREMENTS (Age: ${parsedAge}):
+The model is a TODDLER. Use toddler-appropriate physical descriptions and poses.
+
+TODDLER CHARACTERISTICS:
+- Toddler proportions (chubby cheeks, shorter limbs)
+- Round facial features appropriate for age ${parsedAge}
+- Natural toddler expressions (curious, playful, gentle)
+- Age-appropriate body proportions
+
+DESCRIPTION FORMAT:
+Include phrases like "toddler proportions", "chubby cheeks", "gentle expression", "round facial features".
+
+This is a TODDLER model, not an adult.`;
+      } else {
+        // Child/teenage instructions (4-16 yaş)
+        childPromptSection = `
     
 ⚠️ AGE-SPECIFIC STYLE RULES FOR CHILD MODELS:
 The model described is a child aged ${parsedAge}. Please follow these mandatory restrictions and stylistic adjustments:
-- Use age-appropriate physical descriptions, such as "toddler proportions", "chubby cheeks", "gentle expression", "soft hair", "short limbs", or "round facial features".
+- Use age-appropriate physical descriptions, such as "child proportions", "gentle expression", "soft hair", or "youthful facial features".
 - Avoid all adult modeling language (e.g., "confident pose", "elegant posture", "sharp cheekbones", "stylish demeanor").
 - The model must appear natural, playful, and age-authentic — do NOT exaggerate facial structure or maturity.
-- Clothing must match the model's age group: for infants use soft babywear; for toddlers use simple, comfortable children's fashion (e.g., cotton tees, soft pants).
 - The model's pose should be passive, playful, or relaxed. DO NOT use assertive, posed, or seductive body language.
 - Do NOT reference any makeup, mature accessories, or adult modeling presence.
 - Ensure lighting and presentation is soft, clean, and suited for editorial children's fashion catalogs.
 - Overall expression and body language must align with innocence, comfort, and simplicity.
 
 This is a child model. Avoid inappropriate styling, body-focused language, or any pose/expression that could be misinterpreted.`;
+      }
     }
 
     // Body shape measurements handling
