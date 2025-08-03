@@ -810,14 +810,14 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
     
     FACE DESCRIPTION GUIDELINE: Below is *one example* of a possible face description → "${faceDescriptor}". This is **only an example**; do NOT reuse it verbatim. Instead, create your own natural-sounding, age-appropriate face description for the ${baseModelText} so that each generation features a unique and photogenic look.`;
 
-    // Gemini'ye gönderilecek metin - Basitleştirilmiş replace odaklı prompt
+    // Gemini'ye gönderilecek metin - Replace odaklı basit prompt
     let promptForGemini = `
-    IMPORTANT INSTRUCTION: Generate ONLY a simple replacement prompt without any introduction, explanation, or commentary. Do not start with phrases like "Here's a detailed prompt" or any descriptive text. Return ONLY the direct prompt content.
+    MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
 
-    Create a simple English prompt for replacing the garment from the reference image onto a ${modelGenderText}. 
+    Create a simple English prompt that STARTS with "Replace" for replacing the garment from the reference image onto a ${modelGenderText}.
 
     CRITICAL REQUIREMENTS:
-    1. Replace the flat-lay garment from the input image directly onto a standing ${baseModelText}
+    1. The prompt MUST begin with "Replace the flat-lay garment..."
     2. Keep the original garment exactly the same without changing any design, shape, colors, patterns, or details
     3. Do not modify or redesign the garment in any way
     4. The final image should be photorealistic, showing the same garment perfectly fitted on the ${baseModelText}
@@ -825,13 +825,9 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
     6. Preserve ALL original garment details: colors, patterns, textures, hardware, stitching, logos, graphics, and construction elements
     7. The garment must appear identical to the reference image, just worn by the model instead of being flat
 
-    LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English.
+    LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace".
 
-    ${
-      originalPrompt
-        ? `Additional requirements: ${originalPrompt}.`
-        : ""
-    }
+    ${originalPrompt ? `Additional requirements: ${originalPrompt}.` : ""}
     
     ${ageSection}
     ${childPromptSection}
@@ -844,7 +840,9 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
     ${hairStyleTextSection}
     ${faceDescriptionSection}
     
-    Generate a concise prompt focused on garment replacement while maintaining all original details.
+    Generate a concise prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace".
+    
+    EXAMPLE FORMAT: "Replace the flat-lay garment from the input image directly onto a standing [model description] while keeping the original garment exactly the same..."
     `;
 
     // Eğer originalPrompt'ta "Model's pose" ibaresi yoksa ek cümle ekleyelim:
