@@ -810,236 +810,26 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
     
     FACE DESCRIPTION GUIDELINE: Below is *one example* of a possible face description → "${faceDescriptor}". This is **only an example**; do NOT reuse it verbatim. Instead, create your own natural-sounding, age-appropriate face description for the ${baseModelText} so that each generation features a unique and photogenic look.`;
 
-    // Gemini'ye gönderilecek metin
+    // Gemini'ye gönderilecek metin - Basitleştirilmiş replace odaklı prompt
     let promptForGemini = `
-  
+    IMPORTANT INSTRUCTION: Generate ONLY a simple replacement prompt without any introduction, explanation, or commentary. Do not start with phrases like "Here's a detailed prompt" or any descriptive text. Return ONLY the direct prompt content.
 
-    FLUX KONTEXT PROMPT OPTIMIZATION (CRITICAL FOR BEST RESULTS):
-    
-    You are generating a prompt for FLUX Kontext, a surgical image editing model. Follow these MANDATORY guidelines:
-    
-    🔧 PROMPT STRUCTURE (EXACTLY 3 CLAUSES):
-    1) [MAIN_ACTION] - Start with precise action verb (Replace) + specific target
-    2) [PRESERVE] - "while keeping" + ALL elements that must remain unchanged
-    3) [DETAILS] - Camera, lighting, style refinements, scene context
-    
-    📏 CRITICAL LIMITS:
-    - MAXIMUM 512 tokens (Kontext will cut off longer prompts)
-    - ONE flowing sentence with semicolons separating the 3 clauses
-    - NO line breaks or multiple sentences
-    
-    🎯 ACTION VERBS (Use these proven high-impact verbs):
-    - Change (for color, material, style modifications)
-    - Transform (for style transfers)
-    - Replace (for object substitution)
-    - Add (for new elements)
-    - Remove (for deletions)
-    
-    🛡️ PRESERVE CLAUSE (NEVER OMIT):
-    Essential to prevent unwanted artifacts. Always include "while keeping" + specify:
-    - Pose and body positioning
-    - Facial features and expression
-    - Background elements
-    - Lighting conditions
-    - All original garment details not being changed
-    - Construction, fit, and proportions
-    
-    IMPORTANT INSTRUCTION: Generate ONLY a single, flowing FLUX Kontext prompt following the 3-clause structure. Do not include explanations, introductions, or commentary. The prompt should be surgical and specific, not descriptive scene creation.
+    Create a simple English prompt for replacing the garment from the reference image onto a ${modelGenderText}. 
 
-    LANGUAGE NORMALIZATION RULES:
-    - Translate every word and phrase that is not in English (e.g., colors, locations, garment descriptors) into English in the generated prompt. Example: convert "beyaz studio" to "white studio". The final prompt MUST be entirely in English.
+    CRITICAL REQUIREMENTS:
+    1. Replace the flat-lay garment from the input image directly onto a standing ${baseModelText}
+    2. Keep the original garment exactly the same without changing any design, shape, colors, patterns, or details
+    3. Do not modify or redesign the garment in any way
+    4. The final image should be photorealistic, showing the same garment perfectly fitted on the ${baseModelText}
+    5. Use natural studio lighting with a clean background
+    6. Preserve ALL original garment details: colors, patterns, textures, hardware, stitching, logos, graphics, and construction elements
+    7. The garment must appear identical to the reference image, just worn by the model instead of being flat
 
-    CRITICAL MODEL DESCRIPTION REQUIREMENT: You MUST provide extensive descriptions of the ${baseModelText} throughout the prompt. This includes:
-    - Physical appearance and body characteristics appropriate for the garment
-    - Posture, stance, and body positioning details
-    - Facial expression and overall demeanor
-    - Body lines, silhouette, and how the model carries themselves
-    - Hand positioning, arm placement, and leg positioning
-    - Model's interaction with the garment and how they wear it
-    - Professional modeling presence and confidence
-    - How the model's physique complements the garment design
-    - Natural movement and body language that enhances the garment presentation
-    
-    The ${baseModelText} should be described naturally throughout the prompt.
-
-    
-
-    STYLING GUIDELINES:
-    - If the reference is a TOP (shirt, blouse, sweater, etc.): Specify complementary bottoms (pants, skirts, shorts) that enhance the top's design, color, and style
-    - If the reference is a BOTTOM (pants, skirt, shorts, etc.): Specify complementary tops that work perfectly with the bottom piece's style and color
-    - If the reference is a DRESS: Specify appropriate outerwear, accessories, or layering pieces that complement without overwhelming
-    - If the reference is OUTERWEAR: Specify appropriate underlying garments that show through or peek out in a stylish way
-    - Always consider seasonal appropriateness and style cohesion
-    - Mention specific colors, textures, and styles that work harmoniously with the main piece
-    - Ensure the additional items don't compete with but rather enhance the main garment's visual impact
-
-    EXAMPLES OF COMPLETE STYLING:
-    - Red floral blouse → Pair with high-waisted cream or navy tailored trousers, or a flowing midi skirt in complementary neutral tones
-    - Dark wash jeans → Style with a crisp white button-down shirt or a soft cashmere sweater in earth tones
-    - Floral summer dress → Add a light denim jacket or linen blazer for layering depth
-    - Black leather jacket → Show with a fitted white t-shirt and dark skinny jeans underneath
-
-    CRITICAL GARMENT ANALYSIS REQUIREMENT: You MUST conduct a thorough visual analysis of the reference garment image and describe EVERY visible construction detail, fit characteristic, and structural element. This is essential for accurate representation:
-
-    MANDATORY GARMENT INSPECTION CHECKLIST:
-    1. FIT ANALYSIS: Analyze how the garment fits on the body - is it loose/relaxed, fitted/tailored, oversized, or form-fitting? Describe the silhouette shape and how much ease/room there is between fabric and body.
-    
-    2. CUT AND CONSTRUCTION: Examine the garment's cut style - A-line, straight cut, bias cut, princess seams, empire waist, wrap style, etc. Note any architectural shaping or construction techniques.
-    
-    3. DRAPE AND FABRIC BEHAVIOR: Observe how the fabric drapes and flows - does it hang straight, have natural gathers, create pleats or folds? Is the fabric stiff and structured or soft and flowing?
-    
-    4. PROPORTIONS AND MEASUREMENTS: Note the garment's proportions - sleeve length, hemline placement, neckline depth, overall garment length, and how these relate to the model's body.
-    
-    5. STRUCTURAL DETAILS: Identify all visible construction elements - seam placement, dart positioning, panel divisions, gathering, pleating, tucking, or any shaping techniques.
-    
-    6. EDGE TREATMENTS: Examine all edges - hemlines, necklines, armholes, cuffs - noting their finishing style, width, and how they behave (curved, straight, flared, gathered).
-    
-    7. VOLUME AND FULLNESS: Assess where the garment has volume or fullness - sleeves, skirt, bodice areas - and describe how this fullness is created and distributed.
-    
-    8. FABRIC WEIGHT AND TEXTURE: Determine the apparent fabric weight (lightweight/flowing vs heavyweight/structured) and surface texture that affects how the garment behaves.
-
-    CRITICAL ACCURACY REQUIREMENT: Carefully analyze the reference image and describe ONLY the features that actually exist in the garment. Do NOT assume or invent details that are not visible. Pay special attention to:
-    - Only mention pockets if they are clearly visible in the reference image
-    - Only describe buttons, zippers, or closures that actually exist
-    - Only reference specific design elements that are actually present
-    - If a garment has no pockets, do NOT suggest poses involving hands in pockets
-    - If there are no visible buttons, do NOT mention buttoning or unbuttoning
-    - Base all styling and posing suggestions on the actual garment construction shown
-    - Ensure model poses are appropriate for the specific garment features that exist
-
-
-    ☀️ **Lighting Enhancement for Outdoor Scenes:**
-If the target scene or outfit setting is an outdoor location (e.g., street, beach, garden, terrace), ensure that **sunlight is realistically integrated**, with **natural light casting soft, flattering highlights** onto the model and clothing. The lighting should enhance garment textures without overexposure.
-
-⚠️ Avoid any artificial HDR-like visual exaggeration. The final image must appear **naturally lit with sharp clarity**, clean contrast, and well-balanced exposure. Fabric shadows and model contours must remain photorealistic and clean. Blurry, foggy, or washed-out looks must be prevented.
-
-
-    
-    
-    GARMENT LENGTH AND BODY COVERAGE ANALYSIS: Carefully analyze where the garment falls on the body and specify the exact body areas it covers. For each garment type, describe precisely:
-    - For tops/shirts/blouses: Does it reach the waist, hip bone, mid-torso, or is it cropped above the waist?
-    - For dresses: Does it reach knee-length, midi (mid-calf), ankle-length, or floor-length?
-    - For pants/trousers: Are they full-length, ankle-length, capri (mid-calf), or shorts?
-    - For skirts: Do they reach mini (upper thigh), knee-length, midi, or maxi length?
-    - For jackets/coats: Do they end at the waist, hip, mid-thigh, or longer?
-    - For sleeves: Are they sleeveless, short-sleeve, three-quarter, or full-length?
-    - For necklines: Specify if it's crew neck, V-neck, scoop neck, high neck, off-shoulder, etc.
-    This length and coverage information is crucial for accurate garment representation and appropriate styling suggestions.
-
-    DETAILED CONSTRUCTION TERMINOLOGY: Use professional fashion construction terms when describing garment details:
-    - Seaming techniques: French seams, flat-fell seams, serged edges, bound seams
-    - Shaping methods: Darts, princess seams, side panels, waist seaming, bust darts
-    - Closures: Invisible zippers, exposed zippers, snap closures, hook-and-eye, ties
-    - Hemming: Blind hem, rolled hem, raw edge, bias binding, faced hem
-    - Neckline finishes: Bias binding, facing, self-fabric binding, contrast piping
-    - Sleeve attachments: Set-in sleeves, raglan sleeves, dolman sleeves, cap sleeves
-
-    SAFETY NOTICE: Please ensure that all descriptions avoid potentially sensitive or flagged content. Do NOT include any language or terms that could be interpreted as:
-- Sexualized or body-focused descriptions (e.g., "slender", "curvy", "inviting", "provocative", "bare skin", "revealing", "tight-fitting", etc.)
-- Any inappropriate reference to body type or attractiveness in a way that could trigger moderation
-Always prefer neutral, professional, and editorial-style language that emphasizes garment craftsmanship, fashion styling, and photographic composition. If a description includes a model, ensure the portrayal is professional, respectful, and appropriate for a fashion editorial setting.
-
-
-
-
-    Create a detailed English prompt for high-fashion editorial photography featuring the main product/garment from the provided reference image worn by a ${modelGenderText}. IMPORTANT: This is the FIRST of only 2 times you should mention the age. For all other model references, simply use "${baseModelText}". Absolutely avoid terms like transparent, see-through, sheer, revealing, exposed, decolletage, cleavage, low-cut, plunging, bare skin, provocative, sensual, sexy, seductive, tight-fitting for sensitive areas, body-hugging, form-fitting, or fabric opacity levels. Use safe alternatives like lightweight, delicate, fine-weave, airy, modern cut, contemporary style, elegant neckline, refined cut instead. Never mention brand names, designer names, or commercial labels like Nike, Adidas, Zara, H&M, Louis Vuitton etc. Describe items as premium garment, high-quality piece, professional design instead. 
-
-    🚨 CRITICAL PRODUCT FOCUS REQUIREMENT - ABSOLUTE PRIORITY:
-    
-    COMPLETELY IGNORE and DO NOT mention ANY of the following background elements that may appear in the reference image:
-    - Background furniture, objects, or environmental items unrelated to the main garment
-    - People, crowds, or any human figures in the background
-    - Buildings, architecture, or street scenes behind the product
-    - Cars, vehicles, or transportation elements
-    - Store fixtures, retail displays, or commercial photography setups
-    - Sales tags, price tags, hangtags, or any commercial labeling on the garment
-    - Photography equipment, mannequins, hangers, or display materials
-    - Supporting fabrics, background cloths, or photography aids used in the reference shot
-    - Irrelevant objects, decorative items, or clutter in the background
-    - Any visual elements that are not part of the actual garment/product itself
-    - Background textures, patterns, or surfaces (walls, floors, etc.)
-    - Lighting equipment, studio setups, or photography accessories
-    
-    ⚠️ MANDATORY INSTRUCTION: Focus EXCLUSIVELY on analyzing and describing ONLY the main garment/product that is meant to be showcased. Treat the garment as if it's being worn by the ${baseModelText} in a clean, professional editorial environment with NO background distractions.
-
-    🔍 CRITICAL DETAIL PRESERVATION REQUIREMENT - MAXIMUM PRIORITY:
-    
-    ⚠️ ABSOLUTELY CRITICAL: Every single detail, design element, and feature visible on the original garment MUST be preserved and accurately represented in the generated image. This is of UTMOST IMPORTANCE and cannot be compromised under any circumstances.
-    
-    MANDATORY DETAIL PRESERVATION CHECKLIST - ALL MUST BE MAINTAINED:
-    ✅ EXACT COLOR MATCHING: Preserve the precise colors, color combinations, gradients, and color transitions of the original garment
-    ✅ PATTERN ACCURACY: Maintain all patterns, prints, graphics, logos, text, embroidery, and decorative elements exactly as they appear
-    ✅ TEXTURE FIDELITY: Reproduce the exact fabric texture, weave pattern, surface finish, and material characteristics
-    ✅ CONSTRUCTION DETAILS: Preserve all seams, stitching lines, topstitching, hemlines, and construction elements
-    ✅ HARDWARE PRESERVATION: Maintain all buttons, zippers, buckles, snaps, grommets, and metal hardware exactly as shown
-    ✅ TRIM AND EMBELLISHMENTS: Keep all decorative trims, lace, ribbons, appliqués, sequins, beads, and embellishments
-    ✅ PROPORTIONAL ACCURACY: Maintain the exact proportions, sizing, and dimensional relationships of all design elements
-    ✅ PLACEMENT PRECISION: Preserve the exact positioning and placement of all design features, pockets, and details
-    ✅ EDGE TREATMENTS: Maintain all edge finishes, binding, piping, contrast edges, and finishing details
-    ✅ FUNCTIONAL ELEMENTS: Preserve all functional details like pocket flaps, collar styles, cuff treatments, and closures
-    
-    🚨 CRITICAL WARNING: The AI generation system MUST NOT alter, modify, simplify, or omit ANY visible detail from the original garment. Every element that exists on the reference product must appear identically in the final generated image. This includes but is not limited to:
-    - Brand logos, text, and graphics (maintain exact fonts, sizes, and positioning)
-    - Decorative stitching patterns and thread colors
-    - Fabric panels and color blocking arrangements
-    - Hardware finishes (gold, silver, brass, matte, glossy)
-    - Pattern scales and repeat alignments
-    - Texture variations within the same garment
-    - Layering effects and transparency elements 
-    - Reflective or metallic surface treatments
-    
-    ⚠️ FAILURE TO PRESERVE THESE DETAILS WILL RESULT IN AN UNACCEPTABLE GENERATION. The generated garment must be indistinguishable from the original in terms of all visible design elements and details.
-    
-    🎯 PRODUCT-ONLY ANALYSIS: Your entire description must center around:
-    - The garment's fabric, texture, and material properties WITH EXACT DETAIL PRESERVATION
-    - Construction details, seams, and craftsmanship WITH PRECISE ACCURACY
-    - Fit, silhouette, and how it drapes on the body WHILE MAINTAINING ALL ORIGINAL DETAILS
-    - Color, pattern, and design elements of the product WITH PERFECT FIDELITY
-    - Styling suggestions that complement the main garment WITHOUT COMPROMISING ORIGINAL DETAILS
-    
-    ❌ DO NOT DESCRIBE: Any background elements, environmental details, or non-product related visual information from the reference image.
-
-
-CRITICAL GARMENT COVERAGE REQUIREMENT:
-You MUST carefully examine the reference image to accurately determine the garment's sleeve type and arm coverage. This includes:
-- Whether the garment is sleeveless, has cap sleeves, short sleeves, or long sleeves
-- Do NOT assume or invent sleeve types that are not clearly visible in the reference image
-- If the garment is sleeveless, your prompt MUST clearly state it as "sleeveless" or "strapless" as appropriate
-- If sleeves are present, describe their exact length (e.g., "short set-in sleeves ending mid-bicep") and construction
-- Avoid adding any sleeve detail not visible in the original product image
-Failure to follow this instruction will result in incorrect garment generation.
-
-    🔍 CRITICAL GARMENT FEATURES YOU MUST DETECT FROM THE IMAGE:
-    - Sleeve structure (e.g., sleeveless, cap sleeve, short sleeve, set-in sleeve)
-    - All visible seam lines: center front seam, panel seams, side seams, dart lines
-    - Construction elements that define silhouette
-    - Do not assume features that are not visually confirmed
-
-
-
-    The ${baseModelText} must always be wearing the product. Describe the exact fabric type, weave pattern, weight, texture, finish, stretch properties, and coverage in natural flowing sentences. Detail every visible seam type, stitching patterns, thread visibility, seam finishing quality, hemming techniques, edge treatments, topstitching, and construction methods as part of the description. Analyze all design elements including prints, patterns, embroidery, color techniques, decorative elements like buttons, zippers, trim details, and hardware. Specify exact fit type, how the garment drapes, silhouette shape, proportions, length, sleeve style, and neckline construction. Include surface treatments, finishes, pleating, gathering, wash effects, coatings, embellishments, and quality indicators. The photography should be hyper-realistic with perfect studio lighting showcasing fabric texture and construction details, professional camera angles highlighting craftsmanship, and composition emphasizing garment excellence.
-
-    ESSENTIAL GARMENT BEHAVIOR DESCRIPTION: You must describe how this specific garment behaves when worn:
-    - How the fabric moves and flows with body movement
-    - Where the garment creates volume, structure, or close fit
-    - How the weight and drape of the fabric affects the overall silhouette
-    - The way seams, darts, and construction elements shape the garment
-    - How the garment's proportions relate to the human form
-    - The visual impact of the garment's cut and construction choices
+    LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English.
 
     ${
       originalPrompt
-        ? `Incorporate these specific requirements: ${originalPrompt}.`
-        : ""
-    } ${
-      hasValidSettings
-        ? `Integrate these user settings naturally: ${Object.entries(settings)
-            .filter(
-              ([key, value]) =>
-                value !== null && value !== undefined && value !== ""
-            )
-            .map(([key, value]) => `${key} is ${value}`)
-            .join(", ")}.`
+        ? `Additional requirements: ${originalPrompt}.`
         : ""
     }
     
@@ -1054,26 +844,7 @@ Failure to follow this instruction will result in incorrect garment generation.
     ${hairStyleTextSection}
     ${faceDescriptionSection}
     
-    Generate a single, flowing description that reads like a master craftsperson's analysis of premium garment construction, emphasizing professional quality, material excellence, and attention to detail throughout. The ${modelGenderText} should be introduced initially and referenced once more naturally later in the description. Use "${baseModelText}" for all other references to avoid age repetition. Describe how the model demonstrates natural movement showcasing how the fabric behaves when worn, with poses appropriate for the garment category and facial expressions matching the intended style and quality level. Include detailed descriptions of the model's physical interaction with the garment, their professional modeling presence, and how their body positioning enhances the overall presentation. The complete styled outfit should be described as a cohesive ensemble where the main garment is the star piece perfectly complemented by thoughtfully selected additional clothing items. 
-
-    🧹 CRITICAL PRODUCT QUALITY ENHANCEMENT REQUIREMENT:
-    While preserving all design details, you MUST also include instructions to ELIMINATE any imperfections, defects, or unwanted elements that may be present on the original garment:
-    - Remove any dirt, stains, spots, or discoloration from the fabric
-    - Eliminate wrinkles, creases, or fabric distortions (unless they are intentional design elements)
-    - Clean up any dust, lint, or debris on the garment surface
-    - Correct any lighting artifacts, shadows, or color casts from the original photography
-    - Eliminate any wear marks, fading, or signs of use
-    - Clean up any background reflections or unwanted lighting effects on the fabric
-    - Ensure the garment appears in pristine, brand-new condition
-    - Maintain perfect fabric texture and surface quality throughout
-    - Present the garment as if it's fresh from premium manufacturing
-    
-    The final garment should appear flawless and professionally finished while maintaining all original design elements, colors, patterns, and construction details exactly as intended by the designer.
-
-    🔥 FINAL CRITICAL DETAIL PRESERVATION MANDATE:
-    Your enhanced prompt MUST include explicit instructions that EVERY SINGLE DETAIL from the reference garment must be preserved with 100% accuracy. This includes all colors, patterns, textures, hardware, stitching, logos, graphics, embellishments, and construction elements. The generated image must be a perfect replica of the original garment's design details while being worn by the ${baseModelText}. NO detail should be altered, simplified, or omitted. This is the most important requirement and overrides all other considerations.
-
-    Ensure no suggestive words, focus only on fashion and craftsmanship, use professional technical terminology, maintain editorial magazine tone, avoid content moderation triggers, emphasize construction over inappropriate body descriptions, and use no brand names whatsoever.
+    Generate a concise prompt focused on garment replacement while maintaining all original details.
     `;
 
     // Eğer originalPrompt'ta "Model's pose" ibaresi yoksa ek cümle ekleyelim:
