@@ -1,0 +1,16 @@
+{
+  "ratingModal": {
+    "headerTitle": "BEWERTEN SIE UNSERE APP",
+    "title": "Gefällt Ihnen Diress? ⭐",
+    "description": "Ihr Feedback ist sehr wertvoll für uns! Sie können anderen Nutzern helfen, indem Sie die App im App Store bewerten.",
+    "features": {
+      "feature1": "🤖 Fortschrittliche KI-Technologie",
+      "feature2": "⚡ Schnell und einfach zu bedienen",
+      "feature3": "🎨 Professionelle Ergebnisse",
+      "feature4": "📱 Benutzerfreundliche Oberfläche"
+    },
+    "rateButton": "⭐ Im App Store bewerten",
+    "laterButton": "Später",
+    "closeButton": "Schließen"
+  }
+}

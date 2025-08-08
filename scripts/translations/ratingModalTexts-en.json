@@ -1,0 +1,14 @@
+{
+  "ratingModal": {
+    "greeting": "Hello Friend,",
+    "appName": "DIRESS",
+    "enjoying": " Enjoying",
+    "soFar": " so far?",
+    "rateExperience": "Please share your experience with us",
+    "loveApp": "Do you love the app?",
+    "rateStore": "Support us by rating on App Store.",
+    "rateStoreAndroid": "Support us by rating on Google Play.",
+    "loading": "Loading...",
+    "closeButton": "Close"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "ratingModal": {
+    "rateButtonIos": "Im App Store bewerten",
+    "rateButtonAndroid": "Bei Google Play bewerten",
+    "rateButtonGeneric": "App bewerten"
+  }
+}

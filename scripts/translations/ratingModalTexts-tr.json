@@ -1,0 +1,14 @@
+{
+  "ratingModal": {
+    "greeting": "Merhaba Dostum,",
+    "appName": "DIRESS",
+    "enjoying": "'ten",
+    "soFar": "Memnun musun?",
+    "rateExperience": "Lütfen deneyimini bizimle paylaş",
+    "loveApp": "Uygulamayı beğendin mi?",
+    "rateStore": "App Store'da puanlayarak destek olabilirsin.",
+    "rateStoreAndroid": "Google Play'de puanlayarak destek olabilirsin.",
+    "loading": "Yükleniyor...",
+    "closeButton": "Kapat"
+  }
+}

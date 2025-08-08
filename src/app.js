@@ -51,6 +51,7 @@ const purchaseRoutes = require("./routes/purchaseRoutes");
 const consRoutes = require("./routes/consRoutes");
 const changeColorRoutes = require("./routes/changeColorRoutes");
 const infoModalRoutes = require("./routes/infoModalRoutes");
+const appLinksRoutes = require("./routes/appLinksRoutes");
 // RevenueCat webhook route import
 const revenuecatWebhookRouterv2 = require("./routes/revenuecatWebhookv2");
 // const revenuecatWebhookRouter = require("./routes/revenuecatWebhook"); // ESKİ WEBHOOK DEVRE DIŞI
@@ -148,6 +149,9 @@ app.use("/purchase", purchaseRoutes);
 
 // Custom Pose routes ekle
 app.use("/api/customPose", customPoseRoutes);
+
+// App Links routes ekle
+app.use("/api/app-links", appLinksRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, "0.0.0.0", () => {
