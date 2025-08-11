@@ -1,0 +1,20 @@
+{
+  "tipsModal": {
+    "cardTitle": "没有得到理想的结果？",
+    "cardSubtitle": "点击获取专业建议",
+    "modalTitle": "没有得到理想的结果？",
+    "examplesTitle": "示例照片",
+    "goodExamples": "好的示例",
+    "badExamples": "坏的示例",
+    "frontView": "正面视图",
+    "mannequinExample": "人体模特",
+    "sideView": "侧面角度",
+    "cleanBackground": "干净背景",
+    "mannequinTitle": "使用人体模特",
+    "mannequinText": "为了获得最一致的结果，请将您的产品穿在人体模特上。这确保您的产品保持其真实尺寸和形状。",
+    "qualityTitle": "摄影规则",
+    "qualityText": "您的产品应该从正面拍摄，完全可见。避免侧角拍摄，确保整个产品都能看到。",
+    "sizeTipTitle": "尺寸比例问题",
+    "sizeTipText": "您的产品尺寸和比例有问题吗？您可以通过使用人体模特来解决这个问题。模特身上的产品将以真实尺寸和正确比例出现。"
+  }
+}

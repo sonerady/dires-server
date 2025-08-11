@@ -1,0 +1,14 @@
+{
+  "ratingModal": {
+    "greeting": "Bonjour Ami,",
+    "appName": "DIRESS",
+    "enjoying": " Apprécies-tu",
+    "soFar": " jusqu'à présent?",
+    "rateExperience": "Partage ton expérience avec nous s'il te plaît",
+    "loveApp": "Aimes-tu l'application?",
+    "rateStore": "Soutiens-nous en notant sur App Store.",
+    "rateStoreAndroid": "Soutiens-nous en notant sur Google Play.",
+    "loading": "Chargement...",
+    "closeButton": "Fermer"
+  }
+}

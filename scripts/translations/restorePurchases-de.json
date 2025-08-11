@@ -1,0 +1,6 @@
+{
+  "restorePurchases": "Käufe Wiederherstellen",
+  "purchasesRestored": "Ihre Käufe wurden erfolgreich wiederhergestellt!",
+  "noPurchasesToRestore": "Keine Käufe zum Wiederherstellen gefunden.",
+  "restoreError": "Beim Wiederherstellen der Käufe ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
+}

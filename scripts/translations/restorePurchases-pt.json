@@ -1,0 +1,6 @@
+{
+  "restorePurchases": "Restaurar Compras",
+  "purchasesRestored": "Suas compras foram restauradas com sucesso!",
+  "noPurchasesToRestore": "Nenhuma compra encontrada para restaurar.",
+  "restoreError": "Ocorreu um erro ao restaurar as compras. Tente novamente."
+}

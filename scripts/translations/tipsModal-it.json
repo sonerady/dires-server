@@ -1,0 +1,20 @@
+{
+  "tipsModal": {
+    "cardTitle": "Risultati non come desiderato?",
+    "cardSubtitle": "Tocca per consigli professionali",
+    "modalTitle": "Risultati non come desiderato?",
+    "examplesTitle": "Foto di Esempio",
+    "goodExamples": "Buoni Esempi",
+    "badExamples": "Cattivi Esempi",
+    "frontView": "Vista Frontale",
+    "mannequinExample": "Manichino",
+    "sideView": "Angolo Laterale",
+    "cleanBackground": "Sfondo Pulito",
+    "mannequinTitle": "Usa un Manichino",
+    "mannequinText": "Per i risultati più coerenti, vesti il tuo prodotto su un manichino. Questo assicura che il tuo prodotto mantenga le sue dimensioni reali e la forma.",
+    "qualityTitle": "Regole Fotografiche",
+    "qualityText": "Il tuo prodotto dovrebbe essere fotografato frontalmente, completamente visibile. Evita scatti ad angolo laterale e assicurati che tutto il prodotto sia visibile.",
+    "sizeTipTitle": "Problemi di Proporzione",
+    "sizeTipText": "Hai problemi con le dimensioni e le proporzioni del tuo prodotto? Puoi risolvere questo problema usando un manichino. Il prodotto sul manichino apparirà in dimensioni reali e proporzioni corrette."
+  }
+}

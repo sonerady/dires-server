@@ -1,0 +1,20 @@
+{
+  "aiTools": {
+    "pose_angle_switch": "Pose & Angle Switch",
+    "pose_angle_subtitle": "Change model's pose and angle",
+    "change_color": "Change Color",
+    "change_color_subtitle": "Change product color",
+    "enhance": "Enhance",
+    "image_enhancement_subtitle": "Improve image quality",
+    "ai_background": "AI Background",
+    "ai_background_subtitle": "Create new backgrounds for your product",
+    "refiner": "Refiner",
+    "refiner_subtitle": "Remove image imperfections",
+    "face_swap": "Face Swap",
+    "face_swap_subtitle": "Easily swap faces",
+    "filters": "Filters",
+    "filters_subtitle": "Apply artistic filters to your photos",
+    "hair_style": "Hair Style",
+    "hair_style_subtitle": "Change model's hair style"
+  }
+}

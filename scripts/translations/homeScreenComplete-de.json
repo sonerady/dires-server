@@ -1,0 +1,47 @@
+{
+  "homeScreen": {
+    "before": "Vorher",
+    "after": "Nachher",
+    "hero": {
+      "slogan1": {
+        "line1": "Model Bereit",
+        "line2": "Kein Fotoshooting"
+      },
+      "slogan2": {
+        "line1": "Anziehen",
+        "line2": "in Sekunden"
+      },
+      "slogan3": {
+        "line1": "Keine",
+        "line2": "Modelkosten Mehr"
+      },
+      "slogan4": {
+        "line1": "Sieht Aus Wie",
+        "line2": "Echtes Model"
+      },
+      "slogan5": {
+        "line1": "Dein Produkt",
+        "line2": "Am Model Sehen"
+      }
+    },
+    "cards": {
+      "virtualModel": {
+        "title": "Virtuelles Model",
+        "subtitle": "Sehen Sie Ihr Produkt am Model"
+      },
+      "imageToVideo": {
+        "title": "Bild zu Video",
+        "subtitle": "Dynamische Videos aus statischen Fotos"
+      },
+      "jewelryModeling": {
+        "title": "Schmuck Modellierung",
+        "subtitle": "Sehen Sie Ihren Schmuck am Model"
+      }
+    },
+    "comingSoon": {
+      "title": "Bald verfügbar",
+      "message": "Diese Funktion kommt bald!",
+      "button": "OK"
+    }
+  }
+}

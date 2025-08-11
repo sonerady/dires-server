@@ -1,0 +1,20 @@
+{
+  "tipsModal": {
+    "cardTitle": "Not Getting Desired Results?",
+    "cardSubtitle": "Tap for professional tips",
+    "modalTitle": "Not Getting Desired Results?",
+    "examplesTitle": "Example Photos",
+    "goodExamples": "Good Examples",
+    "badExamples": "Bad Examples",
+    "frontView": "Front View",
+    "mannequinExample": "Mannequin",
+    "sideView": "Side Angle",
+    "cleanBackground": "Clean Background",
+    "mannequinTitle": "Use a Mannequin",
+    "mannequinText": "For the most consistent results, dress your product on a mannequin. This ensures your product maintains its real dimensions and form.",
+    "qualityTitle": "Photo Rules",
+    "qualityText": "Your product should be photographed from the front, fully visible. Avoid side angle shots and ensure the entire product is visible.",
+    "sizeTipTitle": "Size Proportion Issues",
+    "sizeTipText": "Do you have issues with your product's size and proportions? You can solve this problem by using a mannequin. The product on the mannequin will appear in real dimensions and correct proportions."
+  }
+}

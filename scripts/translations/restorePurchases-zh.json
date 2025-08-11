@@ -1,0 +1,6 @@
+{
+  "restorePurchases": "恢复购买",
+  "purchasesRestored": "您的购买已成功恢复！",
+  "noPurchasesToRestore": "未找到要恢复的购买。",
+  "restoreError": "恢复购买时发生错误。请重试。"
+}

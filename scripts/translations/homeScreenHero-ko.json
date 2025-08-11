@@ -1,0 +1,28 @@
+{
+  "homeScreen": {
+    "before": "전",
+    "after": "후",
+    "hero": {
+      "slogan1": {
+        "line1": "모델 준비 완료",
+        "line2": "촬영 불필요"
+      },
+      "slogan2": {
+        "line1": "몇 초 만에",
+        "line2": "착용"
+      },
+      "slogan3": {
+        "line1": "이제 모델",
+        "line2": "비용 없음"
+      },
+      "slogan4": {
+        "line1": "실제 모델",
+        "line2": "같은 모습"
+      },
+      "slogan5": {
+        "line1": "제품을",
+        "line2": "모델 착용으로 확인"
+      }
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "homeScreen": {
+    "before": "Antes",
+    "after": "Depois",
+    "hero": {
+      "slogan1": {
+        "line1": "Modelo Pronta",
+        "line2": "Sem Sessão"
+      },
+      "slogan2": {
+        "line1": "Vestir",
+        "line2": "em Segundos"
+      },
+      "slogan3": {
+        "line1": "Chega de",
+        "line2": "Custos de Modelo"
+      },
+      "slogan4": {
+        "line1": "Parece Como",
+        "line2": "Modelo Real"
+      },
+      "slogan5": {
+        "line1": "Veja Seu Produto",
+        "line2": "Na Modelo"
+      }
+    },
+    "cards": {
+      "virtualModel": {
+        "title": "Modelo Virtual",
+        "subtitle": "Veja seu produto na modelo"
+      },
+      "imageToVideo": {
+        "title": "Imagem para Vídeo",
+        "subtitle": "Vídeos dinâmicos de fotos estáticas"
+      },
+      "jewelryModeling": {
+        "title": "Modelagem de Joias",
+        "subtitle": "Veja suas joias na modelo"
+      }
+    },
+    "comingSoon": {
+      "title": "Em Breve",
+      "message": "Este recurso chegará em breve!",
+      "button": "OK"
+    }
+  }
+}

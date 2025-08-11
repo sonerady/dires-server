@@ -22,6 +22,7 @@ const editRoomRoutes = require("./routes/editRoomRoutes");
 const removeBgRouter = require("./routes/removeBg");
 const uploadImageRouter = require("./routes/uploadImage");
 const generateTrain = require("./routes/generateTrain");
+const referenceBrowserRoutesV2 = require("./routes/referenceBrowserRoutesV2");
 const checkStatusRouter = require("./routes/checkStatus");
 const getTrainRequestRouter = require("./routes/getTrainRequest");
 const getRequests = require("./routes/getRequests");
@@ -50,8 +51,10 @@ const poseRoutes = require("./routes/poseRoutes");
 const purchaseRoutes = require("./routes/purchaseRoutes");
 const consRoutes = require("./routes/consRoutes");
 const changeColorRoutes = require("./routes/changeColorRoutes");
+const changeColorRoutesV2 = require("./routes/changeColorRoutesV2");
 const infoModalRoutes = require("./routes/infoModalRoutes");
 const appLinksRoutes = require("./routes/appLinksRoutes");
+const modalContentsRoutes = require("./routes/modalContentsRoutes");
 // RevenueCat webhook route import
 const revenuecatWebhookRouterv2 = require("./routes/revenuecatWebhookv2");
 // const revenuecatWebhookRouter = require("./routes/revenuecatWebhook"); // ESKİ WEBHOOK DEVRE DIŞI
@@ -134,10 +137,12 @@ app.use("/api", geminiImageEditRouter);
 app.use("/api", aiBackgroundsRouter);
 app.use("/api", createAiBackgroundRouter);
 app.use("/api/referenceBrowser", referenceBrowserRoutes);
+app.use("/api/referenceBrowserV2", referenceBrowserRoutesV2);
 app.use("/api/referencePhotoshoot", referencePhotoshootRoutes);
 app.use("/api/referenceRefiner", referenceRefinerRoutes);
 app.use("/api", consRoutes);
 app.use("/api", changeColorRoutes);
+app.use("/api", changeColorRoutesV2);
 app.use("/api/poses", poseRoutes);
 app.use("/api/user", infoModalRoutes);
 app.use("/api/editRoom", editRoomRoutes);
@@ -152,6 +157,9 @@ app.use("/api/customPose", customPoseRoutes);
 
 // App Links routes ekle
 app.use("/api/app-links", appLinksRoutes);
+
+// Modal Contents routes ekle
+app.use(modalContentsRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, "0.0.0.0", () => {

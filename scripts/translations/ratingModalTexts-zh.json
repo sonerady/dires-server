@@ -1,0 +1,14 @@
+{
+  "ratingModal": {
+    "greeting": "你好朋友，",
+    "appName": "DIRESS",
+    "enjoying": "喜欢",
+    "soFar": "吗？",
+    "rateExperience": "请与我们分享您的体验",
+    "loveApp": "您喜欢这个应用吗？",
+    "rateStore": "通过在App Store评分来支持我们。",
+    "rateStoreAndroid": "通过在Google Play评分来支持我们。",
+    "loading": "加载中...",
+    "closeButton": "关闭"
+  }
+}

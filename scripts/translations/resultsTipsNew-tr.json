@@ -1,0 +1,20 @@
+{
+  "resultsTips": {
+    "cardTitle": "Sonuçlar beklediğin gibi değil mi?",
+    "cardSubtitle": "Daha iyi sonuçlar için ipuçlarımıza göz at",
+    "modalTitle": "Mükemmel Sonuçlar İçin İpuçları",
+    "mannequinTitle": "ÖNEMLİ: Cansız Manken Kullanın",
+    "mannequinText": "Eğer ürünlerde tutarsızlık ve benzerlikte kayıp olmasına engel olmak istiyorsan, mutlaka ürününü eğer mümkünse bir cansız manken üstüne giydirip öyle işleme sok. Bu kesinlikle sonuçların tutarsızlıklarını engelleyecektir.",
+    "examplesTitle": "Doğru ve Yanlış Fotoğraf Örnekleri",
+    "goodExamples": "✅ Doğru",
+    "badExamples": "❌ Yanlış",
+    "frontView": "Önden Düz Bakış",
+    "fullProduct": "Tüm Ürün Görünür",
+    "sideView": "Yan Açı",
+    "partialProduct": "Kısmi Görünüm",
+    "qualityTitle": "Fotoğraf Kuralları",
+    "qualityText": "Ürünün fotoğrafında ürünün tüm halinin görünüyor olması şart. Uzun kollu kıyafet çekiyorsan kollar vs görünmeli. Fotoğrafta ürün mutlaka yan açılardan değil, tam olarak önden karşıdan düz bakılacak şekilde çekilmelidir.",
+    "settingsTitle": "Ayarları Optimize Et",
+    "settingsText": "Model yaşı, vücut tipi, pozisyon gibi ayarları ürününüze uygun şekilde seçmek sonuçların kalitesini artırır. Farklı kombinasyonları deneyebilirsiniz."
+  }
+}

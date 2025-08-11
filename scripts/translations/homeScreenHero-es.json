@@ -1,0 +1,28 @@
+{
+  "homeScreen": {
+    "before": "Antes",
+    "after": "Después",
+    "hero": {
+      "slogan1": {
+        "line1": "Modelo Listo",
+        "line2": "Sin Sesión"
+      },
+      "slogan2": {
+        "line1": "Vestir",
+        "line2": "en Segundos"
+      },
+      "slogan3": {
+        "line1": "Se Acabaron",
+        "line2": "Costos de Modelo"
+      },
+      "slogan4": {
+        "line1": "Parece Como",
+        "line2": "Modelo Real"
+      },
+      "slogan5": {
+        "line1": "Ve Tu Producto",
+        "line2": "En Modelo"
+      }
+    }
+  }
+}
