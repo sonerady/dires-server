@@ -1122,33 +1122,12 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
     FACE DESCRIPTION GUIDELINE: Below is *one example* of a possible face description → "${faceDescriptor}". This is **only an example**; do NOT reuse it verbatim. Instead, create your own natural-sounding, age-appropriate face description for the ${baseModelText} so that each generation features a unique and photogenic look.`;
 
     // Gemini'ye gönderilecek metin - Edit mode vs Color change vs Normal replace
-    const criticalDirectives = `
-    BRAND SAFETY: If the input image contains any brand names or logos (e.g., Nike, Adid<as, Prada, Gucci, Louis Vuitton, Chanel, Balenciaga, Versace, Dior, Hermès), DO NOT mention any brand names in your output. Refer to them generically (e.g., "brand label", "logo") without naming the brand.
-    LENGTH CONSTRAINT: Your entire output MUST be no longer than 512 tokens. Keep it concise and within 512 tokens maximum.`;
-
-    // Flux Max için genel garment transform talimatları (genel, ürün-özel olmayan)
-    const fluxMaxGarmentTransformationDirectives = `
-    FLUX MAX CONTEXT - GARMENT TRANSFORMATION (MANDATORY):
-    - ABSOLUTELY AND IMMEDIATELY REMOVE ALL HANGERS, CLIPS, TAGS, AND FLAT-LAY ARTIFACTS from the input garment. CRITICAL: DO NOT RENDER ANY MANNEQUIN REMAINS OR UNINTENDED BACKGROUND ELEMENTS.
-    - Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model; avoid any 2D, sticker-like, or paper-like overlay.
-    - Ensure realistic fabric physics: natural drape, weight, tension, compression, and subtle folds along shoulders, chest/bust, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles.
-    - Preserve ALL original garment details: exact colors, prints/patterns, material texture, stitching, construction elements (collar, placket, buttons/zippers, cuffs, hems), trims, and finishes. Do NOT redesign.
-    - Integrate prints/patterns correctly over the 3D form: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines.
-    - For structured details (e.g., knots, pleats, darts, seams), render functional tension, deep creases, and realistic shadows consistent with real fabric behavior.
-    - Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting.
-    - Focus solely on transforming the garment onto the existing model and seamlessly integrating it into the outfit. Do not introduce new background elements unless a location reference is explicitly provided.`;
-
-    // Gemini'ye gönderilecek metin - Edit mode vs Color change vs Normal replace
     let promptForGemini;
 
     if (isEditMode && editPrompt && editPrompt.trim()) {
       // EDIT MODE - EditScreen'den gelen özel prompt
       promptForGemini = `
       MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
-
-      ${criticalDirectives}
-
-      ${fluxMaxGarmentTransformationDirectives}
 
       USER'S EDIT REQUEST: "${editPrompt.trim()}"
 
@@ -1182,8 +1161,6 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       promptForGemini = `
       MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "change". Do not include any introduction, explanation, or commentary.
 
-      ${criticalDirectives}
-
       Create a simple English prompt that STARTS with "change" for changing ONLY the color of the product/garment from the reference image to ${targetColor}.
 
       CRITICAL REQUIREMENTS FOR COLOR CHANGE:
@@ -1208,8 +1185,6 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       // POSE CHANGE MODE - Sadece poz değiştirme
       promptForGemini = `
       MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "change". Do not include any introduction, explanation, or commentary.
-
-      ${criticalDirectives}
 
       Create a simple English prompt that STARTS with "change" for changing ONLY the pose/position of the model in the reference image.
 
@@ -1269,8 +1244,6 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       promptForGemini = `
       MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
 
-      ${criticalDirectives}
-
       Create a simple English prompt that STARTS with "Replace" for replacing the garment from the reference image onto a ${modelGenderText}.
 
       CRITICAL REQUIREMENTS:
@@ -1281,8 +1254,6 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       5. Use natural studio lighting with a clean background
       6. Preserve ALL original garment details: colors, patterns, textures, hardware, stitching, logos, graphics, and construction elements
       7. The garment must appear identical to the reference image, just worn by the model instead of being flat
-
-      ${fluxMaxGarmentTransformationDirectives}
 
       LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace".
 
@@ -1585,298 +1556,6 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
     // `;
     // }
     return originalPrompt;
-  }
-}
-// Portrait prompt oluştur (Gemini) – Flux.1-dev için
-async function generatePortraitPromptWithGemini(
-  settings = {},
-  gender = "female"
-) {
-  // Settings'ten sadece gerçekten gönderilen bilgileri çıkar (default verme!)
-  const age = settings.age;
-  let ethnicity = settings.ethnicity;
-  const hairStyle = settings.hairStyle?.title || settings.hairStyle;
-  const hairColor = settings.hairColor?.title || settings.hairColor;
-  const skinTone = settings.skinTone;
-  const mood = settings.mood;
-  const accessoriesRaw = settings.accessories; // string (", ") formatında gelebilir
-  // Keyword bazlı filtreyi kaldır: kararı Gemini'ye bırak
-  const accessories = accessoriesRaw || null;
-  const bodyShape =
-    typeof settings.bodyShape === "string" ? settings.bodyShape : null;
-
-  try {
-    console.log("👤 Gemini ile portrait prompt oluşturuluyor...");
-
-    // Ethnicity belirtilmemişse Asya dışından rastgele bir uygun grup seç
-    if (!ethnicity) {
-      const fallbackEthnicities = [
-        "Latina",
-        "Hispanic",
-        "European",
-        "Mediterranean",
-        "Middle Eastern",
-        "Persian",
-        "Caucasian",
-        "Turkish",
-        "Brazilian",
-        "Mexican",
-      ];
-      ethnicity =
-        fallbackEthnicities[
-          Math.floor(Math.random() * fallbackEthnicities.length)
-        ];
-    }
-
-    // Sadece gönderilen (veya seçilen) karakteristikleri listeye ekle
-    const characteristics = [];
-    if (age) characteristics.push(`- Age: ${age}`);
-    if (ethnicity) characteristics.push(`- Ethnicity: ${ethnicity}`);
-    if (hairStyle) characteristics.push(`- Hair style: ${hairStyle}`);
-    if (hairColor) characteristics.push(`- Hair color: ${hairColor}`);
-    if (skinTone) characteristics.push(`- Skin tone: ${skinTone}`);
-    if (mood) characteristics.push(`- Mood/expression: ${mood}`);
-    if (accessories)
-      characteristics.push(`- Accessories (face/head only): ${accessories}`);
-    if (bodyShape) characteristics.push(`- Body shape: ${bodyShape}`);
-
-    // Karakteristik varsa ekle, yoksa genel model açıklaması yap
-    const characteristicsText =
-      characteristics.length > 0
-        ? `with these characteristics:\n    ${characteristics.join(
-            "\n    "
-          )}\n    \n    `
-        : "";
-
-    // Vurgulanacak ögeler - modelden prompt içinde birden fazla kez geçmesini iste
-    const emphasisPoints = [];
-    if (mood) emphasisPoints.push(`mood/expression: ${mood}`);
-    if (accessories) emphasisPoints.push(`accessories: ${accessories}`);
-    if (bodyShape) emphasisPoints.push(`body shape: ${bodyShape}`);
-    if (hairStyle) emphasisPoints.push(`hair style: ${hairStyle}`);
-    if (hairColor) emphasisPoints.push(`hair color: ${hairColor}`);
-    if (skinTone) emphasisPoints.push(`skin tone: ${skinTone}`);
-    if (age) emphasisPoints.push(`age: ${age}`);
-
-    const emphasisText =
-      emphasisPoints.length > 0
-        ? `\n\nEMPHASIS REQUIREMENTS:\n- Repeat the following key attributes at least twice across the prompt where relevant: ${emphasisPoints.join(
-            "; "
-          )}.\n- Reiterate them again succinctly at the end of the prompt as a reminder line starting with 'Focus:'.\n`
-        : "";
-
-    const portraitPrompt = `Create a detailed portrait photo prompt for a professional fashion model (${gender}) ${characteristicsText}CRITICAL REQUIREMENTS:
-    - MUST be a fashion model with high-end, editorial facial features
-    - MUST have a pure white background (solid white studio backdrop)
-    - Head-and-shoulders framing with a very slight distance from the camera (not an extreme close-up); keep a small breathing room around the head and shoulders
-    - Professional studio lighting with even illumination
-    - Sharp detail and clear facial features
-    - High-fashion model aesthetics with striking, photogenic facial structure
-    - Commercial fashion photography style
-    
-    ACCESSORY RULES:
-    - If accessories are present, include ONLY face/head/hair-related accessories.
-    - Do NOT mention or imply any body/hand/arm/waist accessories.
-    ${emphasisText}
-    Generate a professional portrait photography prompt suitable for Flux.1-dev model. 
-    LIMIT:
-    - The final prompt MUST be no more than 77 tokens. Keep it concise.
-    - Do NOT exceed 77 tokens under any circumstances.
-    Return only the prompt text, no explanations.`;
-
-    // Gemini API'yi retry mekanizması ile çağır
-    let response;
-    let lastError;
-    const maxRetries = 3;
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        console.log(`👤 Gemini API çağrısı attempt ${attempt}/${maxRetries}`);
-
-        response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: portraitPrompt }] }],
-              generationConfig: {
-                temperature: 0.7,
-                topK: 20,
-                topP: 0.8,
-                maxOutputTokens: 200,
-              },
-            }),
-          }
-        );
-
-        if (response.ok) {
-          break; // Başarılı, döngüden çık
-        } else if (response.status === 503 && attempt < maxRetries) {
-          console.log(
-            `⚠️ Gemini API 503 hatası, retry yapılıyor... (${attempt}/${maxRetries})`
-          );
-          lastError = new Error(`Gemini API hatası: ${response.status}`);
-          await new Promise((resolve) => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
-          continue;
-        } else {
-          throw new Error(`Gemini API hatası: ${response.status}`);
-        }
-      } catch (error) {
-        lastError = error;
-        if (
-          attempt < maxRetries &&
-          (error.message.includes("503") ||
-            error.message.includes("fetch failed"))
-        ) {
-          console.log(
-            `⚠️ Gemini API network hatası, retry yapılıyor... (${attempt}/${maxRetries}):`,
-            error.message
-          );
-          await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
-          continue;
-        }
-        throw error;
-      }
-    }
-
-    if (!response || !response.ok) {
-      throw lastError || new Error("Gemini API maximum retry reached");
-    }
-
-    const data = await response.json();
-    const generatedPrompt =
-      data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-
-    if (!generatedPrompt) {
-      throw new Error("Gemini'den boş yanıt alındı");
-    }
-
-    console.log("👤 Portrait prompt oluşturuldu:", generatedPrompt);
-    return generatedPrompt;
-  } catch (error) {
-    console.error("❌ Portrait prompt oluşturma hatası:", error);
-
-    // Fallback prompt - sadece gönderilen karakteristikleri kullan ve vurguyu tekrar et
-    const fallbackCharacteristics = [];
-    if (age) fallbackCharacteristics.push(`${age} age`);
-    if (ethnicity) fallbackCharacteristics.push(`${ethnicity} ethnicity`);
-    if (hairColor) fallbackCharacteristics.push(`${hairColor}`);
-    if (skinTone) fallbackCharacteristics.push(`${skinTone} skin tone`);
-    if (mood) fallbackCharacteristics.push(`${mood} mood`);
-    if (accessories) fallbackCharacteristics.push(`${accessories}`);
-    if (bodyShape) fallbackCharacteristics.push(`${bodyShape} body shape`);
-
-    const characteristicsText =
-      fallbackCharacteristics.length > 0
-        ? ` with ${fallbackCharacteristics.join(", ")}.`
-        : ".";
-
-    const focusLine =
-      emphasisPoints && emphasisPoints.length > 0
-        ? ` Focus: ${emphasisPoints.join(", ")}.`
-        : "";
-
-    return `Professional head-and-shoulders portrait of a fashion ${gender} model with striking editorial facial features${characteristicsText} Pure white studio background, professional lighting, sharp detail, high-fashion model aesthetics, slight distance from camera (not extreme close-up), head and shoulders view with a bit of breathing room.${focusLine}`;
-  }
-}
-
-async function generatePortraitWithFluxDev(portraitPrompt) {
-  try {
-    console.log("🎨 Flux.1-dev ile portrait resmi oluşturuluyor...");
-    const finalPrompt = (portraitPrompt || "").trim();
-    console.log("🎨 Portrait prompt (used):", finalPrompt);
-
-    if (!process.env.REPLICATE_API_TOKEN) {
-      console.error("❌ REPLICATE_API_TOKEN bulunamadı!");
-      throw new Error("REPLICATE_API_TOKEN bulunamadı");
-    }
-
-    console.log("✅ REPLICATE_API_TOKEN mevcut, API çağrısı yapılıyor...");
-
-    const requestBody = {
-      version:
-        "prunaai/flux.1-dev:b0306d92aa025bb747dc74162f3c27d6ed83798e08e5f8977adf3d859d0536a3",
-      input: {
-        seed: Math.floor(Math.random() * 2 ** 32),
-        prompt: finalPrompt,
-        guidance: 3.5,
-        image_size: 1024,
-        speed_mode: "Blink of an eye 👁️",
-        aspect_ratio: "1:1",
-        output_format: "jpg",
-        output_quality: 100,
-        num_inference_steps: 28,
-      },
-    };
-
-    console.log("🔗 API Request Body:", JSON.stringify(requestBody, null, 2));
-
-    const response = await fetch("https://api.replicate.com/v1/predictions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-        "Content-Type": "application/json",
-        Prefer: "wait",
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    console.log("📡 API Response Status:", response.status);
-    console.log(
-      "📡 API Response Headers:",
-      JSON.stringify([...response.headers.entries()], null, 2)
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("❌ API Error Response:", errorText);
-      throw new Error(
-        `Flux.1-dev API hatası: ${response.status} - ${errorText}`
-      );
-    }
-
-    const result = await response.json();
-    console.log("📋 API Response Data:", JSON.stringify(result, null, 2));
-
-    if (result.status === "succeeded" && result.output) {
-      // Output bir array ise ilk elemanı al, string ise direkt kullan
-      const portraitUrl = Array.isArray(result.output)
-        ? result.output[0]
-        : result.output;
-      console.log("✅ Portrait resmi oluşturuldu:", portraitUrl);
-      return portraitUrl;
-    } else if (result.status === "failed") {
-      console.error("❌ Portrait generation failed:", result.error);
-      throw new Error(`Portrait oluşturma başarısız: ${result.error}`);
-    } else if (result.status === "processing" || result.status === "starting") {
-      // Prefer: wait kullanılmasına rağmen processing gelirse polling yap
-      console.log(
-        "⏳ Portrait processing devam ediyor, polling başlatılıyor..."
-      );
-      const finalResult = await pollReplicateResult(result.id, 30, 480); // toplam 480s limit
-
-      if (finalResult.status === "succeeded" && finalResult.output) {
-        const portraitUrl = Array.isArray(finalResult.output)
-          ? finalResult.output[0]
-          : finalResult.output;
-        console.log(
-          "✅ Portrait resmi oluşturuldu (polling sonrası):",
-          portraitUrl
-        );
-        return portraitUrl;
-      } else {
-        throw new Error(
-          `Portrait polling sonrası başarısız: ${finalResult.status} - ${finalResult.error}`
-        );
-      }
-    } else {
-      console.error("❌ Beklenmeyen API response:", result);
-      throw new Error(`Portrait oluşturma beklenmeyen sonuç: ${result.status}`);
-    }
-  } catch (error) {
-    console.error("❌ Portrait oluşturma hatası:", error);
-    throw error;
   }
 }
 
@@ -2823,90 +2502,6 @@ async function combineImagesOnCanvas(
   }
 }
 
-// Arkaplanı kaldırılmış ürün + (opsiyonel) pose ve (opsiyonel) location görsellerini
-// tek bir yatay kompozitte birleştirir ve Supabase'e yükler
-async function combineReferenceAssets(
-  backgroundRemovedUrl,
-  poseUrl,
-  locationUrl,
-  userId
-) {
-  try {
-    const assetUrls = [backgroundRemovedUrl, poseUrl, locationUrl].filter(
-      (u) => typeof u === "string" && u.trim().length > 0
-    );
-
-    // En az 1 görsel şart (arkaplan kaldırılmış)
-    if (assetUrls.length === 0) {
-      throw new Error("combineReferenceAssets: no valid assets to combine");
-    }
-
-    // Tüm görselleri indir → JPEG'e çevir → loadImage ile yükle
-    const loadedImages = [];
-    for (let i = 0; i < assetUrls.length; i++) {
-      const url = assetUrls[i].split("?")[0];
-      try {
-        const response = await axios.get(url, {
-          responseType: "arraybuffer",
-          timeout: 30000,
-        });
-        const buffer = Buffer.from(response.data);
-        const processed = await sharp(buffer)
-          .jpeg({ quality: 90, progressive: true, mozjpeg: true })
-          .toBuffer();
-        const img = await loadImage(processed);
-        loadedImages.push(img);
-      } catch (err) {
-        console.error(
-          `❌ combineReferenceAssets: asset ${i + 1} yüklenemedi:`,
-          err.message
-        );
-      }
-    }
-
-    if (loadedImages.length === 0) {
-      // Hiçbiri yüklenemediyse asıl görseli geri döndür
-      return backgroundRemovedUrl;
-    }
-
-    // Yatay birleşim: tümünü aynı yüksekliğe ölçekle
-    const targetHeight = Math.min(...loadedImages.map((img) => img.height));
-    const widths = loadedImages.map(
-      (img) => (img.width * targetHeight) / img.height
-    );
-    const canvasWidth = widths.reduce((a, b) => a + b, 0);
-    const canvasHeight = targetHeight;
-
-    const canvas = createCanvas(canvasWidth, canvasHeight);
-    const ctx = canvas.getContext("2d");
-
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-    let currentX = 0;
-    for (let i = 0; i < loadedImages.length; i++) {
-      const img = loadedImages[i];
-      const drawWidth = widths[i];
-      ctx.drawImage(img, currentX, 0, drawWidth, targetHeight);
-      currentX += drawWidth;
-    }
-
-    const combinedBuffer = canvas.toBuffer("image/jpeg", { quality: 0.9 });
-    const publicUrl = await uploadProcessedImageBufferToSupabase(
-      combinedBuffer,
-      userId,
-      "combined_assets"
-    );
-    return publicUrl;
-  } catch (error) {
-    console.error("❌ combineReferenceAssets hatası:", error.message);
-    // Hata durumunda arkaplanı kaldırılmış görseli geri döndür
-    return backgroundRemovedUrl;
-  }
-}
-
 // Ana generate endpoint'i - Tek resim için
 router.post("/generate", async (req, res) => {
   // Kredi kontrolü ve düşme
@@ -3392,29 +2987,8 @@ router.post("/generate", async (req, res) => {
     //   cannyImage = null;
     // }
 
-    // 👤 Portre üret (Flux.1-dev) ve varlıkları birleştir
-    let portraitImageUrl = null;
-    try {
-      const genderForPortrait = (settings && settings.gender) || "female";
-      const portraitPrompt = await generatePortraitPromptWithGemini(
-        genderForPortrait
-      );
-      portraitImageUrl = await generatePortraitWithFluxDev(portraitPrompt);
-    } catch (portraitErr) {
-      console.warn(
-        "⚠️ Portrait üretimi başarısız, sadece mevcut varlıklar kullanılacak:",
-        portraitErr.message
-      );
-    }
-
-    // 🖼️ Çekirdek referans varlıklarını yatay kompozitte birleştir (Canvas bağımsız)
-    // Arkaplanı kaldırılmış ürün + (varsa) portrait + (varsa) location
-    let combinedImageForReplicate = await combineReferenceAssets(
-      backgroundRemovedImage,
-      portraitImageUrl,
-      locationImage,
-      userId
-    );
+    // 🖼️ İki resmi yan yana birleştirme (orijinal + canny) - Replicate için
+    let combinedImageForReplicate = backgroundRemovedImage; // Fallback - her zaman arkaplanı silinmiş resim
     // if (cannyImage) {
     //   try {
     //     console.log(

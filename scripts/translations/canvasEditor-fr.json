@@ -1,0 +1,9 @@
+{
+  "canvasEditor": {
+    "genderInfo": "Cette zone sert uniquement à déterminer le placement visuel et la taille du produit ; l'âge et les mensurations ne sont pas utilisés à ce stade. Vous définirez ces détails à l'étape suivante.",
+    "woman": "Femme",
+    "man": "Homme",
+    "removingBackground": "Suppression de l'arrière-plan...",
+    "pleaseWaitDoNotExit": "Veuillez patienter, ne quittez pas l'application."
+  }
+}

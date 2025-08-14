@@ -23,6 +23,8 @@ const removeBgRouter = require("./routes/removeBg");
 const uploadImageRouter = require("./routes/uploadImage");
 const generateTrain = require("./routes/generateTrain");
 const referenceBrowserRoutesV2 = require("./routes/referenceBrowserRoutesV2");
+const referenceBrowserRoutesV3 = require("./routes/referenceBrowserRoutesV3");
+const referenceBrowserRoutesWithoutCanvas = require("./routes/referenceBrowserRoutesWithoutCanvas");
 const checkStatusRouter = require("./routes/checkStatus");
 const getTrainRequestRouter = require("./routes/getTrainRequest");
 const getRequests = require("./routes/getRequests");
@@ -60,6 +62,8 @@ const revenuecatWebhookRouterv2 = require("./routes/revenuecatWebhookv2");
 // const revenuecatWebhookRouter = require("./routes/revenuecatWebhook"); // ESKİ WEBHOOK DEVRE DIŞI
 // Custom Pose routes import
 const customPoseRoutes = require("./routes/customPoseRoutes");
+// Canvas Combine routes import
+const canvasCombineRoutes = require("./routes/canvasCombineRoutes");
 // Generation Status routes import
 
 const app = express();
@@ -138,6 +142,12 @@ app.use("/api", aiBackgroundsRouter);
 app.use("/api", createAiBackgroundRouter);
 app.use("/api/referenceBrowser", referenceBrowserRoutes);
 app.use("/api/referenceBrowserV2", referenceBrowserRoutesV2);
+app.use("/api/referenceBrowserV3", referenceBrowserRoutesV3);
+app.use(
+  "/api/referenceBrowserWithoutCanvas",
+  referenceBrowserRoutesWithoutCanvas
+);
+
 app.use("/api/referencePhotoshoot", referencePhotoshootRoutes);
 app.use("/api/referenceRefiner", referenceRefinerRoutes);
 app.use("/api", consRoutes);
@@ -146,6 +156,7 @@ app.use("/api", changeColorRoutesV2);
 app.use("/api/poses", poseRoutes);
 app.use("/api/user", infoModalRoutes);
 app.use("/api/editRoom", editRoomRoutes);
+app.use("/api/canvas", canvasCombineRoutes);
 // ESKİ WEBHOOK DEVRE DIŞI - Duplicate kredi sorunu yüzünden kapatıldı
 // app.use("/revenuecat", revenuecatWebhookRouter);
 app.use("/revenuecatv2", revenuecatWebhookRouterv2);

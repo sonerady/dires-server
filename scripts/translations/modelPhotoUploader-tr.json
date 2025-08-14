@@ -1,0 +1,33 @@
+{
+  "modelPhotoUploader": {
+    "onboard": {
+      "topBadge": "Diress ile oluşturuldu",
+      "step2Overlay": "En doğru, tutarlı ve boyut açısından uyumlu sonuçlar için lütfen aşağıdaki kurallara riayet edin.",
+      "step0Subtitle": "Kaliteli ve tutarlı sonuçlar için aşağıdaki örnek ürün fotoğraflarını inceleyin. Devam etmeden önce, yalnızca bir kez gösterilecek kısa bir rehber ile yükleme kurallarını hızlıca aktaracağız.",
+      "step1Subtitle": "Diress, örneklerdeki gibi yüksek kalite sunar. Önce ürün boyutu ve yerleşim tutarlılığı için sadece tek seferlik çok kısa bir rehber göstereceğiz.",
+      "step3Subtitle": "En doğru ve tutarlı sonuçlar için ürününüzü Canvas'taki cansız manken üzerinde doğru boyutlandırın ve doğal bir yerleşimle hizalayın.",
+      "continue": "Devam",
+      "start": "Başla",
+      "reasons": {
+        "crowdedBackground": "Kalabalık arkaplan",
+        "wrongAngle": "Yanlış açı",
+        "darkEnvironment": "Karanlık ortam",
+        "halfImage": "Yarım resim"
+      }
+    },
+    "manual": {
+      "title": "Ürünü manuel yerleştir ve boyutlandır",
+      "desc": {
+        "before1": "Seçili olduğunda ürün Canvas üzerinde manuel yerleştirilip boyutlandırılır; bu yaklaşım mankende ",
+        "emphasis1": "ölçek tutarlılığı",
+        "middle1": "nı artırır ve ",
+        "emphasis2": "daha doğru sonuçlar",
+        "middle2": " elde etmenizi sağlar. Ayrıca, doğru hizalama sayesinde ürününüzün ",
+        "emphasis3": "yapı ve desen",
+        "middle3": " karakteristiği ",
+        "emphasis4": "en doğru şekilde",
+        "after": " aktarılır."
+      }
+    }
+  }
+}

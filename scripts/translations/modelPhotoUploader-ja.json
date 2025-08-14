@@ -1,0 +1,33 @@
+{
+  "modelPhotoUploader": {
+    "onboard": {
+      "topBadge": "Diressで作成",
+      "step2Overlay": "最も正確で一貫性のあるサイズ調整の結果を得るため、以下のルールに従ってください。",
+      "step0Subtitle": "高品質で一貫した結果のため、以下のサンプル商品写真をご確認ください。続行前に、アップロードルールを簡単に説明する一度限りの短いガイドを表示します。",
+      "step1Subtitle": "Diressは例のように高品質を提供します。まず、商品のサイズと配置の一貫性のための非常に短い一度限りのガイドを表示します。",
+      "step3Subtitle": "最良かつ一貫した結果のため、Canvas上のマネキンに商品を正しくサイズ調整し、自然に配置してください。",
+      "continue": "続行",
+      "start": "開始",
+      "reasons": {
+        "crowdedBackground": "背景が混み合っている",
+        "wrongAngle": "角度が不適切",
+        "darkEnvironment": "暗い環境",
+        "halfImage": "半分の画像"
+      }
+    },
+    "manual": {
+      "title": "製品を手動で配置してサイズ調整",
+      "desc": {
+        "before1": "選択すると、製品はCanvas上で手動で配置・サイズ調整されます。このアプローチは ",
+        "emphasis1": "スケールの一貫性",
+        "middle1": " を高め、",
+        "emphasis2": "より正確な結果",
+        "middle2": " をもたらします。さらに、適切な整列により製品の ",
+        "emphasis3": "構造とパターン",
+        "middle3": " の特徴が ",
+        "emphasis4": "最も正確に",
+        "after": " 伝わります。"
+      }
+    }
+  }
+}

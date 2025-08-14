@@ -10,6 +10,81 @@ const sharp = require("sharp"); // Import Sharp
 const upload = multer();
 const router = express.Router();
 
+// Transparent pikselleri trim eden yardımcı fonksiyon
+async function trimTransparentPixels(imageBuffer) {
+  try {
+    const image = sharp(imageBuffer);
+    const { width, height, channels } = await image.metadata();
+
+    // Eğer alpha kanalı yoksa, direkt buffer'ı döndür
+    if (channels < 4) {
+      return imageBuffer;
+    }
+
+    // Resmi raw data olarak al
+    const { data } = await image.raw().toBuffer({ resolveWithObject: true });
+
+    // Transparent olmayan piksellerin sınırlarını bul
+    let minX = width,
+      maxX = -1;
+    let minY = height,
+      maxY = -1;
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const pixelIndex = (y * width + x) * channels;
+        const alpha = data[pixelIndex + 3]; // Alpha kanalı
+
+        // Eğer piksel transparent değilse (alpha > 0)
+        if (alpha > 0) {
+          minX = Math.min(minX, x);
+          maxX = Math.max(maxX, x);
+          minY = Math.min(minY, y);
+          maxY = Math.max(maxY, y);
+        }
+      }
+    }
+
+    // Eğer hiç opaque piksel bulunamadıysa, orijinal resmi döndür
+    if (maxX === -1 || maxY === -1) {
+      return imageBuffer;
+    }
+
+    // Küçük bir padding ekle (opsiyonel)
+    const padding = 2;
+    const cropLeft = Math.max(0, minX - padding);
+    const cropTop = Math.max(0, minY - padding);
+    const cropWidth = Math.min(width - cropLeft, maxX - minX + 1 + padding * 2);
+    const cropHeight = Math.min(
+      height - cropTop,
+      maxY - minY + 1 + padding * 2
+    );
+
+    // Trim edilmiş resmi oluştur
+    const trimmedBuffer = await image
+      .extract({
+        left: cropLeft,
+        top: cropTop,
+        width: cropWidth,
+        height: cropHeight,
+      })
+      .png()
+      .toBuffer();
+
+    console.log(
+      `🎯 Trim işlemi: ${width}x${height} → ${cropWidth}x${cropHeight}`
+    );
+
+    return trimmedBuffer;
+  } catch (error) {
+    console.warn(
+      "⚠️ Trim işlemi başarısız, orijinal resim kullanılıyor:",
+      error.message
+    );
+    return imageBuffer;
+  }
+}
+
 // Replicate API client
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
@@ -53,7 +128,7 @@ async function waitForPredictionToComplete(
 
 // URL'den arkaplan kaldırma için yeni endpoint
 router.post("/remove-background", async (req, res) => {
-  const { imageUrl } = req.body;
+  const { imageUrl, userId } = req.body || {};
 
   if (!imageUrl) {
     return res
@@ -62,54 +137,131 @@ router.post("/remove-background", async (req, res) => {
   }
 
   try {
-    console.log("Replicate API ile arkaplan kaldırma başlatılıyor:", imageUrl);
+    console.log("🖼️ Arkaplan kaldırma başlatılıyor:", imageUrl);
     console.log(
       "REPLICATE_API_TOKEN:",
       process.env.REPLICATE_API_TOKEN
-        ? "Mevcut (uzunluk: " + process.env.REPLICATE_API_TOKEN.length + ")"
+        ? `Mevcut (uzunluk: ${process.env.REPLICATE_API_TOKEN.length})`
         : "Eksik"
     );
 
-    // Replicate prediction oluştur
-    console.log("Prediction oluşturuluyor...");
+    // 1) Orijinal görsel metadata (orientation) al
+    let originalMetadata = null;
+    try {
+      console.log("📐 Orijinal fotoğrafın metadata bilgileri alınıyor...");
+      const originalResponse = await axios.get(imageUrl, {
+        responseType: "arraybuffer",
+        timeout: 30000,
+      });
+      const originalImageBuffer = Buffer.from(originalResponse.data);
+      originalMetadata = await sharp(originalImageBuffer).metadata();
+      console.log("📐 Orijinal metadata:", {
+        width: originalMetadata.width,
+        height: originalMetadata.height,
+        orientation: originalMetadata.orientation,
+        format: originalMetadata.format,
+      });
+    } catch (metaErr) {
+      console.warn("⚠️ Orijinal metadata alınamadı:", metaErr.message);
+    }
+
+    // 2) Replicate prediction oluştur
+    console.log("🧠 Replicate prediction oluşturuluyor...");
     const prediction = await predictions.create({
+      // referenceBrowserRoutesV2.js mantığına uygun model ve inputlar
       version:
-        "4067ee2a58f6c161d434a9c077cfa012820b8e076efa2772aa171e26557da919",
-      input: { image: imageUrl },
+        "a029dff38972b5fda4ec5d75d7d1cd25aeff621d2cf4946a41055d7db66b80bc",
+      input: {
+        image: imageUrl,
+        format: "png",
+        reverse: false,
+        threshold: 0,
+        background_type: "rgba",
+      },
     });
+    console.log("🔖 Prediction ID:", prediction.id);
 
-    console.log("Prediction ID:", prediction.id);
-
-    // Prediction'ın tamamlanmasını bekle
+    // 3) Prediction'ı bekle
     const completedPrediction = await waitForPredictionToComplete(
       prediction.id,
-      120000, // 2 dakika timeout
-      3000 // 3 saniyede bir kontrol
+      120000,
+      3000
     );
-
-    console.log("Completed prediction:", completedPrediction);
 
     if (!completedPrediction.output) {
       throw new Error("Replicate API'den geçerli bir yanıt alınamadı");
     }
 
-    // Çıktıyı al
-    const output = completedPrediction.output;
-    console.log("Çıktı alındı:", output);
+    const replicateOutputUrl = completedPrediction.output;
+    console.log("✅ Replicate çıktı URL:", replicateOutputUrl);
 
-    // Başarılı yanıtı döndür
-    res.status(200).json({
+    // 4) Çıktıyı indir, orientation düzelt, trim uygula ve Supabase'e yükle
+    let processedBuffer;
+    let trimmedMetadata = null;
+    try {
+      const processedResp = await axios.get(replicateOutputUrl, {
+        responseType: "arraybuffer",
+        timeout: 30000,
+      });
+      let tmpBuffer = Buffer.from(processedResp.data);
+
+      let pipeline = sharp(tmpBuffer).png();
+      // Orientation düzeltmesi (sık kullanılan değerler)
+      if (originalMetadata && originalMetadata.orientation) {
+        const o = originalMetadata.orientation;
+        if (o === 3) pipeline = pipeline.rotate(180);
+        else if (o === 6) pipeline = pipeline.rotate(90); // CW
+        else if (o === 8) pipeline = pipeline.rotate(270); // CCW
+        // Diğer orientation türleri (2,4,5,7) nadir; ihtiyaç olursa eklenir
+      }
+
+      let orientationFixedBuffer = await pipeline.toBuffer();
+
+      // Transparent pikselleri trim et
+      console.log("🎯 Transparent trimming işlemi başlatılıyor...");
+      processedBuffer = await trimTransparentPixels(orientationFixedBuffer);
+
+      // Trim sonrası yeni boyutları al
+      trimmedMetadata = await sharp(processedBuffer).metadata();
+    } catch (procErr) {
+      console.warn("⚠️ İşlenen resmi indirirken/işlerken hata:", procErr);
+      // Fallback: Replicate URL'ini direkt döndürelim
+      return res.status(200).json({
+        success: true,
+        removedBgUrl: replicateOutputUrl,
+        originalUrl: imageUrl,
+        result: { removed_bg_url: replicateOutputUrl },
+      });
+    }
+
+    // 5) Supabase'e yükle ve public URL al
+    const fileName = `${uuidv4()}.png`;
+    const { error: uploadError } = await supabase.storage
+      .from("images")
+      .upload(fileName, processedBuffer, {
+        contentType: "image/png",
+      });
+    if (uploadError) throw uploadError;
+
+    const { data: publicUrlData, error: publicUrlError } =
+      await supabase.storage.from("images").getPublicUrl(fileName);
+    if (publicUrlError) throw publicUrlError;
+
+    const publicUrl = publicUrlData.publicUrl;
+
+    return res.status(200).json({
       success: true,
-      removedBgUrl: output,
+      removedBgUrl: publicUrl,
       originalUrl: imageUrl,
       result: {
-        removed_bg_url: output,
+        removed_bg_url: publicUrl,
+        trimmed_width: trimmedMetadata?.width,
+        trimmed_height: trimmedMetadata?.height,
       },
     });
   } catch (error) {
-    console.error("Replicate API ile arkaplan kaldırma hatası:", error);
-    console.error("Hata detayları:", error.stack);
-    res.status(500).json({
+    console.error("❌ Arkaplan kaldırma hatası:", error);
+    return res.status(500).json({
       success: false,
       message: "Arkaplan kaldırma işlemi sırasında bir hata oluştu",
       error: error.message || "Unknown error",
@@ -207,10 +359,16 @@ router.post("/remove-bg", upload.array("files", 20), async (req, res) => {
 
           const buffer = Buffer.from(response.data, "binary");
 
-          // Use Sharp to ensure the output is in PNG format without altering the background
-          const processedBuffer = await sharp(buffer)
+          // Use Sharp to ensure the output is in PNG format and trim transparent pixels
+          let pngBuffer = await sharp(buffer)
             .png() // Ensure the output is in PNG format
             .toBuffer();
+
+          // Transparent pikselleri trim et
+          console.log(
+            "🎯 Batch processing - Transparent trimming işlemi başlatılıyor..."
+          );
+          const processedBuffer = await trimTransparentPixels(pngBuffer);
 
           const fileName = `${uuidv4()}.png`;
 

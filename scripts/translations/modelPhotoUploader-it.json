@@ -1,0 +1,33 @@
+{
+  "modelPhotoUploader": {
+    "onboard": {
+      "topBadge": "Creato con Diress",
+      "step2Overlay": "Per risultati più accurati, coerenti e allineati nelle dimensioni, seguire le regole sottostanti.",
+      "step0Subtitle": "Per risultati di qualità e coerenti, rivedi le foto di prodotto di esempio qui sotto. Prima di continuare, mostreremo una breve guida una tantum alle regole di caricamento.",
+      "step1Subtitle": "Diress offre alta qualità come negli esempi. Mostreremo prima una guida molto breve e una tantum per la coerenza delle dimensioni e del posizionamento del prodotto.",
+      "step3Subtitle": "Per risultati ottimali, dimensiona correttamente il prodotto sul manichino in Canvas e allinealo naturalmente.",
+      "continue": "Continua",
+      "start": "Inizia",
+      "reasons": {
+        "crowdedBackground": "Sfondo affollato",
+        "wrongAngle": "Angolazione errata",
+        "darkEnvironment": "Ambiente buio",
+        "halfImage": "Immagine parziale"
+      }
+    },
+    "manual": {
+      "title": "Posiziona e ridimensiona il prodotto manualmente",
+      "desc": {
+        "before1": "Quando selezionato, il prodotto viene posizionato e dimensionato manualmente sul Canvas; questo approccio migliora la ",
+        "emphasis1": "coerenza di scala",
+        "middle1": " e produce ",
+        "emphasis2": "risultati più accurati",
+        "middle2": ". Inoltre, con un corretto allineamento, le caratteristiche di ",
+        "emphasis3": "struttura e pattern",
+        "middle3": " del prodotto vengono trasmesse ",
+        "emphasis4": "nel modo più accurato",
+        "after": "."
+      }
+    }
+  }
+}

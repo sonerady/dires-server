@@ -1,0 +1,9 @@
+{
+  "canvasEditor": {
+    "genderInfo": "Bu alan yalnızca ürünün görsel yerleşimini ve boyutunu belirlemek içindir; yaş ve vücut ölçüleri bu aşamada kullanılmaz. Bu detayları bir sonraki adımda belirleyeceksiniz.",
+    "woman": "Kadın",
+    "man": "Erkek",
+    "removingBackground": "Arkaplan kaldırılıyor...",
+    "pleaseWaitDoNotExit": "Lütfen bekleyin, uygulamadan çıkmayın."
+  }
+}
