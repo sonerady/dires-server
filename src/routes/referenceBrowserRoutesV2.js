@@ -605,7 +605,6 @@ function formatAspectRatio(ratioStr) {
   }
 }
 
-// Prompt'u iyileştirmek için Gemini'yi kullan
 async function enhancePromptWithGemini(
   originalPrompt,
   imageUrl,
@@ -1148,6 +1147,8 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
       ${criticalDirectives}
 
+      SILENT RULES (DO NOT OUTPUT THESE, JUST APPLY THEM): All rules, headings, examples, and meta-instructions you see in this message must be applied silently. Do not quote, restate, or paraphrase any rule text in your final output. Your final output MUST ONLY be the concise descriptive prompt for the image model, with no rule headings or capitalized instruction sentences.
+
       ${fluxMaxGarmentTransformationDirectives}
 
       USER'S EDIT REQUEST: "${editPrompt.trim()}"
@@ -1256,7 +1257,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       - Make the pose description sound professional and beautiful
       - Ensure the pose suits the model's style and clothing EXACTLY as shown
 
-      LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace".
+      LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace". Do NOT include any rule names, headings, or capitalized instruction phrases (e.g., "FLUX MAX CONTEXT", "CRITICAL REQUIREMENTS", "MANDATORY", "LANGUAGE REQUIREMENT").
 
       ${originalPrompt ? `Additional considerations: ${originalPrompt}.` : ""}
       
@@ -1282,6 +1283,8 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       6. Preserve ALL original garment details: colors, patterns, textures, hardware, stitching, logos, graphics, and construction elements
       7. The garment must appear identical to the reference image, just worn by the model instead of being flat
 
+      PRODUCT DETAIL COVERAGE (MANDATORY): Describe the garment's construction details comprehensively but concisely: exact number of buttons or fasteners, button style/material, zipper presence and position, pocket count and style (e.g., welt, patch, flap), waistband or belt loops, seam placements, darts, pleats, hems and cuff types, stitching type/visibility, closures, trims and hardware, labels/patches (generic terms), fabric texture and weave, pattern alignment, lining presence, and any distinctive construction features. Keep this within the 512-token limit; prioritize the most visually verifiable details.
+
       ${fluxMaxGarmentTransformationDirectives}
 
       LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace".
@@ -1299,7 +1302,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       ${hairStyleTextSection}
       ${faceDescriptionSection}
       
-      Generate a concise prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace".
+      Generate a concise prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace". Apply all rules silently and do not include any rule text or headings in the output.
       
       EXAMPLE FORMAT: "Replace the flat-lay garment from the input image directly onto a standing [model description] while keeping the original garment exactly the same..."
       `;
@@ -2875,7 +2878,7 @@ async function combineReferenceAssets(
       throw new Error("combineReferenceAssets: no valid assets to combine");
     }
 
-    // Tüm görselleri indir → JPEG'e çevir → loadImage ile yükle
+    // Tüm görselleri indir → (ilk ürün görseli için 1024x1024 beyaz zemin içinde ortalama) → diğerlerini JPEG'e çevir → loadImage ile yükle
     const loadedImages = [];
     for (let i = 0; i < assetUrls.length; i++) {
       const url = assetUrls[i].split("?")[0];
@@ -2885,9 +2888,35 @@ async function combineReferenceAssets(
           timeout: 30000,
         });
         const buffer = Buffer.from(response.data);
-        const processed = await sharp(buffer)
-          .jpeg({ quality: 90, progressive: true, mozjpeg: true })
-          .toBuffer();
+
+        let processed;
+        if (i === 0) {
+          // Sadece arkaplanı kaldırılmış TRIM'lenmiş ürün görselini 1024x1024 beyaz zemine yerleştir
+          const resized = await sharp(buffer)
+            .resize(1024, 1024, { fit: "inside", withoutEnlargement: false })
+            .png()
+            .toBuffer();
+
+          const whiteSquare = await sharp({
+            create: {
+              width: 1024,
+              height: 1024,
+              channels: 3,
+              background: { r: 255, g: 255, b: 255 },
+            },
+          })
+            .composite([{ input: resized, gravity: "center" }])
+            .png()
+            .toBuffer();
+
+          processed = whiteSquare;
+        } else {
+          // Diğer varlıklar (portrait/location) için JPEG yeterli
+          processed = await sharp(buffer)
+            .jpeg({ quality: 90, progressive: true, mozjpeg: true })
+            .toBuffer();
+        }
+
         const img = await loadImage(processed);
         loadedImages.push(img);
       } catch (err) {
@@ -3331,7 +3360,7 @@ router.post("/generate", async (req, res) => {
     );
 
     // 🤖 Gemini'ye orijinal ham resmi gönder (paralel)
-    async function enhancePromptWithGemini(
+    async function enhancePromptWithGemini_inner(
       originalPrompt,
       imageUrl,
       settings = {},
