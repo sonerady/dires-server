@@ -1767,7 +1767,7 @@ async function removeBackgroundFromImage(imageUrl, userId) {
       const internalPort = process.env.PORT || 3001;
       const internalBaseUrl =
         process.env.INTERNAL_API_BASE_URL ||
-        `https://dires-server.onrender.com`;
+        `https://dires-server.onrender.com:${internalPort}`;
       const endpoint = `${internalBaseUrl}/api/remove-background`;
       console.log("🔗 Dahili removeBg API çağrısı:", endpoint);
 

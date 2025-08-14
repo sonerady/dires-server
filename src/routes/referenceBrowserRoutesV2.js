@@ -1891,7 +1891,7 @@ async function removeBackgroundFromImage(imageUrl, userId) {
       const internalPort = process.env.PORT || 3001;
       const internalBaseUrl =
         process.env.INTERNAL_API_BASE_URL ||
-        `https://dires-server.onrender.com`;
+        `https://dires-server.onrender.com:${internalPort}`;
       const endpoint = `${internalBaseUrl}/api/remove-background`;
       console.log("🔗 Dahili removeBg API çağrısı:", endpoint);
 
@@ -4368,6 +4368,24 @@ router.post("/generate", async (req, res) => {
       );
     } else {
       // 🖼️ NORMAL MODE - Arkaplan silme işlemi (paralel)
+      // Gemini prompt üretimini paralelde başlat
+      const geminiPromise = enhancePromptWithGemini(
+        promptText,
+        finalImage, // Ham orijinal resim
+        settings || {},
+        locationImage,
+        poseImage,
+        hairStyleImage,
+        isMultipleProducts,
+        false, // ControlNet yok, ham resim
+        isColorChange, // Renk değiştirme işlemi mi?
+        targetColor, // Hedef renk bilgisi
+        isPoseChange, // Poz değiştirme işlemi mi?
+        customDetail, // Özel detay bilgisi
+        isEditMode, // EditScreen modu mu?
+        editPrompt // EditScreen'den gelen prompt
+      );
+
       const backgroundRemovalPromise = removeBackgroundFromImage(
         finalImage,
         userId
