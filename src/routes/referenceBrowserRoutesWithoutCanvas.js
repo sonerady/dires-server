@@ -3397,6 +3397,7 @@ router.post("/generate", async (req, res) => {
     try {
       const genderForPortrait = (settings && settings.gender) || "female";
       const portraitPrompt = await generatePortraitPromptWithGemini(
+        settings || {},
         genderForPortrait
       );
       portraitImageUrl = await generatePortraitWithFluxDev(portraitPrompt);

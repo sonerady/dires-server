@@ -1447,6 +1447,8 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       6. Preserve ALL original garment details: colors, patterns, textures, hardware, stitching, logos, graphics, and construction elements
       7. The garment must appear identical to the reference image, just worn by the model instead of being flat
 
+      PRODUCT DETAIL COVERAGE (MANDATORY): Describe the garment's construction details comprehensively but concisely: exact number of buttons or fasteners, button style/material, zipper presence and position, pocket count and style (e.g., welt, patch, flap), waistband or belt loops, seam placements, darts, pleats, hems and cuff types, stitching type/visibility, closures, trims and hardware, labels/patches (generic terms), fabric texture and weave, pattern alignment, lining presence, and any distinctive construction features. Keep this within the 512-token limit; prioritize the most visually verifiable details.
+
       ${fluxMaxGarmentTransformationDirectives}
 
       LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace".
@@ -1753,10 +1755,45 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
   }
 }
 
+// Not: Trim işlemi removeBg.js içinde yapılıyor; burada tekrar etmiyoruz
+
 // Arkaplan silme fonksiyonu
 async function removeBackgroundFromImage(imageUrl, userId) {
   try {
     console.log("🖼️ Arkaplan silme işlemi başlatılıyor:", imageUrl);
+
+    // Önce dahili removeBg API'sini kullanmayı dene
+    try {
+      const internalPort = process.env.PORT || 3001;
+      const internalBaseUrl =
+        process.env.INTERNAL_API_BASE_URL ||
+        `https://dires-server.onrender.com:${internalPort}`;
+      const endpoint = `${internalBaseUrl}/api/remove-background`;
+      console.log("🔗 Dahili removeBg API çağrısı:", endpoint);
+
+      const apiResp = await axios.post(
+        endpoint,
+        { imageUrl, userId },
+        { timeout: 120000 }
+      );
+
+      const removedBgUrl =
+        apiResp?.data?.removedBgUrl || apiResp?.data?.result?.removed_bg_url;
+      if (removedBgUrl && typeof removedBgUrl === "string") {
+        console.log("✅ removeBg API sonucu alındı:", removedBgUrl);
+        return removedBgUrl;
+      } else {
+        console.warn(
+          "⚠️ removeBg API beklenen alanları döndürmedi, yerel pipeline'a düşülüyor",
+          apiResp?.data
+        );
+      }
+    } catch (apiError) {
+      console.warn(
+        "⚠️ removeBg API çağrısı başarısız, yerel pipeline'a düşülüyor:",
+        apiError.message
+      );
+    }
 
     // Orijinal fotoğrafın metadata bilgilerini al (orientation için)
     let originalMetadata = null;
@@ -1941,7 +1978,7 @@ async function removeBackgroundFromImage(imageUrl, userId) {
           }
         }
 
-        // Düzeltilmiş resmi Supabase'e yükle
+        // Trim artık dahili removeBg API tarafından yapılıyor; doğrudan yükle
         processedImageUrl = await uploadProcessedImageBufferToSupabase(
           processedImageBuffer,
           userId,
@@ -3137,7 +3174,7 @@ router.post("/generate", async (req, res) => {
           const fluxPortraitSettings = { ...settings };
           const portraitPromptPromise = generatePortraitPromptWithGemini(
             fluxPortraitSettings,
-            settings.gender || "woman"
+            settings.gender || "female"
           );
 
           // Gemini ve portrait prompt'u paralel bekle (portrait optional)
@@ -4133,25 +4170,25 @@ async function generatePortraitPromptWithGemini(
             "; "
           )}.\n- Reiterate them again succinctly at the end of the prompt as a reminder line starting with 'Focus:'.\n`
         : "";
-
     const portraitPrompt = `Create a detailed portrait photo prompt for a professional fashion model (${gender}) ${characteristicsText}CRITICAL REQUIREMENTS:
-    - MUST be a fashion model with high-end, editorial facial features
-    - MUST have a pure white background (solid white studio backdrop)
-    - Head-and-shoulders framing with a very slight distance from the camera (not an extreme close-up); keep a small breathing room around the head and shoulders
-    - Professional studio lighting with even illumination
-    - Sharp detail and clear facial features
-    - High-fashion model aesthetics with striking, photogenic facial structure
-    - Commercial fashion photography style
-    
-    ACCESSORY RULES:
-    - If accessories are present, include ONLY face/head/hair-related accessories.
-    - Do NOT mention or imply any body/hand/arm/waist accessories.
-    ${emphasisText}
-    Generate a professional portrait photography prompt suitable for Flux.1-dev model. 
-    LIMIT:
-    - The final prompt MUST be no more than 77 tokens. Keep it concise.
-    - Do NOT exceed 77 tokens under any circumstances.
-    Return only the prompt text, no explanations.`;
+        - MUST be a fashion model with high-end, editorial facial features
+        - MUST have a pure white background (solid white studio backdrop)
+        - Head-and-shoulders framing with a very slight distance from the camera (not an extreme close-up); keep a small breathing room around the head and shoulders
+        - Professional studio lighting with even illumination
+        - Sharp detail and clear facial features
+        - High-fashion model aesthetics with striking, photogenic facial structure
+        - Commercial fashion photography style
+        
+        ACCESSORY RULES:
+        - If accessories are present, include ONLY face/head/hair-related accessories.
+        - Do NOT mention or imply any body/hand/arm/waist accessories.
+        IMPORTANT: Apply all the rules and constraints silently. Do NOT include or restate any rules, examples, or meta-instructions in the output.
+        Generate a professional portrait photography prompt suitable for Flux.1-dev model. 
+        LIMIT:
+        - The final prompt MUST be no more than 77 tokens. Keep it concise.
+        - Do NOT exceed 77 tokens under any circumstances.
+        - Return only the final prompt text, without quotes or any meta-guidance (no 'Focus:' lines, no 'EMPHASIS REQUIREMENTS').
+        Return only the prompt text, no explanations.`;
 
     // Gemini API'yi retry mekanizması ile çağır
     let response;
