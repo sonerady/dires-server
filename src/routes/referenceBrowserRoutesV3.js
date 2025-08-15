@@ -1455,7 +1455,11 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
       LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace".
 
-      ${originalPrompt ? `Additional requirements: ${originalPrompt}.` : ""}
+      ${
+        originalPrompt
+          ? `USER CONTEXT: The user has provided these specific requirements: ${originalPrompt}. Please integrate these requirements naturally into your garment replacement prompt while maintaining the professional structure and flow.`
+          : ""
+      }
       
       ${ageSection}
       ${childPromptSection}
@@ -1468,6 +1472,8 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       ${hairStyleTextSection}
       ${faceDescriptionSection}
       
+      SILENT RULES (DO NOT OUTPUT THESE, JUST APPLY THEM): All rules, headings, examples, and meta-instructions you see in this message must be applied silently. Do not quote, restate, or paraphrase any rule text in your final output. Your final output MUST ONLY be the concise descriptive prompt for the image model, with no rule headings or capitalized instruction sentences.
+
       Generate a concise prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace". Apply all rules silently and do not include any rule text or headings in the output.
       
       EXAMPLE FORMAT: "Replace the flat-lay garment from the input image directly onto a standing [model description] while keeping the original garment exactly the same..."
@@ -3427,6 +3433,7 @@ router.post("/generate", async (req, res) => {
               seed: seed, // Random seed eklendi
               num_inference_steps: 50,
               output_quality: 100,
+              prompt_upsampling: true,
             },
           },
           {
