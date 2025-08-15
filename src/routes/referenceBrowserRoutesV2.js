@@ -1612,6 +1612,16 @@ async function generatePortraitPromptWithGemini(
   const bodyShape =
     typeof settings.bodyShape === "string" ? settings.bodyShape : null;
 
+  // Vurgulanacak ögeler - modelden prompt içinde birden fazla kez geçmesini iste
+  const emphasisPoints = [];
+  if (mood) emphasisPoints.push(`mood/expression: ${mood}`);
+  if (accessories) emphasisPoints.push(`accessories: ${accessories}`);
+  if (bodyShape) emphasisPoints.push(`body shape: ${bodyShape}`);
+  if (hairStyle) emphasisPoints.push(`hair style: ${hairStyle}`);
+  if (hairColor) emphasisPoints.push(`hair color: ${hairColor}`);
+  if (skinTone) emphasisPoints.push(`skin tone: ${skinTone}`);
+  if (age) emphasisPoints.push(`age: ${age}`);
+
   try {
     console.log("👤 Gemini ile portrait prompt oluşturuluyor...");
 
@@ -1655,106 +1665,86 @@ async function generatePortraitPromptWithGemini(
           )}\n    \n    `
         : "";
 
-    // Vurgulanacak ögeler - modelden prompt içinde birden fazla kez geçmesini iste
-    const emphasisPoints = [];
-    if (mood) emphasisPoints.push(`mood/expression: ${mood}`);
-    if (accessories) emphasisPoints.push(`accessories: ${accessories}`);
-    if (bodyShape) emphasisPoints.push(`body shape: ${bodyShape}`);
-    if (hairStyle) emphasisPoints.push(`hair style: ${hairStyle}`);
-    if (hairColor) emphasisPoints.push(`hair color: ${hairColor}`);
-    if (skinTone) emphasisPoints.push(`skin tone: ${skinTone}`);
-    if (age) emphasisPoints.push(`age: ${age}`);
-
     const emphasisText =
       emphasisPoints.length > 0
         ? `\n\nEMPHASIS REQUIREMENTS:\n- Repeat the following key attributes at least twice across the prompt where relevant: ${emphasisPoints.join(
             "; "
           )}.\n- Reiterate them again succinctly at the end of the prompt as a reminder line starting with 'Focus:'.\n`
         : "";
+    const portraitPrompt = `Your task is to generate a short, artistic photo prompt for a professional fashion model (${gender}).
 
-    const portraitPrompt = `Create a detailed portrait photo prompt for a professional fashion model (${gender}) ${characteristicsText}CRITICAL REQUIREMENTS:
-    - MUST be a fashion model with high-end, editorial facial features
-    - MUST have a pure white background (solid white studio backdrop)
-    - Head-and-shoulders framing with a very slight distance from the camera (not an extreme close-up); keep a small breathing room around the head and shoulders
-    - Professional studio lighting with even illumination
-    - Sharp detail and clear facial features
-    - High-fashion model aesthetics with striking, photogenic facial structure
-    - Commercial fashion photography style
-    
-    ACCESSORY RULES:
-    - If accessories are present, include ONLY face/head/hair-related accessories.
-    - Do NOT mention or imply any body/hand/arm/waist accessories.
-    IMPORTANT: Apply all the rules and constraints silently. Do NOT include or restate any rules, examples, or meta-instructions in the output.
-    Generate a professional portrait photography prompt suitable for Flux.1-dev model. 
-    LIMIT:
-    - The final prompt MUST be no more than 77 tokens. Keep it concise.
-    - Do NOT exceed 77 tokens under any circumstances.
-    - Return only the final prompt text, without quotes or any meta-guidance (no 'Focus:' lines, no 'EMPHASIS REQUIREMENTS').
-    Return only the prompt text, no explanations.`;
+        **UNBREAKABLE RULE #1: THE FRAME**
+        - The image MUST be an EXTREME CLOSE-UP of the face.
+        - The frame starts at the chin and ends at the top of the head.
+        - **ABSOLUTELY NO NECK, NO SHOULDERS, NO CHEST, NO BODY, NO CLOTHES.**
+        - The entire focus is exclusively on the face.
+        
+        **UNBREAKABLE RULE #2: FORBIDDEN PHRASES**
+        - **DO NOT USE** any of the following phrases in your output: "head-and-shoulders", "shoulders up", "bust shot", "portrait", "close-up portrait", "slight distance". Describe the shot without naming it with these common but incorrect terms.
 
-    // Gemini API'yi retry mekanizması ile çağır
-    let response;
-    let lastError;
-    const maxRetries = 3;
+        **MODEL & SCENE REQUIREMENTS:**
+        - Subject: High-fashion model with striking, editorial facial features.
+        - Background: Pure, solid white studio background.
+        - Lighting: Professional, even studio lighting.
+        - Style: Sharp detail, clear features, commercial fashion aesthetic.
+
+        **CREATIVE TASK:**
+        - Creatively weave the following characteristics into a cohesive description, but you must adhere strictly to all UNBREAKABLE RULES above.
+        ${characteristicsText}
+        ${emphasisText}
+        **OUTPUT FORMAT:**
+        - Generate only the final prompt text.
+        - No quotes, no explanations, no rules, no meta-guidance.
+        - **STRICT LIMIT: 77 tokens MAXIMUM.** Be concise and powerful.`;
+
+    // Gemini 2.5 Flash modeli - En yeni API yapısı
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+    });
+
+    // Gemini'den cevap al (retry mekanizması ile) - Yeni API
+    let generatedPrompt;
+    const maxRetries = 10;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`👤 Gemini API çağrısı attempt ${attempt}/${maxRetries}`);
+        console.log(`🤖 [GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
 
-        response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: portraitPrompt }] }],
-              generationConfig: {
-                temperature: 0.7,
-                topK: 20,
-                topP: 0.8,
-                maxOutputTokens: 200,
-              },
-            }),
-          }
+        const result = await model.generateContent({
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: portraitPrompt }],
+            },
+          ],
+        });
+
+        generatedPrompt = result.response.text().trim();
+
+        console.log(
+          "🤖 [BACKEND GEMINI] Gemini'nin ürettiği portrait prompt:",
+          generatedPrompt
+        );
+        break; // Başarılı olursa loop'tan çık
+      } catch (geminiError) {
+        console.error(
+          `Gemini API attempt ${attempt} failed:`,
+          geminiError.message
         );
 
-        if (response.ok) {
-          break; // Başarılı, döngüden çık
-        } else if (response.status === 503 && attempt < maxRetries) {
-          console.log(
-            `⚠️ Gemini API 503 hatası, retry yapılıyor... (${attempt}/${maxRetries})`
+        if (attempt === maxRetries) {
+          console.error(
+            "Gemini API all attempts failed, using fallback prompt"
           );
-          lastError = new Error(`Gemini API hatası: ${response.status}`);
-          await new Promise((resolve) => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
-          continue;
-        } else {
-          throw new Error(`Gemini API hatası: ${response.status}`);
+          throw geminiError;
         }
-      } catch (error) {
-        lastError = error;
-        if (
-          attempt < maxRetries &&
-          (error.message.includes("503") ||
-            error.message.includes("fetch failed"))
-        ) {
-          console.log(
-            `⚠️ Gemini API network hatası, retry yapılıyor... (${attempt}/${maxRetries}):`,
-            error.message
-          );
-          await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
-          continue;
-        }
-        throw error;
+
+        // Exponential backoff: 1s, 2s, 4s
+        const waitTime = Math.pow(2, attempt - 1) * 1000;
+        console.log(`Waiting ${waitTime}ms before retry...`);
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
       }
     }
-
-    if (!response || !response.ok) {
-      throw lastError || new Error("Gemini API maximum retry reached");
-    }
-
-    const data = await response.json();
-    const generatedPrompt =
-      data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
     if (!generatedPrompt) {
       throw new Error("Gemini'den boş yanıt alındı");
