@@ -4309,7 +4309,7 @@ async function generatePortraitPromptWithGemini(
     }
 
     console.log("👤 Portrait prompt oluşturuldu:", generatedPrompt);
-    return generatedPrompt;
+    return generatedPrompt + "No clothes";
   } catch (error) {
     console.error("❌ Portrait prompt oluşturma hatası:", error);
 
