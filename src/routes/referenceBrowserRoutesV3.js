@@ -1692,74 +1692,356 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       }
     }
 
-    // Eğer Gemini sonuç üretemediyse (enhancedPrompt orijinal prompt ile aynıysa) Replicate GPT-4o-mini ile yedek dene
+    // Eğer Gemini sonuç üretemediyse (enhancedPrompt orijinal prompt ile aynıysa) direkt fallback prompt kullan
     if (enhancedPrompt === originalPrompt) {
-      try {
-        console.log(
-          "🤖 [FALLBACK] Gemini başarısız, Replicate GPT-4o-mini deneniyor"
-        );
+      console.log(
+        "🔄 [FALLBACK] Gemini başarısız, detaylı fallback prompt kullanılıyor"
+      );
 
-        const replicateInput = {
-          top_p: 1,
-          prompt: promptForGemini,
-          image_input: [imageUrl],
-          temperature: 1,
-          system_prompt: "You are a helpful assistant.",
-          presence_penalty: 0,
-          frequency_penalty: 0,
-          max_completion_tokens: 512,
-        };
+      // Settings'ten bilgileri çıkar
+      const location = settings?.location;
+      const weather = settings?.weather;
+      const age = settings?.age;
+      const gender = settings?.gender;
+      const productColor = settings?.productColor;
+      const mood = settings?.mood;
+      const perspective = settings?.perspective;
+      const accessories = settings?.accessories;
+      const skinTone = settings?.skinTone;
+      const hairStyle = settings?.hairStyle;
+      const hairColor = settings?.hairColor;
+      const bodyShape = settings?.bodyShape;
+      const pose = settings?.pose;
+      const ethnicity = settings?.ethnicity;
 
-        const replicateResponse = await axios.post(
-          "https://api.replicate.com/v1/models/openai/gpt-4o-mini/predictions",
-          { input: replicateInput },
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-              "Content-Type": "application/json",
-              Prefer: "wait",
-            },
-            timeout: 120000,
+      // Model tanımı
+      let modelDescription = "";
+
+      // Yaş ve cinsiyet - aynı koşullar kullanılıyor
+      const genderLower = gender ? gender.toLowerCase() : "female";
+      let parsedAgeInt = null;
+
+      // Yaş sayısını çıkar
+      if (age) {
+        if (age.includes("years old")) {
+          const ageMatch = age.match(/(\d+)\s*years old/);
+          if (ageMatch) {
+            parsedAgeInt = parseInt(ageMatch[1]);
           }
-        );
-
-        const replicateData = replicateResponse.data;
-        if (replicateData.status === "succeeded") {
-          const outArr = replicateData.output;
-          enhancedPrompt = Array.isArray(outArr) ? outArr.join("") : outArr;
-          enhancedPrompt = enhancedPrompt.trim();
-          console.log(
-            "🤖 [FALLBACK] Replicate GPT-4o-mini prompt üretimi başarılı"
-          );
-        } else {
-          console.warn(
-            "⚠️ [FALLBACK] Replicate GPT-4o-mini status:",
-            replicateData.status
-          );
+        } else if (age.includes("baby") || age.includes("bebek")) {
+          parsedAgeInt = 1;
+        } else if (age.includes("child") || age.includes("çocuk")) {
+          parsedAgeInt = 5;
+        } else if (age.includes("young") || age.includes("genç")) {
+          parsedAgeInt = 22;
+        } else if (age.includes("adult") || age.includes("yetişkin")) {
+          parsedAgeInt = 45;
         }
-      } catch (repErr) {
-        console.error(
-          "❌ [FALLBACK] Replicate GPT-4o-mini hatası:",
-          repErr.message
-        );
       }
+
+      // Aynı yaş koşulları kullanılıyor
+      if (!isNaN(parsedAgeInt) && parsedAgeInt <= 3) {
+        // Baby/Toddler
+        let ageGroupWord;
+        if (parsedAgeInt <= 1) {
+          ageGroupWord = "baby";
+        } else {
+          ageGroupWord = "toddler";
+        }
+        const genderWord =
+          genderLower === "male" || genderLower === "man" ? "boy" : "girl";
+
+        if (parsedAgeInt <= 1) {
+          modelDescription = `${parsedAgeInt}-year-old ${ageGroupWord} ${genderWord} (infant)`;
+        } else {
+          modelDescription = `${parsedAgeInt} year old ${ageGroupWord} ${genderWord}`;
+        }
+      } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
+        // Child
+        const genderWord =
+          genderLower === "male" || genderLower === "man" ? "boy" : "girl";
+        modelDescription = `${parsedAgeInt} year old child ${genderWord}`;
+      } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
+        // Teenage
+        const genderWord =
+          genderLower === "male" || genderLower === "man" ? "boy" : "girl";
+        modelDescription = `${parsedAgeInt} year old teenage ${genderWord}`;
+      } else {
+        // Yetişkin mantığı
+        if (genderLower === "male" || genderLower === "man") {
+          modelDescription = "male model";
+        } else {
+          modelDescription = "female model";
+        }
+
+        // Eğer yaş bilgisini yetişkinlerde kullanmak istersen
+        if (age && !age.includes("years old")) {
+          modelDescription =
+            genderLower === "male" || genderLower === "man"
+              ? `${age} male model`
+              : `${age} female model`;
+        }
+      }
+
+      // Etnik köken
+      if (ethnicity) {
+        modelDescription += ` ${ethnicity}`;
+      }
+
+      // Ten rengi
+      if (skinTone) {
+        modelDescription += ` with ${skinTone} skin`;
+      }
+
+      // Saç detayları
+      if (hairColor && hairStyle) {
+        modelDescription += `, ${hairColor} ${hairStyle}`;
+      } else if (hairColor) {
+        modelDescription += `, ${hairColor} hair`;
+      } else if (hairStyle) {
+        modelDescription += `, ${hairStyle}`;
+      }
+
+      // Vücut tipi
+      if (bodyShape) {
+        modelDescription += `, ${bodyShape} body shape`;
+      }
+
+      // Poz ve ifade
+      let poseDescription = "";
+      if (pose) poseDescription += `, ${pose}`;
+      if (mood) poseDescription += ` with ${mood} expression`;
+
+      // Aksesuarlar
+      let accessoriesDescription = "";
+      if (accessories) {
+        accessoriesDescription += `, wearing ${accessories}`;
+      }
+
+      // Ortam
+      let environmentDescription = "";
+      if (location) environmentDescription += ` in ${location}`;
+      if (weather) environmentDescription += ` during ${weather} weather`;
+
+      // Kamera açısı
+      let cameraDescription = "";
+      if (perspective) {
+        cameraDescription += `, ${perspective} camera angle`;
+      }
+
+      // Ürün rengi
+      let clothingDescription = "";
+      if (productColor && productColor !== "original") {
+        clothingDescription += `, wearing ${productColor} colored clothing`;
+      }
+
+      // Ana prompt oluştur
+      let fallbackPrompt = `Replace the flat-lay garment from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
+
+      // Kıyafet detayları ve kalite gereksinimleri
+      fallbackPrompt += `Preserve the original garment exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show the identical garment perfectly fitted on the dynamic model. `;
+
+      // Kıyafet özellikleri (genel)
+      fallbackPrompt += `The garment features high-quality fabric with proper texture, stitching, and construction details. `;
+
+      // Temizlik gereksinimleri
+      fallbackPrompt += `ABSOLUTELY AND IMMEDIATELY REMOVE ALL HANGERS, CLIPS, TAGS, AND FLAT-LAY ARTIFACTS. Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model; avoid any 2D, sticker-like, or paper-like overlay. `;
+
+      // Fizik gereksinimleri
+      fallbackPrompt += `Ensure realistic fabric physics: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
+
+      // Detay koruma
+      fallbackPrompt += `Preserve ALL original garment details: exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Do NOT redesign. `;
+
+      // Pattern entegrasyonu
+      fallbackPrompt += `Integrate prints/patterns correctly over the 3D form: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
+
+      // Final kalite
+      fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic.`;
+
+      console.log(
+        "🔄 [FALLBACK] Generated detailed fallback prompt:",
+        fallbackPrompt
+      );
+
+      enhancedPrompt = fallbackPrompt;
     }
 
     return enhancedPrompt;
   } catch (error) {
     console.error("🤖 Gemini 2.0 Flash prompt iyileştirme hatası:", error);
-    // Hata durumunda da uygun direktifi ekle
-    // let controlNetDirective = "";
-    // if (hasControlNet) {
-    //   controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
 
-    // `;
-    // } else {
-    //   controlNetDirective = `BACKGROUND REMOVED IMAGE GUIDANCE: The input image shows the original garment with background removed (white background) for clear color and texture reference. Focus on analyzing the garment's design, construction details, fabric characteristics, and styling elements. Use this clean product image to understand the garment's true colors, textures, patterns, and structural features without any background distractions.
+    // Fallback prompt - detaylı kıyafet odaklı format
+    console.log(
+      "🔄 [FALLBACK] Enhanced prompt oluşturulamadı, detaylı fallback prompt kullanılıyor"
+    );
 
-    // `;
-    // }
-    return originalPrompt;
+    // Settings'ten bilgileri çıkar
+    const location = settings?.location;
+    const weather = settings?.weather;
+    const age = settings?.age;
+    const gender = settings?.gender;
+    const productColor = settings?.productColor;
+    const mood = settings?.mood;
+    const perspective = settings?.perspective;
+    const accessories = settings?.accessories;
+    const skinTone = settings?.skinTone;
+    const hairStyle = settings?.hairStyle;
+    const hairColor = settings?.hairColor;
+    const bodyShape = settings?.bodyShape;
+    const pose = settings?.pose;
+    const ethnicity = settings?.ethnicity;
+
+    // Model tanımı
+    let modelDescription = "";
+
+    // Yaş ve cinsiyet - aynı koşullar kullanılıyor
+    const genderLower = gender ? gender.toLowerCase() : "female";
+    let parsedAgeInt = null;
+
+    // Yaş sayısını çıkar
+    if (age) {
+      if (age.includes("years old")) {
+        const ageMatch = age.match(/(\d+)\s*years old/);
+        if (ageMatch) {
+          parsedAgeInt = parseInt(ageMatch[1]);
+        }
+      } else if (age.includes("baby") || age.includes("bebek")) {
+        parsedAgeInt = 1;
+      } else if (age.includes("child") || age.includes("çocuk")) {
+        parsedAgeInt = 5;
+      } else if (age.includes("young") || age.includes("genç")) {
+        parsedAgeInt = 22;
+      } else if (age.includes("adult") || age.includes("yetişkin")) {
+        parsedAgeInt = 45;
+      }
+    }
+
+    // Aynı yaş koşulları kullanılıyor
+    if (!isNaN(parsedAgeInt) && parsedAgeInt <= 3) {
+      // Baby/Toddler
+      let ageGroupWord;
+      if (parsedAgeInt <= 1) {
+        ageGroupWord = "baby";
+      } else {
+        ageGroupWord = "toddler";
+      }
+      const genderWord =
+        genderLower === "male" || genderLower === "man" ? "boy" : "girl";
+
+      if (parsedAgeInt <= 1) {
+        modelDescription = `${parsedAgeInt}-year-old ${ageGroupWord} ${genderWord} (infant)`;
+      } else {
+        modelDescription = `${parsedAgeInt} year old ${ageGroupWord} ${genderWord}`;
+      }
+    } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
+      // Child
+      const genderWord =
+        genderLower === "male" || genderLower === "man" ? "boy" : "girl";
+      modelDescription = `${parsedAgeInt} year old child ${genderWord}`;
+    } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
+      // Teenage
+      const genderWord =
+        genderLower === "male" || genderLower === "man" ? "boy" : "girl";
+      modelDescription = `${parsedAgeInt} year old teenage ${genderWord}`;
+    } else {
+      // Yetişkin mantığı
+      if (genderLower === "male" || genderLower === "man") {
+        modelDescription = "male model";
+      } else {
+        modelDescription = "female model";
+      }
+
+      // Eğer yaş bilgisini yetişkinlerde kullanmak istersen
+      if (age && !age.includes("years old")) {
+        modelDescription =
+          genderLower === "male" || genderLower === "man"
+            ? `${age} male model`
+            : `${age} female model`;
+      }
+    }
+
+    // Etnik köken
+    if (ethnicity) {
+      modelDescription += ` ${ethnicity}`;
+    }
+
+    // Ten rengi
+    if (skinTone) {
+      modelDescription += ` with ${skinTone} skin`;
+    }
+
+    // Saç detayları
+    if (hairColor && hairStyle) {
+      modelDescription += `, ${hairColor} ${hairStyle}`;
+    } else if (hairColor) {
+      modelDescription += `, ${hairColor} hair`;
+    } else if (hairStyle) {
+      modelDescription += `, ${hairStyle}`;
+    }
+
+    // Vücut tipi
+    if (bodyShape) {
+      modelDescription += `, ${bodyShape} body shape`;
+    }
+
+    // Poz ve ifade
+    let poseDescription = "";
+    if (pose) poseDescription += `, ${pose}`;
+    if (mood) poseDescription += ` with ${mood} expression`;
+
+    // Aksesuarlar
+    let accessoriesDescription = "";
+    if (accessories) {
+      accessoriesDescription += `, wearing ${accessories}`;
+    }
+
+    // Ortam
+    let environmentDescription = "";
+    if (location) environmentDescription += ` in ${location}`;
+    if (weather) environmentDescription += ` during ${weather} weather`;
+
+    // Kamera açısı
+    let cameraDescription = "";
+    if (perspective) {
+      cameraDescription += `, ${perspective} camera angle`;
+    }
+
+    // Ürün rengi
+    let clothingDescription = "";
+    if (productColor && productColor !== "original") {
+      clothingDescription += `, wearing ${productColor} colored clothing`;
+    }
+
+    // Ana prompt oluştur
+    let fallbackPrompt = `Replace the flat-lay garment from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
+
+    // Kıyafet detayları ve kalite gereksinimleri
+    fallbackPrompt += `Preserve the original garment exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show the identical garment perfectly fitted on the dynamic model. `;
+
+    // Kıyafet özellikleri (genel)
+    fallbackPrompt += `The garment features high-quality fabric with proper texture, stitching, and construction details. `;
+
+    // Temizlik gereksinimleri
+    fallbackPrompt += `ABSOLUTELY AND IMMEDIATELY REMOVE ALL HANGERS, CLIPS, TAGS, AND FLAT-LAY ARTIFACTS. Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model; avoid any 2D, sticker-like, or paper-like overlay. `;
+
+    // Fizik gereksinimleri
+    fallbackPrompt += `Ensure realistic fabric physics: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
+
+    // Detay koruma
+    fallbackPrompt += `Preserve ALL original garment details: exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Do NOT redesign. `;
+
+    // Pattern entegrasyonu
+    fallbackPrompt += `Integrate prints/patterns correctly over the 3D form: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
+
+    // Final kalite
+    fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic.`;
+
+    console.log(
+      "🔄 [FALLBACK] Generated detailed fallback prompt:",
+      fallbackPrompt
+    );
+    return fallbackPrompt;
   }
 }
 
