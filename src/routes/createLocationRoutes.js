@@ -6,44 +6,102 @@ const supabase = require("../supabaseClient");
 // Gemini API setup
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Flux.1 Dev ile location image generate et
-async function generateLocationWithFluxDev(enhancedPrompt) {
+// Replicate'den gelen resmi Supabase storage'a kaydet
+async function uploadImageToSupabaseStorage(imageUrl, userId, replicateId) {
   try {
-    console.log("📸 Flux.1 Dev ile location generation başlatılıyor...");
-    console.log("Enhanced prompt:", enhancedPrompt);
+    console.log("📤 Resim Supabase storage'a yükleniyor...");
+    console.log("Image URL:", imageUrl);
+    console.log("User ID:", userId);
+    console.log("Replicate ID:", replicateId);
 
-    const response = await fetch("https://api.replicate.com/v1/predictions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-        "Content-Type": "application/json",
-        Prefer: "wait",
-      },
-      body: JSON.stringify({
-        version:
-          "prunaai/flux.1-dev:b0306d92aa025bb747dc74162f3c27d6ed83798e08e5f8977adf3d859d0536a3",
-        input: {
-          seed: Math.floor(Math.random() * 1000000),
-          prompt: enhancedPrompt,
-          guidance: 3.5,
-          image_size: 1024,
-          speed_mode: "Lightly Juiced 🍊 (more consistent)",
-          aspect_ratio: "1:1",
-          output_format: "jpg",
-          output_quality: 100,
-          num_inference_steps: 50,
+    // Replicate'den resmi indir
+    const imageResponse = await fetch(imageUrl);
+    if (!imageResponse.ok) {
+      throw new Error(`Resim indirilemedi: ${imageResponse.status}`);
+    }
+
+    const imageBuffer = await imageResponse.arrayBuffer();
+    const imageData = Buffer.from(imageBuffer);
+
+    // Dosya adını oluştur
+    const timestamp = Date.now();
+    const fileName = `user-locations/${userId}/${timestamp}-${replicateId}.jpg`;
+
+    console.log("📁 Dosya adı:", fileName);
+
+    // Supabase storage'a yükle
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("user-locations")
+      .upload(fileName, imageData, {
+        contentType: "image/jpeg",
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error("Supabase storage upload hatası:", uploadError);
+      throw uploadError;
+    }
+
+    console.log("✅ Resim Supabase storage'a yüklendi:", uploadData.path);
+
+    // Public URL oluştur
+    const { data: urlData } = supabase.storage
+      .from("user-locations")
+      .getPublicUrl(fileName);
+
+    const publicUrl = urlData.publicUrl;
+    console.log("🔗 Public URL:", publicUrl);
+
+    return {
+      storagePath: fileName,
+      publicUrl: publicUrl,
+    };
+  } catch (error) {
+    console.error("Resim yükleme hatası:", error);
+    throw error;
+  }
+}
+
+// Flux 1.1 Pro Ultra ile location image generate et
+async function generateLocationWithFlux11ProUltra(prompt, userId) {
+  try {
+    console.log(
+      "📸 Flux 1.1 Pro Ultra ile location generation başlatılıyor..."
+    );
+    console.log("Prompt:", prompt);
+
+    const response = await fetch(
+      "https://api.replicate.com/v1/models/black-forest-labs/flux-1.1-pro-ultra/predictions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+          "Content-Type": "application/json",
+          Prefer: "wait",
         },
-      }),
-    });
+        body: JSON.stringify({
+          input: {
+            raw: false,
+            prompt: prompt,
+            aspect_ratio: "1:1",
+            output_format: "jpg",
+            safety_tolerance: 2,
+            image_prompt_strength: 0.1,
+            seed: Math.floor(Math.random() * 1000000),
+          },
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Flux.1 Dev API Error:", errorText);
-      throw new Error(`Flux.1 Dev API Error: ${response.status}`);
+      console.error("Flux 1.1 Pro Ultra API Error:", errorText);
+      throw new Error(`Flux 1.1 Pro Ultra API Error: ${response.status}`);
     }
 
     const result = await response.json();
-    console.log("✅ Flux.1 Dev generation tamamlandı");
+    console.log("✅ Flux 1.1 Pro Ultra generation tamamlandı");
     console.log("Flux result:", result);
 
     // Output string veya array olabilir
@@ -57,15 +115,23 @@ async function generateLocationWithFluxDev(enhancedPrompt) {
     }
 
     if (imageUrl) {
+      // Resmi Supabase storage'a yükle
+      const storageResult = await uploadImageToSupabaseStorage(
+        imageUrl,
+        userId,
+        result.id
+      );
+
       return {
-        imageUrl: imageUrl,
+        imageUrl: storageResult.publicUrl, // Supabase storage'dan gelen public URL
+        storagePath: storageResult.storagePath, // Storage path'i de döndür
         replicateId: result.id,
       };
     } else {
-      throw new Error("Flux.1 Dev'den görsel çıkışı alınamadı");
+      throw new Error("Flux 1.1 Pro Ultra'dan görsel çıkışı alınamadı");
     }
   } catch (error) {
-    console.error("Flux.1 Dev generation hatası:", error);
+    console.error("Flux 1.1 Pro Ultra generation hatası:", error);
     throw error;
   }
 }
@@ -77,30 +143,29 @@ async function enhanceLocationPromptWithGemini(originalPrompt) {
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-    const enhancementPrompt = `Create professional fashion photoshoot background prompt (max 77 tokens) from: "${originalPrompt}". 
+    const enhancementPrompt = `Create beautiful location background prompt (max 77 tokens) from: "${originalPrompt}". 
 
-CRITICAL REQUIREMENTS - FASHION MODEL PERSPECTIVE:
-- Ground level viewpoint where a fashion model can stand and pose
-- Create a walkable surface/platform for model positioning
-- Background should be behind/around the model, not aerial or bird's eye view
-- Environment must accommodate a standing human figure
+CRITICAL REQUIREMENTS - EMPTY LOCATION:
+- Ground level viewpoint of an empty space
+- Create a walkable surface/platform/area
+- Background should be ground level perspective, not aerial or bird's eye view
+- Empty environment with NO people, NO humans, NO characters
 
 LOCATION SPECIFICATIONS:
 - Natural daylight, soft even lighting, bright contemporary atmosphere
 - VIBRANT and LIVELY colors, rich textures, dynamic architectural details
 - HIGH ENERGY atmosphere, colorful and alive environment
-- NO people, NO models, NO fashion items - only empty environment
-- Ground-level perspective suitable for fashion photography
+- Ground-level perspective of empty spaces
 
 EXAMPLES OF CORRECT APPROACH:
-- Paris: Street level cobblestone plaza with Eiffel Tower visible in background
-- Beach: Sandy shore with ocean horizon behind, not aerial ocean view
-- City: Sidewalk/plaza level with buildings as backdrop, not rooftop perspective
-- Garden: Garden path level with flowers/trees around, not top-down view
+- Paris: Empty street level cobblestone plaza with Eiffel Tower visible in background
+- Beach: Empty sandy shore with ocean horizon behind, not aerial ocean view
+- City: Empty sidewalk/plaza level with buildings as backdrop, not rooftop perspective
+- Garden: Empty garden path level with flowers/trees around, not top-down view
 
 LIGHTING: natural daylight, soft lighting, bright natural light, even lighting
 ATMOSPHERE: vibrant, lively, energetic, colorful, dynamic, alive
-AVOID: golden hour, sunset, dramatic lighting, aerial/bird's eye views, dull/muted colors
+AVOID: golden hour, sunset, dramatic lighting, aerial/bird's eye views, dull/muted colors, people, humans, characters, persons
 
 Create a 3-word English title.
 
@@ -168,10 +233,10 @@ PROMPT: [enhanced prompt]`;
     };
   } catch (error) {
     console.error("Gemini enhancement hatası:", error);
-    // Fallback: fashion photoshoot odaklı İngilizce prompt ve title
+    // Fallback: empty location odaklı İngilizce prompt ve title
     const fallbackTitle =
       originalPrompt.split(" ").slice(0, 3).join(" ") || "Custom Location";
-    const fallbackPrompt = `Professional fashion photoshoot background of ${originalPrompt}, ground level perspective, walkable surface for model positioning, natural daylight, VIBRANT and LIVELY colors, energetic contemporary atmosphere, colorful dynamic environment suitable for standing fashion model, no people`;
+    const fallbackPrompt = `Beautiful empty location background of ${originalPrompt}, ground level perspective, walkable surface, natural daylight, VIBRANT and LIVELY colors, energetic contemporary atmosphere, colorful dynamic environment, NO people, NO humans, NO characters, empty space`;
     return {
       title: fallbackTitle,
       prompt: fallbackPrompt,
@@ -189,7 +254,8 @@ async function saveLocationToDatabase(
   category = "custom",
   userId = null,
   isPublic = false,
-  generatedTitle = null
+  generatedTitle = null,
+  storagePath = null
 ) {
   try {
     console.log("💾 Location Supabase'e kaydediliyor...");
@@ -202,6 +268,7 @@ async function saveLocationToDatabase(
         original_prompt: originalPrompt,
         enhanced_prompt: enhancedPrompt,
         image_url: imageUrl,
+        storage_path: storagePath, // Storage path'i de kaydet
         replicate_id: replicateId,
         category: category,
         user_id: userId,
@@ -329,8 +396,11 @@ router.post("/create-location", async (req, res) => {
     const enhancedPrompt = geminiResult.prompt;
     const generatedTitle = geminiResult.title;
 
-    // 2. Flux.1 Dev ile görsel generate et
-    const fluxResult = await generateLocationWithFluxDev(enhancedPrompt);
+    // 2. Flux 1.1 Pro Ultra ile görsel generate et
+    const fluxResult = await generateLocationWithFlux11ProUltra(
+      enhancedPrompt,
+      actualUserId
+    );
 
     // 3. Supabase'e kaydet
     const savedLocation = await saveLocationToDatabase(
@@ -342,7 +412,8 @@ router.post("/create-location", async (req, res) => {
       category,
       actualUserId,
       isPublic,
-      generatedTitle // Gemini'den gelen title ayrı column'da
+      generatedTitle, // Gemini'den gelen title ayrı column'da
+      fluxResult.storagePath // Storage path'i de geç
     );
 
     console.log("✅ Create location işlemi tamamlandı");
@@ -354,6 +425,7 @@ router.post("/create-location", async (req, res) => {
         id: savedLocation.id,
         title: savedLocation.title,
         imageUrl: savedLocation.image_url,
+        storagePath: savedLocation.storage_path, // Storage path'i de döndür
         category: savedLocation.category,
         isPublic: savedLocation.is_public,
         originalPrompt: savedLocation.original_prompt,
