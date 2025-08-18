@@ -54,7 +54,7 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
       // HTTP URL - normal indirme
       const imageResponse = await axios.get(imageUri, {
         responseType: "arraybuffer",
-        timeout: 30000, // 30 saniye timeout
+        timeout: 15000, // 30s'den 15s'ye düşürüldü
       });
       imageBuffer = Buffer.from(imageResponse.data);
     } else if (imageUri.startsWith("data:image/")) {
@@ -1331,7 +1331,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
       const imageResponse = await axios.get(imageUrl, {
         responseType: "arraybuffer",
-        timeout: 30000, // 30 saniye timeout
+        timeout: 15000, // 30s'den 15s'ye düşürüldü
       });
       const imageBuffer = imageResponse.data;
 
@@ -1361,7 +1361,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
         const locationImageResponse = await axios.get(cleanLocationImageUrl, {
           responseType: "arraybuffer",
-          timeout: 30000, // 30 saniye timeout
+          timeout: 15000, // 30s'den 15s'ye düşürüldü
         });
         const locationImageBuffer = locationImageResponse.data;
 
@@ -1395,7 +1395,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
         const poseImageResponse = await axios.get(cleanPoseImageUrl, {
           responseType: "arraybuffer",
-          timeout: 30000, // 30 saniye timeout
+          timeout: 15000, // 30s'den 15s'ye düşürüldü
         });
         const poseImageBuffer = poseImageResponse.data;
 
@@ -1428,7 +1428,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
         const hairStyleImageResponse = await axios.get(cleanHairStyleImageUrl, {
           responseType: "arraybuffer",
-          timeout: 30000, // 30 saniye timeout
+          timeout: 15000, // 30s'den 15s'ye düşürüldü
         });
         const hairStyleImageBuffer = hairStyleImageResponse.data;
 
@@ -2068,7 +2068,7 @@ async function generatePortraitPromptWithGemini(
         ? ` Focus: ${emphasisPoints.join(", ")}.`
         : "";
 
-    return `Professional head-and-shoulders portrait of a fashion ${gender} model with striking editorial facial features${characteristicsText} Pure white studio background, professional lighting, sharp detail, high-fashion model aesthetics, slight distance from camera (not extreme close-up), head and shoulders view with a bit of breathing room.${focusLine}`;
+    return `Professional head-and-shoulders portrait of a fashion ${gender} model with striking editorial facial features${characteristicsText} Pure white studio background, professional lighting, sharp detail, high-fashion model aesthetics, slight distance from camera (not extreme close-up), head and shoulders view with a bit of breathing room.${focusLine} No clothes`;
   }
 }
 
@@ -2217,7 +2217,7 @@ async function removeBackgroundFromImage(imageUrl, userId) {
       console.log("📐 Orijinal fotoğrafın metadata bilgileri alınıyor...");
       const originalResponse = await axios.get(imageUrl, {
         responseType: "arraybuffer",
-        timeout: 30000, // 30 saniye timeout
+        timeout: 15000, // 30s'den 15s'ye düşürüldü
       });
       originalImageBuffer = Buffer.from(originalResponse.data);
 
@@ -2284,7 +2284,7 @@ async function removeBackgroundFromImage(imageUrl, userId) {
         // Arkaplanı silinmiş resmi indir
         const processedResponse = await axios.get(finalResult.output, {
           responseType: "arraybuffer",
-          timeout: 30000, // 30 saniye timeout
+          timeout: 15000, // 30s'den 15s'ye düşürüldü
         });
         let processedImageBuffer = Buffer.from(processedResponse.data);
 
@@ -2840,7 +2840,7 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
             "Content-Type": "application/json",
           },
           responseType: "json",
-          timeout: 30000, // 30 saniye timeout polling için
+          timeout: 15000, // 30s'den 15s'ye düşürüldü polling için
         }
       );
 
@@ -2981,7 +2981,8 @@ async function combineImagesOnCanvas(
           );
           const response = await axios.get(imgData.uri, {
             responseType: "arraybuffer",
-            timeout: 30000, // 30 saniye timeout
+            timeout: 15000, // 30s'den 15s'ye düşürüldü
+            maxRedirects: 3,
           });
           imageBuffer = Buffer.from(response.data);
         } else if (imgData.uri.startsWith("file://")) {
@@ -2993,7 +2994,7 @@ async function combineImagesOnCanvas(
         // Sharp ile resmi önce işle (format uyumluluk için)
         console.log(`🔄 Resim ${i + 1}: Sharp ile preprocessing yapılıyor...`);
         const processedBuffer = await sharp(imageBuffer)
-          .jpeg({ quality: 90 }) // JPEG formatına çevir
+          .jpeg({ quality: 80 }) // Kalite 90'dan 80'e düşürüldü
           .toBuffer();
 
         // Metadata'yı al
@@ -3111,7 +3112,7 @@ async function combineImagesOnCanvas(
     }
 
     // Canvas'ı buffer'a çevir
-    const buffer = canvas.toBuffer("image/jpeg", { quality: 0.8 });
+    const buffer = canvas.toBuffer("image/jpeg", { quality: 0.75 }); // 0.8'den 0.75'e düşürüldü
     console.log("📊 Birleştirilmiş resim boyutu:", buffer.length, "bytes");
 
     // Supabase'e yükle (otomatik temizleme için timestamp prefix)
@@ -3172,7 +3173,7 @@ async function combineReferenceAssets(
       try {
         const response = await axios.get(url, {
           responseType: "arraybuffer",
-          timeout: 30000,
+          timeout: 15000, // 30s'den 15s'ye düşürüldü
         });
         const buffer = Buffer.from(response.data);
 
@@ -3198,9 +3199,9 @@ async function combineReferenceAssets(
 
           processed = whiteSquare;
         } else {
-          // Diğer varlıklar (portrait/location) için JPEG yeterli
+          // Diğer varlıklar (portrait/location) için JPEG yeterli - kalite optimize edildi
           processed = await sharp(buffer)
-            .jpeg({ quality: 90, progressive: true, mozjpeg: true })
+            .jpeg({ quality: 80, progressive: true, mozjpeg: true }) // 90'dan 80'e düşürüldü
             .toBuffer();
         }
 
@@ -3243,7 +3244,7 @@ async function combineReferenceAssets(
       currentX += drawWidth;
     }
 
-    const combinedBuffer = canvas.toBuffer("image/jpeg", { quality: 0.9 });
+    const combinedBuffer = canvas.toBuffer("image/jpeg", { quality: 0.8 }); // 0.9'dan 0.8'e düşürüldü
     const publicUrl = await uploadProcessedImageBufferToSupabase(
       combinedBuffer,
       userId,
@@ -4569,7 +4570,7 @@ async function generatePoseDescriptionWithGemini(
         const cleanPoseImageUrl = poseImage.split("?")[0];
         const poseImageResponse = await axios.get(cleanPoseImageUrl, {
           responseType: "arraybuffer",
-          timeout: 30000,
+          timeout: 15000, // 30s'den 15s'ye düşürüldü
         });
         const poseImageBuffer = poseImageResponse.data;
 

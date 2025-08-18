@@ -64,6 +64,8 @@ const revenuecatWebhookRouterv2 = require("./routes/revenuecatWebhookv2");
 const customPoseRoutes = require("./routes/customPoseRoutes");
 // Canvas Combine routes import
 const canvasCombineRoutes = require("./routes/canvasCombineRoutes");
+// Create Location routes import
+const createLocationRoutes = require("./routes/createLocationRoutes");
 // Generation Status routes import
 
 const app = express();
@@ -165,6 +167,9 @@ app.use("/purchase", purchaseRoutes);
 
 // Custom Pose routes ekle
 app.use("/api/customPose", customPoseRoutes);
+
+// Create Location routes ekle
+app.use("/api/location", createLocationRoutes);
 
 // App Links routes ekle
 app.use("/api/app-links", appLinksRoutes);

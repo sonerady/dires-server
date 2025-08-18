@@ -136,99 +136,313 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
   }
 }
 
-// Canvas + Portrait + Location için 3'lü birleştirme
+// Canvas + Background Removed + Portrait + Location için 4'lü birleştirme
 async function combineThreeImagesCanvasPortraitLocation(
   canvasImageUrl,
+  backgroundRemovedImageUrl,
   portraitImageUrl,
   locationImageUrl,
   userId
 ) {
   try {
     console.log(
-      "🎨 [3-IMAGE CPL] Üç resim birleştiriliyor (Canvas + Portrait + Location)..."
+      "🎨 [4-IMAGE CBPL] Dört resim birleştiriliyor (Canvas + Background Removed + Portrait + Location)..."
     );
-    console.log("🎨 [3-IMAGE CPL] Canvas:", canvasImageUrl);
-    console.log("🎨 [3-IMAGE CPL] Portrait:", portraitImageUrl);
-    console.log("🎨 [3-IMAGE CPL] Location:", locationImageUrl);
+    console.log("🎨 [4-IMAGE CBPL] Canvas:", canvasImageUrl);
+    console.log(
+      "🎨 [4-IMAGE CBPL] Background Removed:",
+      backgroundRemovedImageUrl
+    );
+    console.log("🎨 [4-IMAGE CBPL] Portrait:", portraitImageUrl);
+    console.log("🎨 [4-IMAGE CBPL] Location:", locationImageUrl);
 
-    const [canvasResponse, portraitResponse, locationResponse] =
-      await Promise.all([
-        axios.get(canvasImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 30000,
-        }),
-        axios.get(portraitImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 30000,
-        }),
-        axios.get(locationImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 30000,
-        }),
+    // Background removed image yoksa sadece 3 resmi birleştir
+    if (!backgroundRemovedImageUrl) {
+      console.log(
+        "⚠️ [4-IMAGE CBPL] Background removed image yok, 3 resim birleştiriliyor..."
+      );
+      // OPTIMIZATION: Paralel HTTP istekleri ile timeout azaltıldı
+      const [canvasResponse, portraitResponse, locationResponse] =
+        await Promise.all([
+          axios.get(canvasImageUrl, {
+            responseType: "arraybuffer",
+            timeout: 15000, // 30s'den 15s'ye düşürüldü
+            maxRedirects: 3,
+          }),
+          axios.get(portraitImageUrl, {
+            responseType: "arraybuffer",
+            timeout: 15000,
+            maxRedirects: 3,
+          }),
+          axios.get(locationImageUrl, {
+            responseType: "arraybuffer",
+            timeout: 15000,
+            maxRedirects: 3,
+          }),
+        ]);
+
+      const canvasBuffer = Buffer.from(canvasResponse.data);
+      const portraitBuffer = Buffer.from(portraitResponse.data);
+      const locationBuffer = Buffer.from(locationResponse.data);
+
+      // Layout: Sol tarafta büyük canvas, sağ tarafta alt alta 2 resim (1024x1024)
+      console.log(
+        "🎨 [4-IMAGE CBPL] 3'lü layout: Sol büyük canvas, sağ alt alta 2 resim"
+      );
+
+      // OPTIMIZATION: Paralel metadata okuma ve resim işleme
+      const [canvasMetadata, targetCanvasHeight] = await Promise.all([
+        sharp(canvasBuffer).metadata(),
+        Promise.resolve(1024 * 2 + 5), // 2 resmin toplam yüksekliği + spacing
       ]);
 
+      // OPTIMIZATION: Tüm resim işlemlerini paralel yap
+      const targetSize = 1024;
+      const [resizedCanvas, resizedPortrait, resizedLocation] =
+        await Promise.all([
+          sharp(canvasBuffer)
+            .resize({
+              height: targetCanvasHeight,
+              fit: "contain",
+              background: { r: 0, g: 0, b: 0, alpha: 0 },
+            })
+            .png() // PNG transparent arkaplan için
+            .toBuffer(),
+          sharp(portraitBuffer)
+            .resize({
+              width: targetSize,
+              height: targetSize,
+              fit: "contain",
+              background: { r: 0, g: 0, b: 0, alpha: 0 },
+            })
+            .png()
+            .toBuffer(),
+          sharp(locationBuffer)
+            .resize({
+              width: targetSize,
+              height: targetSize,
+              fit: "contain",
+              background: { r: 0, g: 0, b: 0, alpha: 0 },
+            })
+            .png()
+            .toBuffer(),
+        ]);
+
+      // Final boyutları hesapla
+      const resizedCanvasMetadata = await sharp(resizedCanvas).metadata();
+
+      const spacing = 5;
+      const totalWidth = resizedCanvasMetadata.width + targetSize + spacing;
+      const totalHeight = Math.max(
+        resizedCanvasMetadata.height,
+        targetSize * 2 + spacing
+      );
+
+      console.log(
+        `🎨 [4-IMAGE CBPL] Canvas boyutu: ${resizedCanvasMetadata.width}x${resizedCanvasMetadata.height}`
+      );
+      console.log(
+        `🎨 [4-IMAGE CBPL] Sağ resimler: ${targetSize}x${targetSize} (2 adet alt alta)`
+      );
+      console.log(
+        `🎨 [4-IMAGE CBPL] Final boyut: ${totalWidth}x${totalHeight}`
+      );
+
+      // Transparent arkaplan için PNG kullan, channels 4 gerekli
+      const combinedImage = await sharp({
+        create: {
+          width: totalWidth,
+          height: totalHeight,
+          channels: 4, // Alpha kanalı gerekli
+          background: { r: 0, g: 0, b: 0, alpha: 0 },
+        },
+      })
+        .composite([
+          // Sol tarafta büyük canvas
+          {
+            input: resizedCanvas,
+            top: 0,
+            left: 0,
+          },
+          // Sağ tarafta alt alta 2 resim
+          {
+            input: resizedPortrait,
+            top: 0,
+            left: resizedCanvasMetadata.width + spacing,
+          },
+          {
+            input: resizedLocation,
+            top: targetSize + spacing,
+            left: resizedCanvasMetadata.width + spacing,
+          },
+        ])
+        .png() // Transparent arkaplan için PNG
+        .toBuffer();
+
+      const timestamp = Date.now();
+      const randomId = uuidv4().substring(0, 8);
+      const fileName = `three_images_cpl_${timestamp}_${
+        userId || "anonymous"
+      }_${randomId}.png`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("images")
+        .upload(fileName, combinedImage, { contentType: "image/png" });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData, error: publicUrlError } =
+        await supabase.storage.from("images").getPublicUrl(fileName);
+
+      if (publicUrlError) throw publicUrlError;
+
+      const combinedImageUrl = publicUrlData.publicUrl;
+      console.log(
+        "✅ [4-IMAGE CBPL] 3'lü birleştirme tamamlandı:",
+        combinedImageUrl
+      );
+      return combinedImageUrl;
+    }
+
+    // 4 resmi de birleştir - OPTIMIZATION: timeout azaltıldı
+    const [
+      canvasResponse,
+      backgroundRemovedResponse,
+      portraitResponse,
+      locationResponse,
+    ] = await Promise.all([
+      axios.get(canvasImageUrl, {
+        responseType: "arraybuffer",
+        timeout: 15000, // 30s'den 15s'ye düşürüldü
+        maxRedirects: 3,
+      }),
+      axios.get(backgroundRemovedImageUrl, {
+        responseType: "arraybuffer",
+        timeout: 15000,
+        maxRedirects: 3,
+      }),
+      axios.get(portraitImageUrl, {
+        responseType: "arraybuffer",
+        timeout: 15000,
+        maxRedirects: 3,
+      }),
+      axios.get(locationImageUrl, {
+        responseType: "arraybuffer",
+        timeout: 15000,
+        maxRedirects: 3,
+      }),
+    ]);
+
     const canvasBuffer = Buffer.from(canvasResponse.data);
+    const backgroundRemovedBuffer = Buffer.from(backgroundRemovedResponse.data);
     const portraitBuffer = Buffer.from(portraitResponse.data);
     const locationBuffer = Buffer.from(locationResponse.data);
 
-    const canvasMetadata = await sharp(canvasBuffer).metadata();
-    const portraitMetadata = await sharp(portraitBuffer).metadata();
-    const locationMetadata = await sharp(locationBuffer).metadata();
-
-    const maxHeight = Math.max(
-      canvasMetadata.height,
-      portraitMetadata.height,
-      locationMetadata.height
+    // Layout: Sol Canvas + Orta Portrait/Location alt alta + Sağ Background Removed (trim'li)
+    console.log(
+      "🎨 [4-IMAGE CBPL] Yeni layout: Sol Canvas + Orta Portrait/Location + Sağ Background Removed (trim'li)"
     );
 
-    const resizedCanvas = await sharp(canvasBuffer)
-      .resize({
-        height: maxHeight,
-        fit: "contain",
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
-      })
-      .png()
-      .toBuffer();
+    // OPTIMIZATION: Paralel metadata okuma ve tüm resim işlemleri
+    const [canvasMetadata, targetCanvasHeight, targetSize] = await Promise.all([
+      sharp(canvasBuffer).metadata(),
+      Promise.resolve(1024 * 2 + 5), // 2 resmin toplam yüksekliği + spacing
+      Promise.resolve(1024),
+    ]);
 
-    const resizedPortrait = await sharp(portraitBuffer)
-      .resize({
-        height: maxHeight,
-        fit: "contain",
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
-      })
-      .png()
-      .toBuffer();
+    // OPTIMIZATION: Tüm resim işlemlerini paralel yap
+    const [
+      resizedCanvas,
+      resizedPortrait,
+      resizedLocation,
+      trimmedBackgroundRemoved,
+    ] = await Promise.all([
+      sharp(canvasBuffer)
+        .resize({
+          height: targetCanvasHeight,
+          fit: "contain", // Trim kaldırıldığı için contain kullan
+          background: { r: 0, g: 0, b: 0, alpha: 0 },
+        })
+        .png() // Transparent arkaplan için PNG
+        .toBuffer(),
+      sharp(portraitBuffer)
+        .resize({
+          width: targetSize,
+          height: targetSize,
+          fit: "contain",
+          background: { r: 0, g: 0, b: 0, alpha: 0 },
+        })
+        .png() // Transparent arkaplan için PNG
+        .toBuffer(),
+      sharp(locationBuffer)
+        .resize({
+          width: targetSize,
+          height: targetSize,
+          fit: "contain",
+          background: { r: 0, g: 0, b: 0, alpha: 0 },
+        })
+        .png() // Transparent arkaplan için PNG
+        .toBuffer(),
+      // Background Removed resmi - TRIM KALDIRILDI
+      sharp(backgroundRemovedBuffer)
+        // .trim() // Trim kaldırıldı
+        .resize({
+          height: targetCanvasHeight, // Canvas ile aynı yükseklik - alt üst boşluk yok
+          fit: "contain", // Trim olmadığı için contain kullan
+          background: { r: 0, g: 0, b: 0, alpha: 0 }, // Şeffaf arkaplan
+        })
+        .png() // Bu şeffaf olmalı, PNG bırakıldı
+        .toBuffer(),
+    ]);
 
-    const resizedLocation = await sharp(locationBuffer)
-      .resize({
-        height: maxHeight,
-        fit: "contain",
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
-      })
-      .png()
-      .toBuffer();
-
-    const resizedCanvasMetadata = await sharp(resizedCanvas).metadata();
-    const resizedPortraitMetadata = await sharp(resizedPortrait).metadata();
-    const resizedLocationMetadata = await sharp(resizedLocation).metadata();
+    // OPTIMIZATION: Final boyutları paralel hesapla
+    const [resizedCanvasMetadata, trimmedBgRemovedMetadata] = await Promise.all(
+      [
+        sharp(resizedCanvas).metadata(),
+        sharp(trimmedBackgroundRemoved).metadata(),
+      ]
+    );
 
     const spacing = 5;
     const totalWidth =
       resizedCanvasMetadata.width +
-      resizedPortraitMetadata.width +
-      resizedLocationMetadata.width +
+      targetSize +
+      trimmedBgRemovedMetadata.width +
       spacing * 2;
+    const totalHeight = Math.max(
+      resizedCanvasMetadata.height,
+      targetSize * 2 + spacing,
+      trimmedBgRemovedMetadata.height
+    );
 
+    console.log(
+      `🎨 [4-IMAGE CBPL] Canvas boyutu: ${resizedCanvasMetadata.width}x${resizedCanvasMetadata.height}`
+    );
+    console.log(
+      `🎨 [4-IMAGE CBPL] Orta resimler: ${targetSize}x${targetSize} (2 adet alt alta)`
+    );
+    console.log(
+      `🎨 [4-IMAGE CBPL] Sağ trim'li resim: ${trimmedBgRemovedMetadata.width}x${trimmedBgRemovedMetadata.height}`
+    );
+    console.log(`🎨 [4-IMAGE CBPL] Final boyut: ${totalWidth}x${totalHeight}`);
+
+    // Transparent arkaplan için PNG kullan, channels 4 gerekli
     const combinedImage = await sharp({
       create: {
         width: totalWidth,
-        height: maxHeight,
-        channels: 4,
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
+        height: totalHeight,
+        channels: 4, // Alpha kanalı gerekli
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
       },
     })
       .composite([
-        { input: resizedCanvas, top: 0, left: 0 },
+        // Sol tarafta büyük canvas
+        {
+          input: resizedCanvas,
+          top: 0,
+          left: 0,
+        },
+        // Orta tarafta alt alta 2 resim
         {
           input: resizedPortrait,
           top: 0,
@@ -236,19 +450,22 @@ async function combineThreeImagesCanvasPortraitLocation(
         },
         {
           input: resizedLocation,
-          top: 0,
-          left:
-            resizedCanvasMetadata.width +
-            resizedPortraitMetadata.width +
-            spacing * 2,
+          top: targetSize + spacing,
+          left: resizedCanvasMetadata.width + spacing,
+        },
+        // Sağ tarafta trim'li background removed resmi (tam yükseklik, ortalanmış)
+        {
+          input: trimmedBackgroundRemoved,
+          top: 0, // Alt-üst boşluk yok, tam üstten başla
+          left: resizedCanvasMetadata.width + targetSize + spacing * 2,
         },
       ])
-      .png()
+      .png() // Transparent arkaplan için PNG
       .toBuffer();
 
     const timestamp = Date.now();
     const randomId = uuidv4().substring(0, 8);
-    const fileName = `three_images_cpl_${timestamp}_${
+    const fileName = `four_images_cbpl_${timestamp}_${
       userId || "anonymous"
     }_${randomId}.png`;
 
@@ -264,10 +481,13 @@ async function combineThreeImagesCanvasPortraitLocation(
     if (publicUrlError) throw publicUrlError;
 
     const combinedImageUrl = publicUrlData.publicUrl;
-    console.log("✅ [3-IMAGE CPL] Birleştirme tamamlandı:", combinedImageUrl);
+    console.log(
+      "✅ [4-IMAGE CBPL] 4'lü birleştirme tamamlandı:",
+      combinedImageUrl
+    );
     return combinedImageUrl;
   } catch (error) {
-    console.error("❌ [3-IMAGE CPL] Üç resim birleştirme hatası:", error);
+    console.error("❌ [4-IMAGE CBPL] Dört resim birleştirme hatası:", error);
     throw error;
   }
 }
@@ -356,6 +576,20 @@ async function saveGenerationToDatabase(
   generationId = null // Yeni parametre
 ) {
   try {
+    // 🔒 Replicate Prediction ID kontrolü - olmadan kaydetme
+    if (!replicatePredictionId) {
+      console.warn(
+        "⚠️ Replicate Prediction ID bulunamadı, reference_results'a kaydedilmiyor"
+      );
+      console.warn("⚠️ Data:", {
+        userId,
+        generationId,
+        originalPrompt: originalPrompt?.substring(0, 50) + "...",
+        resultImageUrl: data?.result?.imageUrl,
+      });
+      return false;
+    }
+
     // User ID yoksa veya UUID formatında değilse, UUID oluştur
     let userIdentifier = userId;
 
@@ -374,6 +608,11 @@ async function saveGenerationToDatabase(
       );
       userIdentifier = uuidv4();
     }
+
+    console.log(
+      "✅ Replicate Prediction ID mevcut, reference_results'a kaydediliyor:",
+      replicatePredictionId
+    );
 
     const { data: insertData, error } = await supabase
       .from("reference_results")
@@ -400,14 +639,14 @@ async function saveGenerationToDatabase(
       ]);
 
     if (error) {
-      console.error("Veritabanına kaydetme hatası:", error);
+      console.error("❌ Veritabanına kaydetme hatası:", error);
       return false;
     }
 
-    console.log("Görsel başarıyla reference_results tablosuna kaydedildi");
+    console.log("✅ Görsel başarıyla reference_results tablosuna kaydedildi");
     return true;
   } catch (dbError) {
-    console.error("Veritabanı işlemi sırasında hata:", dbError);
+    console.error("❌ Veritabanı işlemi sırasında hata:", dbError);
     return false;
   }
 }
@@ -2632,7 +2871,8 @@ async function combineImagesOnCanvas(
           );
           const response = await axios.get(imgData.uri, {
             responseType: "arraybuffer",
-            timeout: 30000, // 30 saniye timeout
+            timeout: 15000, // 30s'den 15s'ye düşürüldü
+            maxRedirects: 3,
           });
           imageBuffer = Buffer.from(response.data);
         } else if (imgData.uri.startsWith("file://")) {
@@ -2644,7 +2884,7 @@ async function combineImagesOnCanvas(
         // Sharp ile resmi önce işle (format uyumluluk için)
         console.log(`🔄 Resim ${i + 1}: Sharp ile preprocessing yapılıyor...`);
         const processedBuffer = await sharp(imageBuffer)
-          .jpeg({ quality: 90 }) // JPEG formatına çevir
+          .jpeg({ quality: 80 }) // Kalite 90'dan 80'e düşürüldü
           .toBuffer();
 
         // Metadata'yı al
@@ -2710,9 +2950,9 @@ async function combineImagesOnCanvas(
       canvas = createCanvas(canvasWidth, canvasHeight);
       const ctx = canvas.getContext("2d");
 
-      // Beyaz arka plan
-      ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      // Transparent arka plan (fillRect kaldırıldı)
+      // ctx.fillStyle = "white";
+      // ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
       // Resimleri yan yana yerleştir
       let currentX = 0;
@@ -2742,9 +2982,9 @@ async function combineImagesOnCanvas(
       canvas = createCanvas(canvasWidth, canvasHeight);
       const ctx = canvas.getContext("2d");
 
-      // Beyaz arka plan
-      ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      // Transparent arka plan (fillRect kaldırıldı)
+      // ctx.fillStyle = "white";
+      // ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
       // Resimleri dikey olarak sırala
       let currentY = 0;
@@ -2761,8 +3001,8 @@ async function combineImagesOnCanvas(
       }
     }
 
-    // Canvas'ı buffer'a çevir
-    const buffer = canvas.toBuffer("image/jpeg", { quality: 0.8 });
+    // Canvas'ı buffer'a çevir (PNG transparent arkaplan için)
+    const buffer = canvas.toBuffer("image/png");
     console.log("📊 Birleştirilmiş resim boyutu:", buffer.length, "bytes");
 
     // Supabase'e yükle (otomatik temizleme için timestamp prefix)
@@ -2770,12 +3010,12 @@ async function combineImagesOnCanvas(
     const randomId = uuidv4().substring(0, 8);
     const fileName = `temp_${timestamp}_combined_${
       isMultipleProducts ? "products" : "images"
-    }_${userId || "anonymous"}_${randomId}.jpg`;
+    }_${userId || "anonymous"}_${randomId}.png`;
 
     const { data, error } = await supabase.storage
       .from("reference")
       .upload(fileName, buffer, {
-        contentType: "image/jpeg",
+        contentType: "image/png",
         cacheControl: "3600",
         upsert: false,
       });
@@ -2854,20 +3094,87 @@ router.post("/generate", async (req, res) => {
       "adet"
     );
 
+    // 📋 Request validation
+    console.log("🔍 [VALIDATION] Request Body:", {
+      promptText: promptText ? `"${promptText.substring(0, 50)}..."` : "null",
+      referenceImagesLength: referenceImages?.length || 0,
+      referenceImagesType: typeof referenceImages,
+      isArray: Array.isArray(referenceImages),
+      userId,
+      generationId,
+      ratio,
+      settings: settings ? Object.keys(settings) : "null",
+    });
+
+    if (!promptText || typeof promptText !== "string") {
+      console.error(
+        "❌ [VALIDATION] promptText eksik veya geçersiz:",
+        typeof promptText
+      );
+      return res.status(400).json({
+        success: false,
+        result: {
+          message: "Geçerli bir promptText sağlanmalıdır.",
+          debug: { promptText: typeof promptText, provided: !!promptText },
+        },
+      });
+    }
+
     if (
-      !promptText ||
       !referenceImages ||
       !Array.isArray(referenceImages) ||
       referenceImages.length < 1
     ) {
+      console.error("❌ [VALIDATION] referenceImages eksik veya geçersiz:", {
+        exists: !!referenceImages,
+        isArray: Array.isArray(referenceImages),
+        length: referenceImages?.length || 0,
+      });
       return res.status(400).json({
         success: false,
         result: {
-          message:
-            "Geçerli bir promptText ve en az 1 referenceImage sağlanmalıdır.",
+          message: "En az 1 referenceImage sağlanmalıdır.",
+          debug: {
+            exists: !!referenceImages,
+            isArray: Array.isArray(referenceImages),
+            length: referenceImages?.length || 0,
+          },
         },
       });
     }
+
+    // Reference images içerik kontrolü
+    for (let i = 0; i < referenceImages.length; i++) {
+      const img = referenceImages[i];
+      if (!img || typeof img !== "object") {
+        console.error(
+          `❌ [VALIDATION] referenceImages[${i}] geçersiz:`,
+          typeof img
+        );
+        return res.status(400).json({
+          success: false,
+          result: {
+            message: `Reference image ${i + 1} geçersiz format.`,
+            debug: { index: i, type: typeof img },
+          },
+        });
+      }
+
+      if (!img.uri && !img.base64) {
+        console.error(
+          `❌ [VALIDATION] referenceImages[${i}] uri veya base64 eksik`
+        );
+        return res.status(400).json({
+          success: false,
+          result: {
+            message: `Reference image ${i + 1} URI veya base64 eksik.`,
+            debug: { index: i, hasUri: !!img.uri, hasBase64: !!img.base64 },
+          },
+        });
+      }
+    }
+
+    console.log("✅ [VALIDATION] Request validation başarılı");
 
     // 💡 YENİ YAKLAŞIM: Kredi başlangıçta düşürülmüyor, başarılı tamamlamada düşürülecek
     console.log(
@@ -3442,9 +3749,20 @@ router.post("/generate", async (req, res) => {
 
         // Canvas'dan gelen resim bilgilerini kontrol et
         const hasCanvasData = referenceImages[0]?.combinedImageBase64;
+        const hasSeparateCanvasData =
+          referenceImages[0]?.separateProcessing &&
+          referenceImages[0]?.backgroundRemovedBase64;
         const hasBackgroundRemovedData = backgroundRemovedImageUrl;
 
         console.log("🔍 [PORTRAIT DEBUG] hasCanvasData:", !!hasCanvasData);
+        console.log(
+          "🔍 [PORTRAIT DEBUG] hasSeparateCanvasData:",
+          !!hasSeparateCanvasData
+        );
+        console.log(
+          "🔍 [PORTRAIT DEBUG] separateProcessing:",
+          referenceImages[0]?.separateProcessing
+        );
         console.log(
           "🔍 [PORTRAIT DEBUG] hasBackgroundRemovedData:",
           !!hasBackgroundRemovedData
@@ -3454,7 +3772,7 @@ router.post("/generate", async (req, res) => {
           backgroundRemovedImageUrl
         );
 
-        if (hasCanvasData) {
+        if (hasCanvasData || hasSeparateCanvasData) {
           console.log(
             "👤 [PORTRAIT] CreateModelPhotoScreen modu: 3'lü birleştirme işlemi başlatılıyor..."
           );
@@ -3524,11 +3842,30 @@ router.post("/generate", async (req, res) => {
             );
 
             // Portrait oluşturulamadıysa sadece Canvas+Background birleştir
-            const combinedImageSource = `data:image/png;base64,${referenceImages[0].combinedImageBase64}`;
-            const canvasImageUrl = await uploadReferenceImageToSupabase(
-              combinedImageSource,
-              userId
-            );
+            let canvasImageUrl;
+            if (hasCanvasData) {
+              const combinedImageSource = `data:image/png;base64,${referenceImages[0].combinedImageBase64}`;
+              canvasImageUrl = await uploadReferenceImageToSupabase(
+                combinedImageSource,
+                userId
+              );
+            } else if (hasSeparateCanvasData) {
+              const canvasImageSource = `data:image/png;base64,${referenceImages[0].base64}`;
+              canvasImageUrl = await uploadReferenceImageToSupabase(
+                canvasImageSource,
+                userId
+              );
+              // Background Removed resmi de ayrı upload et (eğer yoksa)
+              if (
+                !backgroundRemovedImageUrl &&
+                referenceImages[0].backgroundRemovedBase64
+              ) {
+                const bgRemovedSource = `data:image/png;base64,${referenceImages[0].backgroundRemovedBase64}`;
+                backgroundRemovedImageUrl =
+                  await uploadReferenceImageToSupabase(bgRemovedSource, userId);
+                temporaryFiles.push(backgroundRemovedImageUrl);
+              }
+            }
 
             // Background removed image varsa birleştir, yoksa sadece canvas kullan
             if (backgroundRemovedImageUrl) {
@@ -3556,11 +3893,47 @@ router.post("/generate", async (req, res) => {
           }
 
           // Canvas resmi upload et
-          const combinedImageSource = `data:image/png;base64,${referenceImages[0].combinedImageBase64}`;
-          const canvasImageUrl = await uploadReferenceImageToSupabase(
-            combinedImageSource,
-            userId
-          );
+          let canvasImageUrl;
+          if (hasCanvasData) {
+            // Birleştirilmiş Canvas resmi var
+            const combinedImageSource = `data:image/png;base64,${referenceImages[0].combinedImageBase64}`;
+            canvasImageUrl = await uploadReferenceImageToSupabase(
+              combinedImageSource,
+              userId
+            );
+            console.log(
+              "🎨 [CANVAS] Birleştirilmiş Canvas resmi upload edildi:",
+              canvasImageUrl
+            );
+          } else if (hasSeparateCanvasData) {
+            // Ayrı Canvas resmi var
+            const canvasImageSource = `data:image/png;base64,${referenceImages[0].base64}`;
+            canvasImageUrl = await uploadReferenceImageToSupabase(
+              canvasImageSource,
+              userId
+            );
+            console.log(
+              "🎨 [CANVAS] Ayrı Canvas resmi upload edildi:",
+              canvasImageUrl
+            );
+
+            // Background Removed resmi de ayrı upload et (eğer yoksa)
+            if (
+              !backgroundRemovedImageUrl &&
+              referenceImages[0].backgroundRemovedBase64
+            ) {
+              const bgRemovedSource = `data:image/png;base64,${referenceImages[0].backgroundRemovedBase64}`;
+              backgroundRemovedImageUrl = await uploadReferenceImageToSupabase(
+                bgRemovedSource,
+                userId
+              );
+              console.log(
+                "🎨 [CANVAS] Ayrı Background Removed resmi upload edildi:",
+                backgroundRemovedImageUrl
+              );
+              temporaryFiles.push(backgroundRemovedImageUrl);
+            }
+          }
 
           if (hasBackgroundRemovedData) {
             // 3 veya 4 resmi birleştir: Canvas + Background Removed + Portrait + (Location)
@@ -3587,13 +3960,17 @@ router.post("/generate", async (req, res) => {
                 fourImagesCombinedUrl
               );
             } else {
-              console.log("🎨 [PORTRAIT] 3 resim birleştiriliyor...");
-              const threeImagesCombinedUrl = await combineThreeImages(
-                canvasImageUrl,
-                backgroundRemovedImageUrl,
-                portraitImageUrl,
-                userId
+              console.log(
+                "🎨 [PORTRAIT] 3 resim birleştiriliyor (Canvas + Background + Portrait)..."
               );
+              const threeImagesCombinedUrl =
+                await combineThreeImagesCanvasPortraitLocation(
+                  canvasImageUrl,
+                  backgroundRemovedImageUrl,
+                  portraitImageUrl,
+                  null, // location image yok
+                  userId
+                );
               backgroundRemovedImage = threeImagesCombinedUrl;
               temporaryFiles.push(
                 canvasImageUrl,
@@ -3616,6 +3993,7 @@ router.post("/generate", async (req, res) => {
               const threeImagesCombinedUrl =
                 await combineThreeImagesCanvasPortraitLocation(
                   canvasImageUrl,
+                  backgroundRemovedImageUrl, // Background removed image eklendi
                   portraitImageUrl,
                   normalizedLocationUrl,
                   userId
@@ -4164,14 +4542,50 @@ router.post("/generate", async (req, res) => {
       });
     }
   } catch (error) {
-    console.error("Resim oluşturma hatası:", error);
+    console.error("❌ Resim oluşturma hatası:", error);
+    console.error("❌ Hata stack:", error.stack);
+    console.error("❌ Hata mesajı:", error.message);
+    console.error("❌ Hata türü:", typeof error);
+    console.error("❌ Generation ID:", finalGenerationId);
+    console.error("❌ User ID:", userId);
+
+    // API Request debugging
+    if (error.request) {
+      console.error(
+        "❌ Request Error - URL:",
+        error.request.url || error.request._url || "URL yok"
+      );
+      console.error(
+        "❌ Request Error - Method:",
+        error.request.method || "Method yok"
+      );
+      console.error(
+        "❌ Request Error - Status:",
+        error.request.status || "Status yok"
+      );
+    }
+
+    // API Response debugging
+    if (error.response) {
+      console.error("❌ Response Error - Status:", error.response.status);
+      console.error("❌ Response Error - Data:", error.response.data);
+      console.error("❌ Response Error - Headers:", error.response.headers);
+    }
 
     // ❌ Status'u failed'e güncelle (genel hata durumu)
     if (finalGenerationId) {
-      await updateGenerationStatus(finalGenerationId, userId, "failed", {
-        // error_message kolonu yok, bu yüzden genel field kullan
-        processing_time_seconds: 0,
-      });
+      try {
+        await updateGenerationStatus(finalGenerationId, userId, "failed", {
+          // error_message kolonu yok, bu yüzden genel field kullan
+          processing_time_seconds: 0,
+        });
+        console.log(
+          "✅ Generation status failed olarak güncellendi:",
+          finalGenerationId
+        );
+      } catch (updateError) {
+        console.error("❌ Generation status güncellenirken hata:", updateError);
+      }
     }
 
     // 🗑️ Hata durumunda da geçici dosyaları temizle
@@ -4454,6 +4868,7 @@ async function generatePortraitPromptWithGemini(
 
   // Vurgulanacak ögeler - modelden prompt içinde birden fazla kez geçmesini iste
   const emphasisPoints = [];
+  emphasisPoints.push(`gender: ${gender}`); // Gender'ı her zaman vurgula
   if (mood) emphasisPoints.push(`mood/expression: ${mood}`);
   if (accessories) emphasisPoints.push(`accessories: ${accessories}`);
   if (bodyShape) emphasisPoints.push(`body shape: ${bodyShape}`);
@@ -4523,7 +4938,7 @@ async function generatePortraitPromptWithGemini(
         - **DO NOT USE** any of the following phrases in your output: "head-and-shoulders", "shoulders up", "bust shot", "portrait", "close-up portrait", "slight distance". Describe the shot without naming it with these common but incorrect terms.
 
         **MODEL & SCENE REQUIREMENTS:**
-        - Subject: High-fashion model with striking, editorial facial features.
+        - Subject: High-fashion ${gender} model with striking, editorial facial features.
         - Background: Pure, solid white studio background.
         - Lighting: Professional, even studio lighting.
         - Style: Sharp detail, clear features, commercial fashion aesthetic.
@@ -4591,7 +5006,22 @@ async function generatePortraitPromptWithGemini(
     }
 
     console.log("👤 Portrait prompt oluşturuldu:", generatedPrompt);
-    return generatedPrompt + "No clothes";
+
+    // Gender bilgisini garanti etmek için kontrol et ve ekle
+    const genderTerm = gender === "male" ? "male" : "female";
+    let finalPrompt = generatedPrompt;
+
+    // Eğer prompt'ta gender terimi yoksa ekle
+    if (
+      !finalPrompt.toLowerCase().includes("male") &&
+      !finalPrompt.toLowerCase().includes("female")
+    ) {
+      // "model" kelimesini "gender model" ile değiştir
+      finalPrompt = finalPrompt.replace(/\b(model)\b/i, `${genderTerm} $1`);
+      console.log(`🚹🚺 Gender bilgisi eklendi: ${genderTerm}`);
+    }
+
+    return finalPrompt + " No clothes";
   } catch (error) {
     console.error("❌ Portrait prompt oluşturma hatası:", error);
 
@@ -4615,7 +5045,7 @@ async function generatePortraitPromptWithGemini(
         ? ` Focus: ${emphasisPoints.join(", ")}.`
         : "";
 
-    return `Professional head-and-shoulders portrait of a fashion ${gender} model with striking editorial facial features${characteristicsText} Pure white studio background, professional lighting, sharp detail, high-fashion model aesthetics, slight distance from camera (not extreme close-up), head and shoulders view with a bit of breathing room.${focusLine}`;
+    return `Professional head-and-shoulders portrait of a fashion ${gender} model with striking editorial facial features${characteristicsText} Pure white studio background, professional lighting, sharp detail, high-fashion model aesthetics, slight distance from camera (not extreme close-up), head and shoulders view with a bit of breathing room.${focusLine} No clothes`;
   }
 }
 
@@ -4968,38 +5398,85 @@ router.get("/generation-status/:generationId", async (req, res) => {
 
     let finalStatus = generation.status;
     let shouldUpdateStatus = false;
+    let statusReason = null;
 
-    if (
-      (generation.status === "processing" || generation.status === "pending") &&
-      minutesElapsed > PROCESSING_TIMEOUT_MINUTES
-    ) {
+    // 🔍 GERÇEK İŞLEM KONTROLÜ - Sahte processing kayıtlarını tespit et
+    if (generation.status === "processing" || generation.status === "pending") {
+      console.log(`🔍 Processing generation kontrol ediliyor: ${generationId}`);
+
+      // Gerçek işlem göstergeleri kontrolü
+      const hasEnhancedPrompt =
+        generation.enhanced_prompt && generation.enhanced_prompt.trim() !== "";
+      const hasReplicateId =
+        generation.replicate_prediction_id &&
+        generation.replicate_prediction_id.trim() !== "";
+      const isVeryRecent = minutesElapsed < 0.5; // 30 saniyeden yeni
+
+      console.log(`🔍 Generation ${generationId} kontrol detayları:`);
+      console.log(`  - Enhanced prompt: ${hasEnhancedPrompt ? "✅" : "❌"}`);
+      console.log(`  - Replicate ID: ${hasReplicateId ? "✅" : "❌"}`);
+      console.log(`  - Çok yeni (30s): ${isVeryRecent ? "✅" : "❌"}`);
       console.log(
-        `⏰ Generation ${generationId} timeout (${Math.round(
-          minutesElapsed
-        )} dakika), failed olarak işaretleniyor`
+        `  - Dakika geçen: ${Math.round(minutesElapsed * 100) / 100}`
       );
-      finalStatus = "failed";
-      shouldUpdateStatus = true;
 
-      // Database'de status'u failed'e güncelle
-      try {
-        await updateGenerationStatus(generationId, userId, "failed", {
-          processing_time_seconds: Math.round(minutesElapsed * 60),
-        });
+      // Eğer 2 dakikadan fazla geçmişse ve gerçek işlem göstergesi yoksa sahte kayıt
+      if (minutesElapsed > 2 && !hasEnhancedPrompt && !hasReplicateId) {
         console.log(
-          `✅ Timeout generation ${generationId} failed olarak güncellendi`
+          `🚨 SAHTE İŞLEM TESPİT EDİLDİ: ${generationId} - Enhanced prompt ve Replicate ID yok, 2+ dakika geçmiş`
         );
-      } catch (updateError) {
-        console.error(
-          `❌ Timeout generation ${generationId} güncelleme hatası:`,
-          updateError
+        finalStatus = "failed";
+        shouldUpdateStatus = true;
+        statusReason = "Gerçek işlem başlamamış (sahte kayıt)";
+
+        // Database'de status'u failed'e güncelle
+        try {
+          await updateGenerationStatus(generationId, userId, "failed", {
+            processing_time_seconds: Math.round(minutesElapsed * 60),
+          });
+          console.log(
+            `✅ Sahte generation ${generationId} failed olarak güncellendi`
+          );
+        } catch (updateError) {
+          console.error(
+            `❌ Sahte generation ${generationId} güncelleme hatası:`,
+            updateError
+          );
+        }
+      }
+      // Normal timeout kontrolü (8 dakika)
+      else if (minutesElapsed > PROCESSING_TIMEOUT_MINUTES) {
+        console.log(
+          `⏰ Generation ${generationId} timeout (${Math.round(
+            minutesElapsed
+          )} dakika), failed olarak işaretleniyor`
         );
+        finalStatus = "failed";
+        shouldUpdateStatus = true;
+        statusReason = "İşlem zaman aşımına uğradı";
+
+        // Database'de status'u failed'e güncelle
+        try {
+          await updateGenerationStatus(generationId, userId, "failed", {
+            processing_time_seconds: Math.round(minutesElapsed * 60),
+          });
+          console.log(
+            `✅ Timeout generation ${generationId} failed olarak güncellendi`
+          );
+        } catch (updateError) {
+          console.error(
+            `❌ Timeout generation ${generationId} güncelleme hatası:`,
+            updateError
+          );
+        }
       }
     }
 
     console.log(
       `✅ Generation durumu: ${finalStatus}${
-        shouldUpdateStatus ? " (timeout nedeniyle güncellendi)" : ""
+        shouldUpdateStatus
+          ? ` (${statusReason || "timeout nedeniyle güncellendi"})`
+          : ""
       }`
     );
 
@@ -5011,7 +5488,9 @@ router.get("/generation-status/:generationId", async (req, res) => {
         resultImageUrl: generation.result_image_url,
         originalPrompt: generation.original_prompt,
         enhancedPrompt: generation.enhanced_prompt,
-        errorMessage: shouldUpdateStatus ? "İşlem zaman aşımına uğradı" : null,
+        errorMessage: shouldUpdateStatus
+          ? statusReason || "İşlem zaman aşımına uğradı"
+          : null,
         processingTimeSeconds: generation.processing_time_seconds,
         createdAt: generation.created_at,
         updatedAt: generation.updated_at,
@@ -5246,168 +5725,7 @@ router.get("/user-generations/:userId", async (req, res) => {
   }
 });
 
-// Canvas ve background removed resimlerini yan yana birleştiren fonksiyon
-async function combineThreeImages(
-  canvasImageUrl,
-  backgroundRemovedImageUrl,
-  portraitImageUrl,
-  userId
-) {
-  try {
-    console.log("🎨 [3-IMAGE COMBINE] Üç resim birleştiriliyor (2x1 grid)...");
-    console.log("🎨 [3-IMAGE COMBINE] Canvas resmi:", canvasImageUrl);
-    console.log(
-      "🎨 [3-IMAGE COMBINE] Background removed resmi:",
-      backgroundRemovedImageUrl
-    );
-    console.log("🎨 [3-IMAGE COMBINE] Portrait resmi:", portraitImageUrl);
-
-    if (!backgroundRemovedImageUrl) {
-      console.log(
-        "ℹ️ [3-IMAGE COMBINE] backgroundRemovedImageUrl boş; bu fonksiyon Canvas + BGRemoved + Portrait için kullanılmalı"
-      );
-    }
-
-    // Üç resmi de indir
-    const [canvasResponse, bgRemovedResponse, portraitResponse] =
-      await Promise.all([
-        axios.get(canvasImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 30000,
-        }),
-        axios.get(backgroundRemovedImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 30000,
-        }),
-        axios.get(portraitImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 30000,
-        }),
-      ]);
-
-    console.log(
-      "📡 [3-IMAGE COMBINE] HTTP statusler:",
-      canvasResponse.status,
-      bgRemovedResponse.status,
-      portraitResponse.status
-    );
-
-    const canvasBuffer = Buffer.from(canvasResponse.data);
-    const bgRemovedBuffer = Buffer.from(bgRemovedResponse.data);
-    const portraitBuffer = Buffer.from(portraitResponse.data);
-
-    // Sharp ile resim boyutlarını öğren
-    const canvasMetadata = await sharp(canvasBuffer).metadata();
-    const bgRemovedMetadata = await sharp(bgRemovedBuffer).metadata();
-    const portraitMetadata = await sharp(portraitBuffer).metadata();
-
-    console.log(
-      "🎨 [3-IMAGE COMBINE] Canvas boyutları:",
-      canvasMetadata.width,
-      "x",
-      canvasMetadata.height
-    );
-    console.log(
-      "🎨 [3-IMAGE COMBINE] BG removed boyutları:",
-      bgRemovedMetadata.width,
-      "x",
-      bgRemovedMetadata.height
-    );
-    console.log(
-      "🎨 [3-IMAGE COMBINE] Portrait boyutları:",
-      portraitMetadata.width,
-      "x",
-      portraitMetadata.height
-    );
-
-    // 2x1 grid: üstte canvas | altta bgRemoved+portrait yan yana büyük
-    const cellHeight = 1024;
-    const spacing = 15;
-
-    const canvasCell = await sharp(canvasBuffer)
-      .resize({
-        height: cellHeight,
-        fit: "contain",
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
-      })
-      .png()
-      .toBuffer();
-    const bgCell = await sharp(bgRemovedBuffer)
-      .resize({
-        height: Math.floor(cellHeight * 0.9),
-        fit: "contain",
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
-      })
-      .png()
-      .toBuffer();
-    const portraitCell = await sharp(portraitBuffer)
-      .resize({
-        height: Math.floor(cellHeight * 0.9),
-        fit: "contain",
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
-      })
-      .png()
-      .toBuffer();
-
-    const canvasMeta = await sharp(canvasCell).metadata();
-    const bgMeta = await sharp(bgCell).metadata();
-    const portraitMeta = await sharp(portraitCell).metadata();
-
-    const bottomRowWidth = bgMeta.width + portraitMeta.width + spacing;
-    const totalWidth = Math.max(canvasMeta.width, bottomRowWidth);
-    const totalHeight =
-      cellHeight + spacing + Math.max(bgMeta.height, portraitMeta.height);
-
-    const topX = Math.floor((totalWidth - canvasMeta.width) / 2);
-    const bottomLeftX = Math.floor((totalWidth - bottomRowWidth) / 2);
-    const bottomRightX = bottomLeftX + bgMeta.width + spacing;
-
-    const combinedImage = await sharp({
-      create: {
-        width: totalWidth,
-        height: totalHeight,
-        channels: 4,
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
-      },
-    })
-      .composite([
-        { input: canvasCell, left: topX, top: 0 },
-        { input: bgCell, left: bottomLeftX, top: cellHeight + spacing },
-        { input: portraitCell, left: bottomRightX, top: cellHeight + spacing },
-      ])
-      .png()
-      .toBuffer();
-
-    // Birleştirilmiş resmi Supabase'e yükle
-    const timestamp = Date.now();
-    const randomId = uuidv4().substring(0, 8);
-    const fileName = `three_images_combined_${timestamp}_${
-      userId || "anonymous"
-    }_${randomId}.png`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("images")
-      .upload(fileName, combinedImage, { contentType: "image/png" });
-
-    if (uploadError) throw uploadError;
-
-    const { data: publicUrlData, error: publicUrlError } =
-      await supabase.storage.from("images").getPublicUrl(fileName);
-
-    if (publicUrlError) throw publicUrlError;
-
-    const combinedImageUrl = publicUrlData.publicUrl;
-    console.log(
-      "✅ [3-IMAGE COMBINE] Üç resim başarıyla birleştirildi:",
-      combinedImageUrl
-    );
-
-    return combinedImageUrl;
-  } catch (error) {
-    console.error("❌ [3-IMAGE COMBINE] Üç resim birleştirme hatası:", error);
-    throw error;
-  }
-}
+// combineThreeImages fonksiyonu kaldırıldı - artık kullanılmıyor
 
 async function combineFourImages(
   canvasImageUrl,
@@ -5508,12 +5826,12 @@ async function combineFourImages(
       locationMetadata.height
     );
 
-    // Dört resmi aynı yüksekliğe resize et
+    // Dört resmi aynı yüksekliğe resize et (transparent arkaplan)
     const resizedCanvas = await sharp(canvasBuffer)
       .resize({
         height: maxHeight,
         fit: "contain",
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
       })
       .png()
       .toBuffer();
@@ -5522,7 +5840,7 @@ async function combineFourImages(
       .resize({
         height: maxHeight,
         fit: "contain",
-        background: { r: 255, g: 255, b: 255, alpha: 0 },
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
       })
       .png()
       .toBuffer();
@@ -5531,7 +5849,7 @@ async function combineFourImages(
       .resize({
         height: maxHeight,
         fit: "contain",
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
       })
       .png()
       .toBuffer();
@@ -5540,7 +5858,7 @@ async function combineFourImages(
       .resize({
         height: maxHeight,
         fit: "contain",
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
       })
       .png()
       .toBuffer();
@@ -5555,12 +5873,12 @@ async function combineFourImages(
     const cellHeight = 1024;
     const spacing = 15;
 
-    // Hücre yüksekliğine göre yeniden boyutlandır
+    // Hücre yüksekliğine göre yeniden boyutlandır (transparent arkaplan)
     const gridCanvas = await sharp(resizedCanvas)
       .resize({
         height: cellHeight,
         fit: "contain",
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
       })
       .png()
       .toBuffer();
@@ -5568,7 +5886,7 @@ async function combineFourImages(
       .resize({
         height: cellHeight,
         fit: "contain",
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
       })
       .png()
       .toBuffer();
@@ -5576,7 +5894,7 @@ async function combineFourImages(
       .resize({
         height: cellHeight,
         fit: "contain",
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
       })
       .png()
       .toBuffer();
@@ -5584,7 +5902,7 @@ async function combineFourImages(
       .resize({
         height: cellHeight,
         fit: "contain",
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
       })
       .png()
       .toBuffer();
@@ -5623,7 +5941,7 @@ async function combineFourImages(
         width: totalWidth,
         height: totalHeight,
         channels: 4,
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
       },
     })
       .composite([
@@ -5724,12 +6042,12 @@ async function combineCanvasAndBackgroundRemovedImages(
     // En büyük yüksekliği al
     const maxHeight = Math.max(canvasMetadata.height, bgRemovedMetadata.height);
 
-    // İki resmi aynı yüksekliğe resize et
+    // İki resmi aynı yüksekliğe resize et (transparent arkaplan)
     const resizedCanvas = await sharp(canvasBuffer)
       .resize({
         height: maxHeight,
         fit: "contain",
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
       })
       .png()
       .toBuffer();
@@ -5738,7 +6056,7 @@ async function combineCanvasAndBackgroundRemovedImages(
       .resize({
         height: maxHeight,
         fit: "contain",
-        background: { r: 255, g: 255, b: 255, alpha: 0 },
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
       })
       .png()
       .toBuffer();
@@ -5751,13 +6069,13 @@ async function combineCanvasAndBackgroundRemovedImages(
     const totalWidth =
       resizedCanvasMetadata.width + resizedBgRemovedMetadata.width + 5;
 
-    // İki resmi yan yana birleştir
+    // İki resmi yan yana birleştir (transparent arkaplan)
     const combinedImage = await sharp({
       create: {
         width: totalWidth,
         height: maxHeight,
         channels: 4,
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
       },
     })
       .composite([

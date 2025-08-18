@@ -4,6 +4,7 @@
     "woman": "Female",
     "man": "Male",
     "removingBackground": "Background removing...",
-    "pleaseWaitDoNotExit": "Please wait, do not exit the app."
+    "pleaseWaitDoNotExit": "Please wait, do not exit the app.",
+    "changePhoto": "Change Photo"
   }
 }

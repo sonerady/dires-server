@@ -1,0 +1,13 @@
+{
+  "addPrompt": "Agregar prompt",
+  "designLocation": "Diseñar una ubicación",
+  "createLocation": "Crear ubicación",
+  "generateButton": "Generar",
+  "generating": "...",
+  "previousCreations": "Tus creaciones anteriores",
+  "discoveryHint": "Descubrir",
+  "discoveryDescription": "ubicaciones creadas por clientes generales",
+  "nothingFound": "No se encontró nada",
+  "alertEnterDescription": "Por favor ingrese una descripción de ubicación",
+  "alertConnectionError": "Error de conexión. Por favor intente de nuevo."
+}

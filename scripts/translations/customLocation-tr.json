@@ -1,0 +1,13 @@
+{
+  "addPrompt": "Prompt ekle",
+  "designLocation": "Bir konum tasarla",
+  "createLocation": "Konum oluştur",
+  "generateButton": "Generate",
+  "generating": "...",
+  "previousCreations": "Daha Önce Oluşturdukların",
+  "discoveryHint": "Keşfedin",
+  "discoveryDescription": "genel müşteriler tarafından oluşturulan konumlar",
+  "nothingFound": "Hiçbir şey bulunamadı",
+  "alertEnterDescription": "Lütfen bir location açıklaması girin",
+  "alertConnectionError": "Bağlantı hatası. Lütfen tekrar deneyin."
+}
