@@ -254,8 +254,7 @@ async function saveLocationToDatabase(
   category = "custom",
   userId = null,
   isPublic = false,
-  generatedTitle = null,
-  storagePath = null
+  generatedTitle = null
 ) {
   try {
     console.log("💾 Location Supabase'e kaydediliyor...");
@@ -267,8 +266,7 @@ async function saveLocationToDatabase(
         generated_title: generatedTitle,
         original_prompt: originalPrompt,
         enhanced_prompt: enhancedPrompt,
-        image_url: imageUrl,
-        storage_path: storagePath, // Storage path'i de kaydet
+        image_url: imageUrl, // Supabase storage'dan gelen public URL
         replicate_id: replicateId,
         category: category,
         user_id: userId,
@@ -407,13 +405,12 @@ router.post("/create-location", async (req, res) => {
       title.trim(), // Original user input title
       prompt.trim(),
       enhancedPrompt,
-      fluxResult.imageUrl,
+      fluxResult.imageUrl, // Supabase storage'dan gelen public URL
       fluxResult.replicateId,
       category,
       actualUserId,
       isPublic,
-      generatedTitle, // Gemini'den gelen title ayrı column'da
-      fluxResult.storagePath // Storage path'i de geç
+      generatedTitle // Gemini'den gelen title ayrı column'da
     );
 
     console.log("✅ Create location işlemi tamamlandı");
@@ -424,8 +421,7 @@ router.post("/create-location", async (req, res) => {
       data: {
         id: savedLocation.id,
         title: savedLocation.title,
-        imageUrl: savedLocation.image_url,
-        storagePath: savedLocation.storage_path, // Storage path'i de döndür
+        imageUrl: savedLocation.image_url, // Supabase storage'dan gelen public URL
         category: savedLocation.category,
         isPublic: savedLocation.is_public,
         originalPrompt: savedLocation.original_prompt,
