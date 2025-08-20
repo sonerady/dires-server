@@ -1,6 +1,0 @@
-{
-  "restorePurchases": "購入を復元",
-  "purchasesRestored": "購入が正常に復元されました！",
-  "noPurchasesToRestore": "復元する購入が見つかりませんでした。",
-  "restoreError": "購入の復元中にエラーが発生しました。もう一度お試しください。"
-}

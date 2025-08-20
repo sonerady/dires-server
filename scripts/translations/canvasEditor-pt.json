@@ -1,9 +1,0 @@
-{
-  "canvasEditor": {
-    "genderInfo": "Esta área é apenas para determinar o posicionamento visual e o tamanho do produto; idade e medidas corporais não são usadas nesta etapa. Você definirá esses detalhes na próxima etapa.",
-    "woman": "Feminino",
-    "man": "Masculino",
-    "removingBackground": "Removendo fundo...",
-    "pleaseWaitDoNotExit": "Aguarde, não saia do aplicativo."
-  }
-}

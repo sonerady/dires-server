@@ -1,9 +1,0 @@
-{
-  "canvasEditor": {
-    "genderInfo": "此区域仅用于确定产品的视觉位置和大小；此阶段不会使用年龄和身体测量数据。这些细节将在下一步设置。",
-    "woman": "女性",
-    "man": "男性",
-    "removingBackground": "正在移除背景...",
-    "pleaseWaitDoNotExit": "请稍候，请不要退出应用。"
-  }
-}

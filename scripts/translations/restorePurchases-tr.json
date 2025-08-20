@@ -1,6 +1,0 @@
-{
-  "restorePurchases": "Satın Alımları Geri Yükle",
-  "purchasesRestored": "Satın alımlarınız başarıyla geri yüklendi!",
-  "noPurchasesToRestore": "Geri yüklenecek satın alım bulunamadı.",
-  "restoreError": "Satın alımları geri yüklerken bir hata oluştu. Lütfen tekrar deneyin."
-}
