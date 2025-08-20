@@ -1536,7 +1536,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
     - ABSOLUTELY AND IMMEDIATELY REMOVE ALL HANGERS, CLIPS, TAGS, AND FLAT-LAY ARTIFACTS from the input garment. CRITICAL: DO NOT RENDER ANY MANNEQUIN REMAINS OR UNINTENDED BACKGROUND ELEMENTS.
     - Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model; avoid any 2D, sticker-like, or paper-like overlay.
     - Ensure realistic fabric physics: natural drape, weight, tension, compression, and subtle folds along shoulders, chest/bust, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles.
-    - Preserve ALL original garment details: exact colors, prints/patterns, material texture, stitching, construction elements (collar, placket, buttons/zippers, cuffs, hems), trims, and finishes. Do NOT redesign.
+    - Preserve ALL original garment details.  Do NOT redesign.
     - Integrate prints/patterns correctly over the 3D form: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines.
     - For structured details (e.g., knots, pleats, darts, seams), render functional tension, deep creases, and realistic shadows consistent with real fabric behavior.
     - Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting.
@@ -1688,7 +1688,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       6. Preserve ALL original garment details: colors, patterns, textures, hardware, stitching, logos, graphics, and construction elements
       7. The garment must appear identical to the reference image, just worn by the model instead of being flat
 
-      PRODUCT DETAIL COVERAGE (MANDATORY): Describe the garment's construction details comprehensively but concisely: exact number of buttons or fasteners, button style/material, zipper presence and position, pocket count and style (e.g., welt, patch, flap), waistband or belt loops, seam placements, darts, pleats, hems and cuff types, stitching type/visibility, closures, trims and hardware, labels/patches (generic terms), fabric texture and weave, pattern alignment, lining presence, and any distinctive construction features. Keep this within the 512-token limit; prioritize the most visually verifiable details.
+      PRODUCT DETAIL COVERAGE (MANDATORY): Describe the garment's construction details. Keep this within the 512-token limit; prioritize the most visually verifiable details.
 
       ${fluxMaxGarmentTransformationDirectives}
 
