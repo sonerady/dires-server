@@ -66,6 +66,9 @@ const customPoseRoutes = require("./routes/customPoseRoutes");
 const canvasCombineRoutes = require("./routes/canvasCombineRoutes");
 // Create Location routes import
 const createLocationRoutes = require("./routes/createLocationRoutes");
+const createLocationRoutesV2 = require("./routes/createLocationRoutes_v2");
+// Favorites routes import
+const favoritesRoutes = require("./routes/favoritesRoutes");
 // Generation Status routes import
 
 const app = express();
@@ -170,6 +173,10 @@ app.use("/api/customPose", customPoseRoutes);
 
 // Create Location routes ekle
 app.use("/api/location", createLocationRoutes);
+app.use("/api/location/v2", createLocationRoutesV2);
+
+// Favorites routes ekle
+app.use("/api/favorites", favoritesRoutes);
 
 // App Links routes ekle
 app.use("/api/app-links", appLinksRoutes);
