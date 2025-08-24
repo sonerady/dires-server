@@ -1,0 +1,53 @@
+{
+  "perspective": {
+    "title": "Perspectiva",
+    "eye_level": {
+      "name": "Nível dos Olhos",
+      "description1": "O ângulo mais clássico e natural",
+      "description2": "Mostra o modelo no mesmo nível que o espectador",
+      "description3": "Amplamente usado em sessões editoriais e lookbooks focados em roupas"
+    },
+    "high_angle": {
+      "name": "Ângulo Alto",
+      "description1": "A câmera olha para baixo de cima do modelo",
+      "description2": "Pode fazer o modelo parecer mais elegante, esbelto ou frágil",
+      "description3": "Preferido em bastidores de passarela ou sessões focadas em acessórios"
+    },
+    "low_angle": {
+      "name": "Ângulo Baixo",
+      "description1": "A câmera olha para cima de baixo",
+      "description2": "Faz o modelo parecer poderoso, dominante, pernudo e confiante",
+      "description3": "Muito popular especialmente em sessões de moda couture"
+    },
+    "three_quarter": {
+      "name": "Ângulo Três Quartos",
+      "description1": "O modelo não está completamente reto para a câmera, ligeiramente diagonal",
+      "description2": "As linhas do corpo aparecem mais elegantes",
+      "description3": "A forma da roupa fica mais visível"
+    },
+    "over_shoulder": {
+      "name": "Por Sobre o Ombro",
+      "description1": "O modelo olha para trás ou posa por sobre o ombro",
+      "description2": "Ideal para mostrar detalhes traseiros das roupas",
+      "description3": "Amplamente usado em campanhas de perfumes e joias"
+    },
+    "top_down": {
+      "name": "Vista de Cima",
+      "description1": "A câmera olha diretamente de cima para baixo",
+      "description2": "Cria um efeito dramático e artístico",
+      "description3": "Frequentemente visto em revistas de moda editorial"
+    },
+    "worms_eye": {
+      "name": "Vista de Baixo",
+      "description1": "Ângulo muito baixo, quase do nível do chão",
+      "description2": "Faz o modelo parecer ultra alto, poderoso e escultural",
+      "description3": "Preferido em sessões de alta moda e vanguarda"
+    },
+    "profile_shot": {
+      "name": "Foto de Perfil",
+      "description1": "O modelo está completamente virado para o lado",
+      "description2": "Enfatiza a silhueta e o corte da roupa",
+      "description3": "Preferido em sessões de marca minimalistas e elegantes"
+    }
+  }
+}

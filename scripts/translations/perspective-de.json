@@ -1,0 +1,53 @@
+{
+  "perspective": {
+    "title": "Perspektive",
+    "eye_level": {
+      "name": "Augenhöhe",
+      "description1": "Der klassischste, natürlichste Winkel",
+      "description2": "Zeigt das Model auf der gleichen Ebene wie der Betrachter",
+      "description3": "Weit verbreitet in kleidungsfokussierten Editorial- und Lookbook-Shootings"
+    },
+    "high_angle": {
+      "name": "Hoher Winkel",
+      "description1": "Kamera blickt von oben auf das Model herab",
+      "description2": "Kann das Model eleganter, schlanker oder zerbrechlicher erscheinen lassen",
+      "description3": "Bevorzugt bei Runway-Backstage oder accessoire-fokussierten Shootings"
+    },
+    "low_angle": {
+      "name": "Niedriger Winkel",
+      "description1": "Kamera blickt von unten nach oben",
+      "description2": "Lässt das Model kraftvoll, dominant, langbeinig und selbstbewusst erscheinen",
+      "description3": "Sehr beliebt besonders bei Couture-Mode-Shootings"
+    },
+    "three_quarter": {
+      "name": "Dreiviertel-Winkel",
+      "description1": "Model steht nicht komplett gerade zur Kamera, leicht diagonal",
+      "description2": "Körperlinien erscheinen eleganter",
+      "description3": "Die Form des Kleidungsstücks ist besser sichtbar"
+    },
+    "over_shoulder": {
+      "name": "Über die Schulter",
+      "description1": "Model blickt zurück oder posiert über die Schulter",
+      "description2": "Ideal um Rückendetails der Kleidung zu zeigen",
+      "description3": "Weit verbreitet in Parfüm- und Schmuckkampagnen"
+    },
+    "top_down": {
+      "name": "Von oben",
+      "description1": "Kamera blickt direkt von oben nach unten",
+      "description2": "Erzeugt einen dramatischen und künstlerischen Effekt",
+      "description3": "Häufig in Editorial-Modemagazinen zu sehen"
+    },
+    "worms_eye": {
+      "name": "Froschperspektive",
+      "description1": "Sehr niedriger Winkel, fast vom Bodenniveau",
+      "description2": "Lässt das Model ultra groß, kraftvoll und skulptural erscheinen",
+      "description3": "Bevorzugt bei High-Fashion und Avantgarde-Shootings"
+    },
+    "profile_shot": {
+      "name": "Profilaufnahme",
+      "description1": "Model ist komplett zur Seite gedreht",
+      "description2": "Betont Silhouette und Kleidungsschnitt",
+      "description3": "Bevorzugt bei minimalistischen und eleganten Marken-Shootings"
+    }
+  }
+}

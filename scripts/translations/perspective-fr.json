@@ -1,0 +1,53 @@
+{
+  "perspective": {
+    "title": "Perspective",
+    "eye_level": {
+      "name": "Niveau des Yeux",
+      "description1": "L'angle le plus classique et naturel",
+      "description2": "Montre le modèle au même niveau que le spectateur",
+      "description3": "Largement utilisé dans les séances éditoriales et lookbooks axées sur les vêtements"
+    },
+    "high_angle": {
+      "name": "Angle Élevé",
+      "description1": "L'appareil photo regarde vers le bas depuis au-dessus du modèle",
+      "description2": "Peut faire paraître le modèle plus élégant, mince ou fragile",
+      "description3": "Préféré dans les coulisses de défilé ou les séances axées sur les accessoires"
+    },
+    "low_angle": {
+      "name": "Angle Bas",
+      "description1": "L'appareil photo regarde vers le haut depuis le bas",
+      "description2": "Fait paraître le modèle puissant, dominant, aux longues jambes et confiant",
+      "description3": "Très populaire surtout dans les séances de mode couture"
+    },
+    "three_quarter": {
+      "name": "Angle Trois Quarts",
+      "description1": "Le modèle n'est pas complètement droit face à l'appareil photo, légèrement diagonal",
+      "description2": "Les lignes du corps paraissent plus élégantes",
+      "description3": "La forme du vêtement est mieux visible"
+    },
+    "over_shoulder": {
+      "name": "Par-dessus l'Épaule",
+      "description1": "Le modèle regarde en arrière ou pose par-dessus l'épaule",
+      "description2": "Idéal pour montrer les détails arrière des vêtements",
+      "description3": "Largement utilisé dans les campagnes de parfums et de bijoux"
+    },
+    "top_down": {
+      "name": "Vue du Dessus",
+      "description1": "L'appareil photo regarde directement du haut vers le bas",
+      "description2": "Crée un effet dramatique et artistique",
+      "description3": "Fréquemment vu dans les magazines de mode éditoriaux"
+    },
+    "worms_eye": {
+      "name": "Vue en Contre-plongée",
+      "description1": "Angle très bas, presque au niveau du sol",
+      "description2": "Fait paraître le modèle ultra grand, puissant et sculptural",
+      "description3": "Préféré dans les séances de haute couture et d'avant-garde"
+    },
+    "profile_shot": {
+      "name": "Prise de Profil",
+      "description1": "Le modèle est complètement tourné sur le côté",
+      "description2": "Met l'accent sur la silhouette et la coupe du vêtement",
+      "description3": "Préféré dans les séances de marque minimalistes et élégantes"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "framing": {
+    "title": "Inquadratura",
+    "description": "Determina l'angolo e la vicinanza da cui apparirà il modello",
+    "auto": "Automatico",
+    "full_body": "Corpo Intero",
+    "knee_shot": "Dal Ginocchio",
+    "medium_shot": "Dalla Vita",
+    "chest_up": "Dal Petto",
+    "close_up": "Viso"
+  }
+}

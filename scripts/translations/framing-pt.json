@@ -1,0 +1,12 @@
+{
+  "framing": {
+    "title": "Enquadramento",
+    "description": "Determina o ângulo e a proximidade de onde o modelo aparecerá",
+    "auto": "Automático",
+    "full_body": "Corpo Inteiro",
+    "knee_shot": "Do Joelho",
+    "medium_shot": "Da Cintura",
+    "chest_up": "Do Peito",
+    "close_up": "Rosto"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "framing": {
+    "title": "Framing",
+    "description": "Determines the angle and closeness from which the model will appear",
+    "auto": "Auto",
+    "full_body": "Full Body",
+    "knee_shot": "Knee Up",
+    "medium_shot": "Waist Up",
+    "chest_up": "Chest Up",
+    "close_up": "Face"
+  }
+}

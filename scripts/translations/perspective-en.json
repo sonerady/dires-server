@@ -1,0 +1,53 @@
+{
+  "perspective": {
+    "title": "Perspective",
+    "eye_level": {
+      "name": "Eye-Level",
+      "description1": "The most classic, natural angle",
+      "description2": "Shows the model at the same level as the viewer",
+      "description3": "Widely used in clothing-focused editorial and lookbook shoots"
+    },
+    "high_angle": {
+      "name": "High Angle",
+      "description1": "Camera looks down from above the model",
+      "description2": "Can make the model appear more elegant, slender or fragile",
+      "description3": "Preferred in runway backstage or accessory-focused shoots"
+    },
+    "low_angle": {
+      "name": "Low Angle",
+      "description1": "Camera looks up from below",
+      "description2": "Makes the model appear powerful, dominant, long-legged and confident",
+      "description3": "Very popular especially in couture fashion shoots"
+    },
+    "three_quarter": {
+      "name": "Three-Quarter Angle",
+      "description1": "Model is not completely straight to camera, slightly diagonal",
+      "description2": "Body lines appear more elegant",
+      "description3": "The garment's form is better visible"
+    },
+    "over_shoulder": {
+      "name": "Over-the-Shoulder",
+      "description1": "Model looks back or poses over the shoulder",
+      "description2": "Ideal for showing back details of clothing",
+      "description3": "Widely used in perfume and jewelry campaigns"
+    },
+    "top_down": {
+      "name": "Top-Down",
+      "description1": "Camera looks directly from top to bottom",
+      "description2": "Creates a dramatic and artistic effect",
+      "description3": "Frequently seen in editorial fashion magazines"
+    },
+    "worms_eye": {
+      "name": "Worm's Eye",
+      "description1": "Very low angle, almost from ground level",
+      "description2": "Makes the model appear ultra tall, powerful and sculptural",
+      "description3": "Preferred in high-fashion and avant-garde shoots"
+    },
+    "profile_shot": {
+      "name": "Profile Shot",
+      "description1": "Model is completely turned to the side",
+      "description2": "Emphasizes silhouette and garment cut",
+      "description3": "Preferred in minimal and elegant brand shoots"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "framing": {
+    "title": "Cadrage",
+    "description": "Détermine l'angle et la proximité sous lesquels le modèle apparaîtra",
+    "auto": "Automatique",
+    "full_body": "Corps Entier",
+    "knee_shot": "Depuis Genou",
+    "medium_shot": "Depuis Taille",
+    "chest_up": "Depuis Poitrine",
+    "close_up": "Visage"
+  }
+}

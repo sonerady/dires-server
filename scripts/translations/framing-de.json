@@ -1,0 +1,12 @@
+{
+  "framing": {
+    "title": "Bildausschnitt",
+    "description": "Bestimmt den Winkel und die Nähe, aus der das Model erscheint",
+    "auto": "Automatisch",
+    "full_body": "Ganzkörper",
+    "knee_shot": "Ab Knie",
+    "medium_shot": "Ab Taille",
+    "chest_up": "Ab Brust",
+    "close_up": "Gesicht"
+  }
+}

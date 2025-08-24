@@ -1,0 +1,53 @@
+{
+  "perspective": {
+    "title": "Perspektif",
+    "eye_level": {
+      "name": "Göz Hizası",
+      "description1": "En klasik, en doğal açı",
+      "description2": "Modeli izleyiciyle eşit seviyede gösterir",
+      "description3": "Kıyafet odaklı editorial ve lookbook çekimlerinde çok kullanılır"
+    },
+    "high_angle": {
+      "name": "Yukarıdan Açı",
+      "description1": "Kamera modelin üstünden bakar",
+      "description2": "Modeli daha zarif, ince veya kırılgan gösterebilir",
+      "description3": "Podyum backstage veya aksesuar odaklı çekimlerde tercih edilir"
+    },
+    "low_angle": {
+      "name": "Alttan Açı",
+      "description1": "Kamera aşağıdan yukarıya bakar",
+      "description2": "Modeli güçlü, dominant, uzun bacaklı ve iddialı gösterir",
+      "description3": "Özellikle couture moda çekimlerinde çok popülerdir"
+    },
+    "three_quarter": {
+      "name": "¾ Perspektif",
+      "description1": "Model kameraya tamamen düz değil, hafif çapraz durur",
+      "description2": "Vücut hatları daha zarif çıkar",
+      "description3": "Giysinin formu daha iyi görünür"
+    },
+    "over_shoulder": {
+      "name": "Omuz Arkası",
+      "description1": "Model arkaya bakar veya omuz üstünden poz verir",
+      "description2": "Kıyafetin arka detaylarını göstermek için idealdir",
+      "description3": "Parfüm, takı kampanyalarında çok kullanılır"
+    },
+    "top_down": {
+      "name": "Tepeden Bakış",
+      "description1": "Kamera doğrudan yukarıdan aşağıya bakar",
+      "description2": "Dramatik ve sanatsal bir etki verir",
+      "description3": "Editorial moda dergilerinde sıkça görülür"
+    },
+    "worms_eye": {
+      "name": "Yerden Yukarı",
+      "description1": "Çok alttan, neredeyse yer seviyesinden bakış",
+      "description2": "Modeli ultra uzun, güçlü ve heykelsi gösterir",
+      "description3": "High-fashion ve avant-garde çekimlerde tercih edilir"
+    },
+    "profile_shot": {
+      "name": "Yan Profil",
+      "description1": "Model tamamen yana dönüktür",
+      "description2": "Silüet ve giysi kesimini vurgular",
+      "description3": "Minimal ve şık marka çekimlerinde tercih edilir"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "framing": {
+    "title": "フレーミング",
+    "description": "モデルが表示される角度と近さを決定します",
+    "auto": "自動",
+    "full_body": "全身",
+    "knee_shot": "膝上",
+    "medium_shot": "腰上",
+    "chest_up": "胸上",
+    "close_up": "顔"
+  }
+}
