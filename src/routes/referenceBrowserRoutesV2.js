@@ -2,7 +2,8 @@ const express = require("express");
 const router = express.Router();
 // Updated Gemini API with latest gemini-2.0-flash model
 // Using @google/generative-ai with new safety settings configuration
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenAI } = require("@google/genai");
+const mime = require("mime");
 const { createClient } = require("@supabase/supabase-js");
 const axios = require("axios");
 const sharp = require("sharp");
@@ -545,8 +546,10 @@ async function updateGenerationStatus(
   }
 }
 
-// Gemini API için istemci oluştur
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Gemini API için istemci oluştur (yeni SDK)
+const genAI = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+});
 
 // Aspect ratio formatını düzelten yardımcı fonksiyon
 function formatAspectRatio(ratioStr) {
@@ -635,10 +638,8 @@ async function enhancePromptWithGemini(
     console.log("✏️ [GEMINI] Edit mode:", isEditMode);
     console.log("✏️ [GEMINI] Edit prompt:", editPrompt);
 
-    // Gemini 2.0 Flash modeli - En yeni API yapısı
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-    });
+    // Gemini 2.0 Flash modeli - Yeni SDK
+    const model = "gemini-2.5-flash";
 
     // Settings'in var olup olmadığını kontrol et
     const hasValidSettings =
@@ -1459,7 +1460,8 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       try {
         console.log(`🤖 [GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
 
-        const result = await model.generateContent({
+        const result = await genAI.models.generateContent({
+          model,
           contents: [
             {
               role: "user",
@@ -1468,7 +1470,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
           ],
         });
 
-        const geminiGeneratedPrompt = result.response.text().trim();
+        const geminiGeneratedPrompt = result.text.trim();
 
         // ControlNet direktifini dinamik olarak ekle
         // let controlNetDirective = "";
@@ -1990,10 +1992,8 @@ async function generatePortraitPromptWithGemini(
         - No quotes, no explanations, no rules, no meta-guidance.
         - **STRICT LIMIT: 77 tokens MAXIMUM.** Be concise and powerful.`;
 
-    // Gemini 2.5 Flash modeli - En yeni API yapısı
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-    });
+    // Gemini 2.0 Flash modeli - Yeni SDK
+    const model = "gemini-2.0-flash-001";
 
     // Gemini'den cevap al (retry mekanizması ile) - Yeni API
     let generatedPrompt;
@@ -2003,7 +2003,8 @@ async function generatePortraitPromptWithGemini(
       try {
         console.log(`🤖 [GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
 
-        const result = await model.generateContent({
+        const result = await genAI.models.generateContent({
+          model,
           contents: [
             {
               role: "user",
@@ -2012,7 +2013,7 @@ async function generatePortraitPromptWithGemini(
           ],
         });
 
-        generatedPrompt = result.response.text().trim();
+        generatedPrompt = result.text.trim();
 
         console.log(
           "🤖 [BACKEND GEMINI] Gemini'nin ürettiği portrait prompt:",
@@ -2171,262 +2172,7 @@ async function generatePortraitWithFluxDev(portraitPrompt) {
   }
 }
 
-// Arkaplan silme fonksiyonu
-async function removeBackgroundFromImage(imageUrl, userId) {
-  try {
-    console.log("🖼️ Arkaplan silme işlemi başlatılıyor:", imageUrl);
-
-    // Önce dahili removeBg API'sini kullan (removeBg.js → /api/remove-background)
-    try {
-      const internalPort = process.env.PORT || 3001;
-      const internalBaseUrl =
-        process.env.INTERNAL_API_BASE_URL ||
-        `https://dires-server.onrender.com:${internalPort}`;
-      const endpoint = `${internalBaseUrl}/api/remove-background`;
-      console.log("🔗 Dahili removeBg API çağrısı:", endpoint);
-
-      const apiResp = await axios.post(
-        endpoint,
-        { imageUrl, userId },
-        { timeout: 120000 }
-      );
-
-      const removedBgUrl =
-        apiResp?.data?.removedBgUrl || apiResp?.data?.result?.removed_bg_url;
-      if (removedBgUrl && typeof removedBgUrl === "string") {
-        console.log("✅ removeBg API sonucu alındı:", removedBgUrl);
-        return removedBgUrl;
-      } else {
-        console.warn(
-          "⚠️ removeBg API beklenen alanları döndürmedi, yerel pipeline'a düşülüyor",
-          apiResp?.data
-        );
-      }
-    } catch (apiError) {
-      console.warn(
-        "⚠️ removeBg API çağrısı başarısız, yerel pipeline'a düşülüyor:",
-        apiError.message
-      );
-    }
-
-    // Orijinal fotoğrafın metadata bilgilerini al (orientation için)
-    let originalMetadata = null;
-    let originalImageBuffer = null;
-
-    try {
-      console.log("📐 Orijinal fotoğrafın metadata bilgileri alınıyor...");
-      const originalResponse = await axios.get(imageUrl, {
-        responseType: "arraybuffer",
-        timeout: 15000, // 30s'den 15s'ye düşürüldü
-      });
-      originalImageBuffer = Buffer.from(originalResponse.data);
-
-      // Sharp ile metadata al
-      originalMetadata = await sharp(originalImageBuffer).metadata();
-      console.log("📐 Orijinal metadata:", {
-        width: originalMetadata.width,
-        height: originalMetadata.height,
-        orientation: originalMetadata.orientation,
-        format: originalMetadata.format,
-      });
-    } catch (metadataError) {
-      console.error("⚠️ Orijinal metadata alınamadı:", metadataError.message);
-    }
-
-    // Replicate API'ye arkaplan silme isteği gönder
-    const backgroundRemovalResponse = await axios.post(
-      "https://api.replicate.com/v1/predictions",
-      {
-        version:
-          "a029dff38972b5fda4ec5d75d7d1cd25aeff621d2cf4946a41055d7db66b80bc",
-        input: {
-          image: imageUrl,
-          format: "png",
-          reverse: false,
-          threshold: 0,
-          background_type: "white",
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const initialResult = backgroundRemovalResponse.data;
-    console.log("🖼️ Arkaplan silme başlangıç yanıtı:", initialResult);
-
-    if (!initialResult.id) {
-      console.error(
-        "❌ Arkaplan silme prediction ID alınamadı:",
-        initialResult
-      );
-      throw new Error("Background removal prediction başlatılamadı");
-    }
-
-    // Prediction durumunu polling ile takip et
-    console.log("🔄 Arkaplan silme işlemi polling başlatılıyor...");
-    const finalResult = await pollReplicateResult(initialResult.id, 30); // 30 deneme (1 dakika)
-
-    if (finalResult.status === "succeeded" && finalResult.output) {
-      console.log("✅ Arkaplan silme işlemi başarılı:", finalResult.output);
-
-      // Arkaplanı silinmiş resmi indir ve orientation düzeltmesi yap
-      let processedImageUrl;
-
-      try {
-        console.log(
-          "🔄 Arkaplanı silinmiş resim orientation kontrolü yapılıyor..."
-        );
-
-        // Arkaplanı silinmiş resmi indir
-        const processedResponse = await axios.get(finalResult.output, {
-          responseType: "arraybuffer",
-          timeout: 15000, // 30s'den 15s'ye düşürüldü
-        });
-        let processedImageBuffer = Buffer.from(processedResponse.data);
-
-        // Eğer orijinal metadata varsa orientation kontrolü yap
-        if (originalMetadata) {
-          const processedMetadata = await sharp(
-            processedImageBuffer
-          ).metadata();
-          console.log("📐 İşlenmiş resim metadata:", {
-            width: processedMetadata.width,
-            height: processedMetadata.height,
-            orientation: processedMetadata.orientation,
-            format: processedMetadata.format,
-          });
-
-          // Orientation farkını kontrol et
-          const originalOrientation = originalMetadata.orientation || 1;
-          const processedOrientation = processedMetadata.orientation || 1;
-
-          // Boyut oranlarını karşılaştır (dikey/yatay değişim kontrolü)
-          const originalIsPortrait =
-            originalMetadata.height > originalMetadata.width;
-          const processedIsPortrait =
-            processedMetadata.height > processedMetadata.width;
-
-          console.log("📐 Orientation karşılaştırması:", {
-            originalOrientation,
-            processedOrientation,
-            originalIsPortrait,
-            processedIsPortrait,
-            orientationChanged: originalOrientation !== processedOrientation,
-            aspectRatioChanged: originalIsPortrait !== processedIsPortrait,
-          });
-
-          // Eğer orientation farklıysa veya aspect ratio değiştiyse düzelt
-          if (
-            originalOrientation !== processedOrientation ||
-            originalIsPortrait !== processedIsPortrait
-          ) {
-            console.log("🔄 Orientation düzeltmesi yapılıyor...");
-
-            let sharpInstance = sharp(processedImageBuffer);
-
-            // Orijinal orientation'ı uygula
-            if (originalOrientation && originalOrientation !== 1) {
-              // EXIF orientation değerlerine göre döndürme
-              switch (originalOrientation) {
-                case 2:
-                  sharpInstance = sharpInstance.flop();
-                  break;
-                case 3:
-                  sharpInstance = sharpInstance.rotate(180);
-                  break;
-                case 4:
-                  sharpInstance = sharpInstance.flip();
-                  break;
-                case 5:
-                  sharpInstance = sharpInstance.rotate(270).flop();
-                  break;
-                case 6:
-                  sharpInstance = sharpInstance.rotate(90);
-                  break;
-                case 7:
-                  sharpInstance = sharpInstance.rotate(90).flop();
-                  break;
-                case 8:
-                  sharpInstance = sharpInstance.rotate(270);
-                  break;
-                default:
-                  // Eğer aspect ratio değiştiyse basit döndürme yap
-                  if (originalIsPortrait && !processedIsPortrait) {
-                    sharpInstance = sharpInstance.rotate(90);
-                  } else if (!originalIsPortrait && processedIsPortrait) {
-                    sharpInstance = sharpInstance.rotate(-90);
-                  }
-              }
-            } else if (originalIsPortrait !== processedIsPortrait) {
-              // EXIF bilgisi yoksa sadece aspect ratio kontrolü yap
-              if (originalIsPortrait && !processedIsPortrait) {
-                console.log("🔄 Yataydan dikeye döndürülüyor...");
-                sharpInstance = sharpInstance.rotate(90);
-              } else if (!originalIsPortrait && processedIsPortrait) {
-                console.log("🔄 Dikeyden yataya döndürülüyor...");
-                sharpInstance = sharpInstance.rotate(-90);
-              }
-            }
-
-            // Düzeltilmiş resmi buffer'a çevir
-            processedImageBuffer = await sharpInstance
-              .png({ quality: 100, progressive: true })
-              .toBuffer();
-
-            const correctedMetadata = await sharp(
-              processedImageBuffer
-            ).metadata();
-            console.log("✅ Orientation düzeltmesi tamamlandı:", {
-              width: correctedMetadata.width,
-              height: correctedMetadata.height,
-              orientation: correctedMetadata.orientation,
-            });
-          } else {
-            console.log(
-              "✅ Orientation düzeltmesi gerekmiyor, resim doğru pozisyonda"
-            );
-          }
-        }
-
-        // Trim artık dahili removeBg API tarafından yapılıyor; doğrudan yükle
-        processedImageUrl = await uploadProcessedImageBufferToSupabase(
-          processedImageBuffer,
-          userId,
-          "background_removed"
-        );
-      } catch (orientationError) {
-        console.error(
-          "❌ Orientation düzeltme hatası:",
-          orientationError.message
-        );
-        console.log(
-          "⚠️ Orientation düzeltmesi başarısız, orijinal işlenmiş resim kullanılacak"
-        );
-
-        // Fallback: Orijinal işlenmiş resmi direkt yükle
-        processedImageUrl = await uploadProcessedImageToSupabase(
-          finalResult.output,
-          userId,
-          "background_removed"
-        );
-      }
-
-      return processedImageUrl;
-    } else {
-      console.error("❌ Arkaplan silme işlemi başarısız:", finalResult);
-      throw new Error(finalResult.error || "Background removal failed");
-    }
-  } catch (error) {
-    console.error("❌ Arkaplan silme hatası:", error);
-    // Hata durumunda orijinal resmi döndür
-    console.log("⚠️ Arkaplan silme başarısız, orijinal resim kullanılacak");
-    return imageUrl;
-  }
-}
+// Arkaplan silme fonksiyonu kaldırıldı - artık kullanılmıyor
 
 // İşlenmiş resmi Supabase'e yükleyen fonksiyon
 async function uploadProcessedImageToSupabase(imageUrl, userId, processType) {
@@ -2782,47 +2528,229 @@ async function uploadProcessedImageBufferToSupabase(
 // }
 
 // Replicate prediction durumunu kontrol eden fonksiyon
-// Flux-kontext-dev ile alternatif API çağrısı
-async function callFluxKontextDevAPI(
+// Gemini 2.5 Flash Image Preview ile alternatif API çağrısı
+async function callGeminiImageAPI(
   enhancedPrompt,
   inputImageUrl,
-  aspectRatio
+  aspectRatio,
+  userId
 ) {
   try {
-    console.log("🔄 Flux-kontext-dev API'ye geçiş yapılıyor...");
+    console.log("🔄 Gemini 2.5 Flash Image Preview API'ye geçiş yapılıyor...");
 
-    const seed = Math.floor(Math.random() * 2 ** 32);
-    console.log(`🎲 Alternatif API için random seed: ${seed}`);
+    const ai = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
+    });
 
-    const response = await axios.post(
-      "https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-dev/predictions",
+    const config = {
+      responseModalities: ["IMAGE", "TEXT"],
+    };
+
+    const model = "gemini-2.5-flash-image-preview";
+
+    // Input image'ı base64'e çevir
+    let inputImageBase64;
+    try {
+      const imageResponse = await axios.get(inputImageUrl, {
+        responseType: "arraybuffer",
+        timeout: 15000,
+      });
+      inputImageBase64 = Buffer.from(imageResponse.data).toString("base64");
+    } catch (imageError) {
+      console.error("❌ Input image download hatası:", imageError.message);
+      throw new Error("Input image indirilemedi");
+    }
+
+    const contents = [
       {
-        input: {
-          prompt: enhancedPrompt,
-          go_fast: false,
-          guidance: 2.5,
-          input_image: inputImageUrl,
-          aspect_ratio: aspectRatio,
-          output_format: "jpg",
-          output_quality: 100,
-          num_inference_steps: 30,
-          disable_safety_checker: true,
-        },
+        role: "user",
+        parts: [
+          {
+            text: enhancedPrompt,
+          },
+          {
+            inlineData: {
+              mimeType: "image/jpeg",
+              data: inputImageBase64,
+            },
+          },
+        ],
       },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-          "Content-Type": "application/json",
-          Prefer: "wait",
-        },
-        timeout: 300000, // 5 dakika timeout (flux-kontext-dev daha uzun sürebilir)
-      }
+    ];
+
+    console.log(
+      "🚀 Gemini 2.5 Flash Image Preview fallback API çağrısı yapılıyor..."
+    );
+    console.log("📋 Fallback Model:", model);
+    console.log("📋 Fallback Contents structure:", {
+      role: contents[0].role,
+      partsCount: contents[0].parts.length,
+      hasText: !!contents[0].parts[0].text,
+      hasImage: !!contents[0].parts[1]?.inlineData,
+      imageMimeType: contents[0].parts[1]?.inlineData?.mimeType,
+      imageDataLength: contents[0].parts[1]?.inlineData?.data?.length || 0,
+    });
+
+    // Timeout wrapper for fallback
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error("Gemini Fallback API timeout (60s)"));
+      }, 60000); // 60 saniye timeout
+    });
+
+    // Gemini API çağrısı (streaming) - fallback
+    const response = await ai.models.generateContentStream({
+      model,
+      config,
+      contents,
+    });
+
+    let generatedImageBuffer = null;
+    let hasImageResponse = false;
+    let fileIndex = 0;
+
+    console.log(
+      "📡 Gemini fallback response stream başlatıldı, chunk'lar bekleniyor..."
     );
 
-    console.log("✅ Flux-kontext-dev API başarılı:", response.data);
-    return response.data;
+    for await (const chunk of response) {
+      if (
+        !chunk.candidates ||
+        !chunk.candidates[0].content ||
+        !chunk.candidates[0].content.parts
+      ) {
+        continue;
+      }
+
+      if (chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData) {
+        const inlineData = chunk.candidates[0].content.parts[0].inlineData;
+        const fileExtension = mime.getExtension(inlineData.mimeType || "");
+        generatedImageBuffer = Buffer.from(inlineData.data || "", "base64");
+        hasImageResponse = true;
+        console.log(
+          `✅ Gemini fallback resim sonucu alındı (${inlineData.mimeType})`
+        );
+        break;
+      } else {
+        // Text response varsa logla
+        if (chunk.text) {
+          console.log("📝 Gemini fallback text response:", chunk.text);
+        }
+      }
+    }
+
+    // Response yapısını incele
+    if (response.candidates && response.candidates.length > 0) {
+      const candidate = response.candidates[0];
+      console.log("🔍 Fallback Candidate analizi:", {
+        hasContent: !!candidate.content,
+        hasParts: !!candidate.content?.parts,
+        partsLength: candidate.content?.parts?.length || 0,
+        finishReason: candidate.finishReason,
+        safetyRatings: candidate.safetyRatings?.length || 0,
+      });
+
+      // Finish reason kontrolü
+      if (candidate.finishReason) {
+        console.log(`🏁 Fallback Finish reason:`, candidate.finishReason);
+        if (candidate.finishReason === "SAFETY") {
+          console.error(
+            "❌ Gemini fallback safety filter tarafından bloke edildi"
+          );
+          throw new Error(
+            "Fallback content safety filter tarafından reddedildi"
+          );
+        }
+      }
+
+      if (candidate.content && candidate.content.parts) {
+        candidate.content.parts.forEach((part, index) => {
+          console.log(`📦 Fallback Part ${index}:`, {
+            hasText: !!part.text,
+            hasInlineData: !!part.inlineData,
+            mimeType: part.inlineData?.mimeType,
+            dataLength: part.inlineData?.data?.length || 0,
+          });
+
+          // Text content varsa logla
+          if (part.text) {
+            console.log(`📝 Fallback Part ${index} text:`, part.text);
+          }
+
+          // InlineData varsa resim verisi
+          if (part.inlineData) {
+            console.log(`🖼️ Fallback Part ${index}: InlineData bulundu!`, {
+              mimeType: part.inlineData.mimeType,
+              dataLength: part.inlineData.data?.length || 0,
+            });
+
+            generatedImageBuffer = Buffer.from(
+              part.inlineData.data || "",
+              "base64"
+            );
+            hasImageResponse = true;
+            console.log("✅ Gemini fallback resim verisi alındı");
+          }
+        });
+      }
+    }
+
+    // Alternatif olarak response.text kontrol et (belki metin olarak döndü)
+    if (!hasImageResponse && response.text) {
+      console.log("📝 Fallback Response text alındı:", response.text);
+      // Bu durumda text-to-image işlemi yapmak gerekebilir
+      throw new Error("Gemini fallback sadece text döndürdü, image bekleniyor");
+    }
+
+    if (!hasImageResponse || !generatedImageBuffer) {
+      throw new Error(
+        `Gemini fallback'dan görsel sonucu alınamadı. Response yapısı beklenmedik.`
+      );
+    }
+
+    // Buffer'ı Supabase'e yükle
+    const timestamp = Date.now();
+    const randomId = uuidv4().substring(0, 8);
+    const fileName = `temp_${timestamp}_gemini_fallback_${
+      userId || "anonymous"
+    }_${randomId}.jpg`;
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("reference")
+      .upload(fileName, generatedImageBuffer, {
+        contentType: "image/jpeg",
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error(
+        "❌ Gemini fallback sonuç resmi Supabase'e yüklenemedi:",
+        uploadError
+      );
+      throw new Error(`Supabase upload error: ${uploadError.message}`);
+    }
+
+    // Public URL al
+    const { data: urlData } = supabase.storage
+      .from("reference")
+      .getPublicUrl(fileName);
+
+    console.log(
+      "✅ Gemini 2.5 Flash Image Preview fallback API başarılı:",
+      urlData.publicUrl
+    );
+
+    return {
+      id: `gemini_fallback_${timestamp}`,
+      status: "succeeded",
+      output: urlData.publicUrl,
+    };
   } catch (error) {
-    console.error("❌ Flux-kontext-dev API hatası:", error.message);
+    console.error(
+      "❌ Gemini 2.5 Flash Image Preview fallback API hatası:",
+      error.message
+    );
     throw error;
   }
 }
@@ -2881,7 +2809,7 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
             result.error.includes("retrying once"))
         ) {
           console.error(
-            "❌ Content moderation/model hatası tespit edildi, flux-kontext-dev'e geçiş yapılacak:",
+            "❌ Content moderation/model hatası tespit edildi, Gemini 2.5 Flash Image Preview'e geçiş yapılacak:",
             result.error
           );
           throw new Error("SENSITIVE_CONTENT_FLUX_FALLBACK");
@@ -2904,7 +2832,7 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
       // Sensitive content hatasını özel olarak handle et
       if (error.message === "SENSITIVE_CONTENT_FLUX_FALLBACK") {
         console.error(
-          "❌ Sensitive content hatası, flux-kontext-dev'e geçiş için polling durduruluyor"
+          "❌ Sensitive content hatası, Gemini 2.5 Flash Image Preview'e geçiş için polling durduruluyor"
         );
         throw error; // Hata mesajını olduğu gibi fırlat
       }
@@ -2948,7 +2876,8 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
 async function combineImagesOnCanvas(
   images,
   userId,
-  isMultipleProducts = false
+  isMultipleProducts = false,
+  aspectRatio = "9:16"
 ) {
   try {
     console.log(
@@ -2957,10 +2886,34 @@ async function combineImagesOnCanvas(
       "resim"
     );
     console.log("🛍️ Çoklu ürün modu:", isMultipleProducts);
+    console.log("📐 Hedef aspect ratio:", aspectRatio);
+
+    // Aspect ratio'yu parse et
+    const [ratioWidth, ratioHeight] = aspectRatio.split(":").map(Number);
+    const targetAspectRatio = ratioWidth / ratioHeight;
+    console.log("📐 Hedef aspect ratio değeri:", targetAspectRatio);
+
+    // Canvas boyutları - Yüksek kalite için minimum 1024px
+    const minDimension = 1024;
+    let targetCanvasWidth, targetCanvasHeight;
+
+    if (targetAspectRatio > 1) {
+      // Yatay format (16:9 gibi)
+      targetCanvasWidth = Math.max(minDimension, 1024);
+      targetCanvasHeight = Math.round(targetCanvasWidth / targetAspectRatio);
+    } else {
+      // Dikey format (9:16 gibi) veya kare (1:1)
+      targetCanvasHeight = Math.max(minDimension, 1024);
+      targetCanvasWidth = Math.round(targetCanvasHeight * targetAspectRatio);
+    }
+
+    console.log(
+      `📐 Hedef canvas boyutu: ${targetCanvasWidth}x${targetCanvasHeight}`
+    );
 
     // Canvas boyutları
-    let canvasWidth = 0;
-    let canvasHeight = 0;
+    let canvasWidth = targetCanvasWidth;
+    let canvasHeight = targetCanvasHeight;
     const loadedImages = [];
 
     // Tüm resimleri yükle ve boyutları hesapla
@@ -3038,81 +2991,138 @@ async function combineImagesOnCanvas(
     // Canvas değişkenini tanımla
     let canvas;
 
+    // Canvas oluştur - ratio'ya göre sabit boyut
+    canvas = createCanvas(canvasWidth, canvasHeight);
+    const ctx = canvas.getContext("2d");
+
+    // Anti-aliasing ve kalite ayarları
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+
+    // Beyaz arka plan
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
     if (isMultipleProducts) {
-      // Çoklu ürün modu: Yan yana birleştir
+      // Çoklu ürün modu: Yan yana birleştir - canvas boyutuna sığdır
       console.log("🛍️ Çoklu ürün modu: Resimler yan yana birleştirilecek");
 
-      // Her resmi aynı yüksekliğe getir
-      const targetHeight = Math.min(...loadedImages.map((img) => img.height));
+      const itemWidth = canvasWidth / loadedImages.length;
+      const itemHeight = canvasHeight;
 
-      // Toplam genişlik ve sabit yükseklik hesapla
-      canvasWidth = loadedImages.reduce((total, img) => {
-        const scaledWidth = (img.width * targetHeight) / img.height;
-        return total + scaledWidth;
-      }, 0);
-      canvasHeight = targetHeight;
-
-      console.log(
-        `📏 Çoklu ürün canvas boyutu: ${canvasWidth}x${canvasHeight}`
-      );
-
-      // Canvas oluştur
-      canvas = createCanvas(canvasWidth, canvasHeight);
-      const ctx = canvas.getContext("2d");
-
-      // Beyaz arka plan
-      ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-      // Resimleri yan yana yerleştir
-      let currentX = 0;
       for (let i = 0; i < loadedImages.length; i++) {
         const img = loadedImages[i];
-        const scaledWidth = (img.width * targetHeight) / img.height;
+        const x = i * itemWidth;
 
-        ctx.drawImage(img, currentX, 0, scaledWidth, targetHeight);
-        currentX += scaledWidth;
+        // Resmi canvas alanına sığdır (aspect ratio koruyarak)
+        const imgAspectRatio = img.width / img.height;
+        const itemAspectRatio = itemWidth / itemHeight;
+
+        let drawWidth, drawHeight, drawX, drawY;
+
+        if (imgAspectRatio > itemAspectRatio) {
+          // Resim daha geniş - genişliğe göre sığdır
+          drawWidth = itemWidth;
+          drawHeight = itemWidth / imgAspectRatio;
+          drawX = x;
+          drawY = (itemHeight - drawHeight) / 2;
+        } else {
+          // Resim daha uzun - yüksekliğe göre sığdır
+          drawHeight = itemHeight;
+          drawWidth = itemHeight * imgAspectRatio;
+          drawX = x + (itemWidth - drawWidth) / 2;
+          drawY = 0;
+        }
+
+        ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
 
         console.log(
-          `🖼️ Ürün ${i + 1} yerleştirildi: (${
-            currentX - scaledWidth
-          }, 0) - ${scaledWidth}x${targetHeight}`
+          `🖼️ Ürün ${i + 1} yerleştirildi: (${drawX.toFixed(
+            1
+          )}, ${drawY.toFixed(1)}) - ${drawWidth.toFixed(
+            1
+          )}x${drawHeight.toFixed(1)}`
         );
       }
     } else {
-      // Normal mod: Alt alta birleştir (mevcut mantık)
-      console.log("📚 Normal mod: Resimler alt alta birleştirilecek");
+      // Tek resim modu: Canvas ortasına yerleştir - aspect ratio koruyarak
+      console.log("📚 Tek resim modu: Resim canvas ortasına yerleştirilecek");
 
-      canvasWidth = Math.max(...loadedImages.map((img) => img.width));
-      canvasHeight = loadedImages.reduce((total, img) => total + img.height, 0);
+      if (loadedImages.length === 1) {
+        const img = loadedImages[0];
+        const imgAspectRatio = img.width / img.height;
+        const canvasAspectRatio = canvasWidth / canvasHeight;
 
-      console.log(`📏 Normal canvas boyutu: ${canvasWidth}x${canvasHeight}`);
+        let drawWidth, drawHeight, drawX, drawY;
 
-      // Canvas oluştur
-      canvas = createCanvas(canvasWidth, canvasHeight);
-      const ctx = canvas.getContext("2d");
+        if (imgAspectRatio > canvasAspectRatio) {
+          // Resim daha geniş - genişliğe göre sığdır
+          drawWidth = canvasWidth;
+          drawHeight = canvasWidth / imgAspectRatio;
+          drawX = 0;
+          drawY = (canvasHeight - drawHeight) / 2;
+        } else {
+          // Resim daha uzun - yüksekliğe göre sığdır
+          drawHeight = canvasHeight;
+          drawWidth = canvasHeight * imgAspectRatio;
+          drawX = (canvasWidth - drawWidth) / 2;
+          drawY = 0;
+        }
 
-      // Beyaz arka plan
-      ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-      // Resimleri dikey olarak sırala
-      let currentY = 0;
-      for (let i = 0; i < loadedImages.length; i++) {
-        const img = loadedImages[i];
-        const x = (canvasWidth - img.width) / 2; // Ortala
-
-        ctx.drawImage(img, x, currentY);
-        currentY += img.height;
+        ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
 
         console.log(
-          `🖼️ Resim ${i + 1} yerleştirildi: (${x}, ${currentY - img.height})`
+          `🖼️ Resim canvas ortasına yerleştirildi: (${drawX.toFixed(
+            1
+          )}, ${drawY.toFixed(1)}) - ${drawWidth.toFixed(
+            1
+          )}x${drawHeight.toFixed(1)}`
         );
+      } else {
+        // Çoklu resim alt alta (eski mantık) - ancak canvas boyutuna sığdır
+        console.log("📚 Çoklu resim modu: Resimler alt alta birleştirilecek");
+
+        const itemHeight = canvasHeight / loadedImages.length;
+
+        for (let i = 0; i < loadedImages.length; i++) {
+          const img = loadedImages[i];
+          const y = i * itemHeight;
+
+          // Resmi canvas alanına sığdır (aspect ratio koruyarak)
+          const imgAspectRatio = img.width / img.height;
+          const itemAspectRatio = canvasWidth / itemHeight;
+
+          let drawWidth, drawHeight, drawX, drawY;
+
+          if (imgAspectRatio > itemAspectRatio) {
+            // Resim daha geniş - genişliğe göre sığdır
+            drawWidth = canvasWidth;
+            drawHeight = canvasWidth / imgAspectRatio;
+            drawX = 0;
+            drawY = y + (itemHeight - drawHeight) / 2;
+          } else {
+            // Resim daha uzun - yüksekliğe göre sığdır
+            drawHeight = itemHeight;
+            drawWidth = itemHeight * imgAspectRatio;
+            drawX = (canvasWidth - drawWidth) / 2;
+            drawY = y;
+          }
+
+          ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+
+          console.log(
+            `🖼️ Resim ${i + 1} yerleştirildi: (${drawX.toFixed(
+              1
+            )}, ${drawY.toFixed(1)}) - ${drawWidth.toFixed(
+              1
+            )}x${drawHeight.toFixed(1)}`
+          );
+        }
       }
     }
 
-    // Canvas'ı buffer'a çevir
-    const buffer = canvas.toBuffer("image/jpeg", { quality: 0.75 }); // 0.8'den 0.75'e düşürüldü
+    // Canvas'ı yüksek kalitede buffer'a çevir
+    const buffer = canvas.toBuffer("image/jpeg", { quality: 0.9 }); // Kalite artırıldı
     console.log("📊 Birleştirilmiş resim boyutu:", buffer.length, "bytes");
 
     // Supabase'e yükle (otomatik temizleme için timestamp prefix)
@@ -3587,7 +3597,8 @@ router.post("/generate", async (req, res) => {
       finalImage = await combineImagesOnCanvas(
         referenceImages,
         userId,
-        isMultipleProducts
+        isMultipleProducts,
+        ratio
       );
 
       // Birleştirilmiş resmi geçici dosyalar listesine ekle
@@ -3704,24 +3715,15 @@ router.post("/generate", async (req, res) => {
         editPrompt // EditScreen'den gelen prompt
       );
 
-      const backgroundRemovalPromise = removeBackgroundFromImage(
-        finalImage,
-        userId
-      );
-
-      // ⏳ Gemini ve arkaplan silme işlemlerini paralel bekle
-      console.log("⏳ Gemini ve arkaplan silme paralel olarak bekleniyor...");
-      [enhancedPrompt, backgroundRemovedImage] = await Promise.all([
-        geminiPromise,
-        backgroundRemovalPromise,
-      ]);
+      // ⏳ Sadece Gemini prompt iyileştirme bekle
+      console.log("⏳ Gemini prompt iyileştirme bekleniyor...");
+      enhancedPrompt = await geminiPromise;
     }
 
     console.log("✅ Gemini prompt iyileştirme tamamlandı");
-    console.log("✅ Arkaplan silme tamamlandı:", backgroundRemovedImage);
 
-    // Geçici dosyayı silme listesine ekle
-    temporaryFiles.push(backgroundRemovedImage);
+    // Arkaplan silme kaldırıldı - direkt olarak finalImage kullanılacak
+    backgroundRemovedImage = finalImage;
 
     // 🎨 Yerel ControlNet Canny çıkarma işlemi - Arkaplan silindikten sonra
     // console.log("🎨 Yerel ControlNet Canny çıkarılıyor (Sharp ile)...");
@@ -3743,30 +3745,10 @@ router.post("/generate", async (req, res) => {
     //   cannyImage = null;
     // }
 
-    // 👤 Portre üret (Flux.1-dev) ve varlıkları birleştir
-    let portraitImageUrl = null;
-    try {
-      const genderForPortrait = (settings && settings.gender) || "female";
-      const portraitPrompt = await generatePortraitPromptWithGemini(
-        settings || {},
-        genderForPortrait
-      );
-      portraitImageUrl = await generatePortraitWithFluxDev(portraitPrompt);
-    } catch (portraitErr) {
-      console.warn(
-        "⚠️ Portrait üretimi başarısız, sadece mevcut varlıklar kullanılacak:",
-        portraitErr.message
-      );
-    }
+    // 👤 Portrait generation kaldırıldı - Gemini kendi kendine hallediyor
 
-    // 🖼️ Çekirdek referans varlıklarını yatay kompozitte birleştir (Canvas bağımsız)
-    // Arkaplanı kaldırılmış ürün + (varsa) portrait + (varsa) location
-    let combinedImageForReplicate = await combineReferenceAssets(
-      backgroundRemovedImage,
-      portraitImageUrl,
-      locationImage,
-      userId
-    );
+    // 🖼️ Sadece arkaplan kaldırılmış resmi kullan - Gemini kendi kendine birleştiriyor
+    let combinedImageForReplicate = backgroundRemovedImage;
     // if (cannyImage) {
     //   try {
     //     console.log(
@@ -3797,56 +3779,213 @@ router.post("/generate", async (req, res) => {
     console.log("📝 [BACKEND MAIN] Original prompt:", promptText);
     console.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
 
-    // Replicate API'ye retry mekanizması ile istek gönder
+    // Gemini 2.5 Flash Image Preview API'ye retry mekanizması ile istek gönder
     let replicateResponse;
     const maxRetries = 3;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`🔄 Replicate API attempt ${attempt}/${maxRetries}`);
-
-        // Random seed her seferinde farklı olsun
-        const seed = Math.floor(Math.random() * 2 ** 32);
-        console.log(`🎲 Random seed: ${seed}`);
-
-        replicateResponse = await axios.post(
-          "https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-max/predictions",
-          {
-            input: {
-              prompt: enhancedPrompt,
-              input_image: combinedImageForReplicate, // Birleştirilmiş resim Replicate için
-              aspect_ratio: formattedRatio,
-              disable_safety_checker: true,
-              seed: seed, // Random seed eklendi
-              num_inference_steps: 50,
-              output_quality: 100,
-              prompt_upsampling: true,
-            },
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-              "Content-Type": "application/json",
-            },
-            timeout: 120000, // 2 dakika timeout
-          }
+        console.log(
+          `🔄 Gemini 2.5 Flash Image Preview API attempt ${attempt}/${maxRetries}`
         );
 
-        console.log(`✅ Replicate API başarılı (attempt ${attempt})`);
+        // Gemini 2.5 Flash Image Preview API kullan (doğru model)
+        console.log(
+          "🚀 Gemini 2.5 Flash Image Preview API çağrısı yapılıyor..."
+        );
+
+        const ai = new GoogleGenAI({
+          apiKey: process.env.GEMINI_API_KEY,
+        });
+
+        const config = {
+          responseModalities: ["IMAGE", "TEXT"],
+        };
+
+        const model = "gemini-2.5-flash-image-preview";
+
+        // Combined image'ı base64'e çevir
+        let combinedImageBase64;
+        try {
+          const imageResponse = await axios.get(combinedImageForReplicate, {
+            responseType: "arraybuffer",
+            timeout: 15000,
+          });
+          combinedImageBase64 = Buffer.from(imageResponse.data).toString(
+            "base64"
+          );
+        } catch (imageError) {
+          console.error(
+            "❌ Combined image download hatası:",
+            imageError.message
+          );
+          throw new Error("Reference image indirilemedi");
+        }
+
+        const mainApiContents = [
+          {
+            role: "user",
+            parts: [
+              {
+                text: enhancedPrompt,
+              },
+              {
+                inlineData: {
+                  mimeType: "image/jpeg",
+                  data: combinedImageBase64,
+                },
+              },
+            ],
+          },
+        ];
+
+        console.log(
+          "🚀 Gemini 2.5 Flash Image Preview API çağrısı yapılıyor..."
+        );
+        console.log("📋 Model:", model);
+        console.log("📋 Contents structure:", {
+          role: mainApiContents[0].role,
+          partsCount: mainApiContents[0].parts.length,
+          hasText: !!mainApiContents[0].parts[0].text,
+          hasImage: !!mainApiContents[0].parts[1]?.inlineData,
+          imageMimeType: mainApiContents[0].parts[1]?.inlineData?.mimeType,
+          imageDataLength:
+            mainApiContents[0].parts[1]?.inlineData?.data?.length || 0,
+        });
+
+        // Timeout wrapper - 3 dakikaya çıkarıldı
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => {
+            reject(new Error("Gemini API timeout (180s)"));
+          }, 180000); // 180 saniye (3 dakika) timeout
+        });
+
+        // Gemini API çağrısı (streaming) - timeout ile
+        const geminiAPIPromise = ai.models.generateContentStream({
+          model,
+          config,
+          contents: mainApiContents,
+        });
+
+        const response = await Promise.race([geminiAPIPromise, timeoutPromise]);
+
+        let generatedImageBuffer = null;
+        let hasImageResponse = false;
+        let fileIndex = 0;
+
+        console.log(
+          "📡 Gemini response stream başlatıldı, chunk'lar bekleniyor..."
+        );
+
+        // Stream processing timeout
+        const streamTimeout = setTimeout(() => {
+          throw new Error("Gemini stream processing timeout");
+        }, 120000); // 2 dakika stream timeout
+
+        try {
+          for await (const chunk of response) {
+            if (
+              !chunk.candidates ||
+              !chunk.candidates[0].content ||
+              !chunk.candidates[0].content.parts
+            ) {
+              continue;
+            }
+
+            if (chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData) {
+              const inlineData =
+                chunk.candidates[0].content.parts[0].inlineData;
+              const fileExtension = mime.getExtension(
+                inlineData.mimeType || ""
+              );
+              generatedImageBuffer = Buffer.from(
+                inlineData.data || "",
+                "base64"
+              );
+              hasImageResponse = true;
+              console.log(
+                `✅ Gemini 2.5 Flash Image Preview resim sonucu alındı (${inlineData.mimeType})`
+              );
+              break;
+            } else {
+              // Text response varsa logla
+              if (chunk.text) {
+                console.log("📝 Gemini text response:", chunk.text);
+              }
+            }
+          }
+
+          // Stream timeout'u temizle
+          clearTimeout(streamTimeout);
+        } catch (streamError) {
+          clearTimeout(streamTimeout);
+          throw streamError;
+        }
+
+        if (!hasImageResponse || !generatedImageBuffer) {
+          throw new Error("Gemini'den image response alınamadı");
+        }
+
+        // Gemini'den alınan image buffer'ını Supabase'e upload et
+        console.log("📤 Gemini sonucu Supabase'e yükleniyor...");
+
+        const geminiFileName = `generated_${Date.now()}_${userId}_${uuidv4().substring(
+          0,
+          8
+        )}.jpg`;
+        const uploadResult = await supabase.storage
+          .from("images")
+          .upload(geminiFileName, generatedImageBuffer, {
+            contentType: "image/jpeg",
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (uploadResult.error) {
+          console.error("❌ Supabase upload error:", uploadResult.error);
+          throw new Error(
+            `Supabase upload failed: ${uploadResult.error.message}`
+          );
+        }
+
+        // Public URL oluştur
+        const { data: geminiUrlData } = supabase.storage
+          .from("images")
+          .getPublicUrl(geminiFileName);
+
+        const finalResult = geminiUrlData.publicUrl;
+        console.log("✅ Gemini result uploaded to Supabase:", finalResult);
+
+        // Gemini response'u Replicate formatına uygun hale getir (polling gerektirmez)
+        replicateResponse = {
+          data: {
+            id: `gemini_${Date.now()}`,
+            status: "succeeded",
+            output: finalResult,
+            urls: {
+              get: null, // Gemini için polling gerekmez
+            },
+          },
+        };
+
+        console.log(
+          `✅ Gemini 2.5 Flash Image Preview API başarılı (attempt ${attempt})`
+        );
         break; // Başarılı olursa loop'tan çık
       } catch (apiError) {
         console.error(
-          `❌ Replicate API attempt ${attempt} failed:`,
+          `❌ Gemini 2.5 Flash Image Preview API attempt ${attempt} failed:`,
           apiError.message
         );
 
-        // Son deneme değilse ve timeout hatası ise tekrar dene
+        // Son deneme değilse ve timeout/network hatası ise tekrar dene
         if (
           attempt < maxRetries &&
           (apiError.code === "ETIMEDOUT" ||
             apiError.code === "ECONNRESET" ||
             apiError.code === "ENOTFOUND" ||
-            apiError.message.includes("timeout"))
+            apiError.message.includes("timeout") ||
+            apiError.message.includes("Gemini API timeout"))
         ) {
           const waitTime = attempt * 2000; // 2s, 4s, 6s bekle
           console.log(`⏳ ${waitTime}ms bekleniyor, sonra tekrar denenecek...`);
@@ -3905,116 +4044,185 @@ router.post("/generate", async (req, res) => {
       });
     }
 
-    // Prediction durumunu polling ile takip et
+    // Gemini için polling yapmadan direkt sonucu kullan
     const startTime = Date.now();
     let finalResult;
     let processingTime;
 
-    try {
-      finalResult = await pollReplicateResult(initialResult.id);
+    // Gemini ID'lerini check et - polling gerektirmez
+    if (initialResult.id && initialResult.id.startsWith("gemini_")) {
+      console.log(
+        "🎯 Gemini sonucu - polling atlanıyor, direkt sonuç kullanılıyor"
+      );
+      finalResult = initialResult;
       processingTime = Math.round((Date.now() - startTime) / 1000);
-    } catch (pollingError) {
-      console.error("❌ Polling hatası:", pollingError.message);
+    } else {
+      // Sadece gerçek Replicate ID'leri için polling yap
+      try {
+        finalResult = await pollReplicateResult(initialResult.id);
+        processingTime = Math.round((Date.now() - startTime) / 1000);
+      } catch (pollingError) {
+        console.error("❌ Polling hatası:", pollingError.message);
 
-      // Content moderation hatası yakalandıysa flux-kontext-dev'e geç
-      if (pollingError.message === "SENSITIVE_CONTENT_FLUX_FALLBACK") {
-        console.log(
-          "🔄 Content moderation/model hatası nedeniyle flux-kontext-dev'e geçiliyor..."
-        );
-
-        try {
-          // Flux-kontext-dev API'ye geçiş yap
-          const fallbackStartTime = Date.now();
-          finalResult = await callFluxKontextDevAPI(
-            enhancedPrompt,
-            combinedImageForReplicate,
-            formattedRatio
-          );
-          processingTime = Math.round((Date.now() - fallbackStartTime) / 1000);
-
+        // Content moderation hatası yakalandıysa Gemini 2.5 Flash Image Preview'e geç
+        if (pollingError.message === "SENSITIVE_CONTENT_FLUX_FALLBACK") {
           console.log(
-            "✅ Flux-kontext-dev API'den başarılı sonuç alındı - kullanıcıya başarılı olarak döndürülecek"
-          );
-          console.log(
-            "🔍 [DEBUG] Fallback finalResult:",
-            JSON.stringify(finalResult, null, 2)
-          );
-          console.log(
-            "🔍 [DEBUG] Fallback finalResult.output:",
-            finalResult.output
-          );
-          console.log("🔍 [DEBUG] Fallback finalResult.id:", finalResult.id);
-
-          // 🔄 Fallback API başarılı, status'u hemen "completed" olarak güncelle
-          await updateGenerationStatus(finalGenerationId, userId, "completed", {
-            enhanced_prompt: enhancedPrompt,
-            result_image_url: finalResult.output,
-            replicate_prediction_id: finalResult.id, // Fallback API'nin ID'si
-            processing_time_seconds: processingTime,
-            fallback_used: "flux-kontext-dev", // Fallback kullanıldığını belirtmek için
-          });
-
-          console.log(
-            "✅ Database'de generation status 'completed' olarak güncellendi (fallback)"
+            "🔄 Content moderation/model hatası nedeniyle Gemini 2.5 Flash Image Preview'e geçiliyor..."
           );
 
-          // 💳 Fallback başarılı, güncel kredi bilgisini al ve response döndür
-          let currentCredit = null;
-          if (userId && userId !== "anonymous_user") {
-            try {
-              const { data: updatedUser } = await supabase
-                .from("users")
-                .select("credit_balance")
-                .eq("id", userId)
-                .single();
+          try {
+            // Gemini 2.5 Flash Image Preview API'ye geçiş yap
+            const fallbackStartTime = Date.now();
+            finalResult = await callGeminiImageAPI(
+              enhancedPrompt,
+              combinedImageForReplicate,
+              formattedRatio,
+              userId
+            );
+            processingTime = Math.round(
+              (Date.now() - fallbackStartTime) / 1000
+            );
 
-              currentCredit = updatedUser?.credit_balance || 0;
-              console.log(
-                `💳 Güncel kredi balance (fallback): ${currentCredit}`
-              );
-            } catch (creditError) {
-              console.error(
-                "❌ Güncel kredi sorgu hatası (fallback):",
-                creditError
-              );
+            console.log(
+              "✅ Gemini 2.5 Flash Image Preview API'den başarılı sonuç alındı - kullanıcıya başarılı olarak döndürülecek"
+            );
+            console.log(
+              "🔍 [DEBUG] Fallback finalResult:",
+              JSON.stringify(finalResult, null, 2)
+            );
+            console.log(
+              "🔍 [DEBUG] Fallback finalResult.output:",
+              finalResult.output
+            );
+            console.log("🔍 [DEBUG] Fallback finalResult.id:", finalResult.id);
+
+            // 🔄 Fallback API başarılı, status'u hemen "completed" olarak güncelle
+            await updateGenerationStatus(
+              finalGenerationId,
+              userId,
+              "completed",
+              {
+                enhanced_prompt: enhancedPrompt,
+                result_image_url: finalResult.output,
+                replicate_prediction_id: finalResult.id, // Fallback API'nin ID'si
+                processing_time_seconds: processingTime,
+                fallback_used: "gemini-2.5-flash-image-preview", // Fallback kullanıldığını belirtmek için
+              }
+            );
+
+            console.log(
+              "✅ Database'de generation status 'completed' olarak güncellendi (fallback)"
+            );
+
+            // 💳 Fallback başarılı, güncel kredi bilgisini al ve response döndür
+            let currentCredit = null;
+            if (userId && userId !== "anonymous_user") {
+              try {
+                const { data: updatedUser } = await supabase
+                  .from("users")
+                  .select("credit_balance")
+                  .eq("id", userId)
+                  .single();
+
+                currentCredit = updatedUser?.credit_balance || 0;
+                console.log(
+                  `💳 Güncel kredi balance (fallback): ${currentCredit}`
+                );
+              } catch (creditError) {
+                console.error(
+                  "❌ Güncel kredi sorgu hatası (fallback):",
+                  creditError
+                );
+              }
             }
+
+            // 🗑️ Fallback başarılı, geçici dosyaları temizle
+            console.log(
+              "🧹 Fallback başarılı, geçici dosyalar temizleniyor..."
+            );
+            await cleanupTemporaryFiles(temporaryFiles);
+
+            // ✅ Fallback başarılı response'u döndür
+            console.log(
+              "🎯 [DEBUG] Fallback başarılı, response döndürülüyor - normal flow'a GİRMEYECEK"
+            );
+            return res.status(200).json({
+              success: true,
+              result: {
+                imageUrl: finalResult.output,
+                originalPrompt: promptText,
+                enhancedPrompt: enhancedPrompt,
+                replicateData: finalResult,
+                currentCredit: currentCredit,
+                generationId: finalGenerationId,
+                fallbackUsed: "gemini-2.5-flash-image-preview", // Client'a fallback kullanıldığını bildir
+              },
+            });
+          } catch (fallbackError) {
+            console.error(
+              "❌ Gemini 2.0 Flash Exp API'si de başarısız:",
+              fallbackError.message
+            );
+
+            // ❌ Status'u failed'e güncelle (Fallback API da başarısız)
+            await updateGenerationStatus(finalGenerationId, userId, "failed", {
+              // error_message kolonu yok, bu yüzden genel field kullan
+              processing_time_seconds: 0,
+            });
+
+            // 🗑️ Fallback API hatası durumunda geçici dosyaları temizle
+            console.log(
+              "🧹 Fallback API hatası sonrası geçici dosyalar temizleniyor..."
+            );
+            await cleanupTemporaryFiles(temporaryFiles);
+
+            // Kredi iade et
+            if (creditDeducted && userId && userId !== "anonymous_user") {
+              try {
+                const { data: currentUserCredit } = await supabase
+                  .from("users")
+                  .select("credit_balance")
+                  .eq("id", userId)
+                  .single();
+
+                await supabase
+                  .from("users")
+                  .update({
+                    credit_balance:
+                      (currentUserCredit?.credit_balance || 0) +
+                      actualCreditDeducted,
+                  })
+                  .eq("id", userId);
+
+                console.log(
+                  `💰 ${actualCreditDeducted} kredi iade edildi (Fallback API hatası)`
+                );
+              } catch (refundError) {
+                console.error("❌ Kredi iade hatası:", refundError);
+              }
+            }
+
+            return res.status(500).json({
+              success: false,
+              result: {
+                message: "Görsel işleme işlemi başarısız oldu",
+                error:
+                  "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
+              },
+            });
           }
+        } else {
+          // Diğer polling hataları için mevcut mantığı kullan
 
-          // 🗑️ Fallback başarılı, geçici dosyaları temizle
-          console.log("🧹 Fallback başarılı, geçici dosyalar temizleniyor...");
-          await cleanupTemporaryFiles(temporaryFiles);
-
-          // ✅ Fallback başarılı response'u döndür
-          console.log(
-            "🎯 [DEBUG] Fallback başarılı, response döndürülüyor - normal flow'a GİRMEYECEK"
-          );
-          return res.status(200).json({
-            success: true,
-            result: {
-              imageUrl: finalResult.output,
-              originalPrompt: promptText,
-              enhancedPrompt: enhancedPrompt,
-              replicateData: finalResult,
-              currentCredit: currentCredit,
-              generationId: finalGenerationId,
-              fallbackUsed: "flux-kontext-dev", // Client'a fallback kullanıldığını bildir
-            },
-          });
-        } catch (fallbackError) {
-          console.error(
-            "❌ Flux-kontext-dev API'si de başarısız:",
-            fallbackError.message
-          );
-
-          // ❌ Status'u failed'e güncelle (Fallback API da başarısız)
+          // ❌ Status'u failed'e güncelle
           await updateGenerationStatus(finalGenerationId, userId, "failed", {
             // error_message kolonu yok, bu yüzden genel field kullan
             processing_time_seconds: 0,
           });
 
-          // 🗑️ Fallback API hatası durumunda geçici dosyaları temizle
+          // 🗑️ Polling hatası durumunda geçici dosyaları temizle
           console.log(
-            "🧹 Fallback API hatası sonrası geçici dosyalar temizleniyor..."
+            "🧹 Polling hatası sonrası geçici dosyalar temizleniyor..."
           );
           await cleanupTemporaryFiles(temporaryFiles);
 
@@ -4037,7 +4245,7 @@ router.post("/generate", async (req, res) => {
                 .eq("id", userId);
 
               console.log(
-                `💰 ${actualCreditDeducted} kredi iade edildi (Fallback API hatası)`
+                `💰 ${actualCreditDeducted} kredi iade edildi (Polling hatası)`
               );
             } catch (refundError) {
               console.error("❌ Kredi iade hatası:", refundError);
@@ -4048,61 +4256,12 @@ router.post("/generate", async (req, res) => {
             success: false,
             result: {
               message: "Görsel işleme işlemi başarısız oldu",
-              error:
-                "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
+              error: pollingError.message.includes("PREDICTION_INTERRUPTED")
+                ? "Sunucu kesintisi oluştu. Lütfen tekrar deneyin."
+                : "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
             },
           });
         }
-      } else {
-        // Diğer polling hataları için mevcut mantığı kullan
-
-        // ❌ Status'u failed'e güncelle
-        await updateGenerationStatus(finalGenerationId, userId, "failed", {
-          // error_message kolonu yok, bu yüzden genel field kullan
-          processing_time_seconds: 0,
-        });
-
-        // 🗑️ Polling hatası durumunda geçici dosyaları temizle
-        console.log(
-          "🧹 Polling hatası sonrası geçici dosyalar temizleniyor..."
-        );
-        await cleanupTemporaryFiles(temporaryFiles);
-
-        // Kredi iade et
-        if (creditDeducted && userId && userId !== "anonymous_user") {
-          try {
-            const { data: currentUserCredit } = await supabase
-              .from("users")
-              .select("credit_balance")
-              .eq("id", userId)
-              .single();
-
-            await supabase
-              .from("users")
-              .update({
-                credit_balance:
-                  (currentUserCredit?.credit_balance || 0) +
-                  actualCreditDeducted,
-              })
-              .eq("id", userId);
-
-            console.log(
-              `💰 ${actualCreditDeducted} kredi iade edildi (Polling hatası)`
-            );
-          } catch (refundError) {
-            console.error("❌ Kredi iade hatası:", refundError);
-          }
-        }
-
-        return res.status(500).json({
-          success: false,
-          result: {
-            message: "Görsel işleme işlemi başarısız oldu",
-            error: pollingError.message.includes("PREDICTION_INTERRUPTED")
-              ? "Sunucu kesintisi oluştu. Lütfen tekrar deneyin."
-              : "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
-          },
-        });
       }
     }
 
@@ -4288,6 +4447,24 @@ router.post("/generate", async (req, res) => {
           error_type: "prediction_interrupted",
           user_friendly: true,
           retry_after: 30, // 30 saniye sonra tekrar dene
+        },
+      });
+    }
+
+    // Timeout hatalarını özel olarak handle et
+    if (
+      error.message &&
+      (error.message.includes("timeout") ||
+        error.message.includes("Gemini API timeout"))
+    ) {
+      return res.status(503).json({
+        success: false,
+        result: {
+          message:
+            "İşlem zaman aşımına uğradı. Lütfen daha küçük bir resim deneyiniz veya tekrar deneyin.",
+          error_type: "timeout",
+          user_friendly: true,
+          retry_after: 10, // 10 saniye sonra tekrar dene
         },
       });
     }
@@ -4502,28 +4679,8 @@ async function generatePoseDescriptionWithGemini(
     console.log("🤸 Gender:", gender);
     console.log("🤸 Garment type:", garmentType);
 
-    // Gemini 2.0 Flash modeli
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
-      safetySettings: [
-        {
-          category: "HARM_CATEGORY_HARASSMENT",
-          threshold: "BLOCK_ONLY_HIGH",
-        },
-        {
-          category: "HARM_CATEGORY_HATE_SPEECH",
-          threshold: "BLOCK_ONLY_HIGH",
-        },
-        {
-          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-          threshold: "BLOCK_ONLY_HIGH",
-        },
-        {
-          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-          threshold: "BLOCK_ONLY_HIGH",
-        },
-      ],
-    });
+    // Gemini 2.0 Flash modeli - Yeni SDK
+    const model = "gemini-2.0-flash-001";
 
     // Gender mapping
     const modelGenderText =
@@ -4594,7 +4751,8 @@ async function generatePoseDescriptionWithGemini(
     }
 
     // Gemini'den cevap al
-    const result = await model.generateContent({
+    const result = await genAI.models.generateContent({
+      model,
       contents: [
         {
           role: "user",
@@ -4603,7 +4761,7 @@ async function generatePoseDescriptionWithGemini(
       ],
     });
 
-    const poseDescription = result.response.text().trim();
+    const poseDescription = result.text.trim();
     console.log("🤸 Gemini'nin ürettiği pose açıklaması:", poseDescription);
 
     return poseDescription;

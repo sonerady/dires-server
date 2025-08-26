@@ -3,6 +3,7 @@
     "start": "nodemon src/app.js"
   },
   "dependencies": {
+    "@google/genai": "^1.15.0",
     "@google/generative-ai": "^0.21.0",
     "@supabase/supabase-js": "^2.45.4",
     "adm-zip": "^0.5.16",
@@ -22,6 +23,7 @@
     "form-data": "^4.0.0",
     "jimp": "^1.6.0",
     "jszip": "^3.10.1",
+    "mime": "^3.0.0",
     "mixpanel-react-native": "^3.1.2",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.14.1",
