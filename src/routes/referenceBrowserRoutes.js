@@ -376,7 +376,7 @@ async function createPendingGeneration(
 // Başarılı completion'da kredi düşürme fonksiyonu
 async function deductCreditOnSuccess(generationId, userId) {
   try {
-    const CREDIT_COST = 20; // Her oluşturma 20 kredi
+    const CREDIT_COST = 15; // Her oluşturma 15 kredi
 
     console.log(
       `💳 [COMPLETION-CREDIT] Generation ${generationId} başarılı, kredi düşürülüyor...`
@@ -2724,7 +2724,7 @@ async function combineImagesOnCanvas(
 // Ana generate endpoint'i - Tek resim için
 router.post("/generate", async (req, res) => {
   // Kredi kontrolü ve düşme
-  const CREDIT_COST = 20; // Her oluşturma 20 kredi
+  const CREDIT_COST = 15; // Her oluşturma 15 kredi
   let creditDeducted = false;
   let actualCreditDeducted = CREDIT_COST; // Gerçekte düşülen kredi miktarı (iade için)
   let userId; // Scope için önceden tanımla
@@ -4142,9 +4142,16 @@ router.get("/generation-status/:generationId", async (req, res) => {
       });
     }
 
-    console.log(
-      `🔍 Generation status sorgusu: ${generationId} (User: ${userId})`
-    );
+    // Log'u sadece ilk sorgulamada yap (spam önlemek için)
+    if (Math.random() < 0.1) {
+      // %10 ihtimalle logla
+      console.log(
+        `🔍 Generation status sorgusu: ${generationId.slice(
+          0,
+          8
+        )}... (User: ${userId.slice(0, 8)}...)`
+      );
+    }
 
     // Generation'ı sorgula
     const { data: generationArray, error } = await supabase
@@ -4152,6 +4159,51 @@ router.get("/generation-status/:generationId", async (req, res) => {
       .select("*")
       .eq("generation_id", generationId)
       .eq("user_id", userId);
+
+    // Debug: Bu user'ın aktif generation'larını da kontrol et
+    if (!generationArray || generationArray.length === 0) {
+      const { data: userGenerations } = await supabase
+        .from("reference_results")
+        .select("generation_id, status, created_at")
+        .eq("user_id", userId)
+        .in("status", ["pending", "processing"])
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      if (userGenerations && userGenerations.length > 0) {
+        console.log(
+          `🔍 User ${userId.slice(0, 8)} has ${
+            userGenerations.length
+          } active generations:`,
+          userGenerations
+            .map((g) => `${g.generation_id.slice(0, 8)}(${g.status})`)
+            .join(", ")
+        );
+
+        // 30 dakikadan eski pending/processing generation'ları temizle
+        const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+        const expiredGenerations = userGenerations.filter(
+          (g) => new Date(g.created_at) < thirtyMinutesAgo
+        );
+
+        if (expiredGenerations.length > 0) {
+          console.log(
+            `🧹 Cleaning ${
+              expiredGenerations.length
+            } expired generations for user ${userId.slice(0, 8)}`
+          );
+
+          await supabase
+            .from("reference_results")
+            .update({ status: "failed" })
+            .in(
+              "generation_id",
+              expiredGenerations.map((g) => g.generation_id)
+            )
+            .eq("user_id", userId);
+        }
+      }
+    }
 
     if (error) {
       console.error("❌ Generation sorgulama hatası:", error);
@@ -4169,13 +4221,22 @@ router.get("/generation-status/:generationId", async (req, res) => {
       generationArray && generationArray.length > 0 ? generationArray[0] : null;
 
     if (!generation) {
+      // Log'u daha sade yap (spam önlemek için)
       console.log(
-        `❌ Generation bulunamadı: ${generationId} (User: ${userId})`
+        `🔍 Generation not found: ${generationId.slice(
+          0,
+          8
+        )}... (could be completed or expired)`
       );
+
+      // Frontend'e generation'ın tamamlandığını veya süresi dolduğunu söyle
       return res.status(404).json({
         success: false,
         result: {
-          message: "Generation bulunamadı",
+          message: "Generation not found (possibly completed or expired)",
+          generationId: generationId,
+          status: "not_found",
+          shouldStopPolling: true, // Frontend'e polling'i durdurmayı söyle
         },
       });
     }
