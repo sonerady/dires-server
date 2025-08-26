@@ -1051,15 +1051,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       );
     }
 
-    // Location bilgisi için ek prompt section
-    let locationPromptSection = "";
-    if (locationImage) {
-      locationPromptSection = `
-    
-    LOCATION REFERENCE: A location reference image has been provided to help you understand the desired environment/background setting. Please analyze this location image carefully and incorporate its environmental characteristics, lighting style, architecture, mood, and atmosphere into your enhanced prompt. This location should influence the background, lighting conditions, and overall scene composition in your description.`;
-
-      console.log("🏞️ [GEMINI] Location prompt section eklendi");
-    }
+    // Location prompt section kaldırıldı - artık kullanılmıyor
 
     // Hair style bilgisi için ek prompt section
     let hairStylePromptSection = "";
@@ -1307,7 +1299,6 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       ${childPromptSection}
       ${bodyShapeMeasurementsSection}
       ${settingsPromptSection}
-      ${locationPromptSection}
       ${posePromptSection}
       ${perspectivePromptSection}
       ${hairStylePromptSection}
@@ -1358,39 +1349,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       console.error(`Görsel yüklenirken hata: ${imageError.message}`);
     }
 
-    // Location image'ını da Gemini'ye gönder
-    if (locationImage) {
-      try {
-        // URL'den query parametrelerini temizle
-        const cleanLocationImageUrl = locationImage.split("?")[0];
-        console.log(
-          `🏞️ Location görsel base64'e çeviriliyor: ${cleanLocationImageUrl}`
-        );
-
-        const locationImageResponse = await axios.get(cleanLocationImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 15000, // 30s'den 15s'ye düşürüldü
-        });
-        const locationImageBuffer = locationImageResponse.data;
-
-        // Base64'e çevir
-        const base64LocationImage =
-          Buffer.from(locationImageBuffer).toString("base64");
-
-        parts.push({
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: base64LocationImage,
-          },
-        });
-
-        console.log("🏞️ Location görsel başarıyla Gemini'ye eklendi");
-      } catch (locationImageError) {
-        console.error(
-          `🏞️ Location görseli eklenirken hata: ${locationImageError.message}`
-        );
-      }
-    }
+    // Location image handling kaldırıldı - artık kullanılmıyor
 
     // Pose image'ını da Gemini'ye gönder
     if (poseImage) {
@@ -2361,7 +2320,8 @@ async function combineImagesOnCanvas(
   images,
   userId,
   isMultipleProducts = false,
-  aspectRatio = "9:16"
+  aspectRatio = "9:16",
+  gridLayoutInfo = null // Grid layout bilgisi
 ) {
   try {
     console.log(
@@ -2371,28 +2331,44 @@ async function combineImagesOnCanvas(
     );
     console.log("🛍️ Çoklu ürün modu:", isMultipleProducts);
     console.log("📐 Hedef aspect ratio:", aspectRatio);
+    console.log("🛍️ Grid Layout bilgisi:", gridLayoutInfo);
 
     // Aspect ratio'yu parse et
     const [ratioWidth, ratioHeight] = aspectRatio.split(":").map(Number);
     const targetAspectRatio = ratioWidth / ratioHeight;
     console.log("📐 Hedef aspect ratio değeri:", targetAspectRatio);
 
-    // Canvas boyutları - Yüksek kalite için optimize edilmiş boyutlar
+    // 🛍️ GRID LAYOUT MODU: Kombin için özel canvas boyutları
     let targetCanvasWidth, targetCanvasHeight;
 
-    if (targetAspectRatio > 1) {
-      // Yatay format (16:9, 4:3 gibi)
-      targetCanvasWidth = 1536; // Yüksek kalite
-      targetCanvasHeight = Math.round(targetCanvasWidth / targetAspectRatio);
-    } else {
-      // Dikey format (9:16, 3:4 gibi) veya kare (1:1)
-      targetCanvasHeight = 1536; // Yüksek kalite
-      targetCanvasWidth = Math.round(targetCanvasHeight * targetAspectRatio);
-    }
+    if (gridLayoutInfo && gridLayoutInfo.cols && gridLayoutInfo.rows) {
+      // Grid layout modu - 1:1 kare format (her hücre 400x400)
+      const cellSize = 400;
+      targetCanvasWidth = gridLayoutInfo.cols * cellSize;
+      targetCanvasHeight = gridLayoutInfo.rows * cellSize;
 
-    // Minimum boyut garantisi
-    if (targetCanvasWidth < 1024) targetCanvasWidth = 1024;
-    if (targetCanvasHeight < 1024) targetCanvasHeight = 1024;
+      console.log(
+        `🛍️ [GRID] Kombin modu canvas boyutu: ${targetCanvasWidth}x${targetCanvasHeight}`
+      );
+      console.log(
+        `🛍️ [GRID] Grid düzeni: ${gridLayoutInfo.cols}x${gridLayoutInfo.rows}, hücre boyutu: ${cellSize}px`
+      );
+    } else {
+      // Normal mod - aspect ratio'ya göre boyutlandır
+      if (targetAspectRatio > 1) {
+        // Yatay format (16:9, 4:3 gibi)
+        targetCanvasWidth = 1536; // Yüksek kalite
+        targetCanvasHeight = Math.round(targetCanvasWidth / targetAspectRatio);
+      } else {
+        // Dikey format (9:16, 3:4 gibi) veya kare (1:1)
+        targetCanvasHeight = 1536; // Yüksek kalite
+        targetCanvasWidth = Math.round(targetCanvasHeight * targetAspectRatio);
+      }
+
+      // Minimum boyut garantisi
+      if (targetCanvasWidth < 1024) targetCanvasWidth = 1024;
+      if (targetCanvasHeight < 1024) targetCanvasHeight = 1024;
+    }
 
     console.log(
       `📐 Hedef canvas boyutu: ${targetCanvasWidth}x${targetCanvasHeight}`
@@ -2494,8 +2470,96 @@ async function combineImagesOnCanvas(
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-    if (isMultipleProducts) {
-      // Çoklu ürün modu: Yan yana birleştir - canvas boyutuna sığdır
+    if (gridLayoutInfo && gridLayoutInfo.cols && gridLayoutInfo.rows) {
+      // 🛍️ GRID LAYOUT MODU: Kombin resimleri kare grid'e yerleştir
+      console.log("🛍️ Grid Layout modu: Resimler kare grid'e yerleştirilecek");
+
+      const cellSize = 400; // Her hücre 400x400
+
+      // Grid çizgi çizme (debug için) - ince gri çizgiler
+      ctx.strokeStyle = "#f0f0f0";
+      ctx.lineWidth = 1;
+
+      // Dikey çizgiler
+      for (let i = 1; i < gridLayoutInfo.cols; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * cellSize, 0);
+        ctx.lineTo(i * cellSize, canvasHeight);
+        ctx.stroke();
+      }
+
+      // Yatay çizgiler
+      for (let i = 1; i < gridLayoutInfo.rows; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, i * cellSize);
+        ctx.lineTo(canvasWidth, i * cellSize);
+        ctx.stroke();
+      }
+
+      // Resimleri grid pozisyonlarına yerleştir
+      for (let i = 0; i < loadedImages.length; i++) {
+        const img = loadedImages[i];
+        const imageData = images[i]; // Orijinal image data'sı
+
+        // Grid pozisyonunu hesapla (clientten gelen gridPosition kullan veya hesapla)
+        let col, row;
+        if (imageData.gridPosition) {
+          col = imageData.gridPosition.col;
+          row = imageData.gridPosition.row;
+        } else {
+          col = i % gridLayoutInfo.cols;
+          row = Math.floor(i / gridLayoutInfo.cols);
+        }
+
+        const cellX = col * cellSize;
+        const cellY = row * cellSize;
+
+        console.log(
+          `🛍️ [GRID] Ürün ${
+            i + 1
+          }: Grid pozisyon (${col}, ${row}) - Canvas pozisyon (${cellX}, ${cellY})`
+        );
+
+        // Resmi kare hücre içerisine sığdır (aspect ratio koruyarak, hücreyi tam kaplar)
+        const imgAspectRatio = img.width / img.height;
+        let drawWidth, drawHeight, drawX, drawY;
+
+        if (imgAspectRatio > 1) {
+          // Yatay resim - yüksekliği hücre boyutuna eşitle, genişliği orantılı yap
+          drawHeight = cellSize;
+          drawWidth = cellSize * imgAspectRatio;
+          drawX = cellX - (drawWidth - cellSize) / 2; // Ortala
+          drawY = cellY;
+        } else {
+          // Dikey resim - genişliği hücre boyutuna eşitle, yüksekliği orantılı yap
+          drawWidth = cellSize;
+          drawHeight = cellSize / imgAspectRatio;
+          drawX = cellX;
+          drawY = cellY - (drawHeight - cellSize) / 2; // Ortala
+        }
+
+        // Hücre sınırları içinde kalması için clipping
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(cellX, cellY, cellSize, cellSize);
+        ctx.clip();
+
+        // Yüksek kaliteli çizim
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+        ctx.restore();
+
+        console.log(
+          `🛍️ [GRID] Ürün ${i + 1} kare hücreye yerleştirildi: (${drawX.toFixed(
+            1
+          )}, ${drawY.toFixed(1)}) - ${drawWidth.toFixed(
+            1
+          )}x${drawHeight.toFixed(1)}`
+        );
+      }
+    } else if (isMultipleProducts) {
+      // Eski çoklu ürün modu: Yan yana birleştir - canvas boyutuna sığdır (fallback)
       console.log("🛍️ Çoklu ürün modu: Resimler yan yana birleştirilecek");
 
       const itemWidth = canvasWidth / loadedImages.length;
@@ -2668,117 +2732,7 @@ async function combineImagesOnCanvas(
   }
 }
 
-// Arkaplanı kaldırılmış ürün + (opsiyonel) location görsellerini
-// tek bir yatay kompozitte birleştirir ve Supabase'e yükler
-// NOT: Pose image artık birleştirmeye dahil edilmiyor, sadece Gemini'ye reference olarak gönderiliyor
-async function combineReferenceAssets(
-  backgroundRemovedUrl,
-  locationUrl,
-  userId
-) {
-  try {
-    const assetUrls = [backgroundRemovedUrl, locationUrl].filter(
-      (u) => typeof u === "string" && u.trim().length > 0
-    );
-
-    // En az 1 görsel şart (arkaplan kaldırılmış)
-    if (assetUrls.length === 0) {
-      throw new Error(
-        "combineReferenceAssets: no valid assets to combine (background removed or location required)"
-      );
-    }
-
-    // Tüm görselleri indir → (ilk ürün görseli için 1024x1024 beyaz zemin içinde ortalama) → diğerlerini JPEG'e çevir → loadImage ile yükle
-    const loadedImages = [];
-    for (let i = 0; i < assetUrls.length; i++) {
-      const url = assetUrls[i].split("?")[0];
-      try {
-        const response = await axios.get(url, {
-          responseType: "arraybuffer",
-          timeout: 15000, // 30s'den 15s'ye düşürüldü
-        });
-        const buffer = Buffer.from(response.data);
-
-        let processed;
-        if (i === 0) {
-          // Sadece arkaplanı kaldırılmış TRIM'lenmiş ürün görselini 1024x1024 beyaz zemine yerleştir
-          const resized = await sharp(buffer)
-            .resize(1024, 1024, { fit: "inside", withoutEnlargement: false })
-            .png()
-            .toBuffer();
-
-          const whiteSquare = await sharp({
-            create: {
-              width: 1024,
-              height: 1024,
-              channels: 3,
-              background: { r: 255, g: 255, b: 255 },
-            },
-          })
-            .composite([{ input: resized, gravity: "center" }])
-            .png()
-            .toBuffer();
-
-          processed = whiteSquare;
-        } else {
-          // Diğer varlıklar (location) için JPEG yeterli - kalite optimize edildi
-          processed = await sharp(buffer)
-            .jpeg({ quality: 80, progressive: true, mozjpeg: true }) // 90'dan 80'e düşürüldü
-            .toBuffer();
-        }
-
-        const img = await loadImage(processed);
-        loadedImages.push(img);
-      } catch (err) {
-        console.error(
-          `❌ combineReferenceAssets: asset ${i + 1} yüklenemedi:`,
-          err.message
-        );
-      }
-    }
-
-    if (loadedImages.length === 0) {
-      // Hiçbiri yüklenemediyse asıl görseli geri döndür
-      return backgroundRemovedUrl;
-    }
-
-    // Yatay birleşim: tümünü aynı yüksekliğe ölçekle
-    const targetHeight = Math.min(...loadedImages.map((img) => img.height));
-    const widths = loadedImages.map(
-      (img) => (img.width * targetHeight) / img.height
-    );
-    const canvasWidth = widths.reduce((a, b) => a + b, 0);
-    const canvasHeight = targetHeight;
-
-    const canvas = createCanvas(canvasWidth, canvasHeight);
-    const ctx = canvas.getContext("2d");
-
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-    let currentX = 0;
-    for (let i = 0; i < loadedImages.length; i++) {
-      const img = loadedImages[i];
-      const drawWidth = widths[i];
-      ctx.drawImage(img, currentX, 0, drawWidth, targetHeight);
-      currentX += drawWidth;
-    }
-
-    const combinedBuffer = canvas.toBuffer("image/jpeg", { quality: 0.8 }); // 0.9'dan 0.8'e düşürüldü
-    const publicUrl = await uploadProcessedImageBufferToSupabase(
-      combinedBuffer,
-      userId,
-      "combined_assets"
-    );
-    return publicUrl;
-  } catch (error) {
-    console.error("❌ combineReferenceAssets hatası:", error.message);
-    // Hata durumunda arkaplanı kaldırılmış görseli geri döndür
-    return backgroundRemovedUrl;
-  }
-}
+// Bu fonksiyon artık kullanılmıyor - location asset combining kaldırıldı
 
 // Ana generate endpoint'i - Tek resim için
 router.post("/generate", async (req, res) => {
@@ -3106,12 +3060,48 @@ router.post("/generate", async (req, res) => {
       console.log(
         "🖼️ [BACKEND] Çoklu resim birleştirme işlemi başlatılıyor..."
       );
-      finalImage = await combineImagesOnCanvas(
-        referenceImages,
-        userId,
-        isMultipleProducts,
-        ratio
-      );
+
+      // Kombin modu kontrolü
+      const isKombinMode = req.body.isKombinMode || false;
+      console.log("🛍️ [BACKEND] Kombin modu kontrolü:", isKombinMode);
+
+      // Grid layout bilgisini request body'den al
+      let gridLayoutInfo = null;
+
+      // Request body'de grid layout bilgisi var mı kontrol et
+      if (req.body.referenceImages && req.body.referenceImages.isGridLayout) {
+        gridLayoutInfo = req.body.referenceImages.gridInfo;
+        console.log(
+          "🛍️ [BACKEND] Grid layout bilgisi bulundu:",
+          gridLayoutInfo
+        );
+      } else {
+        console.log("🛍️ [BACKEND] Grid layout bilgisi bulunamadı, normal mod");
+      }
+
+      if (isKombinMode && gridLayoutInfo) {
+        // 🛍️ KOMBİN MODU: Grid layout'u canvas'ta birleştir
+        console.log("🛍️ [BACKEND] Kombin modu - Grid canvas oluşturuluyor...");
+
+        finalImage = await combineImagesOnCanvas(
+          referenceImages,
+          userId,
+          false, // isMultipleProducts = false (kombin tek resim olarak işlenecek)
+          "1:1", // Kombin için kare format
+          gridLayoutInfo // Grid layout bilgisini geç
+        );
+
+        console.log("🛍️ [BACKEND] Kombin grid canvas oluşturuldu:", finalImage);
+      } else {
+        // Normal çoklu resim modu
+        finalImage = await combineImagesOnCanvas(
+          referenceImages,
+          userId,
+          isMultipleProducts,
+          ratio,
+          gridLayoutInfo // Grid layout bilgisini geç
+        );
+      }
 
       // Birleştirilmiş resmi geçici dosyalar listesine ekle
       temporaryFiles.push(finalImage);
@@ -3160,12 +3150,13 @@ router.post("/generate", async (req, res) => {
         userId
       );
 
-      // Tek resim için de ratio'ya göre canvas'a yerleştir
+      // Tek resim için de ratio'ya göre canvas'a yerleştir (grid layout yok)
       finalImage = await combineImagesOnCanvas(
         [{ uri: uploadedImageUrl }], // Tek resmi array içinde gönder
         userId,
         false, // isMultipleProducts = false
-        ratio // ratio parametresi
+        ratio, // ratio parametresi
+        null // gridLayoutInfo = null (tek resim)
       );
 
       // Canvas işleminden sonra oluşan resmi geçici dosyalar listesine ekle
@@ -3274,8 +3265,23 @@ router.post("/generate", async (req, res) => {
 
     // 👤 Portrait generation kaldırıldı - Gemini kendi kendine hallediyor
 
-    // 🖼️ Sadece arkaplan kaldırılmış resmi kullan - Gemini kendi kendine birleştiriyor
-    let combinedImageForReplicate = backgroundRemovedImage;
+    // 🖼️ Kombin modunda finalImage kullan, diğer durumlarda arkaplan kaldırılmış resmi kullan
+    let combinedImageForReplicate;
+
+    if (req.body.isKombinMode) {
+      // Kombin modunda canvas'ta birleştirilmiş grid'i kullan
+      combinedImageForReplicate = finalImage;
+      console.log(
+        "🛍️ [BACKEND] Kombin modu: Grid canvas Gemini'ye gönderiliyor:",
+        finalImage
+      );
+    } else {
+      // Normal modda arkaplan kaldırılmış resmi kullan
+      combinedImageForReplicate = backgroundRemovedImage;
+      console.log(
+        "🖼️ [BACKEND] Normal mod: Arkaplan kaldırılmış resim Gemini'ye gönderiliyor"
+      );
+    }
     // if (cannyImage) {
     //   try {
     //     console.log(
@@ -3380,11 +3386,11 @@ router.post("/generate", async (req, res) => {
             mainApiContents[0].parts[1]?.inlineData?.data?.length || 0,
         });
 
-        // Timeout wrapper - 3 dakikaya çıkarıldı
+        // Timeout wrapper - 120 saniye (2 dakika)
         const timeoutPromise = new Promise((_, reject) => {
           setTimeout(() => {
-            reject(new Error("Gemini API timeout (180s)"));
-          }, 180000); // 180 saniye (3 dakika) timeout
+            reject(new Error("Gemini API timeout (120s)"));
+          }, 120000); // 120 saniye (2 dakika) timeout
         });
 
         // Gemini API çağrısı (streaming) - timeout ile
@@ -3404,10 +3410,10 @@ router.post("/generate", async (req, res) => {
           "📡 Gemini response stream başlatıldı, chunk'lar bekleniyor..."
         );
 
-        // Stream processing timeout
+        // Stream processing timeout - 120 saniye
         const streamTimeout = setTimeout(() => {
-          throw new Error("Gemini stream processing timeout");
-        }, 120000); // 2 dakika stream timeout
+          throw new Error("Gemini stream processing timeout (120s)");
+        }, 120000); // 120 saniye stream timeout
 
         try {
           for await (const chunk of response) {
@@ -3505,14 +3511,30 @@ router.post("/generate", async (req, res) => {
           apiError.message
         );
 
-        // Son deneme değilse ve timeout/network hatası ise tekrar dene
+        // 120 saniye timeout hatası ise direkt failed yap ve retry yapma
+        if (
+          apiError.message.includes("Gemini API timeout (120s)") ||
+          apiError.message.includes("Gemini stream processing timeout (120s)")
+        ) {
+          console.error(
+            `❌ 120 saniye timeout hatası, generation failed yapılıyor: ${apiError.message}`
+          );
+
+          // Generation status'unu direkt failed yap
+          await updateGenerationStatus(finalGenerationId, userId, "failed", {
+            processing_time_seconds: 120,
+          });
+
+          throw apiError; // Timeout hatası için retry yok
+        }
+
+        // Son deneme değilse ve diğer timeout/network hataları ise tekrar dene
         if (
           attempt < maxRetries &&
           (apiError.code === "ETIMEDOUT" ||
             apiError.code === "ECONNRESET" ||
             apiError.code === "ENOTFOUND" ||
-            apiError.message.includes("timeout") ||
-            apiError.message.includes("Gemini API timeout"))
+            apiError.message.includes("timeout"))
         ) {
           const waitTime = attempt * 2000; // 2s, 4s, 6s bekle
           console.log(`⏳ ${waitTime}ms bekleniyor, sonra tekrar denenecek...`);
@@ -3982,16 +4004,17 @@ router.post("/generate", async (req, res) => {
     if (
       error.message &&
       (error.message.includes("timeout") ||
-        error.message.includes("Gemini API timeout"))
+        error.message.includes("Gemini API timeout") ||
+        error.message.includes("120s"))
     ) {
       return res.status(503).json({
         success: false,
         result: {
           message:
-            "İşlem zaman aşımına uğradı. Lütfen daha küçük bir resim deneyiniz veya tekrar deneyin.",
+            "İşlem 2 dakika zaman aşımına uğradı. Lütfen daha küçük bir resim deneyiniz veya tekrar deneyin.",
           error_type: "timeout",
           user_friendly: true,
-          retry_after: 10, // 10 saniye sonra tekrar dene
+          retry_after: 30, // 30 saniye sonra tekrar dene
         },
       });
     }

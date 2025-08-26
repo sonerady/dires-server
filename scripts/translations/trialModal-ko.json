@@ -1,0 +1,27 @@
+{
+  "trialModal": {
+    "restore": "복원",
+    "title": "무료 체험이\n작동하는 방식",
+    "steps": {
+      "install": {
+        "title": "설치"
+      },
+      "today": {
+        "title": "오늘",
+        "description": "{{credits}} 무료 크레딧 받기 + {{package}} 모든 기능을\n체험으로 즉시 잠금 해제"
+      },
+      "threeDaysLater": {
+        "title": "3일 후",
+        "description": "PRO 구독이 시작되고\n요금이 청구됩니다. 언제든지 취소할 수 있습니다."
+      }
+    },
+    "pricing": {
+      "freeTrial": "3일 무료 체험, 그 다음",
+      "packageInfo": "{{package}} 플랜 • {{billing}} 청구"
+    },
+    "buttons": {
+      "startTrial": "3일 무료 체험 시작",
+      "showAllPlans": "모든 플랜 보기"
+    }
+  }
+}

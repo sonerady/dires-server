@@ -1,0 +1,28 @@
+{
+  "trialModal": {
+    "restore": "Geri Yükle",
+    "title": "Ücretsiz denemeniz\nnasıl çalışır?",
+    "freeTrialTitle": "3 günlük ücretsiz deneme fırsatı!",
+    "steps": {
+      "install": {
+        "title": "Yükle"
+      },
+      "today": {
+        "title": "Bugün",
+        "description": "Denemeler yapabilmek için {{credits}} ÜCRETSİZ\nkredi al + TÜM {{package}} özelliklerini aç"
+      },
+      "threeDaysLater": {
+        "title": "3 gün sonra",
+        "description": "PRO aboneliğiniz başladıktan sonra <bold>{{packageCredits}}</bold> krediniz tanımlanacak.\nİstediğiniz zaman iptal edebilirsiniz."
+      }
+    },
+    "pricing": {
+      "freeTrial": "3 günlük ücretsiz deneme, sonrasında",
+      "packageInfo": "{{package}} Planı • {{billing}} Faturalandırma"
+    },
+    "buttons": {
+      "startTrial": "3 günlük ücretsiz denemenizi başlatın",
+      "showAllPlans": "Tüm planları göster"
+    }
+  }
+}

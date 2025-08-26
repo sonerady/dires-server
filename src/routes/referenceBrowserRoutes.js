@@ -2,7 +2,8 @@ const express = require("express");
 const router = express.Router();
 // Updated Gemini API with latest gemini-2.0-flash model
 // Using @google/generative-ai with new safety settings configuration
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenAI } = require("@google/genai");
+const mime = require("mime");
 const { createClient } = require("@supabase/supabase-js");
 const axios = require("axios");
 const sharp = require("sharp");
@@ -54,7 +55,7 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
       // HTTP URL - normal indirme
       const imageResponse = await axios.get(imageUri, {
         responseType: "arraybuffer",
-        timeout: 30000, // 30 saniye timeout
+        timeout: 15000, // 30s'den 15s'ye düşürüldü
       });
       imageBuffer = Buffer.from(imageResponse.data);
     } else if (imageUri.startsWith("data:image/")) {
@@ -187,7 +188,8 @@ async function saveGenerationToDatabase(
   replicatePredictionId = null,
   processingTimeSeconds = null,
   isMultipleImages = false,
-  isMultipleProducts = false
+  isMultipleProducts = false,
+  generationId = null // Yeni parametre
 ) {
   try {
     // User ID yoksa veya UUID formatında değilse, UUID oluştur
@@ -227,6 +229,8 @@ async function saveGenerationToDatabase(
           processing_time_seconds: processingTimeSeconds,
           is_multiple_images: isMultipleImages,
           is_multiple_products: isMultipleProducts,
+          generation_id: generationId, // Yeni alan
+          status: "completed", // İşlem tamamlandığında completed olarak kaydediliyor
           created_at: new Date().toISOString(),
         },
       ]);
@@ -244,8 +248,308 @@ async function saveGenerationToDatabase(
   }
 }
 
-// Gemini API için istemci oluştur
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// İşlem başlamadan önce pending status ile kayıt oluşturma fonksiyonu
+async function createPendingGeneration(
+  userId,
+  originalPrompt,
+  referenceImageUrls,
+  settings = {},
+  locationImage = null,
+  poseImage = null,
+  hairStyleImage = null,
+  aspectRatio = "9:16",
+  isMultipleImages = false,
+  isMultipleProducts = false,
+  generationId = null
+) {
+  try {
+    // User ID yoksa veya UUID formatında değilse, UUID oluştur
+    let userIdentifier = userId;
+    console.log("🔍 [DEBUG createPendingGeneration] Gelen userId:", userId);
+
+    if (!userIdentifier || userIdentifier === "anonymous_user") {
+      userIdentifier = uuidv4(); // UUID formatında anonymous user oluştur
+      console.log(
+        "🔍 [DEBUG] Yeni anonymous UUID oluşturuldu:",
+        userIdentifier
+      );
+    } else if (
+      !userIdentifier.match(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      )
+    ) {
+      // Eğer gelen ID UUID formatında değilse, UUID'ye çevir veya yeni UUID oluştur
+      console.log(
+        "🔍 [DEBUG] User ID UUID formatında değil, yeni UUID oluşturuluyor:",
+        userIdentifier
+      );
+      userIdentifier = uuidv4();
+    } else {
+      console.log(
+        "🔍 [DEBUG] User ID UUID formatında, aynı ID kullanılıyor:",
+        userIdentifier
+      );
+    }
+
+    const { data: insertData, error } = await supabase
+      .from("reference_results")
+      .insert([
+        {
+          user_id: userIdentifier,
+          original_prompt: originalPrompt,
+          enhanced_prompt: null, // Henüz işlenmedi
+          result_image_url: null, // Henüz sonuç yok
+          reference_images: referenceImageUrls,
+          settings: settings,
+          location_image: locationImage,
+          pose_image: poseImage,
+          hair_style_image: hairStyleImage,
+          aspect_ratio: aspectRatio,
+          replicate_prediction_id: null, // Henüz prediction yok
+          processing_time_seconds: null,
+          is_multiple_images: isMultipleImages,
+          is_multiple_products: isMultipleProducts,
+          generation_id: generationId,
+          status: "pending", // Başlangıçta pending
+          created_at: new Date().toISOString(),
+        },
+      ])
+      .select(); // Insert edilen datayı geri döndür
+
+    if (error) {
+      console.error("❌ Pending generation kaydetme hatası:", error);
+      return null;
+    }
+
+    console.log("✅ Pending generation kaydedildi:", insertData[0]?.id);
+    console.log(
+      "🔍 [DEBUG] Kaydedilen generation_id:",
+      insertData[0]?.generation_id
+    );
+    console.log("🔍 [DEBUG] Kaydedilen status:", insertData[0]?.status);
+    return insertData[0]; // Insert edilen kaydı döndür
+  } catch (dbError) {
+    console.error("❌ Pending generation veritabanı hatası:", dbError);
+    return null;
+  }
+}
+
+// Başarılı completion'da kredi düşürme fonksiyonu
+async function deductCreditOnSuccess(generationId, userId) {
+  try {
+    const CREDIT_COST = 20; // Her oluşturma 20 kredi
+
+    console.log(
+      `💳 [COMPLETION-CREDIT] Generation ${generationId} başarılı, kredi düşürülüyor...`
+    );
+
+    // 🔒 Deduplication: Bu generation için zaten kredi düşürülmüş mü kontrol et
+    // settings içinde creditDeducted flag'i kontrol et
+    const { data: existingGen, error: checkError } = await supabase
+      .from("reference_results")
+      .select("settings")
+      .eq("generation_id", generationId)
+      .eq("user_id", userId)
+      .single();
+
+    if (checkError) {
+      console.error(`❌ Generation kontrolü hatası:`, checkError);
+      return false;
+    }
+
+    try {
+      console.log(
+        `💳 [DEDUP-CHECK] Generation ${generationId} settings:`,
+        JSON.stringify(existingGen?.settings || {}, null, 2)
+      );
+    } catch (_) {
+      console.log(
+        `💳 [DEDUP-CHECK] Generation ${generationId} settings: <unserializable>`
+      );
+    }
+    console.log(
+      `💳 [DEDUP-CHECK] creditDeducted flag:`,
+      existingGen.settings?.creditDeducted
+    );
+
+    if (existingGen.settings?.creditDeducted === true) {
+      console.log(
+        `💳 [COMPLETION-CREDIT] Generation ${generationId} için zaten kredi düşürülmüş, atlanıyor`
+      );
+      return true;
+    }
+
+    console.log(`💳 [DEDUP-CHECK] İlk kredi düşürme, devam ediliyor...`);
+
+    // Generation bilgilerini al (totalGenerations için)
+    const { data: generation, error: genError } = await supabase
+      .from("reference_results")
+      .select("settings")
+      .eq("generation_id", generationId)
+      .eq("user_id", userId)
+      .single();
+
+    if (genError || !generation) {
+      console.error(
+        `❌ Generation ${generationId} bilgileri alınamadı:`,
+        genError
+      );
+      return false;
+    }
+
+    // Jenerasyon başına kredi düş (her tamamlanan için 20)
+    const totalCreditCost = CREDIT_COST; // 20
+    console.log(
+      `💳 [COMPLETION-CREDIT] Bu generation için ${totalCreditCost} kredi düşürülecek`
+    );
+
+    // Krediyi atomic olarak düş
+    const { data: currentUser, error: userError } = await supabase
+      .from("users")
+      .select("credit_balance")
+      .eq("id", userId)
+      .single();
+
+    if (userError || !currentUser) {
+      console.error(`❌ User ${userId} bulunamadı:`, userError);
+      return false;
+    }
+
+    const currentCredit = currentUser.credit_balance || 0;
+
+    if (currentCredit < totalCreditCost) {
+      console.error(
+        `❌ Yetersiz kredi! Mevcut: ${currentCredit}, Gerekli: ${totalCreditCost}`
+      );
+      // Başarısız sonuç olarak işaretle ama generation'ı completed bırak
+      return false;
+    }
+
+    // Krediyi düş
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({ credit_balance: currentCredit - totalCreditCost })
+      .eq("id", userId)
+      .eq("credit_balance", currentCredit); // Optimistic locking
+
+    if (updateError) {
+      console.error(`❌ Kredi düşme hatası:`, updateError);
+      return false;
+    }
+
+    console.log(
+      `✅ ${totalCreditCost} kredi başarıyla düşüldü. Yeni bakiye: ${
+        currentCredit - totalCreditCost
+      }`
+    );
+
+    // 🏷️ Generation'a kredi düşürüldü flag'i ekle
+    const updatedSettings = {
+      ...(existingGen?.settings || {}),
+      creditDeducted: true,
+    };
+    console.log(
+      `🏷️ [FLAG-UPDATE] Updating settings for ${generationId}:`,
+      JSON.stringify(updatedSettings, null, 2)
+    );
+    const { error: flagError } = await supabase
+      .from("reference_results")
+      .update({ settings: updatedSettings })
+      .eq("generation_id", generationId)
+      .eq("user_id", userId);
+
+    if (flagError) {
+      console.error(`❌ CreditDeducted flag güncelleme hatası:`, flagError);
+      // Kredi zaten düştü, flag hatası önemli değil
+    } else {
+      console.log(
+        `🏷️ Generation ${generationId} creditDeducted flag'i başarıyla eklendi`
+      );
+    }
+
+    return true;
+  } catch (error) {
+    console.error(`❌ deductCreditOnSuccess hatası:`, error);
+    return false;
+  }
+}
+
+// Generation status güncelleme fonksiyonu
+async function updateGenerationStatus(
+  generationId,
+  userId,
+  status,
+  updates = {}
+) {
+  try {
+    // Idempotent kredi düşümü için önce mevcut kaydın durumunu ve settings'ini oku
+    let previousStatus = null;
+    let previousSettings = null;
+    try {
+      const { data: existingRows, error: existingErr } = await supabase
+        .from("reference_results")
+        .select("status, settings")
+        .eq("generation_id", generationId)
+        .eq("user_id", userId);
+      if (!existingErr && existingRows && existingRows.length > 0) {
+        previousStatus = existingRows[0]?.status || null;
+        previousSettings = existingRows[0]?.settings || null;
+      }
+    } catch (readErr) {
+      console.warn(
+        "⚠️ Mevcut generation durumu okunamadı (devam ediliyor)",
+        readErr
+      );
+    }
+
+    const updateData = {
+      status: status,
+      updated_at: new Date().toISOString(),
+      ...updates,
+    };
+
+    const { data, error } = await supabase
+      .from("reference_results")
+      .update(updateData)
+      .eq("generation_id", generationId)
+      .eq("user_id", userId)
+      .select();
+
+    if (error) {
+      console.error("❌ Generation status güncelleme hatası:", error);
+      return false;
+    }
+
+    console.log(`✅ Generation ${generationId} status güncellendi: ${status}`);
+
+    // 💳 Başarılı completion'da kredi düş (idempotent)
+    if (status === "completed" && userId && userId !== "anonymous_user") {
+      const alreadyCompleted = previousStatus === "completed";
+      const alreadyDeducted = previousSettings?.creditDeducted === true;
+      if (alreadyCompleted && alreadyDeducted) {
+        console.log(
+          `💳 [SKIP] ${generationId} zaten completed ve kredi düşülmüş. Deduction atlanıyor.`
+        );
+      } else {
+        console.log(
+          `💳 [TRIGGER] updateGenerationStatus: ${generationId} → ${status} | previous=${previousStatus}`
+        );
+        console.log(`💳 [TRIGGER] Kredi düşürme kontrolü başlatılıyor...`);
+        await deductCreditOnSuccess(generationId, userId);
+      }
+    }
+
+    return data[0];
+  } catch (dbError) {
+    console.error("❌ Status güncelleme veritabanı hatası:", dbError);
+    return false;
+  }
+}
+
+// Gemini API için istemci oluştur (yeni SDK)
+const genAI = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+});
 
 // Aspect ratio formatını düzelten yardımcı fonksiyon
 function formatAspectRatio(ratioStr) {
@@ -304,7 +608,6 @@ function formatAspectRatio(ratioStr) {
   }
 }
 
-// Prompt'u iyileştirmek için Gemini'yi kullan
 async function enhancePromptWithGemini(
   originalPrompt,
   imageUrl,
@@ -313,7 +616,12 @@ async function enhancePromptWithGemini(
   poseImage,
   hairStyleImage,
   isMultipleProducts = false,
-  hasControlNet = false
+  isColorChange = false, // Renk değiştirme mi?
+  targetColor = null, // Hedef renk
+  isPoseChange = false, // Poz değiştirme mi?
+  customDetail = null, // Özel detay
+  isEditMode = false, // EditScreen modu mu?
+  editPrompt = null // EditScreen'den gelen prompt
 ) {
   try {
     console.log(
@@ -324,11 +632,13 @@ async function enhancePromptWithGemini(
     console.log("💇 [GEMINI] Hair style image parametresi:", hairStyleImage);
     console.log("🛍️ [GEMINI] Multiple products mode:", isMultipleProducts);
     console.log("🎨 [GEMINI] ControlNet direktifi her zaman aktif");
+    console.log("🎨 [GEMINI] Color change mode:", isColorChange);
+    console.log("🎨 [GEMINI] Target color:", targetColor);
+    console.log("✏️ [GEMINI] Edit mode:", isEditMode);
+    console.log("✏️ [GEMINI] Edit prompt:", editPrompt);
 
-    // Gemini 2.0 Flash modeli - En yeni API yapısı
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-    });
+    // Gemini 2.0 Flash modeli - Yeni SDK
+    const model = "gemini-2.5-flash";
 
     // Settings'in var olup olmadığını kontrol et
     const hasValidSettings =
@@ -741,15 +1051,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       );
     }
 
-    // Location bilgisi için ek prompt section
-    let locationPromptSection = "";
-    if (locationImage) {
-      locationPromptSection = `
-    
-    LOCATION REFERENCE: A location reference image has been provided to help you understand the desired environment/background setting. Please analyze this location image carefully and incorporate its environmental characteristics, lighting style, architecture, mood, and atmosphere into your enhanced prompt. This location should influence the background, lighting conditions, and overall scene composition in your description.`;
-
-      console.log("🏞️ [GEMINI] Location prompt section eklendi");
-    }
+    // Location prompt section kaldırıldı - artık kullanılmıyor
 
     // Hair style bilgisi için ek prompt section
     let hairStylePromptSection = "";
@@ -810,40 +1112,204 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
     
     FACE DESCRIPTION GUIDELINE: Below is *one example* of a possible face description → "${faceDescriptor}". This is **only an example**; do NOT reuse it verbatim. Instead, create your own natural-sounding, age-appropriate face description for the ${baseModelText} so that each generation features a unique and photogenic look.`;
 
-    // Gemini'ye gönderilecek metin - Replace odaklı basit prompt
-    let promptForGemini = `
-    MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
+    // Gemini'ye gönderilecek metin - Edit mode vs Color change vs Normal replace
+    const criticalDirectives = `
+    BRAND SAFETY: If the input image contains any brand names or logos (e.g., Nike, Adid<as, Prada, Gucci, Louis Vuitton, Chanel, Balenciaga, Versace, Dior, Hermès), DO NOT mention any brand names in your output. Refer to them generically (e.g., "brand label", "logo") without naming the brand.
+    LENGTH CONSTRAINT: Your entire output MUST be no longer than 512 tokens. Keep it concise and within 512 tokens maximum.`;
 
-    Create a simple English prompt that STARTS with "Replace" for replacing the garment from the reference image onto a ${modelGenderText}.
+    // Flux Max için genel garment transform talimatları (genel, ürün-özel olmayan)
+    const fluxMaxGarmentTransformationDirectives = `
+    FLUX MAX CONTEXT - GARMENT TRANSFORMATION (MANDATORY):
+    - ABSOLUTELY AND IMMEDIATELY REMOVE ALL HANGERS, CLIPS, TAGS, AND FLAT-LAY ARTIFACTS from the input garment. CRITICAL: DO NOT RENDER ANY MANNEQUIN REMAINS OR UNINTENDED BACKGROUND ELEMENTS.
+    - Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model; avoid any 2D, sticker-like, or paper-like overlay.
+    - Ensure realistic fabric physics: natural drape, weight, tension, compression, and subtle folds along shoulders, chest/bust, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles.
+    - Preserve ALL original garment details: exact colors, prints/patterns, material texture, stitching, construction elements  trims, and finishes. Do NOT redesign.
+    - Integrate prints/patterns correctly over the 3D form: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines.
+    - For structured details (e.g., knots, pleats, darts, seams), render functional tension, deep creases, and realistic shadows consistent with real fabric behavior.
+    - Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting.
+    - Focus solely on transforming the garment onto the existing model and seamlessly integrating it into the outfit. Do not introduce new background elements unless a location reference is explicitly provided.`;
 
-    CRITICAL REQUIREMENTS:
-    1. The prompt MUST begin with "Replace the flat-lay garment..."
-    2. Keep the original garment exactly the same without changing any design, shape, colors, patterns, or details
-    3. Do not modify or redesign the garment in any way
-    4. The final image should be photorealistic, showing the same garment perfectly fitted on the ${baseModelText}
-    5. Use natural studio lighting with a clean background
-    6. Preserve ALL original garment details: colors, patterns, textures, hardware, stitching, logos, graphics, and construction elements
-    7. The garment must appear identical to the reference image, just worn by the model instead of being flat
+    // Gemini'ye gönderilecek metin - Edit mode vs Color change vs Normal replace
+    let promptForGemini;
 
-    LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace".
+    if (isEditMode && editPrompt && editPrompt.trim()) {
+      // EDIT MODE - EditScreen'den gelen özel prompt
+      promptForGemini = `
+      MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
 
-    ${originalPrompt ? `Additional requirements: ${originalPrompt}.` : ""}
-    
-    ${ageSection}
-    ${childPromptSection}
-    ${bodyShapeMeasurementsSection}
-    ${settingsPromptSection}
-    ${locationPromptSection}
-    ${posePromptSection}
-    ${perspectivePromptSection}
-    ${hairStylePromptSection}
-    ${hairStyleTextSection}
-    ${faceDescriptionSection}
-    
-    Generate a concise prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace".
-    
-    EXAMPLE FORMAT: "Replace the flat-lay garment from the input image directly onto a standing [model description] while keeping the original garment exactly the same..."
-    `;
+      ${criticalDirectives}
+
+      SILENT RULES (DO NOT OUTPUT THESE, JUST APPLY THEM): All rules, headings, examples, and meta-instructions you see in this message must be applied silently. Do not quote, restate, or paraphrase any rule text in your final output. Your final output MUST ONLY be the concise descriptive prompt for the image model, with no rule headings or capitalized instruction sentences.
+
+      ${fluxMaxGarmentTransformationDirectives}
+
+      USER'S EDIT REQUEST: "${editPrompt.trim()}"
+
+      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
+
+      IMPORTANT: The user can send you input in different languages, but you must always generate your prompt in English.
+
+      CRITICAL REQUIREMENTS FOR EDIT MODE:
+      1. The prompt MUST begin with "Replace, change..."
+      2. Understand the user's edit request regardless of what language they write in
+      3. Always generate your response in English
+      4. Apply the user's specific edit request accurately
+      5. Maintain photorealistic quality with natural lighting
+      6. Keep the general style and quality of the original image
+      7. Ensure the modification is realistic and technically feasible
+      8. If the edit involves clothing changes, maintain proper fit and styling
+      9. If the edit involves pose changes, ensure natural body positioning
+      10. If the edit involves color changes, preserve garment details and textures
+
+      GEMINI TASK:
+      1. Understand what modification the user wants
+      2. Create a professional English prompt that applies this modification
+      3. Ensure the modification is technically possible and realistic
+      4. Maintain the overall quality and style of the original image
+      5. Describe the change in detail while preserving other elements
+
+      LANGUAGE REQUIREMENT: Always generate your prompt in English and START with "Replace, change...".
+
+      ${originalPrompt ? `Additional context: ${originalPrompt}.` : ""}
+      `;
+    } else if (isColorChange && targetColor && targetColor !== "original") {
+      // COLOR CHANGE MODE - Sadece renk değiştirme
+      promptForGemini = `
+      MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "change". Do not include any introduction, explanation, or commentary.
+
+      ${criticalDirectives}
+
+      Create a professional fashion photography prompt in English that STARTS with "change" for changing ONLY the color of the product/garment from the reference image to ${targetColor}.
+      
+      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
+
+      CRITICAL REQUIREMENTS FOR COLOR CHANGE:
+      1. The prompt MUST begin with "Replace the product/garment..."
+      2. ONLY change the color to ${targetColor}
+      3. Keep EVERYTHING else exactly the same: design, shape, patterns, details, style, fit, texture
+      4. Do not modify the garment design, cut, or any other aspect except the color
+      5. The final image should be photorealistic, showing the same garment but in ${targetColor} color
+      6. Use natural studio lighting with a clean background
+      7. Preserve ALL original garment details except color: patterns (but in new color), textures, hardware, stitching, logos, graphics, and construction elements
+      8. The garment must appear identical to the reference image, just in ${targetColor} color instead of the original color
+
+      LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "change".
+
+      ${
+        originalPrompt
+          ? `Additional color change requirements: ${originalPrompt}.`
+          : ""
+      }
+      `;
+    } else if (isPoseChange) {
+      // POSE CHANGE MODE - Sadece poz değiştirme
+      promptForGemini = `
+      MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "change". Do not include any introduction, explanation, or commentary.
+
+      ${criticalDirectives}
+
+      Create a professional fashion photography prompt in English that STARTS with "change" for changing ONLY the pose/position of the model in the reference image.
+      
+      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
+
+      CRITICAL REQUIREMENTS FOR POSE CHANGE:
+      1. The prompt MUST begin with "Replace the model's pose..."
+      2. Keep the EXACT same person, face, clothing, background, and all other elements
+      3. ONLY change the pose/position/body positioning of the model
+      4. Do not modify or change anything else about the model or scene
+      5. The result should be photorealistic with natural lighting and proper body proportions
+      6. Preserve ALL original elements except the pose: same person, same outfit, same background, same lighting style
+      7. The model must appear identical to the reference image, just in a different pose/position
+
+      ${
+        customDetail && customDetail.trim()
+          ? `USER SPECIFIC POSE: The user wants the pose to be: ${customDetail.trim()}.`
+          : `AUTOMATIC POSE SELECTION: You MUST choose ONE specific pose for the model.`
+      }
+
+      GEMINI TASK - ANALYZE AND CREATE POSE:
+      1. ANALYZE the model in the input image (their current pose, body position, clothing style)
+      2. IDENTIFY the clothing details (pockets, sleeves, length, style, accessories)
+      3. SELECT one specific professional modeling pose that would look elegant and natural for this person
+      4. CHOOSE from these categories:
+         - ELEGANT POSES: graceful hand positions, confident stances, sophisticated postures
+         - FASHION POSES: runway-style poses, magazine-worthy positions, stylish attitudes  
+         - PORTRAIT POSES: flattering face angles, expressive hand gestures, artistic positioning
+         - DYNAMIC POSES: movement-inspired stances, walking poses, turning positions
+
+      ⚠️ CRITICAL CLOTHING COMPATIBILITY RULES:
+      - If the garment has NO POCKETS: DO NOT put hands in pockets
+      - If the garment has SHORT SLEEVES: DO NOT fold or adjust long sleeves
+      - If the garment is SLEEVELESS: DO NOT place hands on sleeves or adjust arm coverage
+      - If the garment is a DRESS/SKIRT: Keep leg positioning appropriate for the garment length
+      - If the garment has specific NECKLINE: DO NOT change how it sits on the body
+      - If the garment has FIXED ACCESSORIES (belts, scarves): Keep them in original position
+      - NEVER turn the model completely around (avoid full back views)
+      - NEVER change the garment's silhouette, fit, or draping
+
+      GEMINI INSTRUCTIONS:
+      - First ANALYZE the clothing details and limitations
+      - Then DECIDE on ONE specific pose that RESPECTS the clothing constraints
+      - DESCRIBE that pose in detail in your prompt with clothing-appropriate positioning
+      - Include specific details: hand positioning (compatible with garment), weight distribution, facial direction, body angles
+      - Make the pose description sound professional and beautiful
+      - Ensure the pose suits the model's style and clothing EXACTLY as shown
+
+      LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace". Do NOT include any rule names, headings, or capitalized instruction phrases (e.g., "FLUX MAX CONTEXT", "CRITICAL REQUIREMENTS", "MANDATORY", "LANGUAGE REQUIREMENT").
+
+      ${originalPrompt ? `Additional considerations: ${originalPrompt}.` : ""}
+      
+      REQUIRED FORMAT: "Replace the model's pose to [SPECIFIC POSE NAME] - [DETAILED DESCRIPTION of the exact pose with clothing-appropriate hand placement, body positioning, weight distribution, and facial direction, ensuring the garment maintains its original appearance, fit, and features while creating photorealistic and elegant results]..."
+      
+      FINAL REMINDER: The garment must look IDENTICAL to the reference image - same fit, same features, same details. Only the model's body position changes.
+      `;
+    } else {
+      // NORMAL MODE - Standart garment replace
+      promptForGemini = `
+      MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
+
+      ${criticalDirectives}
+
+      Create a professional fashion photography prompt in English that STARTS with "Replace" for replacing the garment from the reference image onto a ${modelGenderText}.
+      
+      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
+
+      CRITICAL REQUIREMENTS:
+      1. The prompt MUST begin with "Replace the flat-lay garment..."
+      2. Keep the original garment exactly the same without changing any design, shape, colors, patterns, or details
+      3. Do not modify or redesign the garment in any way
+      4. The final image should be photorealistic, showing the same garment perfectly fitted on the ${baseModelText}
+      5. Use natural studio lighting with a clean background
+      6. Preserve ALL original garment details: colors, patterns, textures, hardware, stitching, logos, graphics, and construction elements
+      7. The garment must appear identical to the reference image, just worn by the model instead of being flat
+
+      PRODUCT DETAIL COVERAGE (MANDATORY): Describe the garment's construction details. Keep this within the 512-token limit; prioritize the most visually verifiable details.
+
+      ${fluxMaxGarmentTransformationDirectives}
+
+      LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace".
+
+      ${
+        originalPrompt
+          ? `USER CONTEXT: The user has provided these specific requirements: ${originalPrompt}. Please integrate these requirements naturally into your garment replacement prompt while maintaining the professional structure and flow.`
+          : ""
+      }
+      
+      ${ageSection}
+      ${childPromptSection}
+      ${bodyShapeMeasurementsSection}
+      ${settingsPromptSection}
+      ${posePromptSection}
+      ${perspectivePromptSection}
+      ${hairStylePromptSection}
+      ${hairStyleTextSection}
+      ${faceDescriptionSection}
+      
+      Generate a concise prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace". Apply all rules silently and do not include any rule text or headings in the output.
+      
+      EXAMPLE FORMAT: "Replace the flat-lay garment from the input image directly onto a standing [model description] while keeping the original garment exactly the same..."
+      `;
+    }
 
     // Eğer originalPrompt'ta "Model's pose" ibaresi yoksa ek cümle ekleyelim:
     if (!originalPrompt || !originalPrompt.includes("Model's pose")) {
@@ -864,7 +1330,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
       const imageResponse = await axios.get(imageUrl, {
         responseType: "arraybuffer",
-        timeout: 30000, // 30 saniye timeout
+        timeout: 15000, // 30s'den 15s'ye düşürüldü
       });
       const imageBuffer = imageResponse.data;
 
@@ -883,39 +1349,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       console.error(`Görsel yüklenirken hata: ${imageError.message}`);
     }
 
-    // Location image'ını da Gemini'ye gönder
-    if (locationImage) {
-      try {
-        // URL'den query parametrelerini temizle
-        const cleanLocationImageUrl = locationImage.split("?")[0];
-        console.log(
-          `🏞️ Location görsel base64'e çeviriliyor: ${cleanLocationImageUrl}`
-        );
-
-        const locationImageResponse = await axios.get(cleanLocationImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 30000, // 30 saniye timeout
-        });
-        const locationImageBuffer = locationImageResponse.data;
-
-        // Base64'e çevir
-        const base64LocationImage =
-          Buffer.from(locationImageBuffer).toString("base64");
-
-        parts.push({
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: base64LocationImage,
-          },
-        });
-
-        console.log("🏞️ Location görsel başarıyla Gemini'ye eklendi");
-      } catch (locationImageError) {
-        console.error(
-          `🏞️ Location görseli eklenirken hata: ${locationImageError.message}`
-        );
-      }
-    }
+    // Location image handling kaldırıldı - artık kullanılmıyor
 
     // Pose image'ını da Gemini'ye gönder
     if (poseImage) {
@@ -928,7 +1362,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
         const poseImageResponse = await axios.get(cleanPoseImageUrl, {
           responseType: "arraybuffer",
-          timeout: 30000, // 30 saniye timeout
+          timeout: 15000, // 30s'den 15s'ye düşürüldü
         });
         const poseImageBuffer = poseImageResponse.data;
 
@@ -961,7 +1395,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
         const hairStyleImageResponse = await axios.get(cleanHairStyleImageUrl, {
           responseType: "arraybuffer",
-          timeout: 30000, // 30 saniye timeout
+          timeout: 15000, // 30s'den 15s'ye düşürüldü
         });
         const hairStyleImageBuffer = hairStyleImageResponse.data;
 
@@ -992,7 +1426,8 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       try {
         console.log(`🤖 [GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
 
-        const result = await model.generateContent({
+        const result = await genAI.models.generateContent({
+          model,
           contents: [
             {
               role: "user",
@@ -1001,7 +1436,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
           ],
         });
 
-        const geminiGeneratedPrompt = result.response.text().trim();
+        const geminiGeneratedPrompt = result.text.trim();
 
         // ControlNet direktifini dinamik olarak ekle
         // let controlNetDirective = "";
@@ -1057,57 +1492,179 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       }
     }
 
-    // Eğer Gemini sonuç üretemediyse (enhancedPrompt orijinal prompt ile aynıysa) Replicate GPT-4o-mini ile yedek dene
+    // Eğer Gemini sonuç üretemediyse (enhancedPrompt orijinal prompt ile aynıysa) direkt fallback prompt kullan
     if (enhancedPrompt === originalPrompt) {
-      try {
-        console.log(
-          "🤖 [FALLBACK] Gemini başarısız, Replicate GPT-4o-mini deneniyor"
-        );
+      console.log(
+        "🔄 [FALLBACK] Gemini başarısız, detaylı fallback prompt kullanılıyor"
+      );
 
-        const replicateInput = {
-          top_p: 1,
-          prompt: promptForGemini,
-          image_input: [imageUrl],
-          temperature: 1,
-          system_prompt: "You are a helpful assistant.",
-          presence_penalty: 0,
-          frequency_penalty: 0,
-          max_completion_tokens: 512,
-        };
+      // Settings'ten bilgileri çıkar
+      const location = settings?.location;
+      const weather = settings?.weather;
+      const age = settings?.age;
+      const gender = settings?.gender;
+      const productColor = settings?.productColor;
+      const mood = settings?.mood;
+      const perspective = settings?.perspective;
+      const accessories = settings?.accessories;
+      const skinTone = settings?.skinTone;
+      const hairStyle = settings?.hairStyle;
+      const hairColor = settings?.hairColor;
+      const bodyShape = settings?.bodyShape;
+      const pose = settings?.pose;
+      const ethnicity = settings?.ethnicity;
 
-        const replicateResponse = await axios.post(
-          "https://api.replicate.com/v1/models/openai/gpt-4o-mini/predictions",
-          { input: replicateInput },
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-              "Content-Type": "application/json",
-              Prefer: "wait",
-            },
-            timeout: 120000,
+      // Model tanımı
+      let modelDescription = "";
+
+      // Yaş ve cinsiyet - aynı koşullar kullanılıyor
+      const genderLower = gender ? gender.toLowerCase() : "female";
+      let parsedAgeInt = null;
+
+      // Yaş sayısını çıkar
+      if (age) {
+        if (age.includes("years old")) {
+          const ageMatch = age.match(/(\d+)\s*years old/);
+          if (ageMatch) {
+            parsedAgeInt = parseInt(ageMatch[1]);
           }
-        );
-
-        const replicateData = replicateResponse.data;
-        if (replicateData.status === "succeeded") {
-          const outArr = replicateData.output;
-          enhancedPrompt = Array.isArray(outArr) ? outArr.join("") : outArr;
-          enhancedPrompt = enhancedPrompt.trim();
-          console.log(
-            "🤖 [FALLBACK] Replicate GPT-4o-mini prompt üretimi başarılı"
-          );
-        } else {
-          console.warn(
-            "⚠️ [FALLBACK] Replicate GPT-4o-mini status:",
-            replicateData.status
-          );
+        } else if (age.includes("baby") || age.includes("bebek")) {
+          parsedAgeInt = 1;
+        } else if (age.includes("child") || age.includes("çocuk")) {
+          parsedAgeInt = 5;
+        } else if (age.includes("young") || age.includes("genç")) {
+          parsedAgeInt = 22;
+        } else if (age.includes("adult") || age.includes("yetişkin")) {
+          parsedAgeInt = 45;
         }
-      } catch (repErr) {
-        console.error(
-          "❌ [FALLBACK] Replicate GPT-4o-mini hatası:",
-          repErr.message
-        );
       }
+
+      // Aynı yaş koşulları kullanılıyor
+      if (!isNaN(parsedAgeInt) && parsedAgeInt <= 3) {
+        // Baby/Toddler
+        let ageGroupWord;
+        if (parsedAgeInt <= 1) {
+          ageGroupWord = "baby";
+        } else {
+          ageGroupWord = "toddler";
+        }
+        const genderWord =
+          genderLower === "male" || genderLower === "man" ? "boy" : "girl";
+
+        if (parsedAgeInt <= 1) {
+          modelDescription = `${parsedAgeInt}-year-old ${ageGroupWord} ${genderWord} (infant)`;
+        } else {
+          modelDescription = `${parsedAgeInt} year old ${ageGroupWord} ${genderWord}`;
+        }
+      } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
+        // Child
+        const genderWord =
+          genderLower === "male" || genderLower === "man" ? "boy" : "girl";
+        modelDescription = `${parsedAgeInt} year old child ${genderWord}`;
+      } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
+        // Teenage
+        const genderWord =
+          genderLower === "male" || genderLower === "man" ? "boy" : "girl";
+        modelDescription = `${parsedAgeInt} year old teenage ${genderWord}`;
+      } else {
+        // Yetişkin mantığı
+        if (genderLower === "male" || genderLower === "man") {
+          modelDescription = "male model";
+        } else {
+          modelDescription = "female model";
+        }
+
+        // Eğer yaş bilgisini yetişkinlerde kullanmak istersen
+        if (age && !age.includes("years old")) {
+          modelDescription =
+            genderLower === "male" || genderLower === "man"
+              ? `${age} male model`
+              : `${age} female model`;
+        }
+      }
+
+      // Etnik köken
+      if (ethnicity) {
+        modelDescription += ` ${ethnicity}`;
+      }
+
+      // Ten rengi
+      if (skinTone) {
+        modelDescription += ` with ${skinTone} skin`;
+      }
+
+      // Saç detayları
+      if (hairColor && hairStyle) {
+        modelDescription += `, ${hairColor} ${hairStyle}`;
+      } else if (hairColor) {
+        modelDescription += `, ${hairColor} hair`;
+      } else if (hairStyle) {
+        modelDescription += `, ${hairStyle}`;
+      }
+
+      // Vücut tipi
+      if (bodyShape) {
+        modelDescription += `, ${bodyShape} body shape`;
+      }
+
+      // Poz ve ifade
+      let poseDescription = "";
+      if (pose) poseDescription += `, ${pose}`;
+      if (mood) poseDescription += ` with ${mood} expression`;
+
+      // Aksesuarlar
+      let accessoriesDescription = "";
+      if (accessories) {
+        accessoriesDescription += `, wearing ${accessories}`;
+      }
+
+      // Ortam
+      let environmentDescription = "";
+      if (location) environmentDescription += ` in ${location}`;
+      if (weather) environmentDescription += ` during ${weather} weather`;
+
+      // Kamera açısı
+      let cameraDescription = "";
+      if (perspective) {
+        cameraDescription += `, ${perspective} camera angle`;
+      }
+
+      // Ürün rengi
+      let clothingDescription = "";
+      if (productColor && productColor !== "original") {
+        clothingDescription += `, wearing ${productColor} colored clothing`;
+      }
+
+      // Ana prompt oluştur - Fashion photography odaklı
+      let fallbackPrompt = `Replace the flat-lay garment from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
+
+      // Fashion photography ve kalite gereksinimleri
+      fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve the original garment exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show the identical garment perfectly fitted on the dynamic model for high-end fashion shoots. `;
+
+      // Kıyafet özellikleri (genel)
+      fallbackPrompt += `The garment features high-quality fabric with proper texture, stitching, and construction details. `;
+
+      // Temizlik gereksinimleri
+      fallbackPrompt += `ABSOLUTELY AND IMMEDIATELY REMOVE ALL HANGERS, CLIPS, TAGS, AND FLAT-LAY ARTIFACTS. Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model; avoid any 2D, sticker-like, or paper-like overlay. `;
+
+      // Fizik gereksinimleri
+      fallbackPrompt += `Ensure realistic fabric physics: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
+
+      // Detay koruma
+      fallbackPrompt += `Preserve ALL original garment details: exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Do NOT redesign. `;
+
+      // Pattern entegrasyonu
+      fallbackPrompt += `Integrate prints/patterns correctly over the 3D form: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
+
+      // Final kalite - Fashion photography standartları
+      fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
+
+      console.log(
+        "🔄 [FALLBACK] Generated detailed fallback prompt:",
+        fallbackPrompt
+      );
+
+      enhancedPrompt = fallbackPrompt;
     }
 
     return enhancedPrompt;
@@ -1124,233 +1681,182 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
     // `;
     // }
-    return originalPrompt;
-  }
-}
 
-// Arkaplan silme fonksiyonu
-async function removeBackgroundFromImage(imageUrl, userId) {
-  try {
-    console.log("🖼️ Arkaplan silme işlemi başlatılıyor:", imageUrl);
-
-    // Orijinal fotoğrafın metadata bilgilerini al (orientation için)
-    let originalMetadata = null;
-    let originalImageBuffer = null;
-
-    try {
-      console.log("📐 Orijinal fotoğrafın metadata bilgileri alınıyor...");
-      const originalResponse = await axios.get(imageUrl, {
-        responseType: "arraybuffer",
-        timeout: 30000, // 30 saniye timeout
-      });
-      originalImageBuffer = Buffer.from(originalResponse.data);
-
-      // Sharp ile metadata al
-      originalMetadata = await sharp(originalImageBuffer).metadata();
-      console.log("📐 Orijinal metadata:", {
-        width: originalMetadata.width,
-        height: originalMetadata.height,
-        orientation: originalMetadata.orientation,
-        format: originalMetadata.format,
-      });
-    } catch (metadataError) {
-      console.error("⚠️ Orijinal metadata alınamadı:", metadataError.message);
-    }
-
-    // Replicate API'ye arkaplan silme isteği gönder
-    const backgroundRemovalResponse = await axios.post(
-      "https://api.replicate.com/v1/predictions",
-      {
-        version:
-          "a029dff38972b5fda4ec5d75d7d1cd25aeff621d2cf4946a41055d7db66b80bc",
-        input: {
-          image: imageUrl,
-          format: "png",
-          reverse: false,
-          threshold: 0,
-          background_type: "white",
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-      }
+    // Fallback prompt - detaylı kıyafet odaklı format
+    console.log(
+      "🔄 [FALLBACK] Enhanced prompt oluşturulamadı, detaylı fallback prompt kullanılıyor"
     );
 
-    const initialResult = backgroundRemovalResponse.data;
-    console.log("🖼️ Arkaplan silme başlangıç yanıtı:", initialResult);
+    // Settings'ten bilgileri çıkar
+    const location = settings?.location;
+    const weather = settings?.weather;
+    const age = settings?.age;
+    const gender = settings?.gender;
+    const productColor = settings?.productColor;
+    const mood = settings?.mood;
+    const perspective = settings?.perspective;
+    const accessories = settings?.accessories;
+    const skinTone = settings?.skinTone;
+    const hairStyle = settings?.hairStyle;
+    const hairColor = settings?.hairColor;
+    const bodyShape = settings?.bodyShape;
+    const pose = settings?.pose;
+    const ethnicity = settings?.ethnicity;
 
-    if (!initialResult.id) {
-      console.error(
-        "❌ Arkaplan silme prediction ID alınamadı:",
-        initialResult
-      );
-      throw new Error("Background removal prediction başlatılamadı");
+    // Model tanımı
+    let modelDescription = "";
+
+    // Yaş ve cinsiyet - aynı koşullar kullanılıyor
+    const genderLower = gender ? gender.toLowerCase() : "female";
+    let parsedAgeInt = null;
+
+    // Yaş sayısını çıkar
+    if (age) {
+      if (age.includes("years old")) {
+        const ageMatch = age.match(/(\d+)\s*years old/);
+        if (ageMatch) {
+          parsedAgeInt = parseInt(ageMatch[1]);
+        }
+      } else if (age.includes("baby") || age.includes("bebek")) {
+        parsedAgeInt = 1;
+      } else if (age.includes("child") || age.includes("çocuk")) {
+        parsedAgeInt = 5;
+      } else if (age.includes("young") || age.includes("genç")) {
+        parsedAgeInt = 22;
+      } else if (age.includes("adult") || age.includes("yetişkin")) {
+        parsedAgeInt = 45;
+      }
     }
 
-    // Prediction durumunu polling ile takip et
-    console.log("🔄 Arkaplan silme işlemi polling başlatılıyor...");
-    const finalResult = await pollReplicateResult(initialResult.id, 30); // 30 deneme (1 dakika)
+    // Aynı yaş koşulları kullanılıyor
+    if (!isNaN(parsedAgeInt) && parsedAgeInt <= 3) {
+      // Baby/Toddler
+      let ageGroupWord;
+      if (parsedAgeInt <= 1) {
+        ageGroupWord = "baby";
+      } else {
+        ageGroupWord = "toddler";
+      }
+      const genderWord =
+        genderLower === "male" || genderLower === "man" ? "boy" : "girl";
 
-    if (finalResult.status === "succeeded" && finalResult.output) {
-      console.log("✅ Arkaplan silme işlemi başarılı:", finalResult.output);
-
-      // Arkaplanı silinmiş resmi indir ve orientation düzeltmesi yap
-      let processedImageUrl;
-
-      try {
-        console.log(
-          "🔄 Arkaplanı silinmiş resim orientation kontrolü yapılıyor..."
-        );
-
-        // Arkaplanı silinmiş resmi indir
-        const processedResponse = await axios.get(finalResult.output, {
-          responseType: "arraybuffer",
-          timeout: 30000, // 30 saniye timeout
-        });
-        let processedImageBuffer = Buffer.from(processedResponse.data);
-
-        // Eğer orijinal metadata varsa orientation kontrolü yap
-        if (originalMetadata) {
-          const processedMetadata = await sharp(
-            processedImageBuffer
-          ).metadata();
-          console.log("📐 İşlenmiş resim metadata:", {
-            width: processedMetadata.width,
-            height: processedMetadata.height,
-            orientation: processedMetadata.orientation,
-            format: processedMetadata.format,
-          });
-
-          // Orientation farkını kontrol et
-          const originalOrientation = originalMetadata.orientation || 1;
-          const processedOrientation = processedMetadata.orientation || 1;
-
-          // Boyut oranlarını karşılaştır (dikey/yatay değişim kontrolü)
-          const originalIsPortrait =
-            originalMetadata.height > originalMetadata.width;
-          const processedIsPortrait =
-            processedMetadata.height > processedMetadata.width;
-
-          console.log("📐 Orientation karşılaştırması:", {
-            originalOrientation,
-            processedOrientation,
-            originalIsPortrait,
-            processedIsPortrait,
-            orientationChanged: originalOrientation !== processedOrientation,
-            aspectRatioChanged: originalIsPortrait !== processedIsPortrait,
-          });
-
-          // Eğer orientation farklıysa veya aspect ratio değiştiyse düzelt
-          if (
-            originalOrientation !== processedOrientation ||
-            originalIsPortrait !== processedIsPortrait
-          ) {
-            console.log("🔄 Orientation düzeltmesi yapılıyor...");
-
-            let sharpInstance = sharp(processedImageBuffer);
-
-            // Orijinal orientation'ı uygula
-            if (originalOrientation && originalOrientation !== 1) {
-              // EXIF orientation değerlerine göre döndürme
-              switch (originalOrientation) {
-                case 2:
-                  sharpInstance = sharpInstance.flop();
-                  break;
-                case 3:
-                  sharpInstance = sharpInstance.rotate(180);
-                  break;
-                case 4:
-                  sharpInstance = sharpInstance.flip();
-                  break;
-                case 5:
-                  sharpInstance = sharpInstance.rotate(270).flop();
-                  break;
-                case 6:
-                  sharpInstance = sharpInstance.rotate(90);
-                  break;
-                case 7:
-                  sharpInstance = sharpInstance.rotate(90).flop();
-                  break;
-                case 8:
-                  sharpInstance = sharpInstance.rotate(270);
-                  break;
-                default:
-                  // Eğer aspect ratio değiştiyse basit döndürme yap
-                  if (originalIsPortrait && !processedIsPortrait) {
-                    sharpInstance = sharpInstance.rotate(90);
-                  } else if (!originalIsPortrait && processedIsPortrait) {
-                    sharpInstance = sharpInstance.rotate(-90);
-                  }
-              }
-            } else if (originalIsPortrait !== processedIsPortrait) {
-              // EXIF bilgisi yoksa sadece aspect ratio kontrolü yap
-              if (originalIsPortrait && !processedIsPortrait) {
-                console.log("🔄 Yataydan dikeye döndürülüyor...");
-                sharpInstance = sharpInstance.rotate(90);
-              } else if (!originalIsPortrait && processedIsPortrait) {
-                console.log("🔄 Dikeyden yataya döndürülüyor...");
-                sharpInstance = sharpInstance.rotate(-90);
-              }
-            }
-
-            // Düzeltilmiş resmi buffer'a çevir
-            processedImageBuffer = await sharpInstance
-              .png({ quality: 100, progressive: true })
-              .toBuffer();
-
-            const correctedMetadata = await sharp(
-              processedImageBuffer
-            ).metadata();
-            console.log("✅ Orientation düzeltmesi tamamlandı:", {
-              width: correctedMetadata.width,
-              height: correctedMetadata.height,
-              orientation: correctedMetadata.orientation,
-            });
-          } else {
-            console.log(
-              "✅ Orientation düzeltmesi gerekmiyor, resim doğru pozisyonda"
-            );
-          }
-        }
-
-        // Düzeltilmiş resmi Supabase'e yükle
-        processedImageUrl = await uploadProcessedImageBufferToSupabase(
-          processedImageBuffer,
-          userId,
-          "background_removed"
-        );
-      } catch (orientationError) {
-        console.error(
-          "❌ Orientation düzeltme hatası:",
-          orientationError.message
-        );
-        console.log(
-          "⚠️ Orientation düzeltmesi başarısız, orijinal işlenmiş resim kullanılacak"
-        );
-
-        // Fallback: Orijinal işlenmiş resmi direkt yükle
-        processedImageUrl = await uploadProcessedImageToSupabase(
-          finalResult.output,
-          userId,
-          "background_removed"
-        );
+      if (parsedAgeInt <= 1) {
+        modelDescription = `${parsedAgeInt}-year-old ${ageGroupWord} ${genderWord} (infant)`;
+      } else {
+        modelDescription = `${parsedAgeInt} year old ${ageGroupWord} ${genderWord}`;
+      }
+    } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
+      // Child
+      const genderWord =
+        genderLower === "male" || genderLower === "man" ? "boy" : "girl";
+      modelDescription = `${parsedAgeInt} year old child ${genderWord}`;
+    } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
+      // Teenage
+      const genderWord =
+        genderLower === "male" || genderLower === "man" ? "boy" : "girl";
+      modelDescription = `${parsedAgeInt} year old teenage ${genderWord}`;
+    } else {
+      // Yetişkin mantığı
+      if (genderLower === "male" || genderLower === "man") {
+        modelDescription = "male model";
+      } else {
+        modelDescription = "female model";
       }
 
-      return processedImageUrl;
-    } else {
-      console.error("❌ Arkaplan silme işlemi başarısız:", finalResult);
-      throw new Error(finalResult.error || "Background removal failed");
+      // Eğer yaş bilgisini yetişkinlerde kullanmak istersen
+      if (age && !age.includes("years old")) {
+        modelDescription =
+          genderLower === "male" || genderLower === "man"
+            ? `${age} male model`
+            : `${age} female model`;
+      }
     }
-  } catch (error) {
-    console.error("❌ Arkaplan silme hatası:", error);
-    // Hata durumunda orijinal resmi döndür
-    console.log("⚠️ Arkaplan silme başarısız, orijinal resim kullanılacak");
-    return imageUrl;
+
+    // Etnik köken
+    if (ethnicity) {
+      modelDescription += ` ${ethnicity}`;
+    }
+
+    // Ten rengi
+    if (skinTone) {
+      modelDescription += ` with ${skinTone} skin`;
+    }
+
+    // Saç detayları
+    if (hairColor && hairStyle) {
+      modelDescription += `, ${hairColor} ${hairStyle}`;
+    } else if (hairColor) {
+      modelDescription += `, ${hairColor} hair`;
+    } else if (hairStyle) {
+      modelDescription += `, ${hairStyle}`;
+    }
+
+    // Vücut tipi
+    if (bodyShape) {
+      modelDescription += `, ${bodyShape} body shape`;
+    }
+
+    // Poz ve ifade
+    let poseDescription = "";
+    if (pose) poseDescription += `, ${pose}`;
+    if (mood) poseDescription += ` with ${mood} expression`;
+
+    // Aksesuarlar
+    let accessoriesDescription = "";
+    if (accessories) {
+      accessoriesDescription += `, wearing ${accessories}`;
+    }
+
+    // Ortam
+    let environmentDescription = "";
+    if (location) environmentDescription += ` in ${location}`;
+    if (weather) environmentDescription += ` during ${weather} weather`;
+
+    // Kamera açısı
+    let cameraDescription = "";
+    if (perspective) {
+      cameraDescription += `, ${perspective} camera angle`;
+    }
+
+    // Ürün rengi
+    let clothingDescription = "";
+    if (productColor && productColor !== "original") {
+      clothingDescription += `, wearing ${productColor} colored clothing`;
+    }
+
+    // Ana prompt oluştur
+    let fallbackPrompt = `Replace the flat-lay garment from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
+
+    // Fashion photography ve kalite gereksinimleri
+    fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve the original garment exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show the identical garment perfectly fitted on the dynamic model for high-end fashion shoots. `;
+
+    // Kıyafet özellikleri (genel)
+    fallbackPrompt += `The garment features high-quality fabric with proper texture, stitching, and construction details. `;
+
+    // Temizlik gereksinimleri
+    fallbackPrompt += `ABSOLUTELY AND IMMEDIATELY REMOVE ALL HANGERS, CLIPS, TAGS, AND FLAT-LAY ARTIFACTS. Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model; avoid any 2D, sticker-like, or paper-like overlay. `;
+
+    // Fizik gereksinimleri
+    fallbackPrompt += `Ensure realistic fabric physics: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
+
+    // Detay koruma
+    fallbackPrompt += `Preserve ALL original garment details: exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Do NOT redesign. `;
+
+    // Pattern entegrasyonu
+    fallbackPrompt += `Integrate prints/patterns correctly over the 3D form: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
+
+    // Final kalite - Fashion photography standartları
+    fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
+
+    console.log(
+      "🔄 [FALLBACK] Generated detailed fallback prompt:",
+      fallbackPrompt
+    );
+    return fallbackPrompt;
   }
 }
+
+// Arkaplan silme fonksiyonu kaldırıldı - artık kullanılmıyor
 
 // İşlenmiş resmi Supabase'e yükleyen fonksiyon
 async function uploadProcessedImageToSupabase(imageUrl, userId, processType) {
@@ -1466,287 +1972,228 @@ async function uploadProcessedImageBufferToSupabase(
   }
 }
 
-// Sharp ile yerel ControlNet Canny çıkarma fonksiyonu (API'siz)
-// async function generateLocalControlNetCanny(imageUrl, userId) {
-//   try {
-//     console.log(
-//       "🎨 Yerel ControlNet Canny çıkarma işlemi başlatılıyor:",
-//       imageUrl
-//     );
-
-//     // Resmi indir
-//     const imageResponse = await axios.get(imageUrl, {
-//       responseType: "arraybuffer",
-//       timeout: 15000,
-//     });
-//     const imageBuffer = Buffer.from(imageResponse.data);
-
-//     console.log("📐 Resim boyutları alınıyor ve edge detection yapılıyor...");
-
-//     // Sharp ile edge detection (Canny benzeri)
-//     const cannyBuffer = await sharp(imageBuffer)
-//       .greyscale() // Önce gri tonlama
-//       .normalize() // Kontrast artırma
-//       .convolve({
-//         width: 3,
-//         height: 3,
-//         kernel: [-1, -1, -1, -1, 8, -1, -1, -1, -1], // Edge detection kernel
-//       })
-//       .threshold(128) // Eşikleme (siyah-beyaz)
-//       .negate() // Renkleri ters çevir (beyaz kenarlar için)
-//       .png()
-//       .toBuffer();
-
-//     console.log("✅ Yerel edge detection tamamlandı");
-
-//     // İşlenmiş resmi Supabase'e yükle
-//     const timestamp = Date.now();
-//     const randomId = require("uuid").v4().substring(0, 8);
-//     const fileName = `local_canny_${
-//       userId || "anonymous"
-//     }_${timestamp}_${randomId}.png`;
-
-//     const { data, error } = await supabase.storage
-//       .from("reference")
-//       .upload(fileName, cannyBuffer, {
-//         contentType: "image/png",
-//         cacheControl: "3600",
-//         upsert: false,
-//       });
-
-//     if (error) {
-//       console.error("❌ Yerel Canny resmi Supabase'e yüklenemedi:", error);
-//       throw new Error(`Supabase upload error: ${error.message}`);
-//     }
-
-//     // Public URL al
-//     const { data: urlData } = supabase.storage
-//       .from("reference")
-//       .getPublicUrl(fileName);
-
-//     console.log("✅ Yerel ControlNet Canny URL'si:", urlData.publicUrl);
-//     return urlData.publicUrl;
-//   } catch (error) {
-//     console.error("❌ Yerel ControlNet Canny hatası:", error);
-//     throw new Error(`Local ControlNet Canny failed: ${error.message}`);
-//   }
-// }
-
-// İki resmi yan yana birleştiren fonksiyon (orijinal + canny)
-// async function combineTwoImagesWithBlackLine(
-//   originalImageUrl,
-//   cannyImageUrl,
-//   userId
-// ) {
-//   try {
-//     console.log("🎨 İki resim yan yana birleştiriliyor (siyah çizgi ile)...");
-//     console.log("🖼️ Orijinal resim:", originalImageUrl);
-//     console.log("🎨 Canny resim:", cannyImageUrl);
-
-//     const loadedImages = [];
-
-//     // Orijinal resmi yükle
-//     try {
-//       const originalResponse = await axios.get(originalImageUrl, {
-//         responseType: "arraybuffer",
-//         timeout: 15000,
-//       });
-//       const originalBuffer = Buffer.from(originalResponse.data);
-
-//       const processedOriginalBuffer = await sharp(originalBuffer)
-//         .jpeg({ quality: 100, progressive: true, mozjpeg: true })
-//         .toBuffer();
-
-//       const originalImg = await loadImage(processedOriginalBuffer);
-//       loadedImages.push({ img: originalImg, type: "original" });
-
-//       console.log(
-//         `✅ Orijinal resim yüklendi: ${originalImg.width}x${originalImg.height}`
-//       );
-//     } catch (originalError) {
-//       console.error(
-//         "❌ Orijinal resim yüklenirken hata:",
-//         originalError.message
-//       );
-//       throw new Error("Orijinal resim yüklenemedi");
-//     }
-
-//     // Canny resmi yükle
-//     if (cannyImageUrl) {
-//       try {
-//         const cannyResponse = await axios.get(cannyImageUrl, {
-//           responseType: "arraybuffer",
-//           timeout: 15000,
-//         });
-//         const cannyBuffer = Buffer.from(cannyResponse.data);
-
-//         const processedCannyBuffer = await sharp(cannyBuffer)
-//           .jpeg({ quality: 100, progressive: true, mozjpeg: true })
-//           .toBuffer();
-
-//         const cannyImg = await loadImage(processedCannyBuffer);
-//         loadedImages.push({ img: cannyImg, type: "canny" });
-
-//         console.log(
-//           `✅ Canny resim yüklendi: ${cannyImg.width}x${cannyImg.height}`
-//         );
-//       } catch (cannyError) {
-//         console.error("❌ Canny resim yüklenirken hata:", cannyError.message);
-//         // Canny yüklenemezse orijinal resmi tekrar kullan
-//         loadedImages.push({ img: loadedImages[0].img, type: "canny_fallback" });
-//       }
-//     } else {
-//       // Canny yoksa orijinal resmi tekrar kullan
-//       loadedImages.push({ img: loadedImages[0].img, type: "canny_fallback" });
-//     }
-
-//     // Aynı yüksekliğe getir
-//     const targetHeight = Math.min(
-//       ...loadedImages.map((item) => item.img.height)
-//     );
-
-//     const originalScaledWidth =
-//       (loadedImages[0].img.width * targetHeight) / loadedImages[0].img.height;
-//     const cannyScaledWidth =
-//       (loadedImages[1].img.width * targetHeight) / loadedImages[1].img.height;
-
-//     const blackLineWidth = 4; // Siyah çizgi kalınlığı
-//     const canvasWidth = originalScaledWidth + cannyScaledWidth + blackLineWidth;
-//     const canvasHeight = targetHeight;
-
-//     console.log(
-//       `📏 İki resimli birleştirilmiş canvas boyutu: ${canvasWidth}x${canvasHeight}`
-//     );
-
-//     // Canvas oluştur
-//     const canvas = createCanvas(canvasWidth, canvasHeight);
-//     const ctx = canvas.getContext("2d");
-
-//     // Canvas kalite ayarları
-//     ctx.imageSmoothingEnabled = true;
-//     ctx.imageSmoothingQuality = "high";
-//     ctx.patternQuality = "best";
-//     ctx.textRenderingOptimization = "optimizeQuality";
-
-//     // Beyaz arka plan
-//     ctx.fillStyle = "white";
-//     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-//     // 1. Orijinal resmi sol tarafa yerleştir
-//     ctx.drawImage(loadedImages[0].img, 0, 0, originalScaledWidth, targetHeight);
-//     console.log(
-//       `🖼️ Orijinal resim yerleştirildi: (0, 0) - ${originalScaledWidth}x${targetHeight}`
-//     );
-
-//     // Siyah çizgi
-//     ctx.fillStyle = "black";
-//     ctx.fillRect(originalScaledWidth, 0, blackLineWidth, targetHeight);
-//     console.log(
-//       `⚫ Siyah çizgi çizildi: (${originalScaledWidth}, 0) - ${blackLineWidth}x${targetHeight}`
-//     );
-
-//     // 2. Canny resmi sağ tarafa yerleştir
-//     ctx.drawImage(
-//       loadedImages[1].img,
-//       originalScaledWidth + blackLineWidth,
-//       0,
-//       cannyScaledWidth,
-//       targetHeight
-//     );
-//     console.log(
-//       `🎨 Canny resim yerleştirildi: (${
-//         originalScaledWidth + blackLineWidth
-//       }, 0) - ${cannyScaledWidth}x${targetHeight}`
-//     );
-
-//     // Canvas'ı buffer'a çevir
-//     const buffer = canvas.toBuffer("image/png");
-//     console.log(
-//       "📊 İki resimli birleştirilmiş resim boyutu:",
-//       buffer.length,
-//       "bytes"
-//     );
-
-//     // Supabase'e yükle
-//     const timestamp = Date.now();
-//     const randomId = uuidv4().substring(0, 8);
-//     const fileName = `combined_canny_controlnet_${
-//       userId || "anonymous"
-//     }_${timestamp}_${randomId}.png`;
-
-//     const { data, error } = await supabase.storage
-//       .from("reference")
-//       .upload(fileName, buffer, {
-//         contentType: "image/png",
-//         cacheControl: "3600",
-//         upsert: false,
-//       });
-
-//     if (error) {
-//       console.error(
-//         "❌ İki resimli birleştirilmiş resim Supabase'e yüklenemedi:",
-//         error
-//       );
-//       throw new Error(`Supabase upload error: ${error.message}`);
-//     }
-
-//     const { data: urlData } = supabase.storage
-//       .from("reference")
-//       .getPublicUrl(fileName);
-
-//     console.log(
-//       "✅ 🎉 İki resimli ControlNet birleştirilmiş resim URL'si:",
-//       urlData.publicUrl
-//     );
-//     return urlData.publicUrl;
-//   } catch (error) {
-//     console.error("❌ İki resimli ControlNet birleştirme hatası:", error);
-//     throw error;
-//   }
-// }
-
-// Replicate prediction durumunu kontrol eden fonksiyon
-// Flux-kontext-dev ile alternatif API çağrısı
-async function callFluxKontextDevAPI(
+async function callGeminiImageAPI(
   enhancedPrompt,
   inputImageUrl,
-  aspectRatio
+  aspectRatio,
+  userId
 ) {
   try {
-    console.log("🔄 Flux-kontext-dev API'ye geçiş yapılıyor...");
+    console.log("🔄 Gemini 2.5 Flash Image Preview API'ye geçiş yapılıyor...");
 
-    const seed = Math.floor(Math.random() * 2 ** 32);
-    console.log(`🎲 Alternatif API için random seed: ${seed}`);
+    const ai = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
+    });
 
-    const response = await axios.post(
-      "https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-dev/predictions",
+    const config = {
+      responseModalities: ["IMAGE", "TEXT"],
+    };
+
+    const model = "gemini-2.5-flash-image-preview";
+
+    // Input image'ı base64'e çevir
+    let inputImageBase64;
+    try {
+      const imageResponse = await axios.get(inputImageUrl, {
+        responseType: "arraybuffer",
+        timeout: 15000,
+      });
+      inputImageBase64 = Buffer.from(imageResponse.data).toString("base64");
+    } catch (imageError) {
+      console.error("❌ Input image download hatası:", imageError.message);
+      throw new Error("Input image indirilemedi");
+    }
+
+    const contents = [
       {
-        input: {
-          prompt: enhancedPrompt,
-          go_fast: false,
-          guidance: 2.5,
-          input_image: inputImageUrl,
-          aspect_ratio: aspectRatio,
-          output_format: "jpg",
-          output_quality: 100,
-          num_inference_steps: 30,
-          disable_safety_checker: true,
-        },
+        role: "user",
+        parts: [
+          {
+            text: enhancedPrompt,
+          },
+          {
+            inlineData: {
+              mimeType: "image/jpeg",
+              data: inputImageBase64,
+            },
+          },
+        ],
       },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-          "Content-Type": "application/json",
-          Prefer: "wait",
-        },
-        timeout: 300000, // 5 dakika timeout (flux-kontext-dev daha uzun sürebilir)
-      }
+    ];
+
+    console.log(
+      "🚀 Gemini 2.5 Flash Image Preview fallback API çağrısı yapılıyor..."
+    );
+    console.log("📋 Fallback Model:", model);
+    console.log("📋 Fallback Contents structure:", {
+      role: contents[0].role,
+      partsCount: contents[0].parts.length,
+      hasText: !!contents[0].parts[0].text,
+      hasImage: !!contents[0].parts[1]?.inlineData,
+      imageMimeType: contents[0].parts[1]?.inlineData?.mimeType,
+      imageDataLength: contents[0].parts[1]?.inlineData?.data?.length || 0,
+    });
+
+    // Timeout wrapper for fallback
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error("Gemini Fallback API timeout (60s)"));
+      }, 60000); // 60 saniye timeout
+    });
+
+    // Gemini API çağrısı (streaming) - fallback
+    const response = await ai.models.generateContentStream({
+      model,
+      config,
+      contents,
+    });
+
+    let generatedImageBuffer = null;
+    let hasImageResponse = false;
+    let fileIndex = 0;
+
+    console.log(
+      "📡 Gemini fallback response stream başlatıldı, chunk'lar bekleniyor..."
     );
 
-    console.log("✅ Flux-kontext-dev API başarılı:", response.data);
-    return response.data;
+    for await (const chunk of response) {
+      if (
+        !chunk.candidates ||
+        !chunk.candidates[0].content ||
+        !chunk.candidates[0].content.parts
+      ) {
+        continue;
+      }
+
+      if (chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData) {
+        const inlineData = chunk.candidates[0].content.parts[0].inlineData;
+        const fileExtension = mime.getExtension(inlineData.mimeType || "");
+        generatedImageBuffer = Buffer.from(inlineData.data || "", "base64");
+        hasImageResponse = true;
+        console.log(
+          `✅ Gemini fallback resim sonucu alındı (${inlineData.mimeType})`
+        );
+        break;
+      } else {
+        // Text response varsa logla
+        if (chunk.text) {
+          console.log("📝 Gemini fallback text response:", chunk.text);
+        }
+      }
+    }
+
+    // Response yapısını incele
+    if (response.candidates && response.candidates.length > 0) {
+      const candidate = response.candidates[0];
+      console.log("🔍 Fallback Candidate analizi:", {
+        hasContent: !!candidate.content,
+        hasParts: !!candidate.content?.parts,
+        partsLength: candidate.content?.parts?.length || 0,
+        finishReason: candidate.finishReason,
+        safetyRatings: candidate.safetyRatings?.length || 0,
+      });
+
+      // Finish reason kontrolü
+      if (candidate.finishReason) {
+        console.log(`🏁 Fallback Finish reason:`, candidate.finishReason);
+        if (candidate.finishReason === "SAFETY") {
+          console.error(
+            "❌ Gemini fallback safety filter tarafından bloke edildi"
+          );
+          throw new Error(
+            "Fallback content safety filter tarafından reddedildi"
+          );
+        }
+      }
+
+      if (candidate.content && candidate.content.parts) {
+        candidate.content.parts.forEach((part, index) => {
+          console.log(`📦 Fallback Part ${index}:`, {
+            hasText: !!part.text,
+            hasInlineData: !!part.inlineData,
+            mimeType: part.inlineData?.mimeType,
+            dataLength: part.inlineData?.data?.length || 0,
+          });
+
+          // Text content varsa logla
+          if (part.text) {
+            console.log(`📝 Fallback Part ${index} text:`, part.text);
+          }
+
+          // InlineData varsa resim verisi
+          if (part.inlineData) {
+            console.log(`🖼️ Fallback Part ${index}: InlineData bulundu!`, {
+              mimeType: part.inlineData.mimeType,
+              dataLength: part.inlineData.data?.length || 0,
+            });
+
+            generatedImageBuffer = Buffer.from(
+              part.inlineData.data || "",
+              "base64"
+            );
+            hasImageResponse = true;
+            console.log("✅ Gemini fallback resim verisi alındı");
+          }
+        });
+      }
+    }
+
+    // Alternatif olarak response.text kontrol et (belki metin olarak döndü)
+    if (!hasImageResponse && response.text) {
+      console.log("📝 Fallback Response text alındı:", response.text);
+      // Bu durumda text-to-image işlemi yapmak gerekebilir
+      throw new Error("Gemini fallback sadece text döndürdü, image bekleniyor");
+    }
+
+    if (!hasImageResponse || !generatedImageBuffer) {
+      throw new Error(
+        `Gemini fallback'dan görsel sonucu alınamadı. Response yapısı beklenmedik.`
+      );
+    }
+
+    // Buffer'ı Supabase'e yükle
+    const timestamp = Date.now();
+    const randomId = uuidv4().substring(0, 8);
+    const fileName = `temp_${timestamp}_gemini_fallback_${
+      userId || "anonymous"
+    }_${randomId}.jpg`;
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("reference")
+      .upload(fileName, generatedImageBuffer, {
+        contentType: "image/jpeg",
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error(
+        "❌ Gemini fallback sonuç resmi Supabase'e yüklenemedi:",
+        uploadError
+      );
+      throw new Error(`Supabase upload error: ${uploadError.message}`);
+    }
+
+    // Public URL al
+    const { data: urlData } = supabase.storage
+      .from("reference")
+      .getPublicUrl(fileName);
+
+    console.log(
+      "✅ Gemini 2.5 Flash Image Preview fallback API başarılı:",
+      urlData.publicUrl
+    );
+
+    return {
+      id: `gemini_fallback_${timestamp}`,
+      status: "succeeded",
+      output: urlData.publicUrl,
+    };
   } catch (error) {
-    console.error("❌ Flux-kontext-dev API hatası:", error.message);
+    console.error(
+      "❌ Gemini 2.5 Flash Image Preview fallback API hatası:",
+      error.message
+    );
     throw error;
   }
 }
@@ -1764,7 +2211,7 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
             "Content-Type": "application/json",
           },
           responseType: "json",
-          timeout: 30000, // 30 saniye timeout polling için
+          timeout: 15000, // 30s'den 15s'ye düşürüldü polling için
         }
       );
 
@@ -1793,16 +2240,20 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
           );
         }
 
-        // Sensitive content hatasını kontrol et
+        // Content moderation ve model hatalarını kontrol et
         if (
           result.error &&
           typeof result.error === "string" &&
           (result.error.includes("flagged as sensitive") ||
             result.error.includes("E005") ||
-            result.error.includes("sensitive content"))
+            result.error.includes("sensitive content") ||
+            result.error.includes("Content moderated") ||
+            result.error.includes("ModelError") ||
+            result.error.includes("retrying once"))
         ) {
           console.error(
-            "❌ Sensitive content hatası tespit edildi, flux-kontext-dev'e geçiş yapılacak"
+            "❌ Content moderation/model hatası tespit edildi, Gemini 2.5 Flash Image Preview'e geçiş yapılacak:",
+            result.error
           );
           throw new Error("SENSITIVE_CONTENT_FLUX_FALLBACK");
         }
@@ -1824,7 +2275,7 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
       // Sensitive content hatasını özel olarak handle et
       if (error.message === "SENSITIVE_CONTENT_FLUX_FALLBACK") {
         console.error(
-          "❌ Sensitive content hatası, flux-kontext-dev'e geçiş için polling durduruluyor"
+          "❌ Sensitive content hatası, Gemini 2.5 Flash Image Preview'e geçiş için polling durduruluyor"
         );
         throw error; // Hata mesajını olduğu gibi fırlat
       }
@@ -1868,7 +2319,9 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
 async function combineImagesOnCanvas(
   images,
   userId,
-  isMultipleProducts = false
+  isMultipleProducts = false,
+  aspectRatio = "9:16",
+  gridLayoutInfo = null // Grid layout bilgisi
 ) {
   try {
     console.log(
@@ -1877,10 +2330,53 @@ async function combineImagesOnCanvas(
       "resim"
     );
     console.log("🛍️ Çoklu ürün modu:", isMultipleProducts);
+    console.log("📐 Hedef aspect ratio:", aspectRatio);
+    console.log("🛍️ Grid Layout bilgisi:", gridLayoutInfo);
+
+    // Aspect ratio'yu parse et
+    const [ratioWidth, ratioHeight] = aspectRatio.split(":").map(Number);
+    const targetAspectRatio = ratioWidth / ratioHeight;
+    console.log("📐 Hedef aspect ratio değeri:", targetAspectRatio);
+
+    // 🛍️ GRID LAYOUT MODU: Kombin için özel canvas boyutları
+    let targetCanvasWidth, targetCanvasHeight;
+
+    if (gridLayoutInfo && gridLayoutInfo.cols && gridLayoutInfo.rows) {
+      // Grid layout modu - 1:1 kare format (her hücre 400x400)
+      const cellSize = 400;
+      targetCanvasWidth = gridLayoutInfo.cols * cellSize;
+      targetCanvasHeight = gridLayoutInfo.rows * cellSize;
+
+      console.log(
+        `🛍️ [GRID] Kombin modu canvas boyutu: ${targetCanvasWidth}x${targetCanvasHeight}`
+      );
+      console.log(
+        `🛍️ [GRID] Grid düzeni: ${gridLayoutInfo.cols}x${gridLayoutInfo.rows}, hücre boyutu: ${cellSize}px`
+      );
+    } else {
+      // Normal mod - aspect ratio'ya göre boyutlandır
+      if (targetAspectRatio > 1) {
+        // Yatay format (16:9, 4:3 gibi)
+        targetCanvasWidth = 1536; // Yüksek kalite
+        targetCanvasHeight = Math.round(targetCanvasWidth / targetAspectRatio);
+      } else {
+        // Dikey format (9:16, 3:4 gibi) veya kare (1:1)
+        targetCanvasHeight = 1536; // Yüksek kalite
+        targetCanvasWidth = Math.round(targetCanvasHeight * targetAspectRatio);
+      }
+
+      // Minimum boyut garantisi
+      if (targetCanvasWidth < 1024) targetCanvasWidth = 1024;
+      if (targetCanvasHeight < 1024) targetCanvasHeight = 1024;
+    }
+
+    console.log(
+      `📐 Hedef canvas boyutu: ${targetCanvasWidth}x${targetCanvasHeight}`
+    );
 
     // Canvas boyutları
-    let canvasWidth = 0;
-    let canvasHeight = 0;
+    let canvasWidth = targetCanvasWidth;
+    let canvasHeight = targetCanvasHeight;
     const loadedImages = [];
 
     // Tüm resimleri yükle ve boyutları hesapla
@@ -1901,7 +2397,8 @@ async function combineImagesOnCanvas(
           );
           const response = await axios.get(imgData.uri, {
             responseType: "arraybuffer",
-            timeout: 30000, // 30 saniye timeout
+            timeout: 15000, // 30s'den 15s'ye düşürüldü
+            maxRedirects: 3,
           });
           imageBuffer = Buffer.from(response.data);
         } else if (imgData.uri.startsWith("file://")) {
@@ -1910,10 +2407,14 @@ async function combineImagesOnCanvas(
           throw new Error(`Desteklenmeyen URI formatı: ${imgData.uri}`);
         }
 
-        // Sharp ile resmi önce işle (format uyumluluk için)
-        console.log(`🔄 Resim ${i + 1}: Sharp ile preprocessing yapılıyor...`);
+        // Sharp ile resmi önce işle (yüksek kalite korunarak)
+        console.log(
+          `🔄 Resim ${
+            i + 1
+          }: Sharp ile yüksek kalite preprocessing yapılıyor...`
+        );
         const processedBuffer = await sharp(imageBuffer)
-          .jpeg({ quality: 90 }) // JPEG formatına çevir
+          .jpeg({ quality: 95 }) // Kalite artırıldı - ratio canvas için
           .toBuffer();
 
         // Metadata'yı al
@@ -1957,81 +2458,245 @@ async function combineImagesOnCanvas(
     // Canvas değişkenini tanımla
     let canvas;
 
-    if (isMultipleProducts) {
-      // Çoklu ürün modu: Yan yana birleştir
-      console.log("🛍️ Çoklu ürün modu: Resimler yan yana birleştirilecek");
+    // Canvas oluştur - ratio'ya göre sabit boyut
+    canvas = createCanvas(canvasWidth, canvasHeight);
+    const ctx = canvas.getContext("2d");
 
-      // Her resmi aynı yüksekliğe getir
-      const targetHeight = Math.min(...loadedImages.map((img) => img.height));
+    // Anti-aliasing ve kalite ayarları
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
 
-      // Toplam genişlik ve sabit yükseklik hesapla
-      canvasWidth = loadedImages.reduce((total, img) => {
-        const scaledWidth = (img.width * targetHeight) / img.height;
-        return total + scaledWidth;
-      }, 0);
-      canvasHeight = targetHeight;
+    // Beyaz arka plan
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-      console.log(
-        `📏 Çoklu ürün canvas boyutu: ${canvasWidth}x${canvasHeight}`
-      );
+    if (gridLayoutInfo && gridLayoutInfo.cols && gridLayoutInfo.rows) {
+      // 🛍️ GRID LAYOUT MODU: Kombin resimleri kare grid'e yerleştir
+      console.log("🛍️ Grid Layout modu: Resimler kare grid'e yerleştirilecek");
 
-      // Canvas oluştur
-      canvas = createCanvas(canvasWidth, canvasHeight);
-      const ctx = canvas.getContext("2d");
+      const cellSize = 400; // Her hücre 400x400
 
-      // Beyaz arka plan
-      ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      // Grid çizgi çizme (debug için) - ince gri çizgiler
+      ctx.strokeStyle = "#f0f0f0";
+      ctx.lineWidth = 1;
 
-      // Resimleri yan yana yerleştir
-      let currentX = 0;
+      // Dikey çizgiler
+      for (let i = 1; i < gridLayoutInfo.cols; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * cellSize, 0);
+        ctx.lineTo(i * cellSize, canvasHeight);
+        ctx.stroke();
+      }
+
+      // Yatay çizgiler
+      for (let i = 1; i < gridLayoutInfo.rows; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, i * cellSize);
+        ctx.lineTo(canvasWidth, i * cellSize);
+        ctx.stroke();
+      }
+
+      // Resimleri grid pozisyonlarına yerleştir
       for (let i = 0; i < loadedImages.length; i++) {
         const img = loadedImages[i];
-        const scaledWidth = (img.width * targetHeight) / img.height;
+        const imageData = images[i]; // Orijinal image data'sı
 
-        ctx.drawImage(img, currentX, 0, scaledWidth, targetHeight);
-        currentX += scaledWidth;
+        // Grid pozisyonunu hesapla (clientten gelen gridPosition kullan veya hesapla)
+        let col, row;
+        if (imageData.gridPosition) {
+          col = imageData.gridPosition.col;
+          row = imageData.gridPosition.row;
+        } else {
+          col = i % gridLayoutInfo.cols;
+          row = Math.floor(i / gridLayoutInfo.cols);
+        }
+
+        const cellX = col * cellSize;
+        const cellY = row * cellSize;
 
         console.log(
-          `🖼️ Ürün ${i + 1} yerleştirildi: (${
-            currentX - scaledWidth
-          }, 0) - ${scaledWidth}x${targetHeight}`
+          `🛍️ [GRID] Ürün ${
+            i + 1
+          }: Grid pozisyon (${col}, ${row}) - Canvas pozisyon (${cellX}, ${cellY})`
+        );
+
+        // Resmi kare hücre içerisine sığdır (aspect ratio koruyarak, hücreyi tam kaplar)
+        const imgAspectRatio = img.width / img.height;
+        let drawWidth, drawHeight, drawX, drawY;
+
+        if (imgAspectRatio > 1) {
+          // Yatay resim - yüksekliği hücre boyutuna eşitle, genişliği orantılı yap
+          drawHeight = cellSize;
+          drawWidth = cellSize * imgAspectRatio;
+          drawX = cellX - (drawWidth - cellSize) / 2; // Ortala
+          drawY = cellY;
+        } else {
+          // Dikey resim - genişliği hücre boyutuna eşitle, yüksekliği orantılı yap
+          drawWidth = cellSize;
+          drawHeight = cellSize / imgAspectRatio;
+          drawX = cellX;
+          drawY = cellY - (drawHeight - cellSize) / 2; // Ortala
+        }
+
+        // Hücre sınırları içinde kalması için clipping
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(cellX, cellY, cellSize, cellSize);
+        ctx.clip();
+
+        // Yüksek kaliteli çizim
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+        ctx.restore();
+
+        console.log(
+          `🛍️ [GRID] Ürün ${i + 1} kare hücreye yerleştirildi: (${drawX.toFixed(
+            1
+          )}, ${drawY.toFixed(1)}) - ${drawWidth.toFixed(
+            1
+          )}x${drawHeight.toFixed(1)}`
+        );
+      }
+    } else if (isMultipleProducts) {
+      // Eski çoklu ürün modu: Yan yana birleştir - canvas boyutuna sığdır (fallback)
+      console.log("🛍️ Çoklu ürün modu: Resimler yan yana birleştirilecek");
+
+      const itemWidth = canvasWidth / loadedImages.length;
+      const itemHeight = canvasHeight;
+
+      for (let i = 0; i < loadedImages.length; i++) {
+        const img = loadedImages[i];
+        const x = i * itemWidth;
+
+        // Resmi canvas alanına sığdır (aspect ratio koruyarak)
+        const imgAspectRatio = img.width / img.height;
+        const itemAspectRatio = itemWidth / itemHeight;
+
+        let drawWidth, drawHeight, drawX, drawY;
+
+        if (imgAspectRatio > itemAspectRatio) {
+          // Resim daha geniş - genişliğe göre sığdır
+          drawWidth = itemWidth;
+          drawHeight = itemWidth / imgAspectRatio;
+          drawX = x;
+          drawY = (itemHeight - drawHeight) / 2;
+        } else {
+          // Resim daha uzun - yüksekliğe göre sığdır
+          drawHeight = itemHeight;
+          drawWidth = itemHeight * imgAspectRatio;
+          drawX = x + (itemWidth - drawWidth) / 2;
+          drawY = 0;
+        }
+
+        // Yüksek kaliteli çizim - çoklu ürün modu
+        ctx.save();
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+        ctx.restore();
+
+        console.log(
+          `🖼️ Ürün ${i + 1} yüksek kaliteyle yerleştirildi: (${drawX.toFixed(
+            1
+          )}, ${drawY.toFixed(1)}) - ${drawWidth.toFixed(
+            1
+          )}x${drawHeight.toFixed(1)}`
         );
       }
     } else {
-      // Normal mod: Alt alta birleştir (mevcut mantık)
-      console.log("📚 Normal mod: Resimler alt alta birleştirilecek");
+      // Tek resim modu: Canvas ortasına yerleştir - aspect ratio koruyarak
+      console.log("📚 Tek resim modu: Resim canvas ortasına yerleştirilecek");
 
-      canvasWidth = Math.max(...loadedImages.map((img) => img.width));
-      canvasHeight = loadedImages.reduce((total, img) => total + img.height, 0);
+      if (loadedImages.length === 1) {
+        const img = loadedImages[0];
+        const imgAspectRatio = img.width / img.height;
+        const canvasAspectRatio = canvasWidth / canvasHeight;
 
-      console.log(`📏 Normal canvas boyutu: ${canvasWidth}x${canvasHeight}`);
+        let drawWidth, drawHeight, drawX, drawY;
 
-      // Canvas oluştur
-      canvas = createCanvas(canvasWidth, canvasHeight);
-      const ctx = canvas.getContext("2d");
+        if (imgAspectRatio > canvasAspectRatio) {
+          // Resim daha geniş - genişliğe göre sığdır
+          drawWidth = canvasWidth;
+          drawHeight = canvasWidth / imgAspectRatio;
+          drawX = 0;
+          drawY = (canvasHeight - drawHeight) / 2;
+        } else {
+          // Resim daha uzun - yüksekliğe göre sığdır
+          drawHeight = canvasHeight;
+          drawWidth = canvasHeight * imgAspectRatio;
+          drawX = (canvasWidth - drawWidth) / 2;
+          drawY = 0;
+        }
 
-      // Beyaz arka plan
-      ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        // Yüksek kaliteli çizim ayarları
+        ctx.save();
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+        ctx.restore();
 
-      // Resimleri dikey olarak sırala
-      let currentY = 0;
-      for (let i = 0; i < loadedImages.length; i++) {
-        const img = loadedImages[i];
-        const x = (canvasWidth - img.width) / 2; // Ortala
-
-        ctx.drawImage(img, x, currentY);
-        currentY += img.height;
-
+        console.log(`🖼️ Resim canvas ortasına yüksek kaliteyle yerleştirildi:`);
         console.log(
-          `🖼️ Resim ${i + 1} yerleştirildi: (${x}, ${currentY - img.height})`
+          `   📍 Pozisyon: (${drawX.toFixed(1)}, ${drawY.toFixed(1)})`
         );
+        console.log(
+          `   📏 Boyut: ${drawWidth.toFixed(1)}x${drawHeight.toFixed(1)}`
+        );
+        console.log(`   📐 Orijinal resim: ${img.width}x${img.height}`);
+        console.log(
+          `   📐 Hedef canvas: ${canvasWidth}x${canvasHeight} (${aspectRatio})`
+        );
+      } else {
+        // Çoklu resim alt alta (eski mantık) - ancak canvas boyutuna sığdır
+        console.log("📚 Çoklu resim modu: Resimler alt alta birleştirilecek");
+
+        const itemHeight = canvasHeight / loadedImages.length;
+
+        for (let i = 0; i < loadedImages.length; i++) {
+          const img = loadedImages[i];
+          const y = i * itemHeight;
+
+          // Resmi canvas alanına sığdır (aspect ratio koruyarak)
+          const imgAspectRatio = img.width / img.height;
+          const itemAspectRatio = canvasWidth / itemHeight;
+
+          let drawWidth, drawHeight, drawX, drawY;
+
+          if (imgAspectRatio > itemAspectRatio) {
+            // Resim daha geniş - genişliğe göre sığdır
+            drawWidth = canvasWidth;
+            drawHeight = canvasWidth / imgAspectRatio;
+            drawX = 0;
+            drawY = y + (itemHeight - drawHeight) / 2;
+          } else {
+            // Resim daha uzun - yüksekliğe göre sığdır
+            drawHeight = itemHeight;
+            drawWidth = itemHeight * imgAspectRatio;
+            drawX = (canvasWidth - drawWidth) / 2;
+            drawY = y;
+          }
+
+          // Yüksek kaliteli çizim
+          ctx.save();
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+          ctx.restore();
+
+          console.log(
+            `🖼️ Resim ${i + 1} yerleştirildi: (${drawX.toFixed(
+              1
+            )}, ${drawY.toFixed(1)}) - ${drawWidth.toFixed(
+              1
+            )}x${drawHeight.toFixed(1)}`
+          );
+        }
       }
     }
 
-    // Canvas'ı buffer'a çevir
-    const buffer = canvas.toBuffer("image/jpeg", { quality: 0.8 });
+    // Canvas'ı yüksek kalitede buffer'a çevir
+    const buffer = canvas.toBuffer("image/jpeg", { quality: 0.9 }); // Kalite artırıldı
     console.log("📊 Birleştirilmiş resim boyutu:", buffer.length, "bytes");
 
     // Supabase'e yükle (otomatik temizleme için timestamp prefix)
@@ -2067,12 +2732,16 @@ async function combineImagesOnCanvas(
   }
 }
 
+// Bu fonksiyon artık kullanılmıyor - location asset combining kaldırıldı
+
 // Ana generate endpoint'i - Tek resim için
 router.post("/generate", async (req, res) => {
   // Kredi kontrolü ve düşme
-  const CREDIT_COST = 20; // Her oluşturma 5 kredi
+  const CREDIT_COST = 20; // Her oluşturma 20 kredi
   let creditDeducted = false;
+  let actualCreditDeducted = CREDIT_COST; // Gerçekte düşülen kredi miktarı (iade için)
   let userId; // Scope için önceden tanımla
+  let finalGenerationId = null; // Scope için önceden tanımla
   let temporaryFiles = []; // Silinecek geçici dosyalar
 
   try {
@@ -2087,6 +2756,19 @@ router.post("/generate", async (req, res) => {
       hairStyleImage,
       isMultipleImages,
       isMultipleProducts,
+      generationId, // Yeni parametre
+      totalGenerations = 1, // Toplam generation sayısı (varsayılan 1)
+      // Color change specific parameters
+      isColorChange = false, // Bu bir renk değiştirme işlemi mi?
+      targetColor = null, // Hedef renk bilgisi
+      // Pose change specific parameters
+      isPoseChange = false, // Bu bir poz değiştirme işlemi mi?
+      customDetail = null, // Özel detay bilgisi
+      // Edit mode specific parameters (EditScreen)
+      isEditMode = false, // Bu EditScreen'den gelen bir edit işlemi mi?
+      editPrompt = null, // EditScreen'den gelen özel prompt
+      // Session deduplication
+      sessionId = null, // Aynı batch request'leri tanımlıyor
     } = req.body;
 
     // userId'yi scope için ata
@@ -2094,6 +2776,12 @@ router.post("/generate", async (req, res) => {
 
     console.log("🖼️ [BACKEND] isMultipleImages:", isMultipleImages);
     console.log("🛍️ [BACKEND] isMultipleProducts:", isMultipleProducts);
+    console.log("🎨 [BACKEND] isColorChange:", isColorChange);
+    console.log("🎨 [BACKEND] targetColor:", targetColor);
+    console.log("🕺 [BACKEND] isPoseChange:", isPoseChange);
+    console.log("🕺 [BACKEND] customDetail:", customDetail);
+    console.log("✏️ [BACKEND] isEditMode:", isEditMode);
+    console.log("✏️ [BACKEND] editPrompt:", editPrompt);
     console.log(
       "📤 [BACKEND] Gelen referenceImages:",
       referenceImages?.length || 0,
@@ -2115,9 +2803,102 @@ router.post("/generate", async (req, res) => {
       });
     }
 
-    if (userId && userId !== "anonymous_user") {
+    // 💡 YENİ YAKLAŞIM: Kredi başlangıçta düşürülmüyor, başarılı tamamlamada düşürülecek
+    console.log(
+      `💳 [NEW APPROACH] Kredi başlangıçta düşürülmüyor, başarılı tamamlamada düşürülecek`
+    );
+
+    // Kredi kontrolü kaldırıldı - başarılı completion'da yapılacak
+
+    // ✅ Eski kredi logic'i tamamen kaldırıldı
+    if (false) {
+      // Completely disabled - credit deduction moved to completion
+      // Son 1 dakikadaki tüm generation'ları getir ve settings'te sessionId kontrolü yap
+      const oneMinuteAgo = new Date(Date.now() - 60 * 1000).toISOString();
+      const { data: recentGenerations, error: sessionError } = await supabase
+        .from("reference_results")
+        .select("created_at, generation_id, settings")
+        .eq("user_id", userId)
+        .gte("created_at", oneMinuteAgo)
+        .order("created_at", { ascending: false });
+
+      // Client-side filtering: settings içinde sessionId'yi ara
+      const sessionGenerations =
+        recentGenerations?.filter((gen) => {
+          try {
+            return gen.settings && gen.settings.sessionId === sessionId;
+          } catch (e) {
+            return false;
+          }
+        }) || [];
+
+      console.log(
+        `💳 [SESSION-DEDUP] SessionId ${sessionId} ile ${
+          sessionGenerations.length
+        } generation bulundu (${
+          recentGenerations?.length || 0
+        } recent'tan filtrelendi)`
+      );
+
+      if (
+        !sessionError &&
+        sessionGenerations &&
+        sessionGenerations.length >= 1
+      ) {
+        console.log(
+          `💳 [SESSION-DEDUP] Aynı session'da generation var, kredi düşürme atlanıyor (${sessionGenerations.length} generation)`
+        );
+        // shouldDeductCredit = false; // Disabled
+      } else {
+        console.log(
+          `💳 [SESSION-DEDUP] Session'ın ilk generation'ı, kredi düşürülecek`
+        );
+      }
+    } else if (false) {
+      // shouldDeductCredit disabled - was for time-based deduplication
+      // SessionId yoksa time-based deduplication kullan
+      const thirtySecondsAgo = new Date(Date.now() - 30 * 1000).toISOString();
+      const { data: recentGenerations, error: recentError } = await supabase
+        .from("reference_results")
+        .select("created_at, generation_id")
+        .eq("user_id", userId)
+        .gte("created_at", thirtySecondsAgo)
+        .order("created_at", { ascending: false });
+
+      console.log(
+        `💳 [TIME-DEDUP] Son 30 saniyede ${
+          recentGenerations?.length || 0
+        } generation bulundu`
+      );
+
+      if (!recentError && recentGenerations && recentGenerations.length >= 1) {
+        console.log(
+          `💳 [TIME-DEDUP] Son 30 saniyede generation var, kredi düşürme atlanıyor (${recentGenerations.length} generation)`
+        );
+        // shouldDeductCredit = false; // Disabled
+      } else {
+        console.log(`💳 [TIME-DEDUP] İlk generation, kredi düşürülecek`);
+      }
+    }
+
+    console.log(`💳 [CREDIT DEBUG] generationId: ${generationId}`);
+    console.log(`💳 [CREDIT DEBUG] totalGenerations: ${totalGenerations}`);
+    console.log(`💳 [NEW SYSTEM] Kredi işlemleri completion'da yapılacak`);
+
+    // ✅ Eski kredi logic'i tamamen devre dışı - pay-on-success sistemi kullanılıyor
+    if (false) {
+      // shouldDeductCredit logic disabled
+      // Toplam generation sayısına göre kredi hesapla
+      const totalCreditCost = CREDIT_COST * totalGenerations;
+      console.log(
+        `💳 [CREDIT DEBUG] totalCreditCost: ${totalCreditCost} (${CREDIT_COST} x ${totalGenerations})`
+      );
+
       try {
         console.log(`💳 Kullanıcı ${userId} için kredi kontrolü yapılıyor...`);
+        console.log(
+          `💳 Toplam ${totalGenerations} generation için ${totalCreditCost} kredi düşülecek`
+        );
 
         // Krediyi atomic olarak düş (row locking ile)
         const { data: updatedUsers, error: deductError } = await supabase
@@ -2138,21 +2919,21 @@ router.post("/generate", async (req, res) => {
         }
 
         const currentCreditCheck = updatedUsers?.credit_balance || 0;
-        if (currentCreditCheck < CREDIT_COST) {
+        if (currentCreditCheck < totalCreditCost) {
           return res.status(402).json({
             success: false,
             result: {
               message: "Yetersiz kredi. Lütfen kredi satın alın.",
               currentCredit: currentCreditCheck,
-              requiredCredit: CREDIT_COST,
+              requiredCredit: totalCreditCost,
             },
           });
         }
 
-        // Krediyi düş
+        // Toplam krediyi düş
         const { error: updateError } = await supabase
           .from("users")
-          .update({ credit_balance: currentCreditCheck - CREDIT_COST })
+          .update({ credit_balance: currentCreditCheck - totalCreditCost })
           .eq("id", userId)
           .eq("credit_balance", currentCreditCheck); // Optimistic locking
 
@@ -2170,10 +2951,13 @@ router.post("/generate", async (req, res) => {
 
         creditDeducted = true;
         console.log(
-          `✅ ${CREDIT_COST} kredi başarıyla düşüldü. Yeni bakiye: ${
-            currentCreditCheck - CREDIT_COST
+          `✅ ${totalCreditCost} kredi başarıyla düşüldü (${totalGenerations} generation). Yeni bakiye: ${
+            currentCreditCheck - totalCreditCost
           }`
         );
+
+        // Gerçekte düşülen kredi miktarını sakla (iade için)
+        actualCreditDeducted = totalCreditCost;
       } catch (creditManagementError) {
         console.error("❌ Kredi yönetimi hatası:", creditManagementError);
         return res.status(500).json({
@@ -2185,6 +2969,83 @@ router.post("/generate", async (req, res) => {
         });
       }
     }
+
+    // 📋 Reference images'ları Supabase'e upload et (pending generation için)
+    console.log("📤 Reference images Supabase'e upload ediliyor...");
+    const referenceImageUrls = await uploadReferenceImagesToSupabase(
+      referenceImages,
+      userId
+    );
+
+    // 🆔 Generation ID oluştur (eğer client'ten gelmediyse)
+    finalGenerationId = generationId || uuidv4();
+
+    // 📝 Pending generation oluştur (işlem başlamadan önce)
+    console.log(`📝 Pending generation oluşturuluyor: ${finalGenerationId}`);
+    console.log(
+      `🔍 [DEBUG] Generation ID uzunluğu: ${finalGenerationId?.length}`
+    );
+    console.log(`🔍 [DEBUG] Generation ID tipi: ${typeof finalGenerationId}`);
+
+    // SessionId ve totalGenerations'ı settings'e ekle (completion'da kredi için gerekli)
+    const settingsWithSession = {
+      ...settings,
+      totalGenerations: totalGenerations, // Pay-on-success için gerekli
+      ...(sessionId && { sessionId: sessionId }),
+    };
+
+    const pendingGeneration = await createPendingGeneration(
+      userId,
+      promptText,
+      referenceImageUrls,
+      settingsWithSession,
+      locationImage,
+      poseImage,
+      hairStyleImage,
+      ratio,
+      isMultipleImages,
+      isMultipleProducts,
+      finalGenerationId
+    );
+
+    if (!pendingGeneration) {
+      console.error("❌ Pending generation oluşturulamadı");
+
+      // Kredi iade et
+      if (creditDeducted && userId && userId !== "anonymous_user") {
+        try {
+          const { data: currentUserCredit } = await supabase
+            .from("users")
+            .select("credit_balance")
+            .eq("id", userId)
+            .single();
+
+          await supabase
+            .from("users")
+            .update({
+              credit_balance:
+                (currentUserCredit?.credit_balance || 0) + actualCreditDeducted,
+            })
+            .eq("id", userId);
+
+          console.log(
+            `💰 ${actualCreditDeducted} kredi iade edildi (Pending generation hatası)`
+          );
+        } catch (refundError) {
+          console.error("❌ Kredi iade hatası:", refundError);
+        }
+      }
+
+      return res.status(500).json({
+        success: false,
+        result: {
+          message: "İşlem kaydı oluşturulamadı",
+        },
+      });
+    }
+
+    // 🔄 Status'u processing'e güncelle
+    await updateGenerationStatus(finalGenerationId, userId, "processing");
 
     console.log("🎛️ [BACKEND] Gelen settings parametresi:", settings);
     console.log("📝 [BACKEND] Gelen promptText:", promptText);
@@ -2199,16 +3060,57 @@ router.post("/generate", async (req, res) => {
       console.log(
         "🖼️ [BACKEND] Çoklu resim birleştirme işlemi başlatılıyor..."
       );
-      finalImage = await combineImagesOnCanvas(
-        referenceImages,
-        userId,
-        isMultipleProducts
-      );
+
+      // Kombin modu kontrolü
+      const isKombinMode = req.body.isKombinMode || false;
+      console.log("🛍️ [BACKEND] Kombin modu kontrolü:", isKombinMode);
+
+      // Grid layout bilgisini request body'den al
+      let gridLayoutInfo = null;
+
+      // Request body'de grid layout bilgisi var mı kontrol et
+      if (req.body.referenceImages && req.body.referenceImages.isGridLayout) {
+        gridLayoutInfo = req.body.referenceImages.gridInfo;
+        console.log(
+          "🛍️ [BACKEND] Grid layout bilgisi bulundu:",
+          gridLayoutInfo
+        );
+      } else {
+        console.log("🛍️ [BACKEND] Grid layout bilgisi bulunamadı, normal mod");
+      }
+
+      if (isKombinMode && gridLayoutInfo) {
+        // 🛍️ KOMBİN MODU: Grid layout'u canvas'ta birleştir
+        console.log("🛍️ [BACKEND] Kombin modu - Grid canvas oluşturuluyor...");
+
+        finalImage = await combineImagesOnCanvas(
+          referenceImages,
+          userId,
+          false, // isMultipleProducts = false (kombin tek resim olarak işlenecek)
+          "1:1", // Kombin için kare format
+          gridLayoutInfo // Grid layout bilgisini geç
+        );
+
+        console.log("🛍️ [BACKEND] Kombin grid canvas oluşturuldu:", finalImage);
+      } else {
+        // Normal çoklu resim modu
+        finalImage = await combineImagesOnCanvas(
+          referenceImages,
+          userId,
+          isMultipleProducts,
+          ratio,
+          gridLayoutInfo // Grid layout bilgisini geç
+        );
+      }
 
       // Birleştirilmiş resmi geçici dosyalar listesine ekle
       temporaryFiles.push(finalImage);
     } else {
-      // Tek resim için normal işlem
+      // Tek resim için ratio'ya göre canvas işlemi
+      console.log(
+        "🖼️ [BACKEND] Tek resim için ratio'ya göre canvas işlemi başlatılıyor..."
+      );
+
       const referenceImage = referenceImages[0];
 
       if (!referenceImage) {
@@ -2243,10 +3145,22 @@ router.post("/generate", async (req, res) => {
         });
       }
 
-      finalImage = await uploadReferenceImageToSupabase(
+      const uploadedImageUrl = await uploadReferenceImageToSupabase(
         imageSourceForUpload,
         userId
       );
+
+      // Tek resim için de ratio'ya göre canvas'a yerleştir (grid layout yok)
+      finalImage = await combineImagesOnCanvas(
+        [{ uri: uploadedImageUrl }], // Tek resmi array içinde gönder
+        userId,
+        false, // isMultipleProducts = false
+        ratio, // ratio parametresi
+        null // gridLayoutInfo = null (tek resim)
+      );
+
+      // Canvas işleminden sonra oluşan resmi geçici dosyalar listesine ekle
+      temporaryFiles.push(finalImage);
     }
 
     console.log("Supabase'den alınan final resim URL'si:", finalImage);
@@ -2262,36 +3176,72 @@ router.post("/generate", async (req, res) => {
       "🚀 Paralel işlemler başlatılıyor: Gemini + Arkaplan silme + ControlNet hazırlığı..."
     );
 
-    // 🤖 Gemini'ye orijinal ham resmi gönder (paralel)
-    const geminiPromise = enhancePromptWithGemini(
-      promptText,
-      finalImage, // Ham orijinal resim
-      settings || {},
-      locationImage,
-      poseImage,
-      hairStyleImage,
-      isMultipleProducts,
-      false // ControlNet yok, ham resim
-    );
+    let enhancedPrompt, backgroundRemovedImage;
 
-    // 🖼️ Arkaplan silme işlemi (paralel)
-    const backgroundRemovalPromise = removeBackgroundFromImage(
-      finalImage,
-      userId
-    );
+    if (isColorChange || isPoseChange) {
+      // 🎨 COLOR CHANGE MODE veya 🕺 POSE CHANGE MODE - Basit değiştirme prompt'u
+      if (isColorChange) {
+        console.log(
+          "🎨 Color change mode: Basit renk değiştirme prompt'u oluşturuluyor"
+        );
+        enhancedPrompt = `Change the main color of the product/item in this image to ${targetColor}. Keep all design details, patterns, textures, and shapes exactly the same. Only change the primary color to ${targetColor}. The result should be photorealistic with natural lighting.`;
+      } else if (isPoseChange) {
+        console.log(
+          "🕺 Pose change mode: Gemini ile poz değiştirme prompt'u oluşturuluyor"
+        );
 
-    // ⏳ Gemini ve arkaplan silme işlemlerini paralel bekle
-    console.log("⏳ Gemini ve arkaplan silme paralel olarak bekleniyor...");
-    const [enhancedPrompt, backgroundRemovedImage] = await Promise.all([
-      geminiPromise,
-      backgroundRemovalPromise,
-    ]);
+        // Poz değiştirme modunda Gemini ile prompt oluştur
+        enhancedPrompt = await enhancePromptWithGemini(
+          promptText,
+          finalImage, // isPoseChange modunda finalImage kullan (backgroundRemovedImage henüz yok)
+          settings || {},
+          locationImage,
+          poseImage,
+          hairStyleImage,
+          isMultipleProducts,
+          false, // hasControlNet
+          false, // isColorChange
+          null, // targetColor
+          isPoseChange, // isPoseChange
+          customDetail, // customDetail
+          isEditMode, // isEditMode
+          editPrompt // editPrompt
+        );
+      }
+      backgroundRemovedImage = finalImage; // Orijinal image'ı kullan, arkaplan silme yok
+      console.log(
+        isColorChange ? "🎨 Color change prompt:" : "🕺 Pose change prompt:",
+        enhancedPrompt
+      );
+    } else {
+      // 🖼️ NORMAL MODE - Arkaplan silme işlemi (paralel)
+      // Gemini prompt üretimini paralelde başlat
+      const geminiPromise = enhancePromptWithGemini(
+        promptText,
+        finalImage, // Ham orijinal resim
+        settings || {},
+        locationImage,
+        poseImage,
+        hairStyleImage,
+        isMultipleProducts,
+        false, // ControlNet yok, ham resim
+        isColorChange, // Renk değiştirme işlemi mi?
+        targetColor, // Hedef renk bilgisi
+        isPoseChange, // Poz değiştirme işlemi mi?
+        customDetail, // Özel detay bilgisi
+        isEditMode, // EditScreen modu mu?
+        editPrompt // EditScreen'den gelen prompt
+      );
+
+      // ⏳ Sadece Gemini prompt iyileştirme bekle
+      console.log("⏳ Gemini prompt iyileştirme bekleniyor...");
+      enhancedPrompt = await geminiPromise;
+    }
 
     console.log("✅ Gemini prompt iyileştirme tamamlandı");
-    console.log("✅ Arkaplan silme tamamlandı:", backgroundRemovedImage);
 
-    // Geçici dosyayı silme listesine ekle
-    temporaryFiles.push(backgroundRemovedImage);
+    // Arkaplan silme kaldırıldı - direkt olarak finalImage kullanılacak
+    backgroundRemovedImage = finalImage;
 
     // 🎨 Yerel ControlNet Canny çıkarma işlemi - Arkaplan silindikten sonra
     // console.log("🎨 Yerel ControlNet Canny çıkarılıyor (Sharp ile)...");
@@ -2313,8 +3263,25 @@ router.post("/generate", async (req, res) => {
     //   cannyImage = null;
     // }
 
-    // 🖼️ İki resmi yan yana birleştirme (orijinal + canny) - Replicate için
-    let combinedImageForReplicate = backgroundRemovedImage; // Fallback - her zaman arkaplanı silinmiş resim
+    // 👤 Portrait generation kaldırıldı - Gemini kendi kendine hallediyor
+
+    // 🖼️ Kombin modunda finalImage kullan, diğer durumlarda arkaplan kaldırılmış resmi kullan
+    let combinedImageForReplicate;
+
+    if (req.body.isKombinMode) {
+      // Kombin modunda canvas'ta birleştirilmiş grid'i kullan
+      combinedImageForReplicate = finalImage;
+      console.log(
+        "🛍️ [BACKEND] Kombin modu: Grid canvas Gemini'ye gönderiliyor:",
+        finalImage
+      );
+    } else {
+      // Normal modda arkaplan kaldırılmış resmi kullan
+      combinedImageForReplicate = backgroundRemovedImage;
+      console.log(
+        "🖼️ [BACKEND] Normal mod: Arkaplan kaldırılmış resim Gemini'ye gönderiliyor"
+      );
+    }
     // if (cannyImage) {
     //   try {
     //     console.log(
@@ -2345,49 +3312,223 @@ router.post("/generate", async (req, res) => {
     console.log("📝 [BACKEND MAIN] Original prompt:", promptText);
     console.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
 
-    // Replicate API'ye retry mekanizması ile istek gönder
+    // Gemini 2.5 Flash Image Preview API'ye retry mekanizması ile istek gönder
     let replicateResponse;
     const maxRetries = 3;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`🔄 Replicate API attempt ${attempt}/${maxRetries}`);
-
-        // Random seed her seferinde farklı olsun
-        const seed = Math.floor(Math.random() * 2 ** 32);
-        console.log(`🎲 Random seed: ${seed}`);
-
-        replicateResponse = await axios.post(
-          "https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-max/predictions",
-          {
-            input: {
-              prompt: enhancedPrompt,
-              input_image: combinedImageForReplicate, // Birleştirilmiş resim Replicate için
-              aspect_ratio: formattedRatio,
-              disable_safety_checker: true,
-              seed: seed, // Random seed eklendi
-              num_inference_steps: 50,
-              output_quality: 100,
-            },
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-              "Content-Type": "application/json",
-            },
-            timeout: 120000, // 2 dakika timeout
-          }
+        console.log(
+          `🔄 Gemini 2.5 Flash Image Preview API attempt ${attempt}/${maxRetries}`
         );
 
-        console.log(`✅ Replicate API başarılı (attempt ${attempt})`);
+        // Gemini 2.5 Flash Image Preview API kullan (doğru model)
+        console.log(
+          "🚀 Gemini 2.5 Flash Image Preview API çağrısı yapılıyor..."
+        );
+
+        const ai = new GoogleGenAI({
+          apiKey: process.env.GEMINI_API_KEY,
+        });
+
+        const config = {
+          responseModalities: ["IMAGE", "TEXT"],
+        };
+
+        const model = "gemini-2.5-flash-image-preview";
+
+        // Combined image'ı base64'e çevir
+        let combinedImageBase64;
+        try {
+          const imageResponse = await axios.get(combinedImageForReplicate, {
+            responseType: "arraybuffer",
+            timeout: 15000,
+          });
+          combinedImageBase64 = Buffer.from(imageResponse.data).toString(
+            "base64"
+          );
+        } catch (imageError) {
+          console.error(
+            "❌ Combined image download hatası:",
+            imageError.message
+          );
+          throw new Error("Reference image indirilemedi");
+        }
+
+        const mainApiContents = [
+          {
+            role: "user",
+            parts: [
+              {
+                text: enhancedPrompt,
+              },
+              {
+                inlineData: {
+                  mimeType: "image/jpeg",
+                  data: combinedImageBase64,
+                },
+              },
+            ],
+          },
+        ];
+
+        console.log(
+          "🚀 Gemini 2.5 Flash Image Preview API çağrısı yapılıyor..."
+        );
+        console.log("📋 Model:", model);
+        console.log("📋 Contents structure:", {
+          role: mainApiContents[0].role,
+          partsCount: mainApiContents[0].parts.length,
+          hasText: !!mainApiContents[0].parts[0].text,
+          hasImage: !!mainApiContents[0].parts[1]?.inlineData,
+          imageMimeType: mainApiContents[0].parts[1]?.inlineData?.mimeType,
+          imageDataLength:
+            mainApiContents[0].parts[1]?.inlineData?.data?.length || 0,
+        });
+
+        // Timeout wrapper - 120 saniye (2 dakika)
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => {
+            reject(new Error("Gemini API timeout (120s)"));
+          }, 120000); // 120 saniye (2 dakika) timeout
+        });
+
+        // Gemini API çağrısı (streaming) - timeout ile
+        const geminiAPIPromise = ai.models.generateContentStream({
+          model,
+          config,
+          contents: mainApiContents,
+        });
+
+        const response = await Promise.race([geminiAPIPromise, timeoutPromise]);
+
+        let generatedImageBuffer = null;
+        let hasImageResponse = false;
+        let fileIndex = 0;
+
+        console.log(
+          "📡 Gemini response stream başlatıldı, chunk'lar bekleniyor..."
+        );
+
+        // Stream processing timeout - 120 saniye
+        const streamTimeout = setTimeout(() => {
+          throw new Error("Gemini stream processing timeout (120s)");
+        }, 120000); // 120 saniye stream timeout
+
+        try {
+          for await (const chunk of response) {
+            if (
+              !chunk.candidates ||
+              !chunk.candidates[0].content ||
+              !chunk.candidates[0].content.parts
+            ) {
+              continue;
+            }
+
+            if (chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData) {
+              const inlineData =
+                chunk.candidates[0].content.parts[0].inlineData;
+              const fileExtension = mime.getExtension(
+                inlineData.mimeType || ""
+              );
+              generatedImageBuffer = Buffer.from(
+                inlineData.data || "",
+                "base64"
+              );
+              hasImageResponse = true;
+              console.log(
+                `✅ Gemini 2.5 Flash Image Preview resim sonucu alındı (${inlineData.mimeType})`
+              );
+              break;
+            } else {
+              // Text response varsa logla
+              if (chunk.text) {
+                console.log("📝 Gemini text response:", chunk.text);
+              }
+            }
+          }
+
+          // Stream timeout'u temizle
+          clearTimeout(streamTimeout);
+        } catch (streamError) {
+          clearTimeout(streamTimeout);
+          throw streamError;
+        }
+
+        if (!hasImageResponse || !generatedImageBuffer) {
+          throw new Error("Gemini'den image response alınamadı");
+        }
+
+        // Gemini'den alınan image buffer'ını Supabase'e upload et
+        console.log("📤 Gemini sonucu Supabase'e yükleniyor...");
+
+        const geminiFileName = `generated_${Date.now()}_${userId}_${uuidv4().substring(
+          0,
+          8
+        )}.jpg`;
+        const uploadResult = await supabase.storage
+          .from("images")
+          .upload(geminiFileName, generatedImageBuffer, {
+            contentType: "image/jpeg",
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (uploadResult.error) {
+          console.error("❌ Supabase upload error:", uploadResult.error);
+          throw new Error(
+            `Supabase upload failed: ${uploadResult.error.message}`
+          );
+        }
+
+        // Public URL oluştur
+        const { data: geminiUrlData } = supabase.storage
+          .from("images")
+          .getPublicUrl(geminiFileName);
+
+        const finalResult = geminiUrlData.publicUrl;
+        console.log("✅ Gemini result uploaded to Supabase:", finalResult);
+
+        // Gemini response'u Replicate formatına uygun hale getir (polling gerektirmez)
+        replicateResponse = {
+          data: {
+            id: `gemini_${Date.now()}`,
+            status: "succeeded",
+            output: finalResult,
+            urls: {
+              get: null, // Gemini için polling gerekmez
+            },
+          },
+        };
+
+        console.log(
+          `✅ Gemini 2.5 Flash Image Preview API başarılı (attempt ${attempt})`
+        );
         break; // Başarılı olursa loop'tan çık
       } catch (apiError) {
         console.error(
-          `❌ Replicate API attempt ${attempt} failed:`,
+          `❌ Gemini 2.5 Flash Image Preview API attempt ${attempt} failed:`,
           apiError.message
         );
 
-        // Son deneme değilse ve timeout hatası ise tekrar dene
+        // 120 saniye timeout hatası ise direkt failed yap ve retry yapma
+        if (
+          apiError.message.includes("Gemini API timeout (120s)") ||
+          apiError.message.includes("Gemini stream processing timeout (120s)")
+        ) {
+          console.error(
+            `❌ 120 saniye timeout hatası, generation failed yapılıyor: ${apiError.message}`
+          );
+
+          // Generation status'unu direkt failed yap
+          await updateGenerationStatus(finalGenerationId, userId, "failed", {
+            processing_time_seconds: 120,
+          });
+
+          throw apiError; // Timeout hatası için retry yok
+        }
+
+        // Son deneme değilse ve diğer timeout/network hataları ise tekrar dene
         if (
           attempt < maxRetries &&
           (apiError.code === "ETIMEDOUT" ||
@@ -2431,12 +3572,12 @@ router.post("/generate", async (req, res) => {
             .from("users")
             .update({
               credit_balance:
-                (currentUserCredit?.credit_balance || 0) + CREDIT_COST,
+                (currentUserCredit?.credit_balance || 0) + actualCreditDeducted,
             })
             .eq("id", userId);
 
           console.log(
-            `💰 ${CREDIT_COST} kredi iade edildi (Prediction ID hatası)`
+            `💰 ${actualCreditDeducted} kredi iade edildi (Prediction ID hatası)`
           );
         } catch (refundError) {
           console.error("❌ Kredi iade hatası:", refundError);
@@ -2452,43 +3593,185 @@ router.post("/generate", async (req, res) => {
       });
     }
 
-    // Prediction durumunu polling ile takip et
+    // Gemini için polling yapmadan direkt sonucu kullan
     const startTime = Date.now();
     let finalResult;
     let processingTime;
 
-    try {
-      finalResult = await pollReplicateResult(initialResult.id);
+    // Gemini ID'lerini check et - polling gerektirmez
+    if (initialResult.id && initialResult.id.startsWith("gemini_")) {
+      console.log(
+        "🎯 Gemini sonucu - polling atlanıyor, direkt sonuç kullanılıyor"
+      );
+      finalResult = initialResult;
       processingTime = Math.round((Date.now() - startTime) / 1000);
-    } catch (pollingError) {
-      console.error("❌ Polling hatası:", pollingError.message);
+    } else {
+      // Sadece gerçek Replicate ID'leri için polling yap
+      try {
+        finalResult = await pollReplicateResult(initialResult.id);
+        processingTime = Math.round((Date.now() - startTime) / 1000);
+      } catch (pollingError) {
+        console.error("❌ Polling hatası:", pollingError.message);
 
-      // Sensitive content hatası yakalandıysa flux-kontext-dev'e geç
-      if (pollingError.message === "SENSITIVE_CONTENT_FLUX_FALLBACK") {
-        console.log(
-          "🔄 Sensitive content hatası nedeniyle flux-kontext-dev'e geçiliyor..."
-        );
-
-        try {
-          // Flux-kontext-dev API'ye geçiş yap
-          const fallbackStartTime = Date.now();
-          finalResult = await callFluxKontextDevAPI(
-            enhancedPrompt,
-            combinedImageForReplicate,
-            formattedRatio
-          );
-          processingTime = Math.round((Date.now() - fallbackStartTime) / 1000);
-
-          console.log("✅ Flux-kontext-dev API'den başarılı sonuç alındı");
-        } catch (fallbackError) {
-          console.error(
-            "❌ Flux-kontext-dev API'si de başarısız:",
-            fallbackError.message
-          );
-
-          // 🗑️ Fallback API hatası durumunda geçici dosyaları temizle
+        // Content moderation hatası yakalandıysa Gemini 2.5 Flash Image Preview'e geç
+        if (pollingError.message === "SENSITIVE_CONTENT_FLUX_FALLBACK") {
           console.log(
-            "🧹 Fallback API hatası sonrası geçici dosyalar temizleniyor..."
+            "🔄 Content moderation/model hatası nedeniyle Gemini 2.5 Flash Image Preview'e geçiliyor..."
+          );
+
+          try {
+            // Gemini 2.5 Flash Image Preview API'ye geçiş yap
+            const fallbackStartTime = Date.now();
+            finalResult = await callGeminiImageAPI(
+              enhancedPrompt,
+              combinedImageForReplicate,
+              formattedRatio,
+              userId
+            );
+            processingTime = Math.round(
+              (Date.now() - fallbackStartTime) / 1000
+            );
+
+            console.log(
+              "✅ Gemini 2.5 Flash Image Preview API'den başarılı sonuç alındı - kullanıcıya başarılı olarak döndürülecek"
+            );
+            console.log(
+              "🔍 [DEBUG] Fallback finalResult:",
+              JSON.stringify(finalResult, null, 2)
+            );
+            console.log(
+              "🔍 [DEBUG] Fallback finalResult.output:",
+              finalResult.output
+            );
+            console.log("🔍 [DEBUG] Fallback finalResult.id:", finalResult.id);
+
+            // 🔄 Fallback API başarılı, status'u hemen "completed" olarak güncelle
+            await updateGenerationStatus(
+              finalGenerationId,
+              userId,
+              "completed",
+              {
+                enhanced_prompt: enhancedPrompt,
+                result_image_url: finalResult.output,
+                replicate_prediction_id: finalResult.id, // Fallback API'nin ID'si
+                processing_time_seconds: processingTime,
+                fallback_used: "gemini-2.5-flash-image-preview", // Fallback kullanıldığını belirtmek için
+              }
+            );
+
+            console.log(
+              "✅ Database'de generation status 'completed' olarak güncellendi (fallback)"
+            );
+
+            // 💳 Fallback başarılı, güncel kredi bilgisini al ve response döndür
+            let currentCredit = null;
+            if (userId && userId !== "anonymous_user") {
+              try {
+                const { data: updatedUser } = await supabase
+                  .from("users")
+                  .select("credit_balance")
+                  .eq("id", userId)
+                  .single();
+
+                currentCredit = updatedUser?.credit_balance || 0;
+                console.log(
+                  `💳 Güncel kredi balance (fallback): ${currentCredit}`
+                );
+              } catch (creditError) {
+                console.error(
+                  "❌ Güncel kredi sorgu hatası (fallback):",
+                  creditError
+                );
+              }
+            }
+
+            // 🗑️ Fallback başarılı, geçici dosyaları temizle
+            console.log(
+              "🧹 Fallback başarılı, geçici dosyalar temizleniyor..."
+            );
+            await cleanupTemporaryFiles(temporaryFiles);
+
+            // ✅ Fallback başarılı response'u döndür
+            console.log(
+              "🎯 [DEBUG] Fallback başarılı, response döndürülüyor - normal flow'a GİRMEYECEK"
+            );
+            return res.status(200).json({
+              success: true,
+              result: {
+                imageUrl: finalResult.output,
+                originalPrompt: promptText,
+                enhancedPrompt: enhancedPrompt,
+                replicateData: finalResult,
+                currentCredit: currentCredit,
+                generationId: finalGenerationId,
+                fallbackUsed: "gemini-2.5-flash-image-preview", // Client'a fallback kullanıldığını bildir
+              },
+            });
+          } catch (fallbackError) {
+            console.error(
+              "❌ Gemini 2.0 Flash Exp API'si de başarısız:",
+              fallbackError.message
+            );
+
+            // ❌ Status'u failed'e güncelle (Fallback API da başarısız)
+            await updateGenerationStatus(finalGenerationId, userId, "failed", {
+              // error_message kolonu yok, bu yüzden genel field kullan
+              processing_time_seconds: 0,
+            });
+
+            // 🗑️ Fallback API hatası durumunda geçici dosyaları temizle
+            console.log(
+              "🧹 Fallback API hatası sonrası geçici dosyalar temizleniyor..."
+            );
+            await cleanupTemporaryFiles(temporaryFiles);
+
+            // Kredi iade et
+            if (creditDeducted && userId && userId !== "anonymous_user") {
+              try {
+                const { data: currentUserCredit } = await supabase
+                  .from("users")
+                  .select("credit_balance")
+                  .eq("id", userId)
+                  .single();
+
+                await supabase
+                  .from("users")
+                  .update({
+                    credit_balance:
+                      (currentUserCredit?.credit_balance || 0) +
+                      actualCreditDeducted,
+                  })
+                  .eq("id", userId);
+
+                console.log(
+                  `💰 ${actualCreditDeducted} kredi iade edildi (Fallback API hatası)`
+                );
+              } catch (refundError) {
+                console.error("❌ Kredi iade hatası:", refundError);
+              }
+            }
+
+            return res.status(500).json({
+              success: false,
+              result: {
+                message: "Görsel işleme işlemi başarısız oldu",
+                error:
+                  "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
+              },
+            });
+          }
+        } else {
+          // Diğer polling hataları için mevcut mantığı kullan
+
+          // ❌ Status'u failed'e güncelle
+          await updateGenerationStatus(finalGenerationId, userId, "failed", {
+            // error_message kolonu yok, bu yüzden genel field kullan
+            processing_time_seconds: 0,
+          });
+
+          // 🗑️ Polling hatası durumunda geçici dosyaları temizle
+          console.log(
+            "🧹 Polling hatası sonrası geçici dosyalar temizleniyor..."
           );
           await cleanupTemporaryFiles(temporaryFiles);
 
@@ -2505,12 +3788,13 @@ router.post("/generate", async (req, res) => {
                 .from("users")
                 .update({
                   credit_balance:
-                    (currentUserCredit?.credit_balance || 0) + CREDIT_COST,
+                    (currentUserCredit?.credit_balance || 0) +
+                    actualCreditDeducted,
                 })
                 .eq("id", userId);
 
               console.log(
-                `💰 ${CREDIT_COST} kredi iade edildi (Fallback API hatası)`
+                `💰 ${actualCreditDeducted} kredi iade edildi (Polling hatası)`
               );
             } catch (refundError) {
               console.error("❌ Kredi iade hatası:", refundError);
@@ -2521,52 +3805,12 @@ router.post("/generate", async (req, res) => {
             success: false,
             result: {
               message: "Görsel işleme işlemi başarısız oldu",
-              error:
-                "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
+              error: pollingError.message.includes("PREDICTION_INTERRUPTED")
+                ? "Sunucu kesintisi oluştu. Lütfen tekrar deneyin."
+                : "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
             },
           });
         }
-      } else {
-        // Diğer polling hataları için mevcut mantığı kullan
-
-        // 🗑️ Polling hatası durumunda geçici dosyaları temizle
-        console.log(
-          "🧹 Polling hatası sonrası geçici dosyalar temizleniyor..."
-        );
-        await cleanupTemporaryFiles(temporaryFiles);
-
-        // Kredi iade et
-        if (creditDeducted && userId && userId !== "anonymous_user") {
-          try {
-            const { data: currentUserCredit } = await supabase
-              .from("users")
-              .select("credit_balance")
-              .eq("id", userId)
-              .single();
-
-            await supabase
-              .from("users")
-              .update({
-                credit_balance:
-                  (currentUserCredit?.credit_balance || 0) + CREDIT_COST,
-              })
-              .eq("id", userId);
-
-            console.log(`💰 ${CREDIT_COST} kredi iade edildi (Polling hatası)`);
-          } catch (refundError) {
-            console.error("❌ Kredi iade hatası:", refundError);
-          }
-        }
-
-        return res.status(500).json({
-          success: false,
-          result: {
-            message: "Görsel işleme işlemi başarısız oldu",
-            error: pollingError.message.includes("PREDICTION_INTERRUPTED")
-              ? "Sunucu kesintisi oluştu. Lütfen tekrar deneyin."
-              : "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
-          },
-        });
       }
     }
 
@@ -2578,10 +3822,21 @@ router.post("/generate", async (req, res) => {
     const isStandardResult =
       finalResult.status === "succeeded" && finalResult.output;
 
+    // Dev API'ye fallback yapıldıktan sonra başarılı sonuç kontrolü
     if (isFluxKontextDevResult || isStandardResult) {
       console.log("Replicate API işlemi başarılı");
 
-      // 💳 API başarılı olduktan sonra güncel kredi bilgisini al
+      // ✅ Status'u completed'e güncelle
+      await updateGenerationStatus(finalGenerationId, userId, "completed", {
+        enhanced_prompt: enhancedPrompt,
+        result_image_url: finalResult.output,
+        replicate_prediction_id: initialResult.id,
+        processing_time_seconds: processingTime,
+      });
+
+      // 💳 KREDI GÜNCELLEME SIRASI
+      // Kredi düşümü updateGenerationStatus içinde tetikleniyor (pay-on-success).
+      // Bu nedenle güncel krediyi, status güncellemesinden SONRA okumalıyız.
       let currentCredit = null;
       if (userId && userId !== "anonymous_user") {
         try {
@@ -2592,18 +3847,16 @@ router.post("/generate", async (req, res) => {
             .single();
 
           currentCredit = updatedUser?.credit_balance || 0;
-          console.log(`💳 Güncel kredi balance: ${currentCredit}`);
+          console.log(
+            `💳 Güncel kredi balance (post-deduct): ${currentCredit}`
+          );
         } catch (creditError) {
-          console.error("❌ Güncel kredi sorgu hatası:", creditError);
+          console.error(
+            "❌ Güncel kredi sorgu hatası (post-deduct):",
+            creditError
+          );
         }
       }
-
-      // 📤 Reference images'ları Supabase'e upload et
-      console.log("📤 Reference images Supabase'e upload ediliyor...");
-      const referenceImageUrls = await uploadReferenceImagesToSupabase(
-        referenceImages,
-        userId
-      );
 
       const responseData = {
         success: true,
@@ -2613,24 +3866,11 @@ router.post("/generate", async (req, res) => {
           enhancedPrompt: enhancedPrompt,
           replicateData: finalResult,
           currentCredit: currentCredit, // 💳 Güncel kredi bilgisini response'a ekle
+          generationId: finalGenerationId, // 🆔 Generation ID'yi response'a ekle
         },
       };
 
-      await saveGenerationToDatabase(
-        userId,
-        responseData,
-        promptText,
-        referenceImageUrls, // Artık Supabase URL'leri
-        settings,
-        locationImage,
-        poseImage,
-        hairStyleImage,
-        formattedRatio,
-        initialResult.id,
-        processingTime,
-        isMultipleImages,
-        isMultipleProducts
-      );
+      // Not: saveGenerationToDatabase artık gerekli değil çünkü updateGenerationStatus ile güncelliyoruz
 
       // 🗑️ İşlem başarıyla tamamlandı, geçici dosyaları hemen temizle
       console.log("🧹 Başarılı işlem sonrası geçici dosyalar temizleniyor...");
@@ -2639,6 +3879,12 @@ router.post("/generate", async (req, res) => {
       return res.status(200).json(responseData);
     } else {
       console.error("Replicate API başarısız:", finalResult);
+
+      // ❌ Status'u failed'e güncelle
+      await updateGenerationStatus(finalGenerationId, userId, "failed", {
+        // error_message kolonu yok, bu yüzden genel field kullan
+        processing_time_seconds: 0,
+      });
 
       // 🗑️ Replicate hata durumunda geçici dosyaları temizle
       console.log(
@@ -2659,11 +3905,13 @@ router.post("/generate", async (req, res) => {
             .from("users")
             .update({
               credit_balance:
-                (currentUserCredit?.credit_balance || 0) + CREDIT_COST,
+                (currentUserCredit?.credit_balance || 0) + actualCreditDeducted,
             })
             .eq("id", userId);
 
-          console.log(`💰 ${CREDIT_COST} kredi iade edildi (Replicate hatası)`);
+          console.log(
+            `💰 ${actualCreditDeducted} kredi iade edildi (Replicate hatası)`
+          );
         } catch (refundError) {
           console.error("❌ Kredi iade hatası:", refundError);
         }
@@ -2680,6 +3928,14 @@ router.post("/generate", async (req, res) => {
     }
   } catch (error) {
     console.error("Resim oluşturma hatası:", error);
+
+    // ❌ Status'u failed'e güncelle (genel hata durumu)
+    if (finalGenerationId) {
+      await updateGenerationStatus(finalGenerationId, userId, "failed", {
+        // error_message kolonu yok, bu yüzden genel field kullan
+        processing_time_seconds: 0,
+      });
+    }
 
     // 🗑️ Hata durumunda da geçici dosyaları temizle
     console.log("🧹 Hata durumunda geçici dosyalar temizleniyor...");
@@ -2698,11 +3954,13 @@ router.post("/generate", async (req, res) => {
           .from("users")
           .update({
             credit_balance:
-              (currentUserCredit?.credit_balance || 0) + CREDIT_COST,
+              (currentUserCredit?.credit_balance || 0) + actualCreditDeducted,
           })
           .eq("id", userId);
 
-        console.log(`💰 ${CREDIT_COST} kredi iade edildi (Genel hata)`);
+        console.log(
+          `💰 ${actualCreditDeducted} kredi iade edildi (Genel hata)`
+        );
       } catch (refundError) {
         console.error("❌ Kredi iade hatası:", refundError);
       }
@@ -2736,6 +3994,25 @@ router.post("/generate", async (req, res) => {
           message:
             "Replicate sunucusunda geçici bir kesinti oluştu. Lütfen birkaç dakika sonra tekrar deneyin.",
           error_type: "prediction_interrupted",
+          user_friendly: true,
+          retry_after: 30, // 30 saniye sonra tekrar dene
+        },
+      });
+    }
+
+    // Timeout hatalarını özel olarak handle et
+    if (
+      error.message &&
+      (error.message.includes("timeout") ||
+        error.message.includes("Gemini API timeout") ||
+        error.message.includes("120s"))
+    ) {
+      return res.status(503).json({
+        success: false,
+        result: {
+          message:
+            "İşlem 2 dakika zaman aşımına uğradı. Lütfen daha küçük bir resim deneyiniz veya tekrar deneyin.",
+          error_type: "timeout",
           user_friendly: true,
           retry_after: 30, // 30 saniye sonra tekrar dene
         },
@@ -2952,28 +4229,8 @@ async function generatePoseDescriptionWithGemini(
     console.log("🤸 Gender:", gender);
     console.log("🤸 Garment type:", garmentType);
 
-    // Gemini 2.0 Flash modeli
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
-      safetySettings: [
-        {
-          category: "HARM_CATEGORY_HARASSMENT",
-          threshold: "BLOCK_ONLY_HIGH",
-        },
-        {
-          category: "HARM_CATEGORY_HATE_SPEECH",
-          threshold: "BLOCK_ONLY_HIGH",
-        },
-        {
-          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-          threshold: "BLOCK_ONLY_HIGH",
-        },
-        {
-          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-          threshold: "BLOCK_ONLY_HIGH",
-        },
-      ],
-    });
+    // Gemini 2.0 Flash modeli - Yeni SDK
+    const model = "gemini-2.0-flash-001";
 
     // Gender mapping
     const modelGenderText =
@@ -3020,7 +4277,7 @@ async function generatePoseDescriptionWithGemini(
         const cleanPoseImageUrl = poseImage.split("?")[0];
         const poseImageResponse = await axios.get(cleanPoseImageUrl, {
           responseType: "arraybuffer",
-          timeout: 30000,
+          timeout: 15000, // 30s'den 15s'ye düşürüldü
         });
         const poseImageBuffer = poseImageResponse.data;
 
@@ -3044,7 +4301,8 @@ async function generatePoseDescriptionWithGemini(
     }
 
     // Gemini'den cevap al
-    const result = await model.generateContent({
+    const result = await genAI.models.generateContent({
+      model,
       contents: [
         {
           role: "user",
@@ -3053,7 +4311,7 @@ async function generatePoseDescriptionWithGemini(
       ],
     });
 
-    const poseDescription = result.response.text().trim();
+    const poseDescription = result.text.trim();
     console.log("🤸 Gemini'nin ürettiği pose açıklaması:", poseDescription);
 
     return poseDescription;
@@ -3114,6 +4372,354 @@ router.post("/generatePoseDescription", async (req, res) => {
       success: false,
       result: {
         message: "Pose açıklaması oluşturulurken hata oluştu",
+        error: error.message,
+      },
+    });
+  }
+});
+
+// Generation status sorgulama endpoint'i (polling için)
+router.get("/generation-status/:generationId", async (req, res) => {
+  try {
+    const { generationId } = req.params;
+    const { userId } = req.query;
+
+    if (!generationId) {
+      return res.status(400).json({
+        success: false,
+        result: {
+          message: "Generation ID gereklidir",
+        },
+      });
+    }
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        result: {
+          message: "User ID gereklidir",
+        },
+      });
+    }
+
+    console.log(
+      `🔍 Generation status sorgusu: ${generationId} (User: ${userId})`
+    );
+
+    // Generation'ı sorgula
+    const { data: generationArray, error } = await supabase
+      .from("reference_results")
+      .select("*")
+      .eq("generation_id", generationId)
+      .eq("user_id", userId);
+
+    if (error) {
+      console.error("❌ Generation sorgulama hatası:", error);
+      return res.status(500).json({
+        success: false,
+        result: {
+          message: "Generation sorgulanırken hata oluştu",
+          error: error.message,
+        },
+      });
+    }
+
+    // Array'den ilk elemanı al veya yoksa null
+    const generation =
+      generationArray && generationArray.length > 0 ? generationArray[0] : null;
+
+    if (!generation) {
+      console.log(
+        `❌ Generation bulunamadı: ${generationId} (User: ${userId})`
+      );
+      return res.status(404).json({
+        success: false,
+        result: {
+          message: "Generation bulunamadı",
+        },
+      });
+    }
+
+    // ⏰ Processing timeout kontrolü (15 dakika)
+    const PROCESSING_TIMEOUT_MINUTES = 15;
+    const createdAt = new Date(generation.created_at);
+    const now = new Date();
+    const minutesElapsed = (now - createdAt) / (1000 * 60);
+
+    let finalStatus = generation.status;
+    let shouldUpdateStatus = false;
+
+    if (
+      (generation.status === "processing" || generation.status === "pending") &&
+      minutesElapsed > PROCESSING_TIMEOUT_MINUTES
+    ) {
+      console.log(
+        `⏰ Generation ${generationId} timeout (${Math.round(
+          minutesElapsed
+        )} dakika), failed olarak işaretleniyor`
+      );
+      finalStatus = "failed";
+      shouldUpdateStatus = true;
+
+      // Database'de status'u failed'e güncelle
+      try {
+        await updateGenerationStatus(generationId, userId, "failed", {
+          processing_time_seconds: Math.round(minutesElapsed * 60),
+        });
+        console.log(
+          `✅ Timeout generation ${generationId} failed olarak güncellendi`
+        );
+      } catch (updateError) {
+        console.error(
+          `❌ Timeout generation ${generationId} güncelleme hatası:`,
+          updateError
+        );
+      }
+    }
+
+    console.log(
+      `✅ Generation durumu: ${finalStatus}${
+        shouldUpdateStatus ? " (timeout nedeniyle güncellendi)" : ""
+      }`
+    );
+
+    return res.status(200).json({
+      success: true,
+      result: {
+        generationId: generation.generation_id,
+        status: finalStatus,
+        resultImageUrl: generation.result_image_url,
+        originalPrompt: generation.original_prompt,
+        enhancedPrompt: generation.enhanced_prompt,
+        errorMessage: shouldUpdateStatus ? "İşlem zaman aşımına uğradı" : null,
+        processingTimeSeconds: generation.processing_time_seconds,
+        createdAt: generation.created_at,
+        updatedAt: generation.updated_at,
+      },
+    });
+  } catch (error) {
+    console.error("❌ Generation status endpoint hatası:", error);
+    return res.status(500).json({
+      success: false,
+      result: {
+        message: "Generation status sorgulanırken hata oluştu",
+        error: error.message,
+      },
+    });
+  }
+});
+
+// Kullanıcının pending/processing generation'larını getiren endpoint
+router.get("/pending-generations/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        result: {
+          message: "User ID gereklidir",
+        },
+      });
+    }
+
+    console.log(`🔍 Pending generations sorgusu: ${userId}`);
+
+    // Pending ve processing durumundaki generation'ları getir
+    const { data: generations, error } = await supabase
+      .from("reference_results")
+      .select("*")
+      .eq("user_id", userId)
+      .in("status", ["pending", "processing"])
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("❌ Pending generations sorgulama hatası:", error);
+      return res.status(500).json({
+        success: false,
+        result: {
+          message: "Pending generations sorgulanırken hata oluştu",
+          error: error.message,
+        },
+      });
+    }
+
+    console.log(
+      `✅ ${generations?.length || 0} pending/processing generation bulundu`
+    );
+
+    // ⏰ Timeout kontrolü ve otomatik cleanup
+    const PROCESSING_TIMEOUT_MINUTES = 15;
+    const now = new Date();
+    let validGenerations = [];
+    let timeoutGenerations = [];
+
+    if (generations && generations.length > 0) {
+      for (const gen of generations) {
+        const createdAt = new Date(gen.created_at);
+        const minutesElapsed = (now - createdAt) / (1000 * 60);
+
+        if (minutesElapsed > PROCESSING_TIMEOUT_MINUTES) {
+          console.log(
+            `⏰ Generation ${gen.generation_id} timeout (${Math.round(
+              minutesElapsed
+            )} dakika)`
+          );
+          timeoutGenerations.push(gen);
+
+          // Database'de failed olarak işaretle
+          try {
+            await updateGenerationStatus(gen.generation_id, userId, "failed", {
+              processing_time_seconds: Math.round(minutesElapsed * 60),
+            });
+            console.log(
+              `✅ Timeout generation ${gen.generation_id} failed olarak güncellendi`
+            );
+          } catch (updateError) {
+            console.error(
+              `❌ Timeout generation ${gen.generation_id} güncelleme hatası:`,
+              updateError
+            );
+          }
+        } else {
+          validGenerations.push(gen);
+        }
+      }
+
+      console.log(
+        `🧹 ${timeoutGenerations.length} timeout generation temizlendi, ${validGenerations.length} aktif generation kaldı`
+      );
+    }
+
+    return res.status(200).json({
+      success: true,
+      result: {
+        generations:
+          validGenerations?.map((gen) => ({
+            generationId: gen.generation_id,
+            status: gen.status,
+            resultImageUrl: gen.result_image_url,
+            originalPrompt: gen.original_prompt,
+            enhancedPrompt: gen.enhanced_prompt,
+            errorMessage: null, // error_message kolonu yok
+            processingTimeSeconds: gen.processing_time_seconds,
+            createdAt: gen.created_at,
+            updatedAt: gen.updated_at,
+          })) || [],
+        count: validGenerations?.length || 0,
+      },
+    });
+  } catch (error) {
+    console.error("❌ Pending generations endpoint hatası:", error);
+    return res.status(500).json({
+      success: false,
+      result: {
+        message: "Pending generations sorgulanırken hata oluştu",
+        error: error.message,
+      },
+    });
+  }
+});
+
+// Kullanıcının tüm generation'larını getiren endpoint (pending, processing, completed, failed)
+router.get("/user-generations/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { status } = req.query; // Opsiyonel: belirli statusleri filtrelemek için
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        result: {
+          message: "User ID gereklidir",
+        },
+      });
+    }
+
+    console.log(
+      `🔍 User generations sorgusu: ${userId}${
+        status ? ` (status: ${status})` : ""
+      }`
+    );
+
+    let query = supabase
+      .from("reference_results")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+
+    // Status filtresi varsa uygula
+    if (status) {
+      if (status === "pending") {
+        query = query.in("status", ["pending", "processing"]);
+      } else {
+        query = query.eq("status", status);
+      }
+    }
+
+    const { data: generations, error } = await query;
+
+    if (error) {
+      console.error("❌ User generations sorgulama hatası:", error);
+      return res.status(500).json({
+        success: false,
+        result: {
+          message: "User generations sorgulanırken hata oluştu",
+          error: error.message,
+        },
+      });
+    }
+
+    console.log(
+      `✅ ${generations?.length || 0} generation bulundu (${
+        status || "all statuses"
+      })`
+    );
+
+    // Debug: Generation'ları logla
+    if (generations && generations.length > 0) {
+      console.log(`🔍 [DEBUG] ${generations.length} generation bulundu:`);
+      generations.forEach((gen, index) => {
+        console.log(
+          `  ${index + 1}. ID: ${gen.generation_id}, Status: ${gen.status}`
+        );
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      result: {
+        generations:
+          generations?.map((gen) => ({
+            id: gen.id,
+            generationId: gen.generation_id,
+            status: gen.status,
+            resultImageUrl: gen.result_image_url,
+            originalPrompt: gen.original_prompt,
+            enhancedPrompt: gen.enhanced_prompt,
+            referenceImages: gen.reference_images,
+            settings: gen.settings,
+            locationImage: gen.location_image,
+            poseImage: gen.pose_image,
+            hairStyleImage: gen.hair_style_image,
+            aspectRatio: gen.aspect_ratio,
+            replicatePredictionId: gen.replicate_prediction_id,
+            processingTimeSeconds: gen.processing_time_seconds,
+            isMultipleImages: gen.is_multiple_images,
+            isMultipleProducts: gen.is_multiple_products,
+            errorMessage: null, // error_message kolonu yok
+            createdAt: gen.created_at,
+            updatedAt: gen.updated_at,
+          })) || [],
+        totalCount: generations?.length || 0,
+      },
+    });
+  } catch (error) {
+    console.error("❌ User generations endpoint hatası:", error);
+    return res.status(500).json({
+      success: false,
+      result: {
+        message: "User generations sorgulanırken hata oluştu",
         error: error.message,
       },
     });

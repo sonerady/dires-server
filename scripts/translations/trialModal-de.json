@@ -1,0 +1,27 @@
+{
+  "trialModal": {
+    "restore": "Wiederherstellen",
+    "title": "Wie Ihre kostenlose\nTestversion funktioniert",
+    "steps": {
+      "install": {
+        "title": "Installieren"
+      },
+      "today": {
+        "title": "Heute",
+        "description": "Erhalten Sie {{credits}} KOSTENLOSE Credits + schalten Sie ALLE {{package}}\nFunktionen sofort mit Ihrer Testversion frei"
+      },
+      "threeDaysLater": {
+        "title": "3 Tage später",
+        "description": "Nach dem Start Ihres PRO-Abonnements werden {{packageCredits}} Credits zugewiesen.\nSie können jederzeit kündigen."
+      }
+    },
+    "pricing": {
+      "freeTrial": "3-tägige kostenlose Testversion, dann",
+      "packageInfo": "{{package}} Plan • {{billing}} Abrechnung"
+    },
+    "buttons": {
+      "startTrial": "Starten Sie Ihre 3-tägige kostenlose Testversion",
+      "showAllPlans": "Alle Pläne anzeigen"
+    }
+  }
+}
