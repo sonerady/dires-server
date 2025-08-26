@@ -1981,226 +1981,85 @@ async function uploadProcessedImageBufferToSupabase(
   }
 }
 
-async function callGeminiImageAPI(
+async function callReplicateNanoBananaFallback(
   enhancedPrompt,
   inputImageUrl,
   aspectRatio,
   userId
 ) {
   try {
-    console.log("🔄 Gemini 2.5 Flash Image Preview API'ye geçiş yapılıyor...");
+    console.log(
+      "🔄 Replicate google/nano-banana fallback API'ye geçiş yapılıyor..."
+    );
 
-    const ai = new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY,
-    });
-
-    const config = {
-      responseModalities: ["IMAGE", "TEXT"],
-    };
-
-    const model = "gemini-2.5-flash-image-preview";
-
-    // Input image'ı base64'e çevir
-    let inputImageBase64;
-    try {
-      const imageResponse = await axios.get(inputImageUrl, {
-        responseType: "arraybuffer",
-        timeout: 15000,
-      });
-      inputImageBase64 = Buffer.from(imageResponse.data).toString("base64");
-    } catch (imageError) {
-      console.error("❌ Input image download hatası:", imageError.message);
-      throw new Error("Input image indirilemedi");
-    }
-
-    const contents = [
-      {
-        role: "user",
-        parts: [
-          {
-            text: enhancedPrompt,
-          },
-          {
-            inlineData: {
-              mimeType: "image/jpeg",
-              data: inputImageBase64,
-            },
-          },
+    // Replicate API için request body hazırla
+    const requestBody = {
+      input: {
+        prompt: enhancedPrompt,
+        image_input: [
+          inputImageUrl, // Direkt string olarak gönder
         ],
+        output_format: "jpg",
       },
-    ];
-
-    console.log(
-      "🚀 Gemini 2.5 Flash Image Preview fallback API çağrısı yapılıyor..."
-    );
-    console.log("📋 Fallback Model:", model);
-    console.log("📋 Fallback Contents structure:", {
-      role: contents[0].role,
-      partsCount: contents[0].parts.length,
-      hasText: !!contents[0].parts[0].text,
-      hasImage: !!contents[0].parts[1]?.inlineData,
-      imageMimeType: contents[0].parts[1]?.inlineData?.mimeType,
-      imageDataLength: contents[0].parts[1]?.inlineData?.data?.length || 0,
-    });
-
-    // Timeout wrapper for fallback
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => {
-        reject(new Error("Gemini Fallback API timeout (60s)"));
-      }, 60000); // 60 saniye timeout
-    });
-
-    // Gemini API çağrısı (streaming) - fallback
-    const response = await ai.models.generateContentStream({
-      model,
-      config,
-      contents,
-    });
-
-    let generatedImageBuffer = null;
-    let hasImageResponse = false;
-    let fileIndex = 0;
-
-    console.log(
-      "📡 Gemini fallback response stream başlatıldı, chunk'lar bekleniyor..."
-    );
-
-    for await (const chunk of response) {
-      if (
-        !chunk.candidates ||
-        !chunk.candidates[0].content ||
-        !chunk.candidates[0].content.parts
-      ) {
-        continue;
-      }
-
-      if (chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData) {
-        const inlineData = chunk.candidates[0].content.parts[0].inlineData;
-        const fileExtension = mime.getExtension(inlineData.mimeType || "");
-        generatedImageBuffer = Buffer.from(inlineData.data || "", "base64");
-        hasImageResponse = true;
-        console.log(
-          `✅ Gemini fallback resim sonucu alındı (${inlineData.mimeType})`
-        );
-        break;
-      } else {
-        // Text response varsa logla
-        if (chunk.text) {
-          console.log("📝 Gemini fallback text response:", chunk.text);
-        }
-      }
-    }
-
-    // Response yapısını incele
-    if (response.candidates && response.candidates.length > 0) {
-      const candidate = response.candidates[0];
-      console.log("🔍 Fallback Candidate analizi:", {
-        hasContent: !!candidate.content,
-        hasParts: !!candidate.content?.parts,
-        partsLength: candidate.content?.parts?.length || 0,
-        finishReason: candidate.finishReason,
-        safetyRatings: candidate.safetyRatings?.length || 0,
-      });
-
-      // Finish reason kontrolü
-      if (candidate.finishReason) {
-        console.log(`🏁 Fallback Finish reason:`, candidate.finishReason);
-        if (candidate.finishReason === "SAFETY") {
-          console.error(
-            "❌ Gemini fallback safety filter tarafından bloke edildi"
-          );
-          throw new Error(
-            "Fallback content safety filter tarafından reddedildi"
-          );
-        }
-      }
-
-      if (candidate.content && candidate.content.parts) {
-        candidate.content.parts.forEach((part, index) => {
-          console.log(`📦 Fallback Part ${index}:`, {
-            hasText: !!part.text,
-            hasInlineData: !!part.inlineData,
-            mimeType: part.inlineData?.mimeType,
-            dataLength: part.inlineData?.data?.length || 0,
-          });
-
-          // Text content varsa logla
-          if (part.text) {
-            console.log(`📝 Fallback Part ${index} text:`, part.text);
-          }
-
-          // InlineData varsa resim verisi
-          if (part.inlineData) {
-            console.log(`🖼️ Fallback Part ${index}: InlineData bulundu!`, {
-              mimeType: part.inlineData.mimeType,
-              dataLength: part.inlineData.data?.length || 0,
-            });
-
-            generatedImageBuffer = Buffer.from(
-              part.inlineData.data || "",
-              "base64"
-            );
-            hasImageResponse = true;
-            console.log("✅ Gemini fallback resim verisi alındı");
-          }
-        });
-      }
-    }
-
-    // Alternatif olarak response.text kontrol et (belki metin olarak döndü)
-    if (!hasImageResponse && response.text) {
-      console.log("📝 Fallback Response text alındı:", response.text);
-      // Bu durumda text-to-image işlemi yapmak gerekebilir
-      throw new Error("Gemini fallback sadece text döndürdü, image bekleniyor");
-    }
-
-    if (!hasImageResponse || !generatedImageBuffer) {
-      throw new Error(
-        `Gemini fallback'dan görsel sonucu alınamadı. Response yapısı beklenmedik.`
-      );
-    }
-
-    // Buffer'ı Supabase'e yükle
-    const timestamp = Date.now();
-    const randomId = uuidv4().substring(0, 8);
-    const fileName = `temp_${timestamp}_gemini_fallback_${
-      userId || "anonymous"
-    }_${randomId}.jpg`;
-
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("reference")
-      .upload(fileName, generatedImageBuffer, {
-        contentType: "image/jpeg",
-        cacheControl: "3600",
-        upsert: false,
-      });
-
-    if (uploadError) {
-      console.error(
-        "❌ Gemini fallback sonuç resmi Supabase'e yüklenemedi:",
-        uploadError
-      );
-      throw new Error(`Supabase upload error: ${uploadError.message}`);
-    }
-
-    // Public URL al
-    const { data: urlData } = supabase.storage
-      .from("reference")
-      .getPublicUrl(fileName);
-
-    console.log(
-      "✅ Gemini 2.5 Flash Image Preview fallback API başarılı:",
-      urlData.publicUrl
-    );
-
-    return {
-      id: `gemini_fallback_${timestamp}`,
-      status: "succeeded",
-      output: urlData.publicUrl,
     };
+
+    console.log("📋 Fallback Replicate Request Body:", {
+      prompt: enhancedPrompt.substring(0, 100) + "...",
+      imageInput: inputImageUrl,
+      outputFormat: "jpg",
+    });
+
+    // Replicate API çağrısı - Prefer: wait header ile
+    const response = await axios.post(
+      "https://api.replicate.com/v1/models/google/nano-banana/predictions",
+      requestBody,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+          "Content-Type": "application/json",
+          Prefer: "wait", // Synchronous response için
+        },
+        timeout: 60000, // 1 dakika timeout (fallback için daha kısa)
+      }
+    );
+
+    console.log("📋 Fallback Replicate API Response Status:", response.status);
+    console.log("📋 Fallback Replicate API Response Data:", {
+      id: response.data.id,
+      status: response.data.status,
+      hasOutput: !!response.data.output,
+      error: response.data.error,
+    });
+
+    // Response kontrolü
+    if (response.data.status === "succeeded" && response.data.output) {
+      console.log(
+        "✅ Fallback Replicate API başarılı, output alındı:",
+        response.data.output
+      );
+
+      return {
+        id: response.data.id,
+        status: "succeeded",
+        output: response.data.output,
+      };
+    } else if (response.data.status === "failed") {
+      console.error("❌ Fallback Replicate API failed:", response.data.error);
+      throw new Error(
+        `Fallback Replicate API failed: ${
+          response.data.error || "Unknown error"
+        }`
+      );
+    } else {
+      console.error(
+        "❌ Fallback Replicate API unexpected status:",
+        response.data.status
+      );
+      throw new Error(`Fallback unexpected status: ${response.data.status}`);
+    }
   } catch (error) {
     console.error(
-      "❌ Gemini 2.5 Flash Image Preview fallback API hatası:",
+      "❌ Replicate google/nano-banana fallback API hatası:",
       error.message
     );
     throw error;
@@ -3392,209 +3251,126 @@ router.post("/generate", async (req, res) => {
     console.log("📝 [BACKEND MAIN] Original prompt:", promptText);
     console.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
 
-    // Gemini 2.5 Flash Image Preview API'ye retry mekanizması ile istek gönder
+    // Replicate google/nano-banana modeli ile istek gönder
     let replicateResponse;
     const maxRetries = 3;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         console.log(
-          `🔄 Gemini 2.5 Flash Image Preview API attempt ${attempt}/${maxRetries}`
+          `🔄 Replicate google/nano-banana API attempt ${attempt}/${maxRetries}`
         );
 
-        // Gemini 2.5 Flash Image Preview API kullan (doğru model)
-        console.log(
-          "🚀 Gemini 2.5 Flash Image Preview API çağrısı yapılıyor..."
-        );
+        console.log("🚀 Replicate google/nano-banana API çağrısı yapılıyor...");
 
-        const ai = new GoogleGenAI({
-          apiKey: process.env.GEMINI_API_KEY,
-        });
-
-        const config = {
-          responseModalities: ["IMAGE", "TEXT"],
+        // Replicate API için request body hazırla
+        const requestBody = {
+          input: {
+            prompt: enhancedPrompt,
+            image_input: [combinedImageForReplicate],
+            output_format: "jpg",
+          },
         };
 
-        const model = "gemini-2.5-flash-image-preview";
+        console.log("📋 Replicate Request Body:", {
+          prompt: enhancedPrompt.substring(0, 100) + "...",
+          imageInput: combinedImageForReplicate,
+          outputFormat: "jpg",
+        });
 
-        // Combined image'ı base64'e çevir
-        let combinedImageBase64;
-        try {
-          const imageResponse = await axios.get(combinedImageForReplicate, {
-            responseType: "arraybuffer",
-            timeout: 15000,
-          });
-          combinedImageBase64 = Buffer.from(imageResponse.data).toString(
-            "base64"
-          );
-        } catch (imageError) {
-          console.error(
-            "❌ Combined image download hatası:",
-            imageError.message
-          );
-          throw new Error("Reference image indirilemedi");
-        }
-
-        const mainApiContents = [
+        // Replicate API çağrısı - Prefer: wait header ile
+        const response = await axios.post(
+          "https://api.replicate.com/v1/models/google/nano-banana/predictions",
+          requestBody,
           {
-            role: "user",
-            parts: [
-              {
-                text: enhancedPrompt,
-              },
-              {
-                inlineData: {
-                  mimeType: "image/jpeg",
-                  data: combinedImageBase64,
-                },
-              },
-            ],
-          },
-        ];
-
-        console.log(
-          "🚀 Gemini 2.5 Flash Image Preview API çağrısı yapılıyor..."
-        );
-        console.log("📋 Model:", model);
-        console.log("📋 Contents structure:", {
-          role: mainApiContents[0].role,
-          partsCount: mainApiContents[0].parts.length,
-          hasText: !!mainApiContents[0].parts[0].text,
-          hasImage: !!mainApiContents[0].parts[1]?.inlineData,
-          imageMimeType: mainApiContents[0].parts[1]?.inlineData?.mimeType,
-          imageDataLength:
-            mainApiContents[0].parts[1]?.inlineData?.data?.length || 0,
-        });
-
-        // Timeout wrapper - 120 saniye (2 dakika)
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => {
-            reject(new Error("Gemini API timeout (120s)"));
-          }, 120000); // 120 saniye (2 dakika) timeout
-        });
-
-        // Gemini API çağrısı (streaming) - timeout ile
-        const geminiAPIPromise = ai.models.generateContentStream({
-          model,
-          config,
-          contents: mainApiContents,
-        });
-
-        const response = await Promise.race([geminiAPIPromise, timeoutPromise]);
-
-        let generatedImageBuffer = null;
-        let hasImageResponse = false;
-        let fileIndex = 0;
-
-        console.log(
-          "📡 Gemini response stream başlatıldı, chunk'lar bekleniyor..."
-        );
-
-        // Stream processing timeout - 120 saniye
-        const streamTimeout = setTimeout(() => {
-          throw new Error("Gemini stream processing timeout (120s)");
-        }, 120000); // 120 saniye stream timeout
-
-        try {
-          for await (const chunk of response) {
-            if (
-              !chunk.candidates ||
-              !chunk.candidates[0].content ||
-              !chunk.candidates[0].content.parts
-            ) {
-              continue;
-            }
-
-            if (chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData) {
-              const inlineData =
-                chunk.candidates[0].content.parts[0].inlineData;
-              const fileExtension = mime.getExtension(
-                inlineData.mimeType || ""
-              );
-              generatedImageBuffer = Buffer.from(
-                inlineData.data || "",
-                "base64"
-              );
-              hasImageResponse = true;
-              console.log(
-                `✅ Gemini 2.5 Flash Image Preview resim sonucu alındı (${inlineData.mimeType})`
-              );
-              break;
-            } else {
-              // Text response varsa logla
-              if (chunk.text) {
-                console.log("📝 Gemini text response:", chunk.text);
-              }
-            }
-          }
-
-          // Stream timeout'u temizle
-          clearTimeout(streamTimeout);
-        } catch (streamError) {
-          clearTimeout(streamTimeout);
-          throw streamError;
-        }
-
-        if (!hasImageResponse || !generatedImageBuffer) {
-          throw new Error("Gemini'den image response alınamadı");
-        }
-
-        // Gemini'den alınan image buffer'ını Supabase'e upload et
-        console.log("📤 Gemini sonucu Supabase'e yükleniyor...");
-
-        const geminiFileName = `generated_${Date.now()}_${userId}_${uuidv4().substring(
-          0,
-          8
-        )}.jpg`;
-        const uploadResult = await supabase.storage
-          .from("images")
-          .upload(geminiFileName, generatedImageBuffer, {
-            contentType: "image/jpeg",
-            cacheControl: "3600",
-            upsert: false,
-          });
-
-        if (uploadResult.error) {
-          console.error("❌ Supabase upload error:", uploadResult.error);
-          throw new Error(
-            `Supabase upload failed: ${uploadResult.error.message}`
-          );
-        }
-
-        // Public URL oluştur
-        const { data: geminiUrlData } = supabase.storage
-          .from("images")
-          .getPublicUrl(geminiFileName);
-
-        const finalResult = geminiUrlData.publicUrl;
-        console.log("✅ Gemini result uploaded to Supabase:", finalResult);
-
-        // Gemini response'u Replicate formatına uygun hale getir (polling gerektirmez)
-        replicateResponse = {
-          data: {
-            id: `gemini_${Date.now()}`,
-            status: "succeeded",
-            output: finalResult,
-            urls: {
-              get: null, // Gemini için polling gerekmez
+            headers: {
+              Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+              "Content-Type": "application/json",
+              Prefer: "wait", // Synchronous response için
             },
-          },
-        };
-
-        console.log(
-          `✅ Gemini 2.5 Flash Image Preview API başarılı (attempt ${attempt})`
+            timeout: 120000, // 2 dakika timeout
+          }
         );
-        break; // Başarılı olursa loop'tan çık
+
+        console.log("📋 Replicate API Response Status:", response.status);
+        console.log("📋 Replicate API Response Data:", {
+          id: response.data.id,
+          status: response.data.status,
+          hasOutput: !!response.data.output,
+          error: response.data.error,
+        });
+
+        // Response kontrolü
+        if (response.data.status === "succeeded" && response.data.output) {
+          console.log(
+            "✅ Replicate API başarılı, output alındı:",
+            response.data.output
+          );
+
+          // Replicate response'u formatla
+          replicateResponse = {
+            data: {
+              id: response.data.id,
+              status: "succeeded",
+              output: response.data.output,
+              urls: {
+                get: response.data.urls?.get || null,
+              },
+            },
+          };
+
+          console.log(
+            `✅ Replicate google/nano-banana API başarılı (attempt ${attempt})`
+          );
+          break; // Başarılı olursa loop'tan çık
+        } else if (
+          response.data.status === "processing" ||
+          response.data.status === "starting"
+        ) {
+          console.log(
+            "⏳ Replicate API hala işlem yapıyor, polling başlatılacak:",
+            response.data.status
+          );
+
+          // Processing durumunda response'u formatla ve polling'e geç
+          replicateResponse = {
+            data: {
+              id: response.data.id,
+              status: response.data.status,
+              output: response.data.output,
+              urls: {
+                get: response.data.urls?.get || null,
+              },
+            },
+          };
+
+          console.log(
+            `⏳ Replicate google/nano-banana API processing (attempt ${attempt}) - polling gerekecek`
+          );
+          break; // Processing durumunda da loop'tan çık ve polling'e geç
+        } else if (response.data.status === "failed") {
+          console.error("❌ Replicate API failed:", response.data.error);
+          throw new Error(
+            `Replicate API failed: ${response.data.error || "Unknown error"}`
+          );
+        } else {
+          console.error(
+            "❌ Replicate API unexpected status:",
+            response.data.status
+          );
+          throw new Error(`Unexpected status: ${response.data.status}`);
+        }
       } catch (apiError) {
         console.error(
-          `❌ Gemini 2.5 Flash Image Preview API attempt ${attempt} failed:`,
+          `❌ Replicate google/nano-banana API attempt ${attempt} failed:`,
           apiError.message
         );
 
         // 120 saniye timeout hatası ise direkt failed yap ve retry yapma
         if (
-          apiError.message.includes("Gemini API timeout (120s)") ||
-          apiError.message.includes("Gemini stream processing timeout (120s)")
+          apiError.message.includes("timeout") ||
+          apiError.code === "ETIMEDOUT" ||
+          apiError.code === "ECONNABORTED"
         ) {
           console.error(
             `❌ 120 saniye timeout hatası, generation failed yapılıyor: ${apiError.message}`
@@ -3608,13 +3384,12 @@ router.post("/generate", async (req, res) => {
           throw apiError; // Timeout hatası için retry yok
         }
 
-        // Son deneme değilse ve diğer timeout/network hataları ise tekrar dene
+        // Son deneme değilse ve network hataları ise tekrar dene
         if (
           attempt < maxRetries &&
-          (apiError.code === "ETIMEDOUT" ||
-            apiError.code === "ECONNRESET" ||
+          (apiError.code === "ECONNRESET" ||
             apiError.code === "ENOTFOUND" ||
-            apiError.message.includes("timeout"))
+            apiError.response?.status >= 500)
         ) {
           const waitTime = attempt * 2000; // 2s, 4s, 6s bekle
           console.log(`⏳ ${waitTime}ms bekleniyor, sonra tekrar denenecek...`);
@@ -3673,225 +3448,62 @@ router.post("/generate", async (req, res) => {
       });
     }
 
-    // Gemini için polling yapmadan direkt sonucu kullan
+    // Replicate google/nano-banana API - Status kontrolü ve polling
     const startTime = Date.now();
     let finalResult;
     let processingTime;
 
-    // Gemini ID'lerini check et - polling gerektirmez
-    if (initialResult.id && initialResult.id.startsWith("gemini_")) {
+    // Status kontrolü
+    if (initialResult.status === "succeeded") {
+      // Direkt başarılı sonuç
       console.log(
-        "🎯 Gemini sonucu - polling atlanıyor, direkt sonuç kullanılıyor"
+        "🎯 Replicate google/nano-banana - başarılı sonuç, polling atlanıyor"
       );
       finalResult = initialResult;
       processingTime = Math.round((Date.now() - startTime) / 1000);
-    } else {
-      // Sadece gerçek Replicate ID'leri için polling yap
+    } else if (
+      initialResult.status === "processing" ||
+      initialResult.status === "starting"
+    ) {
+      // Processing durumunda polling yap
+      console.log(
+        "⏳ Replicate google/nano-banana - processing status, polling başlatılıyor"
+      );
+
       try {
         finalResult = await pollReplicateResult(initialResult.id);
         processingTime = Math.round((Date.now() - startTime) / 1000);
       } catch (pollingError) {
         console.error("❌ Polling hatası:", pollingError.message);
 
-        // Content moderation hatası yakalandıysa Gemini 2.5 Flash Image Preview'e geç
-        if (pollingError.message === "SENSITIVE_CONTENT_FLUX_FALLBACK") {
-          console.log(
-            "🔄 Content moderation/model hatası nedeniyle Gemini 2.5 Flash Image Preview'e geçiliyor..."
-          );
+        // Polling hatası durumunda status'u failed'e güncelle
+        await updateGenerationStatus(finalGenerationId, userId, "failed", {
+          processing_time_seconds: 0,
+        });
 
-          try {
-            // Gemini 2.5 Flash Image Preview API'ye geçiş yap
-            const fallbackStartTime = Date.now();
-            finalResult = await callGeminiImageAPI(
-              enhancedPrompt,
-              combinedImageForReplicate,
-              formattedRatio,
-              userId
-            );
-            processingTime = Math.round(
-              (Date.now() - fallbackStartTime) / 1000
-            );
+        // 🗑️ Polling hatası durumunda geçici dosyaları temizle
+        console.log(
+          "🧹 Polling hatası sonrası geçici dosyalar temizleniyor..."
+        );
+        await cleanupTemporaryFiles(temporaryFiles);
 
-            console.log(
-              "✅ Gemini 2.5 Flash Image Preview API'den başarılı sonuç alındı - kullanıcıya başarılı olarak döndürülecek"
-            );
-            console.log(
-              "🔍 [DEBUG] Fallback finalResult:",
-              JSON.stringify(finalResult, null, 2)
-            );
-            console.log(
-              "🔍 [DEBUG] Fallback finalResult.output:",
-              finalResult.output
-            );
-            console.log("🔍 [DEBUG] Fallback finalResult.id:", finalResult.id);
-
-            // 🔄 Fallback API başarılı, status'u hemen "completed" olarak güncelle
-            await updateGenerationStatus(
-              finalGenerationId,
-              userId,
-              "completed",
-              {
-                enhanced_prompt: enhancedPrompt,
-                result_image_url: finalResult.output,
-                replicate_prediction_id: finalResult.id, // Fallback API'nin ID'si
-                processing_time_seconds: processingTime,
-                fallback_used: "gemini-2.5-flash-image-preview", // Fallback kullanıldığını belirtmek için
-              }
-            );
-
-            console.log(
-              "✅ Database'de generation status 'completed' olarak güncellendi (fallback)"
-            );
-
-            // 💳 Fallback başarılı, güncel kredi bilgisini al ve response döndür
-            let currentCredit = null;
-            if (userId && userId !== "anonymous_user") {
-              try {
-                const { data: updatedUser } = await supabase
-                  .from("users")
-                  .select("credit_balance")
-                  .eq("id", userId)
-                  .single();
-
-                currentCredit = updatedUser?.credit_balance || 0;
-                console.log(
-                  `💳 Güncel kredi balance (fallback): ${currentCredit}`
-                );
-              } catch (creditError) {
-                console.error(
-                  "❌ Güncel kredi sorgu hatası (fallback):",
-                  creditError
-                );
-              }
-            }
-
-            // 🗑️ Fallback başarılı, geçici dosyaları temizle
-            console.log(
-              "🧹 Fallback başarılı, geçici dosyalar temizleniyor..."
-            );
-            await cleanupTemporaryFiles(temporaryFiles);
-
-            // ✅ Fallback başarılı response'u döndür
-            console.log(
-              "🎯 [DEBUG] Fallback başarılı, response döndürülüyor - normal flow'a GİRMEYECEK"
-            );
-            return res.status(200).json({
-              success: true,
-              result: {
-                imageUrl: finalResult.output,
-                originalPrompt: promptText,
-                enhancedPrompt: enhancedPrompt,
-                replicateData: finalResult,
-                currentCredit: currentCredit,
-                generationId: finalGenerationId,
-                fallbackUsed: "gemini-2.5-flash-image-preview", // Client'a fallback kullanıldığını bildir
-              },
-            });
-          } catch (fallbackError) {
-            console.error(
-              "❌ Gemini 2.0 Flash Exp API'si de başarısız:",
-              fallbackError.message
-            );
-
-            // ❌ Status'u failed'e güncelle (Fallback API da başarısız)
-            await updateGenerationStatus(finalGenerationId, userId, "failed", {
-              // error_message kolonu yok, bu yüzden genel field kullan
-              processing_time_seconds: 0,
-            });
-
-            // 🗑️ Fallback API hatası durumunda geçici dosyaları temizle
-            console.log(
-              "🧹 Fallback API hatası sonrası geçici dosyalar temizleniyor..."
-            );
-            await cleanupTemporaryFiles(temporaryFiles);
-
-            // Kredi iade et
-            if (creditDeducted && userId && userId !== "anonymous_user") {
-              try {
-                const { data: currentUserCredit } = await supabase
-                  .from("users")
-                  .select("credit_balance")
-                  .eq("id", userId)
-                  .single();
-
-                await supabase
-                  .from("users")
-                  .update({
-                    credit_balance:
-                      (currentUserCredit?.credit_balance || 0) +
-                      actualCreditDeducted,
-                  })
-                  .eq("id", userId);
-
-                console.log(
-                  `💰 ${actualCreditDeducted} kredi iade edildi (Fallback API hatası)`
-                );
-              } catch (refundError) {
-                console.error("❌ Kredi iade hatası:", refundError);
-              }
-            }
-
-            return res.status(500).json({
-              success: false,
-              result: {
-                message: "Görsel işleme işlemi başarısız oldu",
-                error:
-                  "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
-              },
-            });
-          }
-        } else {
-          // Diğer polling hataları için mevcut mantığı kullan
-
-          // ❌ Status'u failed'e güncelle
-          await updateGenerationStatus(finalGenerationId, userId, "failed", {
-            // error_message kolonu yok, bu yüzden genel field kullan
-            processing_time_seconds: 0,
-          });
-
-          // 🗑️ Polling hatası durumunda geçici dosyaları temizle
-          console.log(
-            "🧹 Polling hatası sonrası geçici dosyalar temizleniyor..."
-          );
-          await cleanupTemporaryFiles(temporaryFiles);
-
-          // Kredi iade et
-          if (creditDeducted && userId && userId !== "anonymous_user") {
-            try {
-              const { data: currentUserCredit } = await supabase
-                .from("users")
-                .select("credit_balance")
-                .eq("id", userId)
-                .single();
-
-              await supabase
-                .from("users")
-                .update({
-                  credit_balance:
-                    (currentUserCredit?.credit_balance || 0) +
-                    actualCreditDeducted,
-                })
-                .eq("id", userId);
-
-              console.log(
-                `💰 ${actualCreditDeducted} kredi iade edildi (Polling hatası)`
-              );
-            } catch (refundError) {
-              console.error("❌ Kredi iade hatası:", refundError);
-            }
-          }
-
-          return res.status(500).json({
-            success: false,
-            result: {
-              message: "Görsel işleme işlemi başarısız oldu",
-              error: pollingError.message.includes("PREDICTION_INTERRUPTED")
-                ? "Sunucu kesintisi oluştu. Lütfen tekrar deneyin."
-                : "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
-            },
-          });
-        }
+        return res.status(500).json({
+          success: false,
+          result: {
+            message: "Görsel işleme işlemi başarısız oldu",
+            error: pollingError.message.includes("PREDICTION_INTERRUPTED")
+              ? "Sunucu kesintisi oluştu. Lütfen tekrar deneyin."
+              : "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
+          },
+        });
       }
+    } else {
+      // Diğer durumlar (failed, vs)
+      console.log(
+        "🎯 Replicate google/nano-banana - diğer status, direkt kullanılıyor"
+      );
+      finalResult = initialResult;
+      processingTime = Math.round((Date.now() - startTime) / 1000);
     }
 
     console.log("Replicate final result:", finalResult);
