@@ -69,6 +69,45 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
       );
     }
 
+    // EXIF rotation düzeltmesi uygula
+    let processedBuffer;
+    try {
+      processedBuffer = await sharp(imageBuffer)
+        .rotate() // EXIF orientation bilgisini otomatik uygula
+        .jpeg({ quality: 95 })
+        .toBuffer();
+      console.log("🔄 Tek resim upload: EXIF rotation uygulandı");
+    } catch (sharpError) {
+      console.error("❌ Sharp işleme hatası:", sharpError.message);
+
+      // Sharp hatası durumunda orijinal buffer'ı kullan
+      if (
+        sharpError.message.includes("Empty JPEG") ||
+        sharpError.message.includes("DNL not supported")
+      ) {
+        try {
+          processedBuffer = await sharp(imageBuffer)
+            .rotate() // EXIF rotation burada da dene
+            .png({ quality: 95 })
+            .toBuffer();
+          console.log(
+            "✅ Tek resim upload: PNG'ye dönüştürüldü (EXIF rotation uygulandı)"
+          );
+        } catch (pngError) {
+          console.error("❌ PNG dönüştürme hatası:", pngError.message);
+          processedBuffer = imageBuffer; // Son çare: orijinal buffer
+          console.log(
+            "⚠️ Orijinal buffer kullanılıyor (EXIF rotation uygulanamadı)"
+          );
+        }
+      } else {
+        processedBuffer = imageBuffer; // Son çare: orijinal buffer
+        console.log(
+          "⚠️ Orijinal buffer kullanılıyor (EXIF rotation uygulanamadı)"
+        );
+      }
+    }
+
     // Dosya adı oluştur (otomatik temizleme için timestamp prefix)
     const timestamp = Date.now();
     const randomId = uuidv4().substring(0, 8);
@@ -78,10 +117,10 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
 
     console.log("Supabase'e yüklenecek dosya adı:", fileName);
 
-    // Supabase'e yükle
+    // Supabase'e yükle (processed buffer ile)
     const { data, error } = await supabase.storage
       .from("reference")
-      .upload(fileName, imageBuffer, {
+      .upload(fileName, processedBuffer, {
         contentType: "image/jpeg",
         cacheControl: "3600",
         upsert: false,
@@ -2322,9 +2361,13 @@ async function combineImagesOnCanvas(
 
         let processedBuffer;
         try {
+          // EXIF rotation fix: .rotate() EXIF bilgisini otomatik uygular
           processedBuffer = await sharp(imageBuffer)
+            .rotate() // EXIF orientation bilgisini otomatik uygula
             .jpeg({ quality: 95 }) // Kalite artırıldı - ratio canvas için
             .toBuffer();
+
+          console.log(`🔄 Resim ${i + 1}: EXIF rotation uygulandı`);
         } catch (sharpError) {
           console.error(
             `❌ Sharp işleme hatası resim ${i + 1}:`,
@@ -2341,9 +2384,14 @@ async function combineImagesOnCanvas(
             );
             try {
               processedBuffer = await sharp(imageBuffer)
+                .rotate() // EXIF rotation burada da uygula
                 .png({ quality: 95 })
                 .toBuffer();
-              console.log(`✅ Resim ${i + 1} PNG olarak başarıyla işlendi`);
+              console.log(
+                `✅ Resim ${
+                  i + 1
+                } PNG olarak başarıyla işlendi (EXIF rotation uygulandı)`
+              );
             } catch (pngError) {
               console.error(
                 `❌ PNG dönüştürme de başarısız resim ${i + 1}:`,
@@ -2356,7 +2404,7 @@ async function combineImagesOnCanvas(
           }
         }
 
-        // Metadata'yı al
+        // Metadata'yı al (rotation uygulandıktan sonra)
         const metadata = await sharp(processedBuffer).metadata();
         console.log(
           `📐 Resim ${i + 1}: ${metadata.width}x${metadata.height} (${
