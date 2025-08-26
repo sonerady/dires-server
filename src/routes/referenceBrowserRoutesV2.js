@@ -2893,19 +2893,22 @@ async function combineImagesOnCanvas(
     const targetAspectRatio = ratioWidth / ratioHeight;
     console.log("📐 Hedef aspect ratio değeri:", targetAspectRatio);
 
-    // Canvas boyutları - Yüksek kalite için minimum 1024px
-    const minDimension = 1024;
+    // Canvas boyutları - Yüksek kalite için optimize edilmiş boyutlar
     let targetCanvasWidth, targetCanvasHeight;
 
     if (targetAspectRatio > 1) {
-      // Yatay format (16:9 gibi)
-      targetCanvasWidth = Math.max(minDimension, 1024);
+      // Yatay format (16:9, 4:3 gibi)
+      targetCanvasWidth = 1536; // Yüksek kalite
       targetCanvasHeight = Math.round(targetCanvasWidth / targetAspectRatio);
     } else {
-      // Dikey format (9:16 gibi) veya kare (1:1)
-      targetCanvasHeight = Math.max(minDimension, 1024);
+      // Dikey format (9:16, 3:4 gibi) veya kare (1:1)
+      targetCanvasHeight = 1536; // Yüksek kalite
       targetCanvasWidth = Math.round(targetCanvasHeight * targetAspectRatio);
     }
+
+    // Minimum boyut garantisi
+    if (targetCanvasWidth < 1024) targetCanvasWidth = 1024;
+    if (targetCanvasHeight < 1024) targetCanvasHeight = 1024;
 
     console.log(
       `📐 Hedef canvas boyutu: ${targetCanvasWidth}x${targetCanvasHeight}`
@@ -2944,10 +2947,14 @@ async function combineImagesOnCanvas(
           throw new Error(`Desteklenmeyen URI formatı: ${imgData.uri}`);
         }
 
-        // Sharp ile resmi önce işle (format uyumluluk için)
-        console.log(`🔄 Resim ${i + 1}: Sharp ile preprocessing yapılıyor...`);
+        // Sharp ile resmi önce işle (yüksek kalite korunarak)
+        console.log(
+          `🔄 Resim ${
+            i + 1
+          }: Sharp ile yüksek kalite preprocessing yapılıyor...`
+        );
         const processedBuffer = await sharp(imageBuffer)
-          .jpeg({ quality: 80 }) // Kalite 90'dan 80'e düşürüldü
+          .jpeg({ quality: 95 }) // Kalite artırıldı - ratio canvas için
           .toBuffer();
 
         // Metadata'yı al
@@ -3034,10 +3041,15 @@ async function combineImagesOnCanvas(
           drawY = 0;
         }
 
+        // Yüksek kaliteli çizim - çoklu ürün modu
+        ctx.save();
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
         ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+        ctx.restore();
 
         console.log(
-          `🖼️ Ürün ${i + 1} yerleştirildi: (${drawX.toFixed(
+          `🖼️ Ürün ${i + 1} yüksek kaliteyle yerleştirildi: (${drawX.toFixed(
             1
           )}, ${drawY.toFixed(1)}) - ${drawWidth.toFixed(
             1
@@ -3069,14 +3081,23 @@ async function combineImagesOnCanvas(
           drawY = 0;
         }
 
+        // Yüksek kaliteli çizim ayarları
+        ctx.save();
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
         ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+        ctx.restore();
 
+        console.log(`🖼️ Resim canvas ortasına yüksek kaliteyle yerleştirildi:`);
         console.log(
-          `🖼️ Resim canvas ortasına yerleştirildi: (${drawX.toFixed(
-            1
-          )}, ${drawY.toFixed(1)}) - ${drawWidth.toFixed(
-            1
-          )}x${drawHeight.toFixed(1)}`
+          `   📍 Pozisyon: (${drawX.toFixed(1)}, ${drawY.toFixed(1)})`
+        );
+        console.log(
+          `   📏 Boyut: ${drawWidth.toFixed(1)}x${drawHeight.toFixed(1)}`
+        );
+        console.log(`   📐 Orijinal resim: ${img.width}x${img.height}`);
+        console.log(
+          `   📐 Hedef canvas: ${canvasWidth}x${canvasHeight} (${aspectRatio})`
         );
       } else {
         // Çoklu resim alt alta (eski mantık) - ancak canvas boyutuna sığdır
@@ -3108,7 +3129,12 @@ async function combineImagesOnCanvas(
             drawY = y;
           }
 
+          // Yüksek kaliteli çizim
+          ctx.save();
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
           ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+          ctx.restore();
 
           console.log(
             `🖼️ Resim ${i + 1} yerleştirildi: (${drawX.toFixed(
@@ -3604,7 +3630,11 @@ router.post("/generate", async (req, res) => {
       // Birleştirilmiş resmi geçici dosyalar listesine ekle
       temporaryFiles.push(finalImage);
     } else {
-      // Tek resim için normal işlem
+      // Tek resim için ratio'ya göre canvas işlemi
+      console.log(
+        "🖼️ [BACKEND] Tek resim için ratio'ya göre canvas işlemi başlatılıyor..."
+      );
+
       const referenceImage = referenceImages[0];
 
       if (!referenceImage) {
@@ -3639,10 +3669,21 @@ router.post("/generate", async (req, res) => {
         });
       }
 
-      finalImage = await uploadReferenceImageToSupabase(
+      const uploadedImageUrl = await uploadReferenceImageToSupabase(
         imageSourceForUpload,
         userId
       );
+
+      // Tek resim için de ratio'ya göre canvas'a yerleştir
+      finalImage = await combineImagesOnCanvas(
+        [{ uri: uploadedImageUrl }], // Tek resmi array içinde gönder
+        userId,
+        false, // isMultipleProducts = false
+        ratio // ratio parametresi
+      );
+
+      // Canvas işleminden sonra oluşan resmi geçici dosyalar listesine ekle
+      temporaryFiles.push(finalImage);
     }
 
     console.log("Supabase'den alınan final resim URL'si:", finalImage);
