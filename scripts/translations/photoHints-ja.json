@@ -1,0 +1,12 @@
+{
+  "photoHints": {
+    "high_resolution": "高解像度",
+    "well_lit": "照明が良い",
+    "simple_background": "シンプルな背景",
+    "sharp_focused": "シャープでフォーカスされた",
+    "hd_quality": "HD品質",
+    "well_framed": "よくフレーミングされた",
+    "all_details_visible": "製品のすべての詳細が見える",
+    "static_text": " 写真を使用"
+  }
+}

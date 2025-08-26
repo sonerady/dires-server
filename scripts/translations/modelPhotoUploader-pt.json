@@ -1,0 +1,75 @@
+{
+  "processing": {
+    "single": "Único",
+    "multi": "Múltiplo",
+    "outfit": "Conjunto",
+    "title": "Tipo de Processamento",
+    "description": "Que tipo de processamento você gostaria de usar?",
+    "info_modal_title": "Tipos de Processamento",
+    "single_description": "Se você não tem pressa e quer fazer tudo em detalhes, se não tem restrições de tempo, pode escolher isso. Você obtém resultados detalhados fazendo upload e processando um produto por vez.",
+    "single_feature_1": "Foco detalhado em produtos individuais",
+    "multi_description": "Se você tem múltiplos produtos, pode vestir o modelo mais rapidamente fazendo processamento em lote. Não precisa fazer upload deles um por um.",
+    "multi_feature_1": "Processe múltiplos produtos simultaneamente",
+    "multi_feature_2": "Economize tempo com operações em lote",
+    "outfit_description": "Digamos que sua marca tem uma camiseta, calças e uma bolsa - você quer mostrar todos em um modelo de uma vez, é para isso que serve o conjunto.",
+    "outfit_feature_1": "Visualização completa do conjunto",
+    "outfit_feature_2": "Mostre múltiplos produtos juntos em um modelo",
+    "outfit_feature_3": "Perfeito para coleções de marca",
+    "select_button": "Selecionar",
+    "selected_button": "Selecionado",
+    "what_is_this": "O que é isso?"
+  },
+  "upload_mode": {
+    "single": "Imagem Única",
+    "multi": "Múltiplas Imagens",
+    "outfit": "Conjunto"
+  },
+  "errors": {
+    "image_upload_error": "Erro no upload da imagem",
+    "file_too_large": "Arquivo muito grande",
+    "invalid_format": "Formato de arquivo inválido",
+    "photo_selection_error": "Erro na seleção da foto",
+    "gallery_permission_required": "Permissão da galeria necessária",
+    "canvas_conversion_error": "Erro na conversão do Canvas"
+  },
+  "upload_text": {
+    "tap_to_upload": "Toque para fazer upload",
+    "uploading": "Fazendo upload...",
+    "processing": "Processando...",
+    "upload_gallery": "Fazer upload da galeria",
+    "upload_multiple_photos": "Fazer upload de múltiplas fotos",
+    "photo_quality_short": "Foto de alta qualidade recomendada",
+    "multi_photo_quality_hint": "Alta qualidade recomendada para cada foto",
+    "photos_selected": "fotos selecionadas",
+    "upload_photo": "Fazer upload da foto",
+    "piece": "Peça",
+    "product_image": "Foto do Produto",
+    "product_images": "Fotos do Produto"
+  },
+  "buttons": {
+    "error": "Erro",
+    "warning": "Aviso",
+    "ok": "OK",
+    "continue": "Continuar",
+    "start": "Começar"
+  },
+  "modal": {
+    "photo_tips_title": "Dicas de Foto",
+    "continue_button": "Continuar"
+  },
+  "onboard": {
+    "top_badge": "Seguro",
+    "step0_subtitle": "Faça upload da sua foto",
+    "step1_subtitle": "Como selecionar a foto certa?",
+    "step2_overlay": "Exemplos de fotos erradas",
+    "step3_subtitle": "Edite com o editor Canvas",
+    "continue": "Continuar",
+    "start": "Começar",
+    "reasons": {
+      "crowded_background": "Fundo lotado",
+      "wrong_angle": "Ângulo errado",
+      "dark_environment": "Ambiente escuro",
+      "half_image": "Imagem incompleta"
+    }
+  }
+}

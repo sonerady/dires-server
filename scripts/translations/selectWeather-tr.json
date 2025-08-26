@@ -1,0 +1,17 @@
+{
+  "selectWeather": {
+    "select_weather": "Hava Durumu Seçin",
+    "optional": "İsteğe Bağlı",
+    "weather_conditions": {
+      "sunny": "Güneşli",
+      "cloudy": "Bulutlu",
+      "rainy": "Yağmurlu",
+      "snowy": "Kar Yağışlı",
+      "foggy": "Sisli",
+      "stormy": "Fırtınalı",
+      "night": "Gece",
+      "morning": "Sabah",
+      "afternoon": "Öğlen"
+    }
+  }
+}

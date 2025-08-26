@@ -1,0 +1,75 @@
+{
+  "processing": {
+    "single": "Unique",
+    "multi": "Multiple",
+    "outfit": "Tenue",
+    "title": "Type de Traitement",
+    "description": "Quel type de traitement souhaitez-vous utiliser ?",
+    "info_modal_title": "Types de Traitement",
+    "single_description": "Si vous n'êtes pas pressé et que vous voulez tout faire en détail, si vous n'avez pas de contraintes de temps, vous pouvez choisir ceci. Vous obtenez des résultats détaillés en téléchargeant et traitant un produit à la fois.",
+    "single_feature_1": "Focus détaillé sur les produits individuels",
+    "multi_description": "Si vous avez plusieurs produits, vous pouvez habiller le modèle plus rapidement en effectuant un traitement par lot. Pas besoin de les télécharger un par un.",
+    "multi_feature_1": "Traitez plusieurs produits simultanément",
+    "multi_feature_2": "Gagnez du temps avec les opérations par lot",
+    "outfit_description": "Disons que votre marque a un t-shirt, un pantalon et un sac - vous voulez les montrer tous sur un modèle à la fois, c'est à cela que sert la tenue.",
+    "outfit_feature_1": "Visualisation complète de la tenue",
+    "outfit_feature_2": "Montrez plusieurs produits ensemble sur un modèle",
+    "outfit_feature_3": "Parfait pour les collections de marque",
+    "select_button": "Sélectionner",
+    "selected_button": "Sélectionné",
+    "what_is_this": "Qu'est-ce que c'est?"
+  },
+  "upload_mode": {
+    "single": "Image Unique",
+    "multi": "Images Multiples",
+    "outfit": "Tenue"
+  },
+  "errors": {
+    "image_upload_error": "Erreur de téléchargement d'image",
+    "file_too_large": "Fichier trop volumineux",
+    "invalid_format": "Format de fichier invalide",
+    "photo_selection_error": "Erreur de sélection de photo",
+    "gallery_permission_required": "Permission de galerie requise",
+    "canvas_conversion_error": "Erreur de conversion Canvas"
+  },
+  "upload_text": {
+    "tap_to_upload": "Appuyez pour télécharger",
+    "uploading": "Téléchargement...",
+    "processing": "Traitement...",
+    "upload_gallery": "Télécharger depuis la galerie",
+    "upload_multiple_photos": "Télécharger plusieurs photos",
+    "photo_quality_short": "Photo haute qualité recommandée",
+    "multi_photo_quality_hint": "Haute qualité recommandée pour chaque photo",
+    "photos_selected": "photos sélectionnées",
+    "upload_photo": "Télécharger photo",
+    "piece": "Pièce",
+    "product_image": "Photo du Produit",
+    "product_images": "Photos du Produit"
+  },
+  "buttons": {
+    "error": "Erreur",
+    "warning": "Avertissement",
+    "ok": "OK",
+    "continue": "Continuer",
+    "start": "Commencer"
+  },
+  "modal": {
+    "photo_tips_title": "Conseils Photo",
+    "continue_button": "Continuer"
+  },
+  "onboard": {
+    "top_badge": "Sûr",
+    "step0_subtitle": "Téléchargez votre photo",
+    "step1_subtitle": "Comment sélectionner la bonne photo ?",
+    "step2_overlay": "Exemples de mauvaises photos",
+    "step3_subtitle": "Éditez avec l'éditeur Canvas",
+    "continue": "Continuer",
+    "start": "Commencer",
+    "reasons": {
+      "crowded_background": "Arrière-plan encombré",
+      "wrong_angle": "Mauvais angle",
+      "dark_environment": "Environnement sombre",
+      "half_image": "Image incomplète"
+    }
+  }
+}

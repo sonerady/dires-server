@@ -1,0 +1,75 @@
+{
+  "processing": {
+    "single": "单一",
+    "multi": "多重",
+    "outfit": "套装",
+    "title": "处理类型",
+    "description": "您想使用哪种处理类型？",
+    "info_modal_title": "处理类型",
+    "single_description": "如果您不着急，想要详细地做所有事情，如果没有时间限制，您可以选择这个。通过一次上传和处理一个产品，您将获得详细的结果。",
+    "single_feature_1": "对单个产品的详细关注",
+    "multi_description": "如果您有多个产品，可以通过批量处理更快地为模型穿衣。无需逐个上传。",
+    "multi_feature_1": "同时处理多个产品",
+    "multi_feature_2": "通过批量操作节省时间",
+    "outfit_description": "假设您的品牌有一件T恤、一条裤子和一个包 - 您想要一次性在模型上展示所有这些，这就是套装的用途。",
+    "outfit_feature_1": "完整套装的视觉化",
+    "outfit_feature_2": "在一个模型上一起展示多个产品",
+    "outfit_feature_3": "品牌系列的完美选择",
+    "select_button": "选择",
+    "selected_button": "已选择",
+    "what_is_this": "这是什么？"
+  },
+  "upload_mode": {
+    "single": "单一图像",
+    "multi": "多重图像",
+    "outfit": "套装"
+  },
+  "errors": {
+    "image_upload_error": "图像上传错误",
+    "file_too_large": "文件过大",
+    "invalid_format": "无效的文件格式",
+    "photo_selection_error": "照片选择错误",
+    "gallery_permission_required": "需要图库权限",
+    "canvas_conversion_error": "画布转换错误"
+  },
+  "upload_text": {
+    "tap_to_upload": "点击上传",
+    "uploading": "上传中...",
+    "processing": "处理中...",
+    "upload_gallery": "从图库上传",
+    "upload_multiple_photos": "上传多张照片",
+    "photo_quality_short": "建议使用高质量照片",
+    "multi_photo_quality_hint": "建议每张照片都使用高质量",
+    "photos_selected": "张照片已选择",
+    "upload_photo": "上传照片",
+    "piece": "件",
+    "product_image": "产品照片",
+    "product_images": "产品照片"
+  },
+  "buttons": {
+    "error": "错误",
+    "warning": "警告",
+    "ok": "确定",
+    "continue": "继续",
+    "start": "开始"
+  },
+  "modal": {
+    "photo_tips_title": "照片提示",
+    "continue_button": "继续"
+  },
+  "onboard": {
+    "top_badge": "安全",
+    "step0_subtitle": "上传您的照片",
+    "step1_subtitle": "如何选择正确的照片？",
+    "step2_overlay": "错误照片示例",
+    "step3_subtitle": "使用画布编辑器编辑",
+    "continue": "继续",
+    "start": "开始",
+    "reasons": {
+      "crowded_background": "拥挤的背景",
+      "wrong_angle": "错误的角度",
+      "dark_environment": "黑暗的环境",
+      "half_image": "不完整的图像"
+    }
+  }
+}

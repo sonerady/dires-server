@@ -1,0 +1,27 @@
+{
+  "selectAge": {
+    "models": "模特",
+    "model_gender": "模特性别",
+    "model_age": "模特年龄",
+    "optional": "可选",
+    "all": "全部",
+    "custom": "自定义",
+    "age": "年龄",
+    "age_ranges": {
+      "baby": "婴儿",
+      "child": "儿童",
+      "young": "年轻人",
+      "adult": "成年人"
+    },
+    "genders": {
+      "woman": "女性",
+      "man": "男性"
+    },
+    "age_info": {
+      "baby_range": "1-2",
+      "child_range": "5-7",
+      "young_range": "20-25",
+      "adult_range": "40-50"
+    }
+  }
+}

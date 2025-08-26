@@ -1,0 +1,75 @@
+{
+  "processing": {
+    "single": "단일",
+    "multi": "다중",
+    "outfit": "아웃핏",
+    "title": "처리 유형",
+    "description": "어떤 처리 유형을 사용하고 싶으신가요?",
+    "info_modal_title": "처리 유형",
+    "single_description": "급하지 않고 모든 것을 자세히 하고 싶다면, 시간 제약이 없다면 이것을 선택할 수 있습니다. 한 번에 하나의 제품을 업로드하고 처리하여 자세한 결과를 얻습니다.",
+    "single_feature_1": "개별 제품에 대한 자세한 초점",
+    "multi_description": "여러 제품이 있다면 일괄 처리를 통해 모델을 더 빨리 입힐 수 있습니다. 하나씩 업로드할 필요가 없습니다.",
+    "multi_feature_1": "여러 제품을 동시에 처리",
+    "multi_feature_2": "일괄 작업으로 시간 절약",
+    "outfit_description": "당신의 브랜드에 티셔츠, 바지, 가방이 있다고 가정해보세요 - 모든 것을 한 번에 모델에 보여주고 싶다면, 그것이 아웃핏의 목적입니다.",
+    "outfit_feature_1": "완전한 아웃핏 시각화",
+    "outfit_feature_2": "하나의 모델에서 여러 제품을 함께 표시",
+    "outfit_feature_3": "브랜드 컬렉션에 완벽",
+    "select_button": "선택",
+    "selected_button": "선택됨",
+    "what_is_this": "이것이 무엇인가요?"
+  },
+  "upload_mode": {
+    "single": "단일 이미지",
+    "multi": "다중 이미지",
+    "outfit": "아웃핏"
+  },
+  "errors": {
+    "image_upload_error": "이미지 업로드 오류",
+    "file_too_large": "파일이 너무 큽니다",
+    "invalid_format": "잘못된 파일 형식",
+    "photo_selection_error": "사진 선택 오류",
+    "gallery_permission_required": "갤러리 권한이 필요합니다",
+    "canvas_conversion_error": "캔버스 변환 오류"
+  },
+  "upload_text": {
+    "tap_to_upload": "업로드하려면 탭하세요",
+    "uploading": "업로드 중...",
+    "processing": "처리 중...",
+    "upload_gallery": "갤러리에서 업로드",
+    "upload_multiple_photos": "여러 사진 업로드",
+    "photo_quality_short": "고품질 사진 권장",
+    "multi_photo_quality_hint": "각 사진에 고품질 권장",
+    "photos_selected": "장의 사진이 선택됨",
+    "upload_photo": "사진 업로드",
+    "piece": "조각",
+    "product_image": "제품 사진",
+    "product_images": "제품 사진들"
+  },
+  "buttons": {
+    "error": "오류",
+    "warning": "경고",
+    "ok": "확인",
+    "continue": "계속",
+    "start": "시작"
+  },
+  "modal": {
+    "photo_tips_title": "사진 팁",
+    "continue_button": "계속"
+  },
+  "onboard": {
+    "top_badge": "안전",
+    "step0_subtitle": "사진을 업로드하세요",
+    "step1_subtitle": "올바른 사진을 선택하는 방법은?",
+    "step2_overlay": "잘못된 사진 예시",
+    "step3_subtitle": "캔버스 에디터로 편집",
+    "continue": "계속",
+    "start": "시작",
+    "reasons": {
+      "crowded_background": "복잡한 배경",
+      "wrong_angle": "잘못된 각도",
+      "dark_environment": "어두운 환경",
+      "half_image": "불완전한 이미지"
+    }
+  }
+}

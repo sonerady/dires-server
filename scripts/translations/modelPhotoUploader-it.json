@@ -1,0 +1,75 @@
+{
+  "processing": {
+    "single": "Singolo",
+    "multi": "Multiplo",
+    "outfit": "Completo",
+    "title": "Tipo di Elaborazione",
+    "description": "Che tipo di elaborazione vorresti utilizzare?",
+    "info_modal_title": "Tipi di Elaborazione",
+    "single_description": "Se non hai fretta e vuoi fare tutto in dettaglio, se non hai vincoli di tempo, puoi scegliere questo. Ottieni risultati dettagliati caricando ed elaborando un prodotto alla volta.",
+    "single_feature_1": "Focus dettagliato sui prodotti singoli",
+    "multi_description": "Se hai più prodotti, puoi vestire il modello più velocemente facendo un'elaborazione in batch. Non c'è bisogno di caricarli uno per uno.",
+    "multi_feature_1": "Elabora più prodotti contemporaneamente",
+    "multi_feature_2": "Risparmia tempo con operazioni in batch",
+    "outfit_description": "Diciamo che il tuo brand ha una maglietta, pantaloni e una borsa - vuoi mostrarli tutti su un modello contemporaneamente, ecco a cosa serve il completo.",
+    "outfit_feature_1": "Visualizzazione completa del completo",
+    "outfit_feature_2": "Mostra più prodotti insieme su un modello",
+    "outfit_feature_3": "Perfetto per collezioni di brand",
+    "select_button": "Seleziona",
+    "selected_button": "Selezionato",
+    "what_is_this": "Cos'è questo?"
+  },
+  "upload_mode": {
+    "single": "Immagine Singola",
+    "multi": "Immagini Multiple",
+    "outfit": "Completo"
+  },
+  "errors": {
+    "image_upload_error": "Errore caricamento immagine",
+    "file_too_large": "File troppo grande",
+    "invalid_format": "Formato file non valido",
+    "photo_selection_error": "Errore selezione foto",
+    "gallery_permission_required": "Permesso galleria richiesto",
+    "canvas_conversion_error": "Errore conversione Canvas"
+  },
+  "upload_text": {
+    "tap_to_upload": "Tocca per caricare",
+    "uploading": "Caricamento...",
+    "processing": "Elaborazione...",
+    "upload_gallery": "Carica dalla galleria",
+    "upload_multiple_photos": "Carica più foto",
+    "photo_quality_short": "Foto alta qualità consigliata",
+    "multi_photo_quality_hint": "Alta qualità consigliata per ogni foto",
+    "photos_selected": "foto selezionate",
+    "upload_photo": "Carica foto",
+    "piece": "Pezzo",
+    "product_image": "Foto del Prodotto",
+    "product_images": "Foto del Prodotto"
+  },
+  "buttons": {
+    "error": "Errore",
+    "warning": "Avviso",
+    "ok": "OK",
+    "continue": "Continua",
+    "start": "Inizia"
+  },
+  "modal": {
+    "photo_tips_title": "Suggerimenti Foto",
+    "continue_button": "Continua"
+  },
+  "onboard": {
+    "top_badge": "Sicuro",
+    "step0_subtitle": "Carica la tua foto",
+    "step1_subtitle": "Come selezionare la foto giusta?",
+    "step2_overlay": "Esempi di foto sbagliate",
+    "step3_subtitle": "Modifica con l'editor Canvas",
+    "continue": "Continua",
+    "start": "Inizia",
+    "reasons": {
+      "crowded_background": "Sfondo affollato",
+      "wrong_angle": "Angolo sbagliato",
+      "dark_environment": "Ambiente scuro",
+      "half_image": "Immagine incompleta"
+    }
+  }
+}

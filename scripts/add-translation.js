@@ -45,8 +45,28 @@ function addTranslation(language, section, translationData) {
       );
     }
 
-    // Yeni section'ı ekle
-    jsonData[section] = dataToAdd;
+    // Mevcut section varsa merge et, yoksa yeni oluştur
+    if (jsonData[section]) {
+      console.log(`🔄 Mevcut '${section}' bölümü bulundu, merge yapılıyor...`);
+      // Nested merge için recursive function
+      function deepMerge(target, source) {
+        for (const key in source) {
+          if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+            if (!target[key] || typeof target[key] !== 'object') {
+              target[key] = {};
+            }
+            deepMerge(target[key], source[key]);
+          } else {
+            target[key] = source[key];
+          }
+        }
+        return target;
+      }
+      jsonData[section] = deepMerge(jsonData[section], dataToAdd);
+    } else {
+      console.log(`🆕 Yeni '${section}' bölümü oluşturuluyor...`);
+      jsonData[section] = dataToAdd;
+    }
 
     // JSON dosyasını güzel formatta yazı
     const updatedContent = JSON.stringify(jsonData, null, 2);

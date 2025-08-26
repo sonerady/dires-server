@@ -1,0 +1,27 @@
+{
+  "selectAge": {
+    "models": "모델",
+    "model_gender": "모델 성별",
+    "model_age": "모델 나이",
+    "optional": "선택사항",
+    "all": "모두",
+    "custom": "사용자 정의",
+    "age": "나이",
+    "age_ranges": {
+      "baby": "아기",
+      "child": "어린이",
+      "young": "젊은이",
+      "adult": "성인"
+    },
+    "genders": {
+      "woman": "여성",
+      "man": "남성"
+    },
+    "age_info": {
+      "baby_range": "1-2",
+      "child_range": "5-7",
+      "young_range": "20-25",
+      "adult_range": "40-50"
+    }
+  }
+}

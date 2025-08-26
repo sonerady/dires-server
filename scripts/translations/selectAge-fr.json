@@ -1,0 +1,27 @@
+{
+  "selectAge": {
+    "models": "Modèles",
+    "model_gender": "Genre du Modèle",
+    "model_age": "Âge du Modèle",
+    "optional": "Optionnel",
+    "all": "Tous",
+    "custom": "Personnalisé",
+    "age": "Âge",
+    "age_ranges": {
+      "baby": "Bébé",
+      "child": "Enfant",
+      "young": "Jeune",
+      "adult": "Adulte"
+    },
+    "genders": {
+      "woman": "Femme",
+      "man": "Homme"
+    },
+    "age_info": {
+      "baby_range": "1-2",
+      "child_range": "5-7",
+      "young_range": "20-25",
+      "adult_range": "40-50"
+    }
+  }
+}

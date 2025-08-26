@@ -1,0 +1,13 @@
+{
+  "upload": {
+    "piece": "Peça",
+    "piece_1": "Peça 1",
+    "piece_2": "Peça 2",
+    "piece_3": "Peça 3",
+    "piece_4": "Peça 4"
+  },
+  "errors": {
+    "max_photos_reached": "Máximo de 4 fotos podem ser selecionadas. Exclua uma das fotos existentes para adicionar uma nova."
+  }
+}
+

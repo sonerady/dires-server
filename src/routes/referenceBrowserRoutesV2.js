@@ -2145,7 +2145,7 @@ async function generatePortraitWithFluxDev(portraitPrompt) {
       console.log(
         "⏳ Portrait processing devam ediyor, polling başlatılıyor..."
       );
-      const finalResult = await pollReplicateResult(result.id, 15, 30); // toplam 30s limit
+      const finalResult = await pollReplicateResult(result.id, 15, 30); // toplam 30s limitc
 
       if (finalResult.status === "succeeded" && finalResult.output) {
         const portraitUrl = Array.isArray(finalResult.output)
