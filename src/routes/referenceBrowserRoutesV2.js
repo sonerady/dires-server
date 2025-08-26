@@ -616,7 +616,6 @@ async function enhancePromptWithGemini(
   poseImage,
   hairStyleImage,
   isMultipleProducts = false,
-  hasControlNet = false,
   isColorChange = false, // Renk değiştirme mi?
   targetColor = null, // Hedef renk
   isPoseChange = false, // Poz değiştirme mi?
@@ -1154,6 +1153,8 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
       USER'S EDIT REQUEST: "${editPrompt.trim()}"
 
+      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
+
       IMPORTANT: The user can send you input in different languages, but you must always generate your prompt in English.
 
       CRITICAL REQUIREMENTS FOR EDIT MODE:
@@ -1186,7 +1187,9 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
       ${criticalDirectives}
 
-      Create a simple English prompt that STARTS with "change" for changing ONLY the color of the product/garment from the reference image to ${targetColor}.
+      Create a professional fashion photography prompt in English that STARTS with "change" for changing ONLY the color of the product/garment from the reference image to ${targetColor}.
+      
+      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
 
       CRITICAL REQUIREMENTS FOR COLOR CHANGE:
       1. The prompt MUST begin with "Replace the product/garment..."
@@ -1213,7 +1216,9 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
       ${criticalDirectives}
 
-      Create a simple English prompt that STARTS with "change" for changing ONLY the pose/position of the model in the reference image.
+      Create a professional fashion photography prompt in English that STARTS with "change" for changing ONLY the pose/position of the model in the reference image.
+      
+      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
 
       CRITICAL REQUIREMENTS FOR POSE CHANGE:
       1. The prompt MUST begin with "Replace the model's pose..."
@@ -1273,7 +1278,9 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
       ${criticalDirectives}
 
-      Create a simple English prompt that STARTS with "Replace" for replacing the garment from the reference image onto a ${modelGenderText}.
+      Create a professional fashion photography prompt in English that STARTS with "Replace" for replacing the garment from the reference image onto a ${modelGenderText}.
+      
+      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
 
       CRITICAL REQUIREMENTS:
       1. The prompt MUST begin with "Replace the flat-lay garment..."
@@ -1669,11 +1676,11 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
         clothingDescription += `, wearing ${productColor} colored clothing`;
       }
 
-      // Ana prompt oluştur
+      // Ana prompt oluştur - Fashion photography odaklı
       let fallbackPrompt = `Replace the flat-lay garment from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
 
-      // Kıyafet detayları ve kalite gereksinimleri
-      fallbackPrompt += `Preserve the original garment exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show the identical garment perfectly fitted on the dynamic model. `;
+      // Fashion photography ve kalite gereksinimleri
+      fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve the original garment exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show the identical garment perfectly fitted on the dynamic model for high-end fashion shoots. `;
 
       // Kıyafet özellikleri (genel)
       fallbackPrompt += `The garment features high-quality fabric with proper texture, stitching, and construction details. `;
@@ -1690,8 +1697,8 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       // Pattern entegrasyonu
       fallbackPrompt += `Integrate prints/patterns correctly over the 3D form: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
 
-      // Final kalite
-      fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic.`;
+      // Final kalite - Fashion photography standartları
+      fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
 
       console.log(
         "🔄 [FALLBACK] Generated detailed fallback prompt:",
@@ -1861,8 +1868,8 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
     // Ana prompt oluştur
     let fallbackPrompt = `Replace the flat-lay garment from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
 
-    // Kıyafet detayları ve kalite gereksinimleri
-    fallbackPrompt += `Preserve the original garment exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show the identical garment perfectly fitted on the dynamic model. `;
+    // Fashion photography ve kalite gereksinimleri
+    fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve the original garment exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show the identical garment perfectly fitted on the dynamic model for high-end fashion shoots. `;
 
     // Kıyafet özellikleri (genel)
     fallbackPrompt += `The garment features high-quality fabric with proper texture, stitching, and construction details. `;
@@ -1879,296 +1886,14 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
     // Pattern entegrasyonu
     fallbackPrompt += `Integrate prints/patterns correctly over the 3D form: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
 
-    // Final kalite
-    fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic.`;
+    // Final kalite - Fashion photography standartları
+    fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
 
     console.log(
       "🔄 [FALLBACK] Generated detailed fallback prompt:",
       fallbackPrompt
     );
     return fallbackPrompt;
-  }
-}
-// Portrait prompt oluştur (Gemini) – Flux.1-dev için
-async function generatePortraitPromptWithGemini(
-  settings = {},
-  gender = "female"
-) {
-  // Settings'ten sadece gerçekten gönderilen bilgileri çıkar (default verme!)
-  const age = settings.age;
-  let ethnicity = settings.ethnicity;
-  const hairStyle = settings.hairStyle?.title || settings.hairStyle;
-  const hairColor = settings.hairColor?.title || settings.hairColor;
-  const skinTone = settings.skinTone;
-  const mood = settings.mood;
-  const accessoriesRaw = settings.accessories; // string (", ") formatında gelebilir
-  // Keyword bazlı filtreyi kaldır: kararı Gemini'ye bırak
-  const accessories = accessoriesRaw || null;
-  const bodyShape =
-    typeof settings.bodyShape === "string" ? settings.bodyShape : null;
-
-  // Vurgulanacak ögeler - modelden prompt içinde birden fazla kez geçmesini iste
-  const emphasisPoints = [];
-  if (mood) emphasisPoints.push(`mood/expression: ${mood}`);
-  if (accessories) emphasisPoints.push(`accessories: ${accessories}`);
-  if (bodyShape) emphasisPoints.push(`body shape: ${bodyShape}`);
-  if (hairStyle) emphasisPoints.push(`hair style: ${hairStyle}`);
-  if (hairColor) emphasisPoints.push(`hair color: ${hairColor}`);
-  if (skinTone) emphasisPoints.push(`skin tone: ${skinTone}`);
-  if (age) emphasisPoints.push(`age: ${age}`);
-
-  try {
-    console.log("👤 Gemini ile portrait prompt oluşturuluyor...");
-
-    // Ethnicity belirtilmemişse Asya dışından rastgele bir uygun grup seç
-    if (!ethnicity) {
-      const fallbackEthnicities = [
-        "Latina",
-        "Hispanic",
-        "European",
-        "Mediterranean",
-        "Middle Eastern",
-        "Persian",
-        "Caucasian",
-        "Turkish",
-        "Brazilian",
-        "Mexican",
-      ];
-      ethnicity =
-        fallbackEthnicities[
-          Math.floor(Math.random() * fallbackEthnicities.length)
-        ];
-    }
-
-    // Sadece gönderilen (veya seçilen) karakteristikleri listeye ekle
-    const characteristics = [];
-    if (age) characteristics.push(`- Age: ${age}`);
-    if (ethnicity) characteristics.push(`- Ethnicity: ${ethnicity}`);
-    if (hairStyle) characteristics.push(`- Hair style: ${hairStyle}`);
-    if (hairColor) characteristics.push(`- Hair color: ${hairColor}`);
-    if (skinTone) characteristics.push(`- Skin tone: ${skinTone}`);
-    if (mood) characteristics.push(`- Mood/expression: ${mood}`);
-    if (accessories)
-      characteristics.push(`- Accessories (face/head only): ${accessories}`);
-    if (bodyShape) characteristics.push(`- Body shape: ${bodyShape}`);
-
-    // Karakteristik varsa ekle, yoksa genel model açıklaması yap
-    const characteristicsText =
-      characteristics.length > 0
-        ? `with these characteristics:\n    ${characteristics.join(
-            "\n    "
-          )}\n    \n    `
-        : "";
-
-    const emphasisText =
-      emphasisPoints.length > 0
-        ? `\n\nEMPHASIS REQUIREMENTS:\n- Repeat the following key attributes at least twice across the prompt where relevant: ${emphasisPoints.join(
-            "; "
-          )}.\n- Reiterate them again succinctly at the end of the prompt as a reminder line starting with 'Focus:'.\n`
-        : "";
-    const portraitPrompt = `Your task is to generate a short, artistic photo prompt for a professional fashion model (${gender}).
-
-        **UNBREAKABLE RULE #1: THE FRAME**
-        - The image MUST be an EXTREME CLOSE-UP of the face.
-        - The frame starts at the chin and ends at the top of the head.
-        - **ABSOLUTELY NO NECK, NO SHOULDERS, NO CHEST, NO BODY, NO CLOTHES.**
-        - The entire focus is exclusively on the face.
-        
-        **UNBREAKABLE RULE #2: FORBIDDEN PHRASES**
-        - **DO NOT USE** any of the following phrases in your output: "head-and-shoulders", "shoulders up", "bust shot", "portrait", "close-up portrait", "slight distance". Describe the shot without naming it with these common but incorrect terms.
-
-        **MODEL & SCENE REQUIREMENTS:**
-        - Subject: High-fashion model with striking, editorial facial features.
-        - Background: Pure, solid white studio background.
-        - Lighting: Professional, even studio lighting.
-        - Style: Sharp detail, clear features, commercial fashion aesthetic.
-
-        **CREATIVE TASK:**
-        - Creatively weave the following characteristics into a cohesive description, but you must adhere strictly to all UNBREAKABLE RULES above.
-        ${characteristicsText}
-        ${emphasisText}
-        **OUTPUT FORMAT:**
-        - Generate only the final prompt text.
-        - No quotes, no explanations, no rules, no meta-guidance.
-        - **STRICT LIMIT: 77 tokens MAXIMUM.** Be concise and powerful.`;
-
-    // Gemini 2.0 Flash modeli - Yeni SDK
-    const model = "gemini-2.0-flash-001";
-
-    // Gemini'den cevap al (retry mekanizması ile) - Yeni API
-    let generatedPrompt;
-    const maxRetries = 10;
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        console.log(`🤖 [GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
-
-        const result = await genAI.models.generateContent({
-          model,
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: portraitPrompt }],
-            },
-          ],
-        });
-
-        generatedPrompt = result.text.trim();
-
-        console.log(
-          "🤖 [BACKEND GEMINI] Gemini'nin ürettiği portrait prompt:",
-          generatedPrompt
-        );
-        break; // Başarılı olursa loop'tan çık
-      } catch (geminiError) {
-        console.error(
-          `Gemini API attempt ${attempt} failed:`,
-          geminiError.message
-        );
-
-        if (attempt === maxRetries) {
-          console.error(
-            "Gemini API all attempts failed, using fallback prompt"
-          );
-          throw geminiError;
-        }
-
-        // Exponential backoff: 1s, 2s, 4s
-        const waitTime = Math.pow(2, attempt - 1) * 1000;
-        console.log(`Waiting ${waitTime}ms before retry...`);
-        await new Promise((resolve) => setTimeout(resolve, waitTime));
-      }
-    }
-
-    if (!generatedPrompt) {
-      throw new Error("Gemini'den boş yanıt alındı");
-    }
-
-    console.log("👤 Portrait prompt oluşturuldu:", generatedPrompt);
-    return generatedPrompt + "No clothes";
-  } catch (error) {
-    console.error("❌ Portrait prompt oluşturma hatası:", error);
-
-    // Fallback prompt - sadece gönderilen karakteristikleri kullan ve vurguyu tekrar et
-    const fallbackCharacteristics = [];
-    if (age) fallbackCharacteristics.push(`${age} age`);
-    if (ethnicity) fallbackCharacteristics.push(`${ethnicity} ethnicity`);
-    if (hairColor) fallbackCharacteristics.push(`${hairColor}`);
-    if (skinTone) fallbackCharacteristics.push(`${skinTone} skin tone`);
-    if (mood) fallbackCharacteristics.push(`${mood} mood`);
-    if (accessories) fallbackCharacteristics.push(`${accessories}`);
-    if (bodyShape) fallbackCharacteristics.push(`${bodyShape} body shape`);
-
-    const characteristicsText =
-      fallbackCharacteristics.length > 0
-        ? ` with ${fallbackCharacteristics.join(", ")}.`
-        : ".";
-
-    const focusLine =
-      emphasisPoints && emphasisPoints.length > 0
-        ? ` Focus: ${emphasisPoints.join(", ")}.`
-        : "";
-
-    return `Professional head-and-shoulders portrait of a fashion ${gender} model with striking editorial facial features${characteristicsText} Pure white studio background, professional lighting, sharp detail, high-fashion model aesthetics, slight distance from camera (not extreme close-up), head and shoulders view with a bit of breathing room.${focusLine} No clothes`;
-  }
-}
-
-async function generatePortraitWithFluxDev(portraitPrompt) {
-  try {
-    console.log("🎨 Flux.1-dev ile portrait resmi oluşturuluyor...");
-    const finalPrompt = (portraitPrompt || "").trim();
-    console.log("🎨 Portrait prompt (used):", finalPrompt);
-
-    if (!process.env.REPLICATE_API_TOKEN) {
-      console.error("❌ REPLICATE_API_TOKEN bulunamadı!");
-      throw new Error("REPLICATE_API_TOKEN bulunamadı");
-    }
-
-    console.log("✅ REPLICATE_API_TOKEN mevcut, API çağrısı yapılıyor...");
-
-    const requestBody = {
-      version:
-        "prunaai/flux.1-dev:b0306d92aa025bb747dc74162f3c27d6ed83798e08e5f8977adf3d859d0536a3",
-      input: {
-        seed: Math.floor(Math.random() * 2 ** 32),
-        prompt: finalPrompt,
-        guidance: 3.5,
-        image_size: 1024,
-        speed_mode: "Blink of an eye 👁️",
-        aspect_ratio: "1:1",
-        output_format: "jpg",
-        output_quality: 100,
-        num_inference_steps: 28,
-      },
-    };
-
-    console.log("🔗 API Request Body:", JSON.stringify(requestBody, null, 2));
-
-    const response = await fetch("https://api.replicate.com/v1/predictions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-        "Content-Type": "application/json",
-        Prefer: "wait",
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    console.log("📡 API Response Status:", response.status);
-    console.log(
-      "📡 API Response Headers:",
-      JSON.stringify([...response.headers.entries()], null, 2)
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("❌ API Error Response:", errorText);
-      throw new Error(
-        `Flux.1-dev API hatası: ${response.status} - ${errorText}`
-      );
-    }
-
-    const result = await response.json();
-    console.log("📋 API Response Data:", JSON.stringify(result, null, 2));
-
-    if (result.status === "succeeded" && result.output) {
-      // Output bir array ise ilk elemanı al, string ise direkt kullan
-      const portraitUrl = Array.isArray(result.output)
-        ? result.output[0]
-        : result.output;
-      console.log("✅ Portrait resmi oluşturuldu:", portraitUrl);
-      return portraitUrl;
-    } else if (result.status === "failed") {
-      console.error("❌ Portrait generation failed:", result.error);
-      throw new Error(`Portrait oluşturma başarısız: ${result.error}`);
-    } else if (result.status === "processing" || result.status === "starting") {
-      // Prefer: wait kullanılmasına rağmen processing gelirse polling yap
-      console.log(
-        "⏳ Portrait processing devam ediyor, polling başlatılıyor..."
-      );
-      const finalResult = await pollReplicateResult(result.id, 15, 30); // toplam 30s limitc
-
-      if (finalResult.status === "succeeded" && finalResult.output) {
-        const portraitUrl = Array.isArray(finalResult.output)
-          ? finalResult.output[0]
-          : finalResult.output;
-        console.log(
-          "✅ Portrait resmi oluşturuldu (polling sonrası):",
-          portraitUrl
-        );
-        return portraitUrl;
-      } else {
-        throw new Error(
-          `Portrait polling sonrası başarısız: ${finalResult.status} - ${finalResult.error}`
-        );
-      }
-    } else {
-      console.error("❌ Beklenmeyen API response:", result);
-      throw new Error(`Portrait oluşturma beklenmeyen sonuç: ${result.status}`);
-    }
-  } catch (error) {
-    console.error("❌ Portrait oluşturma hatası:", error);
-    throw error;
   }
 }
 
@@ -2288,247 +2013,6 @@ async function uploadProcessedImageBufferToSupabase(
   }
 }
 
-// Sharp ile yerel ControlNet Canny çıkarma fonksiyonu (API'siz)
-// async function generateLocalControlNetCanny(imageUrl, userId) {
-//   try {
-//     console.log(
-//       "🎨 Yerel ControlNet Canny çıkarma işlemi başlatılıyor:",
-//       imageUrl
-//     );
-
-//     // Resmi indir
-//     const imageResponse = await axios.get(imageUrl, {
-//       responseType: "arraybuffer",
-//       timeout: 15000,
-//     });
-//     const imageBuffer = Buffer.from(imageResponse.data);
-
-//     console.log("📐 Resim boyutları alınıyor ve edge detection yapılıyor...");
-
-//     // Sharp ile edge detection (Canny benzeri)
-//     const cannyBuffer = await sharp(imageBuffer)
-//       .greyscale() // Önce gri tonlama
-//       .normalize() // Kontrast artırma
-//       .convolve({
-//         width: 3,
-//         height: 3,
-//         kernel: [-1, -1, -1, -1, 8, -1, -1, -1, -1], // Edge detection kernel
-//       })
-//       .threshold(128) // Eşikleme (siyah-beyaz)
-//       .negate() // Renkleri ters çevir (beyaz kenarlar için)
-//       .png()
-//       .toBuffer();
-
-//     console.log("✅ Yerel edge detection tamamlandı");
-
-//     // İşlenmiş resmi Supabase'e yükle
-//     const timestamp = Date.now();
-//     const randomId = require("uuid").v4().substring(0, 8);
-//     const fileName = `local_canny_${
-//       userId || "anonymous"
-//     }_${timestamp}_${randomId}.png`;
-
-//     const { data, error } = await supabase.storage
-//       .from("reference")
-//       .upload(fileName, cannyBuffer, {
-//         contentType: "image/png",
-//         cacheControl: "3600",
-//         upsert: false,
-//       });
-
-//     if (error) {
-//       console.error("❌ Yerel Canny resmi Supabase'e yüklenemedi:", error);
-//       throw new Error(`Supabase upload error: ${error.message}`);
-//     }
-
-//     // Public URL al
-//     const { data: urlData } = supabase.storage
-//       .from("reference")
-//       .getPublicUrl(fileName);
-
-//     console.log("✅ Yerel ControlNet Canny URL'si:", urlData.publicUrl);
-//     return urlData.publicUrl;
-//   } catch (error) {
-//     console.error("❌ Yerel ControlNet Canny hatası:", error);
-//     throw new Error(`Local ControlNet Canny failed: ${error.message}`);
-//   }
-// }
-
-// İki resmi yan yana birleştiren fonksiyon (orijinal + canny)
-// async function combineTwoImagesWithBlackLine(
-//   originalImageUrl,
-//   cannyImageUrl,
-//   userId
-// ) {
-//   try {
-//     console.log("🎨 İki resim yan yana birleştiriliyor (siyah çizgi ile)...");
-//     console.log("🖼️ Orijinal resim:", originalImageUrl);
-//     console.log("🎨 Canny resim:", cannyImageUrl);
-
-//     const loadedImages = [];
-
-//     // Orijinal resmi yükle
-//     try {
-//       const originalResponse = await axios.get(originalImageUrl, {
-//         responseType: "arraybuffer",
-//         timeout: 15000,
-//       });
-//       const originalBuffer = Buffer.from(originalResponse.data);
-
-//       const processedOriginalBuffer = await sharp(originalBuffer)
-//         .jpeg({ quality: 100, progressive: true, mozjpeg: true })
-//         .toBuffer();
-
-//       const originalImg = await loadImage(processedOriginalBuffer);
-//       loadedImages.push({ img: originalImg, type: "original" });
-
-//       console.log(
-//         `✅ Orijinal resim yüklendi: ${originalImg.width}x${originalImg.height}`
-//       );
-//     } catch (originalError) {
-//       console.error(
-//         "❌ Orijinal resim yüklenirken hata:",
-//         originalError.message
-//       );
-//       throw new Error("Orijinal resim yüklenemedi");
-//     }
-
-//     // Canny resmi yükle
-//     if (cannyImageUrl) {
-//       try {
-//         const cannyResponse = await axios.get(cannyImageUrl, {
-//           responseType: "arraybuffer",
-//           timeout: 15000,
-//         });
-//         const cannyBuffer = Buffer.from(cannyResponse.data);
-
-//         const processedCannyBuffer = await sharp(cannyBuffer)
-//           .jpeg({ quality: 100, progressive: true, mozjpeg: true })
-//           .toBuffer();
-
-//         const cannyImg = await loadImage(processedCannyBuffer);
-//         loadedImages.push({ img: cannyImg, type: "canny" });
-
-//         console.log(
-//           `✅ Canny resim yüklendi: ${cannyImg.width}x${cannyImg.height}`
-//         );
-//       } catch (cannyError) {
-//         console.error("❌ Canny resim yüklenirken hata:", cannyError.message);
-//         // Canny yüklenemezse orijinal resmi tekrar kullan
-//         loadedImages.push({ img: loadedImages[0].img, type: "canny_fallback" });
-//       }
-//     } else {
-//       // Canny yoksa orijinal resmi tekrar kullan
-//       loadedImages.push({ img: loadedImages[0].img, type: "canny_fallback" });
-//     }
-
-//     // Aynı yüksekliğe getir
-//     const targetHeight = Math.min(
-//       ...loadedImages.map((item) => item.img.height)
-//     );
-
-//     const originalScaledWidth =
-//       (loadedImages[0].img.width * targetHeight) / loadedImages[0].img.height;
-//     const cannyScaledWidth =
-//       (loadedImages[1].img.width * targetHeight) / loadedImages[1].img.height;
-
-//     const blackLineWidth = 4; // Siyah çizgi kalınlığı
-//     const canvasWidth = originalScaledWidth + cannyScaledWidth + blackLineWidth;
-//     const canvasHeight = targetHeight;
-
-//     console.log(
-//       `📏 İki resimli birleştirilmiş canvas boyutu: ${canvasWidth}x${canvasHeight}`
-//     );
-
-//     // Canvas oluştur
-//     const canvas = createCanvas(canvasWidth, canvasHeight);
-//     const ctx = canvas.getContext("2d");
-
-//     // Canvas kalite ayarları
-//     ctx.imageSmoothingEnabled = true;
-//     ctx.imageSmoothingQuality = "high";
-//     ctx.patternQuality = "best";
-//     ctx.textRenderingOptimization = "optimizeQuality";
-
-//     // Beyaz arka plan
-//     ctx.fillStyle = "white";
-//     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-//     // 1. Orijinal resmi sol tarafa yerleştir
-//     ctx.drawImage(loadedImages[0].img, 0, 0, originalScaledWidth, targetHeight);
-//     console.log(
-//       `🖼️ Orijinal resim yerleştirildi: (0, 0) - ${originalScaledWidth}x${targetHeight}`
-//     );
-
-//     // Siyah çizgi
-//     ctx.fillStyle = "black";
-//     ctx.fillRect(originalScaledWidth, 0, blackLineWidth, targetHeight);
-//     console.log(
-//       `⚫ Siyah çizgi çizildi: (${originalScaledWidth}, 0) - ${blackLineWidth}x${targetHeight}`
-//     );
-
-//     // 2. Canny resmi sağ tarafa yerleştir
-//     ctx.drawImage(
-//       loadedImages[1].img,
-//       originalScaledWidth + blackLineWidth,
-//       0,
-//       cannyScaledWidth,
-//       targetHeight
-//     );
-//     console.log(
-//       `🎨 Canny resim yerleştirildi: (${
-//         originalScaledWidth + blackLineWidth
-//       }, 0) - ${cannyScaledWidth}x${targetHeight}`
-//     );
-
-//     // Canvas'ı buffer'a çevir
-//     const buffer = canvas.toBuffer("image/png");
-//     console.log(
-//       "📊 İki resimli birleştirilmiş resim boyutu:",
-//       buffer.length,
-//       "bytes"
-//     );
-
-//     // Supabase'e yükle
-//     const timestamp = Date.now();
-//     const randomId = uuidv4().substring(0, 8);
-//     const fileName = `combined_canny_controlnet_${
-//       userId || "anonymous"
-//     }_${timestamp}_${randomId}.png`;
-
-//     const { data, error } = await supabase.storage
-//       .from("reference")
-//       .upload(fileName, buffer, {
-//         contentType: "image/png",
-//         cacheControl: "3600",
-//         upsert: false,
-//       });
-
-//     if (error) {
-//       console.error(
-//         "❌ İki resimli birleştirilmiş resim Supabase'e yüklenemedi:",
-//         error
-//       );
-//       throw new Error(`Supabase upload error: ${error.message}`);
-//     }
-
-//     const { data: urlData } = supabase.storage
-//       .from("reference")
-//       .getPublicUrl(fileName);
-
-//     console.log(
-//       "✅ 🎉 İki resimli ControlNet birleştirilmiş resim URL'si:",
-//       urlData.publicUrl
-//     );
-//     return urlData.publicUrl;
-//   } catch (error) {
-//     console.error("❌ İki resimli ControlNet birleştirme hatası:", error);
-//     throw error;
-//   }
-// }
-
-// Replicate prediction durumunu kontrol eden fonksiyon
-// Gemini 2.5 Flash Image Preview ile alternatif API çağrısı
 async function callGeminiImageAPI(
   enhancedPrompt,
   inputImageUrl,
@@ -3184,22 +2668,24 @@ async function combineImagesOnCanvas(
   }
 }
 
-// Arkaplanı kaldırılmış ürün + (opsiyonel) pose ve (opsiyonel) location görsellerini
+// Arkaplanı kaldırılmış ürün + (opsiyonel) location görsellerini
 // tek bir yatay kompozitte birleştirir ve Supabase'e yükler
+// NOT: Pose image artık birleştirmeye dahil edilmiyor, sadece Gemini'ye reference olarak gönderiliyor
 async function combineReferenceAssets(
   backgroundRemovedUrl,
-  poseUrl,
   locationUrl,
   userId
 ) {
   try {
-    const assetUrls = [backgroundRemovedUrl, poseUrl, locationUrl].filter(
+    const assetUrls = [backgroundRemovedUrl, locationUrl].filter(
       (u) => typeof u === "string" && u.trim().length > 0
     );
 
     // En az 1 görsel şart (arkaplan kaldırılmış)
     if (assetUrls.length === 0) {
-      throw new Error("combineReferenceAssets: no valid assets to combine");
+      throw new Error(
+        "combineReferenceAssets: no valid assets to combine (background removed or location required)"
+      );
     }
 
     // Tüm görselleri indir → (ilk ürün görseli için 1024x1024 beyaz zemin içinde ortalama) → diğerlerini JPEG'e çevir → loadImage ile yükle
@@ -3235,7 +2721,7 @@ async function combineReferenceAssets(
 
           processed = whiteSquare;
         } else {
-          // Diğer varlıklar (portrait/location) için JPEG yeterli - kalite optimize edildi
+          // Diğer varlıklar (location) için JPEG yeterli - kalite optimize edildi
           processed = await sharp(buffer)
             .jpeg({ quality: 80, progressive: true, mozjpeg: true }) // 90'dan 80'e düşürüldü
             .toBuffer();
