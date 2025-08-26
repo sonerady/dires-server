@@ -2,7 +2,8 @@ const express = require("express");
 const router = express.Router();
 // Updated Gemini API with latest gemini-2.0-flash model
 // Using @google/generative-ai with new safety settings configuration
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenAI } = require("@google/genai");
+const mime = require("mime");
 const { createClient } = require("@supabase/supabase-js");
 const axios = require("axios");
 const sharp = require("sharp");
@@ -10,25 +11,6 @@ const fs = require("fs");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const { createCanvas, loadImage } = require("canvas");
-
-// Location image'ın URL'sini normalize eder: string ya da {uri} olabilir
-function getLocationImageUrl(locationImage) {
-  try {
-    if (!locationImage) return null;
-    if (typeof locationImage === "string") return locationImage;
-    if (typeof locationImage === "object") {
-      if (locationImage.uri && typeof locationImage.uri === "string") {
-        return locationImage.uri;
-      }
-      if (locationImage.url && typeof locationImage.url === "string") {
-        return locationImage.url;
-      }
-    }
-    return null;
-  } catch (e) {
-    return null;
-  }
-}
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -73,7 +55,7 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
       // HTTP URL - normal indirme
       const imageResponse = await axios.get(imageUri, {
         responseType: "arraybuffer",
-        timeout: 30000, // 30 saniye timeout
+        timeout: 15000, // 30s'den 15s'ye düşürüldü
       });
       imageBuffer = Buffer.from(imageResponse.data);
     } else if (imageUri.startsWith("data:image/")) {
@@ -87,30 +69,20 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
       );
     }
 
-    // Dosya formatını belirle
-    let fileExtension = ".jpg";
-    let contentType = "image/jpeg";
-
-    if (imageUri.startsWith("data:image/png")) {
-      fileExtension = ".png";
-      contentType = "image/png";
-    }
-
     // Dosya adı oluştur (otomatik temizleme için timestamp prefix)
     const timestamp = Date.now();
     const randomId = uuidv4().substring(0, 8);
     const fileName = `temp_${timestamp}_reference_${
       userId || "anonymous"
-    }_${randomId}${fileExtension}`;
+    }_${randomId}.jpg`;
 
     console.log("Supabase'e yüklenecek dosya adı:", fileName);
-    console.log("Content type:", contentType);
 
     // Supabase'e yükle
     const { data, error } = await supabase.storage
       .from("reference")
       .upload(fileName, imageBuffer, {
-        contentType: contentType,
+        contentType: "image/jpeg",
         cacheControl: "3600",
         upsert: false,
       });
@@ -132,362 +104,6 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
     return urlData.publicUrl;
   } catch (error) {
     console.error("Referans resmi Supabase'e yüklenirken hata:", error);
-    throw error;
-  }
-}
-
-// Canvas + Background Removed + Portrait + Location için 4'lü birleştirme
-async function combineThreeImagesCanvasPortraitLocation(
-  canvasImageUrl,
-  backgroundRemovedImageUrl,
-  portraitImageUrl,
-  locationImageUrl,
-  userId
-) {
-  try {
-    console.log(
-      "🎨 [4-IMAGE CBPL] Dört resim birleştiriliyor (Canvas + Background Removed + Portrait + Location)..."
-    );
-    console.log("🎨 [4-IMAGE CBPL] Canvas:", canvasImageUrl);
-    console.log(
-      "🎨 [4-IMAGE CBPL] Background Removed:",
-      backgroundRemovedImageUrl
-    );
-    console.log("🎨 [4-IMAGE CBPL] Portrait:", portraitImageUrl);
-    console.log("🎨 [4-IMAGE CBPL] Location:", locationImageUrl);
-
-    // Background removed image yoksa sadece 3 resmi birleştir
-    if (!backgroundRemovedImageUrl) {
-      console.log(
-        "⚠️ [4-IMAGE CBPL] Background removed image yok, 3 resim birleştiriliyor..."
-      );
-      // OPTIMIZATION: Paralel HTTP istekleri ile timeout azaltıldı
-      const [canvasResponse, portraitResponse, locationResponse] =
-        await Promise.all([
-          axios.get(canvasImageUrl, {
-            responseType: "arraybuffer",
-            timeout: 15000, // 30s'den 15s'ye düşürüldü
-            maxRedirects: 3,
-          }),
-          axios.get(portraitImageUrl, {
-            responseType: "arraybuffer",
-            timeout: 15000,
-            maxRedirects: 3,
-          }),
-          axios.get(locationImageUrl, {
-            responseType: "arraybuffer",
-            timeout: 15000,
-            maxRedirects: 3,
-          }),
-        ]);
-
-      const canvasBuffer = Buffer.from(canvasResponse.data);
-      const portraitBuffer = Buffer.from(portraitResponse.data);
-      const locationBuffer = Buffer.from(locationResponse.data);
-
-      // Layout: Sol tarafta büyük canvas, sağ tarafta alt alta 2 resim (1024x1024)
-      console.log(
-        "🎨 [4-IMAGE CBPL] 3'lü layout: Sol büyük canvas, sağ alt alta 2 resim"
-      );
-
-      // OPTIMIZATION: Paralel metadata okuma ve resim işleme
-      const [canvasMetadata, targetCanvasHeight] = await Promise.all([
-        sharp(canvasBuffer).metadata(),
-        Promise.resolve(1024 * 2 + 5), // 2 resmin toplam yüksekliği + spacing
-      ]);
-
-      // OPTIMIZATION: Tüm resim işlemlerini paralel yap
-      const targetSize = 1024;
-      const [resizedCanvas, resizedPortrait, resizedLocation] =
-        await Promise.all([
-          sharp(canvasBuffer)
-            .resize({
-              height: targetCanvasHeight,
-              fit: "contain",
-              background: { r: 0, g: 0, b: 0, alpha: 0 },
-            })
-            .png() // PNG transparent arkaplan için
-            .toBuffer(),
-          sharp(portraitBuffer)
-            .resize({
-              width: targetSize,
-              height: targetSize,
-              fit: "contain",
-              background: { r: 0, g: 0, b: 0, alpha: 0 },
-            })
-            .png()
-            .toBuffer(),
-          sharp(locationBuffer)
-            .resize({
-              width: targetSize,
-              height: targetSize,
-              fit: "contain",
-              background: { r: 0, g: 0, b: 0, alpha: 0 },
-            })
-            .png()
-            .toBuffer(),
-        ]);
-
-      // Final boyutları hesapla
-      const resizedCanvasMetadata = await sharp(resizedCanvas).metadata();
-
-      const spacing = 5;
-      const totalWidth = resizedCanvasMetadata.width + targetSize + spacing;
-      const totalHeight = Math.max(
-        resizedCanvasMetadata.height,
-        targetSize * 2 + spacing
-      );
-
-      console.log(
-        `🎨 [4-IMAGE CBPL] Canvas boyutu: ${resizedCanvasMetadata.width}x${resizedCanvasMetadata.height}`
-      );
-      console.log(
-        `🎨 [4-IMAGE CBPL] Sağ resimler: ${targetSize}x${targetSize} (2 adet alt alta)`
-      );
-      console.log(
-        `🎨 [4-IMAGE CBPL] Final boyut: ${totalWidth}x${totalHeight}`
-      );
-
-      // Transparent arkaplan için PNG kullan, channels 4 gerekli
-      const combinedImage = await sharp({
-        create: {
-          width: totalWidth,
-          height: totalHeight,
-          channels: 4, // Alpha kanalı gerekli
-          background: { r: 0, g: 0, b: 0, alpha: 0 },
-        },
-      })
-        .composite([
-          // Sol tarafta büyük canvas
-          {
-            input: resizedCanvas,
-            top: 0,
-            left: 0,
-          },
-          // Sağ tarafta alt alta 2 resim
-          {
-            input: resizedPortrait,
-            top: 0,
-            left: resizedCanvasMetadata.width + spacing,
-          },
-          {
-            input: resizedLocation,
-            top: targetSize + spacing,
-            left: resizedCanvasMetadata.width + spacing,
-          },
-        ])
-        .png() // Transparent arkaplan için PNG
-        .toBuffer();
-
-      const timestamp = Date.now();
-      const randomId = uuidv4().substring(0, 8);
-      const fileName = `three_images_cpl_${timestamp}_${
-        userId || "anonymous"
-      }_${randomId}.png`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("images")
-        .upload(fileName, combinedImage, { contentType: "image/png" });
-
-      if (uploadError) throw uploadError;
-
-      const { data: publicUrlData, error: publicUrlError } =
-        await supabase.storage.from("images").getPublicUrl(fileName);
-
-      if (publicUrlError) throw publicUrlError;
-
-      const combinedImageUrl = publicUrlData.publicUrl;
-      console.log(
-        "✅ [4-IMAGE CBPL] 3'lü birleştirme tamamlandı:",
-        combinedImageUrl
-      );
-      return combinedImageUrl;
-    }
-
-    // 4 resmi de birleştir - OPTIMIZATION: timeout azaltıldı
-    const [
-      canvasResponse,
-      backgroundRemovedResponse,
-      portraitResponse,
-      locationResponse,
-    ] = await Promise.all([
-      axios.get(canvasImageUrl, {
-        responseType: "arraybuffer",
-        timeout: 15000, // 30s'den 15s'ye düşürüldü
-        maxRedirects: 3,
-      }),
-      axios.get(backgroundRemovedImageUrl, {
-        responseType: "arraybuffer",
-        timeout: 15000,
-        maxRedirects: 3,
-      }),
-      axios.get(portraitImageUrl, {
-        responseType: "arraybuffer",
-        timeout: 15000,
-        maxRedirects: 3,
-      }),
-      axios.get(locationImageUrl, {
-        responseType: "arraybuffer",
-        timeout: 15000,
-        maxRedirects: 3,
-      }),
-    ]);
-
-    const canvasBuffer = Buffer.from(canvasResponse.data);
-    const backgroundRemovedBuffer = Buffer.from(backgroundRemovedResponse.data);
-    const portraitBuffer = Buffer.from(portraitResponse.data);
-    const locationBuffer = Buffer.from(locationResponse.data);
-
-    // Layout: Sol Canvas + Orta Portrait/Location alt alta + Sağ Background Removed (trim'li)
-    console.log(
-      "🎨 [4-IMAGE CBPL] Yeni layout: Sol Canvas + Orta Portrait/Location + Sağ Background Removed (trim'li)"
-    );
-
-    // OPTIMIZATION: Paralel metadata okuma ve tüm resim işlemleri
-    const [canvasMetadata, targetCanvasHeight, targetSize] = await Promise.all([
-      sharp(canvasBuffer).metadata(),
-      Promise.resolve(1024 * 2 + 5), // 2 resmin toplam yüksekliği + spacing
-      Promise.resolve(1024),
-    ]);
-
-    // OPTIMIZATION: Tüm resim işlemlerini paralel yap
-    const [
-      resizedCanvas,
-      resizedPortrait,
-      resizedLocation,
-      trimmedBackgroundRemoved,
-    ] = await Promise.all([
-      sharp(canvasBuffer)
-        .resize({
-          height: targetCanvasHeight,
-          fit: "contain", // Trim kaldırıldığı için contain kullan
-          background: { r: 0, g: 0, b: 0, alpha: 0 },
-        })
-        .png() // Transparent arkaplan için PNG
-        .toBuffer(),
-      sharp(portraitBuffer)
-        .resize({
-          width: targetSize,
-          height: targetSize,
-          fit: "contain",
-          background: { r: 0, g: 0, b: 0, alpha: 0 },
-        })
-        .png() // Transparent arkaplan için PNG
-        .toBuffer(),
-      sharp(locationBuffer)
-        .resize({
-          width: targetSize,
-          height: targetSize,
-          fit: "contain",
-          background: { r: 0, g: 0, b: 0, alpha: 0 },
-        })
-        .png() // Transparent arkaplan için PNG
-        .toBuffer(),
-      // Background Removed resmi - TRIM KALDIRILDI
-      sharp(backgroundRemovedBuffer)
-        // .trim() // Trim kaldırıldı
-        .resize({
-          height: targetCanvasHeight, // Canvas ile aynı yükseklik - alt üst boşluk yok
-          fit: "contain", // Trim olmadığı için contain kullan
-          background: { r: 0, g: 0, b: 0, alpha: 0 }, // Şeffaf arkaplan
-        })
-        .png() // Bu şeffaf olmalı, PNG bırakıldı
-        .toBuffer(),
-    ]);
-
-    // OPTIMIZATION: Final boyutları paralel hesapla
-    const [resizedCanvasMetadata, trimmedBgRemovedMetadata] = await Promise.all(
-      [
-        sharp(resizedCanvas).metadata(),
-        sharp(trimmedBackgroundRemoved).metadata(),
-      ]
-    );
-
-    const spacing = 5;
-    const totalWidth =
-      resizedCanvasMetadata.width +
-      targetSize +
-      trimmedBgRemovedMetadata.width +
-      spacing * 2;
-    const totalHeight = Math.max(
-      resizedCanvasMetadata.height,
-      targetSize * 2 + spacing,
-      trimmedBgRemovedMetadata.height
-    );
-
-    console.log(
-      `🎨 [4-IMAGE CBPL] Canvas boyutu: ${resizedCanvasMetadata.width}x${resizedCanvasMetadata.height}`
-    );
-    console.log(
-      `🎨 [4-IMAGE CBPL] Orta resimler: ${targetSize}x${targetSize} (2 adet alt alta)`
-    );
-    console.log(
-      `🎨 [4-IMAGE CBPL] Sağ trim'li resim: ${trimmedBgRemovedMetadata.width}x${trimmedBgRemovedMetadata.height}`
-    );
-    console.log(`🎨 [4-IMAGE CBPL] Final boyut: ${totalWidth}x${totalHeight}`);
-
-    // Transparent arkaplan için PNG kullan, channels 4 gerekli
-    const combinedImage = await sharp({
-      create: {
-        width: totalWidth,
-        height: totalHeight,
-        channels: 4, // Alpha kanalı gerekli
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      },
-    })
-      .composite([
-        // Sol tarafta büyük canvas
-        {
-          input: resizedCanvas,
-          top: 0,
-          left: 0,
-        },
-        // Orta tarafta alt alta 2 resim
-        {
-          input: resizedPortrait,
-          top: 0,
-          left: resizedCanvasMetadata.width + spacing,
-        },
-        {
-          input: resizedLocation,
-          top: targetSize + spacing,
-          left: resizedCanvasMetadata.width + spacing,
-        },
-        // Sağ tarafta trim'li background removed resmi (tam yükseklik, ortalanmış)
-        {
-          input: trimmedBackgroundRemoved,
-          top: 0, // Alt-üst boşluk yok, tam üstten başla
-          left: resizedCanvasMetadata.width + targetSize + spacing * 2,
-        },
-      ])
-      .png() // Transparent arkaplan için PNG
-      .toBuffer();
-
-    const timestamp = Date.now();
-    const randomId = uuidv4().substring(0, 8);
-    const fileName = `four_images_cbpl_${timestamp}_${
-      userId || "anonymous"
-    }_${randomId}.png`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("images")
-      .upload(fileName, combinedImage, { contentType: "image/png" });
-
-    if (uploadError) throw uploadError;
-
-    const { data: publicUrlData, error: publicUrlError } =
-      await supabase.storage.from("images").getPublicUrl(fileName);
-
-    if (publicUrlError) throw publicUrlError;
-
-    const combinedImageUrl = publicUrlData.publicUrl;
-    console.log(
-      "✅ [4-IMAGE CBPL] 4'lü birleştirme tamamlandı:",
-      combinedImageUrl
-    );
-    return combinedImageUrl;
-  } catch (error) {
-    console.error("❌ [4-IMAGE CBPL] Dört resim birleştirme hatası:", error);
     throw error;
   }
 }
@@ -576,20 +192,6 @@ async function saveGenerationToDatabase(
   generationId = null // Yeni parametre
 ) {
   try {
-    // 🔒 Replicate Prediction ID kontrolü - olmadan kaydetme
-    if (!replicatePredictionId) {
-      console.warn(
-        "⚠️ Replicate Prediction ID bulunamadı, reference_results'a kaydedilmiyor"
-      );
-      console.warn("⚠️ Data:", {
-        userId,
-        generationId,
-        originalPrompt: originalPrompt?.substring(0, 50) + "...",
-        resultImageUrl: data?.result?.imageUrl,
-      });
-      return false;
-    }
-
     // User ID yoksa veya UUID formatında değilse, UUID oluştur
     let userIdentifier = userId;
 
@@ -608,11 +210,6 @@ async function saveGenerationToDatabase(
       );
       userIdentifier = uuidv4();
     }
-
-    console.log(
-      "✅ Replicate Prediction ID mevcut, reference_results'a kaydediliyor:",
-      replicatePredictionId
-    );
 
     const { data: insertData, error } = await supabase
       .from("reference_results")
@@ -639,14 +236,14 @@ async function saveGenerationToDatabase(
       ]);
 
     if (error) {
-      console.error("❌ Veritabanına kaydetme hatası:", error);
+      console.error("Veritabanına kaydetme hatası:", error);
       return false;
     }
 
-    console.log("✅ Görsel başarıyla reference_results tablosuna kaydedildi");
+    console.log("Görsel başarıyla reference_results tablosuna kaydedildi");
     return true;
   } catch (dbError) {
-    console.error("❌ Veritabanı işlemi sırasında hata:", dbError);
+    console.error("Veritabanı işlemi sırasında hata:", dbError);
     return false;
   }
 }
@@ -949,8 +546,10 @@ async function updateGenerationStatus(
   }
 }
 
-// Gemini API için istemci oluştur
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Gemini API için istemci oluştur (yeni SDK)
+const genAI = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+});
 
 // Aspect ratio formatını düzelten yardımcı fonksiyon
 function formatAspectRatio(ratioStr) {
@@ -1009,7 +608,6 @@ function formatAspectRatio(ratioStr) {
   }
 }
 
-// Prompt'u iyileştirmek için Gemini'yi kullan
 async function enhancePromptWithGemini(
   originalPrompt,
   imageUrl,
@@ -1018,7 +616,6 @@ async function enhancePromptWithGemini(
   poseImage,
   hairStyleImage,
   isMultipleProducts = false,
-  hasControlNet = false,
   isColorChange = false, // Renk değiştirme mi?
   targetColor = null, // Hedef renk
   isPoseChange = false, // Poz değiştirme mi?
@@ -1040,10 +637,8 @@ async function enhancePromptWithGemini(
     console.log("✏️ [GEMINI] Edit mode:", isEditMode);
     console.log("✏️ [GEMINI] Edit prompt:", editPrompt);
 
-    // Gemini 2.0 Flash modeli - En yeni API yapısı
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-    });
+    // Gemini 2.0 Flash modeli - Yeni SDK
+    const model = "gemini-2.5-flash";
 
     // Settings'in var olup olmadığını kontrol et
     const hasValidSettings =
@@ -1536,7 +1131,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
     - ABSOLUTELY AND IMMEDIATELY REMOVE ALL HANGERS, CLIPS, TAGS, AND FLAT-LAY ARTIFACTS from the input garment. CRITICAL: DO NOT RENDER ANY MANNEQUIN REMAINS OR UNINTENDED BACKGROUND ELEMENTS.
     - Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model; avoid any 2D, sticker-like, or paper-like overlay.
     - Ensure realistic fabric physics: natural drape, weight, tension, compression, and subtle folds along shoulders, chest/bust, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles.
-    - Preserve ALL original garment details.  Do NOT redesign.
+    - Preserve ALL original garment details: exact colors, prints/patterns, material texture, stitching, construction elements  trims, and finishes. Do NOT redesign.
     - Integrate prints/patterns correctly over the 3D form: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines.
     - For structured details (e.g., knots, pleats, darts, seams), render functional tension, deep creases, and realistic shadows consistent with real fabric behavior.
     - Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting.
@@ -1557,6 +1152,8 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       ${fluxMaxGarmentTransformationDirectives}
 
       USER'S EDIT REQUEST: "${editPrompt.trim()}"
+
+      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
 
       IMPORTANT: The user can send you input in different languages, but you must always generate your prompt in English.
 
@@ -1590,7 +1187,9 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
       ${criticalDirectives}
 
-      Create a simple English prompt that STARTS with "change" for changing ONLY the color of the product/garment from the reference image to ${targetColor}.
+      Create a professional fashion photography prompt in English that STARTS with "change" for changing ONLY the color of the product/garment from the reference image to ${targetColor}.
+      
+      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
 
       CRITICAL REQUIREMENTS FOR COLOR CHANGE:
       1. The prompt MUST begin with "Replace the product/garment..."
@@ -1617,7 +1216,9 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
       ${criticalDirectives}
 
-      Create a simple English prompt that STARTS with "change" for changing ONLY the pose/position of the model in the reference image.
+      Create a professional fashion photography prompt in English that STARTS with "change" for changing ONLY the pose/position of the model in the reference image.
+      
+      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
 
       CRITICAL REQUIREMENTS FOR POSE CHANGE:
       1. The prompt MUST begin with "Replace the model's pose..."
@@ -1677,7 +1278,9 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
       ${criticalDirectives}
 
-      Create a simple English prompt that STARTS with "Replace" for replacing the garment from the reference image onto a ${modelGenderText}.
+      Create a professional fashion photography prompt in English that STARTS with "Replace" for replacing the garment from the reference image onto a ${modelGenderText}.
+      
+      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
 
       CRITICAL REQUIREMENTS:
       1. The prompt MUST begin with "Replace the flat-lay garment..."
@@ -1711,8 +1314,6 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       ${hairStyleTextSection}
       ${faceDescriptionSection}
       
-      SILENT RULES (DO NOT OUTPUT THESE, JUST APPLY THEM): All rules, headings, examples, and meta-instructions you see in this message must be applied silently. Do not quote, restate, or paraphrase any rule text in your final output. Your final output MUST ONLY be the concise descriptive prompt for the image model, with no rule headings or capitalized instruction sentences.
-
       Generate a concise prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace". Apply all rules silently and do not include any rule text or headings in the output.
       
       EXAMPLE FORMAT: "Replace the flat-lay garment from the input image directly onto a standing [model description] while keeping the original garment exactly the same..."
@@ -1738,7 +1339,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
       const imageResponse = await axios.get(imageUrl, {
         responseType: "arraybuffer",
-        timeout: 30000, // 30 saniye timeout
+        timeout: 15000, // 30s'den 15s'ye düşürüldü
       });
       const imageBuffer = imageResponse.data;
 
@@ -1768,7 +1369,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
         const locationImageResponse = await axios.get(cleanLocationImageUrl, {
           responseType: "arraybuffer",
-          timeout: 30000, // 30 saniye timeout
+          timeout: 15000, // 30s'den 15s'ye düşürüldü
         });
         const locationImageBuffer = locationImageResponse.data;
 
@@ -1802,7 +1403,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
         const poseImageResponse = await axios.get(cleanPoseImageUrl, {
           responseType: "arraybuffer",
-          timeout: 30000, // 30 saniye timeout
+          timeout: 15000, // 30s'den 15s'ye düşürüldü
         });
         const poseImageBuffer = poseImageResponse.data;
 
@@ -1835,7 +1436,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
         const hairStyleImageResponse = await axios.get(cleanHairStyleImageUrl, {
           responseType: "arraybuffer",
-          timeout: 30000, // 30 saniye timeout
+          timeout: 15000, // 30s'den 15s'ye düşürüldü
         });
         const hairStyleImageBuffer = hairStyleImageResponse.data;
 
@@ -1866,7 +1467,8 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       try {
         console.log(`🤖 [GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
 
-        const result = await model.generateContent({
+        const result = await genAI.models.generateContent({
+          model,
           contents: [
             {
               role: "user",
@@ -1875,7 +1477,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
           ],
         });
 
-        const geminiGeneratedPrompt = result.response.text().trim();
+        const geminiGeneratedPrompt = result.text.trim();
 
         // ControlNet direktifini dinamik olarak ekle
         // let controlNetDirective = "";
@@ -2074,11 +1676,11 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
         clothingDescription += `, wearing ${productColor} colored clothing`;
       }
 
-      // Ana prompt oluştur
+      // Ana prompt oluştur - Fashion photography odaklı
       let fallbackPrompt = `Replace the flat-lay garment from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
 
-      // Kıyafet detayları ve kalite gereksinimleri
-      fallbackPrompt += `Preserve the original garment exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show the identical garment perfectly fitted on the dynamic model. `;
+      // Fashion photography ve kalite gereksinimleri
+      fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve the original garment exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show the identical garment perfectly fitted on the dynamic model for high-end fashion shoots. `;
 
       // Kıyafet özellikleri (genel)
       fallbackPrompt += `The garment features high-quality fabric with proper texture, stitching, and construction details. `;
@@ -2095,8 +1697,8 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       // Pattern entegrasyonu
       fallbackPrompt += `Integrate prints/patterns correctly over the 3D form: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
 
-      // Final kalite
-      fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic.`;
+      // Final kalite - Fashion photography standartları
+      fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
 
       console.log(
         "🔄 [FALLBACK] Generated detailed fallback prompt:",
@@ -2109,6 +1711,17 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
     return enhancedPrompt;
   } catch (error) {
     console.error("🤖 Gemini 2.0 Flash prompt iyileştirme hatası:", error);
+    // Hata durumunda da uygun direktifi ekle
+    // let controlNetDirective = "";
+    // if (hasControlNet) {
+    //   controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
+
+    // `;
+    // } else {
+    //   controlNetDirective = `BACKGROUND REMOVED IMAGE GUIDANCE: The input image shows the original garment with background removed (white background) for clear color and texture reference. Focus on analyzing the garment's design, construction details, fabric characteristics, and styling elements. Use this clean product image to understand the garment's true colors, textures, patterns, and structural features without any background distractions.
+
+    // `;
+    // }
 
     // Fallback prompt - detaylı kıyafet odaklı format
     console.log(
@@ -2255,8 +1868,8 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
     // Ana prompt oluştur
     let fallbackPrompt = `Replace the flat-lay garment from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
 
-    // Kıyafet detayları ve kalite gereksinimleri
-    fallbackPrompt += `Preserve the original garment exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show the identical garment perfectly fitted on the dynamic model. `;
+    // Fashion photography ve kalite gereksinimleri
+    fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve the original garment exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show the identical garment perfectly fitted on the dynamic model for high-end fashion shoots. `;
 
     // Kıyafet özellikleri (genel)
     fallbackPrompt += `The garment features high-quality fabric with proper texture, stitching, and construction details. `;
@@ -2273,8 +1886,8 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
     // Pattern entegrasyonu
     fallbackPrompt += `Integrate prints/patterns correctly over the 3D form: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
 
-    // Final kalite
-    fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic.`;
+    // Final kalite - Fashion photography standartları
+    fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
 
     console.log(
       "🔄 [FALLBACK] Generated detailed fallback prompt:",
@@ -2284,264 +1897,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
   }
 }
 
-// Not: Trim işlemi removeBg.js içinde yapılıyor; burada tekrar etmiyoruz
-
-// Arkaplan silme fonksiyonu
-async function removeBackgroundFromImage(imageUrl, userId) {
-  try {
-    console.log("🖼️ Arkaplan silme işlemi başlatılıyor:", imageUrl);
-
-    // Önce dahili removeBg API'sini kullanmayı dene
-    try {
-      const internalPort = process.env.PORT || 3001;
-      const internalBaseUrl =
-        process.env.INTERNAL_API_BASE_URL ||
-        `https://dires-server.onrender.com:${internalPort}`;
-      const endpoint = `${internalBaseUrl}/api/remove-background`;
-      console.log("🔗 Dahili removeBg API çağrısı:", endpoint);
-
-      const apiResp = await axios.post(
-        endpoint,
-        { imageUrl, userId },
-        { timeout: 120000 }
-      );
-
-      const removedBgUrl =
-        apiResp?.data?.removedBgUrl || apiResp?.data?.result?.removed_bg_url;
-      if (removedBgUrl && typeof removedBgUrl === "string") {
-        console.log("✅ removeBg API sonucu alındı:", removedBgUrl);
-        return removedBgUrl;
-      } else {
-        console.warn(
-          "⚠️ removeBg API beklenen alanları döndürmedi, yerel pipeline'a düşülüyor",
-          apiResp?.data
-        );
-      }
-    } catch (apiError) {
-      console.warn(
-        "⚠️ removeBg API çağrısı başarısız, yerel pipeline'a düşülüyor:",
-        apiError.message
-      );
-    }
-
-    // Orijinal fotoğrafın metadata bilgilerini al (orientation için)
-    let originalMetadata = null;
-    let originalImageBuffer = null;
-
-    try {
-      console.log("📐 Orijinal fotoğrafın metadata bilgileri alınıyor...");
-      const originalResponse = await axios.get(imageUrl, {
-        responseType: "arraybuffer",
-        timeout: 30000, // 30 saniye timeout
-      });
-      originalImageBuffer = Buffer.from(originalResponse.data);
-
-      // Sharp ile metadata al
-      originalMetadata = await sharp(originalImageBuffer).metadata();
-      console.log("📐 Orijinal metadata:", {
-        width: originalMetadata.width,
-        height: originalMetadata.height,
-        orientation: originalMetadata.orientation,
-        format: originalMetadata.format,
-      });
-    } catch (metadataError) {
-      console.error("⚠️ Orijinal metadata alınamadı:", metadataError.message);
-    }
-
-    // Replicate API'ye arkaplan silme isteği gönder
-    const backgroundRemovalResponse = await axios.post(
-      "https://api.replicate.com/v1/predictions",
-      {
-        version:
-          "a029dff38972b5fda4ec5d75d7d1cd25aeff621d2cf4946a41055d7db66b80bc",
-        input: {
-          image: imageUrl,
-          format: "png",
-          reverse: false,
-          threshold: 0,
-          background_type: "white",
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const initialResult = backgroundRemovalResponse.data;
-    console.log("🖼️ Arkaplan silme başlangıç yanıtı:", initialResult);
-
-    if (!initialResult.id) {
-      console.error(
-        "❌ Arkaplan silme prediction ID alınamadı:",
-        initialResult
-      );
-      throw new Error("Background removal prediction başlatılamadı");
-    }
-
-    // Prediction durumunu polling ile takip et
-    console.log("🔄 Arkaplan silme işlemi polling başlatılıyor...");
-    const finalResult = await pollReplicateResult(initialResult.id, 30, 480); // toplam 480s limit
-
-    if (finalResult.status === "succeeded" && finalResult.output) {
-      console.log("✅ Arkaplan silme işlemi başarılı:", finalResult.output);
-
-      // Arkaplanı silinmiş resmi indir ve orientation düzeltmesi yap
-      let processedImageUrl;
-
-      try {
-        console.log(
-          "🔄 Arkaplanı silinmiş resim orientation kontrolü yapılıyor..."
-        );
-
-        // Arkaplanı silinmiş resmi indir
-        const processedResponse = await axios.get(finalResult.output, {
-          responseType: "arraybuffer",
-          timeout: 30000, // 30 saniye timeout
-        });
-        let processedImageBuffer = Buffer.from(processedResponse.data);
-
-        // Eğer orijinal metadata varsa orientation kontrolü yap
-        if (originalMetadata) {
-          const processedMetadata = await sharp(
-            processedImageBuffer
-          ).metadata();
-          console.log("📐 İşlenmiş resim metadata:", {
-            width: processedMetadata.width,
-            height: processedMetadata.height,
-            orientation: processedMetadata.orientation,
-            format: processedMetadata.format,
-          });
-
-          // Orientation farkını kontrol et
-          const originalOrientation = originalMetadata.orientation || 1;
-          const processedOrientation = processedMetadata.orientation || 1;
-
-          // Boyut oranlarını karşılaştır (dikey/yatay değişim kontrolü)
-          const originalIsPortrait =
-            originalMetadata.height > originalMetadata.width;
-          const processedIsPortrait =
-            processedMetadata.height > processedMetadata.width;
-
-          console.log("📐 Orientation karşılaştırması:", {
-            originalOrientation,
-            processedOrientation,
-            originalIsPortrait,
-            processedIsPortrait,
-            orientationChanged: originalOrientation !== processedOrientation,
-            aspectRatioChanged: originalIsPortrait !== processedIsPortrait,
-          });
-
-          // Eğer orientation farklıysa veya aspect ratio değiştiyse düzelt
-          if (
-            originalOrientation !== processedOrientation ||
-            originalIsPortrait !== processedIsPortrait
-          ) {
-            console.log("🔄 Orientation düzeltmesi yapılıyor...");
-
-            let sharpInstance = sharp(processedImageBuffer);
-
-            // Orijinal orientation'ı uygula
-            if (originalOrientation && originalOrientation !== 1) {
-              // EXIF orientation değerlerine göre döndürme
-              switch (originalOrientation) {
-                case 2:
-                  sharpInstance = sharpInstance.flop();
-                  break;
-                case 3:
-                  sharpInstance = sharpInstance.rotate(180);
-                  break;
-                case 4:
-                  sharpInstance = sharpInstance.flip();
-                  break;
-                case 5:
-                  sharpInstance = sharpInstance.rotate(270).flop();
-                  break;
-                case 6:
-                  sharpInstance = sharpInstance.rotate(90);
-                  break;
-                case 7:
-                  sharpInstance = sharpInstance.rotate(90).flop();
-                  break;
-                case 8:
-                  sharpInstance = sharpInstance.rotate(270);
-                  break;
-                default:
-                  // Eğer aspect ratio değiştiyse basit döndürme yap
-                  if (originalIsPortrait && !processedIsPortrait) {
-                    sharpInstance = sharpInstance.rotate(90);
-                  } else if (!originalIsPortrait && processedIsPortrait) {
-                    sharpInstance = sharpInstance.rotate(-90);
-                  }
-              }
-            } else if (originalIsPortrait !== processedIsPortrait) {
-              // EXIF bilgisi yoksa sadece aspect ratio kontrolü yap
-              if (originalIsPortrait && !processedIsPortrait) {
-                console.log("🔄 Yataydan dikeye döndürülüyor...");
-                sharpInstance = sharpInstance.rotate(90);
-              } else if (!originalIsPortrait && processedIsPortrait) {
-                console.log("🔄 Dikeyden yataya döndürülüyor...");
-                sharpInstance = sharpInstance.rotate(-90);
-              }
-            }
-
-            // Düzeltilmiş resmi buffer'a çevir
-            processedImageBuffer = await sharpInstance
-              .png({ quality: 100, progressive: true })
-              .toBuffer();
-
-            const correctedMetadata = await sharp(
-              processedImageBuffer
-            ).metadata();
-            console.log("✅ Orientation düzeltmesi tamamlandı:", {
-              width: correctedMetadata.width,
-              height: correctedMetadata.height,
-              orientation: correctedMetadata.orientation,
-            });
-          } else {
-            console.log(
-              "✅ Orientation düzeltmesi gerekmiyor, resim doğru pozisyonda"
-            );
-          }
-        }
-
-        // Trim artık dahili removeBg API tarafından yapılıyor; doğrudan yükle
-        processedImageUrl = await uploadProcessedImageBufferToSupabase(
-          processedImageBuffer,
-          userId,
-          "background_removed"
-        );
-      } catch (orientationError) {
-        console.error(
-          "❌ Orientation düzeltme hatası:",
-          orientationError.message
-        );
-        console.log(
-          "⚠️ Orientation düzeltmesi başarısız, orijinal işlenmiş resim kullanılacak"
-        );
-
-        // Fallback: Orijinal işlenmiş resmi direkt yükle
-        processedImageUrl = await uploadProcessedImageToSupabase(
-          finalResult.output,
-          userId,
-          "background_removed"
-        );
-      }
-
-      return processedImageUrl;
-    } else {
-      console.error("❌ Arkaplan silme işlemi başarısız:", finalResult);
-      throw new Error(finalResult.error || "Background removal failed");
-    }
-  } catch (error) {
-    console.error("❌ Arkaplan silme hatası:", error);
-    // Hata durumunda orijinal resmi döndür
-    console.log("⚠️ Arkaplan silme başarısız, orijinal resim kullanılacak");
-    return imageUrl;
-  }
-}
+// Arkaplan silme fonksiyonu kaldırıldı - artık kullanılmıyor
 
 // İşlenmiş resmi Supabase'e yükleyen fonksiyon
 async function uploadProcessedImageToSupabase(imageUrl, userId, processType) {
@@ -2657,69 +2013,236 @@ async function uploadProcessedImageBufferToSupabase(
   }
 }
 
-// Replicate prediction durumunu kontrol eden fonksiyon
-// Flux-kontext-dev ile alternatif API çağrısı
-async function callFluxKontextDevAPI(
+async function callGeminiImageAPI(
   enhancedPrompt,
   inputImageUrl,
-  aspectRatio
+  aspectRatio,
+  userId
 ) {
   try {
-    console.log("🔄 Flux-kontext-dev API'ye geçiş yapılıyor...");
+    console.log("🔄 Gemini 2.5 Flash Image Preview API'ye geçiş yapılıyor...");
 
-    const seed = Math.floor(Math.random() * 2 ** 32);
-    console.log(`🎲 Alternatif API için random seed: ${seed}`);
+    const ai = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
+    });
 
-    const response = await axios.post(
-      "https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-dev/predictions",
+    const config = {
+      responseModalities: ["IMAGE", "TEXT"],
+    };
+
+    const model = "gemini-2.5-flash-image-preview";
+
+    // Input image'ı base64'e çevir
+    let inputImageBase64;
+    try {
+      const imageResponse = await axios.get(inputImageUrl, {
+        responseType: "arraybuffer",
+        timeout: 15000,
+      });
+      inputImageBase64 = Buffer.from(imageResponse.data).toString("base64");
+    } catch (imageError) {
+      console.error("❌ Input image download hatası:", imageError.message);
+      throw new Error("Input image indirilemedi");
+    }
+
+    const contents = [
       {
-        input: {
-          prompt: enhancedPrompt,
-          go_fast: false,
-          guidance: 2.5,
-          input_image: inputImageUrl,
-          aspect_ratio: aspectRatio,
-          output_format: "jpg",
-          output_quality: 100,
-          num_inference_steps: 30,
-          disable_safety_checker: true,
-        },
+        role: "user",
+        parts: [
+          {
+            text: enhancedPrompt,
+          },
+          {
+            inlineData: {
+              mimeType: "image/jpeg",
+              data: inputImageBase64,
+            },
+          },
+        ],
       },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-          "Content-Type": "application/json",
-          Prefer: "wait",
-        },
-        timeout: 300000, // 5 dakika timeout (flux-kontext-dev daha uzun sürebilir)
-      }
+    ];
+
+    console.log(
+      "🚀 Gemini 2.5 Flash Image Preview fallback API çağrısı yapılıyor..."
+    );
+    console.log("📋 Fallback Model:", model);
+    console.log("📋 Fallback Contents structure:", {
+      role: contents[0].role,
+      partsCount: contents[0].parts.length,
+      hasText: !!contents[0].parts[0].text,
+      hasImage: !!contents[0].parts[1]?.inlineData,
+      imageMimeType: contents[0].parts[1]?.inlineData?.mimeType,
+      imageDataLength: contents[0].parts[1]?.inlineData?.data?.length || 0,
+    });
+
+    // Timeout wrapper for fallback
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error("Gemini Fallback API timeout (60s)"));
+      }, 60000); // 60 saniye timeout
+    });
+
+    // Gemini API çağrısı (streaming) - fallback
+    const response = await ai.models.generateContentStream({
+      model,
+      config,
+      contents,
+    });
+
+    let generatedImageBuffer = null;
+    let hasImageResponse = false;
+    let fileIndex = 0;
+
+    console.log(
+      "📡 Gemini fallback response stream başlatıldı, chunk'lar bekleniyor..."
     );
 
-    console.log("✅ Flux-kontext-dev API başarılı:", response.data);
-    return response.data;
+    for await (const chunk of response) {
+      if (
+        !chunk.candidates ||
+        !chunk.candidates[0].content ||
+        !chunk.candidates[0].content.parts
+      ) {
+        continue;
+      }
+
+      if (chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData) {
+        const inlineData = chunk.candidates[0].content.parts[0].inlineData;
+        const fileExtension = mime.getExtension(inlineData.mimeType || "");
+        generatedImageBuffer = Buffer.from(inlineData.data || "", "base64");
+        hasImageResponse = true;
+        console.log(
+          `✅ Gemini fallback resim sonucu alındı (${inlineData.mimeType})`
+        );
+        break;
+      } else {
+        // Text response varsa logla
+        if (chunk.text) {
+          console.log("📝 Gemini fallback text response:", chunk.text);
+        }
+      }
+    }
+
+    // Response yapısını incele
+    if (response.candidates && response.candidates.length > 0) {
+      const candidate = response.candidates[0];
+      console.log("🔍 Fallback Candidate analizi:", {
+        hasContent: !!candidate.content,
+        hasParts: !!candidate.content?.parts,
+        partsLength: candidate.content?.parts?.length || 0,
+        finishReason: candidate.finishReason,
+        safetyRatings: candidate.safetyRatings?.length || 0,
+      });
+
+      // Finish reason kontrolü
+      if (candidate.finishReason) {
+        console.log(`🏁 Fallback Finish reason:`, candidate.finishReason);
+        if (candidate.finishReason === "SAFETY") {
+          console.error(
+            "❌ Gemini fallback safety filter tarafından bloke edildi"
+          );
+          throw new Error(
+            "Fallback content safety filter tarafından reddedildi"
+          );
+        }
+      }
+
+      if (candidate.content && candidate.content.parts) {
+        candidate.content.parts.forEach((part, index) => {
+          console.log(`📦 Fallback Part ${index}:`, {
+            hasText: !!part.text,
+            hasInlineData: !!part.inlineData,
+            mimeType: part.inlineData?.mimeType,
+            dataLength: part.inlineData?.data?.length || 0,
+          });
+
+          // Text content varsa logla
+          if (part.text) {
+            console.log(`📝 Fallback Part ${index} text:`, part.text);
+          }
+
+          // InlineData varsa resim verisi
+          if (part.inlineData) {
+            console.log(`🖼️ Fallback Part ${index}: InlineData bulundu!`, {
+              mimeType: part.inlineData.mimeType,
+              dataLength: part.inlineData.data?.length || 0,
+            });
+
+            generatedImageBuffer = Buffer.from(
+              part.inlineData.data || "",
+              "base64"
+            );
+            hasImageResponse = true;
+            console.log("✅ Gemini fallback resim verisi alındı");
+          }
+        });
+      }
+    }
+
+    // Alternatif olarak response.text kontrol et (belki metin olarak döndü)
+    if (!hasImageResponse && response.text) {
+      console.log("📝 Fallback Response text alındı:", response.text);
+      // Bu durumda text-to-image işlemi yapmak gerekebilir
+      throw new Error("Gemini fallback sadece text döndürdü, image bekleniyor");
+    }
+
+    if (!hasImageResponse || !generatedImageBuffer) {
+      throw new Error(
+        `Gemini fallback'dan görsel sonucu alınamadı. Response yapısı beklenmedik.`
+      );
+    }
+
+    // Buffer'ı Supabase'e yükle
+    const timestamp = Date.now();
+    const randomId = uuidv4().substring(0, 8);
+    const fileName = `temp_${timestamp}_gemini_fallback_${
+      userId || "anonymous"
+    }_${randomId}.jpg`;
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("reference")
+      .upload(fileName, generatedImageBuffer, {
+        contentType: "image/jpeg",
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error(
+        "❌ Gemini fallback sonuç resmi Supabase'e yüklenemedi:",
+        uploadError
+      );
+      throw new Error(`Supabase upload error: ${uploadError.message}`);
+    }
+
+    // Public URL al
+    const { data: urlData } = supabase.storage
+      .from("reference")
+      .getPublicUrl(fileName);
+
+    console.log(
+      "✅ Gemini 2.5 Flash Image Preview fallback API başarılı:",
+      urlData.publicUrl
+    );
+
+    return {
+      id: `gemini_fallback_${timestamp}`,
+      status: "succeeded",
+      output: urlData.publicUrl,
+    };
   } catch (error) {
-    console.error("❌ Flux-kontext-dev API hatası:", error.message);
+    console.error(
+      "❌ Gemini 2.5 Flash Image Preview fallback API hatası:",
+      error.message
+    );
     throw error;
   }
 }
 
-async function pollReplicateResult(
-  predictionId,
-  maxAttempts = 60,
-  maxTotalSeconds = 480
-) {
+async function pollReplicateResult(predictionId, maxAttempts = 60) {
   console.log(`Replicate prediction polling başlatılıyor: ${predictionId}`);
 
-  const pollingStartTime = Date.now();
-
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const elapsedSeconds = Math.floor((Date.now() - pollingStartTime) / 1000);
-    if (elapsedSeconds > maxTotalSeconds) {
-      console.error(
-        `⏰ Polling toplam süre limiti aşıldı (${elapsedSeconds}s > ${maxTotalSeconds}s). Durduruluyor.`
-      );
-      throw new Error("POLLING_TIMEOUT");
-    }
     try {
       const response = await axios.get(
         `https://api.replicate.com/v1/predictions/${predictionId}`,
@@ -2729,7 +2252,7 @@ async function pollReplicateResult(
             "Content-Type": "application/json",
           },
           responseType: "json",
-          timeout: 30000, // 30 saniye timeout polling için
+          timeout: 15000, // 30s'den 15s'ye düşürüldü polling için
         }
       );
 
@@ -2770,7 +2293,7 @@ async function pollReplicateResult(
             result.error.includes("retrying once"))
         ) {
           console.error(
-            "❌ Content moderation/model hatası tespit edildi, flux-kontext-dev'e geçiş yapılacak:",
+            "❌ Content moderation/model hatası tespit edildi, Gemini 2.5 Flash Image Preview'e geçiş yapılacak:",
             result.error
           );
           throw new Error("SENSITIVE_CONTENT_FLUX_FALLBACK");
@@ -2793,7 +2316,7 @@ async function pollReplicateResult(
       // Sensitive content hatasını özel olarak handle et
       if (error.message === "SENSITIVE_CONTENT_FLUX_FALLBACK") {
         console.error(
-          "❌ Sensitive content hatası, flux-kontext-dev'e geçiş için polling durduruluyor"
+          "❌ Sensitive content hatası, Gemini 2.5 Flash Image Preview'e geçiş için polling durduruluyor"
         );
         throw error; // Hata mesajını olduğu gibi fırlat
       }
@@ -2823,8 +2346,7 @@ async function pollReplicateResult(
       }
 
       // Sadece network/connection hatalarında retry yap
-      const totalElapsed = Math.floor((Date.now() - pollingStartTime) / 1000);
-      if (totalElapsed > maxTotalSeconds || attempt === maxAttempts - 1) {
+      if (attempt === maxAttempts - 1) {
         throw error;
       }
       await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -2838,7 +2360,8 @@ async function pollReplicateResult(
 async function combineImagesOnCanvas(
   images,
   userId,
-  isMultipleProducts = false
+  isMultipleProducts = false,
+  aspectRatio = "9:16"
 ) {
   try {
     console.log(
@@ -2847,10 +2370,37 @@ async function combineImagesOnCanvas(
       "resim"
     );
     console.log("🛍️ Çoklu ürün modu:", isMultipleProducts);
+    console.log("📐 Hedef aspect ratio:", aspectRatio);
+
+    // Aspect ratio'yu parse et
+    const [ratioWidth, ratioHeight] = aspectRatio.split(":").map(Number);
+    const targetAspectRatio = ratioWidth / ratioHeight;
+    console.log("📐 Hedef aspect ratio değeri:", targetAspectRatio);
+
+    // Canvas boyutları - Yüksek kalite için optimize edilmiş boyutlar
+    let targetCanvasWidth, targetCanvasHeight;
+
+    if (targetAspectRatio > 1) {
+      // Yatay format (16:9, 4:3 gibi)
+      targetCanvasWidth = 1536; // Yüksek kalite
+      targetCanvasHeight = Math.round(targetCanvasWidth / targetAspectRatio);
+    } else {
+      // Dikey format (9:16, 3:4 gibi) veya kare (1:1)
+      targetCanvasHeight = 1536; // Yüksek kalite
+      targetCanvasWidth = Math.round(targetCanvasHeight * targetAspectRatio);
+    }
+
+    // Minimum boyut garantisi
+    if (targetCanvasWidth < 1024) targetCanvasWidth = 1024;
+    if (targetCanvasHeight < 1024) targetCanvasHeight = 1024;
+
+    console.log(
+      `📐 Hedef canvas boyutu: ${targetCanvasWidth}x${targetCanvasHeight}`
+    );
 
     // Canvas boyutları
-    let canvasWidth = 0;
-    let canvasHeight = 0;
+    let canvasWidth = targetCanvasWidth;
+    let canvasHeight = targetCanvasHeight;
     const loadedImages = [];
 
     // Tüm resimleri yükle ve boyutları hesapla
@@ -2881,10 +2431,14 @@ async function combineImagesOnCanvas(
           throw new Error(`Desteklenmeyen URI formatı: ${imgData.uri}`);
         }
 
-        // Sharp ile resmi önce işle (format uyumluluk için)
-        console.log(`🔄 Resim ${i + 1}: Sharp ile preprocessing yapılıyor...`);
+        // Sharp ile resmi önce işle (yüksek kalite korunarak)
+        console.log(
+          `🔄 Resim ${
+            i + 1
+          }: Sharp ile yüksek kalite preprocessing yapılıyor...`
+        );
         const processedBuffer = await sharp(imageBuffer)
-          .jpeg({ quality: 80 }) // Kalite 90'dan 80'e düşürüldü
+          .jpeg({ quality: 95 }) // Kalite artırıldı - ratio canvas için
           .toBuffer();
 
         // Metadata'yı al
@@ -2928,81 +2482,157 @@ async function combineImagesOnCanvas(
     // Canvas değişkenini tanımla
     let canvas;
 
+    // Canvas oluştur - ratio'ya göre sabit boyut
+    canvas = createCanvas(canvasWidth, canvasHeight);
+    const ctx = canvas.getContext("2d");
+
+    // Anti-aliasing ve kalite ayarları
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+
+    // Beyaz arka plan
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
     if (isMultipleProducts) {
-      // Çoklu ürün modu: Yan yana birleştir
+      // Çoklu ürün modu: Yan yana birleştir - canvas boyutuna sığdır
       console.log("🛍️ Çoklu ürün modu: Resimler yan yana birleştirilecek");
 
-      // Her resmi aynı yüksekliğe getir
-      const targetHeight = Math.min(...loadedImages.map((img) => img.height));
+      const itemWidth = canvasWidth / loadedImages.length;
+      const itemHeight = canvasHeight;
 
-      // Toplam genişlik ve sabit yükseklik hesapla
-      canvasWidth = loadedImages.reduce((total, img) => {
-        const scaledWidth = (img.width * targetHeight) / img.height;
-        return total + scaledWidth;
-      }, 0);
-      canvasHeight = targetHeight;
-
-      console.log(
-        `📏 Çoklu ürün canvas boyutu: ${canvasWidth}x${canvasHeight}`
-      );
-
-      // Canvas oluştur
-      canvas = createCanvas(canvasWidth, canvasHeight);
-      const ctx = canvas.getContext("2d");
-
-      // Transparent arka plan (fillRect kaldırıldı)
-      // ctx.fillStyle = "white";
-      // ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-      // Resimleri yan yana yerleştir
-      let currentX = 0;
       for (let i = 0; i < loadedImages.length; i++) {
         const img = loadedImages[i];
-        const scaledWidth = (img.width * targetHeight) / img.height;
+        const x = i * itemWidth;
 
-        ctx.drawImage(img, currentX, 0, scaledWidth, targetHeight);
-        currentX += scaledWidth;
+        // Resmi canvas alanına sığdır (aspect ratio koruyarak)
+        const imgAspectRatio = img.width / img.height;
+        const itemAspectRatio = itemWidth / itemHeight;
+
+        let drawWidth, drawHeight, drawX, drawY;
+
+        if (imgAspectRatio > itemAspectRatio) {
+          // Resim daha geniş - genişliğe göre sığdır
+          drawWidth = itemWidth;
+          drawHeight = itemWidth / imgAspectRatio;
+          drawX = x;
+          drawY = (itemHeight - drawHeight) / 2;
+        } else {
+          // Resim daha uzun - yüksekliğe göre sığdır
+          drawHeight = itemHeight;
+          drawWidth = itemHeight * imgAspectRatio;
+          drawX = x + (itemWidth - drawWidth) / 2;
+          drawY = 0;
+        }
+
+        // Yüksek kaliteli çizim - çoklu ürün modu
+        ctx.save();
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+        ctx.restore();
 
         console.log(
-          `🖼️ Ürün ${i + 1} yerleştirildi: (${
-            currentX - scaledWidth
-          }, 0) - ${scaledWidth}x${targetHeight}`
+          `🖼️ Ürün ${i + 1} yüksek kaliteyle yerleştirildi: (${drawX.toFixed(
+            1
+          )}, ${drawY.toFixed(1)}) - ${drawWidth.toFixed(
+            1
+          )}x${drawHeight.toFixed(1)}`
         );
       }
     } else {
-      // Normal mod: Alt alta birleştir (mevcut mantık)
-      console.log("📚 Normal mod: Resimler alt alta birleştirilecek");
+      // Tek resim modu: Canvas ortasına yerleştir - aspect ratio koruyarak
+      console.log("📚 Tek resim modu: Resim canvas ortasına yerleştirilecek");
 
-      canvasWidth = Math.max(...loadedImages.map((img) => img.width));
-      canvasHeight = loadedImages.reduce((total, img) => total + img.height, 0);
+      if (loadedImages.length === 1) {
+        const img = loadedImages[0];
+        const imgAspectRatio = img.width / img.height;
+        const canvasAspectRatio = canvasWidth / canvasHeight;
 
-      console.log(`📏 Normal canvas boyutu: ${canvasWidth}x${canvasHeight}`);
+        let drawWidth, drawHeight, drawX, drawY;
 
-      // Canvas oluştur
-      canvas = createCanvas(canvasWidth, canvasHeight);
-      const ctx = canvas.getContext("2d");
+        if (imgAspectRatio > canvasAspectRatio) {
+          // Resim daha geniş - genişliğe göre sığdır
+          drawWidth = canvasWidth;
+          drawHeight = canvasWidth / imgAspectRatio;
+          drawX = 0;
+          drawY = (canvasHeight - drawHeight) / 2;
+        } else {
+          // Resim daha uzun - yüksekliğe göre sığdır
+          drawHeight = canvasHeight;
+          drawWidth = canvasHeight * imgAspectRatio;
+          drawX = (canvasWidth - drawWidth) / 2;
+          drawY = 0;
+        }
 
-      // Transparent arka plan (fillRect kaldırıldı)
-      // ctx.fillStyle = "white";
-      // ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        // Yüksek kaliteli çizim ayarları
+        ctx.save();
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+        ctx.restore();
 
-      // Resimleri dikey olarak sırala
-      let currentY = 0;
-      for (let i = 0; i < loadedImages.length; i++) {
-        const img = loadedImages[i];
-        const x = (canvasWidth - img.width) / 2; // Ortala
-
-        ctx.drawImage(img, x, currentY);
-        currentY += img.height;
-
+        console.log(`🖼️ Resim canvas ortasına yüksek kaliteyle yerleştirildi:`);
         console.log(
-          `🖼️ Resim ${i + 1} yerleştirildi: (${x}, ${currentY - img.height})`
+          `   📍 Pozisyon: (${drawX.toFixed(1)}, ${drawY.toFixed(1)})`
         );
+        console.log(
+          `   📏 Boyut: ${drawWidth.toFixed(1)}x${drawHeight.toFixed(1)}`
+        );
+        console.log(`   📐 Orijinal resim: ${img.width}x${img.height}`);
+        console.log(
+          `   📐 Hedef canvas: ${canvasWidth}x${canvasHeight} (${aspectRatio})`
+        );
+      } else {
+        // Çoklu resim alt alta (eski mantık) - ancak canvas boyutuna sığdır
+        console.log("📚 Çoklu resim modu: Resimler alt alta birleştirilecek");
+
+        const itemHeight = canvasHeight / loadedImages.length;
+
+        for (let i = 0; i < loadedImages.length; i++) {
+          const img = loadedImages[i];
+          const y = i * itemHeight;
+
+          // Resmi canvas alanına sığdır (aspect ratio koruyarak)
+          const imgAspectRatio = img.width / img.height;
+          const itemAspectRatio = canvasWidth / itemHeight;
+
+          let drawWidth, drawHeight, drawX, drawY;
+
+          if (imgAspectRatio > itemAspectRatio) {
+            // Resim daha geniş - genişliğe göre sığdır
+            drawWidth = canvasWidth;
+            drawHeight = canvasWidth / imgAspectRatio;
+            drawX = 0;
+            drawY = y + (itemHeight - drawHeight) / 2;
+          } else {
+            // Resim daha uzun - yüksekliğe göre sığdır
+            drawHeight = itemHeight;
+            drawWidth = itemHeight * imgAspectRatio;
+            drawX = (canvasWidth - drawWidth) / 2;
+            drawY = y;
+          }
+
+          // Yüksek kaliteli çizim
+          ctx.save();
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+          ctx.restore();
+
+          console.log(
+            `🖼️ Resim ${i + 1} yerleştirildi: (${drawX.toFixed(
+              1
+            )}, ${drawY.toFixed(1)}) - ${drawWidth.toFixed(
+              1
+            )}x${drawHeight.toFixed(1)}`
+          );
+        }
       }
     }
 
-    // Canvas'ı buffer'a çevir (PNG transparent arkaplan için)
-    const buffer = canvas.toBuffer("image/png");
+    // Canvas'ı yüksek kalitede buffer'a çevir
+    const buffer = canvas.toBuffer("image/jpeg", { quality: 0.9 }); // Kalite artırıldı
     console.log("📊 Birleştirilmiş resim boyutu:", buffer.length, "bytes");
 
     // Supabase'e yükle (otomatik temizleme için timestamp prefix)
@@ -3010,12 +2640,12 @@ async function combineImagesOnCanvas(
     const randomId = uuidv4().substring(0, 8);
     const fileName = `temp_${timestamp}_combined_${
       isMultipleProducts ? "products" : "images"
-    }_${userId || "anonymous"}_${randomId}.png`;
+    }_${userId || "anonymous"}_${randomId}.jpg`;
 
     const { data, error } = await supabase.storage
       .from("reference")
       .upload(fileName, buffer, {
-        contentType: "image/png",
+        contentType: "image/jpeg",
         cacheControl: "3600",
         upsert: false,
       });
@@ -3035,6 +2665,118 @@ async function combineImagesOnCanvas(
   } catch (error) {
     console.error("❌ Canvas birleştirme hatası:", error);
     throw error;
+  }
+}
+
+// Arkaplanı kaldırılmış ürün + (opsiyonel) location görsellerini
+// tek bir yatay kompozitte birleştirir ve Supabase'e yükler
+// NOT: Pose image artık birleştirmeye dahil edilmiyor, sadece Gemini'ye reference olarak gönderiliyor
+async function combineReferenceAssets(
+  backgroundRemovedUrl,
+  locationUrl,
+  userId
+) {
+  try {
+    const assetUrls = [backgroundRemovedUrl, locationUrl].filter(
+      (u) => typeof u === "string" && u.trim().length > 0
+    );
+
+    // En az 1 görsel şart (arkaplan kaldırılmış)
+    if (assetUrls.length === 0) {
+      throw new Error(
+        "combineReferenceAssets: no valid assets to combine (background removed or location required)"
+      );
+    }
+
+    // Tüm görselleri indir → (ilk ürün görseli için 1024x1024 beyaz zemin içinde ortalama) → diğerlerini JPEG'e çevir → loadImage ile yükle
+    const loadedImages = [];
+    for (let i = 0; i < assetUrls.length; i++) {
+      const url = assetUrls[i].split("?")[0];
+      try {
+        const response = await axios.get(url, {
+          responseType: "arraybuffer",
+          timeout: 15000, // 30s'den 15s'ye düşürüldü
+        });
+        const buffer = Buffer.from(response.data);
+
+        let processed;
+        if (i === 0) {
+          // Sadece arkaplanı kaldırılmış TRIM'lenmiş ürün görselini 1024x1024 beyaz zemine yerleştir
+          const resized = await sharp(buffer)
+            .resize(1024, 1024, { fit: "inside", withoutEnlargement: false })
+            .png()
+            .toBuffer();
+
+          const whiteSquare = await sharp({
+            create: {
+              width: 1024,
+              height: 1024,
+              channels: 3,
+              background: { r: 255, g: 255, b: 255 },
+            },
+          })
+            .composite([{ input: resized, gravity: "center" }])
+            .png()
+            .toBuffer();
+
+          processed = whiteSquare;
+        } else {
+          // Diğer varlıklar (location) için JPEG yeterli - kalite optimize edildi
+          processed = await sharp(buffer)
+            .jpeg({ quality: 80, progressive: true, mozjpeg: true }) // 90'dan 80'e düşürüldü
+            .toBuffer();
+        }
+
+        const img = await loadImage(processed);
+        loadedImages.push(img);
+      } catch (err) {
+        console.error(
+          `❌ combineReferenceAssets: asset ${i + 1} yüklenemedi:`,
+          err.message
+        );
+      }
+    }
+
+    if (loadedImages.length === 0) {
+      // Hiçbiri yüklenemediyse asıl görseli geri döndür
+      return backgroundRemovedUrl;
+    }
+
+    // Yatay birleşim: tümünü aynı yüksekliğe ölçekle
+    const targetHeight = Math.min(...loadedImages.map((img) => img.height));
+    const widths = loadedImages.map(
+      (img) => (img.width * targetHeight) / img.height
+    );
+    const canvasWidth = widths.reduce((a, b) => a + b, 0);
+    const canvasHeight = targetHeight;
+
+    const canvas = createCanvas(canvasWidth, canvasHeight);
+    const ctx = canvas.getContext("2d");
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    let currentX = 0;
+    for (let i = 0; i < loadedImages.length; i++) {
+      const img = loadedImages[i];
+      const drawWidth = widths[i];
+      ctx.drawImage(img, currentX, 0, drawWidth, targetHeight);
+      currentX += drawWidth;
+    }
+
+    const combinedBuffer = canvas.toBuffer("image/jpeg", { quality: 0.8 }); // 0.9'dan 0.8'e düşürüldü
+    const publicUrl = await uploadProcessedImageBufferToSupabase(
+      combinedBuffer,
+      userId,
+      "combined_assets"
+    );
+    return publicUrl;
+  } catch (error) {
+    console.error("❌ combineReferenceAssets hatası:", error.message);
+    // Hata durumunda arkaplanı kaldırılmış görseli geri döndür
+    return backgroundRemovedUrl;
   }
 }
 
@@ -3071,8 +2813,6 @@ router.post("/generate", async (req, res) => {
       // Edit mode specific parameters (EditScreen)
       isEditMode = false, // Bu EditScreen'den gelen bir edit işlemi mi?
       editPrompt = null, // EditScreen'den gelen özel prompt
-      // Background removal control
-      skipBackgroundRemoval = false, // CreateModelPhotoScreen'den geldiğinde arkaplan silmeyi atla
       // Session deduplication
       sessionId = null, // Aynı batch request'leri tanımlıyor
     } = req.body;
@@ -3094,87 +2834,20 @@ router.post("/generate", async (req, res) => {
       "adet"
     );
 
-    // 📋 Request validation
-    console.log("🔍 [VALIDATION] Request Body:", {
-      promptText: promptText ? `"${promptText.substring(0, 50)}..."` : "null",
-      referenceImagesLength: referenceImages?.length || 0,
-      referenceImagesType: typeof referenceImages,
-      isArray: Array.isArray(referenceImages),
-      userId,
-      generationId,
-      ratio,
-      settings: settings ? Object.keys(settings) : "null",
-    });
-
-    if (!promptText || typeof promptText !== "string") {
-      console.error(
-        "❌ [VALIDATION] promptText eksik veya geçersiz:",
-        typeof promptText
-      );
-      return res.status(400).json({
-        success: false,
-        result: {
-          message: "Geçerli bir promptText sağlanmalıdır.",
-          debug: { promptText: typeof promptText, provided: !!promptText },
-        },
-      });
-    }
-
     if (
+      !promptText ||
       !referenceImages ||
       !Array.isArray(referenceImages) ||
       referenceImages.length < 1
     ) {
-      console.error("❌ [VALIDATION] referenceImages eksik veya geçersiz:", {
-        exists: !!referenceImages,
-        isArray: Array.isArray(referenceImages),
-        length: referenceImages?.length || 0,
-      });
       return res.status(400).json({
         success: false,
         result: {
-          message: "En az 1 referenceImage sağlanmalıdır.",
-          debug: {
-            exists: !!referenceImages,
-            isArray: Array.isArray(referenceImages),
-            length: referenceImages?.length || 0,
-          },
+          message:
+            "Geçerli bir promptText ve en az 1 referenceImage sağlanmalıdır.",
         },
       });
     }
-
-    // Reference images içerik kontrolü
-    for (let i = 0; i < referenceImages.length; i++) {
-      const img = referenceImages[i];
-      if (!img || typeof img !== "object") {
-        console.error(
-          `❌ [VALIDATION] referenceImages[${i}] geçersiz:`,
-          typeof img
-        );
-        return res.status(400).json({
-          success: false,
-          result: {
-            message: `Reference image ${i + 1} geçersiz format.`,
-            debug: { index: i, type: typeof img },
-          },
-        });
-      }
-
-      if (!img.uri && !img.base64) {
-        console.error(
-          `❌ [VALIDATION] referenceImages[${i}] uri veya base64 eksik`
-        );
-        return res.status(400).json({
-          success: false,
-          result: {
-            message: `Reference image ${i + 1} URI veya base64 eksik.`,
-            debug: { index: i, hasUri: !!img.uri, hasBase64: !!img.base64 },
-          },
-        });
-      }
-    }
-
-    console.log("✅ [VALIDATION] Request validation başarılı");
 
     // 💡 YENİ YAKLAŞIM: Kredi başlangıçta düşürülmüyor, başarılı tamamlamada düşürülecek
     console.log(
@@ -3427,205 +3100,76 @@ router.post("/generate", async (req, res) => {
     console.log("💇 [BACKEND] Gelen hairStyleImage:", hairStyleImage);
 
     let finalImage;
-    let backgroundRemovedImageUrl = null; // Canvas'dan gelen background removed image URL'i
-
-    // Location görsel URL'sini normalize et (string veya {uri})
-    const normalizedLocationUrl = getLocationImageUrl(locationImage);
 
     // Çoklu resim varsa birleştir, yoksa tek resmi kullan
     if (isMultipleImages && referenceImages.length > 1) {
       console.log(
         "🖼️ [BACKEND] Çoklu resim birleştirme işlemi başlatılıyor..."
       );
-
-      // Location image varsa referenceImages'a ekle
-      let imagesToCombine = [...referenceImages];
-      if (normalizedLocationUrl) {
-        console.log(
-          "🏞️ [BACKEND] Location image canvas'a ekleniyor:",
-          normalizedLocationUrl
-        );
-        imagesToCombine.push({
-          uri: normalizedLocationUrl,
-          width: (locationImage && locationImage.width) || 400,
-          height: (locationImage && locationImage.height) || 400,
-          isLocationImage: true,
-        });
-      }
-
       finalImage = await combineImagesOnCanvas(
-        imagesToCombine,
+        referenceImages,
         userId,
-        isMultipleProducts
+        isMultipleProducts,
+        ratio
       );
 
       // Birleştirilmiş resmi geçici dosyalar listesine ekle
       temporaryFiles.push(finalImage);
     } else {
-      // Tek resim için normal işlem (ama location image varsa birleştirme yap)
+      // Tek resim için ratio'ya göre canvas işlemi
+      console.log(
+        "🖼️ [BACKEND] Tek resim için ratio'ya göre canvas işlemi başlatılıyor..."
+      );
+
       const referenceImage = referenceImages[0];
 
-      // Location image varsa tek resim ile birleştir
-      if (normalizedLocationUrl) {
-        console.log(
-          "🏞️ [BACKEND] Tek resim + location image birleştirme başlatılıyor..."
-        );
-        const imagesToCombine = [
-          referenceImage,
-          {
-            uri: normalizedLocationUrl,
-            width: (locationImage && locationImage.width) || 400,
-            height: (locationImage && locationImage.height) || 400,
-            isLocationImage: true,
+      if (!referenceImage) {
+        return res.status(400).json({
+          success: false,
+          result: {
+            message: "Referans görseli gereklidir.",
           },
-        ];
+        });
+      }
 
-        finalImage = await combineImagesOnCanvas(
-          imagesToCombine,
-          userId,
-          false // tek resim + location, multiple products değil
-        );
+      console.log("Referans görseli:", referenceImage.uri);
 
-        // Birleştirilmiş resmi geçici dosyalar listesine ekle
-        temporaryFiles.push(finalImage);
+      // Referans resmini önce Supabase'e yükle ve URL al
+      let imageSourceForUpload;
+
+      // Eğer base64 data varsa onu kullan, yoksa URI'yi kullan
+      if (referenceImage.base64) {
+        imageSourceForUpload = `data:image/jpeg;base64,${referenceImage.base64}`;
+      } else if (
+        referenceImage.uri.startsWith("http://") ||
+        referenceImage.uri.startsWith("https://")
+      ) {
+        imageSourceForUpload = referenceImage.uri;
       } else {
-        // Location image yoksa normal tek resim işlemi
-        if (!referenceImage) {
-          return res.status(400).json({
-            success: false,
-            result: {
-              message: "Referans görseli gereklidir.",
-            },
-          });
-        }
+        // file:// protokolü için frontend'de base64 dönüştürme zorunlu
+        return res.status(400).json({
+          success: false,
+          result: {
+            message: "Yerel dosya için base64 data gönderilmelidir.",
+          },
+        });
+      }
 
-        console.log("Referans görseli:", referenceImage.uri);
-        console.log(
-          "🎨 [CANVAS] Canvas processed:",
-          referenceImage.canvasProcessed
-        );
-        console.log(
-          "🖼️ [CANVAS] Has background removed:",
-          referenceImage.hasBackgroundRemoved
-        );
-        console.log(
-          "🔍 [DEBUG] Reference image base64 mevcut mu:",
-          !!referenceImage.base64
-        );
-        console.log(
-          "🔍 [DEBUG] Background removed base64 mevcut mu:",
-          !!referenceImage.backgroundRemovedBase64
-        );
-        console.log(
-          "🔍 [DEBUG] Combined image base64 mevcut mu:",
-          !!referenceImage.combinedImageBase64
-        );
-        console.log(
-          "🔍 [DEBUG] Is combined image:",
-          !!referenceImage.isCombinedImage
-        );
-        if (referenceImage.base64) {
-          console.log(
-            "🔍 [DEBUG] Base64 uzunluğu:",
-            referenceImage.base64.length
-          );
-        }
-        if (referenceImage.combinedImageBase64) {
-          console.log(
-            "🔍 [DEBUG] Combined base64 uzunluğu:",
-            referenceImage.combinedImageBase64.length
-          );
-        }
+      const uploadedImageUrl = await uploadReferenceImageToSupabase(
+        imageSourceForUpload,
+        userId
+      );
 
-        // Referans resmini önce Supabase'e yükle ve URL al
-        let imageSourceForUpload;
+      // Tek resim için de ratio'ya göre canvas'a yerleştir
+      finalImage = await combineImagesOnCanvas(
+        [{ uri: uploadedImageUrl }], // Tek resmi array içinde gönder
+        userId,
+        false, // isMultipleProducts = false
+        ratio // ratio parametresi
+      );
 
-        // Canvas'dan gelen resimse ve background removed varsa onu önceleyeceğiz
-        if (
-          referenceImage.canvasProcessed &&
-          referenceImage.backgroundRemovedBase64
-        ) {
-          console.log(
-            "🎨 [CANVAS] Canvas resmi ve background removed resmi algılandı"
-          );
-
-          // Canvas'dan birleştirilmiş resim varsa onu kullan, yoksa orijinal canvas resmi
-          if (referenceImage.combinedImageBase64) {
-            imageSourceForUpload = `data:image/png;base64,${referenceImage.combinedImageBase64}`;
-            console.log(
-              "🎨 [CANVAS] Birleştirilmiş Canvas+Background resmi kullanılıyor"
-            );
-          } else if (referenceImage.base64) {
-            imageSourceForUpload = `data:image/png;base64,${referenceImage.base64}`;
-            console.log(
-              "🎨 [CANVAS] Canvas base64 kullanılıyor (PNG formatında)"
-            );
-          } else {
-            imageSourceForUpload = referenceImage.uri;
-            console.log(
-              "🎨 [CANVAS] Canvas URI kullanılıyor:",
-              referenceImage.uri
-            );
-          }
-
-          // Background removed resmi de upload et
-          try {
-            const backgroundRemovedSource = `data:image/png;base64,${referenceImage.backgroundRemovedBase64}`;
-            backgroundRemovedImageUrl = await uploadReferenceImageToSupabase(
-              backgroundRemovedSource,
-              userId
-            );
-            console.log(
-              "🖼️ [CANVAS] Background removed resim upload edildi:",
-              backgroundRemovedImageUrl
-            );
-            // Background removed resmi geçici dosyalar listesine ekle
-            temporaryFiles.push(backgroundRemovedImageUrl);
-          } catch (bgUploadError) {
-            console.error(
-              "🖼️ [CANVAS] Background removed resim upload hatası:",
-              bgUploadError
-            );
-            // Hata durumunda sadece orijinal resimle devam et
-          }
-        } else {
-          // Normal resim işleme (canvas değilse)
-          if (referenceImage.base64) {
-            imageSourceForUpload = `data:image/jpeg;base64,${referenceImage.base64}`;
-          } else if (
-            referenceImage.uri.startsWith("http://") ||
-            referenceImage.uri.startsWith("https://")
-          ) {
-            imageSourceForUpload = referenceImage.uri;
-          } else {
-            // file:// protokolü için frontend'de base64 dönüştürme zorunlu
-            return res.status(400).json({
-              success: false,
-              result: {
-                message: "Yerel dosya için base64 data gönderilmelidir.",
-              },
-            });
-          }
-        }
-
-        // Canvas durumunda finalImage upload'ını atla, direkt base64'lerle çalış
-        if (
-          referenceImage.canvasProcessed &&
-          referenceImage.backgroundRemovedBase64
-        ) {
-          console.log(
-            "🎨 [CANVAS] Canvas modu: finalImage upload atlanıyor, sadece backgroundRemovedImageUrl kullanılacak"
-          );
-          // Canvas'da finalImage upload'ını atla, sadece backgroundRemovedImageUrl kullan
-          finalImage = backgroundRemovedImageUrl; // Background removed URL'yi kullan
-        } else {
-          // Normal upload işlemi
-          finalImage = await uploadReferenceImageToSupabase(
-            imageSourceForUpload,
-            userId
-          );
-        }
-      } // location image else bloğunu kapat
+      // Canvas işleminden sonra oluşan resmi geçici dosyalar listesine ekle
+      temporaryFiles.push(finalImage);
     }
 
     console.log("Supabase'den alınan final resim URL'si:", finalImage);
@@ -3639,24 +3183,6 @@ router.post("/generate", async (req, res) => {
     // 🚀 Paralel işlemler başlat
     console.log(
       "🚀 Paralel işlemler başlatılıyor: Gemini + Arkaplan silme + ControlNet hazırlığı..."
-    );
-
-    // 🤖 Gemini'ye orijinal ham resmi gönder (paralel)
-    const geminiPromise = enhancePromptWithGemini(
-      promptText,
-      finalImage, // Ham orijinal resim
-      settings || {},
-      locationImage,
-      poseImage,
-      hairStyleImage,
-      isMultipleProducts,
-      false, // ControlNet yok, ham resim
-      isColorChange, // Renk değiştirme işlemi mi?
-      targetColor, // Hedef renk bilgisi
-      isPoseChange, // Poz değiştirme işlemi mi?
-      customDetail, // Özel detay bilgisi
-      isEditMode, // EditScreen modu mu?
-      editPrompt // EditScreen'den gelen prompt
     );
 
     let enhancedPrompt, backgroundRemovedImage;
@@ -3697,443 +3223,296 @@ router.post("/generate", async (req, res) => {
         enhancedPrompt
       );
     } else {
-      // 🖼️ NORMAL MODE - Arkaplan silme işlemi
+      // 🖼️ NORMAL MODE - Arkaplan silme işlemi (paralel)
+      // Gemini prompt üretimini paralelde başlat
+      const geminiPromise = enhancePromptWithGemini(
+        promptText,
+        finalImage, // Ham orijinal resim
+        settings || {},
+        locationImage,
+        poseImage,
+        hairStyleImage,
+        isMultipleProducts,
+        false, // ControlNet yok, ham resim
+        isColorChange, // Renk değiştirme işlemi mi?
+        targetColor, // Hedef renk bilgisi
+        isPoseChange, // Poz değiştirme işlemi mi?
+        customDetail, // Özel detay bilgisi
+        isEditMode, // EditScreen modu mu?
+        editPrompt // EditScreen'den gelen prompt
+      );
 
-      // Canvas'dan gelen background removed resmi varsa onu kullan, yoksa API'ye git
-      if (backgroundRemovedImageUrl) {
-        console.log("🎨 [CANVAS] Canvas'dan gelen resimler işleniyor...");
-
-        // Canvas'dan birleştirilmiş resim varsa onu kullan
-        if (referenceImages[0]?.combinedImageBase64) {
-          console.log(
-            "🎨 [CANVAS] ✅ Birleştirilmiş Canvas+Background resmi Flux Max'e gönderiliyor!"
-          );
-          // Birleştirilmiş resmi doğrudan Flux'a gönder - upload edilmiş URL'i kullan
-          // Canvas kombinasyonu için ayrı upload edilmiş URL'i bulalım
-          try {
-            const combinedImageSource = `data:image/png;base64,${referenceImages[0].combinedImageBase64}`;
-            const combinedImageUrl = await uploadReferenceImageToSupabase(
-              combinedImageSource,
-              userId
-            );
-            console.log(
-              "🎨 [CANVAS] Birleştirilmiş resim Flux için upload edildi:",
-              combinedImageUrl
-            );
-            backgroundRemovedImage = combinedImageUrl;
-            // Geçici dosya listesine ekle
-            temporaryFiles.push(combinedImageUrl);
-          } catch (uploadError) {
-            console.error(
-              "❌ [CANVAS] Birleştirilmiş resim upload hatası:",
-              uploadError
-            );
-            // Fallback: finalImage kullan
-            backgroundRemovedImage = finalImage;
-          }
-        } else {
-          console.log(
-            "🎨 [CANVAS] Canvas base64 mevcut değil, sadece background removed resmi kullanılıyor"
-          );
-          backgroundRemovedImage = backgroundRemovedImageUrl;
-        }
-
-        // Sadece Gemini'yi bekle, arkaplan zaten silinmiş
-        console.log("⏳ Sadece Gemini prompt iyileştirmesi bekleniyor...");
-        enhancedPrompt = await geminiPromise;
-      } else if (skipBackgroundRemoval) {
-        // CreateModelPhotoScreen'den gelen request - Arkaplan silme atlanıyor + Portrait oluşturuluyor
-        console.log(
-          "🖼️ CreateModelPhotoScreen modu: Arkaplan silme atlanıyor + Portrait oluşturuluyor..."
-        );
-
-        // Canvas'dan gelen resim bilgilerini kontrol et
-        const hasCanvasData = referenceImages[0]?.combinedImageBase64;
-        const hasSeparateCanvasData =
-          referenceImages[0]?.separateProcessing &&
-          referenceImages[0]?.backgroundRemovedBase64;
-        const hasBackgroundRemovedData = backgroundRemovedImageUrl;
-
-        console.log("🔍 [PORTRAIT DEBUG] hasCanvasData:", !!hasCanvasData);
-        console.log(
-          "🔍 [PORTRAIT DEBUG] hasSeparateCanvasData:",
-          !!hasSeparateCanvasData
-        );
-        console.log(
-          "🔍 [PORTRAIT DEBUG] separateProcessing:",
-          referenceImages[0]?.separateProcessing
-        );
-        console.log(
-          "🔍 [PORTRAIT DEBUG] hasBackgroundRemovedData:",
-          !!hasBackgroundRemovedData
-        );
-        console.log(
-          "🔍 [PORTRAIT DEBUG] backgroundRemovedImageUrl:",
-          backgroundRemovedImageUrl
-        );
-
-        if (hasCanvasData || hasSeparateCanvasData) {
-          console.log(
-            "👤 [PORTRAIT] CreateModelPhotoScreen modu: 3'lü birleştirme işlemi başlatılıyor..."
-          );
-
-          // Portrait prompt oluştur ve portrait resmi oluştur (paralel)
-          // Portre promptunda (yalnızca Flux.1-dev için) ethnicity fallback kullan
-          const fluxPortraitSettings = { ...settings };
-          const portraitPromptPromise = generatePortraitPromptWithGemini(
-            fluxPortraitSettings,
-            settings.gender || "female"
-          );
-
-          // Gemini ve portrait prompt'u paralel bekle (portrait optional)
-          console.log(
-            "⏳ Gemini main prompt ve portrait prompt paralel oluşturuluyor..."
-          );
-          const [mainPromptResult, portraitPromptResult] =
-            await Promise.allSettled([geminiPromise, portraitPromptPromise]);
-
-          // Main prompt kesinlikle gerekli
-          if (mainPromptResult.status === "fulfilled") {
-            enhancedPrompt = mainPromptResult.value;
-          } else {
-            console.error(
-              "❌ Main prompt oluşturulamadı:",
-              mainPromptResult.reason
-            );
-            throw mainPromptResult.reason;
-          }
-
-          // Portrait prompt opsiyonel - hata olursa devam et
-          let portraitPrompt = null;
-          if (portraitPromptResult.status === "fulfilled") {
-            portraitPrompt = portraitPromptResult.value;
-            console.log("✅ Portrait prompt başarıyla oluşturuldu");
-          } else {
-            console.error(
-              "⚠️ Portrait prompt oluşturulamadı, fallback kullanılacak:",
-              portraitPromptResult.reason
-            );
-            // Fallback portrait prompt
-            portraitPrompt = `Professional close-up portrait of a fashion ${
-              settings.gender || "female"
-            } model with striking editorial facial features. Pure white studio background, professional lighting, sharp detail, high-fashion model aesthetics, commercial photography style, head and shoulders view only.`;
-          }
-
-          // Portrait resmi oluştur
-          console.log("🎨 [PORTRAIT] Portrait resmi oluşturuluyor...");
-          console.log("🎨 [PORTRAIT] Portrait prompt:", portraitPrompt);
-
-          let portraitImageUrl = null;
-          try {
-            portraitImageUrl = await generatePortraitWithFluxDev(
-              portraitPrompt
-            );
-            console.log(
-              "✅ [PORTRAIT] Portrait oluşturma başarılı:",
-              portraitImageUrl
-            );
-          } catch (portraitError) {
-            console.error(
-              "❌ [PORTRAIT] Portrait oluşturma hatası:",
-              portraitError
-            );
-            console.log(
-              "🔄 [PORTRAIT] Portrait olmadan 2'li birleştirme yapılacak..."
-            );
-
-            // Portrait oluşturulamadıysa sadece Canvas+Background birleştir
-            let canvasImageUrl;
-            if (hasCanvasData) {
-              const combinedImageSource = `data:image/png;base64,${referenceImages[0].combinedImageBase64}`;
-              canvasImageUrl = await uploadReferenceImageToSupabase(
-                combinedImageSource,
-                userId
-              );
-            } else if (hasSeparateCanvasData) {
-              const canvasImageSource = `data:image/png;base64,${referenceImages[0].base64}`;
-              canvasImageUrl = await uploadReferenceImageToSupabase(
-                canvasImageSource,
-                userId
-              );
-              // Background Removed resmi de ayrı upload et (eğer yoksa)
-              if (
-                !backgroundRemovedImageUrl &&
-                referenceImages[0].backgroundRemovedBase64
-              ) {
-                const bgRemovedSource = `data:image/png;base64,${referenceImages[0].backgroundRemovedBase64}`;
-                backgroundRemovedImageUrl =
-                  await uploadReferenceImageToSupabase(bgRemovedSource, userId);
-                temporaryFiles.push(backgroundRemovedImageUrl);
-              }
-            }
-
-            // Background removed image varsa birleştir, yoksa sadece canvas kullan
-            if (backgroundRemovedImageUrl) {
-              const twoImagesCombinedUrl =
-                await combineCanvasAndBackgroundRemovedImages(
-                  canvasImageUrl,
-                  backgroundRemovedImageUrl,
-                  userId
-                );
-              backgroundRemovedImage = twoImagesCombinedUrl;
-              temporaryFiles.push(canvasImageUrl, twoImagesCombinedUrl);
-            } else {
-              console.log(
-                "⚠️ [PORTRAIT] Background removed image null, sadece canvas kullanılıyor..."
-              );
-              backgroundRemovedImage = canvasImageUrl;
-              temporaryFiles.push(canvasImageUrl);
-            }
-
-            console.log(
-              "✅ [PORTRAIT] 2'li birleştirme tamamlandı (portrait hatası nedeniyle):",
-              backgroundRemovedImage
-            );
-            return; // Early return - 3'lü birleştirmeye gitme
-          }
-
-          // Canvas resmi upload et
-          let canvasImageUrl;
-          if (hasCanvasData) {
-            // Birleştirilmiş Canvas resmi var
-            const combinedImageSource = `data:image/png;base64,${referenceImages[0].combinedImageBase64}`;
-            canvasImageUrl = await uploadReferenceImageToSupabase(
-              combinedImageSource,
-              userId
-            );
-            console.log(
-              "🎨 [CANVAS] Birleştirilmiş Canvas resmi upload edildi:",
-              canvasImageUrl
-            );
-          } else if (hasSeparateCanvasData) {
-            // Ayrı Canvas resmi var
-            const canvasImageSource = `data:image/png;base64,${referenceImages[0].base64}`;
-            canvasImageUrl = await uploadReferenceImageToSupabase(
-              canvasImageSource,
-              userId
-            );
-            console.log(
-              "🎨 [CANVAS] Ayrı Canvas resmi upload edildi:",
-              canvasImageUrl
-            );
-
-            // Background Removed resmi de ayrı upload et (eğer yoksa)
-            if (
-              !backgroundRemovedImageUrl &&
-              referenceImages[0].backgroundRemovedBase64
-            ) {
-              const bgRemovedSource = `data:image/png;base64,${referenceImages[0].backgroundRemovedBase64}`;
-              backgroundRemovedImageUrl = await uploadReferenceImageToSupabase(
-                bgRemovedSource,
-                userId
-              );
-              console.log(
-                "🎨 [CANVAS] Ayrı Background Removed resmi upload edildi:",
-                backgroundRemovedImageUrl
-              );
-              temporaryFiles.push(backgroundRemovedImageUrl);
-            }
-          }
-
-          if (hasBackgroundRemovedData) {
-            // 3 veya 4 resmi birleştir: Canvas + Background Removed + Portrait + (Location)
-            const normalizedLocationUrl = getLocationImageUrl(locationImage);
-            if (normalizedLocationUrl) {
-              console.log(
-                "🎨 [PORTRAIT] 4 resim birleştiriliyor (location dahil)..."
-              );
-              const fourImagesCombinedUrl = await combineFourImages(
-                canvasImageUrl,
-                backgroundRemovedImageUrl,
-                portraitImageUrl,
-                normalizedLocationUrl,
-                userId
-              );
-              backgroundRemovedImage = fourImagesCombinedUrl;
-              temporaryFiles.push(
-                canvasImageUrl,
-                portraitImageUrl,
-                fourImagesCombinedUrl
-              );
-              console.log(
-                "✅ [PORTRAIT] 4'lü birleştirme tamamlandı:",
-                fourImagesCombinedUrl
-              );
-            } else {
-              console.log(
-                "🎨 [PORTRAIT] 3 resim birleştiriliyor (Canvas + Background + Portrait)..."
-              );
-              const threeImagesCombinedUrl =
-                await combineThreeImagesCanvasPortraitLocation(
-                  canvasImageUrl,
-                  backgroundRemovedImageUrl,
-                  portraitImageUrl,
-                  null, // location image yok
-                  userId
-                );
-              backgroundRemovedImage = threeImagesCombinedUrl;
-              temporaryFiles.push(
-                canvasImageUrl,
-                portraitImageUrl,
-                threeImagesCombinedUrl
-              );
-              console.log(
-                "✅ [PORTRAIT] 3'lü birleştirme tamamlandı:",
-                threeImagesCombinedUrl
-              );
-            }
-          } else {
-            // 2 veya 3 resmi birleştir: Canvas + Portrait + (Location)
-            const normalizedLocationUrl = getLocationImageUrl(locationImage);
-            if (normalizedLocationUrl) {
-              console.log(
-                "🎨 [PORTRAIT] 3 resim birleştiriliyor (Canvas + Portrait + Location)..."
-              );
-              console.log("🔎 [PORTRAIT] location URL:", normalizedLocationUrl);
-              const threeImagesCombinedUrl =
-                await combineThreeImagesCanvasPortraitLocation(
-                  canvasImageUrl,
-                  backgroundRemovedImageUrl, // Background removed image eklendi
-                  portraitImageUrl,
-                  normalizedLocationUrl,
-                  userId
-                );
-              backgroundRemovedImage = threeImagesCombinedUrl;
-              temporaryFiles.push(
-                canvasImageUrl,
-                portraitImageUrl,
-                threeImagesCombinedUrl
-              );
-              console.log(
-                "✅ [PORTRAIT] 3'lü birleştirme tamamlandı:",
-                threeImagesCombinedUrl
-              );
-            } else {
-              console.log(
-                "🎨 [PORTRAIT] 2 resim birleştiriliyor (Canvas + Portrait)..."
-              );
-              const twoImagesCombinedUrl =
-                await combineCanvasAndBackgroundRemovedImages(
-                  canvasImageUrl,
-                  portraitImageUrl,
-                  userId
-                );
-              backgroundRemovedImage = twoImagesCombinedUrl;
-              temporaryFiles.push(
-                canvasImageUrl,
-                portraitImageUrl,
-                twoImagesCombinedUrl
-              );
-              console.log(
-                "✅ [PORTRAIT] 2'li birleştirme tamamlandı:",
-                twoImagesCombinedUrl
-              );
-            }
-          }
-        } else {
-          // Canvas verisi yoksa normal akış
-          console.log("⏳ Sadece Gemini prompt iyileştirmesi bekleniyor...");
-          enhancedPrompt = await geminiPromise;
-          backgroundRemovedImage = finalImage; // Orijinal resmi kullan
-        }
-      } else {
-        // Normal arkaplan silme işlemi (paralel)
-        console.log("🖼️ Normal arkaplan silme işlemi başlatılıyor...");
-        const backgroundRemovalPromise = removeBackgroundFromImage(
-          finalImage,
-          userId
-        );
-
-        // ⏳ Gemini ve arkaplan silme işlemlerini paralel bekle
-        console.log("⏳ Gemini ve arkaplan silme paralel olarak bekleniyor...");
-        [enhancedPrompt, backgroundRemovedImage] = await Promise.all([
-          geminiPromise,
-          backgroundRemovalPromise,
-        ]);
-      }
+      // ⏳ Sadece Gemini prompt iyileştirme bekle
+      console.log("⏳ Gemini prompt iyileştirme bekleniyor...");
+      enhancedPrompt = await geminiPromise;
     }
 
     console.log("✅ Gemini prompt iyileştirme tamamlandı");
-    console.log("✅ Arkaplan silme tamamlandı:", backgroundRemovedImage);
 
-    // Geçici dosyayı silme listesine ekle
-    temporaryFiles.push(backgroundRemovedImage);
+    // Arkaplan silme kaldırıldı - direkt olarak finalImage kullanılacak
+    backgroundRemovedImage = finalImage;
 
-    let combinedImageForReplicate = backgroundRemovedImage; // Fallback - her zaman arkaplanı silinmiş resim
+    // 🎨 Yerel ControlNet Canny çıkarma işlemi - Arkaplan silindikten sonra
+    // console.log("🎨 Yerel ControlNet Canny çıkarılıyor (Sharp ile)...");
+    let cannyImage = null;
+    // try {
+    //   cannyImage = await generateLocalControlNetCanny(
+    //     backgroundRemovedImage,
+    //     userId
+    //   );
+    //   console.log("✅ Yerel ControlNet Canny tamamlandı:", cannyImage);
+    // } catch (controlNetError) {
+    //   console.error(
+    //     "❌ Yerel ControlNet Canny hatası:",
+    //     controlNetError.message
+    //   );
+    //   console.log(
+    //     "⚠️ Yerel ControlNet hatası nedeniyle sadece arkaplanı silinmiş resim kullanılacak"
+    //   );
+    //   cannyImage = null;
+    // }
+
+    // 👤 Portrait generation kaldırıldı - Gemini kendi kendine hallediyor
+
+    // 🖼️ Sadece arkaplan kaldırılmış resmi kullan - Gemini kendi kendine birleştiriyor
+    let combinedImageForReplicate = backgroundRemovedImage;
+    // if (cannyImage) {
+    //   try {
+    //     console.log(
+    //       "🎨 Orijinal ve Canny resimleri birleştiriliyor (Replicate için)..."
+    //     );
+    //     combinedImageForReplicate = await combineTwoImagesWithBlackLine(
+    //       backgroundRemovedImage,
+    //       cannyImage,
+    //       userId
+    //     );
+    //     console.log(
+    //       "✅ İki resim birleştirme tamamlandı:",
+    //       combinedImageForReplicate
+    //     );
+    //   } catch (combineError) {
+    //     console.error("❌ Resim birleştirme hatası:", combineError.message);
+    //     console.log(
+    //       "⚠️ Birleştirme hatası nedeniyle sadece arkaplanı silinmiş resim kullanılacak"
+    //     );
+    //     combinedImageForReplicate = backgroundRemovedImage;
+    //   }
+    // } else {
+    //   console.log(
+    //     "⚠️ ControlNet Canny mevcut değil, sadece arkaplanı silinmiş resim kullanılacak"
+    //   );
+    // }
 
     console.log("📝 [BACKEND MAIN] Original prompt:", promptText);
     console.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
 
-    // Replicate API'ye retry mekanizması ile istek gönder
+    // Gemini 2.5 Flash Image Preview API'ye retry mekanizması ile istek gönder
     let replicateResponse;
     const maxRetries = 3;
 
-    // Color change, edit mode ve pose change modunda sadece Flux Kontext Max kullan, Flux Dev'e geçme
-    const useOnlyFluxMax = isColorChange || isEditMode || isPoseChange;
-
-    if (useOnlyFluxMax) {
-      let modeText = "";
-      if (isColorChange) modeText += "Color change";
-      if (isEditMode) modeText += (modeText ? ", " : "") + "Edit mode";
-      if (isPoseChange) modeText += (modeText ? ", " : "") + "Pose change";
-
-      console.log(
-        `🎨 ${modeText} modu: Sadece Flux Kontext Max kullanılacak, Flux Dev'e geçiş yapılmayacak`
-      );
-    }
-
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`🔄 Replicate API attempt ${attempt}/${maxRetries}`);
-
-        // Random seed her seferinde farklı olsun
-        const seed = Math.floor(Math.random() * 2 ** 32);
-        console.log(`🎲 Random seed: ${seed}`);
-
-        // Ethnicity bilgisini Flux Kontext Max'e göndermemek için prompt'u sanitize et
-        const sanitizedPromptForMax = (enhancedPrompt || "")
-          .replace(/^.*ethnicity.*$/gim, "")
-          .replace(/\n{2,}/g, "\n")
-          .trim();
-
-        replicateResponse = await axios.post(
-          "https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-max/predictions",
-          {
-            input: {
-              prompt: sanitizedPromptForMax,
-              input_image: combinedImageForReplicate, // Birleştirilmiş resim Replicate için
-              aspect_ratio: formattedRatio,
-              disable_safety_checker: true,
-              seed: seed, // Random seed eklendi
-              num_inference_steps: 50,
-              output_quality: 100,
-              prompt_upsampling: true,
-            },
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-              "Content-Type": "application/json",
-            },
-            timeout: 120000, // 2 dakika timeout
-          }
+        console.log(
+          `🔄 Gemini 2.5 Flash Image Preview API attempt ${attempt}/${maxRetries}`
         );
 
-        console.log(`✅ Replicate API başarılı (attempt ${attempt})`);
+        // Gemini 2.5 Flash Image Preview API kullan (doğru model)
+        console.log(
+          "🚀 Gemini 2.5 Flash Image Preview API çağrısı yapılıyor..."
+        );
+
+        const ai = new GoogleGenAI({
+          apiKey: process.env.GEMINI_API_KEY,
+        });
+
+        const config = {
+          responseModalities: ["IMAGE", "TEXT"],
+        };
+
+        const model = "gemini-2.5-flash-image-preview";
+
+        // Combined image'ı base64'e çevir
+        let combinedImageBase64;
+        try {
+          const imageResponse = await axios.get(combinedImageForReplicate, {
+            responseType: "arraybuffer",
+            timeout: 15000,
+          });
+          combinedImageBase64 = Buffer.from(imageResponse.data).toString(
+            "base64"
+          );
+        } catch (imageError) {
+          console.error(
+            "❌ Combined image download hatası:",
+            imageError.message
+          );
+          throw new Error("Reference image indirilemedi");
+        }
+
+        const mainApiContents = [
+          {
+            role: "user",
+            parts: [
+              {
+                text: enhancedPrompt,
+              },
+              {
+                inlineData: {
+                  mimeType: "image/jpeg",
+                  data: combinedImageBase64,
+                },
+              },
+            ],
+          },
+        ];
+
+        console.log(
+          "🚀 Gemini 2.5 Flash Image Preview API çağrısı yapılıyor..."
+        );
+        console.log("📋 Model:", model);
+        console.log("📋 Contents structure:", {
+          role: mainApiContents[0].role,
+          partsCount: mainApiContents[0].parts.length,
+          hasText: !!mainApiContents[0].parts[0].text,
+          hasImage: !!mainApiContents[0].parts[1]?.inlineData,
+          imageMimeType: mainApiContents[0].parts[1]?.inlineData?.mimeType,
+          imageDataLength:
+            mainApiContents[0].parts[1]?.inlineData?.data?.length || 0,
+        });
+
+        // Timeout wrapper - 3 dakikaya çıkarıldı
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => {
+            reject(new Error("Gemini API timeout (180s)"));
+          }, 180000); // 180 saniye (3 dakika) timeout
+        });
+
+        // Gemini API çağrısı (streaming) - timeout ile
+        const geminiAPIPromise = ai.models.generateContentStream({
+          model,
+          config,
+          contents: mainApiContents,
+        });
+
+        const response = await Promise.race([geminiAPIPromise, timeoutPromise]);
+
+        let generatedImageBuffer = null;
+        let hasImageResponse = false;
+        let fileIndex = 0;
+
+        console.log(
+          "📡 Gemini response stream başlatıldı, chunk'lar bekleniyor..."
+        );
+
+        // Stream processing timeout
+        const streamTimeout = setTimeout(() => {
+          throw new Error("Gemini stream processing timeout");
+        }, 120000); // 2 dakika stream timeout
+
+        try {
+          for await (const chunk of response) {
+            if (
+              !chunk.candidates ||
+              !chunk.candidates[0].content ||
+              !chunk.candidates[0].content.parts
+            ) {
+              continue;
+            }
+
+            if (chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData) {
+              const inlineData =
+                chunk.candidates[0].content.parts[0].inlineData;
+              const fileExtension = mime.getExtension(
+                inlineData.mimeType || ""
+              );
+              generatedImageBuffer = Buffer.from(
+                inlineData.data || "",
+                "base64"
+              );
+              hasImageResponse = true;
+              console.log(
+                `✅ Gemini 2.5 Flash Image Preview resim sonucu alındı (${inlineData.mimeType})`
+              );
+              break;
+            } else {
+              // Text response varsa logla
+              if (chunk.text) {
+                console.log("📝 Gemini text response:", chunk.text);
+              }
+            }
+          }
+
+          // Stream timeout'u temizle
+          clearTimeout(streamTimeout);
+        } catch (streamError) {
+          clearTimeout(streamTimeout);
+          throw streamError;
+        }
+
+        if (!hasImageResponse || !generatedImageBuffer) {
+          throw new Error("Gemini'den image response alınamadı");
+        }
+
+        // Gemini'den alınan image buffer'ını Supabase'e upload et
+        console.log("📤 Gemini sonucu Supabase'e yükleniyor...");
+
+        const geminiFileName = `generated_${Date.now()}_${userId}_${uuidv4().substring(
+          0,
+          8
+        )}.jpg`;
+        const uploadResult = await supabase.storage
+          .from("images")
+          .upload(geminiFileName, generatedImageBuffer, {
+            contentType: "image/jpeg",
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (uploadResult.error) {
+          console.error("❌ Supabase upload error:", uploadResult.error);
+          throw new Error(
+            `Supabase upload failed: ${uploadResult.error.message}`
+          );
+        }
+
+        // Public URL oluştur
+        const { data: geminiUrlData } = supabase.storage
+          .from("images")
+          .getPublicUrl(geminiFileName);
+
+        const finalResult = geminiUrlData.publicUrl;
+        console.log("✅ Gemini result uploaded to Supabase:", finalResult);
+
+        // Gemini response'u Replicate formatına uygun hale getir (polling gerektirmez)
+        replicateResponse = {
+          data: {
+            id: `gemini_${Date.now()}`,
+            status: "succeeded",
+            output: finalResult,
+            urls: {
+              get: null, // Gemini için polling gerekmez
+            },
+          },
+        };
+
+        console.log(
+          `✅ Gemini 2.5 Flash Image Preview API başarılı (attempt ${attempt})`
+        );
         break; // Başarılı olursa loop'tan çık
       } catch (apiError) {
         console.error(
-          `❌ Replicate API attempt ${attempt} failed:`,
+          `❌ Gemini 2.5 Flash Image Preview API attempt ${attempt} failed:`,
           apiError.message
         );
 
-        // Son deneme değilse ve timeout hatası ise tekrar dene
+        // Son deneme değilse ve timeout/network hatası ise tekrar dene
         if (
           attempt < maxRetries &&
           (apiError.code === "ETIMEDOUT" ||
             apiError.code === "ECONNRESET" ||
             apiError.code === "ENOTFOUND" ||
-            apiError.message.includes("timeout"))
+            apiError.message.includes("timeout") ||
+            apiError.message.includes("Gemini API timeout"))
         ) {
           const waitTime = attempt * 2000; // 2s, 4s, 6s bekle
           console.log(`⏳ ${waitTime}ms bekleniyor, sonra tekrar denenecek...`);
@@ -4192,119 +3571,185 @@ router.post("/generate", async (req, res) => {
       });
     }
 
-    // Prediction durumunu polling ile takip et
+    // Gemini için polling yapmadan direkt sonucu kullan
     const startTime = Date.now();
     let finalResult;
     let processingTime;
 
-    try {
-      finalResult = await pollReplicateResult(initialResult.id, 60, 480);
+    // Gemini ID'lerini check et - polling gerektirmez
+    if (initialResult.id && initialResult.id.startsWith("gemini_")) {
+      console.log(
+        "🎯 Gemini sonucu - polling atlanıyor, direkt sonuç kullanılıyor"
+      );
+      finalResult = initialResult;
       processingTime = Math.round((Date.now() - startTime) / 1000);
-    } catch (pollingError) {
-      console.error("❌ Polling hatası:", pollingError.message);
+    } else {
+      // Sadece gerçek Replicate ID'leri için polling yap
+      try {
+        finalResult = await pollReplicateResult(initialResult.id);
+        processingTime = Math.round((Date.now() - startTime) / 1000);
+      } catch (pollingError) {
+        console.error("❌ Polling hatası:", pollingError.message);
 
-      // Content moderation hatası yakalandıysa flux-kontext-dev'e geç (color change modunda değilse)
-      if (
-        pollingError.message === "SENSITIVE_CONTENT_FLUX_FALLBACK" &&
-        !useOnlyFluxMax
-      ) {
-        console.log(
-          "🔄 Content moderation/model hatası nedeniyle flux-kontext-dev'e geçiliyor..."
-        );
-
-        try {
-          // Flux-kontext-dev API'ye geçiş yap
-          const fallbackStartTime = Date.now();
-          finalResult = await callFluxKontextDevAPI(
-            enhancedPrompt,
-            combinedImageForReplicate,
-            formattedRatio
-          );
-          processingTime = Math.round((Date.now() - fallbackStartTime) / 1000);
-
+        // Content moderation hatası yakalandıysa Gemini 2.5 Flash Image Preview'e geç
+        if (pollingError.message === "SENSITIVE_CONTENT_FLUX_FALLBACK") {
           console.log(
-            "✅ Flux-kontext-dev API'den başarılı sonuç alındı - kullanıcıya başarılı olarak döndürülecek"
-          );
-          console.log(
-            "🔍 [DEBUG] Fallback finalResult:",
-            JSON.stringify(finalResult, null, 2)
-          );
-          console.log(
-            "🔍 [DEBUG] Fallback finalResult.output:",
-            finalResult.output
-          );
-          console.log("🔍 [DEBUG] Fallback finalResult.id:", finalResult.id);
-
-          // 🔄 Fallback API başarılı, status'u hemen "completed" olarak güncelle
-          await updateGenerationStatus(finalGenerationId, userId, "completed", {
-            enhanced_prompt: enhancedPrompt,
-            result_image_url: finalResult.output,
-            replicate_prediction_id: finalResult.id, // Fallback API'nin ID'si
-            processing_time_seconds: processingTime,
-            fallback_used: "flux-kontext-dev", // Fallback kullanıldığını belirtmek için
-          });
-
-          console.log(
-            "✅ Database'de generation status 'completed' olarak güncellendi (fallback)"
+            "🔄 Content moderation/model hatası nedeniyle Gemini 2.5 Flash Image Preview'e geçiliyor..."
           );
 
-          // 💳 Fallback başarılı, güncel kredi bilgisini al ve response döndür
-          let currentCredit = null;
-          if (userId && userId !== "anonymous_user") {
-            try {
-              const { data: updatedUser } = await supabase
-                .from("users")
-                .select("credit_balance")
-                .eq("id", userId)
-                .single();
+          try {
+            // Gemini 2.5 Flash Image Preview API'ye geçiş yap
+            const fallbackStartTime = Date.now();
+            finalResult = await callGeminiImageAPI(
+              enhancedPrompt,
+              combinedImageForReplicate,
+              formattedRatio,
+              userId
+            );
+            processingTime = Math.round(
+              (Date.now() - fallbackStartTime) / 1000
+            );
 
-              currentCredit = updatedUser?.credit_balance || 0;
-              console.log(
-                `💳 Güncel kredi balance (fallback): ${currentCredit}`
-              );
-            } catch (creditError) {
-              console.error(
-                "❌ Güncel kredi sorgu hatası (fallback):",
-                creditError
-              );
+            console.log(
+              "✅ Gemini 2.5 Flash Image Preview API'den başarılı sonuç alındı - kullanıcıya başarılı olarak döndürülecek"
+            );
+            console.log(
+              "🔍 [DEBUG] Fallback finalResult:",
+              JSON.stringify(finalResult, null, 2)
+            );
+            console.log(
+              "🔍 [DEBUG] Fallback finalResult.output:",
+              finalResult.output
+            );
+            console.log("🔍 [DEBUG] Fallback finalResult.id:", finalResult.id);
+
+            // 🔄 Fallback API başarılı, status'u hemen "completed" olarak güncelle
+            await updateGenerationStatus(
+              finalGenerationId,
+              userId,
+              "completed",
+              {
+                enhanced_prompt: enhancedPrompt,
+                result_image_url: finalResult.output,
+                replicate_prediction_id: finalResult.id, // Fallback API'nin ID'si
+                processing_time_seconds: processingTime,
+                fallback_used: "gemini-2.5-flash-image-preview", // Fallback kullanıldığını belirtmek için
+              }
+            );
+
+            console.log(
+              "✅ Database'de generation status 'completed' olarak güncellendi (fallback)"
+            );
+
+            // 💳 Fallback başarılı, güncel kredi bilgisini al ve response döndür
+            let currentCredit = null;
+            if (userId && userId !== "anonymous_user") {
+              try {
+                const { data: updatedUser } = await supabase
+                  .from("users")
+                  .select("credit_balance")
+                  .eq("id", userId)
+                  .single();
+
+                currentCredit = updatedUser?.credit_balance || 0;
+                console.log(
+                  `💳 Güncel kredi balance (fallback): ${currentCredit}`
+                );
+              } catch (creditError) {
+                console.error(
+                  "❌ Güncel kredi sorgu hatası (fallback):",
+                  creditError
+                );
+              }
             }
+
+            // 🗑️ Fallback başarılı, geçici dosyaları temizle
+            console.log(
+              "🧹 Fallback başarılı, geçici dosyalar temizleniyor..."
+            );
+            await cleanupTemporaryFiles(temporaryFiles);
+
+            // ✅ Fallback başarılı response'u döndür
+            console.log(
+              "🎯 [DEBUG] Fallback başarılı, response döndürülüyor - normal flow'a GİRMEYECEK"
+            );
+            return res.status(200).json({
+              success: true,
+              result: {
+                imageUrl: finalResult.output,
+                originalPrompt: promptText,
+                enhancedPrompt: enhancedPrompt,
+                replicateData: finalResult,
+                currentCredit: currentCredit,
+                generationId: finalGenerationId,
+                fallbackUsed: "gemini-2.5-flash-image-preview", // Client'a fallback kullanıldığını bildir
+              },
+            });
+          } catch (fallbackError) {
+            console.error(
+              "❌ Gemini 2.0 Flash Exp API'si de başarısız:",
+              fallbackError.message
+            );
+
+            // ❌ Status'u failed'e güncelle (Fallback API da başarısız)
+            await updateGenerationStatus(finalGenerationId, userId, "failed", {
+              // error_message kolonu yok, bu yüzden genel field kullan
+              processing_time_seconds: 0,
+            });
+
+            // 🗑️ Fallback API hatası durumunda geçici dosyaları temizle
+            console.log(
+              "🧹 Fallback API hatası sonrası geçici dosyalar temizleniyor..."
+            );
+            await cleanupTemporaryFiles(temporaryFiles);
+
+            // Kredi iade et
+            if (creditDeducted && userId && userId !== "anonymous_user") {
+              try {
+                const { data: currentUserCredit } = await supabase
+                  .from("users")
+                  .select("credit_balance")
+                  .eq("id", userId)
+                  .single();
+
+                await supabase
+                  .from("users")
+                  .update({
+                    credit_balance:
+                      (currentUserCredit?.credit_balance || 0) +
+                      actualCreditDeducted,
+                  })
+                  .eq("id", userId);
+
+                console.log(
+                  `💰 ${actualCreditDeducted} kredi iade edildi (Fallback API hatası)`
+                );
+              } catch (refundError) {
+                console.error("❌ Kredi iade hatası:", refundError);
+              }
+            }
+
+            return res.status(500).json({
+              success: false,
+              result: {
+                message: "Görsel işleme işlemi başarısız oldu",
+                error:
+                  "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
+              },
+            });
           }
+        } else {
+          // Diğer polling hataları için mevcut mantığı kullan
 
-          // 🗑️ Fallback başarılı, geçici dosyaları temizle
-          console.log("🧹 Fallback başarılı, geçici dosyalar temizleniyor...");
-          await cleanupTemporaryFiles(temporaryFiles);
-
-          // ✅ Fallback başarılı response'u döndür
-          console.log(
-            "🎯 [DEBUG] Fallback başarılı, response döndürülüyor - normal flow'a GİRMEYECEK"
-          );
-          return res.status(200).json({
-            success: true,
-            result: {
-              imageUrl: finalResult.output,
-              originalPrompt: promptText,
-              enhancedPrompt: enhancedPrompt,
-              replicateData: finalResult,
-              currentCredit: currentCredit,
-              generationId: finalGenerationId,
-              fallbackUsed: "flux-kontext-dev", // Client'a fallback kullanıldığını bildir
-            },
-          });
-        } catch (fallbackError) {
-          console.error(
-            "❌ Flux-kontext-dev API'si de başarısız:",
-            fallbackError.message
-          );
-
-          // ❌ Status'u failed'e güncelle (Fallback API da başarısız)
+          // ❌ Status'u failed'e güncelle
           await updateGenerationStatus(finalGenerationId, userId, "failed", {
             // error_message kolonu yok, bu yüzden genel field kullan
             processing_time_seconds: 0,
           });
 
-          // 🗑️ Fallback API hatası durumunda geçici dosyaları temizle
+          // 🗑️ Polling hatası durumunda geçici dosyaları temizle
           console.log(
-            "🧹 Fallback API hatası sonrası geçici dosyalar temizleniyor..."
+            "🧹 Polling hatası sonrası geçici dosyalar temizleniyor..."
           );
           await cleanupTemporaryFiles(temporaryFiles);
 
@@ -4327,7 +3772,7 @@ router.post("/generate", async (req, res) => {
                 .eq("id", userId);
 
               console.log(
-                `💰 ${actualCreditDeducted} kredi iade edildi (Fallback API hatası)`
+                `💰 ${actualCreditDeducted} kredi iade edildi (Polling hatası)`
               );
             } catch (refundError) {
               console.error("❌ Kredi iade hatası:", refundError);
@@ -4338,94 +3783,12 @@ router.post("/generate", async (req, res) => {
             success: false,
             result: {
               message: "Görsel işleme işlemi başarısız oldu",
-              error:
-                "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
+              error: pollingError.message.includes("PREDICTION_INTERRUPTED")
+                ? "Sunucu kesintisi oluştu. Lütfen tekrar deneyin."
+                : "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
             },
           });
         }
-      } else if (
-        pollingError.message === "SENSITIVE_CONTENT_FLUX_FALLBACK" &&
-        useOnlyFluxMax
-      ) {
-        // Color change, edit mode veya pose change modunda Flux Dev'e geçiş yapılmayacak, direkt hata döndür
-        let modeText = "";
-        if (isColorChange) modeText = "Renk değiştirme";
-        else if (isEditMode) modeText = "Düzenleme";
-        else if (isPoseChange) modeText = "Poz değiştirme";
-
-        console.log(
-          `🎨 ${modeText} modu: Flux Dev'e geçiş yapılmayacak, direkt hata döndürülüyor`
-        );
-
-        // ❌ Status'u failed'e güncelle
-        await updateGenerationStatus(finalGenerationId, userId, "failed", {
-          processing_time_seconds: 0,
-        });
-
-        // 🗑️ Hata durumunda geçici dosyaları temizle
-        console.log(
-          `🧹 ${modeText} hatası sonrası geçici dosyalar temizleniyor...`
-        );
-        await cleanupTemporaryFiles(temporaryFiles);
-
-        return res.status(500).json({
-          success: false,
-          result: {
-            message: `${modeText} işlemi başarısız oldu`,
-            error:
-              "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
-          },
-        });
-      } else {
-        // Diğer polling hataları için mevcut mantığı kullan
-
-        // ❌ Status'u failed'e güncelle
-        await updateGenerationStatus(finalGenerationId, userId, "failed", {
-          // error_message kolonu yok, bu yüzden genel field kullan
-          processing_time_seconds: 0,
-        });
-
-        // 🗑️ Polling hatası durumunda geçici dosyaları temizle
-        console.log(
-          "🧹 Polling hatası sonrası geçici dosyalar temizleniyor..."
-        );
-        await cleanupTemporaryFiles(temporaryFiles);
-
-        // Kredi iade et
-        if (creditDeducted && userId && userId !== "anonymous_user") {
-          try {
-            const { data: currentUserCredit } = await supabase
-              .from("users")
-              .select("credit_balance")
-              .eq("id", userId)
-              .single();
-
-            await supabase
-              .from("users")
-              .update({
-                credit_balance:
-                  (currentUserCredit?.credit_balance || 0) +
-                  actualCreditDeducted,
-              })
-              .eq("id", userId);
-
-            console.log(
-              `💰 ${actualCreditDeducted} kredi iade edildi (Polling hatası)`
-            );
-          } catch (refundError) {
-            console.error("❌ Kredi iade hatası:", refundError);
-          }
-        }
-
-        return res.status(500).json({
-          success: false,
-          result: {
-            message: "Görsel işleme işlemi başarısız oldu",
-            error: pollingError.message.includes("PREDICTION_INTERRUPTED")
-              ? "Sunucu kesintisi oluştu. Lütfen tekrar deneyin."
-              : "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
-          },
-        });
       }
     }
 
@@ -4542,50 +3905,14 @@ router.post("/generate", async (req, res) => {
       });
     }
   } catch (error) {
-    console.error("❌ Resim oluşturma hatası:", error);
-    console.error("❌ Hata stack:", error.stack);
-    console.error("❌ Hata mesajı:", error.message);
-    console.error("❌ Hata türü:", typeof error);
-    console.error("❌ Generation ID:", finalGenerationId);
-    console.error("❌ User ID:", userId);
-
-    // API Request debugging
-    if (error.request) {
-      console.error(
-        "❌ Request Error - URL:",
-        error.request.url || error.request._url || "URL yok"
-      );
-      console.error(
-        "❌ Request Error - Method:",
-        error.request.method || "Method yok"
-      );
-      console.error(
-        "❌ Request Error - Status:",
-        error.request.status || "Status yok"
-      );
-    }
-
-    // API Response debugging
-    if (error.response) {
-      console.error("❌ Response Error - Status:", error.response.status);
-      console.error("❌ Response Error - Data:", error.response.data);
-      console.error("❌ Response Error - Headers:", error.response.headers);
-    }
+    console.error("Resim oluşturma hatası:", error);
 
     // ❌ Status'u failed'e güncelle (genel hata durumu)
     if (finalGenerationId) {
-      try {
-        await updateGenerationStatus(finalGenerationId, userId, "failed", {
-          // error_message kolonu yok, bu yüzden genel field kullan
-          processing_time_seconds: 0,
-        });
-        console.log(
-          "✅ Generation status failed olarak güncellendi:",
-          finalGenerationId
-        );
-      } catch (updateError) {
-        console.error("❌ Generation status güncellenirken hata:", updateError);
-      }
+      await updateGenerationStatus(finalGenerationId, userId, "failed", {
+        // error_message kolonu yok, bu yüzden genel field kullan
+        processing_time_seconds: 0,
+      });
     }
 
     // 🗑️ Hata durumunda da geçici dosyaları temizle
@@ -4647,6 +3974,24 @@ router.post("/generate", async (req, res) => {
           error_type: "prediction_interrupted",
           user_friendly: true,
           retry_after: 30, // 30 saniye sonra tekrar dene
+        },
+      });
+    }
+
+    // Timeout hatalarını özel olarak handle et
+    if (
+      error.message &&
+      (error.message.includes("timeout") ||
+        error.message.includes("Gemini API timeout"))
+    ) {
+      return res.status(503).json({
+        success: false,
+        result: {
+          message:
+            "İşlem zaman aşımına uğradı. Lütfen daha küçük bir resim deneyiniz veya tekrar deneyin.",
+          error_type: "timeout",
+          user_friendly: true,
+          retry_after: 10, // 10 saniye sonra tekrar dene
         },
       });
     }
@@ -4849,305 +4194,6 @@ router.get("/credit/:userId", async (req, res) => {
 });
 
 // Pose açıklaması için Gemini'yi kullan (sadece pose tarifi)
-async function generatePortraitPromptWithGemini(
-  settings = {},
-  gender = "female"
-) {
-  // Settings'ten sadece gerçekten gönderilen bilgileri çıkar (default verme!)
-  const age = settings.age;
-  let ethnicity = settings.ethnicity;
-  const hairStyle = settings.hairStyle?.title || settings.hairStyle;
-  const hairColor = settings.hairColor?.title || settings.hairColor;
-  const skinTone = settings.skinTone;
-  const mood = settings.mood;
-  const accessoriesRaw = settings.accessories; // string (", ") formatında gelebilir
-  // Keyword bazlı filtreyi kaldır: kararı Gemini'ye bırak
-  const accessories = accessoriesRaw || null;
-  const bodyShape =
-    typeof settings.bodyShape === "string" ? settings.bodyShape : null;
-
-  // Vurgulanacak ögeler - modelden prompt içinde birden fazla kez geçmesini iste
-  const emphasisPoints = [];
-  emphasisPoints.push(`gender: ${gender}`); // Gender'ı her zaman vurgula
-  if (mood) emphasisPoints.push(`mood/expression: ${mood}`);
-  if (accessories) emphasisPoints.push(`accessories: ${accessories}`);
-  if (bodyShape) emphasisPoints.push(`body shape: ${bodyShape}`);
-  if (hairStyle) emphasisPoints.push(`hair style: ${hairStyle}`);
-  if (hairColor) emphasisPoints.push(`hair color: ${hairColor}`);
-  if (skinTone) emphasisPoints.push(`skin tone: ${skinTone}`);
-  if (age) emphasisPoints.push(`age: ${age}`);
-
-  try {
-    console.log("👤 Gemini ile portrait prompt oluşturuluyor...");
-
-    // Ethnicity belirtilmemişse Asya dışından rastgele bir uygun grup seç
-    if (!ethnicity) {
-      const fallbackEthnicities = [
-        "Latina",
-        "Hispanic",
-        "European",
-        "Mediterranean",
-        "Middle Eastern",
-        "Persian",
-        "Caucasian",
-        "Turkish",
-        "Brazilian",
-        "Mexican",
-      ];
-      ethnicity =
-        fallbackEthnicities[
-          Math.floor(Math.random() * fallbackEthnicities.length)
-        ];
-    }
-
-    // Sadece gönderilen (veya seçilen) karakteristikleri listeye ekle
-    const characteristics = [];
-    if (age) characteristics.push(`- Age: ${age}`);
-    if (ethnicity) characteristics.push(`- Ethnicity: ${ethnicity}`);
-    if (hairStyle) characteristics.push(`- Hair style: ${hairStyle}`);
-    if (hairColor) characteristics.push(`- Hair color: ${hairColor}`);
-    if (skinTone) characteristics.push(`- Skin tone: ${skinTone}`);
-    if (mood) characteristics.push(`- Mood/expression: ${mood}`);
-    if (accessories)
-      characteristics.push(`- Accessories (face/head only): ${accessories}`);
-    if (bodyShape) characteristics.push(`- Body shape: ${bodyShape}`);
-
-    // Karakteristik varsa ekle, yoksa genel model açıklaması yap
-    const characteristicsText =
-      characteristics.length > 0
-        ? `with these characteristics:\n    ${characteristics.join(
-            "\n    "
-          )}\n    \n    `
-        : "";
-
-    const emphasisText =
-      emphasisPoints.length > 0
-        ? `\n\nEMPHASIS REQUIREMENTS:\n- Repeat the following key attributes at least twice across the prompt where relevant: ${emphasisPoints.join(
-            "; "
-          )}.\n- Reiterate them again succinctly at the end of the prompt as a reminder line starting with 'Focus:'.\n`
-        : "";
-    const portraitPrompt = `Your task is to generate a short, artistic photo prompt for a professional fashion model (${gender}).
-
-        **UNBREAKABLE RULE #1: THE FRAME**
-        - The image MUST be an EXTREME CLOSE-UP of the face.
-        - The frame starts at the chin and ends at the top of the head.
-        - **ABSOLUTELY NO NECK, NO SHOULDERS, NO CHEST, NO BODY, NO CLOTHES.**
-        - The entire focus is exclusively on the face.
-        
-        **UNBREAKABLE RULE #2: FORBIDDEN PHRASES**
-        - **DO NOT USE** any of the following phrases in your output: "head-and-shoulders", "shoulders up", "bust shot", "portrait", "close-up portrait", "slight distance". Describe the shot without naming it with these common but incorrect terms.
-
-        **MODEL & SCENE REQUIREMENTS:**
-        - Subject: High-fashion ${gender} model with striking, editorial facial features.
-        - Background: Pure, solid white studio background.
-        - Lighting: Professional, even studio lighting.
-        - Style: Sharp detail, clear features, commercial fashion aesthetic.
-
-        **CREATIVE TASK:**
-        - Creatively weave the following characteristics into a cohesive description, but you must adhere strictly to all UNBREAKABLE RULES above.
-        ${characteristicsText}
-        ${emphasisText}
-        **OUTPUT FORMAT:**
-        - Generate only the final prompt text.
-        - No quotes, no explanations, no rules, no meta-guidance.
-        - **STRICT LIMIT: 77 tokens MAXIMUM.** Be concise and powerful.`;
-
-    // Gemini 2.5 Flash modeli - En yeni API yapısı
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-    });
-
-    // Gemini'den cevap al (retry mekanizması ile) - Yeni API
-    let generatedPrompt;
-    const maxRetries = 10;
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        console.log(`🤖 [GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
-
-        const result = await model.generateContent({
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: portraitPrompt }],
-            },
-          ],
-        });
-
-        generatedPrompt = result.response.text().trim();
-
-        console.log(
-          "🤖 [BACKEND GEMINI] Gemini'nin ürettiği portrait prompt:",
-          generatedPrompt
-        );
-        break; // Başarılı olursa loop'tan çık
-      } catch (geminiError) {
-        console.error(
-          `Gemini API attempt ${attempt} failed:`,
-          geminiError.message
-        );
-
-        if (attempt === maxRetries) {
-          console.error(
-            "Gemini API all attempts failed, using fallback prompt"
-          );
-          throw geminiError;
-        }
-
-        // Exponential backoff: 1s, 2s, 4s
-        const waitTime = Math.pow(2, attempt - 1) * 1000;
-        console.log(`Waiting ${waitTime}ms before retry...`);
-        await new Promise((resolve) => setTimeout(resolve, waitTime));
-      }
-    }
-
-    if (!generatedPrompt) {
-      throw new Error("Gemini'den boş yanıt alındı");
-    }
-
-    console.log("👤 Portrait prompt oluşturuldu:", generatedPrompt);
-
-    // Gender bilgisini garanti etmek için kontrol et ve ekle
-    const genderTerm = gender === "male" ? "male" : "female";
-    let finalPrompt = generatedPrompt;
-
-    // Eğer prompt'ta gender terimi yoksa ekle
-    if (
-      !finalPrompt.toLowerCase().includes("male") &&
-      !finalPrompt.toLowerCase().includes("female")
-    ) {
-      // "model" kelimesini "gender model" ile değiştir
-      finalPrompt = finalPrompt.replace(/\b(model)\b/i, `${genderTerm} $1`);
-      console.log(`🚹🚺 Gender bilgisi eklendi: ${genderTerm}`);
-    }
-
-    return finalPrompt + " No clothes";
-  } catch (error) {
-    console.error("❌ Portrait prompt oluşturma hatası:", error);
-
-    // Fallback prompt - sadece gönderilen karakteristikleri kullan ve vurguyu tekrar et
-    const fallbackCharacteristics = [];
-    if (age) fallbackCharacteristics.push(`${age} age`);
-    if (ethnicity) fallbackCharacteristics.push(`${ethnicity} ethnicity`);
-    if (hairColor) fallbackCharacteristics.push(`${hairColor}`);
-    if (skinTone) fallbackCharacteristics.push(`${skinTone} skin tone`);
-    if (mood) fallbackCharacteristics.push(`${mood} mood`);
-    if (accessories) fallbackCharacteristics.push(`${accessories}`);
-    if (bodyShape) fallbackCharacteristics.push(`${bodyShape} body shape`);
-
-    const characteristicsText =
-      fallbackCharacteristics.length > 0
-        ? ` with ${fallbackCharacteristics.join(", ")}.`
-        : ".";
-
-    const focusLine =
-      emphasisPoints && emphasisPoints.length > 0
-        ? ` Focus: ${emphasisPoints.join(", ")}.`
-        : "";
-
-    return `Professional head-and-shoulders portrait of a fashion ${gender} model with striking editorial facial features${characteristicsText} Pure white studio background, professional lighting, sharp detail, high-fashion model aesthetics, slight distance from camera (not extreme close-up), head and shoulders view with a bit of breathing room.${focusLine} No clothes`;
-  }
-}
-
-async function generatePortraitWithFluxDev(portraitPrompt) {
-  try {
-    console.log("🎨 Flux.1-dev ile portrait resmi oluşturuluyor...");
-    const finalPrompt = (portraitPrompt || "").trim();
-    console.log("🎨 Portrait prompt (used):", finalPrompt);
-
-    if (!process.env.REPLICATE_API_TOKEN) {
-      console.error("❌ REPLICATE_API_TOKEN bulunamadı!");
-      throw new Error("REPLICATE_API_TOKEN bulunamadı");
-    }
-
-    console.log("✅ REPLICATE_API_TOKEN mevcut, API çağrısı yapılıyor...");
-
-    const requestBody = {
-      version:
-        "prunaai/flux.1-dev:b0306d92aa025bb747dc74162f3c27d6ed83798e08e5f8977adf3d859d0536a3",
-      input: {
-        seed: Math.floor(Math.random() * 2 ** 32),
-        prompt: finalPrompt,
-        guidance: 3.5,
-        image_size: 1024,
-        speed_mode: "Blink of an eye 👁️",
-        aspect_ratio: "1:1",
-        output_format: "jpg",
-        output_quality: 100,
-        num_inference_steps: 28,
-      },
-    };
-
-    console.log("🔗 API Request Body:", JSON.stringify(requestBody, null, 2));
-
-    const response = await fetch("https://api.replicate.com/v1/predictions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-        "Content-Type": "application/json",
-        Prefer: "wait",
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    console.log("📡 API Response Status:", response.status);
-    console.log(
-      "📡 API Response Headers:",
-      JSON.stringify([...response.headers.entries()], null, 2)
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("❌ API Error Response:", errorText);
-      throw new Error(
-        `Flux.1-dev API hatası: ${response.status} - ${errorText}`
-      );
-    }
-
-    const result = await response.json();
-    console.log("📋 API Response Data:", JSON.stringify(result, null, 2));
-
-    if (result.status === "succeeded" && result.output) {
-      // Output bir array ise ilk elemanı al, string ise direkt kullan
-      const portraitUrl = Array.isArray(result.output)
-        ? result.output[0]
-        : result.output;
-      console.log("✅ Portrait resmi oluşturuldu:", portraitUrl);
-      return portraitUrl;
-    } else if (result.status === "failed") {
-      console.error("❌ Portrait generation failed:", result.error);
-      throw new Error(`Portrait oluşturma başarısız: ${result.error}`);
-    } else if (result.status === "processing" || result.status === "starting") {
-      // Prefer: wait kullanılmasına rağmen processing gelirse polling yap
-      console.log(
-        "⏳ Portrait processing devam ediyor, polling başlatılıyor..."
-      );
-      const finalResult = await pollReplicateResult(result.id, 30, 480); // toplam 480s limit
-
-      if (finalResult.status === "succeeded" && finalResult.output) {
-        const portraitUrl = Array.isArray(finalResult.output)
-          ? finalResult.output[0]
-          : finalResult.output;
-        console.log(
-          "✅ Portrait resmi oluşturuldu (polling sonrası):",
-          portraitUrl
-        );
-        return portraitUrl;
-      } else {
-        throw new Error(
-          `Portrait polling sonrası başarısız: ${finalResult.status} - ${finalResult.error}`
-        );
-      }
-    } else {
-      console.error("❌ Beklenmeyen API response:", result);
-      throw new Error(`Portrait oluşturma beklenmeyen sonuç: ${result.status}`);
-    }
-  } catch (error) {
-    console.error("❌ Portrait oluşturma hatası:", error);
-    throw error;
-  }
-}
-
 async function generatePoseDescriptionWithGemini(
   poseTitle,
   poseImage,
@@ -5160,28 +4206,8 @@ async function generatePoseDescriptionWithGemini(
     console.log("🤸 Gender:", gender);
     console.log("🤸 Garment type:", garmentType);
 
-    // Gemini 2.0 Flash modeli
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
-      safetySettings: [
-        {
-          category: "HARM_CATEGORY_HARASSMENT",
-          threshold: "BLOCK_ONLY_HIGH",
-        },
-        {
-          category: "HARM_CATEGORY_HATE_SPEECH",
-          threshold: "BLOCK_ONLY_HIGH",
-        },
-        {
-          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-          threshold: "BLOCK_ONLY_HIGH",
-        },
-        {
-          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-          threshold: "BLOCK_ONLY_HIGH",
-        },
-      ],
-    });
+    // Gemini 2.0 Flash modeli - Yeni SDK
+    const model = "gemini-2.0-flash-001";
 
     // Gender mapping
     const modelGenderText =
@@ -5228,7 +4254,7 @@ async function generatePoseDescriptionWithGemini(
         const cleanPoseImageUrl = poseImage.split("?")[0];
         const poseImageResponse = await axios.get(cleanPoseImageUrl, {
           responseType: "arraybuffer",
-          timeout: 30000,
+          timeout: 15000, // 30s'den 15s'ye düşürüldü
         });
         const poseImageBuffer = poseImageResponse.data;
 
@@ -5252,7 +4278,8 @@ async function generatePoseDescriptionWithGemini(
     }
 
     // Gemini'den cevap al
-    const result = await model.generateContent({
+    const result = await genAI.models.generateContent({
+      model,
       contents: [
         {
           role: "user",
@@ -5261,7 +4288,7 @@ async function generatePoseDescriptionWithGemini(
       ],
     });
 
-    const poseDescription = result.response.text().trim();
+    const poseDescription = result.text.trim();
     console.log("🤸 Gemini'nin ürettiği pose açıklaması:", poseDescription);
 
     return poseDescription;
@@ -5390,93 +4417,46 @@ router.get("/generation-status/:generationId", async (req, res) => {
       });
     }
 
-    // ⏰ Processing timeout kontrolü (8 dakika)
-    const PROCESSING_TIMEOUT_MINUTES = 8;
+    // ⏰ Processing timeout kontrolü (15 dakika)
+    const PROCESSING_TIMEOUT_MINUTES = 15;
     const createdAt = new Date(generation.created_at);
     const now = new Date();
     const minutesElapsed = (now - createdAt) / (1000 * 60);
 
     let finalStatus = generation.status;
     let shouldUpdateStatus = false;
-    let statusReason = null;
 
-    // 🔍 GERÇEK İŞLEM KONTROLÜ - Sahte processing kayıtlarını tespit et
-    if (generation.status === "processing" || generation.status === "pending") {
-      console.log(`🔍 Processing generation kontrol ediliyor: ${generationId}`);
-
-      // Gerçek işlem göstergeleri kontrolü
-      const hasEnhancedPrompt =
-        generation.enhanced_prompt && generation.enhanced_prompt.trim() !== "";
-      const hasReplicateId =
-        generation.replicate_prediction_id &&
-        generation.replicate_prediction_id.trim() !== "";
-      const isVeryRecent = minutesElapsed < 0.5; // 30 saniyeden yeni
-
-      console.log(`🔍 Generation ${generationId} kontrol detayları:`);
-      console.log(`  - Enhanced prompt: ${hasEnhancedPrompt ? "✅" : "❌"}`);
-      console.log(`  - Replicate ID: ${hasReplicateId ? "✅" : "❌"}`);
-      console.log(`  - Çok yeni (30s): ${isVeryRecent ? "✅" : "❌"}`);
+    if (
+      (generation.status === "processing" || generation.status === "pending") &&
+      minutesElapsed > PROCESSING_TIMEOUT_MINUTES
+    ) {
       console.log(
-        `  - Dakika geçen: ${Math.round(minutesElapsed * 100) / 100}`
+        `⏰ Generation ${generationId} timeout (${Math.round(
+          minutesElapsed
+        )} dakika), failed olarak işaretleniyor`
       );
+      finalStatus = "failed";
+      shouldUpdateStatus = true;
 
-      // Eğer 2 dakikadan fazla geçmişse ve gerçek işlem göstergesi yoksa sahte kayıt
-      if (minutesElapsed > 2 && !hasEnhancedPrompt && !hasReplicateId) {
+      // Database'de status'u failed'e güncelle
+      try {
+        await updateGenerationStatus(generationId, userId, "failed", {
+          processing_time_seconds: Math.round(minutesElapsed * 60),
+        });
         console.log(
-          `🚨 SAHTE İŞLEM TESPİT EDİLDİ: ${generationId} - Enhanced prompt ve Replicate ID yok, 2+ dakika geçmiş`
+          `✅ Timeout generation ${generationId} failed olarak güncellendi`
         );
-        finalStatus = "failed";
-        shouldUpdateStatus = true;
-        statusReason = "Gerçek işlem başlamamış (sahte kayıt)";
-
-        // Database'de status'u failed'e güncelle
-        try {
-          await updateGenerationStatus(generationId, userId, "failed", {
-            processing_time_seconds: Math.round(minutesElapsed * 60),
-          });
-          console.log(
-            `✅ Sahte generation ${generationId} failed olarak güncellendi`
-          );
-        } catch (updateError) {
-          console.error(
-            `❌ Sahte generation ${generationId} güncelleme hatası:`,
-            updateError
-          );
-        }
-      }
-      // Normal timeout kontrolü (8 dakika)
-      else if (minutesElapsed > PROCESSING_TIMEOUT_MINUTES) {
-        console.log(
-          `⏰ Generation ${generationId} timeout (${Math.round(
-            minutesElapsed
-          )} dakika), failed olarak işaretleniyor`
+      } catch (updateError) {
+        console.error(
+          `❌ Timeout generation ${generationId} güncelleme hatası:`,
+          updateError
         );
-        finalStatus = "failed";
-        shouldUpdateStatus = true;
-        statusReason = "İşlem zaman aşımına uğradı";
-
-        // Database'de status'u failed'e güncelle
-        try {
-          await updateGenerationStatus(generationId, userId, "failed", {
-            processing_time_seconds: Math.round(minutesElapsed * 60),
-          });
-          console.log(
-            `✅ Timeout generation ${generationId} failed olarak güncellendi`
-          );
-        } catch (updateError) {
-          console.error(
-            `❌ Timeout generation ${generationId} güncelleme hatası:`,
-            updateError
-          );
-        }
       }
     }
 
     console.log(
       `✅ Generation durumu: ${finalStatus}${
-        shouldUpdateStatus
-          ? ` (${statusReason || "timeout nedeniyle güncellendi"})`
-          : ""
+        shouldUpdateStatus ? " (timeout nedeniyle güncellendi)" : ""
       }`
     );
 
@@ -5488,9 +4468,7 @@ router.get("/generation-status/:generationId", async (req, res) => {
         resultImageUrl: generation.result_image_url,
         originalPrompt: generation.original_prompt,
         enhancedPrompt: generation.enhanced_prompt,
-        errorMessage: shouldUpdateStatus
-          ? statusReason || "İşlem zaman aşımına uğradı"
-          : null,
+        errorMessage: shouldUpdateStatus ? "İşlem zaman aşımına uğradı" : null,
         processingTimeSeconds: generation.processing_time_seconds,
         createdAt: generation.created_at,
         updatedAt: generation.updated_at,
@@ -5721,497 +4699,6 @@ router.get("/user-generations/:userId", async (req, res) => {
         message: "User generations sorgulanırken hata oluştu",
         error: error.message,
       },
-    });
-  }
-});
-
-// combineThreeImages fonksiyonu kaldırıldı - artık kullanılmıyor
-
-async function combineFourImages(
-  canvasImageUrl,
-  backgroundRemovedImageUrl,
-  portraitImageUrl,
-  locationImageUrl,
-  userId
-) {
-  try {
-    console.log("🎨 [4-IMAGE COMBINE] Dört resim birleştiriliyor...");
-    console.log("🎨 [4-IMAGE COMBINE] Canvas resmi:", canvasImageUrl);
-    console.log(
-      "🎨 [4-IMAGE COMBINE] Background removed resmi:",
-      backgroundRemovedImageUrl
-    );
-    console.log("🎨 [4-IMAGE COMBINE] Portrait resmi:", portraitImageUrl);
-    console.log("🎨 [4-IMAGE COMBINE] Location resmi:", locationImageUrl);
-    if (!locationImageUrl) {
-      console.warn(
-        "⚠️ [4-IMAGE COMBINE] Location URL boş veya geçersiz görünüyor"
-      );
-    }
-
-    // Dört resmi de indir
-    const [
-      canvasResponse,
-      bgRemovedResponse,
-      portraitResponse,
-      locationResponse,
-    ] = await Promise.all([
-      axios.get(canvasImageUrl, {
-        responseType: "arraybuffer",
-        timeout: 30000,
-      }),
-      axios.get(backgroundRemovedImageUrl, {
-        responseType: "arraybuffer",
-        timeout: 30000,
-      }),
-      axios.get(portraitImageUrl, {
-        responseType: "arraybuffer",
-        timeout: 30000,
-      }),
-      axios.get(locationImageUrl, {
-        responseType: "arraybuffer",
-        timeout: 30000,
-      }),
-    ]);
-
-    console.log(
-      "📡 [4-IMAGE COMBINE] HTTP statusler:",
-      canvasResponse.status,
-      bgRemovedResponse.status,
-      portraitResponse.status,
-      locationResponse.status
-    );
-
-    const canvasBuffer = Buffer.from(canvasResponse.data);
-    const bgRemovedBuffer = Buffer.from(bgRemovedResponse.data);
-    const portraitBuffer = Buffer.from(portraitResponse.data);
-    const locationBuffer = Buffer.from(locationResponse.data);
-
-    // Sharp ile resim boyutlarını öğren
-    const canvasMetadata = await sharp(canvasBuffer).metadata();
-    const bgRemovedMetadata = await sharp(bgRemovedBuffer).metadata();
-    const portraitMetadata = await sharp(portraitBuffer).metadata();
-    const locationMetadata = await sharp(locationBuffer).metadata();
-
-    console.log(
-      "🎨 [4-IMAGE COMBINE] Canvas boyutları:",
-      canvasMetadata.width,
-      "x",
-      canvasMetadata.height
-    );
-    console.log(
-      "🎨 [4-IMAGE COMBINE] BG removed boyutları:",
-      bgRemovedMetadata.width,
-      "x",
-      bgRemovedMetadata.height
-    );
-    console.log(
-      "🎨 [4-IMAGE COMBINE] Portrait boyutları:",
-      portraitMetadata.width,
-      "x",
-      portraitMetadata.height
-    );
-    console.log(
-      "🎨 [4-IMAGE COMBINE] Location boyutları:",
-      locationMetadata.width,
-      "x",
-      locationMetadata.height
-    );
-
-    // En büyük yüksekliği al
-    const maxHeight = Math.max(
-      canvasMetadata.height,
-      bgRemovedMetadata.height,
-      portraitMetadata.height,
-      locationMetadata.height
-    );
-
-    // Dört resmi aynı yüksekliğe resize et (transparent arkaplan)
-    const resizedCanvas = await sharp(canvasBuffer)
-      .resize({
-        height: maxHeight,
-        fit: "contain",
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      })
-      .png()
-      .toBuffer();
-
-    const resizedBgRemoved = await sharp(bgRemovedBuffer)
-      .resize({
-        height: maxHeight,
-        fit: "contain",
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      })
-      .png()
-      .toBuffer();
-
-    const resizedPortrait = await sharp(portraitBuffer)
-      .resize({
-        height: maxHeight,
-        fit: "contain",
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      })
-      .png()
-      .toBuffer();
-
-    const resizedLocation = await sharp(locationBuffer)
-      .resize({
-        height: maxHeight,
-        fit: "contain",
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      })
-      .png()
-      .toBuffer();
-
-    // Resize edilmiş resimlerin boyutlarını al
-    const resizedCanvasMetadata = await sharp(resizedCanvas).metadata();
-    const resizedBgRemovedMetadata = await sharp(resizedBgRemoved).metadata();
-    const resizedPortraitMetadata = await sharp(resizedPortrait).metadata();
-    const resizedLocationMetadata = await sharp(resizedLocation).metadata();
-
-    // 2x2 grid (üst: canvas | bgRemoved, alt: portrait | location), dikeyde büyük çıktı
-    const cellHeight = 1024;
-    const spacing = 15;
-
-    // Hücre yüksekliğine göre yeniden boyutlandır (transparent arkaplan)
-    const gridCanvas = await sharp(resizedCanvas)
-      .resize({
-        height: cellHeight,
-        fit: "contain",
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      })
-      .png()
-      .toBuffer();
-    const gridBgRemoved = await sharp(resizedBgRemoved)
-      .resize({
-        height: cellHeight,
-        fit: "contain",
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      })
-      .png()
-      .toBuffer();
-    const gridPortrait = await sharp(resizedPortrait)
-      .resize({
-        height: cellHeight,
-        fit: "contain",
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      })
-      .png()
-      .toBuffer();
-    const gridLocation = await sharp(resizedLocation)
-      .resize({
-        height: cellHeight,
-        fit: "contain",
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      })
-      .png()
-      .toBuffer();
-
-    const gridCanvasMeta = await sharp(gridCanvas).metadata();
-    const gridBgRemovedMeta = await sharp(gridBgRemoved).metadata();
-    const gridPortraitMeta = await sharp(gridPortrait).metadata();
-    const gridLocationMeta = await sharp(gridLocation).metadata();
-
-    const leftColumnWidth = Math.max(
-      gridCanvasMeta.width,
-      gridPortraitMeta.width
-    );
-    const rightColumnWidth = Math.max(
-      gridBgRemovedMeta.width,
-      gridLocationMeta.width
-    );
-    const totalWidth = leftColumnWidth + rightColumnWidth + spacing;
-    const totalHeight = cellHeight * 2 + spacing;
-
-    const leftTopX = Math.floor((leftColumnWidth - gridCanvasMeta.width) / 2);
-    const rightTopX =
-      leftColumnWidth +
-      spacing +
-      Math.floor((rightColumnWidth - gridBgRemovedMeta.width) / 2);
-    const leftBottomX = Math.floor(
-      (leftColumnWidth - gridPortraitMeta.width) / 2
-    );
-    const rightBottomX =
-      leftColumnWidth +
-      spacing +
-      Math.floor((rightColumnWidth - gridLocationMeta.width) / 2);
-
-    const combinedImage = await sharp({
-      create: {
-        width: totalWidth,
-        height: totalHeight,
-        channels: 4,
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      },
-    })
-      .composite([
-        { input: gridCanvas, left: leftTopX, top: 0 },
-        { input: gridBgRemoved, left: rightTopX, top: 0 },
-        { input: gridPortrait, left: leftBottomX, top: cellHeight + spacing },
-        { input: gridLocation, left: rightBottomX, top: cellHeight + spacing },
-      ])
-      .png()
-      .toBuffer();
-
-    // Birleştirilmiş resmi Supabase'e yükle
-    const timestamp = Date.now();
-    const randomId = uuidv4().substring(0, 8);
-    const fileName = `four_images_combined_${timestamp}_${
-      userId || "anonymous"
-    }_${randomId}.png`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("images")
-      .upload(fileName, combinedImage, { contentType: "image/png" });
-
-    if (uploadError) throw uploadError;
-
-    const { data: publicUrlData, error: publicUrlError } =
-      await supabase.storage.from("images").getPublicUrl(fileName);
-
-    if (publicUrlError) throw publicUrlError;
-
-    const combinedImageUrl = publicUrlData.publicUrl;
-    console.log(
-      "✅ [4-IMAGE COMBINE] Dört resim başarıyla birleştirildi:",
-      combinedImageUrl
-    );
-
-    return combinedImageUrl;
-  } catch (error) {
-    console.error("❌ [4-IMAGE COMBINE] Dört resim birleştirme hatası:", error);
-    throw error;
-  }
-}
-
-async function combineCanvasAndBackgroundRemovedImages(
-  canvasImageUrl,
-  backgroundRemovedImageUrl,
-  userId
-) {
-  try {
-    console.log("🎨 [CANVAS COMBINE] İki resim birleştiriliyor...");
-    console.log("🎨 [CANVAS COMBINE] Canvas resmi:", canvasImageUrl);
-    console.log(
-      "🎨 [CANVAS COMBINE] Background removed resmi:",
-      backgroundRemovedImageUrl
-    );
-
-    // Null URL kontrolü
-    if (!canvasImageUrl) {
-      throw new Error("Canvas image URL null veya boş!");
-    }
-
-    if (!backgroundRemovedImageUrl) {
-      console.error("❌ [CANVAS COMBINE] Background removed image URL null!");
-      throw new Error("Background removed image URL null veya boş!");
-    }
-
-    // İki resmi de indir
-    const [canvasResponse, bgRemovedResponse] = await Promise.all([
-      axios.get(canvasImageUrl, {
-        responseType: "arraybuffer",
-        timeout: 30000,
-      }),
-      axios.get(backgroundRemovedImageUrl, {
-        responseType: "arraybuffer",
-        timeout: 30000,
-      }),
-    ]);
-
-    const canvasBuffer = Buffer.from(canvasResponse.data);
-    const bgRemovedBuffer = Buffer.from(bgRemovedResponse.data);
-
-    // Sharp ile resim boyutlarını öğren
-    const canvasMetadata = await sharp(canvasBuffer).metadata();
-    const bgRemovedMetadata = await sharp(bgRemovedBuffer).metadata();
-
-    console.log(
-      "🎨 [CANVAS COMBINE] Canvas boyutları:",
-      canvasMetadata.width,
-      "x",
-      canvasMetadata.height
-    );
-    console.log(
-      "🎨 [CANVAS COMBINE] BG removed boyutları:",
-      bgRemovedMetadata.width,
-      "x",
-      bgRemovedMetadata.height
-    );
-
-    // En büyük yüksekliği al
-    const maxHeight = Math.max(canvasMetadata.height, bgRemovedMetadata.height);
-
-    // İki resmi aynı yüksekliğe resize et (transparent arkaplan)
-    const resizedCanvas = await sharp(canvasBuffer)
-      .resize({
-        height: maxHeight,
-        fit: "contain",
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      })
-      .png()
-      .toBuffer();
-
-    const resizedBgRemoved = await sharp(bgRemovedBuffer)
-      .resize({
-        height: maxHeight,
-        fit: "contain",
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      })
-      .png()
-      .toBuffer();
-
-    // Resize edilmiş resimlerin boyutlarını al
-    const resizedCanvasMetadata = await sharp(resizedCanvas).metadata();
-    const resizedBgRemovedMetadata = await sharp(resizedBgRemoved).metadata();
-
-    // Toplam genişlik hesapla (5px boşluk ile)
-    const totalWidth =
-      resizedCanvasMetadata.width + resizedBgRemovedMetadata.width + 5;
-
-    // İki resmi yan yana birleştir (transparent arkaplan)
-    const combinedImage = await sharp({
-      create: {
-        width: totalWidth,
-        height: maxHeight,
-        channels: 4,
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      },
-    })
-      .composite([
-        { input: resizedCanvas, top: 0, left: 0 },
-        {
-          input: resizedBgRemoved,
-          top: 0,
-          left: resizedCanvasMetadata.width + 5,
-        },
-      ])
-      .png()
-      .toBuffer();
-
-    // Birleştirilmiş resmi Supabase'e yükle
-    const timestamp = Date.now();
-    const randomId = uuidv4().substring(0, 8);
-    const fileName = `canvas_combined_${timestamp}_${
-      userId || "anonymous"
-    }_${randomId}.png`;
-
-    console.log(
-      "🎨 [CANVAS COMBINE] Birleştirilmiş resim Supabase'e yükleniyor:",
-      fileName
-    );
-
-    const { data, error } = await supabase.storage
-      .from("reference")
-      .upload(fileName, combinedImage, {
-        contentType: "image/png",
-        cacheControl: "3600",
-        upsert: false,
-      });
-
-    if (error) {
-      console.error("🎨 [CANVAS COMBINE] Supabase yükleme hatası:", error);
-      throw new Error(`Combined image upload failed: ${error.message}`);
-    }
-
-    // Public URL al
-    const { data: urlData } = supabase.storage
-      .from("reference")
-      .getPublicUrl(fileName);
-
-    console.log(
-      "🎨 [CANVAS COMBINE] Birleştirilmiş resim Public URL:",
-      urlData.publicUrl
-    );
-    return urlData.publicUrl;
-  } catch (error) {
-    console.error("🎨 [CANVAS COMBINE] Resim birleştirme hatası:", error);
-    throw error;
-  }
-}
-
-// Canvas'dan yakalanan resmi yüklemek için endpoint
-router.post("/uploadCanvasImage", async (req, res) => {
-  try {
-    const { imageData, userId = null } = req.body;
-
-    if (!imageData) {
-      return res.status(400).json({
-        success: false,
-        error: "Image data is required",
-      });
-    }
-
-    console.log("🎨 Canvas resmi upload ediliyor...");
-
-    let imageBuffer;
-    let contentType = "image/png";
-
-    // Base64 data URL kontrolü
-    if (imageData.startsWith("data:image/")) {
-      const base64Data = imageData.split(",")[1];
-      imageBuffer = Buffer.from(base64Data, "base64");
-
-      // Content type'ı belirle
-      if (imageData.includes("data:image/png")) {
-        contentType = "image/png";
-      } else if (
-        imageData.includes("data:image/jpeg") ||
-        imageData.includes("data:image/jpg")
-      ) {
-        contentType = "image/jpeg";
-      }
-    } else {
-      // Plain base64 string kabul et
-      imageBuffer = Buffer.from(imageData, "base64");
-    }
-
-    // Dosya adı oluştur
-    const timestamp = Date.now();
-    const randomId = uuidv4().substring(0, 8);
-    const fileName = `canvas_${timestamp}_${
-      userId || "anonymous"
-    }_${randomId}.png`;
-
-    console.log("🎨 Canvas resmi Supabase'e yükleniyor:", fileName);
-
-    // Supabase'e yükle
-    const { data, error } = await supabase.storage
-      .from("reference")
-      .upload(fileName, imageBuffer, {
-        contentType: contentType,
-        cacheControl: "3600",
-        upsert: false,
-      });
-
-    if (error) {
-      console.error("🎨 Canvas resmi Supabase yükleme hatası:", error);
-      return res.status(500).json({
-        success: false,
-        error: `Upload failed: ${error.message}`,
-      });
-    }
-
-    console.log("🎨 Canvas resmi başarıyla yüklendi:", data);
-
-    // Public URL al
-    const { data: urlData } = supabase.storage
-      .from("reference")
-      .getPublicUrl(fileName);
-
-    console.log("🎨 Canvas resmi Public URL:", urlData.publicUrl);
-
-    res.json({
-      success: true,
-      imageUrl: urlData.publicUrl,
-      fileName: fileName,
-      message: "Canvas image uploaded successfully",
-    });
-  } catch (error) {
-    console.error("🎨 Canvas resmi upload hatası:", error);
-    res.status(500).json({
-      success: false,
-      error: error.message || "Canvas image upload failed",
     });
   }
 });
