@@ -556,7 +556,16 @@ function formatAspectRatio(ratioStr) {
   const validRatios = ["1:1", "4:3", "3:4", "16:9", "9:16", "21:9"];
 
   try {
-    if (!ratioStr || !ratioStr.includes(":")) {
+    // "original" veya tanımsız değerler için varsayılan oran
+    if (!ratioStr || ratioStr === "original" || ratioStr === "undefined") {
+      console.log(
+        `Geçersiz ratio formatı: ${ratioStr}, varsayılan değer kullanılıyor: 9:16`
+      );
+      return "9:16";
+    }
+
+    // ":" içermeyen değerler için varsayılan oran
+    if (!ratioStr.includes(":")) {
       console.log(
         `Geçersiz ratio formatı: ${ratioStr}, varsayılan değer kullanılıyor: 9:16`
       );
@@ -2333,10 +2342,38 @@ async function combineImagesOnCanvas(
     console.log("📐 Hedef aspect ratio:", aspectRatio);
     console.log("🛍️ Grid Layout bilgisi:", gridLayoutInfo);
 
-    // Aspect ratio'yu parse et
+    // Aspect ratio'yu parse et ve güvenlik kontrolü yap
+    let targetAspectRatio;
+    const aspectRatioParts = aspectRatio.split(":");
+    if (aspectRatioParts.length !== 2) {
+      console.log(
+        `❌ Geçersiz aspect ratio formatı: ${aspectRatio}, 9:16 kullanılıyor`
+      );
+      aspectRatio = "9:16";
+    }
+
     const [ratioWidth, ratioHeight] = aspectRatio.split(":").map(Number);
-    const targetAspectRatio = ratioWidth / ratioHeight;
-    console.log("📐 Hedef aspect ratio değeri:", targetAspectRatio);
+
+    // NaN kontrolü
+    if (
+      isNaN(ratioWidth) ||
+      isNaN(ratioHeight) ||
+      ratioWidth <= 0 ||
+      ratioHeight <= 0
+    ) {
+      console.log(
+        `❌ Geçersiz aspect ratio değerleri: ${ratioWidth}:${ratioHeight}, 9:16 kullanılıyor`
+      );
+      const [defaultWidth, defaultHeight] = [9, 16];
+      targetAspectRatio = defaultWidth / defaultHeight;
+      console.log(
+        "📐 Hedef aspect ratio değeri (fallback):",
+        targetAspectRatio
+      );
+    } else {
+      targetAspectRatio = ratioWidth / ratioHeight;
+      console.log("📐 Hedef aspect ratio değeri:", targetAspectRatio);
+    }
 
     // 🛍️ GRID LAYOUT MODU: Kombin için özel canvas boyutları
     let targetCanvasWidth, targetCanvasHeight;
@@ -2355,6 +2392,14 @@ async function combineImagesOnCanvas(
       );
     } else {
       // Normal mod - aspect ratio'ya göre boyutlandır
+      // NaN kontrolü ekle
+      if (isNaN(targetAspectRatio) || targetAspectRatio <= 0) {
+        console.log(
+          `❌ Geçersiz targetAspectRatio: ${targetAspectRatio}, varsayılan 9:16 kullanılıyor`
+        );
+        targetAspectRatio = 9 / 16;
+      }
+
       if (targetAspectRatio > 1) {
         // Yatay format (16:9, 4:3 gibi)
         targetCanvasWidth = 1536; // Yüksek kalite
@@ -2365,9 +2410,11 @@ async function combineImagesOnCanvas(
         targetCanvasWidth = Math.round(targetCanvasHeight * targetAspectRatio);
       }
 
-      // Minimum boyut garantisi
-      if (targetCanvasWidth < 1024) targetCanvasWidth = 1024;
-      if (targetCanvasHeight < 1024) targetCanvasHeight = 1024;
+      // Minimum boyut garantisi ve NaN kontrolü
+      if (isNaN(targetCanvasWidth) || targetCanvasWidth < 1024)
+        targetCanvasWidth = 1024;
+      if (isNaN(targetCanvasHeight) || targetCanvasHeight < 1024)
+        targetCanvasHeight = 1024;
     }
 
     console.log(
@@ -2413,9 +2460,42 @@ async function combineImagesOnCanvas(
             i + 1
           }: Sharp ile yüksek kalite preprocessing yapılıyor...`
         );
-        const processedBuffer = await sharp(imageBuffer)
-          .jpeg({ quality: 95 }) // Kalite artırıldı - ratio canvas için
-          .toBuffer();
+
+        let processedBuffer;
+        try {
+          processedBuffer = await sharp(imageBuffer)
+            .jpeg({ quality: 95 }) // Kalite artırıldı - ratio canvas için
+            .toBuffer();
+        } catch (sharpError) {
+          console.error(
+            `❌ Sharp işleme hatası resim ${i + 1}:`,
+            sharpError.message
+          );
+
+          // Sharp ile işlenemezse orijinal buffer'ı kullan
+          if (
+            sharpError.message.includes("Empty JPEG") ||
+            sharpError.message.includes("DNL not supported")
+          ) {
+            console.log(
+              `⚠️ JPEG problemi tespit edildi, PNG'ye dönüştürülüyor...`
+            );
+            try {
+              processedBuffer = await sharp(imageBuffer)
+                .png({ quality: 95 })
+                .toBuffer();
+              console.log(`✅ Resim ${i + 1} PNG olarak başarıyla işlendi`);
+            } catch (pngError) {
+              console.error(
+                `❌ PNG dönüştürme de başarısız resim ${i + 1}:`,
+                pngError.message
+              );
+              throw new Error(`Resim ${i + 1} işlenemedi: ${pngError.message}`);
+            }
+          } else {
+            throw sharpError;
+          }
+        }
 
         // Metadata'yı al
         const metadata = await sharp(processedBuffer).metadata();
