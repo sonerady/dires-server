@@ -1,0 +1,12 @@
+{
+  "giftModal": {
+    "title": "¡Felicidades! 🎉",
+    "subtitle": {
+      "prefix": "Se han acreditado a tu cuenta",
+      "credits": "100 GRATIS",
+      "suffix": "créditos"
+    },
+    "description": "Ahora puedes disfrutar del poder de la IA y dar vida a las imágenes que imaginas. ¡Comienza a experimentar de inmediato!",
+    "button": "¡Probar Ahora!"
+  }
+}

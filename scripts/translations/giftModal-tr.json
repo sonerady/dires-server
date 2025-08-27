@@ -1,0 +1,12 @@
+{
+  "giftModal": {
+    "title": "Tebrikler! 🎉",
+    "subtitle": {
+      "prefix": "Hesabınıza",
+      "credits": "100 ÜCRETSIZ",
+      "suffix": "kredi tanımlandı"
+    },
+    "description": "Artık AI gücünün keyfini çıkarabilir ve hayal ettiğiniz görüntüleri gerçekleştirebilirsiniz. Hemen denemeye başlayın!",
+    "button": "Hemen Deneyin!"
+  }
+}

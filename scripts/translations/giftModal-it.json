@@ -1,0 +1,12 @@
+{
+  "giftModal": {
+    "title": "Congratulazioni! 🎉",
+    "subtitle": {
+      "prefix": "Il tuo account è stato accreditato con",
+      "credits": "100 GRATUITI",
+      "suffix": "crediti"
+    },
+    "description": "Ora puoi godere della potenza dell'IA e dare vita alle tue immagini immaginate. Inizia subito a sperimentare!",
+    "button": "Prova Ora!"
+  }
+}
