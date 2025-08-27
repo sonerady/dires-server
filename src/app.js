@@ -15,6 +15,7 @@ const getTraining = require("./routes/getTraining");
 const updateCreditRouter = require("./routes/updateCredit");
 const getUserRouter = require("./routes/getUser");
 const geminiImageEditRouter = require("./routes/geminiImageEdit");
+const referenceBrowserRoutesBack = require("./routes/referenceBrowserRoutesBack");
 const notificationRoutes = require("./routes/notificationRoutes");
 const addProductRouter = require("./routes/addProduct");
 const getUserProductRouter = require("./routes/getUserProduct");
@@ -148,6 +149,7 @@ app.use("/api", geminiImageEditRouter);
 app.use("/api", aiBackgroundsRouter);
 app.use("/api", createAiBackgroundRouter);
 app.use("/api/referenceBrowser", referenceBrowserRoutes);
+app.use("/api/referenceBrowserBack", referenceBrowserRoutesBack);
 app.use("/api/referenceBrowserV2", referenceBrowserRoutesV2);
 app.use("/api/referenceBrowserV3", referenceBrowserRoutesV3);
 app.use(
