@@ -782,72 +782,18 @@ async function enhancePromptWithGemini(
     The user provided age information is "${age}". IMPORTANT: Mention this age information EXACTLY 2 times in your entire prompt — once when first introducing the model, and once more naturally later in the description. Do not mention the age a third time.`;
     }
 
-    // Eğer yaş 0-12 arası ise bebek/çocuk stili prompt yönlendirmesi ver
+    // Yaş grupları için basit ve güvenli prompt yönlendirmesi
     let childPromptSection = "";
     const parsedAge = parseInt(age, 10);
     if (!isNaN(parsedAge) && parsedAge <= 16) {
-      if (parsedAge <= 1) {
-        // Baby-specific instructions (0-1 yaş)
+      if (parsedAge <= 3) {
+        // Baby/Toddler - çok basit
         childPromptSection = `
-    
-🍼 BABY MODEL REQUIREMENTS (Age: ${parsedAge}):
-CRITICAL: The model is a BABY (infant). This is MANDATORY - the model MUST clearly appear as a baby, not a child or adult.
-
-BABY PHYSICAL CHARACTERISTICS (MANDATORY):
-- Round, chubby baby cheeks
-- Large head proportional to baby body
-- Small baby hands and feet  
-- Soft baby skin texture
-- Infant body proportions (large head, short limbs, rounded belly)
-- Baby-appropriate facial features (button nose, wide eyes, soft expressions)
-- NO mature or adult-like features whatsoever
-
-BABY DESCRIPTION FORMAT (MANDATORY):
-Start the description like this: "A ${parsedAge}-year-old baby ${
-          genderLower === "male" || genderLower === "man" ? "boy" : "girl"
-        } (infant) is wearing..."
-Then add: "Make sure he/she is clearly a baby: chubby cheeks, small body proportions, baby hands and feet."
-
-BABY POSE REQUIREMENTS:
-- Sitting, lying, or being gently supported poses only
-- Natural baby movements (reaching, playing, looking around)
-- NO standing poses unless developmentally appropriate
-- NO complex or posed gestures
-- Relaxed, natural baby positioning
-
-This is an INFANT/BABY model. The result MUST show a clear baby, not a child or adult.`;
-      } else if (parsedAge <= 3) {
-        // Toddler-specific instructions (2-3 yaş)
-        childPromptSection = `
-    
-👶 TODDLER MODEL REQUIREMENTS (Age: ${parsedAge}):
-The model is a TODDLER. Use toddler-appropriate physical descriptions and poses.
-
-TODDLER CHARACTERISTICS:
-- Toddler proportions (chubby cheeks, shorter limbs)
-- Round facial features appropriate for age ${parsedAge}
-- Natural toddler expressions (curious, playful, gentle)
-- Age-appropriate body proportions
-
-DESCRIPTION FORMAT:
-Include phrases like "toddler proportions", "chubby cheeks", "gentle expression", "round facial features".
-
-This is a TODDLER model, not an adult.`;
+Age-appropriate modeling for young child (${parsedAge} years old). Natural, comfortable poses suitable for children's fashion photography.`;
       } else {
-        // Child/teenage instructions (4-16 yaş)
+        // Child/teenage - sadece temel kurallar
         childPromptSection = `
-    
-⚠️ AGE-SPECIFIC STYLE RULES FOR CHILD MODELS:
-The model described is a child aged ${parsedAge}. Please follow these mandatory restrictions and stylistic adjustments:
-- Use age-appropriate physical descriptions, such as "child proportions", "gentle expression", "soft hair", or "youthful facial features".
-- Avoid all adult modeling language (e.g., "confident pose", "elegant posture", "sharp cheekbones", "stylish demeanor").
-- The model must appear natural, playful, and age-authentic — do NOT exaggerate facial structure or maturity.
-- The model's pose should be passive, playful, or relaxed. DO NOT use assertive, posed, or seductive body language.
-- Do NOT reference any makeup, mature accessories, or adult modeling presence.
-- Ensure lighting and presentation is soft, clean, and suited for editorial children's fashion catalogs.
-- Overall expression and body language must align with innocence, comfort, and simplicity.
-
-This is a child model. Avoid inappropriate styling, body-focused language, or any pose/expression that could be misinterpreted.`;
+Child model (${parsedAge} years old). Use age-appropriate poses and expressions suitable for children's fashion photography. Keep styling natural and comfortable.`;
       }
     }
 
@@ -1484,7 +1430,14 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
           ],
         });
 
-        const geminiGeneratedPrompt = result.text.trim();
+        const geminiGeneratedPrompt =
+          result.text?.trim() || result.response?.text()?.trim() || "";
+
+        // Gemini response kontrolü
+        if (!geminiGeneratedPrompt) {
+          console.error("❌ Gemini API response boş:", result);
+          throw new Error("Gemini API response is empty or invalid");
+        }
 
         // ControlNet direktifini dinamik olarak ekle
         // let controlNetDirective = "";
@@ -1587,47 +1540,17 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
         }
       }
 
-      // Aynı yaş koşulları kullanılıyor
-      if (!isNaN(parsedAgeInt) && parsedAgeInt <= 3) {
-        // Baby/Toddler
-        let ageGroupWord;
-        if (parsedAgeInt <= 1) {
-          ageGroupWord = "baby";
-        } else {
-          ageGroupWord = "toddler";
-        }
+      // Basit yaş grupları
+      if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
         const genderWord =
           genderLower === "male" || genderLower === "man" ? "boy" : "girl";
-
-        if (parsedAgeInt <= 1) {
-          modelDescription = `${parsedAgeInt}-year-old ${ageGroupWord} ${genderWord} (infant)`;
-        } else {
-          modelDescription = `${parsedAgeInt} year old ${ageGroupWord} ${genderWord}`;
-        }
-      } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
-        // Child
-        const genderWord =
-          genderLower === "male" || genderLower === "man" ? "boy" : "girl";
-        modelDescription = `${parsedAgeInt} year old child ${genderWord}`;
-      } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
-        // Teenage
-        const genderWord =
-          genderLower === "male" || genderLower === "man" ? "boy" : "girl";
-        modelDescription = `${parsedAgeInt} year old teenage ${genderWord}`;
+        modelDescription = `young ${genderWord} model`;
       } else {
-        // Yetişkin mantığı
+        // Yetişkin
         if (genderLower === "male" || genderLower === "man") {
           modelDescription = "male model";
         } else {
           modelDescription = "female model";
-        }
-
-        // Eğer yaş bilgisini yetişkinlerde kullanmak istersen
-        if (age && !age.includes("years old")) {
-          modelDescription =
-            genderLower === "male" || genderLower === "man"
-              ? `${age} male model`
-              : `${age} female model`;
         }
       }
 
@@ -1776,47 +1699,17 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       }
     }
 
-    // Aynı yaş koşulları kullanılıyor
-    if (!isNaN(parsedAgeInt) && parsedAgeInt <= 3) {
-      // Baby/Toddler
-      let ageGroupWord;
-      if (parsedAgeInt <= 1) {
-        ageGroupWord = "baby";
-      } else {
-        ageGroupWord = "toddler";
-      }
+    // Basit yaş grupları (ikinci fallback)
+    if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
       const genderWord =
         genderLower === "male" || genderLower === "man" ? "boy" : "girl";
-
-      if (parsedAgeInt <= 1) {
-        modelDescription = `${parsedAgeInt}-year-old ${ageGroupWord} ${genderWord} (infant)`;
-      } else {
-        modelDescription = `${parsedAgeInt} year old ${ageGroupWord} ${genderWord}`;
-      }
-    } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
-      // Child
-      const genderWord =
-        genderLower === "male" || genderLower === "man" ? "boy" : "girl";
-      modelDescription = `${parsedAgeInt} year old child ${genderWord}`;
-    } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
-      // Teenage
-      const genderWord =
-        genderLower === "male" || genderLower === "man" ? "boy" : "girl";
-      modelDescription = `${parsedAgeInt} year old teenage ${genderWord}`;
+      modelDescription = `young ${genderWord} model`;
     } else {
-      // Yetişkin mantığı
+      // Yetişkin
       if (genderLower === "male" || genderLower === "man") {
         modelDescription = "male model";
       } else {
         modelDescription = "female model";
-      }
-
-      // Eğer yaş bilgisini yetişkinlerde kullanmak istersen
-      if (age && !age.includes("years old")) {
-        modelDescription =
-          genderLower === "male" || genderLower === "man"
-            ? `${age} male model`
-            : `${age} female model`;
       }
     }
 
