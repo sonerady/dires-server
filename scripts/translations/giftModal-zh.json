@@ -1,12 +1,9 @@
 {
   "giftModal": {
-    "title": "恭喜！🎉",
-    "subtitle": {
-      "prefix": "您的账户已获得",
-      "credits": "100免费",
-      "suffix": "积分"
-    },
-    "description": "现在您可以享受AI的力量，将想象中的图像变为现实。立即开始实验吧！",
-    "button": "立即尝试！"
+    "welcome": "欢迎！",
+    "subtitle": "我们为您准备了一份特别的礼物",
+    "credits": "积分",
+    "message": "用这些积分，您可以创建一直梦寐以求的AI图像。尽情享受吧！🚀",
+    "startCreating": "开始使用"
   }
 }

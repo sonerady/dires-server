@@ -593,18 +593,20 @@ router.get("/user/:userId", async (req, res) => {
       Expires: "0",
     });
 
-    // Get user data from database - önce subscription_type ile dene
+    // Get user data from database - önce tüm alanlarla dene
     let userData, userError;
     try {
       const result = await supabase
         .from("users")
-        .select("credit_balance, is_pro, subscription_type")
+        .select(
+          "credit_balance, is_pro, subscription_type, received_initial_credit"
+        )
         .eq("id", userId)
         .single();
       userData = result.data;
       userError = result.error;
     } catch (error) {
-      // subscription_type column yoksa, sadece temel alanları al
+      // Bazı columnlar yoksa, sadece temel alanları al
       const result = await supabase
         .from("users")
         .select("credit_balance, is_pro")
@@ -627,10 +629,61 @@ router.get("/user/:userId", async (req, res) => {
       credit_balance: userData.credit_balance || 0,
       is_pro: userData.is_pro || false,
       subscription_type: userData.subscription_type || null,
+      received_initial_credit: userData.received_initial_credit || false,
       timestamp: new Date().toISOString(), // Cache busting için timestamp ekle
     });
   } catch (error) {
     console.error("Get user data error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+});
+
+// Mark initial credit as received endpoint
+router.post("/mark-initial-credit-received/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
+    }
+
+    console.log(
+      `🎁 [GIFT MODAL] Marking initial credit as received for user: ${userId}`
+    );
+
+    // Update user's received_initial_credit to true
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({
+        received_initial_credit: true,
+        initial_credit_received_at: new Date().toISOString(),
+      })
+      .eq("id", userId);
+
+    if (updateError) {
+      console.error("Error updating received_initial_credit:", updateError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to update user",
+      });
+    }
+
+    console.log(
+      `✅ [GIFT MODAL] User ${userId} marked as received initial credit`
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Initial credit marked as received",
+    });
+  } catch (error) {
+    console.error("Mark initial credit error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",

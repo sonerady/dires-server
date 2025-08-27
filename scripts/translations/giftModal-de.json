@@ -1,12 +1,9 @@
 {
   "giftModal": {
-    "title": "Herzlichen Glückwunsch! 🎉",
-    "subtitle": {
-      "prefix": "Ihrem Konto wurden",
-      "credits": "100 KOSTENLOSE",
-      "suffix": "Credits gutgeschrieben"
-    },
-    "description": "Jetzt können Sie die Kraft der KI nutzen und Ihre erdachten Bilder zum Leben erwecken. Fangen Sie sofort an zu experimentieren!",
-    "button": "Jetzt Ausprobieren!"
+    "welcome": "Willkommen!",
+    "subtitle": "Wir haben ein besonderes Geschenk für dich",
+    "credits": "CREDITS",
+    "message": "Mit diesen Credits kannst du die AI-Bilder erstellen, von denen du schon immer geträumt hast. Viel Spaß! 🚀",
+    "startCreating": "Loslegen"
   }
 }

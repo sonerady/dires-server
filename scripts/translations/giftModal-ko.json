@@ -1,12 +1,9 @@
 {
   "giftModal": {
-    "title": "축하합니다! 🎉",
-    "subtitle": {
-      "prefix": "귀하의 계정에",
-      "credits": "100 무료",
-      "suffix": "크레딧이 추가되었습니다"
-    },
-    "description": "이제 AI의 힘을 즐기고 상상한 이미지를 현실로 만들 수 있습니다. 지금 바로 실험을 시작하세요!",
-    "button": "지금 시도하기!"
+    "welcome": "환영합니다!",
+    "subtitle": "당신을 위한 특별한 선물이 있습니다",
+    "credits": "크레딧",
+    "message": "이 크레딧으로 당신이 항상 꿈꿔왔던 AI 이미지를 만들 수 있습니다. 즐기세요! 🚀",
+    "startCreating": "시작하기"
   }
 }
