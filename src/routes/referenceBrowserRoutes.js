@@ -865,7 +865,7 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       .join("\n    ")}${
         settings?.locationEnhancedPrompt &&
         settings.locationEnhancedPrompt.trim()
-          ? `\n    \n    SPECIAL LOCATION DESCRIPTION:\n    User has provided a detailed location description: "${settings.locationEnhancedPrompt}"\n    IMPORTANT: Use this exact location description for the environment/background setting instead of a generic location name.`
+          ? `\n    \n    SPECIAL LOCATION DESCRIPTION:\n    User has provided a detailed location description: "${settings.locationEnhancedPrompt}"\n    IMPORTANT: Use this exact location description for the environment setting instead of a generic location name.`
           : ""
       }
     
@@ -1152,6 +1152,8 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
 
       FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
 
+      IMPORTANT: Please explicitly mention in your generated prompt that this is for "professional fashion photography" to ensure the AI image model understands the context and produces high-quality fashion photography results.
+
       IMPORTANT: The user can send you input in different languages, but you must always generate your prompt in English.
 
       CRITICAL REQUIREMENTS FOR EDIT MODE:
@@ -1188,6 +1190,8 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       
       FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
 
+      IMPORTANT: Please explicitly mention in your generated prompt that this is for "professional fashion photography" to ensure the AI image model understands the context and produces high-quality fashion photography results.
+
       CRITICAL REQUIREMENTS FOR COLOR CHANGE:
       1. The prompt MUST begin with "Replace the product/garment..."
       2. ONLY change the color to ${targetColor}
@@ -1197,6 +1201,7 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       6. Use natural studio lighting with a clean background
       7. Preserve ALL original garment details except color: patterns (but in new color), textures, hardware, stitching, logos, graphics, and construction elements
       8. The garment must appear identical to the reference image, just in ${targetColor} color instead of the original color
+      9. MANDATORY: Include "professional fashion photography" phrase in your generated prompt
 
       LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "change".
 
@@ -1216,6 +1221,8 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       Create a professional fashion photography prompt in English that STARTS with "change" for changing ONLY the pose/position of the model in the reference image.
       
       FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
+
+      IMPORTANT: Please explicitly mention in your generated prompt that this is for "professional fashion photography" to ensure the AI image model understands the context and produces high-quality fashion photography results.
 
       CRITICAL REQUIREMENTS FOR POSE CHANGE:
       1. The prompt MUST begin with "Replace the model's pose..."
@@ -1279,6 +1286,8 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       
       FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
 
+      IMPORTANT: Please explicitly mention in your generated prompt that this is for "professional fashion photography" to ensure the AI image model understands the context and produces high-quality fashion photography results.
+
       CRITICAL REQUIREMENTS:
       1. The prompt MUST begin with "Replace the flat-lay garment..."
       2. Keep the original garment exactly the same without changing any design, shape, colors, patterns, or details
@@ -1287,6 +1296,7 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       5. Use natural studio lighting with a clean background
       6. Preserve ALL original garment details: colors, patterns, textures, hardware, stitching, logos, graphics, and construction elements
       7. The garment must appear identical to the reference image, just worn by the model instead of being flat
+      8. MANDATORY: Include "professional fashion photography" phrase in your generated prompt
 
       PRODUCT DETAIL COVERAGE (MANDATORY): Describe the garment's construction details. Keep this within the 512-token limit; prioritize the most visually verifiable details.
 
@@ -3598,7 +3608,7 @@ router.post("/generate", async (req, res) => {
 
         // Polling hatası durumunda status'u failed'e güncelle
         await updateGenerationStatus(finalGenerationId, userId, "failed", {
-          processing_time_seconds: 0,
+          processing_time_seconds: Math.round((Date.now() - startTime) / 1000),
         });
 
         // 🗑️ Polling hatası durumunda geçici dosyaları temizle
@@ -3607,6 +3617,7 @@ router.post("/generate", async (req, res) => {
         );
         await cleanupTemporaryFiles(temporaryFiles);
 
+        // Error response'a generationId ekle ki client hangi generation'ın başarısız olduğunu bilsin
         return res.status(500).json({
           success: false,
           result: {
@@ -3614,6 +3625,8 @@ router.post("/generate", async (req, res) => {
             error: pollingError.message.includes("PREDICTION_INTERRUPTED")
               ? "Sunucu kesintisi oluştu. Lütfen tekrar deneyin."
               : "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
+            generationId: finalGenerationId, // Client için generation ID ekle
+            status: "failed",
           },
         });
       }
@@ -3810,10 +3823,10 @@ router.post("/generate", async (req, res) => {
       // ❌ Status'u failed'e güncelle
       await updateGenerationStatus(finalGenerationId, userId, "failed", {
         // error_message kolonu yok, bu yüzden genel field kullan
-        processing_time_seconds: 0,
+        processing_time_seconds: Math.round((Date.now() - startTime) / 1000),
       });
 
-      // 🗑️ Replicate hata durumunda geçici dosyaları temizle
+      // 🗑️ Replicate hata durumında geçici dosyaları temizle
       console.log(
         "🧹 Replicate hatası sonrası geçici dosyalar temizleniyor..."
       );
@@ -3850,6 +3863,7 @@ router.post("/generate", async (req, res) => {
           message: "Replicate API işlemi başarısız oldu",
           error: finalResult.error || "Bilinmeyen hata",
           status: finalResult.status,
+          generationId: finalGenerationId, // Client için generation ID ekle
         },
       });
     }
@@ -3951,6 +3965,8 @@ router.post("/generate", async (req, res) => {
       result: {
         message: "Resim oluşturma sırasında bir hata oluştu",
         error: error.message,
+        generationId: finalGenerationId, // Client için generation ID ekle
+        status: "failed",
       },
     });
   }
