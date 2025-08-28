@@ -71,6 +71,8 @@ const createLocationRoutes = require("./routes/createLocationRoutes");
 const createLocationRoutesV2 = require("./routes/createLocationRoutes_v2");
 // Favorites routes import
 const favoritesRoutes = require("./routes/favoritesRoutes");
+// Video routes import
+const videoRoutes = require("./routes/videoRoutes");
 // Generation Status routes import
 
 const app = express();
@@ -181,6 +183,9 @@ app.use("/api/location/v2", createLocationRoutesV2);
 
 // Favorites routes ekle
 app.use("/api/favorites", favoritesRoutes);
+
+// Video routes ekle
+app.use("/api", videoRoutes);
 
 // App Links routes ekle
 app.use("/api/app-links", appLinksRoutes);
