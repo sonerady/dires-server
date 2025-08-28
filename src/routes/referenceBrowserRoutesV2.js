@@ -1125,7 +1125,6 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
     // Flux Max için genel garment transform talimatları (güvenli flag-safe versiyon)
     const fluxMaxGarmentTransformationDirectives = `
     GARMENT TRANSFORMATION REQUIREMENTS:
-    - Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed from the input garment. Avoid rendering any mannequin remains or unintended background elements.
     - Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance.
     - Ensure realistic fabric physics with natural drape, weight, tension, compression, and subtle folds along shoulders, chest/bust, torso, and sleeves. Maintain a clean commercial presentation with minimal distracting wrinkles.
     - Preserve all original garment details including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning the original garment.
@@ -1143,6 +1142,21 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
 
       ${criticalDirectives}
+
+      ${
+        isMultipleProducts
+          ? `
+      🛍️ MULTIPLE PRODUCTS EDIT MODE: The reference image contains MULTIPLE GARMENTS/PRODUCTS. When applying the user's edit request, you MUST consider ALL products in the image and ensure they remain coordinated and properly fitted as a complete ensemble.
+
+      CRITICAL MULTIPLE PRODUCTS EDIT REQUIREMENTS:
+      - IDENTIFY ALL distinct garments/products in the reference image
+      - APPLY the user's edit request while maintaining the integrity of ALL products
+      - ENSURE all products remain properly coordinated after the edit
+      - PRESERVE the original design of products not directly affected by the edit
+      - MAINTAIN proper layering and interaction between all products
+      `
+          : ""
+      }
 
       SILENT RULES (DO NOT OUTPUT THESE, JUST APPLY THEM): All rules, headings, examples, and meta-instructions you see in this message must be applied silently. Do not quote, restate, or paraphrase any rule text in your final output. Your final output MUST ONLY be the concise descriptive prompt for the image model, with no rule headings or capitalized instruction sentences.
 
@@ -1164,16 +1178,35 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       5. Maintain photorealistic quality with natural lighting
       6. Keep the general style and quality of the original image
       7. Ensure the modification is realistic and technically feasible
-      8. If the edit involves clothing changes, maintain proper fit and styling
-      9. If the edit involves pose changes, ensure natural body positioning
-      10. If the edit involves color changes, preserve garment details and textures
+      8. If the edit involves clothing changes, maintain proper fit and styling${
+        isMultipleProducts ? " for ALL garments/products" : ""
+      }
+      9. If the edit involves pose changes, ensure natural body positioning${
+        isMultipleProducts ? " that works with ALL garments/products" : ""
+      }
+      10. If the edit involves color changes, preserve garment details and textures${
+        isMultipleProducts ? " for ALL affected garments/products" : ""
+      }
+      ${
+        isMultipleProducts
+          ? "11. MANDATORY: Ensure ALL garments/products in the ensemble remain visible and properly coordinated after the edit"
+          : ""
+      }
 
       GEMINI TASK:
       1. Understand what modification the user wants
-      2. Create a professional English prompt that applies this modification
-      3. Ensure the modification is technically possible and realistic
+      2. ${
+        isMultipleProducts
+          ? "Identify how this modification affects ALL products in the ensemble"
+          : "Create a professional English prompt that applies this modification"
+      }
+      3. Ensure the modification is technically possible and realistic${
+        isMultipleProducts ? " for the complete multi-product outfit" : ""
+      }
       4. Maintain the overall quality and style of the original image
-      5. Describe the change in detail while preserving other elements
+      5. Describe the change in detail while preserving other elements${
+        isMultipleProducts ? " and ALL unaffected products" : ""
+      }
 
       LANGUAGE REQUIREMENT: Always generate your prompt in English and START with "Replace, change...".
 
@@ -1186,22 +1219,62 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
 
       ${criticalDirectives}
 
-      Create a professional fashion photography prompt in English that STARTS with "change" for changing ONLY the color of the product/garment from the reference image to ${targetColor}.
+      ${
+        isMultipleProducts
+          ? `
+      🛍️ MULTIPLE PRODUCTS COLOR CHANGE: The reference image contains MULTIPLE GARMENTS/PRODUCTS. When changing the color to ${targetColor}, you MUST specify which product(s) to change and ensure ALL products remain properly coordinated as an ensemble.
+
+      CRITICAL MULTIPLE PRODUCTS COLOR REQUIREMENTS:
+      - IDENTIFY ALL distinct garments/products in the reference image
+      - SPECIFY which product(s) should change to ${targetColor}
+      - ENSURE the color change maintains overall ensemble coordination
+      - PRESERVE the original colors and design of products not being changed
+      - MAINTAIN proper color harmony between all products in the outfit
+      `
+          : ""
+      }
+
+      Create a professional fashion photography prompt in English that STARTS with "change" for changing ONLY the color of ${
+        isMultipleProducts
+          ? "the specified product(s)/garment(s)"
+          : "the product/garment"
+      } from the reference image to ${targetColor}.
       
       FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
 
       IMPORTANT: Please explicitly mention in your generated prompt that this is for "professional fashion photography" to ensure the AI image model understands the context and produces high-quality fashion photography results.
 
       CRITICAL REQUIREMENTS FOR COLOR CHANGE:
-      1. The prompt MUST begin with "Replace the product/garment..."
-      2. ONLY change the color to ${targetColor}
+      1. The prompt MUST begin with "Replace the ${
+        isMultipleProducts
+          ? "specified product(s)/garment(s)"
+          : "product/garment"
+      }..."
+      2. ONLY change the color to ${targetColor}${
+        isMultipleProducts ? " for the specified product(s)" : ""
+      }
       3. Keep EVERYTHING else exactly the same: design, shape, patterns, details, style, fit, texture
-      4. Do not modify the garment design, cut, or any other aspect except the color
-      5. The final image should be photorealistic, showing the same garment but in ${targetColor} color
+      4. Do not modify ${
+        isMultipleProducts ? "any garment" : "the garment"
+      } design, cut, or any other aspect except the color
+      5. The final image should be photorealistic, showing ${
+        isMultipleProducts
+          ? "the complete ensemble with the specified color changes"
+          : `the same garment but in ${targetColor} color`
+      }
       6. Use natural studio lighting with a clean background
-      7. Preserve ALL original garment details except color: patterns (but in new color), textures, hardware, stitching, logos, graphics, and construction elements
-      8. The garment must appear identical to the reference image, just in ${targetColor} color instead of the original color
+      7. Preserve ALL original details except color: patterns (but in new color), textures, hardware, stitching, logos, graphics, and construction elements
+      8. ${
+        isMultipleProducts
+          ? `ALL garments/products must appear identical to the reference image, just with the specified color change to ${targetColor} and proper ensemble coordination`
+          : `The garment must appear identical to the reference image, just in ${targetColor} color instead of the original color`
+      }
       9. MANDATORY: Include "professional fashion photography" phrase in your generated prompt
+      ${
+        isMultipleProducts
+          ? `10. MANDATORY: Clearly specify which product(s) change color and which remain in their original colors`
+          : ""
+      }
 
       LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "change".
 
@@ -1218,6 +1291,21 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
 
       ${criticalDirectives}
 
+      ${
+        isMultipleProducts
+          ? `
+      🛍️ MULTIPLE PRODUCTS POSE CHANGE: The reference image contains MULTIPLE GARMENTS/PRODUCTS. When changing the pose, you MUST ensure ALL products remain properly positioned, fitted, and coordinated on the model.
+
+      CRITICAL MULTIPLE PRODUCTS POSE REQUIREMENTS:
+      - IDENTIFY ALL distinct garments/products in the reference image
+      - ENSURE the new pose works well with ALL products in the ensemble
+      - MAINTAIN proper layering and positioning of each product
+      - PRESERVE the original fit and draping of ALL garments/products
+      - AVOID poses that would disrupt the coordination of the ensemble
+      `
+          : ""
+      }
+
       Create a professional fashion photography prompt in English that STARTS with "change" for changing ONLY the pose/position of the model in the reference image.
       
       FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
@@ -1226,12 +1314,18 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
 
       CRITICAL REQUIREMENTS FOR POSE CHANGE:
       1. The prompt MUST begin with "Replace the model's pose..."
-      2. Keep the EXACT same person, face, clothing, background, and all other elements
+      2. Keep the EXACT same person, face, ${
+        isMultipleProducts ? "ALL clothing items" : "clothing"
+      }, background, and all other elements
       3. ONLY change the pose/position/body positioning of the model
       4. Do not modify or change anything else about the model or scene
       5. The result should be photorealistic with natural lighting and proper body proportions
-      6. Preserve ALL original elements except the pose: same person, same outfit, same background, same lighting style
-      7. The model must appear identical to the reference image, just in a different pose/position
+      6. Preserve ALL original elements except the pose: same person, same ${
+        isMultipleProducts ? "complete outfit ensemble" : "outfit"
+      }, same background, same lighting style
+      7. The model must appear identical to the reference image, just in a different pose/position${
+        isMultipleProducts ? " that works with ALL garments/products" : ""
+      }
 
       ${
         customDetail && customDetail.trim()
@@ -1240,32 +1334,80 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       }
 
       GEMINI TASK - ANALYZE AND CREATE POSE:
-      1. ANALYZE the model in the input image (their current pose, body position, clothing style)
-      2. IDENTIFY the clothing details (pockets, sleeves, length, style, accessories)
-      3. SELECT one specific professional modeling pose that would look elegant and natural for this person
+      1. ANALYZE the model in the input image (their current pose, body position, ${
+        isMultipleProducts
+          ? "ALL clothing items in the ensemble"
+          : "clothing style"
+      })
+      2. IDENTIFY ${
+        isMultipleProducts
+          ? "ALL clothing details for EACH product"
+          : "the clothing details"
+      } (pockets, sleeves, length, style, accessories)
+      3. SELECT one specific professional modeling pose that would look elegant and natural for this person${
+        isMultipleProducts ? " and work well with ALL garments/products" : ""
+      }
       4. CHOOSE from these categories:
          - ELEGANT POSES: graceful hand positions, confident stances, sophisticated postures
          - FASHION POSES: runway-style poses, magazine-worthy positions, stylish attitudes  
          - PORTRAIT POSES: flattering face angles, expressive hand gestures, artistic positioning
          - DYNAMIC POSES: movement-inspired stances, walking poses, turning positions
 
-      ⚠️ CRITICAL CLOTHING COMPATIBILITY RULES:
-      - If the garment has NO POCKETS: DO NOT put hands in pockets
-      - If the garment has SHORT SLEEVES: DO NOT fold or adjust long sleeves
-      - If the garment is SLEEVELESS: DO NOT place hands on sleeves or adjust arm coverage
-      - If the garment is a DRESS/SKIRT: Keep leg positioning appropriate for the garment length
-      - If the garment has specific NECKLINE: DO NOT change how it sits on the body
-      - If the garment has FIXED ACCESSORIES (belts, scarves): Keep them in original position
+      ⚠️ CRITICAL CLOTHING COMPATIBILITY RULES${
+        isMultipleProducts ? " (Apply to ALL garments/products)" : ""
+      }:
+      - If ${
+        isMultipleProducts ? "ANY garment" : "the garment"
+      } has NO POCKETS: DO NOT put hands in pockets
+      - If ${
+        isMultipleProducts ? "ANY garment" : "the garment"
+      } has SHORT SLEEVES: DO NOT fold or adjust long sleeves
+      - If ${
+        isMultipleProducts ? "ANY garment" : "the garment"
+      } is SLEEVELESS: DO NOT place hands on sleeves or adjust arm coverage
+      - If ${
+        isMultipleProducts ? "ANY garment" : "the garment"
+      } is a DRESS/SKIRT: Keep leg positioning appropriate for the garment length
+      - If ${
+        isMultipleProducts ? "ANY garment" : "the garment"
+      } has specific NECKLINE: DO NOT change how it sits on the body
+      - If ${
+        isMultipleProducts ? "ANY garment" : "the garment"
+      } has FIXED ACCESSORIES (belts, scarves): Keep them in original position
       - NEVER turn the model completely around (avoid full back views)
-      - NEVER change the garment's silhouette, fit, or draping
+      - NEVER change ${
+        isMultipleProducts ? "ANY garment's" : "the garment's"
+      } silhouette, fit, or draping
+      ${
+        isMultipleProducts
+          ? "- ENSURE the pose maintains proper layering and coordination of ALL products"
+          : ""
+      }
 
       GEMINI INSTRUCTIONS:
-      - First ANALYZE the clothing details and limitations
-      - Then DECIDE on ONE specific pose that RESPECTS the clothing constraints
+      - First ANALYZE ${
+        isMultipleProducts
+          ? "ALL clothing details and limitations for EACH product"
+          : "the clothing details and limitations"
+      }
+      - Then DECIDE on ONE specific pose that RESPECTS ${
+        isMultipleProducts
+          ? "ALL clothing constraints for the complete ensemble"
+          : "the clothing constraints"
+      }
       - DESCRIBE that pose in detail in your prompt with clothing-appropriate positioning
-      - Include specific details: hand positioning (compatible with garment), weight distribution, facial direction, body angles
+      - Include specific details: hand positioning (compatible with ${
+        isMultipleProducts ? "ALL garments" : "garment"
+      }), weight distribution, facial direction, body angles
       - Make the pose description sound professional and beautiful
-      - Ensure the pose suits the model's style and clothing EXACTLY as shown
+      - Ensure the pose suits the model's style and ${
+        isMultipleProducts ? "ALL clothing items" : "clothing"
+      } EXACTLY as shown
+      ${
+        isMultipleProducts
+          ? "- VERIFY that the pose maintains the coordination and visual harmony of the complete ensemble"
+          : ""
+      }
 
       LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace". Do NOT include any rule names, headings, or capitalized instruction phrases (e.g., "FLUX MAX CONTEXT", "CRITICAL REQUIREMENTS", "MANDATORY", "LANGUAGE REQUIREMENT").
 
@@ -1282,23 +1424,79 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
 
       ${criticalDirectives}
 
-      Create a professional fashion photography prompt in English that STARTS with "Replace" for replacing the garment from the reference image onto a ${modelGenderText}.
+      ${
+        isMultipleProducts
+          ? `
+      🛍️ MULTIPLE PRODUCTS MODE: The reference image contains MULTIPLE GARMENTS/PRODUCTS that form a complete outfit/ensemble. You MUST mention and describe ALL products visible in the reference image, not just one or two. Each product is equally important and must be properly described and fitted onto the ${modelGenderText}.
+
+      CRITICAL MULTIPLE PRODUCTS REQUIREMENTS:
+      - ANALYZE the reference image carefully and COUNT how many distinct garments/products are present
+      - DESCRIBE each product individually with its specific design details, colors, patterns, and construction elements
+      - ENSURE that ALL products are mentioned in your prompt - do not skip any product
+      - COORDINATE how all products work together as a complete ensemble
+      - SPECIFY the proper layering, positioning, and interaction between products
+      - MAINTAIN the original design of each individual product while showing them as a coordinated outfit
+      `
+          : ""
+      }
+
+      Create a professional fashion photography prompt in English that STARTS with "Replace" for replacing ${
+        isMultipleProducts
+          ? "ALL the garments/products from the reference image"
+          : "the garment from the reference image"
+      } onto a ${modelGenderText}.
       
       FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
 
       IMPORTANT: Please explicitly mention in your generated prompt that this is for "professional fashion photography" to ensure the AI image model understands the context and produces high-quality fashion photography results.
 
       CRITICAL REQUIREMENTS:
-      1. The prompt MUST begin with "Replace the flat-lay garment..."
-      2. Keep the original garment exactly the same without changing any design, shape, colors, patterns, or details
-      3. Do not modify or redesign the garment in any way
-      4. The final image should be photorealistic, showing the same garment perfectly fitted on the ${baseModelText}
+      1. The prompt MUST begin with "Replace the ${
+        isMultipleProducts
+          ? "multiple flat-lay garments/products"
+          : "flat-lay garment"
+      }..."
+      2. Keep ${
+        isMultipleProducts
+          ? "ALL original garments/products"
+          : "the original garment"
+      } exactly the same without changing any design, shape, colors, patterns, or details
+      3. Do not modify or redesign ${
+        isMultipleProducts ? "any of the garments/products" : "the garment"
+      } in any way
+      4. The final image should be photorealistic, showing ${
+        isMultipleProducts
+          ? "ALL garments/products perfectly fitted and coordinated"
+          : "the same garment perfectly fitted"
+      } on the ${baseModelText}
       5. Use natural studio lighting with a clean background
-      6. Preserve ALL original garment details: colors, patterns, textures, hardware, stitching, logos, graphics, and construction elements
-      7. The garment must appear identical to the reference image, just worn by the model instead of being flat
+      6. Preserve ALL original details of ${
+        isMultipleProducts ? "EACH garment/product" : "the garment"
+      }: colors, patterns, textures, hardware, stitching, logos, graphics, and construction elements
+      7. ${
+        isMultipleProducts
+          ? "ALL garments/products must appear identical to the reference image, just worn by the model as a complete coordinated outfit"
+          : "The garment must appear identical to the reference image, just worn by the model instead of being flat"
+      }
       8. MANDATORY: Include "professional fashion photography" phrase in your generated prompt
+      ${
+        isMultipleProducts
+          ? "9. MANDATORY: Explicitly mention and describe EACH individual product/garment visible in the reference image - do not generalize or group them"
+          : ""
+      }
 
-      PRODUCT DETAIL COVERAGE (MANDATORY): Describe the garment's construction details. Keep this within the 512-token limit; prioritize the most visually verifiable details.
+      ${
+        isMultipleProducts
+          ? `
+      MULTIPLE PRODUCTS DETAIL COVERAGE (MANDATORY): 
+      - ANALYZE the reference image and identify EACH distinct garment/product (e.g., top, bottom, jacket, accessories, etc.)
+      - DESCRIBE each product's specific construction details, materials, colors, and design elements
+      - EXPLAIN how the products layer and coordinate together
+      - SPECIFY the proper fit and positioning of each product on the model
+      - ENSURE no product is overlooked or generically described
+      `
+          : "PRODUCT DETAIL COVERAGE (MANDATORY): Describe the garment's construction details. Keep this within the 512-token limit; prioritize the most visually verifiable details."
+      }
 
       ${fluxMaxGarmentTransformationDirectives}
 
@@ -1646,26 +1844,59 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
         clothingDescription += `, wearing ${productColor} colored clothing`;
       }
 
-      // Ana prompt oluştur - Fashion photography odaklı
-      let fallbackPrompt = `Replace the flat-lay garment from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
+      // Ana prompt oluştur - Fashion photography odaklı (çoklu ürün desteği ile)
+      let fallbackPrompt = `Replace the ${
+        isMultipleProducts
+          ? "multiple flat-lay garments/products"
+          : "flat-lay garment"
+      } from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
 
       // Fashion photography ve kalite gereksinimleri
-      fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve the original garment exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show the identical garment perfectly fitted on the dynamic model for high-end fashion shoots. `;
+      fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve ${
+        isMultipleProducts
+          ? "ALL original garments/products"
+          : "the original garment"
+      } exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show ${
+        isMultipleProducts
+          ? "ALL identical garments/products perfectly fitted and coordinated"
+          : "the identical garment perfectly fitted"
+      } on the dynamic model for high-end fashion shoots. `;
 
       // Kıyafet özellikleri (genel)
-      fallbackPrompt += `The garment features high-quality fabric with proper texture, stitching, and construction details. `;
+      fallbackPrompt += `${
+        isMultipleProducts ? "Each garment/product" : "The garment"
+      } features high-quality fabric with proper texture, stitching, and construction details. `;
+
+      // Çoklu ürün için ek koordinasyon talimatları
+      if (isMultipleProducts) {
+        fallbackPrompt += `Ensure ALL products work together as a coordinated ensemble, maintaining proper layering, fit, and visual harmony between all items. `;
+      }
 
       // Temizlik gereksinimleri - güvenli versiyon
-      fallbackPrompt += `Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed. Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
+      fallbackPrompt += `Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed. Transform the ${
+        isMultipleProducts ? "flat-lay garments/products" : "flat-lay garment"
+      } into hyper-realistic, three-dimensional worn ${
+        isMultipleProducts ? "garments/products" : "garment"
+      } on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
 
       // Fizik gereksinimleri
-      fallbackPrompt += `Ensure realistic fabric physics: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
+      fallbackPrompt += `Ensure realistic fabric physics for ${
+        isMultipleProducts ? "ALL garments/products" : "the garment"
+      }: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
 
       // Detay koruma - güvenli versiyon
-      fallbackPrompt += `Preserve all original garment details including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning the original garment. `;
+      fallbackPrompt += `Preserve all original details of ${
+        isMultipleProducts ? "EACH garment/product" : "the garment"
+      } including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning ${
+        isMultipleProducts
+          ? "any of the original garments/products"
+          : "the original garment"
+      }. `;
 
       // Pattern entegrasyonu
-      fallbackPrompt += `Integrate prints/patterns correctly over the 3D form: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
+      fallbackPrompt += `Integrate prints/patterns correctly over the 3D form for ${
+        isMultipleProducts ? "ALL products" : "the garment"
+      }: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
 
       // Final kalite - Fashion photography standartları
       fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
@@ -1824,26 +2055,59 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       clothingDescription += `, wearing ${productColor} colored clothing`;
     }
 
-    // Ana prompt oluştur
-    let fallbackPrompt = `Replace the flat-lay garment from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
+    // Ana prompt oluştur (çoklu ürün desteği ile)
+    let fallbackPrompt = `Replace the ${
+      isMultipleProducts
+        ? "multiple flat-lay garments/products"
+        : "flat-lay garment"
+    } from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
 
     // Fashion photography ve kalite gereksinimleri
-    fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve the original garment exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show the identical garment perfectly fitted on the dynamic model for high-end fashion shoots. `;
+    fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve ${
+      isMultipleProducts
+        ? "ALL original garments/products"
+        : "the original garment"
+    } exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show ${
+      isMultipleProducts
+        ? "ALL identical garments/products perfectly fitted and coordinated"
+        : "the identical garment perfectly fitted"
+    } on the dynamic model for high-end fashion shoots. `;
 
     // Kıyafet özellikleri (genel)
-    fallbackPrompt += `The garment features high-quality fabric with proper texture, stitching, and construction details. `;
+    fallbackPrompt += `${
+      isMultipleProducts ? "Each garment/product" : "The garment"
+    } features high-quality fabric with proper texture, stitching, and construction details. `;
+
+    // Çoklu ürün için ek koordinasyon talimatları
+    if (isMultipleProducts) {
+      fallbackPrompt += `Ensure ALL products work together as a coordinated ensemble, maintaining proper layering, fit, and visual harmony between all items. `;
+    }
 
     // Temizlik gereksinimleri - güvenli versiyon
-    fallbackPrompt += `Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed. Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
+    fallbackPrompt += `Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed. Transform the ${
+      isMultipleProducts ? "flat-lay garments/products" : "flat-lay garment"
+    } into hyper-realistic, three-dimensional worn ${
+      isMultipleProducts ? "garments/products" : "garment"
+    } on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
 
     // Fizik gereksinimleri
-    fallbackPrompt += `Ensure realistic fabric physics: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
+    fallbackPrompt += `Ensure realistic fabric physics for ${
+      isMultipleProducts ? "ALL garments/products" : "the garment"
+    }: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
 
     // Detay koruma - güvenli versiyon
-    fallbackPrompt += `Preserve all original garment details including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning the original garment. `;
+    fallbackPrompt += `Preserve all original details of ${
+      isMultipleProducts ? "EACH garment/product" : "the garment"
+    } including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning ${
+      isMultipleProducts
+        ? "any of the original garments/products"
+        : "the original garment"
+    }. `;
 
     // Pattern entegrasyonu
-    fallbackPrompt += `Integrate prints/patterns correctly over the 3D form: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
+    fallbackPrompt += `Integrate prints/patterns correctly over the 3D form for ${
+      isMultipleProducts ? "ALL products" : "the garment"
+    }: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
 
     // Final kalite - Fashion photography standartları
     fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
@@ -2319,7 +2583,7 @@ async function combineImagesOnCanvas(
         `🛍️ [GRID] Grid düzeni: ${gridLayoutInfo.cols}x${gridLayoutInfo.rows}, hücre boyutu: ${cellSize}px`
       );
     } else {
-      // Normal mod - aspect ratio'ya göre boyutlandır
+      // Normal mod - aspect ratio'ya göre dinamik boyutlandır
       // NaN kontrolü ekle
       if (isNaN(targetAspectRatio) || targetAspectRatio <= 0) {
         console.log(
@@ -2328,14 +2592,22 @@ async function combineImagesOnCanvas(
         targetAspectRatio = 9 / 16;
       }
 
+      // 🎯 YENİ MANTIK: Ratio'ya göre akıllı canvas boyutlandırma
       if (targetAspectRatio > 1) {
-        // Yatay format (16:9, 4:3 gibi)
-        targetCanvasWidth = 1536; // Yüksek kalite
+        // Yatay format (16:9, 4:3 gibi) - Yatay boyut öncelikli
+        targetCanvasWidth = 2048; // Daha yüksek kalite için artırıldı
         targetCanvasHeight = Math.round(targetCanvasWidth / targetAspectRatio);
-      } else {
-        // Dikey format (9:16, 3:4 gibi) veya kare (1:1)
-        targetCanvasHeight = 1536; // Yüksek kalite
+        console.log("📐 Yatay format tespit edildi - Yatay boyut öncelikli");
+      } else if (targetAspectRatio < 1) {
+        // Dikey format (9:16, 3:4 gibi) - Dikey boyut öncelikli
+        targetCanvasHeight = 2048; // Daha yüksek kalite için artırıldı
         targetCanvasWidth = Math.round(targetCanvasHeight * targetAspectRatio);
+        console.log("📐 Dikey format tespit edildi - Dikey boyut öncelikli");
+      } else {
+        // Kare format (1:1) - Her iki boyut da eşit
+        targetCanvasWidth = 2048;
+        targetCanvasHeight = 2048;
+        console.log("📐 Kare format tespit edildi - Her iki boyut eşit");
       }
 
       // Minimum boyut garantisi ve NaN kontrolü
@@ -2343,6 +2615,10 @@ async function combineImagesOnCanvas(
         targetCanvasWidth = 1024;
       if (isNaN(targetCanvasHeight) || targetCanvasHeight < 1024)
         targetCanvasHeight = 1024;
+
+      console.log(
+        `📐 Ratio ${aspectRatio} için canvas boyutu: ${targetCanvasWidth}x${targetCanvasHeight}`
+      );
     }
 
     console.log(
@@ -2537,31 +2813,45 @@ async function combineImagesOnCanvas(
           }: Grid pozisyon (${col}, ${row}) - Canvas pozisyon (${cellX}, ${cellY})`
         );
 
-        // Resmi kare hücre içerisine sığdır (aspect ratio koruyarak, hücreyi tam kaplar)
+        // Resmi kare hücre içerisine sığdır (aspect ratio koruyarak, kesmeden)
         const imgAspectRatio = img.width / img.height;
         let drawWidth, drawHeight, drawX, drawY;
 
         if (imgAspectRatio > 1) {
-          // Yatay resim - yüksekliği hücre boyutuna eşitle, genişliği orantılı yap
-          drawHeight = cellSize;
-          drawWidth = cellSize * imgAspectRatio;
-          drawX = cellX - (drawWidth - cellSize) / 2; // Ortala
-          drawY = cellY;
+          // Yatay resim - hücreye sığdır, kesme yapma
+          if (imgAspectRatio > 1.5) {
+            // Çok geniş resim - hücrenin tamamını kapla
+            drawWidth = cellSize;
+            drawHeight = cellSize / imgAspectRatio;
+            drawX = cellX;
+            drawY = cellY + (cellSize - drawHeight) / 2; // Ortala
+          } else {
+            // Normal yatay resim - hücrenin tamamını kapla
+            drawWidth = cellSize;
+            drawHeight = cellSize / imgAspectRatio;
+            drawX = cellX;
+            drawY = cellY + (cellSize - drawHeight) / 2; // Ortala
+          }
         } else {
-          // Dikey resim - genişliği hücre boyutuna eşitle, yüksekliği orantılı yap
-          drawWidth = cellSize;
-          drawHeight = cellSize / imgAspectRatio;
-          drawX = cellX;
-          drawY = cellY - (drawHeight - cellSize) / 2; // Ortala
+          // Dikey resim - hücreye sığdır, kesme yapma
+          if (imgAspectRatio < 0.7) {
+            // Çok uzun resim - hücrenin tamamını kapla
+            drawHeight = cellSize;
+            drawWidth = cellSize * imgAspectRatio;
+            drawX = cellX + (cellSize - drawWidth) / 2; // Ortala
+            drawY = cellY;
+          } else {
+            // Normal dikey resim - hücrenin tamamını kapla
+            drawHeight = cellSize;
+            drawWidth = cellSize * imgAspectRatio;
+            drawX = cellX + (cellSize - drawWidth) / 2; // Ortala
+            drawY = cellY;
+          }
         }
 
-        // Hücre sınırları içinde kalması için clipping
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(cellX, cellY, cellSize, cellSize);
-        ctx.clip();
-
+        // 🚫 CLIPPING KALDIRILDI - Resimler kesilmiyor
         // Yüksek kaliteli çizim
+        ctx.save();
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = "high";
         ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
@@ -2576,50 +2866,131 @@ async function combineImagesOnCanvas(
         );
       }
     } else if (isMultipleProducts) {
-      // Eski çoklu ürün modu: Yan yana birleştir - canvas boyutuna sığdır (fallback)
-      console.log("🛍️ Çoklu ürün modu: Resimler yan yana birleştirilecek");
+      // 🎯 YENİ ÇOKLU ÜRÜN MODU: Ratio'ya göre akıllı yerleştirme
+      console.log(
+        "🛍️ Çoklu ürün modu: Ratio'ya göre akıllı yerleştirme yapılıyor"
+      );
+      console.log(
+        `📐 Canvas boyutu: ${canvasWidth}x${canvasHeight}, Ratio: ${aspectRatio}`
+      );
 
-      const itemWidth = canvasWidth / loadedImages.length;
-      const itemHeight = canvasHeight;
+      // Ratio'ya göre yerleştirme stratejisi belirle
+      if (targetAspectRatio > 1) {
+        // Yatay format (16:9, 4:3 gibi) - Resimleri yan yana yerleştir
+        console.log("🔄 Yatay format: Resimler yan yana yerleştirilecek");
 
-      for (let i = 0; i < loadedImages.length; i++) {
-        const img = loadedImages[i];
-        const x = i * itemWidth;
+        const itemWidth = canvasWidth / loadedImages.length;
+        const itemHeight = canvasHeight;
 
-        // Resmi canvas alanına sığdır (aspect ratio koruyarak)
-        const imgAspectRatio = img.width / img.height;
-        const itemAspectRatio = itemWidth / itemHeight;
+        console.log(`🔍 DEBUG - Yatay format:`, {
+          canvasWidth,
+          canvasHeight,
+          imageCount: loadedImages.length,
+          itemWidth,
+          itemHeight,
+          targetAspectRatio,
+        });
 
-        let drawWidth, drawHeight, drawX, drawY;
+        for (let i = 0; i < loadedImages.length; i++) {
+          const img = loadedImages[i];
+          const x = i * itemWidth;
 
-        if (imgAspectRatio > itemAspectRatio) {
-          // Resim daha geniş - genişliğe göre sığdır
-          drawWidth = itemWidth;
-          drawHeight = itemWidth / imgAspectRatio;
-          drawX = x;
-          drawY = (itemHeight - drawHeight) / 2;
-        } else {
-          // Resim daha uzun - yüksekliğe göre sığdır
-          drawHeight = itemHeight;
-          drawWidth = itemHeight * imgAspectRatio;
-          drawX = x + (itemWidth - drawWidth) / 2;
-          drawY = 0;
+          // Resmi canvas alanına sığdır (aspect ratio koruyarak, kaliteyi maksimize et)
+          const imgAspectRatio = img.width / img.height;
+          const itemAspectRatio = itemWidth / itemHeight;
+
+          let drawWidth, drawHeight, drawX, drawY;
+
+          if (imgAspectRatio > itemAspectRatio) {
+            // Resim daha geniş - hücreye sığdır, kesme yapma
+            drawWidth = itemWidth;
+            drawHeight = itemWidth / imgAspectRatio;
+            drawX = x;
+            drawY = (itemHeight - drawHeight) / 2; // Ortala
+          } else {
+            // Resim daha uzun - hücreye sığdır, kesme yapma
+            drawHeight = itemHeight;
+            drawWidth = itemHeight * imgAspectRatio;
+            drawX = x + (itemWidth - drawWidth) / 2; // Ortala
+            drawY = 0;
+          }
+
+          // Yüksek kaliteli çizim - çoklu ürün modu
+          ctx.save();
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+          ctx.restore();
+
+          console.log(`🖼️ Resim ${i + 1} (Yatay) çizildi:`, {
+            position: `x: ${drawX.toFixed(1)}, y: ${drawY.toFixed(1)}`,
+            size: `${drawWidth.toFixed(1)}x${drawHeight.toFixed(1)}`,
+            originalSize: `${img.width}x${img.height}`,
+            imgAspectRatio: imgAspectRatio.toFixed(2),
+            itemBounds: `x: ${x}-${(x + itemWidth).toFixed(
+              1
+            )}, y: 0-${itemHeight}`,
+            assignedSlot: `slot ${i + 1}/${loadedImages.length}`,
+          });
         }
+      } else {
+        // Dikey format (9:16, 3:4 gibi) - Resimleri alt alta yerleştir
+        console.log("🔄 Dikey format: Resimler alt alta yerleştirilecek");
 
-        // Yüksek kaliteli çizim - çoklu ürün modu
-        ctx.save();
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = "high";
-        ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
-        ctx.restore();
+        const itemHeight = canvasHeight / loadedImages.length;
+        const itemWidth = canvasWidth;
 
-        console.log(
-          `🖼️ Ürün ${i + 1} yüksek kaliteyle yerleştirildi: (${drawX.toFixed(
-            1
-          )}, ${drawY.toFixed(1)}) - ${drawWidth.toFixed(
-            1
-          )}x${drawHeight.toFixed(1)}`
-        );
+        console.log(`🔍 DEBUG - Dikey format:`, {
+          canvasWidth,
+          canvasHeight,
+          imageCount: loadedImages.length,
+          itemWidth,
+          itemHeight,
+          targetAspectRatio,
+        });
+
+        for (let i = 0; i < loadedImages.length; i++) {
+          const img = loadedImages[i];
+          const y = i * itemHeight;
+
+          // Resmi canvas alanına sığdır (aspect ratio koruyarak, kaliteyi maksimize et)
+          const imgAspectRatio = img.width / img.height;
+          const itemAspectRatio = itemWidth / itemHeight;
+
+          let drawWidth, drawHeight, drawX, drawY;
+
+          if (imgAspectRatio > itemAspectRatio) {
+            // Resim daha geniş - hücreye sığdır, kesme yapma
+            drawWidth = itemWidth;
+            drawHeight = itemWidth / imgAspectRatio;
+            drawX = 0;
+            drawY = y + (itemHeight - drawHeight) / 2; // Ortala
+          } else {
+            // Resim daha uzun - hücreye sığdır, kesme yapma
+            drawHeight = itemHeight;
+            drawWidth = itemHeight * imgAspectRatio;
+            drawX = (itemWidth - drawWidth) / 2; // Ortala
+            drawY = y;
+          }
+
+          // Yüksek kaliteli çizim - çoklu ürün modu
+          ctx.save();
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+          ctx.restore();
+
+          console.log(`🖼️ Resim ${i + 1} (Dikey) çizildi:`, {
+            position: `x: ${drawX.toFixed(1)}, y: ${drawY.toFixed(1)}`,
+            size: `${drawWidth.toFixed(1)}x${drawHeight.toFixed(1)}`,
+            originalSize: `${img.width}x${img.height}`,
+            imgAspectRatio: imgAspectRatio.toFixed(2),
+            itemBounds: `x: 0-${itemWidth}, y: ${y}-${(y + itemHeight).toFixed(
+              1
+            )}`,
+            assignedSlot: `slot ${i + 1}/${loadedImages.length}`,
+          });
+        }
       }
     } else {
       // Tek resim modu: Canvas ortasına yerleştir - aspect ratio koruyarak
@@ -2665,56 +3036,139 @@ async function combineImagesOnCanvas(
           `   📐 Hedef canvas: ${canvasWidth}x${canvasHeight} (${aspectRatio})`
         );
       } else {
-        // Çoklu resim alt alta (eski mantık) - ancak canvas boyutuna sığdır
-        console.log("📚 Çoklu resim modu: Resimler alt alta birleştirilecek");
+        // 🎯 YENİ ÇOKLU RESİM MODU: Ratio'ya göre akıllı yerleştirme
+        console.log(
+          "📚 Çoklu resim modu: Ratio'ya göre akıllı yerleştirme yapılıyor"
+        );
+        console.log(
+          `📐 Canvas boyutu: ${canvasWidth}x${canvasHeight}, Ratio: ${aspectRatio}`
+        );
 
-        const itemHeight = canvasHeight / loadedImages.length;
+        // Ratio'ya göre yerleştirme stratejisi belirle
+        if (targetAspectRatio > 1) {
+          // Yatay format - Resimleri yan yana yerleştir
+          console.log("🔄 Yatay format: Resimler yan yana yerleştirilecek");
 
-        for (let i = 0; i < loadedImages.length; i++) {
-          const img = loadedImages[i];
-          const y = i * itemHeight;
+          const itemWidth = canvasWidth / loadedImages.length;
+          const itemHeight = canvasHeight;
 
-          // Resmi canvas alanına sığdır (aspect ratio koruyarak)
-          const imgAspectRatio = img.width / img.height;
-          const itemAspectRatio = canvasWidth / itemHeight;
+          console.log(`🔍 DEBUG - Yatay format (v2):`, {
+            canvasWidth,
+            canvasHeight,
+            imageCount: loadedImages.length,
+            itemWidth,
+            itemHeight,
+            targetAspectRatio,
+          });
 
-          let drawWidth, drawHeight, drawX, drawY;
+          for (let i = 0; i < loadedImages.length; i++) {
+            const img = loadedImages[i];
+            const x = i * itemWidth;
 
-          if (imgAspectRatio > itemAspectRatio) {
-            // Resim daha geniş - genişliğe göre sığdır
-            drawWidth = canvasWidth;
-            drawHeight = canvasWidth / imgAspectRatio;
-            drawX = 0;
-            drawY = y + (itemHeight - drawHeight) / 2;
-          } else {
-            // Resim daha uzun - yüksekliğe göre sığdır
-            drawHeight = itemHeight;
-            drawWidth = itemHeight * imgAspectRatio;
-            drawX = (canvasWidth - drawWidth) / 2;
-            drawY = y;
+            // Resmi canvas alanına sığdır (aspect ratio koruyarak, kaliteyi maksimize et)
+            const imgAspectRatio = img.width / img.height;
+            const itemAspectRatio = itemWidth / itemHeight;
+
+            let drawWidth, drawHeight, drawX, drawY;
+
+            if (imgAspectRatio > itemAspectRatio) {
+              // Resim daha geniş - hücreye sığdır, kesme yapma
+              drawWidth = itemWidth;
+              drawHeight = itemWidth / imgAspectRatio;
+              drawX = x;
+              drawY = (itemHeight - drawHeight) / 2; // Ortala
+            } else {
+              // Resim daha uzun - hücreye sığdır, kesme yapma
+              drawHeight = itemHeight;
+              drawWidth = itemHeight * imgAspectRatio;
+              drawX = x + (itemWidth - drawWidth) / 2; // Ortala
+              drawY = 0;
+            }
+
+            // Yüksek kaliteli çizim
+            ctx.save();
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+            ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+            ctx.restore();
+
+            console.log(`🖼️ Resim ${i + 1} (Yatay v2) çizildi:`, {
+              position: `x: ${drawX.toFixed(1)}, y: ${drawY.toFixed(1)}`,
+              size: `${drawWidth.toFixed(1)}x${drawHeight.toFixed(1)}`,
+              originalSize: `${img.width}x${img.height}`,
+              imgAspectRatio: imgAspectRatio.toFixed(2),
+              itemBounds: `x: ${x}-${(x + itemWidth).toFixed(
+                1
+              )}, y: 0-${itemHeight}`,
+              assignedSlot: `slot ${i + 1}/${loadedImages.length}`,
+            });
           }
+        } else {
+          // Dikey format - Resimleri alt alta yerleştir
+          console.log("🔄 Dikey format: Resimler alt alta yerleştirilecek");
 
-          // Yüksek kaliteli çizim
-          ctx.save();
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = "high";
-          ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
-          ctx.restore();
+          const itemHeight = canvasHeight / loadedImages.length;
+          const itemWidth = canvasWidth;
 
-          console.log(
-            `🖼️ Resim ${i + 1} yerleştirildi: (${drawX.toFixed(
-              1
-            )}, ${drawY.toFixed(1)}) - ${drawWidth.toFixed(
-              1
-            )}x${drawHeight.toFixed(1)}`
-          );
+          console.log(`🔍 DEBUG - Dikey format (v2):`, {
+            canvasWidth,
+            canvasHeight,
+            imageCount: loadedImages.length,
+            itemWidth,
+            itemHeight,
+            targetAspectRatio,
+          });
+
+          for (let i = 0; i < loadedImages.length; i++) {
+            const img = loadedImages[i];
+            const y = i * itemHeight;
+
+            // Resmi canvas alanına sığdır (aspect ratio koruyarak, kaliteyi maksimize et)
+            const imgAspectRatio = img.width / img.height;
+            const itemAspectRatio = itemWidth / itemHeight;
+
+            let drawWidth, drawHeight, drawX, drawY;
+
+            if (imgAspectRatio > itemAspectRatio) {
+              // Resim daha geniş - hücreye sığdır, kesme yapma
+              drawWidth = itemWidth;
+              drawHeight = itemWidth / imgAspectRatio;
+              drawX = 0;
+              drawY = y + (itemHeight - drawHeight) / 2; // Ortala
+            } else {
+              // Resim daha uzun - hücreye sığdır, kesme yapma
+              drawHeight = itemHeight;
+              drawWidth = itemHeight * imgAspectRatio;
+              drawX = (itemWidth - drawWidth) / 2; // Ortala
+              drawY = y;
+            }
+
+            // Yüksek kaliteli çizim
+            ctx.save();
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+            ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+            ctx.restore();
+
+            console.log(`🖼️ Resim ${i + 1} (Dikey v2) çizildi:`, {
+              position: `x: ${drawX.toFixed(1)}, y: ${drawY.toFixed(1)}`,
+              size: `${drawWidth.toFixed(1)}x${drawHeight.toFixed(1)}`,
+              originalSize: `${img.width}x${img.height}`,
+              imgAspectRatio: imgAspectRatio.toFixed(2),
+              itemBounds: `x: 0-${itemWidth}, y: ${y}-${(
+                y + itemHeight
+              ).toFixed(1)}`,
+              assignedSlot: `slot ${i + 1}/${loadedImages.length}`,
+            });
+          }
         }
       }
     }
 
-    // Canvas'ı yüksek kalitede buffer'a çevir
-    const buffer = canvas.toBuffer("image/jpeg", { quality: 0.9 }); // Kalite artırıldı
+    // Canvas'ı maksimum kalitede buffer'a çevir
+    const buffer = canvas.toBuffer("image/png"); // PNG formatı - kayıpsız kalite
     console.log("📊 Birleştirilmiş resim boyutu:", buffer.length, "bytes");
+    console.log("🎯 PNG formatı kullanıldı - kayıpsız kalite korundu");
 
     // Supabase'e yükle (otomatik temizleme için timestamp prefix)
     const timestamp = Date.now();
@@ -2726,7 +3180,7 @@ async function combineImagesOnCanvas(
     const { data, error } = await supabase.storage
       .from("reference")
       .upload(fileName, buffer, {
-        contentType: "image/jpeg",
+        contentType: "image/png",
         cacheControl: "3600",
         upsert: false,
       });
@@ -2772,7 +3226,7 @@ router.post("/generate", async (req, res) => {
       poseImage,
       hairStyleImage,
       isMultipleImages,
-      isMultipleProducts,
+      isMultipleProducts: originalIsMultipleProducts,
       generationId, // Yeni parametre
       totalGenerations = 1, // Toplam generation sayısı (varsayılan 1)
       // Color change specific parameters
@@ -2787,6 +3241,9 @@ router.post("/generate", async (req, res) => {
       // Session deduplication
       sessionId = null, // Aynı batch request'leri tanımlıyor
     } = req.body;
+
+    // isMultipleProducts'ı değiştirilebilir hale getir (kombin modu için)
+    let isMultipleProducts = originalIsMultipleProducts;
 
     // userId'yi scope için ata
     userId = requestUserId;
@@ -3101,19 +3558,31 @@ router.post("/generate", async (req, res) => {
         console.log("🛍️ [BACKEND] Grid layout bilgisi bulunamadı, normal mod");
       }
 
-      if (isKombinMode && gridLayoutInfo) {
-        // 🛍️ KOMBİN MODU: Grid layout'u canvas'ta birleştir
-        console.log("🛍️ [BACKEND] Kombin modu - Grid canvas oluşturuluyor...");
+      if (isKombinMode) {
+        // 🛍️ KOMBİN MODU: Grid layout'u canvas'ta birleştir veya normal çoklu resim birleştir
+        console.log("🛍️ [BACKEND] Kombin modu - Canvas oluşturuluyor...");
+        console.log(
+          "🛍️ [BACKEND] Grid layout bilgisi:",
+          gridLayoutInfo ? "Mevcut" : "Yok - normal birleştirme kullanılacak"
+        );
 
         finalImage = await combineImagesOnCanvas(
           referenceImages,
           userId,
-          false, // isMultipleProducts = false (kombin tek resim olarak işlenecek)
-          "1:1", // Kombin için kare format
-          gridLayoutInfo // Grid layout bilgisini geç
+          true, // isMultipleProducts = true (kombin çoklu ürün modudur)
+          gridLayoutInfo ? "1:1" : ratio, // Grid varsa kare, yoksa orijinal ratio
+          gridLayoutInfo // Grid layout bilgisini geç (null olabilir)
         );
 
-        console.log("🛍️ [BACKEND] Kombin grid canvas oluşturuldu:", finalImage);
+        console.log("🛍️ [BACKEND] Kombin canvas oluşturuldu:", finalImage);
+
+        // Kombin modunda MUTLAKA isMultipleProducts'ı true yap ki Gemini doğru prompt oluştursun
+        console.log(
+          "🛍️ [BACKEND] Kombin modu için isMultipleProducts değeri:",
+          `${originalIsMultipleProducts} → true`
+        );
+        // Bu değişkeni lokal olarak override et
+        isMultipleProducts = true;
       } else {
         // Normal çoklu resim modu
         finalImage = await combineImagesOnCanvas(
@@ -3213,14 +3682,27 @@ router.post("/generate", async (req, res) => {
         );
 
         // Poz değiştirme modunda Gemini ile prompt oluştur
+        console.log(
+          "🤖 [GEMINI CALL - POSE] enhancePromptWithGemini parametreleri:"
+        );
+        console.log("🤖 [GEMINI CALL - POSE] - finalImage URL:", finalImage);
+        console.log(
+          "🤖 [GEMINI CALL - POSE] - isMultipleProducts:",
+          isMultipleProducts
+        );
+        console.log(
+          "🤖 [GEMINI CALL - POSE] - referenceImages sayısı:",
+          referenceImages?.length || 0
+        );
+
         enhancedPrompt = await enhancePromptWithGemini(
           promptText,
-          finalImage, // isPoseChange modunda finalImage kullan (backgroundRemovedImage henüz yok)
+          finalImage, // isPoseChange modunda finalImage kullan (kombin modunda birleştirilmiş grid)
           settings || {},
           locationImage,
           poseImage,
           hairStyleImage,
-          isMultipleProducts,
+          isMultipleProducts, // Kombin modunda true olmalı
           false, // hasControlNet
           false, // isColorChange
           null, // targetColor
@@ -3238,14 +3720,22 @@ router.post("/generate", async (req, res) => {
     } else {
       // 🖼️ NORMAL MODE - Arkaplan silme işlemi (paralel)
       // Gemini prompt üretimini paralelde başlat
+      console.log("🤖 [GEMINI CALL] enhancePromptWithGemini parametreleri:");
+      console.log("🤖 [GEMINI CALL] - finalImage URL:", finalImage);
+      console.log("🤖 [GEMINI CALL] - isMultipleProducts:", isMultipleProducts);
+      console.log(
+        "🤖 [GEMINI CALL] - referenceImages sayısı:",
+        referenceImages?.length || 0
+      );
+
       const geminiPromise = enhancePromptWithGemini(
         promptText,
-        finalImage, // Ham orijinal resim
+        finalImage, // Ham orijinal resim (kombin modunda birleştirilmiş grid)
         settings || {},
         locationImage,
         poseImage,
         hairStyleImage,
-        isMultipleProducts,
+        isMultipleProducts, // Kombin modunda true olmalı
         false, // ControlNet yok, ham resim
         isColorChange, // Renk değiştirme işlemi mi?
         targetColor, // Hedef renk bilgisi

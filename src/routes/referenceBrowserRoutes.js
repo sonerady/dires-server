@@ -1125,7 +1125,6 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
     // Flux Max için genel garment transform talimatları (güvenli flag-safe versiyon)
     const fluxMaxGarmentTransformationDirectives = `
     GARMENT TRANSFORMATION REQUIREMENTS:
-    - Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed from the input garment. Avoid rendering any mannequin remains or unintended background elements.
     - Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance.
     - Ensure realistic fabric physics with natural drape, weight, tension, compression, and subtle folds along shoulders, chest/bust, torso, and sleeves. Maintain a clean commercial presentation with minimal distracting wrinkles.
     - Preserve all original garment details including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning the original garment.
@@ -2584,7 +2583,7 @@ async function combineImagesOnCanvas(
         `🛍️ [GRID] Grid düzeni: ${gridLayoutInfo.cols}x${gridLayoutInfo.rows}, hücre boyutu: ${cellSize}px`
       );
     } else {
-      // Normal mod - aspect ratio'ya göre boyutlandır
+      // Normal mod - aspect ratio'ya göre dinamik boyutlandır
       // NaN kontrolü ekle
       if (isNaN(targetAspectRatio) || targetAspectRatio <= 0) {
         console.log(
@@ -2593,14 +2592,22 @@ async function combineImagesOnCanvas(
         targetAspectRatio = 9 / 16;
       }
 
+      // 🎯 YENİ MANTIK: Ratio'ya göre akıllı canvas boyutlandırma
       if (targetAspectRatio > 1) {
-        // Yatay format (16:9, 4:3 gibi)
-        targetCanvasWidth = 1536; // Yüksek kalite
+        // Yatay format (16:9, 4:3 gibi) - Yatay boyut öncelikli
+        targetCanvasWidth = 2048; // Daha yüksek kalite için artırıldı
         targetCanvasHeight = Math.round(targetCanvasWidth / targetAspectRatio);
-      } else {
-        // Dikey format (9:16, 3:4 gibi) veya kare (1:1)
-        targetCanvasHeight = 1536; // Yüksek kalite
+        console.log("📐 Yatay format tespit edildi - Yatay boyut öncelikli");
+      } else if (targetAspectRatio < 1) {
+        // Dikey format (9:16, 3:4 gibi) - Dikey boyut öncelikli
+        targetCanvasHeight = 2048; // Daha yüksek kalite için artırıldı
         targetCanvasWidth = Math.round(targetCanvasHeight * targetAspectRatio);
+        console.log("📐 Dikey format tespit edildi - Dikey boyut öncelikli");
+      } else {
+        // Kare format (1:1) - Her iki boyut da eşit
+        targetCanvasWidth = 2048;
+        targetCanvasHeight = 2048;
+        console.log("📐 Kare format tespit edildi - Her iki boyut eşit");
       }
 
       // Minimum boyut garantisi ve NaN kontrolü
@@ -2608,6 +2615,10 @@ async function combineImagesOnCanvas(
         targetCanvasWidth = 1024;
       if (isNaN(targetCanvasHeight) || targetCanvasHeight < 1024)
         targetCanvasHeight = 1024;
+
+      console.log(
+        `📐 Ratio ${aspectRatio} için canvas boyutu: ${targetCanvasWidth}x${targetCanvasHeight}`
+      );
     }
 
     console.log(
@@ -2802,31 +2813,45 @@ async function combineImagesOnCanvas(
           }: Grid pozisyon (${col}, ${row}) - Canvas pozisyon (${cellX}, ${cellY})`
         );
 
-        // Resmi kare hücre içerisine sığdır (aspect ratio koruyarak, hücreyi tam kaplar)
+        // Resmi kare hücre içerisine sığdır (aspect ratio koruyarak, kesmeden)
         const imgAspectRatio = img.width / img.height;
         let drawWidth, drawHeight, drawX, drawY;
 
         if (imgAspectRatio > 1) {
-          // Yatay resim - yüksekliği hücre boyutuna eşitle, genişliği orantılı yap
-          drawHeight = cellSize;
-          drawWidth = cellSize * imgAspectRatio;
-          drawX = cellX - (drawWidth - cellSize) / 2; // Ortala
-          drawY = cellY;
+          // Yatay resim - hücreye sığdır, kesme yapma
+          if (imgAspectRatio > 1.5) {
+            // Çok geniş resim - hücrenin tamamını kapla
+            drawWidth = cellSize;
+            drawHeight = cellSize / imgAspectRatio;
+            drawX = cellX;
+            drawY = cellY + (cellSize - drawHeight) / 2; // Ortala
+          } else {
+            // Normal yatay resim - hücrenin tamamını kapla
+            drawWidth = cellSize;
+            drawHeight = cellSize / imgAspectRatio;
+            drawX = cellX;
+            drawY = cellY + (cellSize - drawHeight) / 2; // Ortala
+          }
         } else {
-          // Dikey resim - genişliği hücre boyutuna eşitle, yüksekliği orantılı yap
-          drawWidth = cellSize;
-          drawHeight = cellSize / imgAspectRatio;
-          drawX = cellX;
-          drawY = cellY - (drawHeight - cellSize) / 2; // Ortala
+          // Dikey resim - hücreye sığdır, kesme yapma
+          if (imgAspectRatio < 0.7) {
+            // Çok uzun resim - hücrenin tamamını kapla
+            drawHeight = cellSize;
+            drawWidth = cellSize * imgAspectRatio;
+            drawX = cellX + (cellSize - drawWidth) / 2; // Ortala
+            drawY = cellY;
+          } else {
+            // Normal dikey resim - hücrenin tamamını kapla
+            drawHeight = cellSize;
+            drawWidth = cellSize * imgAspectRatio;
+            drawX = cellX + (cellSize - drawWidth) / 2; // Ortala
+            drawY = cellY;
+          }
         }
 
-        // Hücre sınırları içinde kalması için clipping
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(cellX, cellY, cellSize, cellSize);
-        ctx.clip();
-
+        // 🚫 CLIPPING KALDIRILDI - Resimler kesilmiyor
         // Yüksek kaliteli çizim
+        ctx.save();
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = "high";
         ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
@@ -2841,50 +2866,131 @@ async function combineImagesOnCanvas(
         );
       }
     } else if (isMultipleProducts) {
-      // Eski çoklu ürün modu: Yan yana birleştir - canvas boyutuna sığdır (fallback)
-      console.log("🛍️ Çoklu ürün modu: Resimler yan yana birleştirilecek");
+      // 🎯 YENİ ÇOKLU ÜRÜN MODU: Ratio'ya göre akıllı yerleştirme
+      console.log(
+        "🛍️ Çoklu ürün modu: Ratio'ya göre akıllı yerleştirme yapılıyor"
+      );
+      console.log(
+        `📐 Canvas boyutu: ${canvasWidth}x${canvasHeight}, Ratio: ${aspectRatio}`
+      );
 
-      const itemWidth = canvasWidth / loadedImages.length;
-      const itemHeight = canvasHeight;
+      // Ratio'ya göre yerleştirme stratejisi belirle
+      if (targetAspectRatio > 1) {
+        // Yatay format (16:9, 4:3 gibi) - Resimleri yan yana yerleştir
+        console.log("🔄 Yatay format: Resimler yan yana yerleştirilecek");
 
-      for (let i = 0; i < loadedImages.length; i++) {
-        const img = loadedImages[i];
-        const x = i * itemWidth;
+        const itemWidth = canvasWidth / loadedImages.length;
+        const itemHeight = canvasHeight;
 
-        // Resmi canvas alanına sığdır (aspect ratio koruyarak)
-        const imgAspectRatio = img.width / img.height;
-        const itemAspectRatio = itemWidth / itemHeight;
+        console.log(`🔍 DEBUG - Yatay format:`, {
+          canvasWidth,
+          canvasHeight,
+          imageCount: loadedImages.length,
+          itemWidth,
+          itemHeight,
+          targetAspectRatio,
+        });
 
-        let drawWidth, drawHeight, drawX, drawY;
+        for (let i = 0; i < loadedImages.length; i++) {
+          const img = loadedImages[i];
+          const x = i * itemWidth;
 
-        if (imgAspectRatio > itemAspectRatio) {
-          // Resim daha geniş - genişliğe göre sığdır
-          drawWidth = itemWidth;
-          drawHeight = itemWidth / imgAspectRatio;
-          drawX = x;
-          drawY = (itemHeight - drawHeight) / 2;
-        } else {
-          // Resim daha uzun - yüksekliğe göre sığdır
-          drawHeight = itemHeight;
-          drawWidth = itemHeight * imgAspectRatio;
-          drawX = x + (itemWidth - drawWidth) / 2;
-          drawY = 0;
+          // Resmi canvas alanına sığdır (aspect ratio koruyarak, kaliteyi maksimize et)
+          const imgAspectRatio = img.width / img.height;
+          const itemAspectRatio = itemWidth / itemHeight;
+
+          let drawWidth, drawHeight, drawX, drawY;
+
+          if (imgAspectRatio > itemAspectRatio) {
+            // Resim daha geniş - hücreye sığdır, kesme yapma
+            drawWidth = itemWidth;
+            drawHeight = itemWidth / imgAspectRatio;
+            drawX = x;
+            drawY = (itemHeight - drawHeight) / 2; // Ortala
+          } else {
+            // Resim daha uzun - hücreye sığdır, kesme yapma
+            drawHeight = itemHeight;
+            drawWidth = itemHeight * imgAspectRatio;
+            drawX = x + (itemWidth - drawWidth) / 2; // Ortala
+            drawY = 0;
+          }
+
+          // Yüksek kaliteli çizim - çoklu ürün modu
+          ctx.save();
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+          ctx.restore();
+
+          console.log(`🖼️ Resim ${i + 1} (Yatay) çizildi:`, {
+            position: `x: ${drawX.toFixed(1)}, y: ${drawY.toFixed(1)}`,
+            size: `${drawWidth.toFixed(1)}x${drawHeight.toFixed(1)}`,
+            originalSize: `${img.width}x${img.height}`,
+            imgAspectRatio: imgAspectRatio.toFixed(2),
+            itemBounds: `x: ${x}-${(x + itemWidth).toFixed(
+              1
+            )}, y: 0-${itemHeight}`,
+            assignedSlot: `slot ${i + 1}/${loadedImages.length}`,
+          });
         }
+      } else {
+        // Dikey format (9:16, 3:4 gibi) - Resimleri alt alta yerleştir
+        console.log("🔄 Dikey format: Resimler alt alta yerleştirilecek");
 
-        // Yüksek kaliteli çizim - çoklu ürün modu
-        ctx.save();
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = "high";
-        ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
-        ctx.restore();
+        const itemHeight = canvasHeight / loadedImages.length;
+        const itemWidth = canvasWidth;
 
-        console.log(
-          `🖼️ Ürün ${i + 1} yüksek kaliteyle yerleştirildi: (${drawX.toFixed(
-            1
-          )}, ${drawY.toFixed(1)}) - ${drawWidth.toFixed(
-            1
-          )}x${drawHeight.toFixed(1)}`
-        );
+        console.log(`🔍 DEBUG - Dikey format:`, {
+          canvasWidth,
+          canvasHeight,
+          imageCount: loadedImages.length,
+          itemWidth,
+          itemHeight,
+          targetAspectRatio,
+        });
+
+        for (let i = 0; i < loadedImages.length; i++) {
+          const img = loadedImages[i];
+          const y = i * itemHeight;
+
+          // Resmi canvas alanına sığdır (aspect ratio koruyarak, kaliteyi maksimize et)
+          const imgAspectRatio = img.width / img.height;
+          const itemAspectRatio = itemWidth / itemHeight;
+
+          let drawWidth, drawHeight, drawX, drawY;
+
+          if (imgAspectRatio > itemAspectRatio) {
+            // Resim daha geniş - hücreye sığdır, kesme yapma
+            drawWidth = itemWidth;
+            drawHeight = itemWidth / imgAspectRatio;
+            drawX = 0;
+            drawY = y + (itemHeight - drawHeight) / 2; // Ortala
+          } else {
+            // Resim daha uzun - hücreye sığdır, kesme yapma
+            drawHeight = itemHeight;
+            drawWidth = itemHeight * imgAspectRatio;
+            drawX = (itemWidth - drawWidth) / 2; // Ortala
+            drawY = y;
+          }
+
+          // Yüksek kaliteli çizim - çoklu ürün modu
+          ctx.save();
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+          ctx.restore();
+
+          console.log(`🖼️ Resim ${i + 1} (Dikey) çizildi:`, {
+            position: `x: ${drawX.toFixed(1)}, y: ${drawY.toFixed(1)}`,
+            size: `${drawWidth.toFixed(1)}x${drawHeight.toFixed(1)}`,
+            originalSize: `${img.width}x${img.height}`,
+            imgAspectRatio: imgAspectRatio.toFixed(2),
+            itemBounds: `x: 0-${itemWidth}, y: ${y}-${(y + itemHeight).toFixed(
+              1
+            )}`,
+            assignedSlot: `slot ${i + 1}/${loadedImages.length}`,
+          });
+        }
       }
     } else {
       // Tek resim modu: Canvas ortasına yerleştir - aspect ratio koruyarak
@@ -2930,56 +3036,139 @@ async function combineImagesOnCanvas(
           `   📐 Hedef canvas: ${canvasWidth}x${canvasHeight} (${aspectRatio})`
         );
       } else {
-        // Çoklu resim alt alta (eski mantık) - ancak canvas boyutuna sığdır
-        console.log("📚 Çoklu resim modu: Resimler alt alta birleştirilecek");
+        // 🎯 YENİ ÇOKLU RESİM MODU: Ratio'ya göre akıllı yerleştirme
+        console.log(
+          "📚 Çoklu resim modu: Ratio'ya göre akıllı yerleştirme yapılıyor"
+        );
+        console.log(
+          `📐 Canvas boyutu: ${canvasWidth}x${canvasHeight}, Ratio: ${aspectRatio}`
+        );
 
-        const itemHeight = canvasHeight / loadedImages.length;
+        // Ratio'ya göre yerleştirme stratejisi belirle
+        if (targetAspectRatio > 1) {
+          // Yatay format - Resimleri yan yana yerleştir
+          console.log("🔄 Yatay format: Resimler yan yana yerleştirilecek");
 
-        for (let i = 0; i < loadedImages.length; i++) {
-          const img = loadedImages[i];
-          const y = i * itemHeight;
+          const itemWidth = canvasWidth / loadedImages.length;
+          const itemHeight = canvasHeight;
 
-          // Resmi canvas alanına sığdır (aspect ratio koruyarak)
-          const imgAspectRatio = img.width / img.height;
-          const itemAspectRatio = canvasWidth / itemHeight;
+          console.log(`🔍 DEBUG - Yatay format (v2):`, {
+            canvasWidth,
+            canvasHeight,
+            imageCount: loadedImages.length,
+            itemWidth,
+            itemHeight,
+            targetAspectRatio,
+          });
 
-          let drawWidth, drawHeight, drawX, drawY;
+          for (let i = 0; i < loadedImages.length; i++) {
+            const img = loadedImages[i];
+            const x = i * itemWidth;
 
-          if (imgAspectRatio > itemAspectRatio) {
-            // Resim daha geniş - genişliğe göre sığdır
-            drawWidth = canvasWidth;
-            drawHeight = canvasWidth / imgAspectRatio;
-            drawX = 0;
-            drawY = y + (itemHeight - drawHeight) / 2;
-          } else {
-            // Resim daha uzun - yüksekliğe göre sığdır
-            drawHeight = itemHeight;
-            drawWidth = itemHeight * imgAspectRatio;
-            drawX = (canvasWidth - drawWidth) / 2;
-            drawY = y;
+            // Resmi canvas alanına sığdır (aspect ratio koruyarak, kaliteyi maksimize et)
+            const imgAspectRatio = img.width / img.height;
+            const itemAspectRatio = itemWidth / itemHeight;
+
+            let drawWidth, drawHeight, drawX, drawY;
+
+            if (imgAspectRatio > itemAspectRatio) {
+              // Resim daha geniş - hücreye sığdır, kesme yapma
+              drawWidth = itemWidth;
+              drawHeight = itemWidth / imgAspectRatio;
+              drawX = x;
+              drawY = (itemHeight - drawHeight) / 2; // Ortala
+            } else {
+              // Resim daha uzun - hücreye sığdır, kesme yapma
+              drawHeight = itemHeight;
+              drawWidth = itemHeight * imgAspectRatio;
+              drawX = x + (itemWidth - drawWidth) / 2; // Ortala
+              drawY = 0;
+            }
+
+            // Yüksek kaliteli çizim
+            ctx.save();
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+            ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+            ctx.restore();
+
+            console.log(`🖼️ Resim ${i + 1} (Yatay v2) çizildi:`, {
+              position: `x: ${drawX.toFixed(1)}, y: ${drawY.toFixed(1)}`,
+              size: `${drawWidth.toFixed(1)}x${drawHeight.toFixed(1)}`,
+              originalSize: `${img.width}x${img.height}`,
+              imgAspectRatio: imgAspectRatio.toFixed(2),
+              itemBounds: `x: ${x}-${(x + itemWidth).toFixed(
+                1
+              )}, y: 0-${itemHeight}`,
+              assignedSlot: `slot ${i + 1}/${loadedImages.length}`,
+            });
           }
+        } else {
+          // Dikey format - Resimleri alt alta yerleştir
+          console.log("🔄 Dikey format: Resimler alt alta yerleştirilecek");
 
-          // Yüksek kaliteli çizim
-          ctx.save();
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = "high";
-          ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
-          ctx.restore();
+          const itemHeight = canvasHeight / loadedImages.length;
+          const itemWidth = canvasWidth;
 
-          console.log(
-            `🖼️ Resim ${i + 1} yerleştirildi: (${drawX.toFixed(
-              1
-            )}, ${drawY.toFixed(1)}) - ${drawWidth.toFixed(
-              1
-            )}x${drawHeight.toFixed(1)}`
-          );
+          console.log(`🔍 DEBUG - Dikey format (v2):`, {
+            canvasWidth,
+            canvasHeight,
+            imageCount: loadedImages.length,
+            itemWidth,
+            itemHeight,
+            targetAspectRatio,
+          });
+
+          for (let i = 0; i < loadedImages.length; i++) {
+            const img = loadedImages[i];
+            const y = i * itemHeight;
+
+            // Resmi canvas alanına sığdır (aspect ratio koruyarak, kaliteyi maksimize et)
+            const imgAspectRatio = img.width / img.height;
+            const itemAspectRatio = itemWidth / itemHeight;
+
+            let drawWidth, drawHeight, drawX, drawY;
+
+            if (imgAspectRatio > itemAspectRatio) {
+              // Resim daha geniş - hücreye sığdır, kesme yapma
+              drawWidth = itemWidth;
+              drawHeight = itemWidth / imgAspectRatio;
+              drawX = 0;
+              drawY = y + (itemHeight - drawHeight) / 2; // Ortala
+            } else {
+              // Resim daha uzun - hücreye sığdır, kesme yapma
+              drawHeight = itemHeight;
+              drawWidth = itemHeight * imgAspectRatio;
+              drawX = (itemWidth - drawWidth) / 2; // Ortala
+              drawY = y;
+            }
+
+            // Yüksek kaliteli çizim
+            ctx.save();
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+            ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+            ctx.restore();
+
+            console.log(`🖼️ Resim ${i + 1} (Dikey v2) çizildi:`, {
+              position: `x: ${drawX.toFixed(1)}, y: ${drawY.toFixed(1)}`,
+              size: `${drawWidth.toFixed(1)}x${drawHeight.toFixed(1)}`,
+              originalSize: `${img.width}x${img.height}`,
+              imgAspectRatio: imgAspectRatio.toFixed(2),
+              itemBounds: `x: 0-${itemWidth}, y: ${y}-${(
+                y + itemHeight
+              ).toFixed(1)}`,
+              assignedSlot: `slot ${i + 1}/${loadedImages.length}`,
+            });
+          }
         }
       }
     }
 
-    // Canvas'ı yüksek kalitede buffer'a çevir
-    const buffer = canvas.toBuffer("image/jpeg", { quality: 0.9 }); // Kalite artırıldı
+    // Canvas'ı maksimum kalitede buffer'a çevir
+    const buffer = canvas.toBuffer("image/png"); // PNG formatı - kayıpsız kalite
     console.log("📊 Birleştirilmiş resim boyutu:", buffer.length, "bytes");
+    console.log("🎯 PNG formatı kullanıldı - kayıpsız kalite korundu");
 
     // Supabase'e yükle (otomatik temizleme için timestamp prefix)
     const timestamp = Date.now();
@@ -2991,7 +3180,7 @@ async function combineImagesOnCanvas(
     const { data, error } = await supabase.storage
       .from("reference")
       .upload(fileName, buffer, {
-        contentType: "image/jpeg",
+        contentType: "image/png",
         cacheControl: "3600",
         upsert: false,
       });
