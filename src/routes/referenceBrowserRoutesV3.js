@@ -748,13 +748,13 @@ async function enhancePromptWithGemini(
       modelGenderText = `${parsedAgeInt} year old ${ageGroupWord} ${genderWord}`;
       baseModelText = `${ageGroupWord} ${genderWord}`;
     } else {
-      // Yetişkin mantığı
+      // Yetişkin mantığı - güvenli flag-safe tanımlar
       if (genderLower === "male" || genderLower === "man") {
-        modelGenderText = "male model";
+        modelGenderText = "adult male model";
       } else if (genderLower === "female" || genderLower === "woman") {
-        modelGenderText = "female model";
+        modelGenderText = "adult female model with confident expression";
       } else {
-        modelGenderText = "female model"; // varsayılan
+        modelGenderText = "adult female model with confident expression"; // varsayılan
       }
       baseModelText = modelGenderText; // age'siz sürüm
 
@@ -762,8 +762,8 @@ async function enhancePromptWithGemini(
       if (age) {
         modelGenderText =
           genderLower === "male" || genderLower === "man"
-            ? `${age} male model`
-            : `${age} female model`;
+            ? `${age} year old adult male model`
+            : `${age} year old adult female model with confident expression`;
       }
     }
 
@@ -831,13 +831,18 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
             value !== undefined &&
             value !== "" &&
             key !== "measurements" &&
-            key !== "type" // Body measurements'ları hariç tut
+            key !== "type" &&
+            key !== "locationEnhancedPrompt" // Enhanced prompt'u settings text'inden hariç tut
         )
         .map(([key, value]) => `${key}: ${value}`)
         .join(", ");
 
       console.log("🎛️ [BACKEND GEMINI] Settings için prompt oluşturuluyor...");
       console.log("📝 [BACKEND GEMINI] Settings text:", settingsText);
+      console.log(
+        "🏞️ [BACKEND GEMINI] Location enhanced prompt:",
+        settings?.locationEnhancedPrompt
+      );
 
       settingsPromptSection = `
     User selected settings: ${settingsText}
@@ -850,13 +855,19 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
           value !== undefined &&
           value !== "" &&
           key !== "measurements" &&
-          key !== "type" // Body measurements'ları hariç tut
+          key !== "type" &&
+          key !== "locationEnhancedPrompt" // Enhanced prompt'u detay listesinden hariç tut
       )
       .map(
         ([key, value]) =>
           `- ${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
       )
-      .join("\n    ")}
+      .join("\n    ")}${
+        settings?.locationEnhancedPrompt &&
+        settings.locationEnhancedPrompt.trim()
+          ? `\n    \n    SPECIAL LOCATION DESCRIPTION:\n    User has provided a detailed location description: "${settings.locationEnhancedPrompt}"\n    IMPORTANT: Use this exact location description for the environment/background setting instead of a generic location name.`
+          : ""
+      }
     
     IMPORTANT: Please incorporate ALL user settings above into your description when appropriate.`;
     }
@@ -1106,22 +1117,22 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
     
     FACE DESCRIPTION GUIDELINE: Below is *one example* of a possible face description → "${faceDescriptor}". This is **only an example**; do NOT reuse it verbatim. Instead, create your own natural-sounding, age-appropriate face description for the ${baseModelText} so that each generation features a unique and photogenic look.`;
 
-    // Gemini'ye gönderilecek metin - Edit mode vs Color change vs Normal replace
+    // Gemini'ye gönderilecek metin - güvenli flag-safe versiyon
     const criticalDirectives = `
-    BRAND SAFETY: If the input image contains any brand names or logos (e.g., Nike, Adid<as, Prada, Gucci, Louis Vuitton, Chanel, Balenciaga, Versace, Dior, Hermès), DO NOT mention any brand names in your output. Refer to them generically (e.g., "brand label", "logo") without naming the brand.
-    LENGTH CONSTRAINT: Your entire output MUST be no longer than 512 tokens. Keep it concise and within 512 tokens maximum.`;
+    BRAND SAFETY: If the input image contains any brand names or logos (e.g., Nike, Adidas, Prada, Gucci, Louis Vuitton, Chanel, Balenciaga, Versace, Dior, Hermès), please refer to them generically (e.g., "brand label", "logo") without naming the specific brand.
+    LENGTH CONSTRAINT: Please keep your entire output within 512 tokens maximum for optimal processing.`;
 
-    // Flux Max için genel garment transform talimatları (genel, ürün-özel olmayan)
+    // Flux Max için genel garment transform talimatları (güvenli flag-safe versiyon)
     const fluxMaxGarmentTransformationDirectives = `
-    FLUX MAX CONTEXT - GARMENT TRANSFORMATION (MANDATORY):
-    - ABSOLUTELY AND IMMEDIATELY REMOVE ALL HANGERS, CLIPS, TAGS, AND FLAT-LAY ARTIFACTS from the input garment. CRITICAL: DO NOT RENDER ANY MANNEQUIN REMAINS OR UNINTENDED BACKGROUND ELEMENTS.
-    - Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model; avoid any 2D, sticker-like, or paper-like overlay.
-    - Ensure realistic fabric physics: natural drape, weight, tension, compression, and subtle folds along shoulders, chest/bust, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles.
-    - Preserve ALL original garment details: exact colors, prints/patterns, material texture, stitching, construction elements  trims, and finishes. Do NOT redesign.
-    - Integrate prints/patterns correctly over the 3D form: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines.
-    - For structured details (e.g., knots, pleats, darts, seams), render functional tension, deep creases, and realistic shadows consistent with real fabric behavior.
-    - Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting.
-    - Focus solely on transforming the garment onto the existing model and seamlessly integrating it into the outfit. Do not introduce new background elements unless a location reference is explicitly provided.`;
+    GARMENT TRANSFORMATION REQUIREMENTS:
+    - Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed from the input garment. Avoid rendering any mannequin remains or unintended background elements.
+    - Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance.
+    - Ensure realistic fabric physics with natural drape, weight, tension, compression, and subtle folds along shoulders, chest/bust, torso, and sleeves. Maintain a clean commercial presentation with minimal distracting wrinkles.
+    - Preserve all original garment details including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning the original garment.
+    - Integrate prints/patterns correctly over the 3D form ensuring patterns curve, stretch, and wrap naturally across body contours. Avoid flat, uniform, or unnaturally straight pattern lines.
+    - For structured details such as knots, pleats, darts, and seams, render functional tension, deep creases, and realistic shadows consistent with real fabric behavior.
+    - Maintain photorealistic integration with the model and scene including correct scale, perspective, lighting, cast shadows, and occlusions that match the camera angle and scene lighting.
+    - Focus on transforming the garment onto the existing model and seamlessly integrating it into the outfit. Avoid introducing new background elements unless a location reference is explicitly provided.`;
 
     // Gemini'ye gönderilecek metin - Edit mode vs Color change vs Normal replace
     let promptForGemini;
@@ -1501,6 +1512,7 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
 
       // Settings'ten bilgileri çıkar
       const location = settings?.location;
+      const locationEnhancedPrompt = settings?.locationEnhancedPrompt; // Enhanced prompt bilgisini al
       const weather = settings?.weather;
       const age = settings?.age;
       const gender = settings?.gender;
@@ -1540,17 +1552,26 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
         }
       }
 
-      // Basit yaş grupları
+      // Yaş grupları - güvenli flag-safe tanımlar
       if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
-        const genderWord =
-          genderLower === "male" || genderLower === "man" ? "boy" : "girl";
-        modelDescription = `young ${genderWord} model`;
-      } else {
-        // Yetişkin
-        if (genderLower === "male" || genderLower === "man") {
-          modelDescription = "male model";
+        // Çocuk/genç yaş grupları için güvenli tanımlar
+        if (parsedAgeInt <= 12) {
+          modelDescription =
+            genderLower === "male" || genderLower === "man"
+              ? "child model (male)"
+              : "child model (female)";
         } else {
-          modelDescription = "female model";
+          modelDescription =
+            genderLower === "male" || genderLower === "man"
+              ? "teenage model (male)"
+              : "teenage model (female)";
+        }
+      } else {
+        // Yetişkin - güvenli tanımlar
+        if (genderLower === "male" || genderLower === "man") {
+          modelDescription = "adult male model";
+        } else {
+          modelDescription = "adult female model with confident expression";
         }
       }
 
@@ -1589,9 +1610,18 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
         accessoriesDescription += `, wearing ${accessories}`;
       }
 
-      // Ortam
+      // Ortam - enhanced prompt öncelikli
       let environmentDescription = "";
-      if (location) environmentDescription += ` in ${location}`;
+      if (locationEnhancedPrompt && locationEnhancedPrompt.trim()) {
+        environmentDescription += ` in ${locationEnhancedPrompt}`;
+        console.log(
+          "🏞️ [FALLBACK] Enhanced location prompt kullanılıyor:",
+          locationEnhancedPrompt
+        );
+      } else if (location) {
+        environmentDescription += ` in ${location}`;
+        console.log("🏞️ [FALLBACK] Basit location kullanılıyor:", location);
+      }
       if (weather) environmentDescription += ` during ${weather} weather`;
 
       // Kamera açısı
@@ -1615,14 +1645,14 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       // Kıyafet özellikleri (genel)
       fallbackPrompt += `The garment features high-quality fabric with proper texture, stitching, and construction details. `;
 
-      // Temizlik gereksinimleri
-      fallbackPrompt += `ABSOLUTELY AND IMMEDIATELY REMOVE ALL HANGERS, CLIPS, TAGS, AND FLAT-LAY ARTIFACTS. Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model; avoid any 2D, sticker-like, or paper-like overlay. `;
+      // Temizlik gereksinimleri - güvenli versiyon
+      fallbackPrompt += `Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed. Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
 
       // Fizik gereksinimleri
       fallbackPrompt += `Ensure realistic fabric physics: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
 
-      // Detay koruma
-      fallbackPrompt += `Preserve ALL original garment details: exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Do NOT redesign. `;
+      // Detay koruma - güvenli versiyon
+      fallbackPrompt += `Preserve all original garment details including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning the original garment. `;
 
       // Pattern entegrasyonu
       fallbackPrompt += `Integrate prints/patterns correctly over the 3D form: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
@@ -1660,6 +1690,7 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
 
     // Settings'ten bilgileri çıkar
     const location = settings?.location;
+    const locationEnhancedPrompt = settings?.locationEnhancedPrompt; // Enhanced prompt bilgisini al
     const weather = settings?.weather;
     const age = settings?.age;
     const gender = settings?.gender;
@@ -1699,17 +1730,26 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       }
     }
 
-    // Basit yaş grupları (ikinci fallback)
+    // Yaş grupları - güvenli flag-safe tanımlar (ikinci fallback)
     if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
-      const genderWord =
-        genderLower === "male" || genderLower === "man" ? "boy" : "girl";
-      modelDescription = `young ${genderWord} model`;
-    } else {
-      // Yetişkin
-      if (genderLower === "male" || genderLower === "man") {
-        modelDescription = "male model";
+      // Çocuk/genç yaş grupları için güvenli tanımlar
+      if (parsedAgeInt <= 12) {
+        modelDescription =
+          genderLower === "male" || genderLower === "man"
+            ? "child model (male)"
+            : "child model (female)";
       } else {
-        modelDescription = "female model";
+        modelDescription =
+          genderLower === "male" || genderLower === "man"
+            ? "teenage model (male)"
+            : "teenage model (female)";
+      }
+    } else {
+      // Yetişkin - güvenli tanımlar
+      if (genderLower === "male" || genderLower === "man") {
+        modelDescription = "adult male model";
+      } else {
+        modelDescription = "adult female model with confident expression";
       }
     }
 
@@ -1748,9 +1788,18 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       accessoriesDescription += `, wearing ${accessories}`;
     }
 
-    // Ortam
+    // Ortam - enhanced prompt öncelikli
     let environmentDescription = "";
-    if (location) environmentDescription += ` in ${location}`;
+    if (locationEnhancedPrompt && locationEnhancedPrompt.trim()) {
+      environmentDescription += ` in ${locationEnhancedPrompt}`;
+      console.log(
+        "🏞️ [FALLBACK ERROR] Enhanced location prompt kullanılıyor:",
+        locationEnhancedPrompt
+      );
+    } else if (location) {
+      environmentDescription += ` in ${location}`;
+      console.log("🏞️ [FALLBACK ERROR] Basit location kullanılıyor:", location);
+    }
     if (weather) environmentDescription += ` during ${weather} weather`;
 
     // Kamera açısı
@@ -1774,14 +1823,14 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
     // Kıyafet özellikleri (genel)
     fallbackPrompt += `The garment features high-quality fabric with proper texture, stitching, and construction details. `;
 
-    // Temizlik gereksinimleri
-    fallbackPrompt += `ABSOLUTELY AND IMMEDIATELY REMOVE ALL HANGERS, CLIPS, TAGS, AND FLAT-LAY ARTIFACTS. Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model; avoid any 2D, sticker-like, or paper-like overlay. `;
+    // Temizlik gereksinimleri - güvenli versiyon
+    fallbackPrompt += `Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed. Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
 
     // Fizik gereksinimleri
     fallbackPrompt += `Ensure realistic fabric physics: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
 
-    // Detay koruma
-    fallbackPrompt += `Preserve ALL original garment details: exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Do NOT redesign. `;
+    // Detay koruma - güvenli versiyon
+    fallbackPrompt += `Preserve all original garment details including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning the original garment. `;
 
     // Pattern entegrasyonu
     fallbackPrompt += `Integrate prints/patterns correctly over the 3D form: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
@@ -2068,7 +2117,8 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
             result.error.includes("unexpected error handling prediction") ||
             result.error.includes("Director: unexpected error") ||
             result.error.includes("Service is temporarily unavailable") ||
-            result.error.includes("Please try again later"))
+            result.error.includes("Please try again later") ||
+            result.error.includes("Prediction failed."))
         ) {
           console.log(
             "🔄 Geçici nano-banana hatası tespit edildi, retry'a uygun:",
@@ -3005,6 +3055,11 @@ router.post("/generate", async (req, res) => {
     await updateGenerationStatus(finalGenerationId, userId, "processing");
 
     console.log("🎛️ [BACKEND] Gelen settings parametresi:", settings);
+    console.log("🏞️ [BACKEND] Settings içindeki location:", settings?.location);
+    console.log(
+      "🏞️ [BACKEND] Settings içindeki locationEnhancedPrompt:",
+      settings?.locationEnhancedPrompt
+    );
     console.log("📝 [BACKEND] Gelen promptText:", promptText);
     console.log("🏞️ [BACKEND] Gelen locationImage:", locationImage);
     console.log("🤸 [BACKEND] Gelen poseImage:", poseImage);
@@ -3384,7 +3439,8 @@ router.post("/generate", async (req, res) => {
               response.data.error.includes(
                 "Service is temporarily unavailable"
               ) ||
-              response.data.error.includes("Please try again later"))
+              response.data.error.includes("Please try again later") ||
+              response.data.error.includes("Prediction failed."))
           ) {
             console.log(
               `🔄 Geçici nano-banana hatası tespit edildi (attempt ${attempt}), retry yapılacak:`,
