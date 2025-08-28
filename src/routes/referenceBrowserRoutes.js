@@ -1144,6 +1144,21 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
 
       ${criticalDirectives}
 
+      ${
+        isMultipleProducts
+          ? `
+      🛍️ MULTIPLE PRODUCTS EDIT MODE: The reference image contains MULTIPLE GARMENTS/PRODUCTS. When applying the user's edit request, you MUST consider ALL products in the image and ensure they remain coordinated and properly fitted as a complete ensemble.
+
+      CRITICAL MULTIPLE PRODUCTS EDIT REQUIREMENTS:
+      - IDENTIFY ALL distinct garments/products in the reference image
+      - APPLY the user's edit request while maintaining the integrity of ALL products
+      - ENSURE all products remain properly coordinated after the edit
+      - PRESERVE the original design of products not directly affected by the edit
+      - MAINTAIN proper layering and interaction between all products
+      `
+          : ""
+      }
+
       SILENT RULES (DO NOT OUTPUT THESE, JUST APPLY THEM): All rules, headings, examples, and meta-instructions you see in this message must be applied silently. Do not quote, restate, or paraphrase any rule text in your final output. Your final output MUST ONLY be the concise descriptive prompt for the image model, with no rule headings or capitalized instruction sentences.
 
       ${fluxMaxGarmentTransformationDirectives}
@@ -1164,16 +1179,35 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       5. Maintain photorealistic quality with natural lighting
       6. Keep the general style and quality of the original image
       7. Ensure the modification is realistic and technically feasible
-      8. If the edit involves clothing changes, maintain proper fit and styling
-      9. If the edit involves pose changes, ensure natural body positioning
-      10. If the edit involves color changes, preserve garment details and textures
+      8. If the edit involves clothing changes, maintain proper fit and styling${
+        isMultipleProducts ? " for ALL garments/products" : ""
+      }
+      9. If the edit involves pose changes, ensure natural body positioning${
+        isMultipleProducts ? " that works with ALL garments/products" : ""
+      }
+      10. If the edit involves color changes, preserve garment details and textures${
+        isMultipleProducts ? " for ALL affected garments/products" : ""
+      }
+      ${
+        isMultipleProducts
+          ? "11. MANDATORY: Ensure ALL garments/products in the ensemble remain visible and properly coordinated after the edit"
+          : ""
+      }
 
       GEMINI TASK:
       1. Understand what modification the user wants
-      2. Create a professional English prompt that applies this modification
-      3. Ensure the modification is technically possible and realistic
+      2. ${
+        isMultipleProducts
+          ? "Identify how this modification affects ALL products in the ensemble"
+          : "Create a professional English prompt that applies this modification"
+      }
+      3. Ensure the modification is technically possible and realistic${
+        isMultipleProducts ? " for the complete multi-product outfit" : ""
+      }
       4. Maintain the overall quality and style of the original image
-      5. Describe the change in detail while preserving other elements
+      5. Describe the change in detail while preserving other elements${
+        isMultipleProducts ? " and ALL unaffected products" : ""
+      }
 
       LANGUAGE REQUIREMENT: Always generate your prompt in English and START with "Replace, change...".
 
@@ -1186,22 +1220,62 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
 
       ${criticalDirectives}
 
-      Create a professional fashion photography prompt in English that STARTS with "change" for changing ONLY the color of the product/garment from the reference image to ${targetColor}.
+      ${
+        isMultipleProducts
+          ? `
+      🛍️ MULTIPLE PRODUCTS COLOR CHANGE: The reference image contains MULTIPLE GARMENTS/PRODUCTS. When changing the color to ${targetColor}, you MUST specify which product(s) to change and ensure ALL products remain properly coordinated as an ensemble.
+
+      CRITICAL MULTIPLE PRODUCTS COLOR REQUIREMENTS:
+      - IDENTIFY ALL distinct garments/products in the reference image
+      - SPECIFY which product(s) should change to ${targetColor}
+      - ENSURE the color change maintains overall ensemble coordination
+      - PRESERVE the original colors and design of products not being changed
+      - MAINTAIN proper color harmony between all products in the outfit
+      `
+          : ""
+      }
+
+      Create a professional fashion photography prompt in English that STARTS with "change" for changing ONLY the color of ${
+        isMultipleProducts
+          ? "the specified product(s)/garment(s)"
+          : "the product/garment"
+      } from the reference image to ${targetColor}.
       
       FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
 
       IMPORTANT: Please explicitly mention in your generated prompt that this is for "professional fashion photography" to ensure the AI image model understands the context and produces high-quality fashion photography results.
 
       CRITICAL REQUIREMENTS FOR COLOR CHANGE:
-      1. The prompt MUST begin with "Replace the product/garment..."
-      2. ONLY change the color to ${targetColor}
+      1. The prompt MUST begin with "Replace the ${
+        isMultipleProducts
+          ? "specified product(s)/garment(s)"
+          : "product/garment"
+      }..."
+      2. ONLY change the color to ${targetColor}${
+        isMultipleProducts ? " for the specified product(s)" : ""
+      }
       3. Keep EVERYTHING else exactly the same: design, shape, patterns, details, style, fit, texture
-      4. Do not modify the garment design, cut, or any other aspect except the color
-      5. The final image should be photorealistic, showing the same garment but in ${targetColor} color
+      4. Do not modify ${
+        isMultipleProducts ? "any garment" : "the garment"
+      } design, cut, or any other aspect except the color
+      5. The final image should be photorealistic, showing ${
+        isMultipleProducts
+          ? "the complete ensemble with the specified color changes"
+          : `the same garment but in ${targetColor} color`
+      }
       6. Use natural studio lighting with a clean background
-      7. Preserve ALL original garment details except color: patterns (but in new color), textures, hardware, stitching, logos, graphics, and construction elements
-      8. The garment must appear identical to the reference image, just in ${targetColor} color instead of the original color
+      7. Preserve ALL original details except color: patterns (but in new color), textures, hardware, stitching, logos, graphics, and construction elements
+      8. ${
+        isMultipleProducts
+          ? `ALL garments/products must appear identical to the reference image, just with the specified color change to ${targetColor} and proper ensemble coordination`
+          : `The garment must appear identical to the reference image, just in ${targetColor} color instead of the original color`
+      }
       9. MANDATORY: Include "professional fashion photography" phrase in your generated prompt
+      ${
+        isMultipleProducts
+          ? `10. MANDATORY: Clearly specify which product(s) change color and which remain in their original colors`
+          : ""
+      }
 
       LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "change".
 
@@ -1218,6 +1292,21 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
 
       ${criticalDirectives}
 
+      ${
+        isMultipleProducts
+          ? `
+      🛍️ MULTIPLE PRODUCTS POSE CHANGE: The reference image contains MULTIPLE GARMENTS/PRODUCTS. When changing the pose, you MUST ensure ALL products remain properly positioned, fitted, and coordinated on the model.
+
+      CRITICAL MULTIPLE PRODUCTS POSE REQUIREMENTS:
+      - IDENTIFY ALL distinct garments/products in the reference image
+      - ENSURE the new pose works well with ALL products in the ensemble
+      - MAINTAIN proper layering and positioning of each product
+      - PRESERVE the original fit and draping of ALL garments/products
+      - AVOID poses that would disrupt the coordination of the ensemble
+      `
+          : ""
+      }
+
       Create a professional fashion photography prompt in English that STARTS with "change" for changing ONLY the pose/position of the model in the reference image.
       
       FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
@@ -1226,12 +1315,18 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
 
       CRITICAL REQUIREMENTS FOR POSE CHANGE:
       1. The prompt MUST begin with "Replace the model's pose..."
-      2. Keep the EXACT same person, face, clothing, background, and all other elements
+      2. Keep the EXACT same person, face, ${
+        isMultipleProducts ? "ALL clothing items" : "clothing"
+      }, background, and all other elements
       3. ONLY change the pose/position/body positioning of the model
       4. Do not modify or change anything else about the model or scene
       5. The result should be photorealistic with natural lighting and proper body proportions
-      6. Preserve ALL original elements except the pose: same person, same outfit, same background, same lighting style
-      7. The model must appear identical to the reference image, just in a different pose/position
+      6. Preserve ALL original elements except the pose: same person, same ${
+        isMultipleProducts ? "complete outfit ensemble" : "outfit"
+      }, same background, same lighting style
+      7. The model must appear identical to the reference image, just in a different pose/position${
+        isMultipleProducts ? " that works with ALL garments/products" : ""
+      }
 
       ${
         customDetail && customDetail.trim()
@@ -1240,32 +1335,80 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       }
 
       GEMINI TASK - ANALYZE AND CREATE POSE:
-      1. ANALYZE the model in the input image (their current pose, body position, clothing style)
-      2. IDENTIFY the clothing details (pockets, sleeves, length, style, accessories)
-      3. SELECT one specific professional modeling pose that would look elegant and natural for this person
+      1. ANALYZE the model in the input image (their current pose, body position, ${
+        isMultipleProducts
+          ? "ALL clothing items in the ensemble"
+          : "clothing style"
+      })
+      2. IDENTIFY ${
+        isMultipleProducts
+          ? "ALL clothing details for EACH product"
+          : "the clothing details"
+      } (pockets, sleeves, length, style, accessories)
+      3. SELECT one specific professional modeling pose that would look elegant and natural for this person${
+        isMultipleProducts ? " and work well with ALL garments/products" : ""
+      }
       4. CHOOSE from these categories:
          - ELEGANT POSES: graceful hand positions, confident stances, sophisticated postures
          - FASHION POSES: runway-style poses, magazine-worthy positions, stylish attitudes  
          - PORTRAIT POSES: flattering face angles, expressive hand gestures, artistic positioning
          - DYNAMIC POSES: movement-inspired stances, walking poses, turning positions
 
-      ⚠️ CRITICAL CLOTHING COMPATIBILITY RULES:
-      - If the garment has NO POCKETS: DO NOT put hands in pockets
-      - If the garment has SHORT SLEEVES: DO NOT fold or adjust long sleeves
-      - If the garment is SLEEVELESS: DO NOT place hands on sleeves or adjust arm coverage
-      - If the garment is a DRESS/SKIRT: Keep leg positioning appropriate for the garment length
-      - If the garment has specific NECKLINE: DO NOT change how it sits on the body
-      - If the garment has FIXED ACCESSORIES (belts, scarves): Keep them in original position
+      ⚠️ CRITICAL CLOTHING COMPATIBILITY RULES${
+        isMultipleProducts ? " (Apply to ALL garments/products)" : ""
+      }:
+      - If ${
+        isMultipleProducts ? "ANY garment" : "the garment"
+      } has NO POCKETS: DO NOT put hands in pockets
+      - If ${
+        isMultipleProducts ? "ANY garment" : "the garment"
+      } has SHORT SLEEVES: DO NOT fold or adjust long sleeves
+      - If ${
+        isMultipleProducts ? "ANY garment" : "the garment"
+      } is SLEEVELESS: DO NOT place hands on sleeves or adjust arm coverage
+      - If ${
+        isMultipleProducts ? "ANY garment" : "the garment"
+      } is a DRESS/SKIRT: Keep leg positioning appropriate for the garment length
+      - If ${
+        isMultipleProducts ? "ANY garment" : "the garment"
+      } has specific NECKLINE: DO NOT change how it sits on the body
+      - If ${
+        isMultipleProducts ? "ANY garment" : "the garment"
+      } has FIXED ACCESSORIES (belts, scarves): Keep them in original position
       - NEVER turn the model completely around (avoid full back views)
-      - NEVER change the garment's silhouette, fit, or draping
+      - NEVER change ${
+        isMultipleProducts ? "ANY garment's" : "the garment's"
+      } silhouette, fit, or draping
+      ${
+        isMultipleProducts
+          ? "- ENSURE the pose maintains proper layering and coordination of ALL products"
+          : ""
+      }
 
       GEMINI INSTRUCTIONS:
-      - First ANALYZE the clothing details and limitations
-      - Then DECIDE on ONE specific pose that RESPECTS the clothing constraints
+      - First ANALYZE ${
+        isMultipleProducts
+          ? "ALL clothing details and limitations for EACH product"
+          : "the clothing details and limitations"
+      }
+      - Then DECIDE on ONE specific pose that RESPECTS ${
+        isMultipleProducts
+          ? "ALL clothing constraints for the complete ensemble"
+          : "the clothing constraints"
+      }
       - DESCRIBE that pose in detail in your prompt with clothing-appropriate positioning
-      - Include specific details: hand positioning (compatible with garment), weight distribution, facial direction, body angles
+      - Include specific details: hand positioning (compatible with ${
+        isMultipleProducts ? "ALL garments" : "garment"
+      }), weight distribution, facial direction, body angles
       - Make the pose description sound professional and beautiful
-      - Ensure the pose suits the model's style and clothing EXACTLY as shown
+      - Ensure the pose suits the model's style and ${
+        isMultipleProducts ? "ALL clothing items" : "clothing"
+      } EXACTLY as shown
+      ${
+        isMultipleProducts
+          ? "- VERIFY that the pose maintains the coordination and visual harmony of the complete ensemble"
+          : ""
+      }
 
       LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace". Do NOT include any rule names, headings, or capitalized instruction phrases (e.g., "FLUX MAX CONTEXT", "CRITICAL REQUIREMENTS", "MANDATORY", "LANGUAGE REQUIREMENT").
 
@@ -1282,23 +1425,79 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
 
       ${criticalDirectives}
 
-      Create a professional fashion photography prompt in English that STARTS with "Replace" for replacing the garment from the reference image onto a ${modelGenderText}.
+      ${
+        isMultipleProducts
+          ? `
+      🛍️ MULTIPLE PRODUCTS MODE: The reference image contains MULTIPLE GARMENTS/PRODUCTS that form a complete outfit/ensemble. You MUST mention and describe ALL products visible in the reference image, not just one or two. Each product is equally important and must be properly described and fitted onto the ${modelGenderText}.
+
+      CRITICAL MULTIPLE PRODUCTS REQUIREMENTS:
+      - ANALYZE the reference image carefully and COUNT how many distinct garments/products are present
+      - DESCRIBE each product individually with its specific design details, colors, patterns, and construction elements
+      - ENSURE that ALL products are mentioned in your prompt - do not skip any product
+      - COORDINATE how all products work together as a complete ensemble
+      - SPECIFY the proper layering, positioning, and interaction between products
+      - MAINTAIN the original design of each individual product while showing them as a coordinated outfit
+      `
+          : ""
+      }
+
+      Create a professional fashion photography prompt in English that STARTS with "Replace" for replacing ${
+        isMultipleProducts
+          ? "ALL the garments/products from the reference image"
+          : "the garment from the reference image"
+      } onto a ${modelGenderText}.
       
       FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
 
       IMPORTANT: Please explicitly mention in your generated prompt that this is for "professional fashion photography" to ensure the AI image model understands the context and produces high-quality fashion photography results.
 
       CRITICAL REQUIREMENTS:
-      1. The prompt MUST begin with "Replace the flat-lay garment..."
-      2. Keep the original garment exactly the same without changing any design, shape, colors, patterns, or details
-      3. Do not modify or redesign the garment in any way
-      4. The final image should be photorealistic, showing the same garment perfectly fitted on the ${baseModelText}
+      1. The prompt MUST begin with "Replace the ${
+        isMultipleProducts
+          ? "multiple flat-lay garments/products"
+          : "flat-lay garment"
+      }..."
+      2. Keep ${
+        isMultipleProducts
+          ? "ALL original garments/products"
+          : "the original garment"
+      } exactly the same without changing any design, shape, colors, patterns, or details
+      3. Do not modify or redesign ${
+        isMultipleProducts ? "any of the garments/products" : "the garment"
+      } in any way
+      4. The final image should be photorealistic, showing ${
+        isMultipleProducts
+          ? "ALL garments/products perfectly fitted and coordinated"
+          : "the same garment perfectly fitted"
+      } on the ${baseModelText}
       5. Use natural studio lighting with a clean background
-      6. Preserve ALL original garment details: colors, patterns, textures, hardware, stitching, logos, graphics, and construction elements
-      7. The garment must appear identical to the reference image, just worn by the model instead of being flat
+      6. Preserve ALL original details of ${
+        isMultipleProducts ? "EACH garment/product" : "the garment"
+      }: colors, patterns, textures, hardware, stitching, logos, graphics, and construction elements
+      7. ${
+        isMultipleProducts
+          ? "ALL garments/products must appear identical to the reference image, just worn by the model as a complete coordinated outfit"
+          : "The garment must appear identical to the reference image, just worn by the model instead of being flat"
+      }
       8. MANDATORY: Include "professional fashion photography" phrase in your generated prompt
+      ${
+        isMultipleProducts
+          ? "9. MANDATORY: Explicitly mention and describe EACH individual product/garment visible in the reference image - do not generalize or group them"
+          : ""
+      }
 
-      PRODUCT DETAIL COVERAGE (MANDATORY): Describe the garment's construction details. Keep this within the 512-token limit; prioritize the most visually verifiable details.
+      ${
+        isMultipleProducts
+          ? `
+      MULTIPLE PRODUCTS DETAIL COVERAGE (MANDATORY): 
+      - ANALYZE the reference image and identify EACH distinct garment/product (e.g., top, bottom, jacket, accessories, etc.)
+      - DESCRIBE each product's specific construction details, materials, colors, and design elements
+      - EXPLAIN how the products layer and coordinate together
+      - SPECIFY the proper fit and positioning of each product on the model
+      - ENSURE no product is overlooked or generically described
+      `
+          : "PRODUCT DETAIL COVERAGE (MANDATORY): Describe the garment's construction details. Keep this within the 512-token limit; prioritize the most visually verifiable details."
+      }
 
       ${fluxMaxGarmentTransformationDirectives}
 
@@ -1646,26 +1845,59 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
         clothingDescription += `, wearing ${productColor} colored clothing`;
       }
 
-      // Ana prompt oluştur - Fashion photography odaklı
-      let fallbackPrompt = `Replace the flat-lay garment from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
+      // Ana prompt oluştur - Fashion photography odaklı (çoklu ürün desteği ile)
+      let fallbackPrompt = `Replace the ${
+        isMultipleProducts
+          ? "multiple flat-lay garments/products"
+          : "flat-lay garment"
+      } from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
 
       // Fashion photography ve kalite gereksinimleri
-      fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve the original garment exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show the identical garment perfectly fitted on the dynamic model for high-end fashion shoots. `;
+      fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve ${
+        isMultipleProducts
+          ? "ALL original garments/products"
+          : "the original garment"
+      } exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show ${
+        isMultipleProducts
+          ? "ALL identical garments/products perfectly fitted and coordinated"
+          : "the identical garment perfectly fitted"
+      } on the dynamic model for high-end fashion shoots. `;
 
       // Kıyafet özellikleri (genel)
-      fallbackPrompt += `The garment features high-quality fabric with proper texture, stitching, and construction details. `;
+      fallbackPrompt += `${
+        isMultipleProducts ? "Each garment/product" : "The garment"
+      } features high-quality fabric with proper texture, stitching, and construction details. `;
+
+      // Çoklu ürün için ek koordinasyon talimatları
+      if (isMultipleProducts) {
+        fallbackPrompt += `Ensure ALL products work together as a coordinated ensemble, maintaining proper layering, fit, and visual harmony between all items. `;
+      }
 
       // Temizlik gereksinimleri - güvenli versiyon
-      fallbackPrompt += `Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed. Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
+      fallbackPrompt += `Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed. Transform the ${
+        isMultipleProducts ? "flat-lay garments/products" : "flat-lay garment"
+      } into hyper-realistic, three-dimensional worn ${
+        isMultipleProducts ? "garments/products" : "garment"
+      } on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
 
       // Fizik gereksinimleri
-      fallbackPrompt += `Ensure realistic fabric physics: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
+      fallbackPrompt += `Ensure realistic fabric physics for ${
+        isMultipleProducts ? "ALL garments/products" : "the garment"
+      }: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
 
       // Detay koruma - güvenli versiyon
-      fallbackPrompt += `Preserve all original garment details including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning the original garment. `;
+      fallbackPrompt += `Preserve all original details of ${
+        isMultipleProducts ? "EACH garment/product" : "the garment"
+      } including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning ${
+        isMultipleProducts
+          ? "any of the original garments/products"
+          : "the original garment"
+      }. `;
 
       // Pattern entegrasyonu
-      fallbackPrompt += `Integrate prints/patterns correctly over the 3D form: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
+      fallbackPrompt += `Integrate prints/patterns correctly over the 3D form for ${
+        isMultipleProducts ? "ALL products" : "the garment"
+      }: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
 
       // Final kalite - Fashion photography standartları
       fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
@@ -1824,26 +2056,59 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       clothingDescription += `, wearing ${productColor} colored clothing`;
     }
 
-    // Ana prompt oluştur
-    let fallbackPrompt = `Replace the flat-lay garment from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
+    // Ana prompt oluştur (çoklu ürün desteği ile)
+    let fallbackPrompt = `Replace the ${
+      isMultipleProducts
+        ? "multiple flat-lay garments/products"
+        : "flat-lay garment"
+    } from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
 
     // Fashion photography ve kalite gereksinimleri
-    fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve the original garment exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show the identical garment perfectly fitted on the dynamic model for high-end fashion shoots. `;
+    fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve ${
+      isMultipleProducts
+        ? "ALL original garments/products"
+        : "the original garment"
+    } exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show ${
+      isMultipleProducts
+        ? "ALL identical garments/products perfectly fitted and coordinated"
+        : "the identical garment perfectly fitted"
+    } on the dynamic model for high-end fashion shoots. `;
 
     // Kıyafet özellikleri (genel)
-    fallbackPrompt += `The garment features high-quality fabric with proper texture, stitching, and construction details. `;
+    fallbackPrompt += `${
+      isMultipleProducts ? "Each garment/product" : "The garment"
+    } features high-quality fabric with proper texture, stitching, and construction details. `;
+
+    // Çoklu ürün için ek koordinasyon talimatları
+    if (isMultipleProducts) {
+      fallbackPrompt += `Ensure ALL products work together as a coordinated ensemble, maintaining proper layering, fit, and visual harmony between all items. `;
+    }
 
     // Temizlik gereksinimleri - güvenli versiyon
-    fallbackPrompt += `Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed. Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
+    fallbackPrompt += `Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed. Transform the ${
+      isMultipleProducts ? "flat-lay garments/products" : "flat-lay garment"
+    } into hyper-realistic, three-dimensional worn ${
+      isMultipleProducts ? "garments/products" : "garment"
+    } on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
 
     // Fizik gereksinimleri
-    fallbackPrompt += `Ensure realistic fabric physics: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
+    fallbackPrompt += `Ensure realistic fabric physics for ${
+      isMultipleProducts ? "ALL garments/products" : "the garment"
+    }: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
 
     // Detay koruma - güvenli versiyon
-    fallbackPrompt += `Preserve all original garment details including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning the original garment. `;
+    fallbackPrompt += `Preserve all original details of ${
+      isMultipleProducts ? "EACH garment/product" : "the garment"
+    } including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning ${
+      isMultipleProducts
+        ? "any of the original garments/products"
+        : "the original garment"
+    }. `;
 
     // Pattern entegrasyonu
-    fallbackPrompt += `Integrate prints/patterns correctly over the 3D form: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
+    fallbackPrompt += `Integrate prints/patterns correctly over the 3D form for ${
+      isMultipleProducts ? "ALL products" : "the garment"
+    }: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
 
     // Final kalite - Fashion photography standartları
     fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
@@ -2772,7 +3037,7 @@ router.post("/generate", async (req, res) => {
       poseImage,
       hairStyleImage,
       isMultipleImages,
-      isMultipleProducts,
+      isMultipleProducts: originalIsMultipleProducts,
       generationId, // Yeni parametre
       totalGenerations = 1, // Toplam generation sayısı (varsayılan 1)
       // Color change specific parameters
@@ -2787,6 +3052,9 @@ router.post("/generate", async (req, res) => {
       // Session deduplication
       sessionId = null, // Aynı batch request'leri tanımlıyor
     } = req.body;
+
+    // isMultipleProducts'ı değiştirilebilir hale getir (kombin modu için)
+    let isMultipleProducts = originalIsMultipleProducts;
 
     // userId'yi scope için ata
     userId = requestUserId;
@@ -3101,19 +3369,31 @@ router.post("/generate", async (req, res) => {
         console.log("🛍️ [BACKEND] Grid layout bilgisi bulunamadı, normal mod");
       }
 
-      if (isKombinMode && gridLayoutInfo) {
-        // 🛍️ KOMBİN MODU: Grid layout'u canvas'ta birleştir
-        console.log("🛍️ [BACKEND] Kombin modu - Grid canvas oluşturuluyor...");
+      if (isKombinMode) {
+        // 🛍️ KOMBİN MODU: Grid layout'u canvas'ta birleştir veya normal çoklu resim birleştir
+        console.log("🛍️ [BACKEND] Kombin modu - Canvas oluşturuluyor...");
+        console.log(
+          "🛍️ [BACKEND] Grid layout bilgisi:",
+          gridLayoutInfo ? "Mevcut" : "Yok - normal birleştirme kullanılacak"
+        );
 
         finalImage = await combineImagesOnCanvas(
           referenceImages,
           userId,
-          false, // isMultipleProducts = false (kombin tek resim olarak işlenecek)
-          "1:1", // Kombin için kare format
-          gridLayoutInfo // Grid layout bilgisini geç
+          true, // isMultipleProducts = true (kombin çoklu ürün modudur)
+          gridLayoutInfo ? "1:1" : ratio, // Grid varsa kare, yoksa orijinal ratio
+          gridLayoutInfo // Grid layout bilgisini geç (null olabilir)
         );
 
-        console.log("🛍️ [BACKEND] Kombin grid canvas oluşturuldu:", finalImage);
+        console.log("🛍️ [BACKEND] Kombin canvas oluşturuldu:", finalImage);
+
+        // Kombin modunda MUTLAKA isMultipleProducts'ı true yap ki Gemini doğru prompt oluştursun
+        console.log(
+          "🛍️ [BACKEND] Kombin modu için isMultipleProducts değeri:",
+          `${originalIsMultipleProducts} → true`
+        );
+        // Bu değişkeni lokal olarak override et
+        isMultipleProducts = true;
       } else {
         // Normal çoklu resim modu
         finalImage = await combineImagesOnCanvas(
@@ -3213,14 +3493,27 @@ router.post("/generate", async (req, res) => {
         );
 
         // Poz değiştirme modunda Gemini ile prompt oluştur
+        console.log(
+          "🤖 [GEMINI CALL - POSE] enhancePromptWithGemini parametreleri:"
+        );
+        console.log("🤖 [GEMINI CALL - POSE] - finalImage URL:", finalImage);
+        console.log(
+          "🤖 [GEMINI CALL - POSE] - isMultipleProducts:",
+          isMultipleProducts
+        );
+        console.log(
+          "🤖 [GEMINI CALL - POSE] - referenceImages sayısı:",
+          referenceImages?.length || 0
+        );
+
         enhancedPrompt = await enhancePromptWithGemini(
           promptText,
-          finalImage, // isPoseChange modunda finalImage kullan (backgroundRemovedImage henüz yok)
+          finalImage, // isPoseChange modunda finalImage kullan (kombin modunda birleştirilmiş grid)
           settings || {},
           locationImage,
           poseImage,
           hairStyleImage,
-          isMultipleProducts,
+          isMultipleProducts, // Kombin modunda true olmalı
           false, // hasControlNet
           false, // isColorChange
           null, // targetColor
@@ -3238,14 +3531,22 @@ router.post("/generate", async (req, res) => {
     } else {
       // 🖼️ NORMAL MODE - Arkaplan silme işlemi (paralel)
       // Gemini prompt üretimini paralelde başlat
+      console.log("🤖 [GEMINI CALL] enhancePromptWithGemini parametreleri:");
+      console.log("🤖 [GEMINI CALL] - finalImage URL:", finalImage);
+      console.log("🤖 [GEMINI CALL] - isMultipleProducts:", isMultipleProducts);
+      console.log(
+        "🤖 [GEMINI CALL] - referenceImages sayısı:",
+        referenceImages?.length || 0
+      );
+
       const geminiPromise = enhancePromptWithGemini(
         promptText,
-        finalImage, // Ham orijinal resim
+        finalImage, // Ham orijinal resim (kombin modunda birleştirilmiş grid)
         settings || {},
         locationImage,
         poseImage,
         hairStyleImage,
-        isMultipleProducts,
+        isMultipleProducts, // Kombin modunda true olmalı
         false, // ControlNet yok, ham resim
         isColorChange, // Renk değiştirme işlemi mi?
         targetColor, // Hedef renk bilgisi
