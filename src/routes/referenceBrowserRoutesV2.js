@@ -2029,7 +2029,8 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
           result.error &&
           typeof result.error === "string" &&
           (result.error.includes("Prediction interrupted") ||
-            result.error.includes("code: PA"))
+            result.error.includes("code: PA") ||
+            result.error.includes("please retry (code: PA)"))
         ) {
           console.error(
             "❌ PA hatası tespit edildi, polling DERHAL durduruluyor:",
@@ -2056,6 +2057,24 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
             result.error
           );
           throw new Error("SENSITIVE_CONTENT_FLUX_FALLBACK");
+        }
+
+        // E9243, E004 ve benzeri geçici hatalar için retry'a uygun hata fırlat
+        if (
+          result.error &&
+          typeof result.error === "string" &&
+          (result.error.includes("E9243") ||
+            result.error.includes("E004") ||
+            result.error.includes("unexpected error handling prediction") ||
+            result.error.includes("Director: unexpected error") ||
+            result.error.includes("Service is temporarily unavailable") ||
+            result.error.includes("Please try again later"))
+        ) {
+          console.log(
+            "🔄 Geçici nano-banana hatası tespit edildi, retry'a uygun:",
+            result.error
+          );
+          throw new Error(`RETRYABLE_ERROR: ${result.error}`);
         }
 
         throw new Error(result.error || "Replicate processing failed");
@@ -2113,6 +2132,64 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
   }
 
   throw new Error("Replicate işlemi zaman aşımına uğradı");
+}
+
+// Retry mekanizmalı polling fonksiyonu
+async function pollReplicateResultWithRetry(predictionId, maxRetries = 3) {
+  console.log(
+    `🔄 Retry'li polling başlatılıyor: ${predictionId} (maxRetries: ${maxRetries})`
+  );
+
+  for (let retryAttempt = 1; retryAttempt <= maxRetries; retryAttempt++) {
+    try {
+      console.log(`🔄 Polling retry attempt ${retryAttempt}/${maxRetries}`);
+
+      // Normal polling fonksiyonunu çağır
+      const result = await pollReplicateResult(predictionId);
+
+      // Başarılı ise sonucu döndür
+      console.log(`✅ Polling retry ${retryAttempt} başarılı!`);
+      return result;
+    } catch (pollingError) {
+      console.error(
+        `❌ Polling retry ${retryAttempt} hatası:`,
+        pollingError.message
+      );
+
+      // Bu hatalar için retry yapma - direkt fırlat
+      if (
+        pollingError.message.includes("PREDICTION_INTERRUPTED") ||
+        pollingError.message.includes("SENSITIVE_CONTENT_FLUX_FALLBACK") ||
+        pollingError.message.includes("processing was canceled")
+      ) {
+        console.error(
+          `❌ Retry yapılmayacak hata türü: ${pollingError.message}`
+        );
+        throw pollingError;
+      }
+
+      // Geçici hatalar için retry yap (E9243 gibi)
+      if (pollingError.message.includes("RETRYABLE_ERROR")) {
+        console.log(`🔄 Geçici hata retry edilecek: ${pollingError.message}`);
+        // Retry döngüsü devam edecek
+      }
+
+      // Son deneme ise hata fırlat
+      if (retryAttempt === maxRetries) {
+        console.error(
+          `❌ Tüm polling retry attemptları başarısız: ${pollingError.message}`
+        );
+        throw pollingError;
+      }
+
+      // Bir sonraki deneme için bekle
+      const waitTime = retryAttempt * 3000; // 3s, 6s, 9s
+      console.log(
+        `⏳ Polling retry ${retryAttempt} için ${waitTime}ms bekleniyor...`
+      );
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+    }
+  }
 }
 
 // Çoklu resimleri canvas ile birleştiren fonksiyon
@@ -3195,6 +3272,8 @@ router.post("/generate", async (req, res) => {
     // Replicate google/nano-banana modeli ile istek gönder
     let replicateResponse;
     const maxRetries = 3;
+    let totalRetryAttempts = 0;
+    let retryReasons = [];
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -3291,6 +3370,32 @@ router.post("/generate", async (req, res) => {
           break; // Processing durumunda da loop'tan çık ve polling'e geç
         } else if (response.data.status === "failed") {
           console.error("❌ Replicate API failed:", response.data.error);
+
+          // E9243, E004 ve benzeri geçici hatalar için retry yap
+          if (
+            response.data.error &&
+            typeof response.data.error === "string" &&
+            (response.data.error.includes("E9243") ||
+              response.data.error.includes("E004") ||
+              response.data.error.includes(
+                "unexpected error handling prediction"
+              ) ||
+              response.data.error.includes("Director: unexpected error") ||
+              response.data.error.includes(
+                "Service is temporarily unavailable"
+              ) ||
+              response.data.error.includes("Please try again later"))
+          ) {
+            console.log(
+              `🔄 Geçici nano-banana hatası tespit edildi (attempt ${attempt}), retry yapılacak:`,
+              response.data.error
+            );
+            retryReasons.push(`Attempt ${attempt}: ${response.data.error}`);
+            throw new Error(
+              `RETRYABLE_NANO_BANANA_ERROR: ${response.data.error}`
+            );
+          }
+
           throw new Error(
             `Replicate API failed: ${response.data.error || "Unknown error"}`
           );
@@ -3325,18 +3430,32 @@ router.post("/generate", async (req, res) => {
           throw apiError; // Timeout hatası için retry yok
         }
 
-        // Son deneme değilse ve network hataları ise tekrar dene
+        // Son deneme değilse ve network hataları veya geçici hatalar ise tekrar dene
         if (
           attempt < maxRetries &&
           (apiError.code === "ECONNRESET" ||
             apiError.code === "ENOTFOUND" ||
-            apiError.response?.status >= 500)
+            apiError.response?.status >= 500 ||
+            apiError.message.includes("RETRYABLE_NANO_BANANA_ERROR"))
         ) {
+          totalRetryAttempts++;
           const waitTime = attempt * 2000; // 2s, 4s, 6s bekle
-          console.log(`⏳ ${waitTime}ms bekleniyor, sonra tekrar denenecek...`);
+          console.log(
+            `⏳ ${waitTime}ms bekleniyor, sonra tekrar denenecek... (${attempt}/${maxRetries})`
+          );
           await new Promise((resolve) => setTimeout(resolve, waitTime));
           continue;
         }
+
+        // Retry yapılamayan hatalar için log
+        console.error(
+          `❌ Retry yapılamayan hata türü (attempt ${attempt}/${maxRetries}):`,
+          {
+            code: apiError.code,
+            message: apiError.message?.substring(0, 100),
+            status: apiError.response?.status,
+          }
+        );
 
         // Son deneme veya farklı hata türü ise fırlat
         throw apiError;
@@ -3389,10 +3508,11 @@ router.post("/generate", async (req, res) => {
       });
     }
 
-    // Replicate google/nano-banana API - Status kontrolü ve polling
+    // Replicate google/nano-banana API - Status kontrolü ve polling (retry mekanizmalı)
     const startTime = Date.now();
     let finalResult;
     let processingTime;
+    const maxPollingRetries = 3; // Failed status'u için maksimum 3 retry
 
     // Status kontrolü
     if (initialResult.status === "succeeded") {
@@ -3412,7 +3532,10 @@ router.post("/generate", async (req, res) => {
       );
 
       try {
-        finalResult = await pollReplicateResult(initialResult.id);
+        finalResult = await pollReplicateResultWithRetry(
+          initialResult.id,
+          maxPollingRetries
+        );
         processingTime = Math.round((Date.now() - startTime) / 1000);
       } catch (pollingError) {
         console.error("❌ Polling hatası:", pollingError.message);
@@ -3439,11 +3562,116 @@ router.post("/generate", async (req, res) => {
         });
       }
     } else {
-      // Diğer durumlar (failed, vs)
+      // Diğer durumlar (failed, vs) - retry mekanizmasıyla
       console.log(
-        "🎯 Replicate google/nano-banana - diğer status, direkt kullanılıyor"
+        "🎯 Replicate google/nano-banana - failed status, retry mekanizması başlatılıyor"
       );
-      finalResult = initialResult;
+
+      // Failed status için retry logic
+      let retrySuccessful = false;
+      for (
+        let retryAttempt = 1;
+        retryAttempt <= maxPollingRetries;
+        retryAttempt++
+      ) {
+        console.log(
+          `🔄 Failed status retry attempt ${retryAttempt}/${maxPollingRetries}`
+        );
+
+        try {
+          // 2 saniye bekle, sonra yeni prediction başlat
+          await new Promise((resolve) =>
+            setTimeout(resolve, 2000 * retryAttempt)
+          );
+
+          // Aynı parametrelerle yeni prediction oluştur
+          const retryRequestBody = {
+            input: {
+              prompt: enhancedPrompt,
+              image_input: [combinedImageForReplicate],
+              output_format: "jpg",
+            },
+          };
+
+          console.log(
+            `🔄 Retry ${retryAttempt}: Yeni prediction oluşturuluyor...`
+          );
+
+          const retryResponse = await axios.post(
+            "https://api.replicate.com/v1/models/google/nano-banana/predictions",
+            retryRequestBody,
+            {
+              headers: {
+                Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+                "Content-Type": "application/json",
+                Prefer: "wait",
+              },
+              timeout: 120000,
+            }
+          );
+
+          console.log(`🔄 Retry ${retryAttempt} Response:`, {
+            id: retryResponse.data.id,
+            status: retryResponse.data.status,
+            hasOutput: !!retryResponse.data.output,
+            error: retryResponse.data.error,
+          });
+
+          // Retry response kontrolü
+          if (
+            retryResponse.data.status === "succeeded" &&
+            retryResponse.data.output
+          ) {
+            console.log(
+              `✅ Retry ${retryAttempt} başarılı! Output alındı:`,
+              retryResponse.data.output
+            );
+            finalResult = retryResponse.data;
+            retrySuccessful = true;
+            break;
+          } else if (
+            retryResponse.data.status === "processing" ||
+            retryResponse.data.status === "starting"
+          ) {
+            console.log(
+              `⏳ Retry ${retryAttempt} processing durumunda, polling başlatılıyor...`
+            );
+
+            try {
+              finalResult = await pollReplicateResult(retryResponse.data.id);
+              console.log(`✅ Retry ${retryAttempt} polling başarılı!`);
+              retrySuccessful = true;
+              break;
+            } catch (retryPollingError) {
+              console.error(
+                `❌ Retry ${retryAttempt} polling hatası:`,
+                retryPollingError.message
+              );
+              // Bu retry attempt başarısız, bir sonraki deneme yapılacak
+            }
+          } else {
+            console.error(
+              `❌ Retry ${retryAttempt} başarısız:`,
+              retryResponse.data.error
+            );
+            // Bu retry attempt başarısız, bir sonraki deneme yapılacak
+          }
+        } catch (retryError) {
+          console.error(
+            `❌ Retry ${retryAttempt} exception:`,
+            retryError.message
+          );
+          // Bu retry attempt başarısız, bir sonraki deneme yapılacak
+        }
+      }
+
+      if (!retrySuccessful) {
+        console.error(
+          `❌ Tüm retry attemptları başarısız oldu. Orijinal failed result kullanılıyor.`
+        );
+        finalResult = initialResult;
+      }
+
       processingTime = Math.round((Date.now() - startTime) / 1000);
     }
 
@@ -3458,6 +3686,16 @@ router.post("/generate", async (req, res) => {
     // Dev API'ye fallback yapıldıktan sonra başarılı sonuç kontrolü
     if (isFluxKontextDevResult || isStandardResult) {
       console.log("Replicate API işlemi başarılı");
+
+      // 📊 Retry istatistiklerini logla
+      if (totalRetryAttempts > 0) {
+        console.log(
+          `📊 Retry İstatistikleri: ${totalRetryAttempts} retry yapıldı`
+        );
+        console.log(`📊 Retry Nedenleri: ${retryReasons.join(" | ")}`);
+      } else {
+        console.log("📊 Retry İstatistikleri: İlk denemede başarılı");
+      }
 
       // ✅ Status'u completed'e güncelle
       await updateGenerationStatus(finalGenerationId, userId, "completed", {
