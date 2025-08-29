@@ -66,6 +66,8 @@ const revenuecatWebhookRouterv2 = require("./routes/revenuecatWebhookv2");
 const customPoseRoutes = require("./routes/customPoseRoutes");
 // Canvas Combine routes import
 const canvasCombineRoutes = require("./routes/canvasCombineRoutes");
+// Icon Generator routes import
+const iconGeneratorRoutes = require("./routes/iconGeneratorRoutes");
 // Create Location routes import
 const createLocationRoutes = require("./routes/createLocationRoutes");
 const createLocationRoutesV2 = require("./routes/createLocationRoutes_v2");
@@ -90,6 +92,11 @@ app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 // Results klasörüne statik dosya erişimi sağla
 app.use("/results", express.static(path.join(__dirname, "../results")));
+
+// Icon Generator UI'yi serve et
+app.get("/icon-generator-ui.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "../icon-generator-ui.html"));
+});
 
 // Basit test endpointi ekle
 app.get("/test", (req, res) => {
@@ -186,6 +193,9 @@ app.use("/api/favorites", favoritesRoutes);
 
 // Video routes ekle
 app.use("/api", videoRoutes);
+
+// Icon Generator routes ekle
+app.use("/api/icon-generator", iconGeneratorRoutes);
 
 // App Links routes ekle
 app.use("/api/app-links", appLinksRoutes);

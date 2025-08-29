@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Icon Generator UI</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+      }
+
+      .header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+      }
+
+      .controls {
+        padding: 30px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .control-group {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+
+      .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        min-width: 120px;
+      }
+
+      .btn-primary {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .btn-secondary {
+        background: #6c757d;
+        color: white;
+      }
+
+      .btn-danger {
+        background: #dc3545;
+        color: white;
+      }
+
+      select {
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        font-size: 16px;
+        background: white;
+      }
+
+      .status {
+        padding: 20px 30px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #eee;
+      }
+
+      .status-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 16px;
+      }
+
+      .status-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .progress {
+        width: 100%;
+        height: 10px;
+        background: #e9ecef;
+        border-radius: 5px;
+        overflow: hidden;
+        margin: 15px 0;
+      }
+
+      .progress-bar {
+        height: 100%;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        transition: width 0.3s ease;
+        width: 0%;
+      }
+
+      .logs {
+        padding: 20px 30px;
+        background: #1e1e1e;
+        color: #00ff00;
+        font-family: "Courier New", monospace;
+        height: 300px;
+        overflow-y: auto;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      .gallery {
+        padding: 30px;
+      }
+
+      .gallery h3 {
+        margin-bottom: 20px;
+        color: #333;
+        font-size: 1.5rem;
+      }
+
+      .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .gallery-item {
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+        background: white;
+      }
+
+      .gallery-item:hover {
+        transform: scale(1.05);
+        border-color: #667eea;
+      }
+
+      .gallery-item img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+      }
+
+      .gallery-item-info {
+        padding: 10px;
+        text-align: center;
+        background: #f8f9fa;
+      }
+
+      .gallery-item-info h4 {
+        font-size: 14px;
+        color: #333;
+        margin-bottom: 5px;
+      }
+
+      .gallery-item-info span {
+        font-size: 12px;
+        color: #666;
+        background: #667eea;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 10px;
+      }
+
+      .source-badge {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-size: 10px;
+        margin: 3px 0;
+        font-weight: bold;
+      }
+
+      .source-badge.supabase {
+        background: #22c55e;
+        color: white;
+      }
+
+      .source-badge.local {
+        background: #3b82f6;
+        color: white;
+      }
+
+      .image-url {
+        margin-top: 5px;
+      }
+
+      .image-url a {
+        color: #3b82f6;
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .image-url a:hover {
+        text-decoration: underline;
+      }
+
+      .log-entry {
+        margin-bottom: 5px;
+      }
+
+      .log-entry.success {
+        color: #28a745;
+      }
+
+      .log-entry.error {
+        color: #dc3545;
+      }
+
+      .log-entry.info {
+        color: #17a2b8;
+      }
+
+      .log-entry.warning {
+        color: #ffc107;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+
+      .stat-card h4 {
+        color: #667eea;
+        font-size: 2rem;
+        margin-bottom: 5px;
+      }
+
+      .stat-card p {
+        color: #666;
+        font-size: 14px;
+      }
+
+      @media (max-width: 768px) {
+        .control-group {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .btn {
+          width: 100%;
+        }
+
+        .gallery-grid {
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🎨 Icon Generator</h1>
+        <p>AccessoryLibrary verilerinden icon oluşturucu</p>
+      </div>
+
+      <div class="controls">
+        <div class="stats">
+          <div class="stat-card">
+            <h4 id="total-count">0</h4>
+            <p>Toplam Item</p>
+          </div>
+          <div class="stat-card">
+            <h4 id="processed-count">0</h4>
+            <p>İşlenen</p>
+          </div>
+          <div class="stat-card">
+            <h4 id="success-count">0</h4>
+            <p>Başarılı</p>
+          </div>
+          <div class="stat-card">
+            <h4 id="error-count">0</h4>
+            <p>Hatalı</p>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <select id="category-select">
+            <option value="all">Tüm Kategoriler</option>
+          </select>
+          <button class="btn btn-primary" id="start-btn">🚀 Başlat</button>
+          <button class="btn btn-secondary" id="stop-btn" disabled>
+            ⏹️ Durdur
+          </button>
+          <button class="btn btn-danger" id="clear-btn">🗑️ Temizle</button>
+          <button class="btn btn-secondary" id="refresh-gallery">
+            🔄 Galeriyi Yenile
+          </button>
+        </div>
+
+        <div class="progress">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+      </div>
+
+      <div class="status">
+        <div class="status-item">
+          <span>Durum:</span>
+          <span id="status-text">Hazır</span>
+        </div>
+        <div class="status-item">
+          <span>Mevcut İşlem:</span>
+          <span id="current-task">-</span>
+        </div>
+        <div class="status-item">
+          <span>Kalan Süre (Tahmini):</span>
+          <span id="eta">-</span>
+        </div>
+      </div>
+
+      <div class="logs" id="logs"></div>
+
+      <div class="gallery">
+        <h3>🖼️ Oluşturulan İconlar</h3>
+        <div class="gallery-grid" id="gallery-grid"></div>
+      </div>
+    </div>
+
+    <script>
+      class IconGeneratorUI {
+        constructor() {
+          this.isRunning = false;
+          this.currentProcess = null;
+          this.stats = {
+            total: 0,
+            processed: 0,
+            successful: 0,
+            failed: 0,
+          };
+          this.startTime = null;
+
+          this.initElements();
+          this.loadCategories();
+          this.bindEvents();
+          this.loadGallery();
+        }
+
+        initElements() {
+          this.elements = {
+            categorySelect: document.getElementById("category-select"),
+            startBtn: document.getElementById("start-btn"),
+            stopBtn: document.getElementById("stop-btn"),
+            clearBtn: document.getElementById("clear-btn"),
+            refreshGallery: document.getElementById("refresh-gallery"),
+            progressBar: document.getElementById("progress-bar"),
+            statusText: document.getElementById("status-text"),
+            currentTask: document.getElementById("current-task"),
+            eta: document.getElementById("eta"),
+            logs: document.getElementById("logs"),
+            galleryGrid: document.getElementById("gallery-grid"),
+            totalCount: document.getElementById("total-count"),
+            processedCount: document.getElementById("processed-count"),
+            successCount: document.getElementById("success-count"),
+            errorCount: document.getElementById("error-count"),
+          };
+        }
+
+        async loadCategories() {
+          try {
+            const response = await fetch("/api/icon-generator/categories");
+            const data = await response.json();
+
+            if (data.success) {
+              data.categories.forEach((category) => {
+                const option = document.createElement("option");
+                option.value = category.name;
+                option.textContent = `${category.name} (${category.count})`;
+                this.elements.categorySelect.appendChild(option);
+              });
+
+              this.log(
+                `📂 ${data.categories.length} kategori yüklendi (Toplam: ${data.total} accessory)`,
+                "success"
+              );
+            } else {
+              throw new Error(data.message);
+            }
+          } catch (error) {
+            this.log(
+              `❌ Kategoriler yüklenirken hata: ${error.message}`,
+              "error"
+            );
+            // Fallback categories
+            const fallbackCategories = [
+              "Casual",
+              "Formal",
+              "Business",
+              "Streetwear",
+              "Sporty",
+              "Tennis",
+              "Golf",
+              "Running",
+              "Cycling",
+              "Hiking",
+            ];
+            fallbackCategories.forEach((category) => {
+              const option = document.createElement("option");
+              option.value = category;
+              option.textContent = category;
+              this.elements.categorySelect.appendChild(option);
+            });
+          }
+        }
+
+        bindEvents() {
+          this.elements.startBtn.addEventListener("click", () =>
+            this.startGeneration()
+          );
+          this.elements.stopBtn.addEventListener("click", () =>
+            this.stopGeneration()
+          );
+          this.elements.clearBtn.addEventListener("click", () =>
+            this.clearIcons()
+          );
+          this.elements.refreshGallery.addEventListener("click", () =>
+            this.loadGallery()
+          );
+        }
+
+        async startGeneration() {
+          if (this.isRunning) return;
+
+          const category = this.elements.categorySelect.value;
+          this.isRunning = true;
+          this.startTime = Date.now();
+
+          this.elements.startBtn.disabled = true;
+          this.elements.stopBtn.disabled = false;
+          this.elements.statusText.textContent = "Çalışıyor...";
+
+          this.resetStats();
+          this.log("🚀 Icon generation başlatılıyor...", "info");
+
+          try {
+            // Node.js scriptini çalıştır
+            await this.runIconGenerator(category);
+          } catch (error) {
+            this.log(`❌ Generation hatası: ${error.message}`, "error");
+          } finally {
+            this.stopGeneration();
+          }
+        }
+
+        async runIconGenerator(category) {
+          try {
+            this.log(
+              `🚀 ${
+                category === "all" ? "Tüm kategoriler" : category
+              } için generation başlatılıyor...`,
+              "info"
+            );
+
+            const response = await fetch("/api/icon-generator/generate", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ category }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+              this.log("✅ Generation scripti başlatıldı!", "success");
+              this.log("📝 Output:", "info");
+              this.log(data.output || "Script çalışıyor...", "info");
+
+              // Durum kontrolü için polling başlat
+              this.startStatusPolling();
+            } else {
+              throw new Error(data.message || "Generation başlatılamadı");
+            }
+          } catch (error) {
+            this.log(`❌ Generation hatası: ${error.message}`, "error");
+            this.stopGeneration();
+          }
+        }
+
+        async startStatusPolling() {
+          const pollInterval = setInterval(async () => {
+            if (!this.isRunning) {
+              clearInterval(pollInterval);
+              return;
+            }
+
+            try {
+              const response = await fetch("/api/icon-generator/status");
+              const data = await response.json();
+
+              if (data.success) {
+                // Simüle edilmiş progress (gerçek implementasyonda script'ten gelecek)
+                if (this.stats.total === 0) {
+                  this.stats.total = data.status.totalAccessories;
+                  this.updateStats();
+                }
+
+                // Galeri sayısından progress tahmin et
+                const currentIconCount = data.status.iconCount;
+                if (currentIconCount > this.stats.processed) {
+                  const newIcons = currentIconCount - this.stats.processed;
+                  this.stats.processed = currentIconCount;
+                  this.stats.successful += newIcons;
+                  this.updateStats();
+                  this.updateProgress();
+                  this.updateETA();
+
+                  this.log(
+                    `✅ ${newIcons} yeni icon oluşturuldu (Toplam: ${currentIconCount})`,
+                    "success"
+                  );
+                  this.elements.currentTask.textContent = `Icon oluşturma devam ediyor... (${currentIconCount} tamamlandı)`;
+
+                  // Galeriyi güncelle
+                  this.loadGallery();
+                } else if (this.stats.processed === 0) {
+                  // Henüz icon oluşmadıysa genel bilgi göster
+                  this.elements.currentTask.textContent = `Generation devam ediyor...`;
+                }
+
+                // Eğer tüm iconlar oluşturulduysa durdur
+                if (this.stats.processed >= this.stats.total) {
+                  this.log("🎉 Tüm iconlar oluşturuldu!", "success");
+                  this.loadGallery();
+                  this.stopGeneration();
+                }
+              }
+            } catch (error) {
+              this.log(`⚠️ Durum kontrolü hatası: ${error.message}`, "warning");
+            }
+          }, 2000); // Her 2 saniyede bir kontrol et
+        }
+
+        stopGeneration() {
+          this.isRunning = false;
+          this.elements.startBtn.disabled = false;
+          this.elements.stopBtn.disabled = true;
+          this.elements.statusText.textContent = "Durduruldu";
+          this.elements.currentTask.textContent = "-";
+          this.elements.eta.textContent = "-";
+
+          if (this.stats.processed > 0) {
+            this.log("⏹️ Generation durduruldu", "warning");
+          }
+        }
+
+        resetStats() {
+          this.stats = { total: 0, processed: 0, successful: 0, failed: 0 };
+          this.updateStats();
+          this.updateProgress();
+        }
+
+        updateStats() {
+          this.elements.totalCount.textContent = this.stats.total;
+          this.elements.processedCount.textContent = this.stats.processed;
+          this.elements.successCount.textContent = this.stats.successful;
+          this.elements.errorCount.textContent = this.stats.failed;
+        }
+
+        updateProgress() {
+          const percentage =
+            this.stats.total > 0
+              ? (this.stats.processed / this.stats.total) * 100
+              : 0;
+          this.elements.progressBar.style.width = `${percentage}%`;
+        }
+
+        updateETA() {
+          if (this.stats.processed === 0 || !this.startTime) {
+            this.elements.eta.textContent = "-";
+            return;
+          }
+
+          const elapsed = Date.now() - this.startTime;
+          const avgTimePerItem = elapsed / this.stats.processed;
+          const remaining = this.stats.total - this.stats.processed;
+          const etaMs = remaining * avgTimePerItem;
+
+          if (etaMs > 0) {
+            const minutes = Math.floor(etaMs / 60000);
+            const seconds = Math.floor((etaMs % 60000) / 1000);
+            this.elements.eta.textContent = `${minutes}:${seconds
+              .toString()
+              .padStart(2, "0")}`;
+          } else {
+            this.elements.eta.textContent = "0:00";
+          }
+        }
+
+        clearLogs() {
+          this.elements.logs.innerHTML = "";
+          this.log("📝 Loglar temizlendi", "info");
+        }
+
+        async clearIcons() {
+          if (
+            !confirm(
+              "Tüm oluşturulan iconları silmek istediğinizden emin misiniz?"
+            )
+          ) {
+            return;
+          }
+
+          try {
+            this.log("🗑️ Iconlar temizleniyor...", "info");
+
+            const response = await fetch("/api/icon-generator/clear", {
+              method: "DELETE",
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+              this.log(
+                `✅ ${data.deletedCount} icon silindi (Supabase: ${data.supabaseDeleted}, Local: ${data.localDeleted})`,
+                "success"
+              );
+              this.loadGallery();
+              this.resetStats();
+            } else {
+              throw new Error(data.message);
+            }
+          } catch (error) {
+            this.log(`❌ Temizleme hatası: ${error.message}`, "error");
+          }
+        }
+
+        log(message, type = "info") {
+          const logEntry = document.createElement("div");
+          logEntry.className = `log-entry ${type}`;
+          logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+
+          this.elements.logs.appendChild(logEntry);
+          this.elements.logs.scrollTop = this.elements.logs.scrollHeight;
+        }
+
+        async loadGallery() {
+          this.log("🖼️ Galeri yükleniyor...", "info");
+
+          try {
+            const response = await fetch("/api/icon-generator/gallery");
+            const data = await response.json();
+
+            this.elements.galleryGrid.innerHTML = "";
+
+            if (data.success && data.images.length > 0) {
+              data.images.forEach((image) => {
+                const galleryItem = document.createElement("div");
+                galleryItem.className = "gallery-item";
+
+                // Source badge'ini ekle
+                const sourceBadge =
+                  image.source === "supabase"
+                    ? '<span class="source-badge supabase">☁️ Supabase</span>'
+                    : '<span class="source-badge local">💾 Local</span>';
+
+                galleryItem.innerHTML = `
+                                    <img src="${image.url}" alt="${image.accessoryName}" loading="lazy" 
+                                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2Y4ZjlmYSIvPjx0ZXh0IHg9IjEwMCIgeT0iNzUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY2NyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPllüklenemiyor</dGV4dD48L3N2Zz4='">
+                                    <div class="gallery-item-info">
+                                        <h4>${image.accessoryName}</h4>
+                                        <span>${image.category}</span>
+                                        ${sourceBadge}
+                                        <div class="image-url">
+                                            <small>🔗 <a href="${image.url}" target="_blank" rel="noopener">Link</a></small>
+                                        </div>
+                                    </div>
+                                `;
+                this.elements.galleryGrid.appendChild(galleryItem);
+              });
+
+              this.log(
+                `✅ Galeri yüklendi (${data.count} icon - Supabase: ${data.supabaseCount}, Local: ${data.localCount})`,
+                "success"
+              );
+            } else {
+              const noImageDiv = document.createElement("div");
+              noImageDiv.style.gridColumn = "1 / -1";
+              noImageDiv.style.textAlign = "center";
+              noImageDiv.style.padding = "40px";
+              noImageDiv.style.color = "#666";
+              noImageDiv.innerHTML =
+                '📭 Henüz oluşturulan icon yok. "Başlat" butonuna basarak icon oluşturmaya başlayın!';
+              this.elements.galleryGrid.appendChild(noImageDiv);
+
+              this.log("📭 Henüz icon oluşturulmadı", "info");
+            }
+          } catch (error) {
+            this.log(`❌ Galeri yüklenirken hata: ${error.message}`, "error");
+
+            const errorDiv = document.createElement("div");
+            errorDiv.style.gridColumn = "1 / -1";
+            errorDiv.style.textAlign = "center";
+            errorDiv.style.padding = "40px";
+            errorDiv.style.color = "#dc3545";
+            errorDiv.innerHTML = `❌ Galeri yüklenemedi: ${error.message}`;
+            this.elements.galleryGrid.appendChild(errorDiv);
+          }
+        }
+
+        delay(ms) {
+          return new Promise((resolve) => setTimeout(resolve, ms));
+        }
+      }
+
+      // Uygulama başlat
+      document.addEventListener("DOMContentLoaded", () => {
+        new IconGeneratorUI();
+      });
+    </script>
+  </body>
+</html>

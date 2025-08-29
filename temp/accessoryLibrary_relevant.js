@@ -1,0 +1,1824 @@
+const accessoryLibrary = {
+  "Casual": [
+    {
+      "name": "Sunglasses",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "sunglasses",
+      "for_localize": "sunglasses"
+    },
+    {
+      "name": "Baseball Cap",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "baseball_cap",
+      "for_localize": "baseball_cap"
+    },
+    {
+      "name": "Beanie",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "beanie",
+      "for_localize": "beanie"
+    },
+    {
+      "name": "Backpack",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "backpack",
+      "for_localize": "backpack"
+    },
+    {
+      "name": "Sneakers",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "sneakers",
+      "for_localize": "sneakers"
+    },
+    {
+      "name": "Watch",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "watch",
+      "for_localize": "watch"
+    },
+    {
+      "name": "Bracelet",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "bracelet",
+      "for_localize": "bracelet"
+    },
+    {
+      "name": "Necklace",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "necklace",
+      "for_localize": "necklace"
+    },
+    {
+      "name": "Belt",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "belt",
+      "for_localize": "belt"
+    },
+    {
+      "name": "Phone Case",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "phone_case",
+      "for_localize": "phone_case"
+    },
+    {
+      "name": "Hair Clip",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "hair_clip",
+      "for_localize": "hair_clip"
+    },
+    {
+      "name": "Keychain",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "keychain",
+      "for_localize": "keychain"
+    },
+    {
+      "name": "Water Bottle",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "water_bottle",
+      "for_localize": "water_bottle"
+    },
+    {
+      "name": "Canvas Tote",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "canvas_tote",
+      "for_localize": "canvas_tote"
+    },
+    {
+      "name": "Crossbody Bag",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "crossbody_bag",
+      "for_localize": "crossbody_bag"
+    },
+    {
+      "name": "Bandana",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "bandana",
+      "for_localize": "bandana"
+    },
+    {
+      "name": "Bucket Hat",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "bucket_hat",
+      "for_localize": "bucket_hat"
+    },
+    {
+      "name": "Graphic Socks",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "graphic_socks",
+      "for_localize": "graphic_socks"
+    },
+    {
+      "name": "Fanny Pack",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "fanny_pack",
+      "for_localize": "fanny_pack"
+    },
+    {
+      "name": "Canvas Shoes",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "canvas_shoes",
+      "for_localize": "canvas_shoes"
+    },
+    {
+      "name": "Denim Jacket Pin",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "denim_jacket_pin",
+      "for_localize": "denim_jacket_pin"
+    },
+    {
+      "name": "Charm Bracelet",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "charm_bracelet",
+      "for_localize": "charm_bracelet"
+    },
+    {
+      "name": "Reusable Cup",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "reusable_cup",
+      "for_localize": "reusable_cup"
+    },
+    {
+      "name": "Plaid Scarf",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "plaid_scarf",
+      "for_localize": "plaid_scarf"
+    },
+    {
+      "name": "Back Pocket Wallet",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "back_pocket_wallet",
+      "for_localize": "back_pocket_wallet"
+    },
+    {
+      "name": "Friendship Bracelet",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "friendship_bracelet",
+      "for_localize": "friendship_bracelet"
+    },
+    {
+      "name": "Anklet",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "anklet",
+      "for_localize": "anklet"
+    },
+    {
+      "name": "Laptop Sleeve",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "laptop_sleeve",
+      "for_localize": "laptop_sleeve"
+    },
+    {
+      "name": "Headphones",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "headphones",
+      "for_localize": "headphones"
+    },
+    {
+      "name": "Bean Bag Keychain",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "bean_bag_keychain",
+      "for_localize": "bean_bag_keychain"
+    }
+  ],
+  "Formal": [
+    {
+      "name": "Tie",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "tie",
+      "for_localize": "tie"
+    },
+    {
+      "name": "Bow Tie",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "bow_tie",
+      "for_localize": "bow_tie"
+    },
+    {
+      "name": "Cufflinks",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "cufflinks",
+      "for_localize": "cufflinks"
+    },
+    {
+      "name": "Pocket Square",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "pocket_square",
+      "for_localize": "pocket_square"
+    },
+    {
+      "name": "Dress Watch",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "dress_watch",
+      "for_localize": "dress_watch"
+    },
+    {
+      "name": "Leather Belt",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "leather_belt",
+      "for_localize": "leather_belt"
+    },
+    {
+      "name": "Oxford Shoes",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "oxford_shoes",
+      "for_localize": "oxford_shoes"
+    },
+    {
+      "name": "Lapel Pin",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "lapel_pin",
+      "for_localize": "lapel_pin"
+    },
+    {
+      "name": "Dress Socks",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "dress_socks",
+      "for_localize": "dress_socks"
+    },
+    {
+      "name": "Briefcase",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "briefcase",
+      "for_localize": "briefcase"
+    },
+    {
+      "name": "Silk Scarf",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "silk_scarf",
+      "for_localize": "silk_scarf"
+    },
+    {
+      "name": "Luxury Pen",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "luxury_pen",
+      "for_localize": "luxury_pen"
+    },
+    {
+      "name": "Money Clip",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "money_clip",
+      "for_localize": "money_clip"
+    },
+    {
+      "name": "Homburg Hat",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "homburg_hat",
+      "for_localize": "homburg_hat"
+    },
+    {
+      "name": "Leather Portfolio",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "leather_portfolio",
+      "for_localize": "leather_portfolio"
+    },
+    {
+      "name": "Suspenders",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "suspenders",
+      "for_localize": "suspenders"
+    },
+    {
+      "name": "Boutonniere",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "boutonniere",
+      "for_localize": "boutonniere"
+    },
+    {
+      "name": "Tie Clip",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "tie_clip",
+      "for_localize": "tie_clip"
+    },
+    {
+      "name": "Collar Bar",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "collar_bar",
+      "for_localize": "collar_bar"
+    },
+    {
+      "name": "Patent Leather Shoes",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "patent_leather_shoes",
+      "for_localize": "patent_leather_shoes"
+    },
+    {
+      "name": "Ascot",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "ascot",
+      "for_localize": "ascot"
+    },
+    {
+      "name": "Opera Gloves",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "opera_gloves",
+      "for_localize": "opera_gloves"
+    },
+    {
+      "name": "Tuxedo Studs",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "tuxedo_studs",
+      "for_localize": "tuxedo_studs"
+    },
+    {
+      "name": "Pocket Watch",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "pocket_watch",
+      "for_localize": "pocket_watch"
+    },
+    {
+      "name": "Silk Pocket Square",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "silk_pocket_square",
+      "for_localize": "silk_pocket_square"
+    },
+    {
+      "name": "Dress Cane",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "dress_cane",
+      "for_localize": "dress_cane"
+    },
+    {
+      "name": "Crystal Brooch",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "crystal_brooch",
+      "for_localize": "crystal_brooch"
+    },
+    {
+      "name": "Cigar Case",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "cigar_case",
+      "for_localize": "cigar_case"
+    },
+    {
+      "name": "Leather Card Holder",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "leather_card_holder",
+      "for_localize": "leather_card_holder"
+    },
+    {
+      "name": "Umbrella",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "umbrella",
+      "for_localize": "umbrella"
+    }
+  ],
+  "Business": [
+    {
+      "name": "Tie",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "tie",
+      "for_localize": "tie"
+    },
+    {
+      "name": "Cufflinks",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "cufflinks",
+      "for_localize": "cufflinks"
+    },
+    {
+      "name": "Briefcase",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "briefcase",
+      "for_localize": "briefcase"
+    },
+    {
+      "name": "Laptop Bag",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "laptop_bag",
+      "for_localize": "laptop_bag"
+    },
+    {
+      "name": "Business Card Holder",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "business_card_holder",
+      "for_localize": "business_card_holder"
+    },
+    {
+      "name": "Leather Belt",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "leather_belt",
+      "for_localize": "leather_belt"
+    },
+    {
+      "name": "Dress Watch",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "dress_watch",
+      "for_localize": "dress_watch"
+    },
+    {
+      "name": "Eyeglasses",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "eyeglasses",
+      "for_localize": "eyeglasses"
+    },
+    {
+      "name": "Leather Shoes",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "leather_shoes",
+      "for_localize": "leather_shoes"
+    },
+    {
+      "name": "Smartwatch",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "smartwatch",
+      "for_localize": "smartwatch"
+    },
+    {
+      "name": "Fountain Pen",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "fountain_pen",
+      "for_localize": "fountain_pen"
+    },
+    {
+      "name": "Notebook",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "notebook",
+      "for_localize": "notebook"
+    },
+    {
+      "name": "Lapel Pin",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "lapel_pin",
+      "for_localize": "lapel_pin"
+    },
+    {
+      "name": "Key Fob",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "key_fob",
+      "for_localize": "key_fob"
+    },
+    {
+      "name": "Portfolio",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "portfolio",
+      "for_localize": "portfolio"
+    },
+    {
+      "name": "Tablet Case",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "tablet_case",
+      "for_localize": "tablet_case"
+    },
+    {
+      "name": "Wireless Earbuds",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "wireless_earbuds",
+      "for_localize": "wireless_earbuds"
+    },
+    {
+      "name": "Travel Mug",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "travel_mug",
+      "for_localize": "travel_mug"
+    },
+    {
+      "name": "Tie Clip",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "tie_clip",
+      "for_localize": "tie_clip"
+    },
+    {
+      "name": "Messenger Bag",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "messenger_bag",
+      "for_localize": "messenger_bag"
+    },
+    {
+      "name": "Passport Wallet",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "passport_wallet",
+      "for_localize": "passport_wallet"
+    },
+    {
+      "name": "USB Drive",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "usb_drive",
+      "for_localize": "usb_drive"
+    },
+    {
+      "name": "Power Bank",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "power_bank",
+      "for_localize": "power_bank"
+    },
+    {
+      "name": "Stylus",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "stylus",
+      "for_localize": "stylus"
+    },
+    {
+      "name": "Card Wallet",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "card_wallet",
+      "for_localize": "card_wallet"
+    },
+    {
+      "name": "Charging Cable",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "charging_cable",
+      "for_localize": "charging_cable"
+    },
+    {
+      "name": "Presentation Remote",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "presentation_remote",
+      "for_localize": "presentation_remote"
+    },
+    {
+      "name": "Desk Pen",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "desk_pen",
+      "for_localize": "desk_pen"
+    },
+    {
+      "name": "Leather Folio",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "leather_folio",
+      "for_localize": "leather_folio"
+    },
+    {
+      "name": "RFID Sleeve",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "rfid_sleeve",
+      "for_localize": "rfid_sleeve"
+    }
+  ],
+  "Streetwear": [
+    {
+      "name": "Bucket Hat",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "bucket_hat",
+      "for_localize": "bucket_hat"
+    },
+    {
+      "name": "Snapback Cap",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "snapback_cap",
+      "for_localize": "snapback_cap"
+    },
+    {
+      "name": "Chain Necklace",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "chain_necklace",
+      "for_localize": "chain_necklace"
+    },
+    {
+      "name": "Hoop Earrings",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "hoop_earrings",
+      "for_localize": "hoop_earrings"
+    },
+    {
+      "name": "Crossbody Bag",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "crossbody_bag",
+      "for_localize": "crossbody_bag"
+    },
+    {
+      "name": "Fanny Pack",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "fanny_pack",
+      "for_localize": "fanny_pack"
+    },
+    {
+      "name": "High-top Sneakers",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "high_top_sneakers",
+      "for_localize": "high_top_sneakers"
+    },
+    {
+      "name": "Skateboard",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "skateboard",
+      "for_localize": "skateboard"
+    },
+    {
+      "name": "Fingerless Gloves",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "fingerless_gloves",
+      "for_localize": "fingerless_gloves"
+    },
+    {
+      "name": "Bandana",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "bandana",
+      "for_localize": "bandana"
+    },
+    {
+      "name": "Oversized Sunglasses",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "oversized_sunglasses",
+      "for_localize": "oversized_sunglasses"
+    },
+    {
+      "name": "Beanie",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "beanie",
+      "for_localize": "beanie"
+    },
+    {
+      "name": "Grillz",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "grillz",
+      "for_localize": "grillz"
+    },
+    {
+      "name": "Patch Badges",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "patch_badges",
+      "for_localize": "patch_badges"
+    },
+    {
+      "name": "Statement Belt",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "statement_belt",
+      "for_localize": "statement_belt"
+    },
+    {
+      "name": "Arm Sleeve",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "arm_sleeve",
+      "for_localize": "arm_sleeve"
+    },
+    {
+      "name": "Cargo Belt",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "cargo_belt",
+      "for_localize": "cargo_belt"
+    },
+    {
+      "name": "Techwear Harness",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "techwear_harness",
+      "for_localize": "techwear_harness"
+    },
+    {
+      "name": "Keychain",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "keychain",
+      "for_localize": "keychain"
+    },
+    {
+      "name": "Duffel Bag",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "duffel_bag",
+      "for_localize": "duffel_bag"
+    },
+    {
+      "name": "Studded Bracelet",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "studded_bracelet",
+      "for_localize": "studded_bracelet"
+    },
+    {
+      "name": "Chunky Rings",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "chunky_rings",
+      "for_localize": "chunky_rings"
+    },
+    {
+      "name": "Graphic Socks",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "graphic_socks",
+      "for_localize": "graphic_socks"
+    },
+    {
+      "name": "Dog Tag",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "dog_tag",
+      "for_localize": "dog_tag"
+    },
+    {
+      "name": "Chain Wallet",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "chain_wallet",
+      "for_localize": "chain_wallet"
+    },
+    {
+      "name": "Mask",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "mask",
+      "for_localize": "mask"
+    },
+    {
+      "name": "Waist Bag",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "waist_bag",
+      "for_localize": "waist_bag"
+    },
+    {
+      "name": "LED Glasses",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "led_glasses",
+      "for_localize": "led_glasses"
+    },
+    {
+      "name": "Ripped Beanie",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "ripped_beanie",
+      "for_localize": "ripped_beanie"
+    },
+    {
+      "name": "Studded Backpack",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "studded_backpack",
+      "for_localize": "studded_backpack"
+    }
+  ],
+  "Sporty": [
+    {
+      "name": "Sports Sunglasses",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "sports_sunglasses",
+      "for_localize": "sports_sunglasses"
+    },
+    {
+      "name": "Sweatband",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "sweatband",
+      "for_localize": "sweatband"
+    },
+    {
+      "name": "Sports Watch",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "sports_watch",
+      "for_localize": "sports_watch"
+    },
+    {
+      "name": "Sports Cap",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "sports_cap",
+      "for_localize": "sports_cap"
+    },
+    {
+      "name": "Water Bottle",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "water_bottle",
+      "for_localize": "water_bottle"
+    },
+    {
+      "name": "Gym Bag",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "gym_bag",
+      "for_localize": "gym_bag"
+    },
+    {
+      "name": "Compression Sleeves",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "compression_sleeves",
+      "for_localize": "compression_sleeves"
+    },
+    {
+      "name": "Knee Brace",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "knee_brace",
+      "for_localize": "knee_brace"
+    },
+    {
+      "name": "Athletic Socks",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "athletic_socks",
+      "for_localize": "athletic_socks"
+    },
+    {
+      "name": "Headband",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "headband",
+      "for_localize": "headband"
+    },
+    {
+      "name": "Sports Gloves",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "sports_gloves",
+      "for_localize": "sports_gloves"
+    },
+    {
+      "name": "Armband Phone Holder",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "armband_phone_holder",
+      "for_localize": "armband_phone_holder"
+    },
+    {
+      "name": "Sweat Towel",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "sweat_towel",
+      "for_localize": "sweat_towel"
+    },
+    {
+      "name": "Hydration Backpack",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "hydration_backpack",
+      "for_localize": "hydration_backpack"
+    },
+    {
+      "name": "Ankle Brace",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "ankle_brace",
+      "for_localize": "ankle_brace"
+    },
+    {
+      "name": "Visor",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "visor",
+      "for_localize": "visor"
+    },
+    {
+      "name": "Sports Whistle",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "sports_whistle",
+      "for_localize": "sports_whistle"
+    },
+    {
+      "name": "Shin Guards",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "shin_guards",
+      "for_localize": "shin_guards"
+    },
+    {
+      "name": "Fitness Tracker",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "fitness_tracker",
+      "for_localize": "fitness_tracker"
+    },
+    {
+      "name": "Energy Gel Pouch",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "energy_gel_pouch",
+      "for_localize": "energy_gel_pouch"
+    },
+    {
+      "name": "Mouth Guard",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "mouth_guard",
+      "for_localize": "mouth_guard"
+    },
+    {
+      "name": "Resistance Bands",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "resistance_bands",
+      "for_localize": "resistance_bands"
+    },
+    {
+      "name": "Protein Shaker",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "protein_shaker",
+      "for_localize": "protein_shaker"
+    },
+    {
+      "name": "Jump Rope",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "jump_rope",
+      "for_localize": "jump_rope"
+    },
+    {
+      "name": "Sports Belt",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "sports_belt",
+      "for_localize": "sports_belt"
+    },
+    {
+      "name": "Yoga Strap",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "yoga_strap",
+      "for_localize": "yoga_strap"
+    },
+    {
+      "name": "Gym Straps",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "gym_straps",
+      "for_localize": "gym_straps"
+    },
+    {
+      "name": "Heart Rate Monitor",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "heart_rate_monitor",
+      "for_localize": "heart_rate_monitor"
+    },
+    {
+      "name": "Foam Roller Strap",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "foam_roller_strap",
+      "for_localize": "foam_roller_strap"
+    },
+    {
+      "name": "Sports Earphones",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "sports_earphones",
+      "for_localize": "sports_earphones"
+    }
+  ],
+  "Tennis": [
+    {
+      "name": "Tennis Racquet",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "tennis_racquet",
+      "for_localize": "tennis_racquet"
+    },
+    {
+      "name": "Tennis Ball",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "tennis_ball",
+      "for_localize": "tennis_ball"
+    },
+    {
+      "name": "Wrist Sweatband",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "wrist_sweatband",
+      "for_localize": "wrist_sweatband"
+    },
+    {
+      "name": "Visor",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "visor",
+      "for_localize": "visor"
+    },
+    {
+      "name": "Tennis Skirt Clip",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "tennis_skirt_clip",
+      "for_localize": "tennis_skirt_clip"
+    },
+    {
+      "name": "Sports Towel",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "sports_towel",
+      "for_localize": "sports_towel"
+    },
+    {
+      "name": "Tennis Bag",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "tennis_bag",
+      "for_localize": "tennis_bag"
+    },
+    {
+      "name": "Overgrip Rolls",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "overgrip_rolls",
+      "for_localize": "overgrip_rolls"
+    },
+    {
+      "name": "Vibration Dampener",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "vibration_dampener",
+      "for_localize": "vibration_dampener"
+    },
+    {
+      "name": "Ball Hopper",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "ball_hopper",
+      "for_localize": "ball_hopper"
+    },
+    {
+      "name": "Sports Sunglasses",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "sports_sunglasses",
+      "for_localize": "sports_sunglasses"
+    },
+    {
+      "name": "Ankle Brace",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "ankle_brace",
+      "for_localize": "ankle_brace"
+    },
+    {
+      "name": "Headband",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "headband",
+      "for_localize": "headband"
+    },
+    {
+      "name": "Water Bottle",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "water_bottle",
+      "for_localize": "water_bottle"
+    },
+    {
+      "name": "Sports Watch",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "sports_watch",
+      "for_localize": "sports_watch"
+    },
+    {
+      "name": "Grip Enhancer",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "grip_enhancer",
+      "for_localize": "grip_enhancer"
+    },
+    {
+      "name": "Cooling Towel",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "cooling_towel",
+      "for_localize": "cooling_towel"
+    },
+    {
+      "name": "Scorekeeper",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "scorekeeper",
+      "for_localize": "scorekeeper"
+    },
+    {
+      "name": "Ball Clip",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "ball_clip",
+      "for_localize": "ball_clip"
+    },
+    {
+      "name": "Sunscreen Stick",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "sunscreen_stick",
+      "for_localize": "sunscreen_stick"
+    },
+    {
+      "name": "Sports Socks",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "sports_socks",
+      "for_localize": "sports_socks"
+    },
+    {
+      "name": "Compression Sleeve",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "compression_sleeve",
+      "for_localize": "compression_sleeve"
+    },
+    {
+      "name": "Dampener Keychain",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "dampener_keychain",
+      "for_localize": "dampener_keychain"
+    },
+    {
+      "name": "Athletic Tape",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "athletic_tape",
+      "for_localize": "athletic_tape"
+    },
+    {
+      "name": "Tennis Cap",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "tennis_cap",
+      "for_localize": "tennis_cap"
+    },
+    {
+      "name": "Shoe Bag",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "shoe_bag",
+      "for_localize": "shoe_bag"
+    },
+    {
+      "name": "Ball Can",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "ball_can",
+      "for_localize": "ball_can"
+    },
+    {
+      "name": "Energy Bar Pouch",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "energy_bar_pouch",
+      "for_localize": "energy_bar_pouch"
+    },
+    {
+      "name": "Knee Support",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "knee_support",
+      "for_localize": "knee_support"
+    },
+    {
+      "name": "Racquet Cover",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "racquet_cover",
+      "for_localize": "racquet_cover"
+    }
+  ],
+  "Golf": [
+    {
+      "name": "Golf Club",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "golf_club",
+      "for_localize": "golf_club"
+    },
+    {
+      "name": "Golf Ball",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "golf_ball",
+      "for_localize": "golf_ball"
+    },
+    {
+      "name": "Golf Glove",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "golf_glove",
+      "for_localize": "golf_glove"
+    },
+    {
+      "name": "Divot Tool",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "divot_tool",
+      "for_localize": "divot_tool"
+    },
+    {
+      "name": "Ball Marker",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "ball_marker",
+      "for_localize": "ball_marker"
+    },
+    {
+      "name": "Tee Holder",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "tee_holder",
+      "for_localize": "tee_holder"
+    },
+    {
+      "name": "Golf Visor",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "golf_visor",
+      "for_localize": "golf_visor"
+    },
+    {
+      "name": "Scorecard Holder",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "scorecard_holder",
+      "for_localize": "scorecard_holder"
+    },
+    {
+      "name": "Rangefinder",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "rangefinder",
+      "for_localize": "rangefinder"
+    },
+    {
+      "name": "Golf Towel",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "golf_towel",
+      "for_localize": "golf_towel"
+    },
+    {
+      "name": "Cigar Holder",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "cigar_holder",
+      "for_localize": "cigar_holder"
+    },
+    {
+      "name": "Water Bottle",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "water_bottle",
+      "for_localize": "water_bottle"
+    },
+    {
+      "name": "Putting Mirror",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "putting_mirror",
+      "for_localize": "putting_mirror"
+    },
+    {
+      "name": "Shoe Spike Wrench",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "shoe_spike_wrench",
+      "for_localize": "shoe_spike_wrench"
+    },
+    {
+      "name": "Golf Umbrella",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "golf_umbrella",
+      "for_localize": "golf_umbrella"
+    },
+    {
+      "name": "Club Brush",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "club_brush",
+      "for_localize": "club_brush"
+    },
+    {
+      "name": "Rain Cover",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "rain_cover",
+      "for_localize": "rain_cover"
+    },
+    {
+      "name": "Waist Pouch",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "waist_pouch",
+      "for_localize": "waist_pouch"
+    },
+    {
+      "name": "Golf Belt",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "golf_belt",
+      "for_localize": "golf_belt"
+    },
+    {
+      "name": "Cooling Towel",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "cooling_towel",
+      "for_localize": "cooling_towel"
+    },
+    {
+      "name": "Ball Pouch",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "ball_pouch",
+      "for_localize": "ball_pouch"
+    },
+    {
+      "name": "Sunglasses",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "sunglasses",
+      "for_localize": "sunglasses"
+    },
+    {
+      "name": "Golf Shoes",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "golf_shoes",
+      "for_localize": "golf_shoes"
+    },
+    {
+      "name": "GPS Watch",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "gps_watch",
+      "for_localize": "gps_watch"
+    },
+    {
+      "name": "Alignment Stick",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "alignment_stick",
+      "for_localize": "alignment_stick"
+    },
+    {
+      "name": "Golf Bag Tag",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "golf_bag_tag",
+      "for_localize": "golf_bag_tag"
+    },
+    {
+      "name": "Headcover",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "headcover",
+      "for_localize": "headcover"
+    },
+    {
+      "name": "Umbrella Clip",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "umbrella_clip",
+      "for_localize": "umbrella_clip"
+    },
+    {
+      "name": "Groove Sharpener",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "groove_sharpener",
+      "for_localize": "groove_sharpener"
+    },
+    {
+      "name": "Ball Retriever",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "ball_retriever",
+      "for_localize": "ball_retriever"
+    }
+  ],
+  "Running": [
+    {
+      "name": "Running Shoes",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "running_shoes",
+      "for_localize": "running_shoes"
+    },
+    {
+      "name": "Hydration Belt",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "hydration_belt",
+      "for_localize": "hydration_belt"
+    },
+    {
+      "name": "Fitness Tracker",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "fitness_tracker",
+      "for_localize": "fitness_tracker"
+    },
+    {
+      "name": "Sports Watch",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "sports_watch",
+      "for_localize": "sports_watch"
+    },
+    {
+      "name": "Headband",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "headband",
+      "for_localize": "headband"
+    },
+    {
+      "name": "Sweatband",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "sweatband",
+      "for_localize": "sweatband"
+    },
+    {
+      "name": "Reflective Armband",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "reflective_armband",
+      "for_localize": "reflective_armband"
+    },
+    {
+      "name": "Arm Phone Holder",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "arm_phone_holder",
+      "for_localize": "arm_phone_holder"
+    },
+    {
+      "name": "Running Sunglasses",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "running_sunglasses",
+      "for_localize": "running_sunglasses"
+    },
+    {
+      "name": "Compression Calf Sleeves",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "compression_calf_sleeves",
+      "for_localize": "compression_calf_sleeves"
+    },
+    {
+      "name": "Energy Gel Flask",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "energy_gel_flask",
+      "for_localize": "energy_gel_flask"
+    },
+    {
+      "name": "Ankle Socks",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "ankle_socks",
+      "for_localize": "ankle_socks"
+    },
+    {
+      "name": "Cooling Towel",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "cooling_towel",
+      "for_localize": "cooling_towel"
+    },
+    {
+      "name": "Running Hat",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "running_hat",
+      "for_localize": "running_hat"
+    },
+    {
+      "name": "Windbreaker Pack",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "windbreaker_pack",
+      "for_localize": "windbreaker_pack"
+    },
+    {
+      "name": "Arm Warmers",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "arm_warmers",
+      "for_localize": "arm_warmers"
+    },
+    {
+      "name": "Shoe Pouch",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "shoe_pouch",
+      "for_localize": "shoe_pouch"
+    },
+    {
+      "name": "Motivational Wristband",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "motivational_wristband",
+      "for_localize": "motivational_wristband"
+    },
+    {
+      "name": "Buff",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "buff",
+      "for_localize": "buff"
+    },
+    {
+      "name": "Key Clip",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "key_clip",
+      "for_localize": "key_clip"
+    },
+    {
+      "name": "Running Backpack",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "running_backpack",
+      "for_localize": "running_backpack"
+    },
+    {
+      "name": "LED Clip Light",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "led_clip_light",
+      "for_localize": "led_clip_light"
+    },
+    {
+      "name": "Heart Rate Strap",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "heart_rate_strap",
+      "for_localize": "heart_rate_strap"
+    },
+    {
+      "name": "Water Bottle Handheld",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "water_bottle_handheld",
+      "for_localize": "water_bottle_handheld"
+    },
+    {
+      "name": "Earphones",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "earphones",
+      "for_localize": "earphones"
+    },
+    {
+      "name": "Recovery Sandals",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "recovery_sandals",
+      "for_localize": "recovery_sandals"
+    },
+    {
+      "name": "Visibility Vest",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "visibility_vest",
+      "for_localize": "visibility_vest"
+    },
+    {
+      "name": "Safety Whistle",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "safety_whistle",
+      "for_localize": "safety_whistle"
+    },
+    {
+      "name": "Running Gloves",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "running_gloves",
+      "for_localize": "running_gloves"
+    },
+    {
+      "name": "Arm Lights",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "arm_lights",
+      "for_localize": "arm_lights"
+    }
+  ],
+  "Cycling": [
+    {
+      "name": "Bike Helmet",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "bike_helmet",
+      "for_localize": "bike_helmet"
+    },
+    {
+      "name": "Cycling Gloves",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "cycling_gloves",
+      "for_localize": "cycling_gloves"
+    },
+    {
+      "name": "Cycling Sunglasses",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "cycling_sunglasses",
+      "for_localize": "cycling_sunglasses"
+    },
+    {
+      "name": "Water Bottle",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "water_bottle",
+      "for_localize": "water_bottle"
+    },
+    {
+      "name": "Bike Computer",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "bike_computer",
+      "for_localize": "bike_computer"
+    },
+    {
+      "name": "Saddle Bag",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "saddle_bag",
+      "for_localize": "saddle_bag"
+    },
+    {
+      "name": "Cycling Cap",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "cycling_cap",
+      "for_localize": "cycling_cap"
+    },
+    {
+      "name": "Multi Tool",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "multi_tool",
+      "for_localize": "multi_tool"
+    },
+    {
+      "name": "Tire Levers",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "tire_levers",
+      "for_localize": "tire_levers"
+    },
+    {
+      "name": "Patch Kit",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "patch_kit",
+      "for_localize": "patch_kit"
+    },
+    {
+      "name": "CO2 Inflator",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "co2_inflator",
+      "for_localize": "co2_inflator"
+    },
+    {
+      "name": "Cycling Shoes",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "cycling_shoes",
+      "for_localize": "cycling_shoes"
+    },
+    {
+      "name": "Cleats",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "cleats",
+      "for_localize": "cleats"
+    },
+    {
+      "name": "Hydration Backpack",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "hydration_backpack",
+      "for_localize": "hydration_backpack"
+    },
+    {
+      "name": "Chain Lube",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "chain_lube",
+      "for_localize": "chain_lube"
+    },
+    {
+      "name": "Rear Light",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "rear_light",
+      "for_localize": "rear_light"
+    },
+    {
+      "name": "Front Light",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "front_light",
+      "for_localize": "front_light"
+    },
+    {
+      "name": "Handlebar Bag",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "handlebar_bag",
+      "for_localize": "handlebar_bag"
+    },
+    {
+      "name": "Phone Mount",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "phone_mount",
+      "for_localize": "phone_mount"
+    },
+    {
+      "name": "Reflective Tape",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "reflective_tape",
+      "for_localize": "reflective_tape"
+    },
+    {
+      "name": "Bell",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "bell",
+      "for_localize": "bell"
+    },
+    {
+      "name": "Bike Lock",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "bike_lock",
+      "for_localize": "bike_lock"
+    },
+    {
+      "name": "Energy Bar Pouch",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "energy_bar_pouch",
+      "for_localize": "energy_bar_pouch"
+    },
+    {
+      "name": "Jersey Pockets",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "jersey_pockets",
+      "for_localize": "jersey_pockets"
+    },
+    {
+      "name": "Bike Pump",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "bike_pump",
+      "for_localize": "bike_pump"
+    },
+    {
+      "name": "Arm Warmers",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "arm_warmers",
+      "for_localize": "arm_warmers"
+    },
+    {
+      "name": "Leg Warmers",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "leg_warmers",
+      "for_localize": "leg_warmers"
+    },
+    {
+      "name": "Balaclava",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "balaclava",
+      "for_localize": "balaclava"
+    },
+    {
+      "name": "Neck Gaiter",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "neck_gaiter",
+      "for_localize": "neck_gaiter"
+    },
+    {
+      "name": "Wind Vest",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "wind_vest",
+      "for_localize": "wind_vest"
+    }
+  ],
+  "Hiking": [
+    {
+      "name": "Hiking Boots",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "hiking_boots",
+      "for_localize": "hiking_boots"
+    },
+    {
+      "name": "Trekking Poles",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "trekking_poles",
+      "for_localize": "trekking_poles"
+    },
+    {
+      "name": "Compass",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "compass",
+      "for_localize": "compass"
+    },
+    {
+      "name": "Trail Map",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "trail_map",
+      "for_localize": "trail_map"
+    },
+    {
+      "name": "Hydration Bladder",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "hydration_bladder",
+      "for_localize": "hydration_bladder"
+    },
+    {
+      "name": "Trail Backpack",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "trail_backpack",
+      "for_localize": "trail_backpack"
+    },
+    {
+      "name": "Headlamp",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "headlamp",
+      "for_localize": "headlamp"
+    },
+    {
+      "name": "Multi Tool",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "multi_tool",
+      "for_localize": "multi_tool"
+    },
+    {
+      "name": "Gaiters",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "gaiters",
+      "for_localize": "gaiters"
+    },
+    {
+      "name": "Binoculars",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "binoculars",
+      "for_localize": "binoculars"
+    },
+    {
+      "name": "Whistle",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "whistle",
+      "for_localize": "whistle"
+    },
+    {
+      "name": "Paracord Bracelet",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "paracord_bracelet",
+      "for_localize": "paracord_bracelet"
+    },
+    {
+      "name": "Water Filter Bottle",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "water_filter_bottle",
+      "for_localize": "water_filter_bottle"
+    },
+    {
+      "name": "Bug Spray",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "bug_spray",
+      "for_localize": "bug_spray"
+    },
+    {
+      "name": "Trekking Hat",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "trekking_hat",
+      "for_localize": "trekking_hat"
+    },
+    {
+      "name": "Hiking Socks",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "hiking_socks",
+      "for_localize": "hiking_socks"
+    },
+    {
+      "name": "Pocket Blanket",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "pocket_blanket",
+      "for_localize": "pocket_blanket"
+    },
+    {
+      "name": "Sunscreen",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "sunscreen",
+      "for_localize": "sunscreen"
+    },
+    {
+      "name": "Pocket Knife",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "pocket_knife",
+      "for_localize": "pocket_knife"
+    },
+    {
+      "name": "Bear Bell",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "bear_bell",
+      "for_localize": "bear_bell"
+    },
+    {
+      "name": "Stove Kit",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "stove_kit",
+      "for_localize": "stove_kit"
+    },
+    {
+      "name": "Fire Starter",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "fire_starter",
+      "for_localize": "fire_starter"
+    },
+    {
+      "name": "Dry Sack",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "dry_sack",
+      "for_localize": "dry_sack"
+    },
+    {
+      "name": "Rain Cover",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "rain_cover",
+      "for_localize": "rain_cover"
+    },
+    {
+      "name": "First Aid Kit",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "first_aid_kit",
+      "for_localize": "first_aid_kit"
+    },
+    {
+      "name": "Carabiner",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "carabiner",
+      "for_localize": "carabiner"
+    },
+    {
+      "name": "GPS Device",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "gps_device",
+      "for_localize": "gps_device"
+    },
+    {
+      "name": "Walkie Talkie",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "walkie_talkie",
+      "for_localize": "walkie_talkie"
+    },
+    {
+      "name": "Portable Charger",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "portable_charger",
+      "for_localize": "portable_charger"
+    },
+    {
+      "name": "Altimeter Watch",
+      "iconSet": "MaterialCommunityIcons",
+      "icon": "altimeter_watch",
+      "for_localize": "altimeter_watch"
+    }
+  ]
+};
+
+module.exports = { accessoryLibrary };

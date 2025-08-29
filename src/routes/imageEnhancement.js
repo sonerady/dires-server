@@ -15,8 +15,9 @@ router.post("/", async (req, res) => {
   try {
     const {
       imageUrl,
-      scale = 4,
-      faceEnhance = true,
+      scale = 2, // desired_increase parametresi için
+      preserveAlpha = true,
+      contentModeration = false,
       userId: requestUserId,
     } = req.body;
     userId = requestUserId;
@@ -24,7 +25,8 @@ router.post("/", async (req, res) => {
     console.log("1. Received request with data:", {
       imageUrl,
       scale,
-      faceEnhance,
+      preserveAlpha,
+      contentModeration,
       userId,
     });
 
@@ -96,16 +98,15 @@ router.post("/", async (req, res) => {
     }
 
     console.log("2. Starting Replicate API call...");
-    const replicateResponse = await replicate.run(
-      "daanelson/real-esrgan-a100:f94d7ed4a1f7e1ffed0d51e4089e4911609d5eeee5e874ef323d2c7562624bed",
-      {
-        input: {
-          image: imageUrl,
-          scale: scale,
-          face_enhance: faceEnhance,
-        },
-      }
-    );
+    const replicateResponse = await replicate.run("bria/increase-resolution", {
+      input: {
+        sync: true,
+        image: imageUrl,
+        preserve_alpha: preserveAlpha,
+        desired_increase: scale,
+        content_moderation: contentModeration,
+      },
+    });
     console.log("3. Replicate API response:", replicateResponse);
 
     const response = {
