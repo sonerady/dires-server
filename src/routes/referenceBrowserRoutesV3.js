@@ -376,7 +376,7 @@ async function createPendingGeneration(
 // Başarılı completion'da kredi düşürme fonksiyonu
 async function deductCreditOnSuccess(generationId, userId) {
   try {
-    const CREDIT_COST = 15; // Her oluşturma 15 kredi
+    const CREDIT_COST = 10; // Her oluşturma 10 kredi
 
     console.log(
       `💳 [COMPLETION-CREDIT] Generation ${generationId} başarılı, kredi düşürülüyor...`
@@ -2122,205 +2122,6 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
 
 // Arkaplan silme fonksiyonu kaldırıldı - artık kullanılmıyor
 
-// İşlenmiş resmi Supabase'e yükleyen fonksiyon
-async function uploadProcessedImageToSupabase(imageUrl, userId, processType) {
-  try {
-    console.log(`📤 ${processType} resmi Supabase'e yükleniyor:`, imageUrl);
-
-    // Resmi indir
-    const imageResponse = await axios.get(imageUrl, {
-      responseType: "arraybuffer",
-      timeout: 30000, // 30 saniye timeout
-    });
-    const imageBuffer = Buffer.from(imageResponse.data);
-
-    // Dosya adı oluştur (otomatik temizleme için timestamp prefix)
-    const timestamp = Date.now();
-    const randomId = uuidv4().substring(0, 8);
-    const fileName = `temp_${timestamp}_${processType}_${
-      userId || "anonymous"
-    }_${randomId}.png`;
-
-    console.log(`📤 Supabase'e yüklenecek ${processType} dosya adı:`, fileName);
-
-    // Supabase'e yükle
-    const { data, error } = await supabase.storage
-      .from("reference")
-      .upload(fileName, imageBuffer, {
-        contentType: "image/png",
-        cacheControl: "3600",
-        upsert: false,
-      });
-
-    if (error) {
-      console.error(`❌ ${processType} resmi Supabase'e yüklenemedi:`, error);
-      throw new Error(`Supabase upload error: ${error.message}`);
-    }
-
-    console.log(`✅ ${processType} resmi Supabase'e yüklendi:`, data);
-
-    // Public URL al
-    const { data: urlData } = supabase.storage
-      .from("reference")
-      .getPublicUrl(fileName);
-
-    console.log(
-      `📤 ${processType} resmi Supabase public URL:`,
-      urlData.publicUrl
-    );
-    return urlData.publicUrl;
-  } catch (error) {
-    console.error(
-      `❌ ${processType} resmi Supabase'e yüklenirken hata:`,
-      error
-    );
-    throw error;
-  }
-}
-
-// Buffer'dan direkt Supabase'e yükleme fonksiyonu (orientation düzeltmesi için)
-async function uploadProcessedImageBufferToSupabase(
-  imageBuffer,
-  userId,
-  processType
-) {
-  try {
-    console.log(
-      `📤 ${processType} buffer'ı Supabase'e yükleniyor (${imageBuffer.length} bytes)`
-    );
-
-    // Dosya adı oluştur (otomatik temizleme için timestamp prefix)
-    const timestamp = Date.now();
-    const randomId = uuidv4().substring(0, 8);
-    const fileName = `temp_${timestamp}_${processType}_corrected_${
-      userId || "anonymous"
-    }_${randomId}.png`;
-
-    console.log(`📤 Supabase'e yüklenecek ${processType} dosya adı:`, fileName);
-
-    // Supabase'e yükle
-    const { data, error } = await supabase.storage
-      .from("reference")
-      .upload(fileName, imageBuffer, {
-        contentType: "image/png",
-        cacheControl: "3600",
-        upsert: false,
-      });
-
-    if (error) {
-      console.error(
-        `❌ ${processType} buffer'ı Supabase'e yüklenemedi:`,
-        error
-      );
-      throw new Error(`Supabase upload error: ${error.message}`);
-    }
-
-    console.log(`✅ ${processType} buffer'ı Supabase'e yüklendi:`, data);
-
-    // Public URL al
-    const { data: urlData } = supabase.storage
-      .from("reference")
-      .getPublicUrl(fileName);
-
-    console.log(
-      `📤 ${processType} resmi Supabase public URL:`,
-      urlData.publicUrl
-    );
-    return urlData.publicUrl;
-  } catch (error) {
-    console.error(
-      `❌ ${processType} buffer'ı Supabase'e yüklenirken hata:`,
-      error
-    );
-    throw error;
-  }
-}
-
-async function callReplicateNanoBananaFallback(
-  enhancedPrompt,
-  inputImageUrl,
-  aspectRatio,
-  userId
-) {
-  try {
-    console.log(
-      "🔄 Replicate google/nano-banana fallback API'ye geçiş yapılıyor..."
-    );
-
-    // Replicate API için request body hazırla
-    const requestBody = {
-      input: {
-        prompt: enhancedPrompt,
-        image_input: [
-          inputImageUrl, // Direkt string olarak gönder
-        ],
-        output_format: "jpg",
-      },
-    };
-
-    console.log("📋 Fallback Replicate Request Body:", {
-      prompt: enhancedPrompt.substring(0, 100) + "...",
-      imageInput: inputImageUrl,
-      outputFormat: "jpg",
-    });
-
-    // Replicate API çağrısı - Prefer: wait header ile
-    const response = await axios.post(
-      "https://api.replicate.com/v1/models/google/nano-banana/predictions",
-      requestBody,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-          "Content-Type": "application/json",
-          Prefer: "wait", // Synchronous response için
-        },
-        timeout: 60000, // 1 dakika timeout (fallback için daha kısa)
-      }
-    );
-
-    console.log("📋 Fallback Replicate API Response Status:", response.status);
-    console.log("📋 Fallback Replicate API Response Data:", {
-      id: response.data.id,
-      status: response.data.status,
-      hasOutput: !!response.data.output,
-      error: response.data.error,
-    });
-
-    // Response kontrolü
-    if (response.data.status === "succeeded" && response.data.output) {
-      console.log(
-        "✅ Fallback Replicate API başarılı, output alındı:",
-        response.data.output
-      );
-
-      return {
-        id: response.data.id,
-        status: "succeeded",
-        output: response.data.output,
-      };
-    } else if (response.data.status === "failed") {
-      console.error("❌ Fallback Replicate API failed:", response.data.error);
-      throw new Error(
-        `Fallback Replicate API failed: ${
-          response.data.error || "Unknown error"
-        }`
-      );
-    } else {
-      console.error(
-        "❌ Fallback Replicate API unexpected status:",
-        response.data.status
-      );
-      throw new Error(`Fallback unexpected status: ${response.data.status}`);
-    }
-  } catch (error) {
-    console.error(
-      "❌ Replicate google/nano-banana fallback API hatası:",
-      error.message
-    );
-    throw error;
-  }
-}
-
 async function pollReplicateResult(predictionId, maxAttempts = 60) {
   console.log(`Replicate prediction polling başlatılıyor: ${predictionId}`);
 
@@ -2392,7 +2193,10 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
             result.error.includes("Director: unexpected error") ||
             result.error.includes("Service is temporarily unavailable") ||
             result.error.includes("Please try again later") ||
-            result.error.includes("Prediction failed."))
+            result.error.includes("Prediction failed.") ||
+            result.error.includes(
+              "Prediction interrupted; please retry (code: PA)"
+            ))
         ) {
           console.log(
             "🔄 Geçici nano-banana hatası tespit edildi, retry'a uygun:",
@@ -2759,9 +2563,48 @@ async function combineImagesOnCanvas(
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    // Beyaz arka plan
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    // Bulanık arka plan oluştur (ilk resmin blur hali)
+    if (loadedImages.length > 0) {
+      const backgroundImg = loadedImages[0]; // İlk resmi arka plan için kullan
+
+      // Arka plan resmini canvas'ın tamamını kaplayacak şekilde çiz (crop edilerek)
+      const imgAspectRatio = backgroundImg.width / backgroundImg.height;
+      const canvasAspectRatio = canvasWidth / canvasHeight;
+
+      let bgDrawWidth, bgDrawHeight, bgDrawX, bgDrawY;
+
+      if (imgAspectRatio > canvasAspectRatio) {
+        // Resim daha geniş - yüksekliğe göre scale et, genişliği crop et
+        bgDrawHeight = canvasHeight;
+        bgDrawWidth = canvasHeight * imgAspectRatio;
+        bgDrawX = -(bgDrawWidth - canvasWidth) / 2; // Ortala
+        bgDrawY = 0;
+      } else {
+        // Resim daha uzun - genişliğe göre scale et, yüksekliği crop et
+        bgDrawWidth = canvasWidth;
+        bgDrawHeight = canvasWidth / imgAspectRatio;
+        bgDrawX = 0;
+        bgDrawY = -(bgDrawHeight - canvasHeight) / 2; // Ortala
+      }
+
+      // Arka plan resmini çiz
+      ctx.save();
+      ctx.filter = "blur(40px)"; // Daha bulanık yap
+      ctx.globalAlpha = 0.6; // Biraz daha şeffaf yap
+      ctx.drawImage(backgroundImg, bgDrawX, bgDrawY, bgDrawWidth, bgDrawHeight);
+
+      // Üzerine daha koyu overlay ekle (kontrast için)
+      ctx.filter = "none";
+      ctx.globalAlpha = 0.5; // Daha koyu overlay
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+      ctx.restore(); // Filter ve alpha ayarlarını sıfırla
+    } else {
+      // Fallback: Siyah arka plan
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    }
 
     if (gridLayoutInfo && gridLayoutInfo.cols && gridLayoutInfo.rows) {
       // 🛍️ GRID LAYOUT MODU: Kombin resimleri kare grid'e yerleştir
@@ -3208,7 +3051,7 @@ async function combineImagesOnCanvas(
 // Ana generate endpoint'i - Tek resim için
 router.post("/generate", async (req, res) => {
   // Kredi kontrolü ve düşme
-  const CREDIT_COST = 15; // Her oluşturma 15 kredi
+  const CREDIT_COST = 10; // Her oluşturma 10 kredi
   let creditDeducted = false;
   let actualCreditDeducted = CREDIT_COST; // Gerçekte düşülen kredi miktarı (iade için)
   let userId; // Scope için önceden tanımla
@@ -3940,7 +3783,10 @@ router.post("/generate", async (req, res) => {
                 "Service is temporarily unavailable"
               ) ||
               response.data.error.includes("Please try again later") ||
-              response.data.error.includes("Prediction failed."))
+              response.data.error.includes("Prediction failed.") ||
+              response.data.error.includes(
+                "Prediction interrupted; please retry (code: PA)"
+              ))
           ) {
             console.log(
               `🔄 Geçici nano-banana hatası tespit edildi (attempt ${attempt}), retry yapılacak:`,

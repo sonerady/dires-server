@@ -560,13 +560,13 @@
                     `✅ ${newIcons} yeni icon oluşturuldu (Toplam: ${currentIconCount})`,
                     "success"
                   );
-                  this.elements.currentTask.textContent = `Icon oluşturma devam ediyor... (${currentIconCount} tamamlandı)`;
+                  this.elements.currentTask.textContent = `${newIcons} yeni icon oluşturuldu! Toplam: ${currentIconCount}`;
 
-                  // Galeriyi güncelle
+                  // Galeriyi anında güncelle (yeni iconları görmek için)
                   this.loadGallery();
                 } else if (this.stats.processed === 0) {
                   // Henüz icon oluşmadıysa genel bilgi göster
-                  this.elements.currentTask.textContent = `Generation devam ediyor...`;
+                  this.elements.currentTask.textContent = `İlk icon bekleniyor... (${this.stats.total} toplam item)`;
                 }
 
                 // Eğer tüm iconlar oluşturulduysa durdur
@@ -579,7 +579,7 @@
             } catch (error) {
               this.log(`⚠️ Durum kontrolü hatası: ${error.message}`, "warning");
             }
-          }, 2000); // Her 2 saniyede bir kontrol et
+          }, 1000); // Her 1 saniyede bir kontrol et
         }
 
         stopGeneration() {

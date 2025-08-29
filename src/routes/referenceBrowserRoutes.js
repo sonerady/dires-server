@@ -376,7 +376,7 @@ async function createPendingGeneration(
 // Başarılı completion'da kredi düşürme fonksiyonu
 async function deductCreditOnSuccess(generationId, userId) {
   try {
-    const CREDIT_COST = 15; // Her oluşturma 15 kredi
+    const CREDIT_COST = 10; // Her oluşturma 10 kredi
 
     console.log(
       `💳 [COMPLETION-CREDIT] Generation ${generationId} başarılı, kredi düşürülüyor...`
@@ -2193,7 +2193,10 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
             result.error.includes("Director: unexpected error") ||
             result.error.includes("Service is temporarily unavailable") ||
             result.error.includes("Please try again later") ||
-            result.error.includes("Prediction failed."))
+            result.error.includes("Prediction failed.") ||
+            result.error.includes(
+              "Prediction interrupted; please retry (code: PA)"
+            ))
         ) {
           console.log(
             "🔄 Geçici nano-banana hatası tespit edildi, retry'a uygun:",
@@ -2560,9 +2563,48 @@ async function combineImagesOnCanvas(
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    // Beyaz arka plan
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    // Bulanık arka plan oluştur (ilk resmin blur hali)
+    if (loadedImages.length > 0) {
+      const backgroundImg = loadedImages[0]; // İlk resmi arka plan için kullan
+
+      // Arka plan resmini canvas'ın tamamını kaplayacak şekilde çiz (crop edilerek)
+      const imgAspectRatio = backgroundImg.width / backgroundImg.height;
+      const canvasAspectRatio = canvasWidth / canvasHeight;
+
+      let bgDrawWidth, bgDrawHeight, bgDrawX, bgDrawY;
+
+      if (imgAspectRatio > canvasAspectRatio) {
+        // Resim daha geniş - yüksekliğe göre scale et, genişliği crop et
+        bgDrawHeight = canvasHeight;
+        bgDrawWidth = canvasHeight * imgAspectRatio;
+        bgDrawX = -(bgDrawWidth - canvasWidth) / 2; // Ortala
+        bgDrawY = 0;
+      } else {
+        // Resim daha uzun - genişliğe göre scale et, yüksekliği crop et
+        bgDrawWidth = canvasWidth;
+        bgDrawHeight = canvasWidth / imgAspectRatio;
+        bgDrawX = 0;
+        bgDrawY = -(bgDrawHeight - canvasHeight) / 2; // Ortala
+      }
+
+      // Arka plan resmini çiz
+      ctx.save();
+      ctx.filter = "blur(40px)"; // Daha bulanık yap
+      ctx.globalAlpha = 0.6; // Biraz daha şeffaf yap
+      ctx.drawImage(backgroundImg, bgDrawX, bgDrawY, bgDrawWidth, bgDrawHeight);
+
+      // Üzerine daha koyu overlay ekle (kontrast için)
+      ctx.filter = "none";
+      ctx.globalAlpha = 0.5; // Daha koyu overlay
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+      ctx.restore(); // Filter ve alpha ayarlarını sıfırla
+    } else {
+      // Fallback: Siyah arka plan
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    }
 
     if (gridLayoutInfo && gridLayoutInfo.cols && gridLayoutInfo.rows) {
       // 🛍️ GRID LAYOUT MODU: Kombin resimleri kare grid'e yerleştir
@@ -3009,7 +3051,7 @@ async function combineImagesOnCanvas(
 // Ana generate endpoint'i - Tek resim için
 router.post("/generate", async (req, res) => {
   // Kredi kontrolü ve düşme
-  const CREDIT_COST = 15; // Her oluşturma 15 kredi
+  const CREDIT_COST = 10; // Her oluşturma 10 kredi
   let creditDeducted = false;
   let actualCreditDeducted = CREDIT_COST; // Gerçekte düşülen kredi miktarı (iade için)
   let userId; // Scope için önceden tanımla
@@ -3741,7 +3783,10 @@ router.post("/generate", async (req, res) => {
                 "Service is temporarily unavailable"
               ) ||
               response.data.error.includes("Please try again later") ||
-              response.data.error.includes("Prediction failed."))
+              response.data.error.includes("Prediction failed.") ||
+              response.data.error.includes(
+                "Prediction interrupted; please retry (code: PA)"
+              ))
           ) {
             console.log(
               `🔄 Geçici nano-banana hatası tespit edildi (attempt ${attempt}), retry yapılacak:`,

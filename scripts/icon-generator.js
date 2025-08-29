@@ -5,7 +5,8 @@ const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 
 // AccessoryLibrary'yi import et
-const { accessoryLibrary } = require("../temp/accessoryLibrary_relevant.js");
+const accessoryLibraryData = require("../temp/accessoryLibrary_relevant.json");
+const accessoryLibrary = accessoryLibraryData;
 
 // Supabase client'ı import et (optional)
 let supabase = null;
@@ -143,6 +144,59 @@ if (!fs.existsSync(OUTPUT_DIR)) {
 // Delay fonksiyonu
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// Replicate prediction'ı poll et
+async function pollPrediction(predictionId, accessoryName) {
+  const MAX_POLL_ATTEMPTS = 60; // 10 dakika (10 saniye x 60)
+  let attempt = 0;
+
+  while (attempt < MAX_POLL_ATTEMPTS) {
+    try {
+      console.log(
+        `🔄 ${accessoryName} polling... (${attempt + 1}/${MAX_POLL_ATTEMPTS})`
+      );
+
+      const response = await fetch(
+        `https://api.replicate.com/v1/predictions/${predictionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Poll API hatası: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.status === "succeeded" && result.output) {
+        console.log(`✅ ${accessoryName} polling tamamlandı!`);
+        // Output direkt string veya array olabilir
+        const imageUrl = Array.isArray(result.output)
+          ? result.output[0]
+          : result.output;
+        return { success: true, imageUrl: imageUrl };
+      } else if (result.status === "failed") {
+        return { success: false, error: result.error || "Prediction failed" };
+      } else if (result.status === "canceled") {
+        return { success: false, error: "Prediction canceled" };
+      }
+
+      // Hala processing durumunda, bekle
+      await delay(10000); // 10 saniye bekle
+      attempt++;
+    } catch (error) {
+      console.error(`❌ ${accessoryName} polling hatası:`, error.message);
+      await delay(5000); // Hata durumunda 5 saniye bekle
+      attempt++;
+    }
+  }
+
+  return { success: false, error: "Polling timeout - 10 dakika geçti" };
+}
+
 // Kullanılan renkleri takip et
 const usedColors = new Set();
 let colorCounter = 0; // Basit counter sistemi
@@ -203,30 +257,28 @@ function getReferenceImageBase64() {
 }
 
 // Icon oluşturma fonksiyonu
-async function generateIcon(accessoryName, category, retryCount = 0, assignedColor = null) {
+async function generateIcon(accessoryName, category, retryCount = 0) {
   const MAX_RETRIES = 3;
 
-  // Rengi sadece ilk denemede seç
-  if (!assignedColor) {
-    assignedColor = getColorForAccessory(accessoryName, category);
-  }
-  
+  // 3D isometric stil kullandığımız için renk belirtmiyoruz
+
   console.log(
-    `🎨 ${accessoryName} iconunu oluşturuyor... (Kategori: ${category}, Renk: ${assignedColor})`
+    `🎨 ${accessoryName} iconunu oluşturuyor... (Kategori: ${category})`
   );
 
-  const prompt = `Draw a simple flat icon of a ${accessoryName} in the same style as the reference:
-- clean outline illustration with bold lines
-- single color stroke in ${assignedColor} color
-- no shading, no gradients, no 3D effects
+  const prompt = `Create a 3D isometric icon of a ${accessoryName}:
+- centered in the frame
+- simple clay-like rendering style
+- soft pastel colors with smooth gradients
+- subtle shadows and highlights
 - white background
-- minimalist, sticker-like style
-- maintain the same artistic style as the reference image`;
+- consistent proportions, medium size
+- playful, modern, app-icon style`;
 
   const requestBody = {
     input: {
       prompt: prompt,
-      output_format: "jpg",
+      output_format: "png",
     },
   };
 
@@ -261,21 +313,34 @@ async function generateIcon(accessoryName, category, retryCount = 0, assignedCol
 
     const result = await response.json();
 
-    if (
-      result.status === "succeeded" &&
-      result.output &&
-      result.output.length > 0
-    ) {
-      const imageUrl = result.output[0];
-      const colorUsed = getColorForAccessory(accessoryName, category);
-      await downloadImage(imageUrl, accessoryName, category, colorUsed);
+    if (result.status === "succeeded" && result.output) {
+      // Output direkt string veya array olabilir
+      const imageUrl = Array.isArray(result.output)
+        ? result.output[0]
+        : result.output;
+      console.log(`🔗 Image URL: ${imageUrl}`);
+      await downloadImage(imageUrl, accessoryName, category);
+      console.log(`✅ ${accessoryName} başarıyla oluşturuldu!`);
+      return { success: true, accessoryName, category };
+    } else if (result.status === "processing") {
+      // Prediction işleniyor, poll et
       console.log(
-        `✅ ${accessoryName} başarıyla oluşturuldu! (Renk: ${colorUsed})`
+        `⏳ ${accessoryName} işleniyor... Prediction ID: ${result.id}`
       );
-      return { success: true, accessoryName, category, color: colorUsed };
+      const finalResult = await pollPrediction(result.id, accessoryName);
+
+      if (finalResult.success) {
+        await downloadImage(finalResult.imageUrl, accessoryName, category);
+        console.log(`✅ ${accessoryName} başarıyla oluşturuldu!`);
+        return { success: true, accessoryName, category };
+      } else {
+        throw new Error(finalResult.error);
+      }
     } else {
       throw new Error(
-        `Görüntü oluşturulamadı: ${result.error || "Bilinmeyen hata"}`
+        `Görüntü oluşturulamadı: ${
+          result.error || result.detail || "Bilinmeyen hata"
+        }`
       );
     }
   } catch (error) {
@@ -288,7 +353,7 @@ async function generateIcon(accessoryName, category, retryCount = 0, assignedCol
         }/${MAX_RETRIES})`
       );
       await delay(2000); // 2 saniye bekle
-      return generateIcon(accessoryName, category, retryCount + 1, assignedColor);
+      return generateIcon(accessoryName, category, retryCount + 1);
     } else {
       console.error(
         `💀 ${accessoryName} için maksimum deneme sayısına ulaşıldı`
@@ -342,6 +407,7 @@ async function uploadToSupabase(buffer, fileName, accessoryName, category) {
 // Görüntüyü indirme ve kaydetme fonksiyonu
 async function downloadImage(imageUrl, accessoryName, category) {
   try {
+    console.log(`📥 İndiriliyor: ${imageUrl}`);
     const response = await fetch(imageUrl);
     const buffer = await response.arrayBuffer();
 
@@ -349,7 +415,7 @@ async function downloadImage(imageUrl, accessoryName, category) {
     const safeFileName = accessoryName
       .replace(/[^a-zA-Z0-9]/g, "_")
       .toLowerCase();
-    const fileName = `${category}_${safeFileName}.jpg`;
+    const fileName = `${category}_${safeFileName}.png`;
     const filePath = path.join(OUTPUT_DIR, fileName);
 
     // Buffer'ı Node.js Buffer'ına çevir
@@ -485,7 +551,9 @@ async function generateCategoryIcons(categoryName) {
 
     if (result.success) {
       results.successful.push(result);
-      console.log(`✅ Başarılı: ${results.successful.length} / İşlenen: ${i + 1}`);
+      console.log(
+        `✅ Başarılı: ${results.successful.length} / İşlenen: ${i + 1}`
+      );
     } else {
       results.failed.push(result);
       console.log(`❌ Başarısız: ${results.failed.length} / İşlenen: ${i + 1}`);

@@ -1,4 +1,4 @@
-const accessoryLibrary = {
+{
   "Casual": [
     {
       "name": "Sunglasses",
@@ -1819,6 +1819,4 @@ const accessoryLibrary = {
       "for_localize": "altimeter_watch"
     }
   ]
-};
-
-module.exports = { accessoryLibrary };
+}
