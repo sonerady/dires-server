@@ -8,7 +8,7 @@ const replicate = new Replicate({
 });
 
 router.post("/", async (req, res) => {
-  const CREDIT_COST = 20; // Image enhancement için kredi maliyeti
+  const CREDIT_COST = 5; // Image enhancement için kredi maliyeti
   let creditDeducted = false;
   let userId;
 
