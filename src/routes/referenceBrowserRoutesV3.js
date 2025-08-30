@@ -2481,48 +2481,9 @@ async function combineImagesOnCanvas(
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    // Bulanık arka plan oluştur (ilk resmin blur hali)
-    if (loadedImages.length > 0) {
-      const backgroundImg = loadedImages[0]; // İlk resmi arka plan için kullan
-
-      // Arka plan resmini canvas'ın tamamını kaplayacak şekilde çiz (crop edilerek)
-      const imgAspectRatio = backgroundImg.width / backgroundImg.height;
-      const canvasAspectRatio = canvasWidth / canvasHeight;
-
-      let bgDrawWidth, bgDrawHeight, bgDrawX, bgDrawY;
-
-      if (imgAspectRatio > canvasAspectRatio) {
-        // Resim daha geniş - yüksekliğe göre scale et, genişliği crop et
-        bgDrawHeight = canvasHeight;
-        bgDrawWidth = canvasHeight * imgAspectRatio;
-        bgDrawX = -(bgDrawWidth - canvasWidth) / 2; // Ortala
-        bgDrawY = 0;
-      } else {
-        // Resim daha uzun - genişliğe göre scale et, yüksekliği crop et
-        bgDrawWidth = canvasWidth;
-        bgDrawHeight = canvasWidth / imgAspectRatio;
-        bgDrawX = 0;
-        bgDrawY = -(bgDrawHeight - canvasHeight) / 2; // Ortala
-      }
-
-      // Arka plan resmini çiz
-      ctx.save();
-      ctx.filter = "blur(40px)"; // Daha bulanık yap
-      ctx.globalAlpha = 0.6; // Biraz daha şeffaf yap
-      ctx.drawImage(backgroundImg, bgDrawX, bgDrawY, bgDrawWidth, bgDrawHeight);
-
-      // Üzerine daha koyu overlay ekle (kontrast için)
-      ctx.filter = "none";
-      ctx.globalAlpha = 0.5; // Daha koyu overlay
-      ctx.fillStyle = "black";
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-      ctx.restore(); // Filter ve alpha ayarlarını sıfırla
-    } else {
-      // Fallback: Siyah arka plan
-      ctx.fillStyle = "black";
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-    }
+    // Düz beyaz arka plan oluştur
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
     if (gridLayoutInfo && gridLayoutInfo.cols && gridLayoutInfo.rows) {
       // 🛍️ GRID LAYOUT MODU: Kombin resimleri kare grid'e yerleştir
