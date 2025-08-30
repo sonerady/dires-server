@@ -2238,6 +2238,126 @@ async function pollReplicateResultWithRetry(predictionId, maxRetries = 3) {
   }
 }
 
+// Resmin dominant rengini bulan fonksiyon (arka plan odaklı)
+async function getDominantColor(imageBuffer) {
+  try {
+    console.log("🎨 Resmin arka plan rengi analiz ediliyor...");
+
+    // Resmi küçült ve RGB verilerini al (performans için)
+    const { data, info } = await sharp(imageBuffer)
+      .resize(100, 100, { fit: "cover" }) // Küçük boyuta indir, analiz hızlandır
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+
+    const width = 100;
+    const height = 100;
+    const channels = info.channels;
+
+    // Renk sayacı objeleri - arka plan ve merkez için ayrı
+    const backgroundColorCount = {};
+    const centerColorCount = {};
+    let backgroundPixels = 0;
+    let centerPixels = 0;
+
+    // Merkez bölgeyi tanımla (orta %40'lık alan - ürünün bulunduğu bölge)
+    const centerMargin = 0.3; // Merkezden %30 margin
+    const centerX1 = Math.floor(width * centerMargin);
+    const centerY1 = Math.floor(height * centerMargin);
+    const centerX2 = Math.floor(width * (1 - centerMargin));
+    const centerY2 = Math.floor(height * (1 - centerMargin));
+
+    console.log(
+      `🎨 Merkez bölge: (${centerX1},${centerY1}) - (${centerX2},${centerY2})`
+    );
+    console.log(`🎨 Arka plan: Merkez dışı tüm alanlar`);
+
+    // Her pixel'i kontrol et (RGB formatında)
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const pixelIndex = (y * width + x) * channels;
+        const r = data[pixelIndex];
+        const g = data[pixelIndex + 1];
+        const b = data[pixelIndex + 2];
+
+        // Renk toleransı ile grupla (yakın renkler aynı sayılsın)
+        const tolerance = 30;
+        const colorKey = `${Math.floor(r / tolerance) * tolerance},${
+          Math.floor(g / tolerance) * tolerance
+        },${Math.floor(b / tolerance) * tolerance}`;
+
+        // Pixel'in merkez mi arka plan mı olduğunu belirle
+        const isCenterPixel =
+          x >= centerX1 && x <= centerX2 && y >= centerY1 && y <= centerY2;
+
+        if (isCenterPixel) {
+          // Merkez bölge (ürün)
+          centerColorCount[colorKey] = (centerColorCount[colorKey] || 0) + 1;
+          centerPixels++;
+        } else {
+          // Arka plan bölgesi
+          backgroundColorCount[colorKey] =
+            (backgroundColorCount[colorKey] || 0) + 1;
+          backgroundPixels++;
+        }
+      }
+    }
+
+    console.log(
+      `🎨 Arka plan pixel sayısı: ${backgroundPixels}, Merkez pixel sayısı: ${centerPixels}`
+    );
+
+    // Önce arka plan rengini bul
+    let backgroundDominantColor = null;
+    let maxBackgroundCount = 0;
+
+    for (const [colorKey, count] of Object.entries(backgroundColorCount)) {
+      if (count > maxBackgroundCount) {
+        maxBackgroundCount = count;
+        const [r, g, b] = colorKey.split(",").map(Number);
+        backgroundDominantColor = { r, g, b };
+      }
+    }
+
+    // Arka plan rengi varsa onu kullan, yoksa merkez rengi kullan
+    let dominantColor = backgroundDominantColor;
+    let finalPixelCount = maxBackgroundCount;
+    let finalTotalPixels = backgroundPixels;
+    let sourceInfo = "arka plan";
+
+    if (!backgroundDominantColor && Object.keys(centerColorCount).length > 0) {
+      // Arka plan rengi bulunamazsa merkez rengini kullan
+      let maxCenterCount = 0;
+      for (const [colorKey, count] of Object.entries(centerColorCount)) {
+        if (count > maxCenterCount) {
+          maxCenterCount = count;
+          const [r, g, b] = colorKey.split(",").map(Number);
+          dominantColor = { r, g, b };
+        }
+      }
+      finalPixelCount = maxCenterCount;
+      finalTotalPixels = centerPixels;
+      sourceInfo = "merkez (fallback)";
+    }
+
+    if (dominantColor) {
+      // RGB'yi CSS formatına çevir
+      const cssColor = `rgb(${dominantColor.r}, ${dominantColor.g}, ${dominantColor.b})`;
+      const percentage = Math.round((finalPixelCount / finalTotalPixels) * 100);
+
+      console.log(
+        `🎨 Dominant renk bulundu (${sourceInfo}): ${cssColor} (%${percentage} kapsamında)`
+      );
+      return cssColor;
+    } else {
+      console.log("🎨 Dominant renk bulunamadı, siyah kullanılacak");
+      return "black";
+    }
+  } catch (error) {
+    console.error("❌ Dominant renk analizi hatası:", error.message);
+    return "black"; // Fallback olarak siyah döndür
+  }
+}
+
 // Çoklu resimleri canvas ile birleştiren fonksiyon
 async function combineImagesOnCanvas(
   images,
@@ -2470,6 +2590,40 @@ async function combineImagesOnCanvas(
 
     console.log(`✅ Toplam ${loadedImages.length} resim başarıyla yüklendi`);
 
+    // 🎨 İlk resmin dominant rengini bul (arka plan için)
+    let dominantBackgroundColor = "black"; // Fallback rengi
+    if (images.length > 0) {
+      try {
+        // İlk resmin buffer'ını al
+        let firstImageBuffer;
+        const firstImgData = images[0];
+
+        if (firstImgData.base64) {
+          firstImageBuffer = Buffer.from(firstImgData.base64, "base64");
+        } else if (
+          firstImgData.uri.startsWith("http://") ||
+          firstImgData.uri.startsWith("https://")
+        ) {
+          console.log("🎨 İlk resim dominant renk analizi için indiriliyor...");
+          const response = await axios.get(firstImgData.uri, {
+            responseType: "arraybuffer",
+            timeout: 15000,
+          });
+          firstImageBuffer = Buffer.from(response.data);
+        }
+
+        if (firstImageBuffer) {
+          dominantBackgroundColor = await getDominantColor(firstImageBuffer);
+          console.log(
+            `🎨 Arka plan rengi ayarlandı: ${dominantBackgroundColor}`
+          );
+        }
+      } catch (colorError) {
+        console.error("❌ Dominant renk analizi hatası:", colorError.message);
+        console.log("🎨 Fallback olarak siyah arka plan kullanılacak");
+      }
+    }
+
     // Canvas değişkenini tanımla
     let canvas;
 
@@ -2481,8 +2635,8 @@ async function combineImagesOnCanvas(
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    // Düz beyaz arka plan oluştur
-    ctx.fillStyle = "white";
+    // Resmin dominant rengini arka plan olarak kullan
+    ctx.fillStyle = dominantBackgroundColor;
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
     if (gridLayoutInfo && gridLayoutInfo.cols && gridLayoutInfo.rows) {
