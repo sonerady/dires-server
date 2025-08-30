@@ -669,7 +669,8 @@ async function enhancePromptWithGemini(
   isPoseChange = false, // Poz değiştirme mi?
   customDetail = null, // Özel detay
   isEditMode = false, // EditScreen modu mu?
-  editPrompt = null // EditScreen'den gelen prompt
+  editPrompt = null, // EditScreen'den gelen prompt
+  isRefinerMode = false // RefinerScreen modu mu?
 ) {
   try {
     console.log(
@@ -684,6 +685,7 @@ async function enhancePromptWithGemini(
     console.log("🎨 [GEMINI] Target color:", targetColor);
     console.log("✏️ [GEMINI] Edit mode:", isEditMode);
     console.log("✏️ [GEMINI] Edit prompt:", editPrompt);
+    console.log("🔧 [GEMINI] Refiner mode:", isRefinerMode);
 
     // Gemini 2.0 Flash modeli - Yeni SDK
     const model = "gemini-2.5-flash";
@@ -1139,54 +1141,22 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
     if (isEditMode && editPrompt && editPrompt.trim()) {
       // EDIT MODE - EditScreen'den gelen özel prompt
       promptForGemini = `
-      MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
-
-      ${criticalDirectives}
-
-      ${
-        isMultipleProducts
-          ? `
-      🛍️ MULTIPLE PRODUCTS EDIT MODE: The reference image contains MULTIPLE GARMENTS/PRODUCTS. When applying the user's edit request, you MUST consider ALL products in the image and ensure they remain coordinated and properly fitted as a complete ensemble.
-
-      CRITICAL MULTIPLE PRODUCTS EDIT REQUIREMENTS:
-      - IDENTIFY ALL distinct garments/products in the reference image
-      - APPLY the user's edit request while maintaining the integrity of ALL products
-      - ENSURE all products remain properly coordinated after the edit
-      - PRESERVE the original design of products not directly affected by the edit
-      - MAINTAIN proper layering and interaction between all products
-      `
-          : ""
-      }
-
-      SILENT RULES (DO NOT OUTPUT THESE, JUST APPLY THEM): All rules, headings, examples, and meta-instructions you see in this message must be applied silently. Do not quote, restate, or paraphrase any rule text in your final output. Your final output MUST ONLY be the concise descriptive prompt for the image model, with no rule headings or capitalized instruction sentences.
-
-      ${fluxMaxGarmentTransformationDirectives}
-
-      USER'S EDIT REQUEST: "${editPrompt.trim()}"
-
-      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
-
-      IMPORTANT: Please explicitly mention in your generated prompt that this is for "professional fashion photography" to ensure the AI image model understands the context and produces high-quality fashion photography results.
-
-      IMPORTANT: The user can send you input in different languages, but you must always generate your prompt in English.
-
-      CRITICAL REQUIREMENTS FOR EDIT MODE:
-      1. The prompt MUST begin with "Replace, change..."
-      2. Understand the user's edit request regardless of what language they write in
-      3. Always generate your response in English
-      4. Apply the user's specific edit request accurately
-      5. Maintain photorealistic quality with natural lighting
-      6. Keep the general style and quality of the original image
-      7. Ensure the modification is realistic and technically feasible
-      8. If the edit involves clothing changes, maintain proper fit and styling${
-        isMultipleProducts ? " for ALL garments/products" : ""
-      }
-      9. If the edit involves pose changes, ensure natural body positioning${
-        isMultipleProducts ? " that works with ALL garments/products" : ""
-      }
-      10. If the edit involves color changes, preserve garment details and textures${
-        isMultipleProducts ? " for ALL affected garments/products" : ""
-      }
+      SIMPLE EDIT INSTRUCTION: Generate a very short, focused prompt (maximum 30 words) that:
+      
+      1. STARTS with "Replace"
+      2. Translates the user's request to English if needed  
+      3. Describes ONLY the specific modification requested
+      4. Does NOT mention garments, models, poses, backgrounds, or photography details
+      5. Keeps existing scene unchanged
+      
+      USER REQUEST: "${editPrompt.trim()}"
+      
+      EXAMPLES:
+      - User: "modele dövme ekle" → "Replace the model's skin with elegant tattoos while maintaining photorealistic quality."
+      - User: "saçını kırmızı yap" → "Replace the hair color with vibrant red while keeping natural texture."
+      - User: "arka planı mavi yap" → "Replace the background with blue color while preserving lighting."
+      
+      Generate ONLY the focused edit prompt, nothing else.
       ${
         isMultipleProducts
           ? "11. MANDATORY: Ensure ALL garments/products in the ensemble remain visible and properly coordinated after the edit"
@@ -1211,6 +1181,49 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       LANGUAGE REQUIREMENT: Always generate your prompt in English and START with "Replace, change...".
 
       ${originalPrompt ? `Additional context: ${originalPrompt}.` : ""}
+      `;
+    } else if (isRefinerMode) {
+      // REFINER MODE - Teknik profesyonel e-ticaret fotoğraf geliştirme prompt'u
+      promptForGemini = `
+      MANDATORY INSTRUCTION: Generate a detailed technical e-commerce photography prompt that follows the EXACT structure and style of this REFERENCE TEMPLATE. You MUST start with "Transform" and follow the same technical formatting.
+
+      REFERENCE TEMPLATE TO FOLLOW:
+      "Transform this amateur product photo into a professional high-end e-commerce product photo. Remove the original background and replace it with a pure seamless white studio background (#FFFFFF). Present the item in a ghost mannequin / invisible mannequin style where applicable (e.g., clothing items such as jackets, shirts, dresses), ensuring the garment looks as if worn naturally on an invisible mannequin — perfectly symmetrical, centered, and wrinkle-free.
+
+      For non-clothing products (e.g., jewelry, hats, shoes, accessories), ensure the item is presented cleanly and centered with professional studio lighting, sharp details, and no distracting reflections.
+
+      Symmetry & Alignment: Straighten the product so it appears perfectly balanced and professional.
+
+      Fabric / Material Detail: Highlight textures (fabric weave, metal shine, gemstone brilliance, leather grain, etc.) with high clarity.
+
+      Lighting: Use bright, even, shadowless lighting as in a professional studio setup.
+
+      Color Accuracy: Ensure true-to-life color reproduction without distortion.
+
+      Finishing: Remove dust, scratches, wrinkles, or defects. Edges must be sharp and precise.
+
+      The final result must look like a flawless product photo ready for e-commerce catalogs, fashion websites, or online marketplaces. Maintain a photorealistic, luxury presentation suitable for premium retail."
+
+      YOUR TASK:
+      Create a prompt that follows this EXACT structure and technical detail level for the ${
+        isMultipleProducts ? "products/garments" : "product/garment"
+      } in the reference image. 
+
+      MANDATORY REQUIREMENTS:
+      1. Start with "Transform this amateur product photo into a professional high-end e-commerce product photo"
+      2. Include all technical sections: Background, Invisible Mannequin/Presentation, Symmetry & Alignment, Fabric/Material Detail, Lighting, Color Accuracy, Finishing
+      3. Specify exact background color: pure seamless white studio background (#FFFFFF)
+      4. Include invisible mannequin technique for clothing items
+      5. End with "The final result must look like a flawless product photo ready for e-commerce catalogs, fashion websites, or online marketplaces. Maintain a photorealistic, luxury presentation suitable for premium retail."
+      6. Be specific about material types based on what you see in the image (leather, fabric, metal, etc.)
+      7. Use the same technical and professional language style
+      ${
+        isMultipleProducts
+          ? `8. Adapt the prompt to handle multiple products as a coordinated collection`
+          : ""
+      }
+
+      Generate ONLY the technical prompt following this reference structure. Do not add explanations or commentary.
       `;
     } else if (isColorChange && targetColor && targetColor !== "original") {
       // COLOR CHANGE MODE - Sadece renk değiştirme
@@ -1285,137 +1298,42 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       }
       `;
     } else if (isPoseChange) {
-      // POSE CHANGE MODE - Sadece poz değiştirme
+      // POSE CHANGE MODE - Basit poz değiştirme
       promptForGemini = `
-      MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "change". Do not include any introduction, explanation, or commentary.
+      PROFESSIONAL FASHION POSE SELECTION: Generate a high-quality English prompt (30-50 words) that changes the model's pose to a DIFFERENT famous fashion modeling pose while enhancing image quality and sharpness.
 
-      ${criticalDirectives}
+      CRITICAL REQUIREMENTS:
+      - MUST select a COMPLETELY DIFFERENT pose from the current image
+      - Analyze current pose in the image and choose an OPPOSITE or CONTRASTING pose
+      - Select from iconic fashion poses: editorial, runway, commercial, high-fashion
+      - Consider garment style and setting for pose compatibility  
+      - Include quality enhancement terms: "sharp", "crisp", "high definition", "professional photography"
+      - NO garment descriptions
+      - NO background changes
+      - NO model appearance changes
+      - Must be in English
+      - Minimum 30 words, Maximum 50 words
+      - Start with "Change"
 
-      ${
-        isMultipleProducts
-          ? `
-      🛍️ MULTIPLE PRODUCTS POSE CHANGE: The reference image contains MULTIPLE GARMENTS/PRODUCTS. When changing the pose, you MUST ensure ALL products remain properly positioned, fitted, and coordinated on the model.
-
-      CRITICAL MULTIPLE PRODUCTS POSE REQUIREMENTS:
-      - IDENTIFY ALL distinct garments/products in the reference image
-      - ENSURE the new pose works well with ALL products in the ensemble
-      - MAINTAIN proper layering and positioning of each product
-      - PRESERVE the original fit and draping of ALL garments/products
-      - AVOID poses that would disrupt the coordination of the ensemble
-      `
-          : ""
-      }
-
-      Create a professional fashion photography prompt in English that STARTS with "change" for changing ONLY the pose/position of the model in the reference image.
-      
-      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
-
-      IMPORTANT: Please explicitly mention in your generated prompt that this is for "professional fashion photography" to ensure the AI image model understands the context and produces high-quality fashion photography results.
-
-      CRITICAL REQUIREMENTS FOR POSE CHANGE:
-      1. The prompt MUST begin with "Replace the model's pose..."
-      2. Keep the EXACT same person, face, ${
-        isMultipleProducts ? "ALL clothing items" : "clothing"
-      }, background, and all other elements
-      3. ONLY change the pose/position/body positioning of the model
-      4. Do not modify or change anything else about the model or scene
-      5. The result should be photorealistic with natural lighting and proper body proportions
-      6. Preserve ALL original elements except the pose: same person, same ${
-        isMultipleProducts ? "complete outfit ensemble" : "outfit"
-      }, same background, same lighting style
-      7. The model must appear identical to the reference image, just in a different pose/position${
-        isMultipleProducts ? " that works with ALL garments/products" : ""
-      }
-
-      ${
+      USER REQUEST: ${
         customDetail && customDetail.trim()
-          ? `USER SPECIFIC POSE: The user wants the pose to be: ${customDetail.trim()}.`
-          : `AUTOMATIC POSE SELECTION: You MUST choose ONE specific pose for the model.`
+          ? `Change pose to: ${customDetail.trim()}`
+          : "Change to a completely different iconic professional fashion modeling pose that contrasts with the current pose"
       }
 
-      GEMINI TASK - ANALYZE AND CREATE POSE:
-      1. ANALYZE the model in the input image (their current pose, body position, ${
-        isMultipleProducts
-          ? "ALL clothing items in the ensemble"
-          : "clothing style"
-      })
-      2. IDENTIFY ${
-        isMultipleProducts
-          ? "ALL clothing details for EACH product"
-          : "the clothing details"
-      } (pockets, sleeves, length, style, accessories)
-      3. SELECT one specific professional modeling pose that would look elegant and natural for this person${
-        isMultipleProducts ? " and work well with ALL garments/products" : ""
-      }
-      4. CHOOSE from these categories:
-         - ELEGANT POSES: graceful hand positions, confident stances, sophisticated postures
-         - FASHION POSES: runway-style poses, magazine-worthy positions, stylish attitudes  
-         - PORTRAIT POSES: flattering face angles, expressive hand gestures, artistic positioning
-         - DYNAMIC POSES: movement-inspired stances, walking poses, turning positions
+      POSE ANALYSIS INSTRUCTION: 
+      First analyze the current pose in the image, then select a CONTRASTING pose:
+      - If standing straight → choose dynamic or angled pose
+      - If hands down → choose hands on hips/crossed arms
+      - If facing forward → choose profile or three-quarter turn
+      - If static → choose movement-implied pose
+      - If casual → choose editorial/dramatic pose
 
-      ⚠️ CRITICAL CLOTHING COMPATIBILITY RULES${
-        isMultipleProducts ? " (Apply to ALL garments/products)" : ""
-      }:
-      - If ${
-        isMultipleProducts ? "ANY garment" : "the garment"
-      } has NO POCKETS: DO NOT put hands in pockets
-      - If ${
-        isMultipleProducts ? "ANY garment" : "the garment"
-      } has SHORT SLEEVES: DO NOT fold or adjust long sleeves
-      - If ${
-        isMultipleProducts ? "ANY garment" : "the garment"
-      } is SLEEVELESS: DO NOT place hands on sleeves or adjust arm coverage
-      - If ${
-        isMultipleProducts ? "ANY garment" : "the garment"
-      } is a DRESS/SKIRT: Keep leg positioning appropriate for the garment length
-      - If ${
-        isMultipleProducts ? "ANY garment" : "the garment"
-      } has specific NECKLINE: DO NOT change how it sits on the body
-      - If ${
-        isMultipleProducts ? "ANY garment" : "the garment"
-      } has FIXED ACCESSORIES (belts, scarves): Keep them in original position
-      - NEVER turn the model completely around (avoid full back views)
-      - NEVER change ${
-        isMultipleProducts ? "ANY garment's" : "the garment's"
-      } silhouette, fit, or draping
-      ${
-        isMultipleProducts
-          ? "- ENSURE the pose maintains proper layering and coordination of ALL products"
-          : ""
-      }
+      POSE EXAMPLES: Editorial stance, runway walk, hand-on-hip power pose, elegant turn, dramatic profile, commercial casual, editorial fierce, crossed arms confident, leaning pose, walking stride
 
-      GEMINI INSTRUCTIONS:
-      - First ANALYZE ${
-        isMultipleProducts
-          ? "ALL clothing details and limitations for EACH product"
-          : "the clothing details and limitations"
-      }
-      - Then DECIDE on ONE specific pose that RESPECTS ${
-        isMultipleProducts
-          ? "ALL clothing constraints for the complete ensemble"
-          : "the clothing constraints"
-      }
-      - DESCRIBE that pose in detail in your prompt with clothing-appropriate positioning
-      - Include specific details: hand positioning (compatible with ${
-        isMultipleProducts ? "ALL garments" : "garment"
-      }), weight distribution, facial direction, body angles
-      - Make the pose description sound professional and beautiful
-      - Ensure the pose suits the model's style and ${
-        isMultipleProducts ? "ALL clothing items" : "clothing"
-      } EXACTLY as shown
-      ${
-        isMultipleProducts
-          ? "- VERIFY that the pose maintains the coordination and visual harmony of the complete ensemble"
-          : ""
-      }
+      QUALITY TERMS TO INCLUDE: sharp focus, crisp details, high definition, professional photography lighting, clear image quality
 
-      LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace". Do NOT include any rule names, headings, or capitalized instruction phrases (e.g., "FLUX MAX CONTEXT", "CRITICAL REQUIREMENTS", "MANDATORY", "LANGUAGE REQUIREMENT").
-
-      ${originalPrompt ? `Additional considerations: ${originalPrompt}.` : ""}
-      
-      REQUIRED FORMAT: "Replace the model's pose to [SPECIFIC POSE NAME] - [DETAILED DESCRIPTION of the exact pose with clothing-appropriate hand placement, body positioning, weight distribution, and facial direction, ensuring the garment maintains its original appearance, fit, and features while creating photorealistic and elegant results]..."
-      
-      FINAL REMINDER: The garment must look IDENTICAL to the reference image - same fit, same features, same details. Only the model's body position changes.
+      Generate ONLY the focused pose change prompt with quality enhancement, nothing else.
       `;
     } else {
       // NORMAL MODE - Standart garment replace
@@ -3081,6 +2999,8 @@ router.post("/generate", async (req, res) => {
       // Edit mode specific parameters (EditScreen)
       isEditMode = false, // Bu EditScreen'den gelen bir edit işlemi mi?
       editPrompt = null, // EditScreen'den gelen özel prompt
+      // Refiner mode specific parameters (RefinerScreen)
+      isRefinerMode = false, // Bu RefinerScreen'den gelen refiner işlemi mi?
       // Session deduplication
       sessionId = null, // Aynı batch request'leri tanımlıyor
     } = req.body;
@@ -3099,14 +3019,30 @@ router.post("/generate", async (req, res) => {
     console.log("🕺 [BACKEND] customDetail:", customDetail);
     console.log("✏️ [BACKEND] isEditMode:", isEditMode);
     console.log("✏️ [BACKEND] editPrompt:", editPrompt);
+    console.log("🔧 [BACKEND] isRefinerMode:", isRefinerMode);
     console.log(
       "📤 [BACKEND] Gelen referenceImages:",
       referenceImages?.length || 0,
       "adet"
     );
 
+    // EditScreen modunda promptText boş olabilir (editPrompt kullanılacak)
+    const hasValidPrompt =
+      promptText || (isEditMode && editPrompt && editPrompt.trim());
+
+    console.log(
+      "🔍 [VALIDATION] promptText:",
+      promptText ? "✅ Var" : "❌ Yok"
+    );
+    console.log("🔍 [VALIDATION] isEditMode:", isEditMode);
+    console.log(
+      "🔍 [VALIDATION] editPrompt:",
+      editPrompt ? "✅ Var" : "❌ Yok"
+    );
+    console.log("🔍 [VALIDATION] hasValidPrompt:", hasValidPrompt);
+
     if (
-      !promptText ||
+      !hasValidPrompt ||
       !referenceImages ||
       !Array.isArray(referenceImages) ||
       referenceImages.length < 1
@@ -3115,7 +3051,7 @@ router.post("/generate", async (req, res) => {
         success: false,
         result: {
           message:
-            "Geçerli bir promptText ve en az 1 referenceImage sağlanmalıdır.",
+            "Geçerli bir prompt (promptText veya editPrompt) ve en az 1 referenceImage sağlanmalıdır.",
         },
       });
     }
@@ -3512,13 +3448,45 @@ router.post("/generate", async (req, res) => {
 
     let enhancedPrompt, backgroundRemovedImage;
 
-    if (isColorChange || isPoseChange) {
-      // 🎨 COLOR CHANGE MODE veya 🕺 POSE CHANGE MODE - Basit değiştirme prompt'u
+    if (isColorChange || isPoseChange || isRefinerMode) {
+      // 🎨 COLOR CHANGE MODE, 🕺 POSE CHANGE MODE veya 🔧 REFINER MODE - Özel prompt'lar
       if (isColorChange) {
         console.log(
           "🎨 Color change mode: Basit renk değiştirme prompt'u oluşturuluyor"
         );
         enhancedPrompt = `Change the main color of the product/item in this image to ${targetColor}. Keep all design details, patterns, textures, and shapes exactly the same. Only change the primary color to ${targetColor}. The result should be photorealistic with natural lighting.`;
+      } else if (isRefinerMode) {
+        console.log(
+          "🔧 Refiner mode: Profesyonel e-ticaret fotoğraf refiner prompt'u oluşturuluyor"
+        );
+
+        // Refiner modu için Gemini ile gelişmiş prompt oluştur
+        console.log(
+          "🤖 [GEMINI CALL - REFINER] enhancePromptWithGemini parametreleri:"
+        );
+        console.log("🤖 [GEMINI CALL - REFINER] - finalImage URL:", finalImage);
+        console.log(
+          "🤖 [GEMINI CALL - REFINER] - isMultipleProducts:",
+          isMultipleProducts
+        );
+
+        enhancedPrompt = await enhancePromptWithGemini(
+          promptText ||
+            "Transform this amateur product photo into a professional high-end e-commerce product photo with invisible mannequin effect, perfect lighting, white background, and luxury presentation quality",
+          finalImage,
+          settings || {},
+          locationImage,
+          poseImage,
+          hairStyleImage,
+          isMultipleProducts,
+          false, // isColorChange
+          null, // targetColor
+          false, // isPoseChange
+          null, // customDetail
+          false, // isEditMode
+          null, // editPrompt
+          isRefinerMode // isRefinerMode - yeni parametre
+        );
       } else if (isPoseChange) {
         console.log(
           "🕺 Pose change mode: Gemini ile poz değiştirme prompt'u oluşturuluyor"
@@ -3538,15 +3506,26 @@ router.post("/generate", async (req, res) => {
           referenceImages?.length || 0
         );
 
+        // EditScreen modunda editPrompt'u, normal modda promptText'i kullan
+        const promptToUse =
+          isEditMode && editPrompt && editPrompt.trim()
+            ? editPrompt.trim()
+            : promptText;
+
+        console.log(
+          "📝 [GEMINI CALL - POSE] Kullanılacak prompt:",
+          isEditMode ? "editPrompt" : "promptText"
+        );
+        console.log("📝 [GEMINI CALL - POSE] Prompt içeriği:", promptToUse);
+
         enhancedPrompt = await enhancePromptWithGemini(
-          promptText,
+          promptToUse, // EditScreen'de editPrompt, normal modda promptText
           finalImage, // isPoseChange modunda finalImage kullan (kombin modunda birleştirilmiş grid)
           settings || {},
           locationImage,
           poseImage,
           hairStyleImage,
           isMultipleProducts, // Kombin modunda true olmalı
-          false, // hasControlNet
           false, // isColorChange
           null, // targetColor
           isPoseChange, // isPoseChange
@@ -3571,21 +3550,33 @@ router.post("/generate", async (req, res) => {
         referenceImages?.length || 0
       );
 
+      // EditScreen modunda editPrompt'u, normal modda promptText'i kullan
+      const promptToUse =
+        isEditMode && editPrompt && editPrompt.trim()
+          ? editPrompt.trim()
+          : promptText;
+
+      console.log(
+        "📝 [GEMINI CALL] Kullanılacak prompt:",
+        isEditMode ? "editPrompt" : "promptText"
+      );
+      console.log("📝 [GEMINI CALL] Prompt içeriği:", promptToUse);
+
       const geminiPromise = enhancePromptWithGemini(
-        promptText,
+        promptToUse, // EditScreen'de editPrompt, normal modda promptText
         finalImage, // Ham orijinal resim (kombin modunda birleştirilmiş grid)
         settings || {},
         locationImage,
         poseImage,
         hairStyleImage,
         isMultipleProducts, // Kombin modunda true olmalı
-        false, // ControlNet yok, ham resim
         isColorChange, // Renk değiştirme işlemi mi?
         targetColor, // Hedef renk bilgisi
         isPoseChange, // Poz değiştirme işlemi mi?
         customDetail, // Özel detay bilgisi
         isEditMode, // EditScreen modu mu?
-        editPrompt // EditScreen'den gelen prompt
+        editPrompt, // EditScreen'den gelen prompt
+        isRefinerMode // RefinerScreen modu mu?
       );
 
       // ⏳ Sadece Gemini prompt iyileştirme bekle
