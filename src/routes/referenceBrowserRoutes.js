@@ -464,22 +464,24 @@ async function deductCreditOnSuccess(generationId, userId) {
       return false;
     }
 
-    // Krediyi düş
-    const { error: updateError } = await supabase
-      .from("users")
-      .update({ credit_balance: currentCredit - totalCreditCost })
-      .eq("id", userId)
-      .eq("credit_balance", currentCredit); // Optimistic locking
+    // 🔒 Atomic kredi düşürme - race condition'ı önlemek için RPC kullan
+    const { data: updateResult, error: updateError } = await supabase.rpc(
+      "deduct_user_credit",
+      {
+        user_id: userId,
+        credit_amount: totalCreditCost,
+      }
+    );
 
     if (updateError) {
       console.error(`❌ Kredi düşme hatası:`, updateError);
       return false;
     }
 
+    const newBalance =
+      updateResult?.new_balance || currentCredit - totalCreditCost;
     console.log(
-      `✅ ${totalCreditCost} kredi başarıyla düşüldü. Yeni bakiye: ${
-        currentCredit - totalCreditCost
-      }`
+      `✅ ${totalCreditCost} kredi başarıyla düşüldü. Yeni bakiye: ${newBalance}`
     );
 
     // 🏷️ Generation'a kredi düşürüldü flag'i ekle
@@ -5088,10 +5090,20 @@ router.get("/user-generations/:userId", async (req, res) => {
       }`
     );
 
+    // 🕐 Her zaman son 1 saatlik data'yı döndür
+    const oneHourAgo = new Date();
+    oneHourAgo.setHours(oneHourAgo.getHours() - 1);
+    const oneHourAgoISO = oneHourAgo.toISOString();
+
+    console.log(
+      `🕐 [API_FILTER] Son 1 saatlik data döndürülüyor: ${oneHourAgoISO} sonrası`
+    );
+
     let query = supabase
       .from("reference_results")
       .select("*")
       .eq("user_id", userId)
+      .gte("created_at", oneHourAgoISO) // Her zaman 1 saatlik filtreleme
       .order("created_at", { ascending: false });
 
     // Status filtresi varsa uygula
