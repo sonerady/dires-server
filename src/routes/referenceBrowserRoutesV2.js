@@ -847,6 +847,7 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
         "🏞️ [BACKEND GEMINI] Location enhanced prompt:",
         settings?.locationEnhancedPrompt
       );
+      console.log("🎨 [BACKEND GEMINI] Product color:", settings?.productColor);
 
       settingsPromptSection = `
     User selected settings: ${settingsText}
@@ -871,9 +872,17 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
         settings.locationEnhancedPrompt.trim()
           ? `\n    \n    SPECIAL LOCATION DESCRIPTION:\n    User has provided a detailed location description: "${settings.locationEnhancedPrompt}"\n    IMPORTANT: Use this exact location description for the environment setting instead of a generic location name.`
           : ""
+      }${
+        settings?.productColor && settings.productColor !== "original"
+          ? `\n    \n    🎨 PRODUCT COLOR REQUIREMENT:\n    The user has specifically selected "${settings.productColor}" as the product color. CRITICAL: Ensure the garment/product appears in ${settings.productColor} color in the final image. This color selection must be prominently featured and accurately represented.`
+          : ""
       }
     
-    IMPORTANT: Please incorporate ALL user settings above into your description when appropriate.`;
+    IMPORTANT: Please incorporate ALL user settings above into your description when appropriate.${
+      settings?.productColor && settings.productColor !== "original"
+        ? ` Pay special attention to the product color requirement - the garment must be ${settings.productColor}.`
+        : ""
+    }`;
     }
 
     // Pose ve perspective için akıllı öneri sistemi
