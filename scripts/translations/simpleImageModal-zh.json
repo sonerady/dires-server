@@ -1,0 +1,15 @@
+{
+  "backside_upload_title": "背面照片",
+  "backside_upload_message": "请上传一张清晰显示服装背面的照片。这张照片将帮助AI更准确地分析服装。",
+  "select_photo": "选择照片",
+  "back_side_analysis_title": "背面分析",
+  "back_side_analysis_subtitle": "请将服装正面上传到左侧框中，背面上传到右侧框中",
+  "main_image_badge": "主图片",
+  "back_image_badge": "背面",
+  "back_side_detail_subtitle": "请指定您希望在背面姿势中包含的任何额外细节和特征",
+  "back_pose_button": "背面姿势",
+  "different_pose_button": "不同姿势",
+  "ai_edit_button": "AI编辑",
+  "filter_button": "滤镜",
+  "eraser_button": "橡皮擦"
+}

@@ -1,0 +1,8 @@
+{
+  "tooltip_back_pose_title": "Back Pose",
+  "tooltip_back_pose_description": "Use this feature to see the back of the garment. AI turns the model around to show the back details of the product.",
+  "tooltip_different_pose_title": "Different Pose",
+  "tooltip_different_pose_description": "Use this option to see the same garment in different poses. View the model from different angles and positions.",
+  "tooltip_next": "Next",
+  "tooltip_done": "Done"
+}

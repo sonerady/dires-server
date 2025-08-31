@@ -1,0 +1,15 @@
+{
+  "backside_upload_title": "Photo du Dos",
+  "backside_upload_message": "Veuillez télécharger une photo claire montrant l'arrière du vêtement. Cette photo aidera l'IA à analyser le vêtement plus précisément.",
+  "select_photo": "Sélectionner Photo",
+  "back_side_analysis_title": "Analyse du Dos",
+  "back_side_analysis_subtitle": "Téléchargez l'avant du vêtement dans la boîte de gauche, l'arrière dans la boîte de droite",
+  "main_image_badge": "Image Principale",
+  "back_image_badge": "Dos",
+  "back_side_detail_subtitle": "Veuillez spécifier tous les détails supplémentaires et les caractéristiques que vous souhaitez inclure dans la pose arrière",
+  "back_pose_button": "Pose Arrière",
+  "different_pose_button": "Pose Différente",
+  "ai_edit_button": "Édition IA",
+  "filter_button": "Filtre",
+  "eraser_button": "Gomme"
+}

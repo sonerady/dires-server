@@ -1,0 +1,8 @@
+{
+  "tooltip_back_pose_title": "バックポーズ",
+  "tooltip_back_pose_description": "この機能を使用して衣服の背面を表示します。AIがモデルを回転させて製品の背面詳細を表示します。",
+  "tooltip_different_pose_title": "異なるポーズ",
+  "tooltip_different_pose_description": "このオプションを使用して同じ衣服を異なるポーズで表示します。さまざまな角度と位置からモデルを表示します。",
+  "tooltip_next": "次へ",
+  "tooltip_done": "完了"
+}

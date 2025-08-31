@@ -1,0 +1,15 @@
+{
+  "backside_upload_title": "Foto de la Parte Trasera",
+  "backside_upload_message": "Por favor, suba una foto clara que muestre la parte trasera de la prenda. Esta foto ayudará a la IA a analizar la prenda con mayor precisión.",
+  "select_photo": "Seleccionar Foto",
+  "back_side_analysis_title": "Análisis de la Parte Trasera",
+  "back_side_analysis_subtitle": "Suba la parte delantera de la prenda en la caja izquierda, la parte trasera en la caja derecha",
+  "main_image_badge": "Imagen Principal",
+  "back_image_badge": "Parte Trasera",
+  "back_side_detail_subtitle": "Por favor, especifique cualquier detalle adicional y características que desee incluir en la pose de la parte trasera",
+  "back_pose_button": "Pose Trasera",
+  "different_pose_button": "Pose Diferente",
+  "ai_edit_button": "Edición IA",
+  "filter_button": "Filtro",
+  "eraser_button": "Borrador"
+}

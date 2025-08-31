@@ -1,0 +1,15 @@
+{
+  "backside_upload_title": "뒷면 사진",
+  "backside_upload_message": "의류의 뒷면을 보여주는 선명한 사진을 업로드해 주세요. 이 사진은 AI가 의류를 더 정확하게 분석하는 데 도움이 됩니다.",
+  "select_photo": "사진 선택",
+  "back_side_analysis_title": "뒷면 분석",
+  "back_side_analysis_subtitle": "왼쪽 박스에 의류의 앞면을, 오른쪽 박스에 뒷면을 업로드하세요",
+  "main_image_badge": "메인 이미지",
+  "back_image_badge": "뒷면",
+  "back_side_detail_subtitle": "뒷면 포즈에 포함시키고자 하는 추가 세부사항과 특징을 명시해 주세요",
+  "back_pose_button": "뒷면 포즈",
+  "different_pose_button": "다른 포즈",
+  "ai_edit_button": "AI 편집",
+  "filter_button": "필터",
+  "eraser_button": "지우개"
+}

@@ -1,0 +1,8 @@
+{
+  "tooltip_back_pose_title": "Pose Trasera",
+  "tooltip_back_pose_description": "Usa esta función para ver la parte trasera de la prenda. La IA gira el modelo para mostrar los detalles traseros del producto.",
+  "tooltip_different_pose_title": "Pose Diferente",
+  "tooltip_different_pose_description": "Usa esta opción para ver la misma prenda en diferentes poses. Ve el modelo desde diferentes ángulos y posiciones.",
+  "tooltip_next": "Siguiente",
+  "tooltip_done": "Listo"
+}

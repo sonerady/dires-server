@@ -1,0 +1,15 @@
+{
+  "backside_upload_title": "背面写真",
+  "backside_upload_message": "衣服の背面を示す鮮明な写真をアップロードしてください。この写真により、AIがより正確に衣服を分析できます。",
+  "select_photo": "写真を選択",
+  "back_side_analysis_title": "背面分析",
+  "back_side_analysis_subtitle": "左のボックスに衣服の前面を、右のボックスに背面をアップロードしてください",
+  "main_image_badge": "メイン画像",
+  "back_image_badge": "背面",
+  "back_side_detail_subtitle": "背面ポーズに含めたい追加の詳細や特徴を指定してください",
+  "back_pose_button": "背面ポーズ",
+  "different_pose_button": "異なるポーズ",
+  "ai_edit_button": "AI編集",
+  "filter_button": "フィルター",
+  "eraser_button": "消しゴム"
+}

@@ -1,0 +1,8 @@
+{
+  "tooltip_back_pose_title": "Pose Traseira",
+  "tooltip_back_pose_description": "Use este recurso para ver a parte traseira da roupa. A IA vira o modelo para mostrar os detalhes traseiros do produto.",
+  "tooltip_different_pose_title": "Pose Diferente",
+  "tooltip_different_pose_description": "Use esta opção para ver a mesma roupa em poses diferentes. Visualize o modelo de diferentes ângulos e posições.",
+  "tooltip_next": "Próximo",
+  "tooltip_done": "Pronto"
+}

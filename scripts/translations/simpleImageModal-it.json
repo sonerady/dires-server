@@ -1,0 +1,15 @@
+{
+  "backside_upload_title": "Foto del Retro",
+  "backside_upload_message": "Carica una foto chiara che mostri il retro dell'indumento. Questa foto aiuterà l'IA ad analizzare l'indumento con maggiore precisione.",
+  "select_photo": "Seleziona Foto",
+  "back_side_analysis_title": "Analisi del Retro",
+  "back_side_analysis_subtitle": "Carica la parte anteriore dell'indumento nella casella di sinistra, il retro nella casella di destra",
+  "main_image_badge": "Immagine Principale",
+  "back_image_badge": "Retro",
+  "back_side_detail_subtitle": "Si prega di specificare eventuali dettagli aggiuntivi e caratteristiche che si desidera includere nella posa posteriore",
+  "back_pose_button": "Posa Posteriore",
+  "different_pose_button": "Posa Diversa",
+  "ai_edit_button": "Modifica IA",
+  "filter_button": "Filtro",
+  "eraser_button": "Gomma"
+}

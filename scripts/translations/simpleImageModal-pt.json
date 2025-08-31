@@ -1,0 +1,15 @@
+{
+  "backside_upload_title": "Foto das Costas",
+  "backside_upload_message": "Por favor, carregue uma foto clara mostrando a parte de trás da peça de roupa. Esta foto ajudará a IA a analisar a peça com maior precisão.",
+  "select_photo": "Selecionar Foto",
+  "back_side_analysis_title": "Análise das Costas",
+  "back_side_analysis_subtitle": "Carregue a frente da peça de roupa na caixa esquerda, as costas na caixa direita",
+  "main_image_badge": "Imagem Principal",
+  "back_image_badge": "Costas",
+  "back_side_detail_subtitle": "Por favor, especifique quaisquer detalhes adicionais e características que deseja incluir na pose das costas",
+  "back_pose_button": "Pose das Costas",
+  "different_pose_button": "Pose Diferente",
+  "ai_edit_button": "Edição IA",
+  "filter_button": "Filtro",
+  "eraser_button": "Borracha"
+}
