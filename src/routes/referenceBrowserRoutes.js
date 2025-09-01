@@ -74,7 +74,7 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
     try {
       processedBuffer = await sharp(imageBuffer)
         .rotate() // EXIF orientation bilgisini otomatik uygula
-        .jpeg({ quality: 95 })
+        .jpeg({ quality: 100 })
         .toBuffer();
       console.log("🔄 Tek resim upload: EXIF rotation uygulandı");
     } catch (sharpError) {
@@ -88,7 +88,7 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
         try {
           processedBuffer = await sharp(imageBuffer)
             .rotate() // EXIF rotation burada da dene
-            .png({ quality: 95 })
+            .png({ quality: 100 })
             .toBuffer();
           console.log(
             "✅ Tek resim upload: PNG'ye dönüştürüldü (EXIF rotation uygulandı)"
@@ -2706,7 +2706,7 @@ async function combineImagesOnCanvas(
           // EXIF rotation fix: .rotate() EXIF bilgisini otomatik uygular
           processedBuffer = await sharp(imageBuffer)
             .rotate() // EXIF orientation bilgisini otomatik uygula
-            .jpeg({ quality: 95 }) // Kalite artırıldı - ratio canvas için
+            .jpeg({ quality: 100 }) // Kalite artırıldı - ratio canvas için
             .toBuffer();
 
           console.log(`🔄 Resim ${i + 1}: EXIF rotation uygulandı`);
@@ -2727,7 +2727,7 @@ async function combineImagesOnCanvas(
             try {
               processedBuffer = await sharp(imageBuffer)
                 .rotate() // EXIF rotation burada da uygula
-                .png({ quality: 95 })
+                .png({ quality: 100 })
                 .toBuffer();
               console.log(
                 `✅ Resim ${
@@ -3051,6 +3051,55 @@ async function combineImagesOnCanvas(
           ctx.restore();
 
           // Arka taraf analizi için ikinci resme "ARKA ÜRÜN" yazısı ekle
+          console.log("🔍 [DEBUG] Text kontrol:", {
+            isBackSideAnalysis,
+            index: i,
+            shouldAddText: isBackSideAnalysis && i === 1,
+            imageCount: loadedImages.length,
+          });
+
+          if (isBackSideAnalysis && i === 1) {
+            console.log(
+              "🔄 [BACK_SIDE] İkinci resme 'ARKA ÜRÜN' yazısı ekleniyor..."
+            );
+
+            ctx.save();
+
+            // Daha büyük ve daha görünür yazı
+            ctx.font = "bold 48px Arial";
+            ctx.fillStyle = "#FFFFFF";
+            ctx.strokeStyle = "#000000";
+            ctx.lineWidth = 4;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "top";
+
+            // Yazıyı resmin üst kısmına yerleştir
+            const textX = itemWidth / 2;
+            const textY = y + 30; // Üstten 30px aşağıda
+
+            // Arka plan kutusu ekle
+            const textMetrics = ctx.measureText("ARKA ÜRÜN");
+            const textWidth = textMetrics.width;
+            const boxPadding = 20;
+            const boxX = textX - textWidth / 2 - boxPadding;
+            const boxY = textY - 10;
+            const boxWidth = textWidth + boxPadding * 2;
+            const boxHeight = 68;
+
+            // Arka plan kutusu - yarı şeffaf siyah
+            ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+            ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+
+            // Yazıyı çiz
+            ctx.fillStyle = "#FFFFFF";
+            ctx.strokeStyle = "#000000";
+            ctx.strokeText("ARKA ÜRÜN", textX, textY);
+            ctx.fillText("ARKA ÜRÜN", textX, textY);
+
+            ctx.restore();
+
+            console.log("✅ [BACK_SIDE] 'ARKA ÜRÜN' yazısı eklendi");
+          }
 
           console.log(`🖼️ Resim ${i + 1} (Dikey) çizildi:`, {
             position: `x: ${drawX.toFixed(1)}, y: ${drawY.toFixed(1)}`,
@@ -4064,7 +4113,7 @@ router.post("/generate", async (req, res) => {
           input: {
             prompt: enhancedPrompt,
             image_input: imageInputArray,
-            output_format: "jpg",
+            output_format: "png",
           },
         };
 
