@@ -6,169 +6,6 @@ const supabase = require("../supabaseClient");
 // Gemini API setup
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// DUMMY DATA FONKSIYONLARI - API hatalarında client'ın çökmesini önlemek için
-const generateDummyLocations = (count = 10, category = "discovery") => {
-  // Güvenli count değeri
-  const safeCount = Math.max(1, Math.min(50, parseInt(count) || 10)); // 1-50 arası sınırla
-  const dummyLocations = [];
-  const baseId = Date.now();
-
-  const dummyImages = [
-    "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=500&h=500&fit=crop",
-  ];
-
-  const dummyTitles = [
-    "Modern Studio Background",
-    "Urban Street Scene",
-    "Natural Park Setting",
-    "Elegant Interior",
-    "Beach Sunset View",
-    "Mountain Landscape",
-    "City Skyline",
-    "Garden Oasis",
-    "Industrial Warehouse",
-    "Luxury Hotel Lobby",
-  ];
-
-  for (let i = 0; i < safeCount; i++) {
-    const title = dummyTitles[i % dummyTitles.length] || "Custom Location";
-    const imageUrl =
-      dummyImages[i % dummyImages.length] ||
-      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&h=500&fit=crop";
-
-    dummyLocations.push({
-      id: baseId + i,
-      title: title,
-      generated_title: title,
-      image_url: imageUrl,
-      category: category || "discovery",
-      location_type:
-        category === "studio"
-          ? "studio"
-          : category === "outdoor"
-          ? "outdoor"
-          : "indoor",
-      favorite_count: Math.floor(Math.random() * 50) + 1,
-      is_public: true,
-      status: "completed",
-      created_at: new Date(
-        Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000
-      ).toISOString(), // Son 30 gün içinde
-      user_id: "dummy-user-id",
-      original_prompt: `Dummy prompt for ${title}`,
-      enhanced_prompt: `Enhanced dummy prompt for ${title}`,
-      replicate_id: `dummy-replicate-${baseId + i}`,
-    });
-  }
-
-  return dummyLocations;
-};
-
-const generateDummyUserLocations = (count = 5) => {
-  // Güvenli count değeri
-  const safeCount = Math.max(1, Math.min(20, parseInt(count) || 5)); // 1-20 arası sınırla
-  const dummyLocations = [];
-  const baseId = Date.now();
-
-  const dummyImages = [
-    "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&h=500&fit=crop",
-  ];
-
-  const dummyTitles = [
-    "My Custom Studio",
-    "Personal Garden",
-    "Home Office",
-    "Kitchen Setting",
-    "Living Room",
-  ];
-
-  for (let i = 0; i < safeCount; i++) {
-    const title = dummyTitles[i % dummyTitles.length] || "My Custom Location";
-    const imageUrl =
-      dummyImages[i % dummyImages.length] ||
-      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&h=500&fit=crop";
-
-    dummyLocations.push({
-      id: baseId + i,
-      title: title,
-      generated_title: title,
-      image_url: imageUrl,
-      category: "custom",
-      location_type: "indoor",
-      favorite_count: Math.floor(Math.random() * 10) + 1,
-      is_public: false,
-      status: "completed",
-      created_at: new Date(
-        Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000
-      ).toISOString(), // Son 7 gün içinde
-      user_id: "dummy-user-id",
-      original_prompt: `My custom ${title}`,
-      enhanced_prompt: `Enhanced custom ${title}`,
-      replicate_id: `dummy-user-replicate-${baseId + i}`,
-    });
-  }
-
-  return dummyLocations;
-};
-
-const generateDummyFavorites = (count = 5) => {
-  // Güvenli count değeri
-  const safeCount = Math.max(1, Math.min(20, parseInt(count) || 5)); // 1-20 arası sınırla
-  const dummyFavorites = [];
-  const baseId = Date.now();
-
-  const dummyImages = [
-    "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=500&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&h=500&fit=crop",
-  ];
-
-  const dummyTitles = [
-    "Favorite Studio",
-    "Loved Park",
-    "Preferred Beach",
-    "Best Mountain",
-    "Top City View",
-  ];
-
-  for (let i = 0; i < safeCount; i++) {
-    const title = dummyTitles[i % dummyTitles.length] || "Favorite Location";
-    const imageUrl =
-      dummyImages[i % dummyImages.length] ||
-      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&h=500&fit=crop";
-
-    dummyFavorites.push({
-      id: baseId + i,
-      location_id: baseId + i,
-      location_title: title,
-      location_image_url: imageUrl,
-      location_category: "discovery",
-      location_type: "outdoor",
-      created_at: new Date(
-        Date.now() - Math.random() * 14 * 24 * 60 * 60 * 1000
-      ).toISOString(), // Son 14 gün içinde
-      user_id: "dummy-user-id",
-    });
-  }
-
-  return dummyFavorites;
-};
-
 // Replicate'den gelen resmi Supabase storage'a kaydet
 async function uploadImageToSupabaseStorage(imageUrl, userId, replicateId) {
   try {
@@ -222,18 +59,7 @@ async function uploadImageToSupabaseStorage(imageUrl, userId, replicateId) {
     };
   } catch (error) {
     console.error("Resim yükleme hatası:", error);
-    console.log("🔄 Dummy storage URL döndürülüyor...");
-
-    // Hata durumunda dummy storage URL döndür
-    const dummyStoragePath = `user-locations/${userId}/dummy-${Date.now()}.jpg`;
-    const dummyPublicUrl =
-      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&h=500&fit=crop";
-
-    return {
-      storagePath: dummyStoragePath,
-      publicUrl: dummyPublicUrl,
-      isDummy: true, // Client'a dummy data olduğunu bildir
-    };
+    throw error;
   }
 }
 
@@ -305,18 +131,7 @@ async function generateLocationWithFlux11ProUltra(prompt, userId) {
     }
   } catch (error) {
     console.error("Flux 1.1 Pro Ultra generation hatası:", error);
-    console.log("🔄 Dummy image URL döndürülüyor...");
-
-    // Hata durumunda dummy image URL döndür
-    const dummyImageUrl =
-      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&h=500&fit=crop";
-    const dummyReplicateId = `dummy-replicate-${Date.now()}`;
-
-    return {
-      imageUrl: dummyImageUrl,
-      storagePath: `dummy-storage-path/${dummyReplicateId}.jpg`,
-      replicateId: dummyReplicateId,
-    };
+    throw error;
   }
 }
 
@@ -538,26 +353,9 @@ IMPORTANT: You MUST return a valid JSON object with these exact keys: prompt, ti
   } catch (error) {
     console.error("❌ GPT-4O-mini enhancement hatası:", error.message);
     console.error("❌ Full error:", error);
-    console.log("🔄 Dummy prompt enhancement döndürülüyor...");
 
-    // Hata durumunda dummy prompt döndür
-    const dummyTitle =
-      originalPrompt.split(" ").slice(0, 3).join(" ") || "Custom Location";
-    const dummyPrompt = `A beautiful, photorealistic ${originalPrompt} with natural lighting, detailed textures, and professional photography quality. The scene features vibrant colors, balanced composition, and realistic materials. Perfect for fashion photography with a standing model perspective.`;
-    const dummyLocationType = originalPrompt.toLowerCase().includes("studio")
-      ? "studio"
-      : originalPrompt.toLowerCase().includes("outdoor") ||
-        originalPrompt.toLowerCase().includes("park") ||
-        originalPrompt.toLowerCase().includes("beach") ||
-        originalPrompt.toLowerCase().includes("street")
-      ? "outdoor"
-      : "indoor";
-
-    return {
-      title: dummyTitle,
-      prompt: dummyPrompt,
-      locationType: dummyLocationType,
-    };
+    // Fallback yok - hata fırlat
+    throw new Error(`GPT-4O-mini prompt generation failed: ${error.message}`);
   }
 }
 
@@ -804,27 +602,11 @@ router.post("/create-location", async (req, res) => {
     }
   } catch (error) {
     console.error("❌ Create location hatası:", error);
-    console.log("🔄 Dummy location creation response döndürülüyor...");
 
-    // Hata durumunda dummy location data döndür - client'a isDummy flag'i gönderme
-    const dummyLocation = generateDummyUserLocations(1)[0];
-    res.json({
-      success: true,
-      message: "Location başarıyla oluşturuldu",
-      data: {
-        id: dummyLocation.id,
-        title: dummyLocation.title,
-        generatedTitle: dummyLocation.generated_title,
-        imageUrl: optimizeImageUrl(dummyLocation.image_url),
-        category: dummyLocation.category,
-        isPublic: dummyLocation.is_public,
-        originalPrompt: dummyLocation.original_prompt,
-        enhancedPrompt: dummyLocation.enhanced_prompt,
-        replicateId: dummyLocation.replicate_id,
-        locationType: dummyLocation.location_type,
-        createdAt: dummyLocation.created_at,
-        userId: dummyLocation.user_id,
-      },
+    res.status(500).json({
+      success: false,
+      error: "Location oluşturulurken hata oluştu",
+      details: error.message,
     });
   }
 });
@@ -857,24 +639,11 @@ router.get("/user-locations/:userId", async (req, res) => {
       .eq("category", category)
       .eq("status", "completed")
       .order("created_at", { ascending: false })
-      .range(
-        Math.max(0, parseInt(offset) || 0),
-        Math.max(0, parseInt(offset) || 0) +
-          Math.max(1, Math.min(100, parseInt(limit) || 20)) -
-          1
-      );
+      .range(offset, offset + limit - 1);
 
     if (error) {
       console.error("Supabase user locations fetch hatası:", error);
-      console.log("🔄 Dummy user locations döndürülüyor...");
-
-      // Dummy data döndür - client'a isDummy flag'i gönderme
-      const dummyData = generateDummyUserLocations(parseInt(limit) || 5);
-      return res.json({
-        success: true,
-        data: optimizeLocationImages(dummyData),
-        count: dummyData.length,
-      });
+      throw error;
     }
 
     console.log("✅ User locations found:", data?.length || 0);
@@ -886,71 +655,36 @@ router.get("/user-locations/:userId", async (req, res) => {
     });
   } catch (error) {
     console.error("User locations fetch hatası:", error);
-    console.log("🔄 Dummy user locations döndürülüyor (catch block)...");
-
-    // Hata durumunda da dummy data döndür - client'a isDummy flag'i gönderme
-    const dummyData = generateDummyUserLocations(5);
-    res.json({
-      success: true,
-      data: optimizeLocationImages(dummyData),
-      count: dummyData.length,
+    res.status(500).json({
+      success: false,
+      error: "User locations getirilemedi",
+      details: error.message,
     });
   }
 });
 
 // Diziyi karıştıran yardımcı fonksiyon
 const shuffleArray = (array) => {
-  // Null/undefined kontrolü
-  if (!Array.isArray(array)) {
-    console.log(
-      "⚠️ shuffleArray: Invalid array provided, returning empty array"
-    );
-    return [];
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
-
-  // Boş array kontrolü
-  if (array.length === 0) {
-    return [];
-  }
-
-  try {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  } catch (error) {
-    console.error("Shuffle array error:", error);
-    return array; // Hata durumunda orijinal array'i döndür
-  }
+  return shuffled;
 };
 
 // Supabase resim URL'lerini optimize eden yardımcı fonksiyon
 const optimizeImageUrl = (imageUrl) => {
-  // Null/undefined kontrolü
-  if (!imageUrl || typeof imageUrl !== "string") {
-    return "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&h=500&fit=crop";
-  }
-
-  // Boş string kontrolü
-  if (imageUrl.trim() === "") {
-    return "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&h=500&fit=crop";
-  }
+  if (!imageUrl) return imageUrl;
 
   // Supabase storage URL'si ise optimize et
   if (imageUrl.includes("supabase.co")) {
-    try {
-      return (
-        imageUrl.replace(
-          "/storage/v1/object/public/",
-          "/storage/v1/render/image/public/"
-        ) + "?width=500&height=500&quality=80"
-      );
-    } catch (error) {
-      console.error("Image URL optimization error:", error);
-      return "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&h=500&fit=crop";
-    }
+    return (
+      imageUrl.replace(
+        "/storage/v1/object/public/",
+        "/storage/v1/render/image/public/"
+      ) + "?width=500&height=500&quality=80"
+    );
   }
 
   return imageUrl;
@@ -958,53 +692,12 @@ const optimizeImageUrl = (imageUrl) => {
 
 // Location objelerinin resim URL'lerini optimize eden fonksiyon
 const optimizeLocationImages = (locations) => {
-  if (!Array.isArray(locations)) return [];
+  if (!Array.isArray(locations)) return locations;
 
-  return locations.map((location) => {
-    // Null/undefined kontrolü
-    if (!location || typeof location !== "object") {
-      return {
-        id: Date.now() + Math.random(),
-        title: "Unknown Location",
-        generated_title: "Unknown Location",
-        image_url:
-          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&h=500&fit=crop",
-        category: "discovery",
-        location_type: "indoor",
-        favorite_count: 0,
-        is_public: true,
-        status: "completed",
-        created_at: new Date().toISOString(),
-        user_id: "dummy-user-id",
-        original_prompt: "Dummy prompt",
-        enhanced_prompt: "Enhanced dummy prompt",
-        replicate_id: `dummy-replicate-${Date.now()}`,
-      };
-    }
-
-    return {
-      ...location,
-      // Güvenli default değerler
-      id: location.id || Date.now() + Math.random(),
-      title: location.title || location.generated_title || "Unknown Location",
-      generated_title:
-        location.generated_title || location.title || "Unknown Location",
-      image_url: optimizeImageUrl(
-        location.image_url ||
-          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&h=500&fit=crop"
-      ),
-      category: location.category || "discovery",
-      location_type: location.location_type || "indoor",
-      favorite_count: location.favorite_count || 0,
-      is_public: location.is_public !== undefined ? location.is_public : true,
-      status: location.status || "completed",
-      created_at: location.created_at || new Date().toISOString(),
-      user_id: location.user_id || "dummy-user-id",
-      original_prompt: location.original_prompt || "Dummy prompt",
-      enhanced_prompt: location.enhanced_prompt || "Enhanced dummy prompt",
-      replicate_id: location.replicate_id || `dummy-replicate-${Date.now()}`,
-    };
-  });
+  return locations.map((location) => ({
+    ...location,
+    image_url: optimizeImageUrl(location.image_url),
+  }));
 };
 
 // Seçilen resmin boyut parametrelerini kaldıran fonksiyon (API'ye gönderilmeden önce)
@@ -1069,31 +762,16 @@ router.get("/public-locations", async (req, res) => {
         .order(orderBy.column, { ascending: orderBy.ascending });
 
       if (error) {
-        console.error("Supabase public locations fetch hatası:", error);
-        console.log("🔄 Dummy public locations döndürülüyor...");
-
-        // Dummy data döndür - client'a isDummy flag'i gönderme
-        const dummyData = generateDummyLocations(
-          parseInt(limit) || 10,
-          category
-        );
-        return res.json({
-          success: true,
-          data: optimizeLocationImages(dummyData),
-          count: dummyData.length,
-          total: dummyData.length,
-          hasMore: false,
-        });
+        throw error;
       }
 
       // Shuffle yap
       const shuffledData = shuffleArray(allData || []);
       console.log(`🎲 Shuffled ${shuffledData.length} locations`);
 
-      // Pagination uygula - güvenli parsing
-      const startIndex = Math.max(0, parseInt(offset) || 0);
-      const limitValue = Math.max(1, Math.min(100, parseInt(limit) || 10)); // 1-100 arası sınırla
-      const endIndex = startIndex + limitValue;
+      // Pagination uygula
+      const startIndex = parseInt(offset);
+      const endIndex = startIndex + parseInt(limit);
       const paginatedData = shuffledData.slice(startIndex, endIndex);
 
       console.log(
@@ -1117,27 +795,10 @@ router.get("/public-locations", async (req, res) => {
         .eq("status", "completed")
         .in("location_type", allowedLocationTypes) // Dynamic location types
         .order(orderBy.column, { ascending: orderBy.ascending })
-        .range(
-          Math.max(0, parseInt(offset) || 0),
-          Math.max(0, parseInt(offset) || 0) +
-            Math.max(1, Math.min(100, parseInt(limit) || 10)) -
-            1
-        );
+        .range(offset, offset + limit - 1);
 
       if (error) {
-        console.error("Supabase public locations fetch hatası:", error);
-        console.log("🔄 Dummy public locations döndürülüyor...");
-
-        // Dummy data döndür - client'a isDummy flag'i gönderme
-        const dummyData = generateDummyLocations(
-          parseInt(limit) || 10,
-          category
-        );
-        return res.json({
-          success: true,
-          data: optimizeLocationImages(dummyData),
-          count: dummyData.length,
-        });
+        throw error;
       }
 
       res.json({
@@ -1148,16 +809,10 @@ router.get("/public-locations", async (req, res) => {
     }
   } catch (error) {
     console.error("Public locations fetch hatası:", error);
-    console.log("🔄 Dummy public locations döndürülüyor (catch block)...");
-
-    // Hata durumunda da dummy data döndür - client'a isDummy flag'i gönderme
-    const dummyData = generateDummyLocations(10, category);
-    res.json({
-      success: true,
-      data: optimizeLocationImages(dummyData),
-      count: dummyData.length,
-      total: dummyData.length,
-      hasMore: false,
+    res.status(500).json({
+      success: false,
+      error: "Public locations getirilemedi",
+      details: error.message,
     });
   }
 });
@@ -1215,15 +870,11 @@ router.delete("/delete-location/:locationId", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Location silme hatası:", error);
-    console.log("🔄 Dummy delete response döndürülüyor...");
 
-    // Hata durumunda başarılı dummy response döndür - client'a isDummy flag'i gönderme
-    res.json({
-      success: true,
-      message: "Location başarıyla silindi",
-      data: {
-        id: req.params.locationId,
-      },
+    res.status(500).json({
+      success: false,
+      error: "Location silinirken hata oluştu",
+      details: error.message,
     });
   }
 });
@@ -1352,26 +1003,11 @@ router.post("/save-to-gallery", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Save to gallery hatası:", error);
-    console.log("🔄 Dummy save to gallery response döndürülüyor...");
 
-    // Hata durumunda dummy location data döndür - client'a isDummy flag'i gönderme
-    const dummyLocation = generateDummyUserLocations(1)[0];
-    res.json({
-      success: true,
-      message: "Location başarıyla galeri'ye eklendi",
-      data: {
-        id: dummyLocation.id,
-        title: dummyLocation.title,
-        generatedTitle: dummyLocation.generated_title,
-        imageUrl: optimizeImageUrl(dummyLocation.image_url),
-        category: dummyLocation.category,
-        isPublic: dummyLocation.is_public,
-        originalPrompt: dummyLocation.original_prompt,
-        enhancedPrompt: dummyLocation.enhanced_prompt,
-        replicateId: dummyLocation.replicate_id,
-        locationType: dummyLocation.location_type,
-        createdAt: dummyLocation.created_at,
-      },
+    res.status(500).json({
+      success: false,
+      error: "Galeri'ye kaydetme sırasında hata oluştu",
+      details: error.message,
     });
   }
 });
