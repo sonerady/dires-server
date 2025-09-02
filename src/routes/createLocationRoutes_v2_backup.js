@@ -57,7 +57,7 @@ const generateDummyLocations = (count = 10, category = "discovery") => {
           : category === "outdoor"
           ? "outdoor"
           : "indoor",
-      favorite_count: Math.max(0, Math.floor(Math.random() * 50) + 1),
+      favorite_count: Math.floor(Math.random() * 50) + 1,
       is_public: true,
       status: "completed",
       created_at: new Date(
@@ -108,7 +108,7 @@ const generateDummyUserLocations = (count = 5) => {
       image_url: imageUrl,
       category: "custom",
       location_type: "indoor",
-      favorite_count: Math.max(0, Math.floor(Math.random() * 10) + 1),
+      favorite_count: Math.floor(Math.random() * 10) + 1,
       is_public: false,
       status: "completed",
       created_at: new Date(
