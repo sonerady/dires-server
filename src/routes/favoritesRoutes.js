@@ -94,7 +94,7 @@ router.get("/:userId", async (req, res) => {
         location_image_url: location?.image_url || "",
         location_category: location?.category || favorite.location_category,
         location_type: location?.location_type || favorite.location_type,
-        favorite_count: typeof location?.favorite_count === "number" ? location.favorite_count : 0,
+        favorite_count: location?.favorite_count || 0,
       };
     });
 
