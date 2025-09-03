@@ -3740,7 +3740,7 @@ router.post("/generate", async (req, res) => {
 
     let finalImage;
 
-    // Çoklu resim varsa birleştir, yoksa tek resmi kullan
+    // Çoklu resim varsa her birini ayrı ayrı upload et, canvas birleştirme yapma
     if (isMultipleImages && referenceImages.length > 1) {
       // Back side analysis için özel upload işlemi
       if (req.body.isBackSideAnalysis) {
@@ -3777,72 +3777,51 @@ router.post("/generate", async (req, res) => {
         finalImage = null; // Canvas'a gerek yok
       } else {
         console.log(
-          "🖼️ [BACKEND] Çoklu resim birleştirme işlemi başlatılıyor..."
+          "🖼️ [BACKEND] Çoklu resim modu - Her resim ayrı ayrı upload ediliyor..."
         );
 
         // Kombin modu kontrolü
         const isKombinMode = req.body.isKombinMode || false;
         console.log("🛍️ [BACKEND] Kombin modu kontrolü:", isKombinMode);
 
-        // Grid layout bilgisini request body'den al
-        let gridLayoutInfo = null;
-
-        // Request body'de grid layout bilgisi var mı kontrol et
-        if (req.body.referenceImages && req.body.referenceImages.isGridLayout) {
-          gridLayoutInfo = req.body.referenceImages.gridInfo;
-          console.log(
-            "🛍️ [BACKEND] Grid layout bilgisi bulundu:",
-            gridLayoutInfo
+        // Her resmi ayrı ayrı Supabase'e upload et
+        const uploadedUrls = [];
+        for (let i = 0; i < referenceImages.length; i++) {
+          const img = referenceImages[i];
+          const imageSource = img.base64
+            ? `data:image/jpeg;base64,${img.base64}`
+            : img.uri;
+          const uploadedUrl = await uploadReferenceImageToSupabase(
+            imageSource,
+            userId
           );
-        } else {
+          uploadedUrls.push(uploadedUrl);
           console.log(
-            "🛍️ [BACKEND] Grid layout bilgisi bulunamadı, normal mod"
+            `📤 [BACKEND] Resim ${i + 1} upload edildi:`,
+            uploadedUrl
           );
         }
 
+        // URL'leri referenceImages array'ine geri koy
+        for (let i = 0; i < uploadedUrls.length; i++) {
+          referenceImages[i] = { ...referenceImages[i], uri: uploadedUrls[i] };
+        }
+
+        console.log("✅ [BACKEND] Tüm resimler ayrı ayrı upload edildi");
+
+        // Canvas birleştirme yapma - direkt ayrı resimleri kullan
+        finalImage = null; // Canvas'a gerek yok
+
+        // Kombin modunda MUTLAKA isMultipleProducts'ı true yap ki Gemini doğru prompt oluştursun
         if (isKombinMode) {
-          // 🛍️ KOMBİN MODU: Grid layout'u canvas'ta birleştir veya normal çoklu resim birleştir
-          console.log("🛍️ [BACKEND] Kombin modu - Canvas oluşturuluyor...");
-          console.log(
-            "🛍️ [BACKEND] Grid layout bilgisi:",
-            gridLayoutInfo ? "Mevcut" : "Yok - normal birleştirme kullanılacak"
-          );
-
-          finalImage = await combineImagesOnCanvas(
-            referenceImages,
-            userId,
-            true, // isMultipleProducts = true (kombin çoklu ürün modudur)
-            gridLayoutInfo ? "1:1" : ratio, // Grid varsa kare, yoksa orijinal ratio
-            gridLayoutInfo, // Grid layout bilgisini geç (null olabilir)
-            req.body.isBackSideAnalysis || false // isBackSideAnalysis
-          );
-
-          console.log("🛍️ [BACKEND] Kombin canvas oluşturuldu:", finalImage);
-
-          // Kombin modunda MUTLAKA isMultipleProducts'ı true yap ki Gemini doğru prompt oluştursun
           console.log(
             "🛍️ [BACKEND] Kombin modu için isMultipleProducts değeri:",
             `${originalIsMultipleProducts} → true`
           );
           // Bu değişkeni lokal olarak override et
           isMultipleProducts = true;
-        } else {
-          // Normal çoklu resim modu
-          finalImage = await combineImagesOnCanvas(
-            referenceImages,
-            userId,
-            isMultipleProducts,
-            ratio, // aspectRatio
-            null, // gridLayoutInfo
-            req.body.isBackSideAnalysis || false // isBackSideAnalysis
-          );
         }
       } // Back side analysis else bloğu kapatma
-
-      // Birleştirilmiş resmi geçici dosyalar listesine ekle (sadece canvas varsa)
-      if (finalImage) {
-        temporaryFiles.push(finalImage);
-      }
     } else {
       // Tek resim için ratio'ya göre canvas işlemi
       console.log(
@@ -4085,23 +4064,22 @@ router.post("/generate", async (req, res) => {
 
     // 👤 Portrait generation kaldırıldı - Gemini kendi kendine hallediyor
 
-    // 🖼️ Kombin modunda finalImage kullan, diğer durumlarda arkaplan kaldırılmış resmi kullan
+    // 🖼️ Çoklu resim modunda ayrı resimleri kullan, tek resim modunda arkaplan kaldırılmış resmi kullan
     let combinedImageForReplicate;
 
-    if (req.body.isKombinMode) {
-      // Kombin modunda canvas'ta birleştirilmiş grid'i kullan
-      combinedImageForReplicate = finalImage;
+    if (isMultipleImages && referenceImages.length > 1) {
+      // Çoklu resim modunda ayrı resimleri kullan (canvas birleştirme yok)
+      combinedImageForReplicate = null; // Ayrı resimler kullanılacak
       console.log(
-        "🛍️ [BACKEND] Kombin modu: Grid canvas Gemini'ye gönderiliyor:",
-        finalImage
+        "🖼️ [BACKEND] Çoklu resim modu: Ayrı resimler Gemini'ye gönderilecek"
       );
     } else {
-      // Normal modda arkaplan kaldırılmış resmi kullan
+      // Tek resim modunda arkaplan kaldırılmış resmi kullan
       // Back side analysis durumunda canvas kullanmıyoruz
       if (!req.body.isBackSideAnalysis) {
         combinedImageForReplicate = backgroundRemovedImage;
         console.log(
-          "🖼️ [BACKEND] Normal mod: Arkaplan kaldırılmış resim Gemini'ye gönderiliyor"
+          "🖼️ [BACKEND] Tek resim modu: Arkaplan kaldırılmış resim Gemini'ye gönderiliyor"
         );
       } else {
         combinedImageForReplicate = null; // Back side'da kullanılmıyor
@@ -4171,8 +4149,15 @@ router.post("/generate", async (req, res) => {
             referenceImages[1].uri || referenceImages[1], // Arka resim - direkt string
           ];
           console.log("📤 [BACK_SIDE] Image input array:", imageInputArray);
+        } else if (isMultipleImages && referenceImages.length > 1) {
+          // Çoklu resim modu: Tüm resimleri ayrı ayrı gönder
+          console.log(
+            `🖼️ [MULTIPLE] ${referenceImages.length} ayrı resim Nano Banana'ya gönderiliyor...`
+          );
+          imageInputArray = referenceImages.map((img) => img.uri || img);
+          console.log("📤 [MULTIPLE] Image input array:", imageInputArray);
         } else {
-          // Normal mode: Birleştirilmiş tek resim
+          // Tek resim modu: Birleştirilmiş tek resim
           imageInputArray = [combinedImageForReplicate];
         }
 
@@ -4188,7 +4173,9 @@ router.post("/generate", async (req, res) => {
           prompt: enhancedPrompt.substring(0, 100) + "...",
           imageInput: req.body.isBackSideAnalysis
             ? "2 separate images"
-            : combinedImageForReplicate,
+            : isMultipleImages && referenceImages.length > 1
+            ? `${referenceImages.length} separate images`
+            : "single combined image",
           imageInputArray: imageInputArray,
           outputFormat: "jpg",
         });
@@ -4502,8 +4489,14 @@ router.post("/generate", async (req, res) => {
               referenceImages[0].uri || referenceImages[0], // Ön resim - direkt string
               referenceImages[1].uri || referenceImages[1], // Arka resim - direkt string
             ];
+          } else if (isMultipleImages && referenceImages.length > 1) {
+            // Çoklu resim modu: Tüm resimleri ayrı ayrı gönder
+            console.log(
+              `🔄 [RETRY MULTIPLE] ${referenceImages.length} ayrı resim Nano Banana'ya gönderiliyor...`
+            );
+            retryImageInputArray = referenceImages.map((img) => img.uri || img);
           } else {
-            // Normal mode: Birleştirilmiş tek resim
+            // Tek resim modu: Birleştirilmiş tek resim
             retryImageInputArray = [combinedImageForReplicate];
           }
 
