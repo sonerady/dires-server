@@ -1806,15 +1806,37 @@ Only one single final image must be generated — no collages, no split frames, 
         // Statik kuralları prompt'un sonuna ekle
         const staticRules = `
 
-CRITICAL RULES:
-
-The output must be a single, high-end professional fashion photograph only — no collages, duplicates, or extra frames.
-
-Apply studio-grade fashion lighting blended naturally with daylight, ensuring flawless exposure, vibrant textures, and sharp focus.
-
-Guarantee editorial-level clarity and detail, with no blur, dull tones, or artificial look.
-
-Model, garment, and environment must integrate into one cohesive, seamless professional photo suitable for commercial catalogs and editorial campaigns.`;
+        CRITICAL RULES (English)
+        
+        The output must be a single, high-end professional fashion photograph only — no collages, duplicates, or extra frames.
+        
+        Apply studio-grade fashion lighting blended naturally with daylight, ensuring flawless exposure, vibrant textures, and sharp focus.
+        
+        Guarantee editorial-level clarity and detail, with no blur, dull tones, or artificial look.
+        
+        Model, garment, and environment must integrate into one cohesive, seamless professional photo suitable for commercial catalogs and editorial campaigns.
+        
+        Additional Professional Fashion Photography Rules:
+        
+        Composition & Framing: Follow professional composition guidelines (rule of thirds, balanced framing). The model and garment must be the primary focus, with the background supporting but never distracting.
+        
+        Camera Perspective: Use appropriate fashion shot perspectives (full body, three-quarter, or mid-shot) depending on garment type. Avoid extreme or distorted angles unless explicitly requested.
+        
+        Garment Presentation: Ensure the garment is perfectly centered, wrinkle-minimized, and fully visible. Critical details like logos, embroidery, seams, and textures must be sharp and unobstructed.
+        
+        Color Accuracy: Colors must remain faithful to the original garment. Avoid oversaturation or washed-out tones. White balance must be neutral and realistic.
+        
+        Fabric Physics: Knit, silk, denim, leather, or any other fabric must exhibit accurate surface qualities — sheen, matte, weight, drape — under the chosen lighting.
+        
+        Background Control: Background must complement the garment. It should add atmosphere but never overpower the fashion subject. Keep it clean, realistic, and photogenic.
+        
+        Depth & Realism: Maintain natural shadows, reflections, and occlusion to create depth. No flat overlays or unrealistic detachment between model and environment.
+        
+        Posture & Pose: Model poses must enhance garment flow and silhouette. Avoid awkward or unnatural positions that distort the clothing.
+        
+        Focus & Sharpness: The garment must always be in sharp focus, especially at neckline, chest, and detailing areas. Background can be slightly softened (natural depth of field) to highlight the subject.
+        
+        Atmosphere: Scene must feel like a real, live professional photoshoot. Lighting, environment, and styling should combine into a polished, high-fashion aesthetic.`;
 
         enhancedPrompt = geminiGeneratedPrompt + staticRules;
         console.log(
