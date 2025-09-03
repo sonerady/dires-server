@@ -74,7 +74,7 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
     try {
       processedBuffer = await sharp(imageBuffer)
         .rotate() // EXIF orientation bilgisini otomatik uygula
-        .jpeg({ quality: 95 })
+        .jpeg({ quality: 100 })
         .toBuffer();
       console.log("🔄 Tek resim upload: EXIF rotation uygulandı");
     } catch (sharpError) {
@@ -88,7 +88,7 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
         try {
           processedBuffer = await sharp(imageBuffer)
             .rotate() // EXIF rotation burada da dene
-            .png({ quality: 95 })
+            .png({ quality: 100 })
             .toBuffer();
           console.log(
             "✅ Tek resim upload: PNG'ye dönüştürüldü (EXIF rotation uygulandı)"
@@ -672,7 +672,9 @@ async function enhancePromptWithGemini(
   customDetail = null, // Özel detay
   isEditMode = false, // EditScreen modu mu?
   editPrompt = null, // EditScreen'den gelen prompt
-  isRefinerMode = false // RefinerScreen modu mu?
+  isRefinerMode = false, // RefinerScreen modu mu?
+  isBackSideAnalysis = false, // Arka taraf analizi modu mu?
+  referenceImages = null // Back side analysis için 2 resim
 ) {
   try {
     console.log(
@@ -688,6 +690,7 @@ async function enhancePromptWithGemini(
     console.log("✏️ [GEMINI] Edit mode:", isEditMode);
     console.log("✏️ [GEMINI] Edit prompt:", editPrompt);
     console.log("🔧 [GEMINI] Refiner mode:", isRefinerMode);
+    console.log("🔄 [GEMINI] Back side analysis mode:", isBackSideAnalysis);
 
     // Gemini 2.0 Flash modeli - Yeni SDK
     const model = "gemini-2.5-flash";
@@ -1138,13 +1141,15 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
     // Flux Max için genel garment transform talimatları (güvenli flag-safe versiyon)
     const fluxMaxGarmentTransformationDirectives = `
     GARMENT TRANSFORMATION REQUIREMENTS:
+    - Generate ONLY ONE SINGLE unified fashion photograph, not multiple images or split views
     - Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance.
     - Ensure realistic fabric physics with natural drape, weight, tension, compression, and subtle folds along shoulders, chest/bust, torso, and sleeves. Maintain a clean commercial presentation with minimal distracting wrinkles.
     - Preserve all original garment details including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning the original garment.
     - Integrate prints/patterns correctly over the 3D form ensuring patterns curve, stretch, and wrap naturally across body contours. Avoid flat, uniform, or unnaturally straight pattern lines.
     - For structured details such as knots, pleats, darts, and seams, render functional tension, deep creases, and realistic shadows consistent with real fabric behavior.
     - Maintain photorealistic integration with the model and scene including correct scale, perspective, lighting, cast shadows, and occlusions that match the camera angle and scene lighting.
-    - Focus on transforming the garment onto the existing model and seamlessly integrating it into the outfit. Avoid introducing new background elements unless a location reference is explicitly provided.`;
+    - Focus on transforming the garment onto the existing model and seamlessly integrating it into the outfit. Avoid introducing new background elements unless a location reference is explicitly provided.
+    - OUTPUT: One single professional fashion photograph only`;
 
     // Gemini'ye gönderilecek metin - Edit mode vs Color change vs Normal replace
     let promptForGemini;
@@ -1160,6 +1165,29 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       4. Does NOT mention garments, models, poses, backgrounds, or photography details
       5. Keeps existing scene unchanged
       
+
+CRITICAL RULES:
+
+Exclude all original flat-lay elements (hanger, frame, shadows, textures, painting, or any other artifacts). Only the garment itself must be transferred.
+
+The original background must be completely replaced with the newly described background. Do not keep or reuse any part of the input photo background.
+
+The output must be hyper-realistic, high-end professional fashion editorial quality, suitable for commercial catalog presentation.
+
+Only one single professional fashion photograph must be generated — no collage, no split views, no duplicates, no extra flat product shots.
+
+The output must look like a high-end professional fashion photograph, suitable for luxury catalogs and editorial campaigns.
+
+Apply studio-grade fashion lighting blended naturally with ambient light so the model and garment are perfectly lit, with no flat or artificial look.
+
+Ensure crisp focus, maximum clarity, and editorial-level sharpness across the entire image; no blur, no washed-out textures.
+
+Maintain true-to-life colors and accurate material textures; avoid dull or overexposed tones.
+
+Integrate the model, garment, and background into one cohesive, seamless photo that feels like it was captured in a real professional photoshoot environment.
+
+Only one single final image must be generated — no collages, no split frames, no duplicates.
+
       USER REQUEST: "${editPrompt.trim()}"
       
       EXAMPLES:
@@ -1346,6 +1374,114 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
 
       Generate ONLY the focused pose change prompt with quality enhancement, nothing else.
       `;
+    } else if (isBackSideAnalysis) {
+      // BACK SIDE ANALYSIS MODE - Özel arka taraf analizi prompt'u
+      promptForGemini = `
+      MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
+
+      🔄 CRITICAL BACK DESIGN SHOWCASE MODE:
+      
+      ANALYSIS REQUIREMENT: You are looking at TWO distinct views of the SAME garment:
+      1. TOP IMAGE: Shows the garment worn on a model from the FRONT
+      2. BOTTOM IMAGE (labeled "ARKA ÜRÜN"): Shows the BACK design of the same garment
+      
+      YOUR MISSION: Transform the TOP image so the model displays the BACK design from the BOTTOM image.
+      
+      🚫 DO NOT CREATE: Generic walking poses, editorial strides, front-facing poses, or standard fashion poses
+      
+      ✅ MANDATORY REQUIREMENTS:
+      1. **BODY POSITIONING**: Model MUST be turned completely around (180 degrees) to show their BACK to the camera
+      2. **BACK DESIGN FOCUS**: The exact back graphic/pattern/design from the "ARKA ÜRÜN" image must be clearly visible on the model's back
+      3. **CAMERA ANGLE**: Shoot from behind the model to capture the back design prominently
+      4. **HEAD POSITION**: Model can either face completely away OR look back over shoulder (choose based on garment style)
+      
+      SPECIFIC BACK POSE EXECUTION:
+      - **Primary View**: Full back view showing the complete back design
+      - **Model Stance**: Natural standing pose with back to camera, may include subtle over-shoulder glance
+      - **Design Visibility**: Ensure the back graphic/pattern from "ARKA ÜRÜN" image is the main focal point
+      - **Garment Fit**: Show how the back design sits on the model's back naturally
+      
+      TECHNICAL REQUIREMENTS:
+      - Camera positioned BEHIND the model
+      - Back design from "ARKA ÜRÜN" clearly showcased
+      - Professional fashion photography lighting
+      - Sharp focus on back design details
+      - Model wearing the exact same garment as shown in both reference images
+      
+      EXAMPLE STRUCTURE: "Replace the front-facing model with a back-facing pose, showing the model turned away from camera to display the [describe specific back design elements you see in ARKA ÜRÜN image] prominently across their back, captured with professional photography lighting..."
+      
+      🎯 FINAL GOAL: Create a back view that matches the "ARKA ÜRÜN" reference but worn on the model from the top image.
+
+      ${criticalDirectives}
+
+      ${
+        isMultipleProducts
+          ? `
+      🛍️ MULTIPLE PRODUCTS BACK SIDE MODE: The reference image contains MULTIPLE GARMENTS/PRODUCTS with both front and back views. You MUST analyze and describe ALL products visible from both angles and coordinate them properly as an ensemble.
+
+      CRITICAL MULTIPLE PRODUCTS BACK SIDE REQUIREMENTS:
+      - ANALYZE each product from both front AND back angles
+      - DESCRIBE how all products coordinate together from all viewing angles
+      - ENSURE proper layering and fit from both front and back perspectives
+      `
+          : ""
+      }
+
+      Create a professional fashion photography prompt in English that shows the model from the BACK VIEW wearing the garment, specifically displaying the back design elements visible in the "ARKA ÜRÜN" image.
+      
+      🚨 CRITICAL SINGLE OUTPUT REQUIREMENT:
+      - GENERATE ONLY ONE SINGLE RESULT IMAGE showing the back view
+      - DO NOT create multiple separate images, split views, or collages
+      - DO NOT generate both front and back images
+      - DO NOT create flat product photos or extra product shots
+      - FOCUS ONLY on the back view transformation - one unified fashion photograph
+      - RESULT MUST BE: Professional back-view fashion model shot ONLY
+      
+      CRITICAL PROMPT ELEMENTS TO INCLUDE:
+      - "model turned away from camera"
+      - "back view" or "rear view"  
+      - "showing the back of the garment"
+      - "single fashion photograph"
+      - "one unified image"
+      - Description of the specific back design (graphic, pattern, text, etc.) you see in the "ARKA ÜRÜN" image
+      - "professional fashion photography"
+      - "back design prominently displayed"
+      
+      IMPORTANT: Your generated prompt MUST result in a BACK VIEW of the model, not a front view or side view. The model should be facing AWAY from the camera to show the back design. Output ONLY ONE single image.
+
+      ${fluxMaxGarmentTransformationDirectives}
+
+      MANDATORY BACK SIDE PROMPT SUFFIX:
+      After generating your main prompt, ALWAYS append this exact text to the end:
+      
+      "The garment must appear realistic with natural drape, folds along the shoulders, and accurate fabric texture. The print must wrap seamlessly on the fabric, following the model's back curvature. The lighting, background, and perspective must match the original scene, resulting in one cohesive and photorealistic image.
+
+      **Strict technical rules:**
+      - Only one image must be generated.
+      - No extra product shots, no picture-in-picture, no second flat t-shirt photo.
+      - No collage, no stacked images, no flat product photo.
+      - Must replicate a professional back-view fashion model shot only."
+
+      LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace".
+
+      ${
+        originalPrompt
+          ? `USER CONTEXT: The user has provided these specific requirements: ${originalPrompt}. Please integrate these requirements naturally into your back side analysis prompt while maintaining professional structure.`
+          : ""
+      }
+      
+      ${ageSection}
+      ${childPromptSection}
+      ${bodyShapeMeasurementsSection}
+      ${settingsPromptSection}
+      ${posePromptSection}
+      ${perspectivePromptSection}
+      ${hairStylePromptSection}
+      ${hairStyleTextSection}
+      ${faceDescriptionSection}
+      
+      Generate a concise prompt focused on showcasing both front and back garment details while maintaining all original design elements. REMEMBER: Your response must START with "Replace" and emphasize back design features.
+      `;
     } else {
       // NORMAL MODE - Standart garment replace
       promptForGemini = `
@@ -1466,29 +1602,97 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
     // Resim verilerini içerecek parts dizisini hazırla
     const parts = [{ text: promptForGemini }];
 
-    // Referans görseli Gemini'ye gönder
-    try {
-      console.log(`Referans görsel Gemini'ye gönderiliyor: ${imageUrl}`);
+    // Back side analysis modunda 2 resim gönder, normal modda 1 resim gönder
+    if (isBackSideAnalysis && referenceImages && referenceImages.length >= 2) {
+      console.log(
+        "🔄 [BACK_SIDE] Gemini'ye 2 resim gönderiliyor (ön + arka)..."
+      );
 
-      const imageResponse = await axios.get(imageUrl, {
-        responseType: "arraybuffer",
-        timeout: 15000, // 30s'den 15s'ye düşürüldü
-      });
-      const imageBuffer = imageResponse.data;
+      try {
+        // İlk resim (ön taraf)
+        console.log(
+          `🔄 [BACK_SIDE] İlk resim (ön taraf) Gemini'ye gönderiliyor: ${
+            referenceImages[0].uri || referenceImages[0]
+          }`
+        );
 
-      // Base64'e çevir
-      const base64Image = Buffer.from(imageBuffer).toString("base64");
+        const firstImageUrl = referenceImages[0].uri || referenceImages[0];
+        const firstImageResponse = await axios.get(firstImageUrl, {
+          responseType: "arraybuffer",
+          timeout: 15000,
+        });
+        const firstImageBuffer = firstImageResponse.data;
+        const base64FirstImage =
+          Buffer.from(firstImageBuffer).toString("base64");
 
-      parts.push({
-        inlineData: {
-          mimeType: "image/jpeg",
-          data: base64Image,
-        },
-      });
+        parts.push({
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: base64FirstImage,
+          },
+        });
 
-      console.log("Referans görsel başarıyla Gemini'ye yüklendi");
-    } catch (imageError) {
-      console.error(`Görsel yüklenirken hata: ${imageError.message}`);
+        console.log(
+          "🔄 [BACK_SIDE] İlk resim (ön taraf) başarıyla Gemini'ye eklendi"
+        );
+
+        // İkinci resim (arka taraf)
+        console.log(
+          `🔄 [BACK_SIDE] İkinci resim (arka taraf) Gemini'ye gönderiliyor: ${
+            referenceImages[1].uri || referenceImages[1]
+          }`
+        );
+
+        const secondImageUrl = referenceImages[1].uri || referenceImages[1];
+        const secondImageResponse = await axios.get(secondImageUrl, {
+          responseType: "arraybuffer",
+          timeout: 15000,
+        });
+        const secondImageBuffer = secondImageResponse.data;
+        const base64SecondImage =
+          Buffer.from(secondImageBuffer).toString("base64");
+
+        parts.push({
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: base64SecondImage,
+          },
+        });
+
+        console.log(
+          "🔄 [BACK_SIDE] İkinci resim (arka taraf) başarıyla Gemini'ye eklendi"
+        );
+        console.log("🔄 [BACK_SIDE] Toplam 2 resim Gemini'ye gönderildi");
+      } catch (imageError) {
+        console.error(
+          `🔄 [BACK_SIDE] Resim yüklenirken hata: ${imageError.message}`
+        );
+      }
+    } else {
+      // Normal mod: Tek resim gönder
+      try {
+        console.log(`Referans görsel Gemini'ye gönderiliyor: ${imageUrl}`);
+
+        const imageResponse = await axios.get(imageUrl, {
+          responseType: "arraybuffer",
+          timeout: 15000, // 30s'den 15s'ye düşürüldü
+        });
+        const imageBuffer = imageResponse.data;
+
+        // Base64'e çevir
+        const base64Image = Buffer.from(imageBuffer).toString("base64");
+
+        parts.push({
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: base64Image,
+          },
+        });
+
+        console.log("Referans görsel başarıyla Gemini'ye yüklendi");
+      } catch (imageError) {
+        console.error(`Görsel yüklenirken hata: ${imageError.message}`);
+      }
     }
 
     // Location image handling kaldırıldı - artık kullanılmıyor
@@ -2375,7 +2579,8 @@ async function combineImagesOnCanvas(
   userId,
   isMultipleProducts = false,
   aspectRatio = "9:16",
-  gridLayoutInfo = null // Grid layout bilgisi
+  gridLayoutInfo = null, // Grid layout bilgisi
+  isBackSideAnalysis = false // Arka taraf analizi flag'i
 ) {
   try {
     console.log(
@@ -2386,6 +2591,7 @@ async function combineImagesOnCanvas(
     console.log("🛍️ Çoklu ürün modu:", isMultipleProducts);
     console.log("📐 Hedef aspect ratio:", aspectRatio);
     console.log("🛍️ Grid Layout bilgisi:", gridLayoutInfo);
+    console.log("🔄 Arka taraf analizi:", isBackSideAnalysis);
 
     // Aspect ratio'yu parse et ve güvenlik kontrolü yap
     let targetAspectRatio;
@@ -2523,7 +2729,7 @@ async function combineImagesOnCanvas(
           // EXIF rotation fix: .rotate() EXIF bilgisini otomatik uygular
           processedBuffer = await sharp(imageBuffer)
             .rotate() // EXIF orientation bilgisini otomatik uygula
-            .jpeg({ quality: 95 }) // Kalite artırıldı - ratio canvas için
+            .jpeg({ quality: 100 }) // Kalite artırıldı - ratio canvas için
             .toBuffer();
 
           console.log(`🔄 Resim ${i + 1}: EXIF rotation uygulandı`);
@@ -2544,7 +2750,7 @@ async function combineImagesOnCanvas(
             try {
               processedBuffer = await sharp(imageBuffer)
                 .rotate() // EXIF rotation burada da uygula
-                .png({ quality: 95 })
+                .png({ quality: 100 })
                 .toBuffer();
               console.log(
                 `✅ Resim ${
@@ -2601,39 +2807,8 @@ async function combineImagesOnCanvas(
 
     console.log(`✅ Toplam ${loadedImages.length} resim başarıyla yüklendi`);
 
-    // 🎨 İlk resmin dominant rengini bul (arka plan için)
-    let dominantBackgroundColor = "black"; // Fallback rengi
-    if (images.length > 0) {
-      try {
-        // İlk resmin buffer'ını al
-        let firstImageBuffer;
-        const firstImgData = images[0];
-
-        if (firstImgData.base64) {
-          firstImageBuffer = Buffer.from(firstImgData.base64, "base64");
-        } else if (
-          firstImgData.uri.startsWith("http://") ||
-          firstImgData.uri.startsWith("https://")
-        ) {
-          console.log("🎨 İlk resim dominant renk analizi için indiriliyor...");
-          const response = await axios.get(firstImgData.uri, {
-            responseType: "arraybuffer",
-            timeout: 15000,
-          });
-          firstImageBuffer = Buffer.from(response.data);
-        }
-
-        if (firstImageBuffer) {
-          dominantBackgroundColor = await getDominantColor(firstImageBuffer);
-          console.log(
-            `🎨 Arka plan rengi ayarlandı: ${dominantBackgroundColor}`
-          );
-        }
-      } catch (colorError) {
-        console.error("❌ Dominant renk analizi hatası:", colorError.message);
-        console.log("🎨 Fallback olarak siyah arka plan kullanılacak");
-      }
-    }
+    // 🎨 Arka plan için beyaz renk kullan
+    console.log("🎨 Arka plan: Beyaz renk kullanılıyor");
 
     // Canvas değişkenini tanımla
     let canvas;
@@ -2646,8 +2821,8 @@ async function combineImagesOnCanvas(
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    // Resmin dominant rengini arka plan olarak kullan
-    ctx.fillStyle = dominantBackgroundColor;
+    // Beyaz arka plan çiz
+    ctx.fillStyle = "white";
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
     if (gridLayoutInfo && gridLayoutInfo.cols && gridLayoutInfo.rows) {
@@ -2866,6 +3041,57 @@ async function combineImagesOnCanvas(
           ctx.imageSmoothingQuality = "high";
           ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
           ctx.restore();
+
+          // Arka taraf analizi için ikinci resme "ARKA ÜRÜN" yazısı ekle
+          console.log("🔍 [DEBUG] Text kontrol:", {
+            isBackSideAnalysis,
+            index: i,
+            shouldAddText: isBackSideAnalysis && i === 1,
+            imageCount: loadedImages.length,
+          });
+
+          if (isBackSideAnalysis && i === 1) {
+            console.log(
+              "🔄 [BACK_SIDE] İkinci resme 'ARKA ÜRÜN' yazısı ekleniyor..."
+            );
+
+            ctx.save();
+
+            // Daha büyük ve daha görünür yazı
+            ctx.font = "bold 48px Arial";
+            ctx.fillStyle = "#FFFFFF";
+            ctx.strokeStyle = "#000000";
+            ctx.lineWidth = 4;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "top";
+
+            // Yazıyı resmin üst kısmına yerleştir
+            const textX = itemWidth / 2;
+            const textY = y + 30; // Üstten 30px aşağıda
+
+            // Arka plan kutusu ekle
+            const textMetrics = ctx.measureText("ARKA ÜRÜN");
+            const textWidth = textMetrics.width;
+            const boxPadding = 20;
+            const boxX = textX - textWidth / 2 - boxPadding;
+            const boxY = textY - 10;
+            const boxWidth = textWidth + boxPadding * 2;
+            const boxHeight = 68;
+
+            // Arka plan kutusu - yarı şeffaf siyah
+            ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+            ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+
+            // Yazıyı çiz
+            ctx.fillStyle = "#FFFFFF";
+            ctx.strokeStyle = "#000000";
+            ctx.strokeText("ARKA ÜRÜN", textX, textY);
+            ctx.fillText("ARKA ÜRÜN", textX, textY);
+
+            ctx.restore();
+
+            console.log("✅ [BACK_SIDE] 'ARKA ÜRÜN' yazısı eklendi");
+          }
 
           console.log(`🖼️ Resim ${i + 1} (Dikey) çizildi:`, {
             position: `x: ${drawX.toFixed(1)}, y: ${drawY.toFixed(1)}`,
@@ -3441,66 +3667,107 @@ router.post("/generate", async (req, res) => {
 
     // Çoklu resim varsa birleştir, yoksa tek resmi kullan
     if (isMultipleImages && referenceImages.length > 1) {
-      console.log(
-        "🖼️ [BACKEND] Çoklu resim birleştirme işlemi başlatılıyor..."
-      );
-
-      // Kombin modu kontrolü
-      const isKombinMode = req.body.isKombinMode || false;
-      console.log("🛍️ [BACKEND] Kombin modu kontrolü:", isKombinMode);
-
-      // Grid layout bilgisini request body'den al
-      let gridLayoutInfo = null;
-
-      // Request body'de grid layout bilgisi var mı kontrol et
-      if (req.body.referenceImages && req.body.referenceImages.isGridLayout) {
-        gridLayoutInfo = req.body.referenceImages.gridInfo;
+      // Back side analysis için özel upload işlemi
+      if (req.body.isBackSideAnalysis) {
         console.log(
-          "🛍️ [BACKEND] Grid layout bilgisi bulundu:",
-          gridLayoutInfo
+          "🔄 [BACK_SIDE] Tüm resimleri Supabase'e upload ediliyor..."
         );
+
+        // Her resmi Supabase'e upload et
+        const uploadedUrls = [];
+        for (let i = 0; i < referenceImages.length; i++) {
+          const img = referenceImages[i];
+          const imageSource = img.base64
+            ? `data:image/jpeg;base64,${img.base64}`
+            : img.uri;
+          const uploadedUrl = await uploadReferenceImageToSupabase(
+            imageSource,
+            userId
+          );
+          uploadedUrls.push(uploadedUrl);
+          console.log(
+            `📤 [BACK_SIDE] Resim ${i + 1} upload edildi:`,
+            uploadedUrl
+          );
+        }
+
+        // URL'leri referenceImages array'ine geri koy
+        for (let i = 0; i < uploadedUrls.length; i++) {
+          referenceImages[i] = { ...referenceImages[i], uri: uploadedUrls[i] };
+        }
+
+        console.log("✅ [BACK_SIDE] Tüm resimler Supabase'e upload edildi");
+
+        // Canvas birleştirme bypass et - direkt URL'leri kullan
+        finalImage = null; // Canvas'a gerek yok
       } else {
-        console.log("🛍️ [BACKEND] Grid layout bilgisi bulunamadı, normal mod");
-      }
-
-      if (isKombinMode) {
-        // 🛍️ KOMBİN MODU: Grid layout'u canvas'ta birleştir veya normal çoklu resim birleştir
-        console.log("🛍️ [BACKEND] Kombin modu - Canvas oluşturuluyor...");
         console.log(
-          "🛍️ [BACKEND] Grid layout bilgisi:",
-          gridLayoutInfo ? "Mevcut" : "Yok - normal birleştirme kullanılacak"
+          "🖼️ [BACKEND] Çoklu resim birleştirme işlemi başlatılıyor..."
         );
 
-        finalImage = await combineImagesOnCanvas(
-          referenceImages,
-          userId,
-          true, // isMultipleProducts = true (kombin çoklu ürün modudur)
-          gridLayoutInfo ? "1:1" : ratio, // Grid varsa kare, yoksa orijinal ratio
-          gridLayoutInfo // Grid layout bilgisini geç (null olabilir)
-        );
+        // Kombin modu kontrolü
+        const isKombinMode = req.body.isKombinMode || false;
+        console.log("🛍️ [BACKEND] Kombin modu kontrolü:", isKombinMode);
 
-        console.log("🛍️ [BACKEND] Kombin canvas oluşturuldu:", finalImage);
+        // Grid layout bilgisini request body'den al
+        let gridLayoutInfo = null;
 
-        // Kombin modunda MUTLAKA isMultipleProducts'ı true yap ki Gemini doğru prompt oluştursun
-        console.log(
-          "🛍️ [BACKEND] Kombin modu için isMultipleProducts değeri:",
-          `${originalIsMultipleProducts} → true`
-        );
-        // Bu değişkeni lokal olarak override et
-        isMultipleProducts = true;
-      } else {
-        // Normal çoklu resim modu
-        finalImage = await combineImagesOnCanvas(
-          referenceImages,
-          userId,
-          isMultipleProducts,
-          ratio,
-          gridLayoutInfo // Grid layout bilgisini geç
-        );
+        // Request body'de grid layout bilgisi var mı kontrol et
+        if (req.body.referenceImages && req.body.referenceImages.isGridLayout) {
+          gridLayoutInfo = req.body.referenceImages.gridInfo;
+          console.log(
+            "🛍️ [BACKEND] Grid layout bilgisi bulundu:",
+            gridLayoutInfo
+          );
+        } else {
+          console.log(
+            "🛍️ [BACKEND] Grid layout bilgisi bulunamadı, normal mod"
+          );
+        }
+
+        if (isKombinMode) {
+          // 🛍️ KOMBİN MODU: Grid layout'u canvas'ta birleştir veya normal çoklu resim birleştir
+          console.log("🛍️ [BACKEND] Kombin modu - Canvas oluşturuluyor...");
+          console.log(
+            "🛍️ [BACKEND] Grid layout bilgisi:",
+            gridLayoutInfo ? "Mevcut" : "Yok - normal birleştirme kullanılacak"
+          );
+
+          finalImage = await combineImagesOnCanvas(
+            referenceImages,
+            userId,
+            true, // isMultipleProducts = true (kombin çoklu ürün modudur)
+            gridLayoutInfo ? "1:1" : ratio, // Grid varsa kare, yoksa orijinal ratio
+            gridLayoutInfo, // Grid layout bilgisini geç (null olabilir)
+            req.body.isBackSideAnalysis || false // isBackSideAnalysis
+          );
+
+          console.log("🛍️ [BACKEND] Kombin canvas oluşturuldu:", finalImage);
+
+          // Kombin modunda MUTLAKA isMultipleProducts'ı true yap ki Gemini doğru prompt oluştursun
+          console.log(
+            "🛍️ [BACKEND] Kombin modu için isMultipleProducts değeri:",
+            `${originalIsMultipleProducts} → true`
+          );
+          // Bu değişkeni lokal olarak override et
+          isMultipleProducts = true;
+        } else {
+          // Normal çoklu resim modu
+          finalImage = await combineImagesOnCanvas(
+            referenceImages,
+            userId,
+            isMultipleProducts,
+            ratio, // aspectRatio
+            null, // gridLayoutInfo
+            req.body.isBackSideAnalysis || false // isBackSideAnalysis
+          );
+        }
+      } // Back side analysis else bloğu kapatma
+
+      // Birleştirilmiş resmi geçici dosyalar listesine ekle (sadece canvas varsa)
+      if (finalImage) {
+        temporaryFiles.push(finalImage);
       }
-
-      // Birleştirilmiş resmi geçici dosyalar listesine ekle
-      temporaryFiles.push(finalImage);
     } else {
       // Tek resim için ratio'ya göre canvas işlemi
       console.log(
@@ -3551,8 +3818,9 @@ router.post("/generate", async (req, res) => {
         [{ uri: uploadedImageUrl }], // Tek resmi array içinde gönder
         userId,
         false, // isMultipleProducts = false
-        ratio, // ratio parametresi
-        null // gridLayoutInfo = null (tek resim)
+        ratio, // aspectRatio
+        null, // gridLayoutInfo
+        false // isBackSideAnalysis (tek resimde arka analizi yok)
       );
 
       // Canvas işleminden sonra oluşan resmi geçici dosyalar listesine ekle
@@ -3657,7 +3925,10 @@ router.post("/generate", async (req, res) => {
           isPoseChange, // isPoseChange
           customDetail, // customDetail
           isEditMode, // isEditMode
-          editPrompt // editPrompt
+          editPrompt, // editPrompt
+          false, // isRefinerMode
+          req.body.isBackSideAnalysis || false, // Arka taraf analizi modu mu?
+          req.body.referenceImages // Back side analysis için 2 resim
         );
       }
       backgroundRemovedImage = finalImage; // Orijinal image'ı kullan, arkaplan silme yok
@@ -3702,7 +3973,9 @@ router.post("/generate", async (req, res) => {
         customDetail, // Özel detay bilgisi
         isEditMode, // EditScreen modu mu?
         editPrompt, // EditScreen'den gelen prompt
-        isRefinerMode // RefinerScreen modu mu?
+        isRefinerMode, // RefinerScreen modu mu?
+        req.body.isBackSideAnalysis || false, // Arka taraf analizi modu mu?
+        req.body.referenceImages // Back side analysis için 2 resim
       );
 
       // ⏳ Sadece Gemini prompt iyileştirme bekle
@@ -3749,10 +4022,18 @@ router.post("/generate", async (req, res) => {
       );
     } else {
       // Normal modda arkaplan kaldırılmış resmi kullan
-      combinedImageForReplicate = backgroundRemovedImage;
-      console.log(
-        "🖼️ [BACKEND] Normal mod: Arkaplan kaldırılmış resim Gemini'ye gönderiliyor"
-      );
+      // Back side analysis durumunda canvas kullanmıyoruz
+      if (!req.body.isBackSideAnalysis) {
+        combinedImageForReplicate = backgroundRemovedImage;
+        console.log(
+          "🖼️ [BACKEND] Normal mod: Arkaplan kaldırılmış resim Gemini'ye gönderiliyor"
+        );
+      } else {
+        combinedImageForReplicate = null; // Back side'da kullanılmıyor
+        console.log(
+          "🔄 [BACK_SIDE] Canvas bypass edildi, direkt URL'ler kullanılacak"
+        );
+      }
     }
     // if (cannyImage) {
     //   try {
@@ -3799,17 +4080,41 @@ router.post("/generate", async (req, res) => {
         console.log("🚀 Replicate google/nano-banana API çağrısı yapılıyor...");
 
         // Replicate API için request body hazırla
+        let imageInputArray;
+
+        // Back side analysis: 2 ayrı resim gönder
+        if (
+          req.body.isBackSideAnalysis &&
+          referenceImages &&
+          referenceImages.length >= 2
+        ) {
+          console.log(
+            "🔄 [BACK_SIDE] 2 ayrı resim Nano Banana'ya gönderiliyor..."
+          );
+          imageInputArray = [
+            referenceImages[0].uri || referenceImages[0], // Ön resim - direkt string
+            referenceImages[1].uri || referenceImages[1], // Arka resim - direkt string
+          ];
+          console.log("📤 [BACK_SIDE] Image input array:", imageInputArray);
+        } else {
+          // Normal mode: Birleştirilmiş tek resim
+          imageInputArray = [combinedImageForReplicate];
+        }
+
         const requestBody = {
           input: {
             prompt: enhancedPrompt,
-            image_input: [combinedImageForReplicate],
-            output_format: "jpg",
+            image_input: imageInputArray,
+            output_format: "png",
           },
         };
 
         console.log("📋 Replicate Request Body:", {
           prompt: enhancedPrompt.substring(0, 100) + "...",
-          imageInput: combinedImageForReplicate,
+          imageInput: req.body.isBackSideAnalysis
+            ? "2 separate images"
+            : combinedImageForReplicate,
+          imageInputArray: imageInputArray,
           outputFormat: "jpg",
         });
 
@@ -4107,10 +4412,30 @@ router.post("/generate", async (req, res) => {
           );
 
           // Aynı parametrelerle yeni prediction oluştur
+          let retryImageInputArray;
+
+          // Back side analysis: 2 ayrı resim gönder
+          if (
+            req.body.isBackSideAnalysis &&
+            referenceImages &&
+            referenceImages.length >= 2
+          ) {
+            console.log(
+              "🔄 [RETRY BACK_SIDE] 2 ayrı resim Nano Banana'ya gönderiliyor..."
+            );
+            retryImageInputArray = [
+              referenceImages[0].uri || referenceImages[0], // Ön resim - direkt string
+              referenceImages[1].uri || referenceImages[1], // Arka resim - direkt string
+            ];
+          } else {
+            // Normal mode: Birleştirilmiş tek resim
+            retryImageInputArray = [combinedImageForReplicate];
+          }
+
           const retryRequestBody = {
             input: {
               prompt: enhancedPrompt,
-              image_input: [combinedImageForReplicate],
+              image_input: retryImageInputArray,
               output_format: "jpg",
             },
           };
