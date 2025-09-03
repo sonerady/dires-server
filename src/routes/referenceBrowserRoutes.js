@@ -1176,6 +1176,18 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
 
 Only one single professional fashion photograph must be generated — no collage, no split views, no duplicates, no extra flat product shots.
 
+The output must look like a high-end professional fashion photograph, suitable for luxury catalogs and editorial campaigns.
+
+Apply studio-grade fashion lighting blended naturally with ambient light so the model and garment are perfectly lit, with no flat or artificial look.
+
+Ensure crisp focus, maximum clarity, and editorial-level sharpness across the entire image; no blur, no washed-out textures.
+
+Maintain true-to-life colors and accurate material textures; avoid dull or overexposed tones.
+
+Integrate the model, garment, and background into one cohesive, seamless photo that feels like it was captured in a real professional photoshoot environment.
+
+Only one single final image must be generated — no collages, no split frames, no duplicates.
+
       USER REQUEST: "${editPrompt.trim()}"
       
       EXAMPLES:
