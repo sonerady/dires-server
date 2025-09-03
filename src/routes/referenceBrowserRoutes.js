@@ -1803,13 +1803,26 @@ Only one single final image must be generated — no collages, no split frames, 
         // `;
         // }
 
-        enhancedPrompt = geminiGeneratedPrompt;
+        // Statik kuralları prompt'un sonuna ekle
+        const staticRules = `
+
+CRITICAL RULES:
+
+The output must be a single, high-end professional fashion photograph only — no collages, duplicates, or extra frames.
+
+Apply studio-grade fashion lighting blended naturally with daylight, ensuring flawless exposure, vibrant textures, and sharp focus.
+
+Guarantee editorial-level clarity and detail, with no blur, dull tones, or artificial look.
+
+Model, garment, and environment must integrate into one cohesive, seamless professional photo suitable for commercial catalogs and editorial campaigns.`;
+
+        enhancedPrompt = geminiGeneratedPrompt + staticRules;
         console.log(
           "🤖 [BACKEND GEMINI] Gemini'nin ürettiği prompt:",
           geminiGeneratedPrompt
         );
         console.log(
-          "✨ [BACKEND GEMINI] Final enhanced prompt:",
+          "✨ [BACKEND GEMINI] Final enhanced prompt (statik kurallarla):",
           enhancedPrompt
         );
         break; // Başarılı olursa loop'tan çık
@@ -1834,7 +1847,20 @@ Only one single final image must be generated — no collages, no split frames, 
 
           // `;
           // }
-          enhancedPrompt = originalPrompt;
+          // Fallback durumunda da statik kuralları ekle
+          const staticRules = `
+
+CRITICAL RULES:
+
+The output must be a single, high-end professional fashion photograph only — no collages, duplicates, or extra frames.
+
+Apply studio-grade fashion lighting blended naturally with daylight, ensuring flawless exposure, vibrant textures, and sharp focus.
+
+Guarantee editorial-level clarity and detail, with no blur, dull tones, or artificial look.
+
+Model, garment, and environment must integrate into one cohesive, seamless professional photo suitable for commercial catalogs and editorial campaigns.`;
+
+          enhancedPrompt = originalPrompt + staticRules;
           break;
         }
 
@@ -2039,7 +2065,7 @@ Only one single final image must be generated — no collages, no split frames, 
         fallbackPrompt
       );
 
-      enhancedPrompt = fallbackPrompt;
+      enhancedPrompt = fallbackPrompt + fallbackStaticRules;
     }
 
     return enhancedPrompt;
@@ -2061,6 +2087,19 @@ Only one single final image must be generated — no collages, no split frames, 
     console.log(
       "🔄 [FALLBACK] Enhanced prompt oluşturulamadı, detaylı fallback prompt kullanılıyor"
     );
+
+    // Statik kuralları fallback prompt'un sonuna da ekle
+    const fallbackStaticRules = `
+
+CRITICAL RULES:
+
+The output must be a single, high-end professional fashion photograph only — no collages, duplicates, or extra frames.
+
+Apply studio-grade fashion lighting blended naturally with daylight, ensuring flawless exposure, vibrant textures, and sharp focus.
+
+Guarantee editorial-level clarity and detail, with no blur, dull tones, or artificial look.
+
+Model, garment, and environment must integrate into one cohesive, seamless professional photo suitable for commercial catalogs and editorial campaigns.`;
 
     // Settings'ten bilgileri çıkar
     const location = settings?.location;
@@ -2249,7 +2288,21 @@ Only one single final image must be generated — no collages, no split frames, 
       "🔄 [FALLBACK] Generated detailed fallback prompt:",
       fallbackPrompt
     );
-    return fallbackPrompt;
+
+    // Son fallback durumunda da statik kuralları ekle
+    const finalStaticRules = `
+
+CRITICAL RULES:
+
+The output must be a single, high-end professional fashion photograph only — no collages, duplicates, or extra frames.
+
+Apply studio-grade fashion lighting blended naturally with daylight, ensuring flawless exposure, vibrant textures, and sharp focus.
+
+Guarantee editorial-level clarity and detail, with no blur, dull tones, or artificial look.
+
+Model, garment, and environment must integrate into one cohesive, seamless professional photo suitable for commercial catalogs and editorial campaigns.`;
+
+    return fallbackPrompt + finalStaticRules;
   }
 }
 
