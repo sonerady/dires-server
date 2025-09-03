@@ -1149,7 +1149,6 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
     - For structured details such as knots, pleats, darts, and seams, render functional tension, deep creases, and realistic shadows consistent with real fabric behavior.
     - Maintain photorealistic integration with the model and scene including correct scale, perspective, lighting, cast shadows, and occlusions that match the camera angle and scene lighting.
     - Focus on transforming the garment onto the existing model and seamlessly integrating it into the outfit. Avoid introducing new background elements unless a location reference is explicitly provided.
-    - BACKGROUND FILLING REQUIREMENT: If there are any white or empty areas in the background, fill them with the same photographic structure, texture, and visual elements as the main garment area. Ensure the background is not left blank or white - it should be filled with the same photographic quality and structure as the main subject.
     - OUTPUT: One single professional fashion photograph only`;
 
     // Gemini'ye gönderilecek metin - Edit mode vs Color change vs Normal replace
@@ -1165,7 +1164,7 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       3. Describes ONLY the specific modification requested
       4. Does NOT mention garments, models, poses, backgrounds, or photography details
       5. Keeps existing scene unchanged
-          - BACKGROUND FILLING REQUIREMENT: If there are any white or empty areas in the background, fill them with the same photographic structure, texture, and visual elements as the main garment area. Ensure the background is not left blank or white - it should be filled with the same photographic quality and structure as the main subject.
+      
       USER REQUEST: "${editPrompt.trim()}"
       
       EXAMPLES:
