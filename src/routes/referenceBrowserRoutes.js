@@ -1165,6 +1165,17 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       4. Does NOT mention garments, models, poses, backgrounds, or photography details
       5. Keeps existing scene unchanged
       
+
+CRITICAL RULES:
+
+Exclude all original flat-lay elements (hanger, frame, shadows, textures, painting, or any other artifacts). Only the garment itself must be transferred.
+
+The original background must be completely replaced with the newly described background. Do not keep or reuse any part of the input photo background.
+
+The output must be hyper-realistic, high-end professional fashion editorial quality, suitable for commercial catalog presentation.
+
+Only one single professional fashion photograph must be generated — no collage, no split views, no duplicates, no extra flat product shots.
+
       USER REQUEST: "${editPrompt.trim()}"
       
       EXAMPLES:
