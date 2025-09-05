@@ -1,0 +1,2791 @@
+[
+  {
+    "id": 1,
+    "key": "pose_arms_crossed_confident",
+    "title": "Arms crossed over the chest, exuding confidence.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_arms_crossed_confident.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_arms_crossed_confident.png"
+  },
+  {
+    "id": 2,
+    "key": "pose_hands_in_pockets_relaxed",
+    "title": "Hands in pockets, standing relaxed and confident.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hands_in_pockets_relaxed.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hands_in_pockets_relaxed.png"
+  },
+  {
+    "id": 3,
+    "key": "pose_one_hand_on_chin_thoughtful",
+    "title": "One hand on the chin, with a thoughtful expression.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_one_hand_on_chin_thoughtful.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_one_hand_on_chin_thoughtful.png"
+  },
+  {
+    "id": 4,
+    "key": "pose_leaning_against_wall_casual",
+    "title": "Leaning against a wall, standing casually.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_leaning_against_wall_casual.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_leaning_against_wall_casual.png"
+  },
+  {
+    "id": 5,
+    "key": "pose_hands_on_hips_powerful",
+    "title": "Hands on hips, standing strong and determined.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hands_on_hips_powerful.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hands_on_hips_powerful.png"
+  },
+  {
+    "id": 6,
+    "key": "pose_sitting_hands_on_knees",
+    "title": "Sitting with hands on knees, in a formal yet relaxed pose.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_sitting_hands_on_knees.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_sitting_hands_on_knees.png"
+  },
+  {
+    "id": 7,
+    "key": "pose_pointing_forward_direct",
+    "title": "Pointing forward with a determined expression.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_pointing_forward_direct.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_pointing_forward_direct.png"
+  },
+  {
+    "id": 8,
+    "key": "pose_running_pose_active",
+    "title": "One leg forward, ready to run, in an active stance.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_running_pose_active.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_running_pose_active.png"
+  },
+  {
+    "id": 9,
+    "key": "pose_hand_behind_neck_shy",
+    "title": "One hand behind the neck, with a slightly shy or hesitant look.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_behind_neck_shy.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_behind_neck_shy.png"
+  },
+  {
+    "id": 10,
+    "key": "pose_waving_hand_friendly",
+    "title": "Waving hand in a friendly greeting.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_waving_hand_friendly.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_waving_hand_friendly.png"
+  },
+  {
+    "id": 11,
+    "key": "pose_thumbs_up_approving",
+    "title": "Giving a thumbs-up, with an approving expression.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_thumbs_up_approving.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_thumbs_up_approving.png"
+  },
+  {
+    "id": 12,
+    "key": "pose_arms_stretched_open_welcome",
+    "title": "Arms stretched wide open, offering a warm welcome.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_arms_stretched_open_welcome.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_arms_stretched_open_welcome.png"
+  },
+  {
+    "id": 13,
+    "key": "pose_hand_on_chest_honest",
+    "title": "Hand on the chest, with a sincere and honest expression.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_chest_honest.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_on_chest_honest.png"
+  },
+  {
+    "id": 14,
+    "key": "pose_fingers_snapping_playful",
+    "title": "Snapping fingers in a playful pose.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_fingers_snapping_playful.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_fingers_snapping_playful.png"
+  },
+  {
+    "id": 15,
+    "key": "pose_kneeling_on_one_knee",
+    "title": "Kneeling on one knee, in a serious or proposing stance.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_kneeling_on_one_knee.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_kneeling_on_one_knee.png"
+  },
+  {
+    "id": 16,
+    "key": "pose_arms_up_flexing_muscles",
+    "title": "Arms raised, flexing muscles, showing strength.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_arms_up_flexing_muscles.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_arms_up_flexing_muscles.png"
+  },
+  {
+    "id": 17,
+    "key": "pose_sitting_back_in_chair",
+    "title": "Sitting back in a chair, looking relaxed and confident.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_sitting_back_in_chair.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_sitting_back_in_chair.png"
+  },
+  {
+    "id": 18,
+    "key": "pose_leaning_forward_interested",
+    "title": "Leaning forward, with a look of interest and attentiveness.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_leaning_forward_interested.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_leaning_forward_interested.png"
+  },
+  {
+    "id": 19,
+    "key": "pose_hand_out_stop_gesture",
+    "title": "Hand extended forward in a 'stop' gesture.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_out_stop_gesture.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_out_stop_gesture.png"
+  },
+  {
+    "id": 20,
+    "key": "pose_side_profile_serious",
+    "title": "Side profile with a serious and thoughtful look.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_side_profile_serious.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_side_profile_serious.png"
+  },
+  {
+    "id": 21,
+    "key": "pose_hands_clasped_formal",
+    "title": "Hands clasped in front, standing in a formal pose.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hands_clasped_formal.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hands_clasped_formal.png"
+  },
+  {
+    "id": 22,
+    "key": "pose_hand_in_hair_stressed",
+    "title": "Hand running through hair, with a stressed or pensive expression.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_in_hair_stressed.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_in_hair_stressed.png"
+  },
+  {
+    "id": 23,
+    "key": "pose_fist_pump_victorious",
+    "title": "Fist raised in the air in a victorious gesture.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_fist_pump_victorious.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_fist_pump_victorious.png"
+  },
+  {
+    "id": 24,
+    "key": "pose_sitting_cross_legged",
+    "title": "Sitting cross-legged on the ground, relaxed and natural.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_sitting_cross_legged.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_sitting_cross_legged.png"
+  },
+  {
+    "id": 25,
+    "key": "pose_leaning_on_table_talking",
+    "title": "Leaning on a table, talking or explaining something.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_leaning_on_table_talking.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_leaning_on_table_talking.png"
+  },
+  {
+    "id": 26,
+    "key": "pose_both_hands_on_head_shocked",
+    "title": "Both hands on the head, with a shocked expression.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_both_hands_on_head_shocked.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_both_hands_on_head_shocked.png"
+  },
+  {
+    "id": 27,
+    "key": "pose_hands_behind_back",
+    "title": "Hands clasped behind the back, standing formally and disciplined.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hands_behind_back.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hands_behind_back.png"
+  },
+  {
+    "id": 28,
+    "key": "pose_hand_on_chin_smiling",
+    "title": "Hand on chin, with a slight smile.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_chin_smiling.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_on_chin_smiling.png"
+  },
+  {
+    "id": 29,
+    "key": "pose_standing_one_leg_up",
+    "title": "Standing with one leg slightly lifted, in a dynamic stance.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_standing_one_leg_up.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_standing_one_leg_up.png"
+  },
+  {
+    "id": 30,
+    "key": "pose_clapping_hands_excited",
+    "title": "Clapping hands, looking joyful and excited.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_clapping_hands_excited.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_clapping_hands_excited.png"
+  },
+  {
+    "id": 31,
+    "key": "pose_arms_open_confident",
+    "title": "Arms open wide, exuding confidence and invitation.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_arms_open_confident.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_arms_open_confident.png"
+  },
+  {
+    "id": 32,
+    "key": "pose_standing_arms_folded",
+    "title": "Standing with arms folded in front, showing confidence.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_standing_arms_folded.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_standing_arms_folded.png"
+  },
+  {
+    "id": 33,
+    "key": "pose_hand_under_chin_thinking",
+    "title": "Hand under chin, lost in deep thought.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_under_chin_thinking.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_under_chin_thinking.png"
+  },
+  {
+    "id": 34,
+    "key": "pose_squatting_balanced",
+    "title": "Squatting down, balanced and relaxed.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_squatting_balanced.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_squatting_balanced.png"
+  },
+  {
+    "id": 35,
+    "key": "pose_holding_coffee_cup",
+    "title": "Holding a coffee cup, in a modern and casual pose.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_holding_coffee_cup.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_holding_coffee_cup.png"
+  },
+  {
+    "id": 36,
+    "key": "pose_hand_on_waist_proud",
+    "title": "Hand on waist, standing proud and tall.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_waist_proud.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_on_waist_proud.png"
+  },
+  {
+    "id": 37,
+    "key": "pose_stretching_arms_above_head",
+    "title": "Stretching arms above the head, looking relaxed and natural.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_stretching_arms_above_head.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_stretching_arms_above_head.png"
+  },
+  {
+    "id": 38,
+    "key": "pose_hand_on_ear_listening",
+    "title": "Hand cupped over the ear, as if listening intently.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_ear_listening.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_on_ear_listening.png"
+  },
+  {
+    "id": 39,
+    "key": "pose_finger_gun_playful",
+    "title": "Making a finger gun gesture in a playful manner.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_finger_gun_playful.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_finger_gun_playful.png"
+  },
+  {
+    "id": 40,
+    "key": "pose_laying_on_stomach_relaxed",
+    "title": "Laying on the stomach, looking relaxed and thoughtful.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_laying_on_stomach_relaxed.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_laying_on_stomach_relaxed.png"
+  },
+  {
+    "id": 41,
+    "key": "pose_sitting_on_desk_casual",
+    "title": "Sitting on the edge of a desk, looking casual and cool.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_sitting_on_desk_casual.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_sitting_on_desk_casual.png"
+  },
+  {
+    "id": 42,
+    "key": "pose_hand_out_shaking",
+    "title": "Hand extended out for a handshake.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_out_shaking.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_out_shaking.png"
+  },
+  {
+    "id": 43,
+    "key": "pose_standing_leg_crossed",
+    "title": "Standing with legs crossed, relaxed and confident.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_standing_leg_crossed.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_standing_leg_crossed.png"
+  },
+  {
+    "id": 44,
+    "key": "pose_palm_up_questioning",
+    "title": "Palms turned upward, with a questioning or puzzled look.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_palm_up_questioning.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_palm_up_questioning.png"
+  },
+  {
+    "id": 45,
+    "key": "pose_running_hand_on_ground",
+    "title": "One hand on the ground, ready to sprint forward.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_running_hand_on_ground.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_running_hand_on_ground.png"
+  },
+  {
+    "id": 46,
+    "key": "pose_holding_phone_smiling",
+    "title": "Holding a phone, smiling and looking approachable.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_holding_phone_smiling.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_holding_phone_smiling.png"
+  },
+  {
+    "id": 47,
+    "key": "pose_arms_stretched_up_yawning",
+    "title": "Stretching arms up while yawning, morning relaxation.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_arms_stretched_up_yawning.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_arms_stretched_up_yawning.png"
+  },
+  {
+    "id": 48,
+    "key": "pose_tapping_wrist_waiting",
+    "title": "Tapping wrist as if waiting, with a slightly impatient look.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_tapping_wrist_waiting.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_tapping_wrist_waiting.png"
+  },
+  {
+    "id": 49,
+    "key": "pose_hands_in_air_excited",
+    "title": "Hands raised high in the air, full of excitement.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hands_in_air_excited.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hands_in_air_excited.png"
+  },
+  {
+    "id": 50,
+    "key": "pose_hand_on_table_assertive",
+    "title": "Hand placed firmly on a table, looking assertive.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_table_assertive.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_on_table_assertive.png"
+  },
+  {
+    "id": 51,
+    "key": "pose_side_leap_active",
+    "title": "Leaping to the side, dynamic and energetic.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_side_leap_active.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_side_leap_active.png"
+  },
+  {
+    "id": 52,
+    "key": "pose_hand_out_offer",
+    "title": "Hand extended forward, offering something or helping.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_out_offer.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_out_offer.png"
+  },
+  {
+    "id": 53,
+    "key": "pose_sitting_one_leg_up",
+    "title": "Sitting with one leg propped up, relaxed and confident.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_sitting_one_leg_up.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_sitting_one_leg_up.png"
+  },
+  {
+    "id": 54,
+    "key": "pose_laying_on_back_hands_behind_head",
+    "title": "Laying on the back with hands behind the head, relaxed.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_laying_on_back_hands_behind_head.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_laying_on_back_hands_behind_head.png"
+  },
+  {
+    "id": 55,
+    "key": "pose_fist_on_chin_strong",
+    "title": "Fist resting under the chin, in a strong and thoughtful stance.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_fist_on_chin_strong.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_fist_on_chin_strong.png"
+  },
+  {
+    "id": 56,
+    "key": "pose_standing_bent_over_tired",
+    "title": "Bent over, hands on knees, looking tired or exhausted.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_standing_bent_over_tired.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_standing_bent_over_tired.png"
+  },
+  {
+    "id": 57,
+    "key": "pose_hand_on_neck_awkward",
+    "title": "Hand on the back of the neck, looking slightly awkward.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_neck_awkward.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_on_neck_awkward.png"
+  },
+  {
+    "id": 58,
+    "key": "pose_standing_shrugging",
+    "title": "Standing while shrugging shoulders, with a puzzled or indifferent expression.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_standing_shrugging.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_standing_shrugging.png"
+  },
+  {
+    "id": 59,
+    "key": "pose_arms_open_presentation",
+    "title": "Arms open wide as if giving a presentation.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_arms_open_presentation.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_arms_open_presentation.png"
+  },
+  {
+    "id": 60,
+    "key": "pose_fist_bump_friendly",
+    "title": "Giving a friendly fist bump.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_fist_bump_friendly.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_fist_bump_friendly.png"
+  },
+  {
+    "id": 61,
+    "key": "pose_leaning_on_knee_serious",
+    "title": "Leaning on one knee, looking serious and contemplative.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_leaning_on_knee_serious.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_leaning_on_knee_serious.png"
+  },
+  {
+    "id": 62,
+    "key": "pose_hand_over_mouth_surprise",
+    "title": "Hand over the mouth, with a surprised expression.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_over_mouth_surprise.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_over_mouth_surprise.png"
+  },
+  {
+    "id": 63,
+    "key": "pose_standing_straight_tall",
+    "title": "Standing tall and straight, exuding strength and confidence.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_standing_straight_tall.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_standing_straight_tall.png"
+  },
+  {
+    "id": 64,
+    "key": "pose_finger_on_lips_secret",
+    "title": "Finger on the lips, as if keeping a secret.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_finger_on_lips_secret.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_finger_on_lips_secret.png"
+  },
+  {
+    "id": 65,
+    "key": "pose_hand_on_forehead_tired",
+    "title": "Hand on the forehead, looking tired or stressed.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_forehead_tired.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_on_forehead_tired.png"
+  },
+  {
+    "id": 66,
+    "key": "pose_leaning_back_hands_behind",
+    "title": "Leaning back with hands behind, looking relaxed.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_leaning_back_hands_behind.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_leaning_back_hands_behind.png"
+  },
+  {
+    "id": 67,
+    "key": "pose_hand_on_chair_back_support",
+    "title": "Hand resting on the back of a chair for support.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_chair_back_support.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_on_chair_back_support.png"
+  },
+  {
+    "id": 68,
+    "key": "pose_thumbs_in_pockets_relaxed",
+    "title": "Thumbs tucked into pockets, standing relaxed.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_thumbs_in_pockets_relaxed.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_thumbs_in_pockets_relaxed.png"
+  },
+  {
+    "id": 69,
+    "key": "pose_fist_raised_determined",
+    "title": "Fist raised in the air, showing determination.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_fist_raised_determined.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_fist_raised_determined.png"
+  },
+  {
+    "id": 70,
+    "key": "pose_sitting_legs_apart",
+    "title": "Sitting with legs apart, looking confident and relaxed.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_sitting_legs_apart.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_sitting_legs_apart.png"
+  },
+  {
+    "id": 71,
+    "key": "pose_hand_on_back_stretching",
+    "title": "Hand on the lower back, stretching in relief.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_back_stretching.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_on_back_stretching.png"
+  },
+  {
+    "id": 72,
+    "key": "pose_side_glance_suspicious",
+    "title": "Looking sideways, with a suspicious or curious glance.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_side_glance_suspicious.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_side_glance_suspicious.png"
+  },
+  {
+    "id": 73,
+    "key": "pose_one_knee_up_ground",
+    "title": "One knee on the ground, looking poised and strong.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_one_knee_up_ground.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_one_knee_up_ground.png"
+  },
+  {
+    "id": 74,
+    "key": "pose_arms_crossed_leaning",
+    "title": "Leaning back with arms crossed, exuding confidence.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_arms_crossed_leaning.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_arms_crossed_leaning.png"
+  },
+  {
+    "id": 75,
+    "key": "pose_fist_to_fist_greeting",
+    "title": "Fist to fist greeting, showing camaraderie.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_fist_to_fist_greeting.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_fist_to_fist_greeting.png"
+  },
+  {
+    "id": 76,
+    "key": "pose_hand_through_hair_relaxed",
+    "title": "Hand running through hair, looking relaxed.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_through_hair_relaxed.webp"
+  },
+  {
+    "id": 77,
+    "key": "pose_standing_one_arm_up",
+    "title": "One arm raised high, looking energetic and relaxed.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_standing_one_arm_up.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_standing_one_arm_up.png"
+  },
+  {
+    "id": 78,
+    "key": "pose_pulling_sleeves_ready",
+    "title": "Pulling up sleeves, looking ready and confident.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_pulling_sleeves_ready.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_pulling_sleeves_ready.png"
+  },
+  {
+    "id": 79,
+    "key": "pose_sitting_head_in_hands",
+    "title": "Head in hands, looking upset or stressed.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_sitting_head_in_hands.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_sitting_head_in_hands.png"
+  },
+  {
+    "id": 80,
+    "key": "pose_jumping_up_excited",
+    "title": "Jumping up in the air, full of excitement and energy.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_jumping_up_excited.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_jumping_up_excited.png"
+  },
+  {
+    "id": 81,
+    "key": "pose_hand_on_collar_adjusting",
+    "title": "Adjusting the collar of the shirt, looking stylish.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_collar_adjusting.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_on_collar_adjusting.png"
+  },
+  {
+    "id": 82,
+    "key": "pose_side_step_confident",
+    "title": "Taking a confident side step.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_side_step_confident.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_side_step_confident.png"
+  },
+  {
+    "id": 83,
+    "key": "pose_hand_on_elbow_thinking",
+    "title": "Hand on elbow, looking thoughtful.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_elbow_thinking.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_on_elbow_thinking.png"
+  },
+  {
+    "id": 84,
+    "key": "pose_standing_back_to_camera",
+    "title": "Back to the camera, with a slight head turn.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_standing_back_to_camera.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_standing_back_to_camera.png"
+  },
+  {
+    "id": 85,
+    "key": "pose_hand_on_chest_proud",
+    "title": "Hand on the chest, standing proudly.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_chest_proud.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_on_chest_proud.png"
+  },
+  {
+    "id": 86,
+    "key": "pose_arms_spread_outside",
+    "title": "Arms spread wide, embracing the surroundings.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_arms_spread_outside.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_arms_spread_outside.png"
+  },
+  {
+    "id": 87,
+    "key": "pose_hand_under_nose_mysterious",
+    "title": "Hand under the nose, with a mysterious expression.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_under_nose_mysterious.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_under_nose_mysterious.png"
+  },
+  {
+    "id": 88,
+    "key": "pose_head_down_hands_on_hips",
+    "title": "Head down, hands on hips, looking deep in thought.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_head_down_hands_on_hips.webp"
+  },
+  {
+    "id": 89,
+    "key": "pose_kicking_back_playful",
+    "title": "Playfully kicking back with energy.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_kicking_back_playful.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_kicking_back_playful.png"
+  },
+  {
+    "id": 90,
+    "key": "pose_hand_on_face_concerned",
+    "title": "Hand on face, looking concerned or worried.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_on_face_concerned.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_on_face_concerned.png"
+  },
+  {
+    "id": 91,
+    "key": "pose_finger_snapping_thoughtful",
+    "title": "Snapping fingers, as if remembering something.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_finger_snapping_thoughtful.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_finger_snapping_thoughtful.png"
+  },
+  {
+    "id": 92,
+    "key": "pose_standing_feet_apart",
+    "title": "Standing with feet shoulder-width apart, looking strong.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_standing_feet_apart.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_standing_feet_apart.png"
+  },
+  {
+    "id": 93,
+    "key": "pose_arms_folded_leaning_side",
+    "title": "Arms folded, leaning to the side, relaxed.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_arms_folded_leaning_side.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_arms_folded_leaning_side.png"
+  },
+  {
+    "id": 94,
+    "key": "pose_hand_in_air_questioning",
+    "title": "Hand raised in the air, with a questioning look.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_hand_in_air_questioning.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_in_air_questioning.png"
+  },
+  {
+    "id": 95,
+    "key": "pose_shoulder_turn_back_smile",
+    "title": "Turning shoulder back to give a warm smile.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_shoulder_turn_back_smile.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_shoulder_turn_back_smile.png"
+  },
+  {
+    "id": 96,
+    "key": "pose_head_tilted_arm_crossed",
+    "title": "Head tilted, arms crossed, with a slight smile.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_head_tilted_arm_crossed.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_head_tilted_arm_crossed.png"
+  },
+  {
+    "id": 97,
+    "key": "pose_sitting_hands_clasped",
+    "title": "Sitting with hands clasped, serious and thoughtful.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_sitting_hands_clasped.png"
+  },
+  {
+    "id": 98,
+    "key": "pose_open_arms_ready_hug",
+    "title": "Arms open, ready for a warm hug.",
+    "image": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/man_poses/pose_open_arms_ready_hug.webp",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_open_arms_ready_hug.png"
+  },
+  {
+    "id": 99,
+    "key": "pose_neutral_stance_soft_smile",
+    "title": "Standing neutral with a soft smile, arms relaxed at the sides.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_neutral_stance_soft_smile.png"
+  },
+  {
+    "id": 100,
+    "key": "pose_three_quarter_turn_confident",
+    "title": "Three-quarter turn toward camera, chin slightly up with confident gaze.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_three_quarter_turn_confident.png"
+  },
+  {
+    "id": 101,
+    "key": "pose_weight_shift_hip_relaxed",
+    "title": "Shifting weight onto one hip, shoulders relaxed and natural.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_weight_shift_hip_relaxed.png"
+  },
+  {
+    "id": 102,
+    "key": "pose_cross_ankles_standing",
+    "title": "Standing tall with ankles crossed and a calm expression.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_cross_ankles_standing.png"
+  },
+  {
+    "id": 103,
+    "key": "pose_hand_brush_neckline",
+    "title": "Gently brushing fingertips along the neckline, eyes to camera.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_brush_neckline.png"
+  },
+  {
+    "id": 104,
+    "key": "pose_head_tilt_listening",
+    "title": "Head tilted slightly as if listening, subtle engaged look.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_head_tilt_listening.png"
+  },
+  {
+    "id": 105,
+    "key": "pose_profile_look_past_camera",
+    "title": "Clean side profile while eyes look just past the camera.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_profile_look_past_camera.png"
+  },
+  {
+    "id": 106,
+    "key": "pose_chin_rest_back_of_hand",
+    "title": "Chin resting on the back of one hand with composed focus.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_chin_rest_back_of_hand.png"
+  },
+  {
+    "id": 107,
+    "key": "pose_elbows_out_expanded_torso",
+    "title": "Elbows angled out slightly to open the chest, steady stance.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_elbows_out_expanded_torso.png"
+  },
+  {
+    "id": 108,
+    "key": "pose_step_forward_micro_stride",
+    "title": "Taking a micro stride forward, heel just lifting from the ground.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_step_forward_micro_stride.png"
+  },
+  {
+    "id": 109,
+    "key": "pose_look_down_subtle_smile",
+    "title": "Eyes lowered with a subtle smile, shoulders easy and loose.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_look_down_subtle_smile.png"
+  },
+  {
+    "id": 110,
+    "key": "pose_folded_hands_front_calm",
+    "title": "Hands loosely folded in front, calm and centered posture.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_folded_hands_front_calm.png"
+  },
+  {
+    "id": 111,
+    "key": "pose_diagonal_body_open_chest",
+    "title": "Body angled diagonally, chest open, gaze steady to camera.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_diagonal_body_open_chest.png"
+  },
+  {
+    "id": 112,
+    "key": "pose_arm_reach_subtle_extend",
+    "title": "One arm subtly extended downward as if reaching for balance.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_arm_reach_subtle_extend.png"
+  },
+  {
+    "id": 113,
+    "key": "pose_slight_back_arch_tall",
+    "title": "Slight arch through the back to stand taller, relaxed jawline.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_slight_back_arch_tall.png"
+  },
+  {
+    "id": 114,
+    "key": "pose_hand_hover_chin_think",
+    "title": "Hand hovering near chin, thoughtful without touching the face.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_hover_chin_think.png"
+  },
+  {
+    "id": 115,
+    "key": "pose_lunge_micro_low",
+    "title": "A shallow lunge stance, torso upright and composed.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_lunge_micro_low.png"
+  },
+  {
+    "id": 116,
+    "key": "pose_head_turn_opposite_gaze",
+    "title": "Head turned away while eyes move opposite, creating tension.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_head_turn_opposite_gaze.png"
+  },
+  {
+    "id": 117,
+    "key": "pose_wrists_crossed_front",
+    "title": "Wrists crossed loosely in front, shoulders squared.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_wrists_crossed_front.png"
+  },
+  {
+    "id": 118,
+    "key": "pose_arms_out_subtle_t",
+    "title": "Arms extended slightly out to form a soft T, palms relaxed.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_arms_out_subtle_t.png"
+  },
+  {
+    "id": 119,
+    "key": "pose_high_chin_shadow_line",
+    "title": "Chin lifted to catch a clean jaw shadow line, steady stance.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_high_chin_shadow_line.png"
+  },
+  {
+    "id": 120,
+    "key": "pose_staggered_feet_ready",
+    "title": "Feet staggered as if ready to move, torso facing camera.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_staggered_feet_ready.png"
+  },
+  {
+    "id": 121,
+    "key": "pose_one_knee_soft_bend",
+    "title": "One knee softly bent to create a relaxed S-curve.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_one_knee_soft_bend.png"
+  },
+  {
+    "id": 122,
+    "key": "pose_hands_behind_lower_back",
+    "title": "Hands placed lightly behind the lower back, chest open.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hands_behind_lower_back.png"
+  },
+  {
+    "id": 123,
+    "key": "pose_side_profile_downcast_eyes",
+    "title": "Side profile with eyes downcast, serene and composed.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_side_profile_downcast_eyes.png"
+  },
+  {
+    "id": 124,
+    "key": "pose_micro_twist_torso",
+    "title": "A micro twist through the torso to add subtle dynamism.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_micro_twist_torso.png"
+  },
+  {
+    "id": 125,
+    "key": "pose_fingers_interlaced_neutral",
+    "title": "Fingers interlaced at waist level, neutral relaxed stance.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_fingers_interlaced_neutral.png"
+  },
+  {
+    "id": 126,
+    "key": "pose_elbow_to_palm_triangle",
+    "title": "One elbow resting lightly into the opposite palm to frame the torso.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_elbow_to_palm_triangle.png"
+  },
+  {
+    "id": 127,
+    "key": "pose_chest_drop_soft_breath",
+    "title": "Chest softened on a slow breath, shoulders slightly lowered.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_chest_drop_soft_breath.png"
+  },
+  {
+    "id": 128,
+    "key": "pose_micro_step_back_calm",
+    "title": "A tiny step back with composed gaze and balanced posture.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_micro_step_back_calm.png"
+  },
+  {
+    "id": 129,
+    "key": "pose_spine_tall_neutral_gaze",
+    "title": "Standing tall with a neutral gaze, arms resting naturally at the sides.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_spine_tall_neutral_gaze.png"
+  },
+  {
+    "id": 130,
+    "key": "pose_three_quarter_profile_soft_focus",
+    "title": "Three-quarter profile with eyes softly focused past the camera.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_three_quarter_profile_soft_focus.png"
+  },
+  {
+    "id": 131,
+    "key": "pose_weight_on_back_foot",
+    "title": "Shifting weight onto the back foot, front foot lightly planted.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_weight_on_back_foot.png"
+  },
+  {
+    "id": 132,
+    "key": "pose_subtle_contralto_s_curve",
+    "title": "Creating a subtle S-curve through the spine with relaxed shoulders.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_subtle_contralto_s_curve.png"
+  },
+  {
+    "id": 133,
+    "key": "pose_hand_hover_temples",
+    "title": "Hand hovering near the temples as if organizing thoughts.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_hover_temples.png"
+  },
+  {
+    "id": 134,
+    "key": "pose_head_drop_chin_line",
+    "title": "Head lowered slightly to accentuate the jaw and chin line.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_head_drop_chin_line.png"
+  },
+  {
+    "id": 135,
+    "key": "pose_micro_stride_side",
+    "title": "Taking a micro stride to the side, torso facing forward.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_micro_stride_side.png"
+  },
+  {
+    "id": 136,
+    "key": "pose_hands_loose_at_waist",
+    "title": "Hands resting loosely around waist level, posture calm and centered.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hands_loose_at_waist.png"
+  },
+  {
+    "id": 137,
+    "key": "pose_shoulders_back_open_chest",
+    "title": "Shoulders gently back to open the chest, steady confident stance.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_shoulders_back_open_chest.png"
+  },
+  {
+    "id": 138,
+    "key": "pose_chin_up_determined",
+    "title": "Chin slightly lifted with a determined, focused expression.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_chin_up_determined.png"
+  },
+  {
+    "id": 139,
+    "key": "pose_side_profile_gaze_down",
+    "title": "Clean side profile while the gaze falls softly downward.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_side_profile_gaze_down.png"
+  },
+  {
+    "id": 140,
+    "key": "pose_arm_cross_loose_breath",
+    "title": "Arms loosely crossed without tension, breathing easy.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_arm_cross_loose_breath.png"
+  },
+  {
+    "id": 141,
+    "key": "pose_reach_down_centerline",
+    "title": "One arm reaching gently down along the body’s centerline."
+  },
+  {
+    "id": 142,
+    "key": "pose_diagonal_stance_open_hips",
+    "title": "Feet set diagonally with the hips open and aligned.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_diagonal_stance_open_hips.png"
+  },
+  {
+    "id": 143,
+    "key": "pose_elbow_angle_frame_torso",
+    "title": "Elbows angled slightly outward to frame the torso.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_elbow_angle_frame_torso.png"
+  },
+  {
+    "id": 144,
+    "key": "pose_soft_twist_look_over",
+    "title": "Soft torso twist while looking just over the shoulder.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_soft_twist_look_over.png"
+  },
+  {
+    "id": 145,
+    "key": "pose_grounded_stance_low_gravity",
+    "title": "Knees micro-bent to lower center of gravity, stance grounded.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_grounded_stance_low_gravity.png"
+  },
+  {
+    "id": 146,
+    "key": "pose_fingers_bridge_under_lip",
+    "title": "Fingertips forming a small bridge under the lower lip thoughtfully.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_fingers_bridge_under_lip.png"
+  },
+  {
+    "id": 147,
+    "key": "pose_subtle_reach_forward",
+    "title": "A small forward reach with the leading hand, eyes steady.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_subtle_reach_forward.png"
+  },
+  {
+    "id": 148,
+    "key": "pose_head_turn_contra_eyes",
+    "title": "Head turning one way while eyes counter-rotate for tension.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_head_turn_contra_eyes.png"
+  },
+  {
+    "id": 149,
+    "key": "pose_shoulder_drop_relief",
+    "title": "One shoulder dropped slightly to create relaxed asymmetry.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_shoulder_drop_relief.png"
+  },
+  {
+    "id": 150,
+    "key": "pose_long_neck_extension",
+    "title": "Neck extended long, crown lifted as if lengthening upward.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_long_neck_extension.png"
+  },
+  {
+    "id": 151,
+    "key": "pose_half_step_back_balance",
+    "title": "Half-step backward to create depth while maintaining balance.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_half_step_back_balance.png"
+  },
+  {
+    "id": 152,
+    "key": "pose_palms_neutral_side",
+    "title": "Palms facing inward at the sides, stance neutral and composed.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_palms_neutral_side.png"
+  },
+  {
+    "id": 153,
+    "key": "pose_low_lunge_editorial",
+    "title": "A shallow low lunge with torso upright and composed.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_low_lunge_editorial.png"
+  },
+  {
+    "id": 154,
+    "key": "pose_micro_lean_forward_intent",
+    "title": "A micro lean forward from the ankles to imply intent.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_micro_lean_forward_intent.png"
+  },
+  {
+    "id": 155,
+    "key": "pose_breath_out_soft_core",
+    "title": "Gentle exhale softening the core, expression serene.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_breath_out_soft_core.png"
+  },
+  {
+    "id": 156,
+    "key": "pose_wrists_stack_center",
+    "title": "Wrists stacked lightly at midline to create a simple shape.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_wrists_stack_center.png"
+  },
+  {
+    "id": 157,
+    "key": "pose_elbow_point_downstream",
+    "title": "One elbow pointing downward to guide a clean arm line.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_elbow_point_downstream.png"
+  },
+  {
+    "id": 158,
+    "key": "pose_square_to_camera_power",
+    "title": "Square to the camera with feet anchored and a calm power look."
+  },
+  {
+    "id": 159,
+    "key": "pose_soft_head_tilt_forward",
+    "title": "Tilting the head gently forward with a calm neutral gaze.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_soft_head_tilt_forward.png"
+  },
+  {
+    "id": 160,
+    "key": "pose_spine_twist_half_turn",
+    "title": "Half turn with a soft spine twist, shoulders angled naturally.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_spine_twist_half_turn.png"
+  },
+  {
+    "id": 161,
+    "key": "pose_hand_hover_near_jaw",
+    "title": "Hand hovering near the jawline without touching, thoughtful stance.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_hover_near_jaw.png"
+  },
+  {
+    "id": 162,
+    "key": "pose_ankle_cross_subtle",
+    "title": "Ankles crossed subtly while standing tall with relaxed posture.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_ankle_cross_subtle.png"
+  },
+  {
+    "id": 163,
+    "key": "pose_soft_step_sideways",
+    "title": "Taking a soft step sideways while eyes focus forward.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_soft_step_sideways.png"
+  },
+  {
+    "id": 164,
+    "key": "pose_shoulder_tilt_engaged",
+    "title": "Shoulders tilted slightly to create a dynamic engaged posture.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_shoulder_tilt_engaged.png"
+  },
+  {
+    "id": 165,
+    "key": "pose_hand_folded_low",
+    "title": "Hands folded loosely at lower abdomen, serene stance."
+  },
+  {
+    "id": 166,
+    "key": "pose_chin_drop_eye_contact",
+    "title": "Chin lowered slightly while maintaining direct eye contact.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_chin_drop_eye_contact.png"
+  },
+  {
+    "id": 167,
+    "key": "pose_half_profile_head_up",
+    "title": "Half profile angle with chin gently raised upward.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_half_profile_head_up.png"
+  },
+  {
+    "id": 168,
+    "key": "pose_soft_lunge_forward",
+    "title": "Taking a soft lunge forward, torso upright and composed.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_soft_lunge_forward.png"
+  },
+  {
+    "id": 169,
+    "key": "pose_micro_lean_back",
+    "title": "Leaning back slightly from the ankles with calm gaze.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_micro_lean_back.png"
+  },
+  {
+    "id": 170,
+    "key": "pose_elbows_loose_side",
+    "title": "Elbows resting loosely near torso, arms easy and natural.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_elbows_loose_side.png"
+  },
+  {
+    "id": 171,
+    "key": "pose_head_turn_subtle_smile",
+    "title": "Head turned softly to one side with a faint smile.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_head_turn_subtle_smile.png"
+  },
+  {
+    "id": 172,
+    "key": "pose_crossed_wrists_low",
+    "title": "Wrists crossed low near waistline with steady stance.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_crossed_wrists_low.png"
+  },
+  {
+    "id": 173,
+    "key": "pose_profile_gaze_upward",
+    "title": "Side profile with gaze tilted upward in calm confidence.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_profile_gaze_upward.png"
+  },
+  {
+    "id": 174,
+    "key": "pose_spine_c_shape_soft",
+    "title": "Spine forming a subtle C-shape curve, posture soft.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_spine_c_shape_soft.png"
+  },
+  {
+    "id": 175,
+    "key": "pose_arm_extended_low",
+    "title": "One arm extended slightly downward for balance.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_arm_extended_low.png"
+  },
+  {
+    "id": 176,
+    "key": "pose_torso_twist_micro",
+    "title": "Micro twist through the torso while standing tall.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_torso_twist_micro.png"
+  },
+  {
+    "id": 177,
+    "key": "pose_neutral_breathing",
+    "title": "Standing naturally as if taking a calm breath, eyes soft.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_neutral_breathing.png"
+  },
+  {
+    "id": 178,
+    "key": "pose_hand_near_forehead",
+    "title": "Hand lifted near forehead in thoughtful pose.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_near_forehead.png"
+  },
+  {
+    "id": 179,
+    "key": "pose_shift_weight_forward",
+    "title": "Shifting weight gently onto front foot with aligned torso.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_shift_weight_forward.png"
+  },
+  {
+    "id": 180,
+    "key": "pose_shoulder_roll_relaxed",
+    "title": "Shoulder rolled slightly forward to create softness.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_shoulder_roll_relaxed.png"
+  },
+  {
+    "id": 181,
+    "key": "pose_crossed_arms_loose",
+    "title": "Arms crossed lightly, without tension in shoulders.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_crossed_arms_loose.png"
+  },
+  {
+    "id": 182,
+    "key": "pose_chin_lift_subtle",
+    "title": "Chin lifted just enough to elongate the neck line.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_chin_lift_subtle.png"
+  },
+  {
+    "id": 183,
+    "key": "pose_knee_bend_soft",
+    "title": "Both knees bent slightly for a relaxed balanced stance.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_knee_bend_soft.png"
+  },
+  {
+    "id": 184,
+    "key": "pose_fingers_interlock_calm",
+    "title": "Fingers interlocked gently in front with calm expression.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_fingers_interlock_calm.png"
+  },
+  {
+    "id": 185,
+    "key": "pose_profile_look_downward",
+    "title": "Profile view with eyes lowered softly, serene stance.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_profile_look_downward.png"
+  },
+  {
+    "id": 186,
+    "key": "pose_micro_tilt_backward",
+    "title": "Micro tilt of upper body backward, eyes calm and steady.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_micro_tilt_backward.png"
+  },
+  {
+    "id": 187,
+    "key": "pose_hand_near_chest_soft",
+    "title": "Hand lifted lightly near the chest in an introspective gesture."
+  },
+  {
+    "id": 188,
+    "key": "pose_standing_weight_even",
+    "title": "Even weight on both feet, shoulders squared, neutral posture.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_standing_weight_even.png"
+  },
+  {
+    "id": 189,
+    "key": "pose_neutral_forward_gaze",
+    "title": "Standing tall with a neutral forward gaze, arms hanging naturally.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_neutral_forward_gaze.png"
+  },
+  {
+    "id": 190,
+    "key": "pose_half_turn_soft_focus",
+    "title": "Half turn to the side with eyes softly focused past the camera.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_half_turn_soft_focus.png"
+  },
+  {
+    "id": 191,
+    "key": "pose_shoulder_shift_casual",
+    "title": "One shoulder shifted slightly higher to add casual asymmetry.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_shoulder_shift_casual.png"
+  },
+  {
+    "id": 192,
+    "key": "pose_arm_resting_side",
+    "title": "Arm resting loosely at the side, fingers relaxed.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_arm_resting_side.png"
+  },
+  {
+    "id": 193,
+    "key": "pose_head_tilt_contemplative",
+    "title": "Head tilted gently to one side in a contemplative manner.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_head_tilt_contemplative.png"
+  },
+  {
+    "id": 194,
+    "key": "pose_micro_step_forward",
+    "title": "A tiny step forward with weight shifted naturally.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_micro_step_forward.png"
+  },
+  {
+    "id": 195,
+    "key": "pose_hands_touching_fingertips",
+    "title": "Fingertips of both hands touching lightly at waist level.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hands_touching_fingertips.png"
+  },
+  {
+    "id": 196,
+    "key": "pose_neck_extended_calm",
+    "title": "Neck elongated upward, jaw relaxed, serene expression.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_neck_extended_calm.png"
+  },
+  {
+    "id": 197,
+    "key": "pose_soft_twist_spine",
+    "title": "Subtle twist through the spine, eyes gazing gently sideways.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_soft_twist_spine.png"
+  },
+  {
+    "id": 198,
+    "key": "pose_arm_loose_across_midline",
+    "title": "One arm draped softly across the body’s midline.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_arm_loose_across_midline.png"
+  },
+  {
+    "id": 199,
+    "key": "pose_head_lowered_shadow",
+    "title": "Head lowered slightly to cast natural shadow over the eyes."
+  },
+  {
+    "id": 200,
+    "key": "pose_arms_neutral_breath",
+    "title": "Arms hanging loosely while taking a slow, calm breath."
+  },
+  {
+    "id": 201,
+    "key": "pose_profile_with_soft_smile",
+    "title": "Profile view with a soft, subtle smile."
+  },
+  {
+    "id": 202,
+    "key": "pose_step_back_balance",
+    "title": "Taking a step backward, feet balanced evenly."
+  },
+  {
+    "id": 203,
+    "key": "pose_wrists_crossed_behind",
+    "title": "Wrists crossed lightly behind the back in a natural pose."
+  },
+  {
+    "id": 204,
+    "key": "pose_gaze_upward_thoughtful",
+    "title": "Eyes lifted upward thoughtfully, jawline emphasized."
+  },
+  {
+    "id": 205,
+    "key": "pose_arm_angle_frame_face",
+    "title": "Arm lifted to subtly frame the face without touching it."
+  },
+  {
+    "id": 206,
+    "key": "pose_subtle_c_shape_torso",
+    "title": "Torso forming a subtle C-shape curve for elegance."
+  },
+  {
+    "id": 207,
+    "key": "pose_crossed_legs_standing",
+    "title": "Standing with legs crossed slightly at the ankles."
+  },
+  {
+    "id": 208,
+    "key": "pose_micro_lunge_side",
+    "title": "A soft lunge to the side with torso upright."
+  },
+  {
+    "id": 209,
+    "key": "pose_hand_near_chin_focus",
+    "title": "Hand placed near chin as if focusing inwardly."
+  },
+  {
+    "id": 210,
+    "key": "pose_half_profile_eye_contact",
+    "title": "Half profile with direct, steady eye contact."
+  },
+  {
+    "id": 211,
+    "key": "pose_hands_folded_back",
+    "title": "Hands folded loosely behind the body, chest open."
+  },
+  {
+    "id": 212,
+    "key": "pose_head_tilt_back_serene",
+    "title": "Head tilted slightly back, eyes soft and serene."
+  },
+  {
+    "id": 213,
+    "key": "pose_spine_long_aligned",
+    "title": "Spine extended long and aligned, shoulders squared."
+  },
+  {
+    "id": 214,
+    "key": "pose_micro_step_sideways",
+    "title": "Small step to the side, hips relaxed, gaze calm."
+  },
+  {
+    "id": 215,
+    "key": "pose_arms_loose_triangle",
+    "title": "Arms forming a soft triangle shape at midline."
+  },
+  {
+    "id": 216,
+    "key": "pose_chin_turn_low",
+    "title": "Chin turned slightly downward with subtle intensity."
+  },
+  {
+    "id": 217,
+    "key": "pose_soft_hand_near_neck",
+    "title": "Hand lifted softly near neck, shoulders relaxed."
+  },
+  {
+    "id": 218,
+    "key": "pose_even_weight_posture",
+    "title": "Weight evenly distributed between both legs, neutral expression."
+  },
+  {
+    "id": 219,
+    "key": "pose_soft_profile_with_shadow",
+    "title": "Standing in profile with soft shadow falling across the face."
+  },
+  {
+    "id": 220,
+    "key": "pose_weight_shifted_left",
+    "title": "Shifting body weight onto the left leg, right foot relaxed forward."
+  },
+  {
+    "id": 221,
+    "key": "pose_torso_twist_back_look",
+    "title": "Twisting torso gently while glancing back over the shoulder."
+  },
+  {
+    "id": 222,
+    "key": "pose_micro_step_towards_camera",
+    "title": "Taking a small step toward the camera with balanced posture."
+  },
+  {
+    "id": 223,
+    "key": "pose_arms_loose_open_chest",
+    "title": "Arms hanging loosely while chest is naturally opened."
+  },
+  {
+    "id": 224,
+    "key": "pose_head_lowered_gaze_side",
+    "title": "Head lowered slightly with gaze directed to the side."
+  },
+  {
+    "id": 225,
+    "key": "pose_wrists_crossed_front",
+    "title": "Wrists crossed softly in front, creating a composed look."
+  },
+  {
+    "id": 226,
+    "key": "pose_chin_forward_intense",
+    "title": "Chin pushed forward slightly to create intensity in the jawline."
+  },
+  {
+    "id": 227,
+    "key": "pose_soft_hand_clasp_low",
+    "title": "Hands clasped low in front, shoulders relaxed and natural."
+  },
+  {
+    "id": 228,
+    "key": "pose_micro_lunge_backwards",
+    "title": "A subtle backward lunge, torso upright and steady."
+  },
+  {
+    "id": 229,
+    "key": "pose_profile_head_high",
+    "title": "Profile view with head lifted high, strong and composed."
+  },
+  {
+    "id": 230,
+    "key": "pose_shoulders_angled_relaxed",
+    "title": "Shoulders angled softly with arms hanging in ease."
+  },
+  {
+    "id": 231,
+    "key": "pose_fingers_together_neutral",
+    "title": "Fingers brought together lightly in front, neutral stance."
+  },
+  {
+    "id": 232,
+    "key": "pose_look_over_shoulder_subtle",
+    "title": "A subtle look over the shoulder with calm expression."
+  },
+  {
+    "id": 233,
+    "key": "pose_soft_chest_drop",
+    "title": "Chest slightly dropped forward, arms calm at sides."
+  },
+  {
+    "id": 234,
+    "key": "pose_arm_gesture_small",
+    "title": "One arm lifted in a very small gesture, almost mid-movement."
+  },
+  {
+    "id": 235,
+    "key": "pose_spine_extended_serene",
+    "title": "Spine extended upward with serene calmness in face."
+  },
+  {
+    "id": 236,
+    "key": "pose_step_cross_forward",
+    "title": "One foot crossing in front of the other as if mid-step."
+  },
+  {
+    "id": 237,
+    "key": "pose_arms_folded_loose",
+    "title": "Arms folded loosely, shoulders soft and not tense."
+  },
+  {
+    "id": 238,
+    "key": "pose_head_tilt_micro",
+    "title": "Head tilted just a few degrees for subtle expressiveness."
+  },
+  {
+    "id": 239,
+    "key": "pose_palms_together_low",
+    "title": "Palms pressed gently together near waist level."
+  },
+  {
+    "id": 240,
+    "key": "pose_look_downward_soft",
+    "title": "Looking downward softly while spine remains tall."
+  },
+  {
+    "id": 241,
+    "key": "pose_micro_twist_neck",
+    "title": "Neck twisted slightly to create a clean profile angle."
+  },
+  {
+    "id": 242,
+    "key": "pose_spine_curve_editorial",
+    "title": "Spine forming a light curve, creating editorial style geometry."
+  },
+  {
+    "id": 243,
+    "key": "pose_cross_leg_forward",
+    "title": "Legs crossed forward with torso aligned straight."
+  },
+  {
+    "id": 244,
+    "key": "pose_arms_dropped_loose",
+    "title": "Arms dropped completely loose, giving a relaxed silhouette."
+  },
+  {
+    "id": 245,
+    "key": "pose_chin_high_neutral",
+    "title": "Chin lifted neutrally without strain, eyes calm."
+  },
+  {
+    "id": 246,
+    "key": "pose_soft_weight_shift",
+    "title": "Weight shifted gently from one leg to the other."
+  },
+  {
+    "id": 247,
+    "key": "pose_fingers_touching_forearm",
+    "title": "One hand lightly touching the opposite forearm."
+  },
+  {
+    "id": 248,
+    "key": "pose_soft_twist_with_gaze",
+    "title": "Gentle torso twist paired with sideways gaze."
+  },
+  {
+    "id": 249,
+    "key": "pose_neutral_front_soft_smile",
+    "title": "Facing forward with a soft smile, arms resting naturally."
+  },
+  {
+    "id": 250,
+    "key": "pose_three_quarter_stance_relaxed",
+    "title": "Standing in a three-quarter stance, weight resting on back leg."
+  },
+  {
+    "id": 251,
+    "key": "pose_subtle_head_drop",
+    "title": "Head dropped slightly with calm, introspective look."
+  },
+  {
+    "id": 252,
+    "key": "pose_crossed_fingers_low",
+    "title": "Fingers crossed loosely near waistline with neutral posture."
+  },
+  {
+    "id": 253,
+    "key": "pose_spine_extended_tall",
+    "title": "Spine elongated upward, shoulders squared gently."
+  },
+  {
+    "id": 254,
+    "key": "pose_step_forward_microstride",
+    "title": "Taking a small step forward, gaze fixed softly ahead."
+  },
+  {
+    "id": 255,
+    "key": "pose_hand_hover_near_face",
+    "title": "Hand lifted near the face without touching, expression thoughtful."
+  },
+  {
+    "id": 256,
+    "key": "pose_arms_neutral_sides",
+    "title": "Arms resting neutrally at the sides, palms inward."
+  },
+  {
+    "id": 257,
+    "key": "pose_chin_forward_focus",
+    "title": "Chin pushed gently forward for a strong focused look."
+  },
+  {
+    "id": 258,
+    "key": "pose_leg_crossed_profile",
+    "title": "Legs crossed casually in profile view, torso upright."
+  },
+  {
+    "id": 259,
+    "key": "pose_soft_hand_on_forearm",
+    "title": "One hand placed lightly on the opposite forearm."
+  },
+  {
+    "id": 260,
+    "key": "pose_micro_twist_chest",
+    "title": "Chest twisted slightly to add subtle movement."
+  },
+  {
+    "id": 261,
+    "key": "pose_half_turn_chin_low",
+    "title": "Half turn with chin lowered softly, gaze intense."
+  },
+  {
+    "id": 262,
+    "key": "pose_palms_loose_open",
+    "title": "Palms relaxed and slightly open beside the body."
+  },
+  {
+    "id": 263,
+    "key": "pose_soft_lean_side",
+    "title": "Leaning softly to one side, shoulders level."
+  },
+  {
+    "id": 264,
+    "key": "pose_neutral_eye_contact",
+    "title": "Standing neutral with direct but calm eye contact."
+  },
+  {
+    "id": 265,
+    "key": "pose_crossed_wrists_low",
+    "title": "Wrists crossed low in front of torso, relaxed expression."
+  },
+  {
+    "id": 266,
+    "key": "pose_head_turn_profile_shadow",
+    "title": "Turning head into profile to catch a soft shadow."
+  },
+  {
+    "id": 267,
+    "key": "pose_weight_shift_back_leg",
+    "title": "Shifting weight to the back leg while standing tall."
+  },
+  {
+    "id": 268,
+    "key": "pose_fingers_touching_jaw",
+    "title": "Fingers touching gently along the jawline with intensity."
+  },
+  {
+    "id": 269,
+    "key": "pose_soft_step_cross",
+    "title": "One leg crossing softly in front of the other mid-stance."
+  },
+  {
+    "id": 270,
+    "key": "pose_neck_extended_high",
+    "title": "Neck extended upward with subtle regal energy."
+  },
+  {
+    "id": 271,
+    "key": "pose_hand_drop_side",
+    "title": "One hand dropped softly beside the body, palm relaxed."
+  },
+  {
+    "id": 272,
+    "key": "pose_half_smile_forward",
+    "title": "Facing forward with a faint, half-smile expression."
+  },
+  {
+    "id": 273,
+    "key": "pose_soft_gaze_down",
+    "title": "Eyes gazing softly downward, posture composed."
+  },
+  {
+    "id": 274,
+    "key": "pose_spine_slight_curve",
+    "title": "Spine with a gentle curve, shoulders eased back."
+  },
+  {
+    "id": 275,
+    "key": "pose_step_back_open_chest",
+    "title": "Stepping back slightly, chest open with balance."
+  },
+  {
+    "id": 276,
+    "key": "pose_wrist_to_elbow_rest",
+    "title": "One wrist resting lightly against the opposite elbow."
+  },
+  {
+    "id": 277,
+    "key": "pose_micro_lean_forward",
+    "title": "A micro lean forward from ankles, eyes engaged."
+  },
+  {
+    "id": 278,
+    "key": "pose_soft_head_turn",
+    "title": "Head turning softly to one side, eyes following naturally."
+  },
+  {
+    "id": 279,
+    "key": "pose_forward_strong_neutral",
+    "title": "Standing straight facing forward, strong but neutral expression."
+  },
+  {
+    "id": 280,
+    "key": "pose_three_quarter_chin_up",
+    "title": "Three-quarter stance with chin lifted gently, eyes steady."
+  },
+  {
+    "id": 281,
+    "key": "pose_soft_step_relaxed",
+    "title": "Taking a soft step with arms loose and posture relaxed."
+  },
+  {
+    "id": 282,
+    "key": "pose_profile_head_lowered",
+    "title": "Profile view with head lowered slightly, calm presence."
+  },
+  {
+    "id": 283,
+    "key": "pose_crossed_fingers_front",
+    "title": "Fingers crossed loosely in front, shoulders balanced."
+  },
+  {
+    "id": 284,
+    "key": "pose_micro_torso_twist",
+    "title": "Small twist through torso, head aligned forward."
+  },
+  {
+    "id": 285,
+    "key": "pose_head_tilt_side_soft",
+    "title": "Head tilted softly to the side with neutral gaze."
+  },
+  {
+    "id": 286,
+    "key": "pose_weight_on_right_leg",
+    "title": "Weight shifted to right leg, left foot placed lightly ahead."
+  },
+  {
+    "id": 287,
+    "key": "pose_arm_drop_loose",
+    "title": "Arms dropped completely loose, posture natural."
+  },
+  {
+    "id": 288,
+    "key": "pose_gaze_down_thoughtful",
+    "title": "Eyes directed downward with a thoughtful mood."
+  },
+  {
+    "id": 289,
+    "key": "pose_half_turn_strong_look",
+    "title": "Half turn toward camera with a strong but calm look."
+  },
+  {
+    "id": 290,
+    "key": "pose_wrists_crossed_low",
+    "title": "Wrists crossed near waistline, shoulders squared softly."
+  },
+  {
+    "id": 291,
+    "key": "pose_neck_extended_forward",
+    "title": "Neck extended slightly forward, steady focus ahead."
+  },
+  {
+    "id": 292,
+    "key": "pose_chin_drop_shadow",
+    "title": "Chin dropped gently, casting a natural facial shadow."
+  },
+  {
+    "id": 293,
+    "key": "pose_step_back_profile",
+    "title": "Stepping back slightly in profile stance with balance."
+  },
+  {
+    "id": 294,
+    "key": "pose_micro_lean_left",
+    "title": "Body leaning subtly left while gaze remains forward."
+  },
+  {
+    "id": 295,
+    "key": "pose_soft_elbow_bend",
+    "title": "Both elbows bent softly to frame torso naturally."
+  },
+  {
+    "id": 296,
+    "key": "pose_forward_eye_contact",
+    "title": "Direct forward stance with calm and steady eye contact."
+  },
+  {
+    "id": 297,
+    "key": "pose_profile_soft_smile",
+    "title": "Profile view with a very slight soft smile."
+  },
+  {
+    "id": 298,
+    "key": "pose_leg_cross_subtle",
+    "title": "Standing tall with one leg crossed gently over the other."
+  },
+  {
+    "id": 299,
+    "key": "pose_hand_rest_wrist",
+    "title": "One hand resting lightly against opposite wrist."
+  },
+  {
+    "id": 300,
+    "key": "pose_spine_upright_calm",
+    "title": "Spine upright and long, breathing calm with neutral face."
+  },
+  {
+    "id": 301,
+    "key": "pose_soft_twist_eyes_side",
+    "title": "Torso twisted slightly with eyes looking gently sideways."
+  },
+  {
+    "id": 302,
+    "key": "pose_step_forward_head_turn",
+    "title": "Taking a step forward while head turns softly to the side."
+  },
+  {
+    "id": 303,
+    "key": "pose_shoulders_back_open",
+    "title": "Shoulders pulled back gently, chest open, relaxed arms."
+  },
+  {
+    "id": 304,
+    "key": "pose_micro_lunge_front",
+    "title": "Small lunge forward with spine upright and calm expression."
+  },
+  {
+    "id": 305,
+    "key": "pose_arms_loose_triangle",
+    "title": "Arms falling naturally into a loose triangle shape."
+  },
+  {
+    "id": 306,
+    "key": "pose_neutral_shadow_line",
+    "title": "Standing neutral with head positioned to create strong jawline shadow."
+  },
+  {
+    "id": 307,
+    "key": "pose_gaze_side_low",
+    "title": "Eyes cast sideways and slightly low, face serene."
+  },
+  {
+    "id": 308,
+    "key": "pose_soft_weight_even",
+    "title": "Weight balanced evenly across both feet, arms relaxed."
+  },
+  {
+    "id": 309,
+    "key": "pose_soft_profile_downward",
+    "title": "Profile stance with eyes cast gently downward."
+  },
+  {
+    "id": 310,
+    "key": "pose_step_cross_side",
+    "title": "One leg crossing slightly over the other while standing side view."
+  },
+  {
+    "id": 311,
+    "key": "pose_chin_high_forward",
+    "title": "Chin raised high with a strong forward gaze."
+  },
+  {
+    "id": 312,
+    "key": "pose_micro_twist_neck",
+    "title": "Neck twisted slightly to one side for subtle dynamism."
+  },
+  {
+    "id": 313,
+    "key": "pose_weight_back_leg",
+    "title": "Weight placed firmly on the back leg, front leg soft."
+  },
+  {
+    "id": 314,
+    "key": "pose_elbow_to_side",
+    "title": "One elbow angled softly outward while torso stays straight."
+  },
+  {
+    "id": 315,
+    "key": "pose_soft_smile_forward",
+    "title": "Facing forward with a soft approachable smile."
+  },
+  {
+    "id": 316,
+    "key": "pose_arms_loose_center",
+    "title": "Arms resting loosely at centerline with calm balance."
+  },
+  {
+    "id": 317,
+    "key": "pose_half_turn_downcast",
+    "title": "Half turn with eyes lowered softly toward the ground."
+  },
+  {
+    "id": 318,
+    "key": "pose_cross_wrists_back",
+    "title": "Wrists crossed lightly behind the back with open chest."
+  },
+  {
+    "id": 319,
+    "key": "pose_spine_tall_neck_long",
+    "title": "Spine tall and neck long, eyes calm and neutral."
+  },
+  {
+    "id": 320,
+    "key": "pose_micro_step_relaxed",
+    "title": "Taking a micro step forward while arms hang relaxed."
+  },
+  {
+    "id": 321,
+    "key": "pose_torso_twist_gaze_side",
+    "title": "Torso twisted gently while gaze follows to the side."
+  },
+  {
+    "id": 322,
+    "key": "pose_soft_head_turn_up",
+    "title": "Head turning upward slightly, expression serene."
+  },
+  {
+    "id": 323,
+    "key": "pose_chin_drop_soft_focus",
+    "title": "Chin dropped gently with eyes softly focused ahead."
+  },
+  {
+    "id": 324,
+    "key": "pose_palms_open_forward",
+    "title": "Palms relaxed and open, facing slightly forward."
+  },
+  {
+    "id": 325,
+    "key": "pose_leg_cross_back",
+    "title": "One leg crossing behind the other for subtle balance."
+  },
+  {
+    "id": 326,
+    "key": "pose_shoulders_square",
+    "title": "Shoulders squared directly to the camera, arms calm."
+  },
+  {
+    "id": 327,
+    "key": "pose_profile_soft_smile",
+    "title": "Side profile with a subtle, soft smile."
+  },
+  {
+    "id": 328,
+    "key": "pose_micro_twist_forward",
+    "title": "Small torso twist toward the camera with natural stance."
+  },
+  {
+    "id": 329,
+    "key": "pose_arms_relaxed_back",
+    "title": "Arms resting loosely behind the body, posture easy."
+  },
+  {
+    "id": 330,
+    "key": "pose_neutral_head_high",
+    "title": "Neutral standing stance with head lifted confidently."
+  },
+  {
+    "id": 331,
+    "key": "pose_weight_shift_soft",
+    "title": "Weight shifted slightly to one side with relaxed torso."
+  },
+  {
+    "id": 332,
+    "key": "pose_crossed_fingers_back",
+    "title": "Fingers crossed lightly behind the back, relaxed posture."
+  },
+  {
+    "id": 333,
+    "key": "pose_chin_forward_shadow",
+    "title": "Chin pushed forward slightly to emphasize jawline shadow."
+  },
+  {
+    "id": 334,
+    "key": "pose_arms_loose_triangle_low",
+    "title": "Arms forming a soft triangle shape low near hips."
+  },
+  {
+    "id": 335,
+    "key": "pose_profile_gaze_high",
+    "title": "Profile stance with gaze lifted upward."
+  },
+  {
+    "id": 336,
+    "key": "pose_step_forward_balance",
+    "title": "One foot stepping forward slightly for balance."
+  },
+  {
+    "id": 337,
+    "key": "pose_soft_elbow_fold",
+    "title": "One elbow folded inward gently against torso."
+  },
+  {
+    "id": 338,
+    "key": "pose_neutral_even_weight",
+    "title": "Standing with weight even across both feet, calm expression."
+  },
+  {
+    "id": 339,
+    "key": "pose_forward_neutral_presence",
+    "title": "Standing forward with neutral presence, arms at sides."
+  },
+  {
+    "id": 340,
+    "key": "pose_three_quarter_soft_smile",
+    "title": "Three-quarter stance with a faint, relaxed smile."
+  },
+  {
+    "id": 341,
+    "key": "pose_profile_head_turn",
+    "title": "Profile stance with head turned gently toward the camera."
+  },
+  {
+    "id": 342,
+    "key": "pose_micro_step_back",
+    "title": "Taking a micro step backward with calm balance."
+  },
+  {
+    "id": 343,
+    "key": "pose_arms_loose_relaxed",
+    "title": "Arms hanging completely loose with natural shoulders."
+  },
+  {
+    "id": 344,
+    "key": "pose_chin_up_focus",
+    "title": "Chin tilted slightly upward with focused eyes."
+  },
+  {
+    "id": 345,
+    "key": "pose_leg_cross_front",
+    "title": "One leg crossing gently in front of the other."
+  },
+  {
+    "id": 346,
+    "key": "pose_soft_twist_look_back",
+    "title": "Torso twisted slightly with a glance over the shoulder."
+  },
+  {
+    "id": 347,
+    "key": "pose_spine_extended_long",
+    "title": "Spine extended tall, crown of head lifted upward."
+  },
+  {
+    "id": 348,
+    "key": "pose_wrists_softly_touching",
+    "title": "Wrists softly touching at midline in front of torso."
+  },
+  {
+    "id": 349,
+    "key": "pose_downward_gaze_calm",
+    "title": "Eyes looking downward softly, expression serene."
+  },
+  {
+    "id": 350,
+    "key": "pose_half_profile_intense",
+    "title": "Half profile angle with steady, intense gaze."
+  },
+  {
+    "id": 351,
+    "key": "pose_arms_folded_light",
+    "title": "Arms folded lightly across chest without tension."
+  },
+  {
+    "id": 352,
+    "key": "pose_neck_stretch_upward",
+    "title": "Neck stretched upward, head aligned naturally."
+  },
+  {
+    "id": 353,
+    "key": "pose_small_side_shift",
+    "title": "Shifting body slightly to one side with soft stance."
+  },
+  {
+    "id": 354,
+    "key": "pose_head_lowered_reflective",
+    "title": "Head lowered as if reflective, arms resting calm."
+  },
+  {
+    "id": 355,
+    "key": "pose_micro_twist_profile",
+    "title": "Micro twist creating a clean profile line."
+  },
+  {
+    "id": 356,
+    "key": "pose_leg_back_weight_shift",
+    "title": "One leg placed slightly behind, shifting weight backward."
+  },
+  {
+    "id": 357,
+    "key": "pose_soft_hand_overlap",
+    "title": "Hands softly overlapping near waistline."
+  },
+  {
+    "id": 358,
+    "key": "pose_forward_eye_contact_strong",
+    "title": "Direct forward stance with strong eye contact."
+  },
+  {
+    "id": 359,
+    "key": "pose_profile_neutral",
+    "title": "Neutral side profile with shoulders aligned straight."
+  },
+  {
+    "id": 360,
+    "key": "pose_spine_slight_curve_side",
+    "title": "Spine curving slightly while weight rests on one hip."
+  },
+  {
+    "id": 361,
+    "key": "pose_chin_drop_soft",
+    "title": "Chin lowered softly with calm, subtle energy."
+  },
+  {
+    "id": 362,
+    "key": "pose_step_forward_light",
+    "title": "Taking a light forward step, shoulders relaxed."
+  },
+  {
+    "id": 363,
+    "key": "pose_elbows_loose_angle",
+    "title": "Elbows angled loosely outward from the torso."
+  },
+  {
+    "id": 364,
+    "key": "pose_head_tilt_upward",
+    "title": "Head tilted upward slightly, eyes following naturally."
+  },
+  {
+    "id": 365,
+    "key": "pose_neutral_weight_even",
+    "title": "Weight evenly balanced, neutral and composed posture."
+  },
+  {
+    "id": 366,
+    "key": "pose_subtle_hand_near_face",
+    "title": "Hand lifted subtly near the face, thoughtful but calm."
+  },
+  {
+    "id": 367,
+    "key": "pose_micro_side_twist",
+    "title": "Micro side twist with torso while gaze remains forward."
+  },
+  {
+    "id": 368,
+    "key": "pose_soft_smile_side",
+    "title": "Side angle with a very faint, relaxed smile."
+  },
+  {
+    "id": 369,
+    "key": "pose_forward_neutral_calm",
+    "title": "Standing tall facing forward with a calm, neutral expression."
+  },
+  {
+    "id": 370,
+    "key": "pose_three_quarter_chin_low",
+    "title": "Three-quarter stance with chin lowered slightly, eyes focused."
+  },
+  {
+    "id": 371,
+    "key": "pose_profile_head_high",
+    "title": "Profile angle with head lifted high, confident presence."
+  },
+  {
+    "id": 372,
+    "key": "pose_step_back_soft",
+    "title": "Taking a soft step backward with even weight balance."
+  },
+  {
+    "id": 373,
+    "key": "pose_spine_straight_relaxed",
+    "title": "Spine tall and straight, shoulders relaxed downward."
+  },
+  {
+    "id": 374,
+    "key": "pose_arm_loose_downward",
+    "title": "Arms hanging downward loosely with neutral stance."
+  },
+  {
+    "id": 375,
+    "key": "pose_chin_forward_confident",
+    "title": "Chin pressed forward slightly to project confidence."
+  },
+  {
+    "id": 376,
+    "key": "pose_leg_cross_backwards",
+    "title": "One leg crossing slightly behind the other, subtle balance."
+  },
+  {
+    "id": 377,
+    "key": "pose_hand_overlap_low",
+    "title": "Hands overlapping gently near lower abdomen."
+  },
+  {
+    "id": 378,
+    "key": "pose_soft_gaze_side",
+    "title": "Eyes looking softly to the side, body facing forward."
+  },
+  {
+    "id": 379,
+    "key": "pose_torso_twist_forward",
+    "title": "Torso twisted slightly toward camera, stance natural."
+  },
+  {
+    "id": 380,
+    "key": "pose_neck_extended_tall",
+    "title": "Neck extended tall with shoulders relaxed and even."
+  },
+  {
+    "id": 381,
+    "key": "pose_small_step_side",
+    "title": "Small step to the side while maintaining upright posture."
+  },
+  {
+    "id": 382,
+    "key": "pose_wrists_cross_back",
+    "title": "Wrists crossed loosely behind the body, chest open."
+  },
+  {
+    "id": 383,
+    "key": "pose_profile_soft_downcast",
+    "title": "Profile stance with eyes lowered softly, calm expression."
+  },
+  {
+    "id": 384,
+    "key": "pose_elbows_soft_forward",
+    "title": "Elbows angled slightly forward to frame torso naturally."
+  },
+  {
+    "id": 385,
+    "key": "pose_micro_twist_gaze_high",
+    "title": "Small torso twist while gaze lifts slightly upward."
+  },
+  {
+    "id": 386,
+    "key": "pose_leg_bend_relaxed",
+    "title": "Both knees bent softly, creating a casual relaxed stance."
+  },
+  {
+    "id": 387,
+    "key": "pose_head_tilt_soft_focus",
+    "title": "Head tilted gently with eyes focused softly ahead."
+  },
+  {
+    "id": 388,
+    "key": "pose_spine_soft_curve",
+    "title": "Spine forming a subtle curve, shoulders natural."
+  },
+  {
+    "id": 389,
+    "key": "pose_step_forward_confident",
+    "title": "Step forward with balanced posture and confident presence."
+  },
+  {
+    "id": 390,
+    "key": "pose_hands_touching_light",
+    "title": "Hands lightly touching in front with relaxed shoulders."
+  },
+  {
+    "id": 391,
+    "key": "pose_half_turn_intense_gaze",
+    "title": "Half turn to the side with an intense, direct gaze."
+  },
+  {
+    "id": 392,
+    "key": "pose_chin_drop_shadow",
+    "title": "Chin lowered to create a strong shadow across the face."
+  },
+  {
+    "id": 393,
+    "key": "pose_arms_soft_triangle",
+    "title": "Arms falling into a natural triangle shape near waist."
+  },
+  {
+    "id": 394,
+    "key": "pose_profile_high_chin",
+    "title": "Profile stance with chin lifted high, calm expression."
+  },
+  {
+    "id": 395,
+    "key": "pose_weight_shift_soft_side",
+    "title": "Weight shifted gently to one side, torso aligned upright."
+  },
+  {
+    "id": 396,
+    "key": "pose_forward_micro_smile",
+    "title": "Facing forward with a very faint, natural smile."
+  },
+  {
+    "id": 397,
+    "key": "pose_step_cross_soft",
+    "title": "One foot crossing softly in front while arms hang relaxed."
+  },
+  {
+    "id": 398,
+    "key": "pose_neutral_head_low",
+    "title": "Neutral stance with head lowered slightly, composed look."
+  },
+  {
+    "id": 399,
+    "key": "pose_forward_strong_balance",
+    "title": "Facing forward with strong balance, feet grounded evenly."
+  },
+  {
+    "id": 400,
+    "key": "pose_three_quarter_soft_shadow",
+    "title": "Three-quarter stance with soft facial shadow, calm gaze."
+  },
+  {
+    "id": 401,
+    "key": "pose_profile_head_lowered",
+    "title": "Profile stance with head lowered slightly, subtle expression."
+  },
+  {
+    "id": 402,
+    "key": "pose_step_forward_upright",
+    "title": "Stepping forward lightly with upright spine and relaxed arms."
+  },
+  {
+    "id": 403,
+    "key": "pose_chin_forward_strong",
+    "title": "Chin projected forward slightly to emphasize strength."
+  },
+  {
+    "id": 404,
+    "key": "pose_spine_tall_composed",
+    "title": "Spine extended tall with composed, neutral presence."
+  },
+  {
+    "id": 405,
+    "key": "pose_soft_weight_shift_back",
+    "title": "Weight shifted gently onto the back leg with ease."
+  },
+  {
+    "id": 406,
+    "key": "pose_hand_rest_low",
+    "title": "One hand resting softly near lower torso, casual stance."
+  },
+  {
+    "id": 407,
+    "key": "pose_elbows_out_loose",
+    "title": "Elbows angled loosely outward, chest open and natural."
+  },
+  {
+    "id": 408,
+    "key": "pose_half_turn_soft_smile",
+    "title": "Half turn with a faint, soft smile."
+  },
+  {
+    "id": 409,
+    "key": "pose_profile_neck_extended",
+    "title": "Profile stance with neck extended upward for length."
+  },
+  {
+    "id": 410,
+    "key": "pose_micro_step_side",
+    "title": "Taking a small side step while keeping gaze neutral."
+  },
+  {
+    "id": 411,
+    "key": "pose_arms_loose_open",
+    "title": "Arms loose and slightly open away from the body."
+  },
+  {
+    "id": 412,
+    "key": "pose_chin_drop_forward",
+    "title": "Chin dropped gently while eyes maintain forward contact."
+  },
+  {
+    "id": 413,
+    "key": "pose_crossed_fingers_neutral",
+    "title": "Fingers crossed softly in front with neutral posture."
+  },
+  {
+    "id": 414,
+    "key": "pose_leg_cross_soft_balance",
+    "title": "Legs crossed softly at the ankles while standing tall."
+  },
+  {
+    "id": 415,
+    "key": "pose_spine_subtle_curve",
+    "title": "Spine forming a subtle curve, arms relaxed downward."
+  },
+  {
+    "id": 416,
+    "key": "pose_head_turn_calm",
+    "title": "Head turned softly to one side with calm, neutral gaze."
+  },
+  {
+    "id": 417,
+    "key": "pose_step_back_neutral",
+    "title": "Step taken backward slightly, spine aligned upright."
+  },
+  {
+    "id": 418,
+    "key": "pose_elbows_soft_back",
+    "title": "Elbows angled softly behind torso, chest open."
+  },
+  {
+    "id": 419,
+    "key": "pose_forward_soft_focus",
+    "title": "Facing forward with a soft, distant focus."
+  },
+  {
+    "id": 420,
+    "key": "pose_profile_strong_jaw",
+    "title": "Profile view highlighting jawline with composed stance."
+  },
+  {
+    "id": 421,
+    "key": "pose_arms_relaxed_triangle",
+    "title": "Arms forming a natural triangle shape near midsection."
+  },
+  {
+    "id": 422,
+    "key": "pose_head_lowered_reflective",
+    "title": "Head lowered as if reflective, shoulders soft."
+  },
+  {
+    "id": 423,
+    "key": "pose_spine_extended_high",
+    "title": "Spine extended upward with head held high, confident stance."
+  },
+  {
+    "id": 424,
+    "key": "pose_small_shift_forward",
+    "title": "Small shift forward on one foot, torso upright."
+  },
+  {
+    "id": 425,
+    "key": "pose_neutral_arms_loose",
+    "title": "Neutral stance with arms loose and relaxed."
+  },
+  {
+    "id": 426,
+    "key": "pose_half_turn_intense",
+    "title": "Half turn with an intense but composed gaze."
+  },
+  {
+    "id": 427,
+    "key": "pose_profile_soft_smile",
+    "title": "Side profile with a subtle, soft smile."
+  },
+  {
+    "id": 428,
+    "key": "pose_weight_shift_even",
+    "title": "Weight balanced evenly across both legs, calm demeanor."
+  },
+  {
+    "id": 429,
+    "key": "pose_forward_neutral_soft",
+    "title": "Standing forward with a soft, neutral presence."
+  },
+  {
+    "id": 430,
+    "key": "pose_three_quarter_gaze_low",
+    "title": "Three-quarter stance with eyes lowered gently."
+  },
+  {
+    "id": 431,
+    "key": "pose_profile_head_high",
+    "title": "Side profile with head lifted high, strong look."
+  },
+  {
+    "id": 432,
+    "key": "pose_micro_step_backward",
+    "title": "Taking a small step backward with upright torso."
+  },
+  {
+    "id": 433,
+    "key": "pose_spine_tall_soft",
+    "title": "Spine extended tall, shoulders soft and relaxed."
+  },
+  {
+    "id": 434,
+    "key": "pose_arms_loose_triangle_low",
+    "title": "Arms falling naturally into a loose triangle at waist level."
+  },
+  {
+    "id": 435,
+    "key": "pose_chin_forward_shadow",
+    "title": "Chin pressed forward slightly to create jawline shadow."
+  },
+  {
+    "id": 436,
+    "key": "pose_leg_cross_soft",
+    "title": "Legs crossed softly at ankles with balanced stance."
+  },
+  {
+    "id": 437,
+    "key": "pose_elbows_loose_side",
+    "title": "Elbows loose at sides, posture calm and grounded."
+  },
+  {
+    "id": 438,
+    "key": "pose_half_turn_relaxed",
+    "title": "Half turn to the side with relaxed shoulders."
+  },
+  {
+    "id": 439,
+    "key": "pose_profile_soft_focus",
+    "title": "Profile stance with a soft, distant focus."
+  },
+  {
+    "id": 440,
+    "key": "pose_forward_direct_contact",
+    "title": "Standing forward with direct, steady eye contact."
+  },
+  {
+    "id": 441,
+    "key": "pose_small_shift_side",
+    "title": "Shifting weight slightly to one side in balance."
+  },
+  {
+    "id": 442,
+    "key": "pose_wrists_touching_low",
+    "title": "Wrists touching loosely near waistline."
+  },
+  {
+    "id": 443,
+    "key": "pose_head_drop_soft",
+    "title": "Head dropped softly with reflective mood."
+  },
+  {
+    "id": 444,
+    "key": "pose_spine_curve_subtle",
+    "title": "Spine forming a subtle curve, arms neutral."
+  },
+  {
+    "id": 445,
+    "key": "pose_step_forward_upright",
+    "title": "Step forward with upright spine and relaxed arms."
+  },
+  {
+    "id": 446,
+    "key": "pose_elbows_forward_angle",
+    "title": "Elbows angled slightly forward, natural stance."
+  },
+  {
+    "id": 447,
+    "key": "pose_neutral_weight_even",
+    "title": "Weight distributed evenly across both feet, calm posture."
+  },
+  {
+    "id": 448,
+    "key": "pose_profile_chin_low",
+    "title": "Profile view with chin lowered slightly, soft gaze."
+  },
+  {
+    "id": 449,
+    "key": "pose_arm_loose_drop",
+    "title": "One arm dropped loosely at side, relaxed expression."
+  },
+  {
+    "id": 450,
+    "key": "pose_half_turn_soft_gaze",
+    "title": "Half turn with soft, calm gaze over shoulder."
+  },
+  {
+    "id": 451,
+    "key": "pose_step_cross_forward",
+    "title": "One foot crossing gently in front while standing tall."
+  },
+  {
+    "id": 452,
+    "key": "pose_chin_upward_focus",
+    "title": "Chin tilted slightly upward with attentive eyes."
+  },
+  {
+    "id": 453,
+    "key": "pose_spine_long_aligned",
+    "title": "Spine aligned long and tall with serene expression."
+  },
+  {
+    "id": 454,
+    "key": "pose_head_turn_profile",
+    "title": "Head turned into clean profile angle, relaxed body."
+  },
+  {
+    "id": 455,
+    "key": "pose_forward_soft_smile",
+    "title": "Facing forward with a faint, soft smile."
+  },
+  {
+    "id": 456,
+    "key": "pose_elbows_back_open",
+    "title": "Elbows angled back slightly, opening chest naturally."
+  },
+  {
+    "id": 457,
+    "key": "pose_small_step_forward",
+    "title": "Taking a small step forward, body balanced upright."
+  },
+  {
+    "id": 458,
+    "key": "pose_neutral_shadow_face",
+    "title": "Neutral stance with face angled to catch natural shadow."
+  },
+  {
+    "id": 459,
+    "key": "pose_forward_neutral_energy",
+    "title": "Standing forward with neutral energy, arms calm at sides."
+  },
+  {
+    "id": 460,
+    "key": "pose_three_quarter_soft_focus",
+    "title": "Three-quarter stance with eyes softly focused ahead."
+  },
+  {
+    "id": 461,
+    "key": "pose_profile_high_neck",
+    "title": "Profile stance with neck elongated and upright."
+  },
+  {
+    "id": 462,
+    "key": "pose_step_back_light",
+    "title": "Taking a light step back, posture calm and steady."
+  },
+  {
+    "id": 463,
+    "key": "pose_chin_drop_reflective",
+    "title": "Chin lowered softly as if in reflective thought."
+  },
+  {
+    "id": 464,
+    "key": "pose_spine_tall_open",
+    "title": "Spine tall, chest open, shoulders dropped relaxed."
+  },
+  {
+    "id": 465,
+    "key": "pose_small_shift_balance",
+    "title": "Weight shifted slightly to balance evenly on one hip."
+  },
+  {
+    "id": 466,
+    "key": "pose_arm_rest_side",
+    "title": "One arm resting softly at the side, posture composed."
+  },
+  {
+    "id": 467,
+    "key": "pose_half_turn_direct",
+    "title": "Half turn toward camera with direct, steady expression."
+  },
+  {
+    "id": 468,
+    "key": "pose_elbows_loose_forward",
+    "title": "Elbows angled softly forward with neutral stance."
+  },
+  {
+    "id": 469,
+    "key": "pose_profile_soft_shadow",
+    "title": "Profile stance with head tilted into soft shadow."
+  },
+  {
+    "id": 470,
+    "key": "pose_forward_calm_contact",
+    "title": "Standing forward with calm, unbroken eye contact."
+  },
+  {
+    "id": 471,
+    "key": "pose_leg_cross_ankles",
+    "title": "Legs crossed gently at the ankles with balanced frame."
+  },
+  {
+    "id": 472,
+    "key": "pose_neck_extended_long",
+    "title": "Neck extended long, chin aligned neutral, calm posture."
+  },
+  {
+    "id": 473,
+    "key": "pose_wrists_linked_low",
+    "title": "Wrists loosely linked together near waistline."
+  },
+  {
+    "id": 474,
+    "key": "pose_head_tilt_forward",
+    "title": "Head tilted gently forward with soft focus gaze."
+  },
+  {
+    "id": 475,
+    "key": "pose_spine_soft_sway",
+    "title": "Spine with a subtle sway, arms neutral and free."
+  },
+  {
+    "id": 476,
+    "key": "pose_step_forward_even",
+    "title": "Step forward evenly with shoulders aligned straight."
+  },
+  {
+    "id": 477,
+    "key": "pose_micro_twist_calm",
+    "title": "Micro torso twist with calm neutral expression."
+  },
+  {
+    "id": 478,
+    "key": "pose_forward_soft_smile",
+    "title": "Facing forward with a subtle, approachable smile."
+  },
+  {
+    "id": 479,
+    "key": "pose_half_profile_chin_high",
+    "title": "Half profile angle with chin raised slightly higher."
+  },
+  {
+    "id": 480,
+    "key": "pose_elbows_back_relaxed",
+    "title": "Elbows resting softly back, opening the chest area."
+  },
+  {
+    "id": 481,
+    "key": "pose_small_step_sideways",
+    "title": "A small step taken sideways with composed stance."
+  },
+  {
+    "id": 482,
+    "key": "pose_chin_forward_shadow_line",
+    "title": "Chin projected forward to highlight jawline shadow."
+  },
+  {
+    "id": 483,
+    "key": "pose_arms_loose_centerline",
+    "title": "Arms resting loosely along the centerline of body."
+  },
+  {
+    "id": 484,
+    "key": "pose_profile_downcast",
+    "title": "Profile stance with eyes cast gently downward."
+  },
+  {
+    "id": 485,
+    "key": "pose_step_cross_back",
+    "title": "One foot stepping slightly behind the other, balanced."
+  },
+  {
+    "id": 486,
+    "key": "pose_spine_extended_tall",
+    "title": "Spine extended tall with serene, composed expression."
+  },
+  {
+    "id": 487,
+    "key": "pose_head_turn_soft_side",
+    "title": "Head turned softly to one side, eyes calm."
+  },
+  {
+    "id": 488,
+    "key": "pose_neutral_even_balance",
+    "title": "Standing neutrally with even balance and natural stance."
+  },
+  {
+    "id": 489,
+    "key": "pose_forward_calm_presence",
+    "title": "Standing forward with calm presence, arms resting naturally."
+  },
+  {
+    "id": 490,
+    "key": "pose_three_quarter_direct",
+    "title": "Three-quarter stance with direct gaze and steady posture."
+  },
+  {
+    "id": 491,
+    "key": "pose_profile_head_soft",
+    "title": "Profile stance with head tilted softly downward."
+  },
+  {
+    "id": 492,
+    "key": "pose_step_forward_relaxed",
+    "title": "Step forward casually with arms hanging loose."
+  },
+  {
+    "id": 493,
+    "key": "pose_chin_high_neutral",
+    "title": "Chin lifted neutrally, posture tall and even."
+  },
+  {
+    "id": 494,
+    "key": "pose_spine_curved_soft",
+    "title": "Spine with a soft curve, shoulders eased downward."
+  },
+  {
+    "id": 495,
+    "key": "pose_leg_cross_front_balance",
+    "title": "One leg crossing slightly in front, balance maintained."
+  },
+  {
+    "id": 496,
+    "key": "pose_elbows_loose_back",
+    "title": "Elbows angled softly behind torso with open chest."
+  },
+  {
+    "id": 497,
+    "key": "pose_half_turn_soft_contact",
+    "title": "Half turn toward camera with soft eye contact."
+  },
+  {
+    "id": 498,
+    "key": "pose_profile_chin_forward",
+    "title": "Profile stance with chin projected forward subtly."
+  },
+  {
+    "id": 499,
+    "key": "pose_forward_micro_smile",
+    "title": "Facing forward with a very faint micro smile."
+  },
+  {
+    "id": 500,
+    "key": "pose_neutral_final_balance",
+    "title": "Neutral final pose with evenly balanced weight and calm demeanor."
+  }
+]

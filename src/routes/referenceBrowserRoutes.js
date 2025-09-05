@@ -1274,14 +1274,16 @@ Only one single final image must be generated — no collages, no split frames, 
       ${
         isMultipleProducts
           ? `
-      🛍️ MULTIPLE PRODUCTS COLOR CHANGE: The reference image contains MULTIPLE GARMENTS/PRODUCTS. When changing the color to ${targetColor}, you MUST specify which product(s) to change and ensure ALL products remain properly coordinated as an ensemble.
+      🛍️ MULTIPLE PRODUCTS COLOR CHANGE: You are receiving MULTIPLE SEPARATE REFERENCE IMAGES, each showing a different garment/product. When changing the color to ${targetColor}, you MUST analyze ALL reference images, specify which product(s) to change and ensure ALL products remain properly coordinated as an ensemble.
 
       CRITICAL MULTIPLE PRODUCTS COLOR REQUIREMENTS:
-      - IDENTIFY ALL distinct garments/products in the reference image
+      - ANALYZE ALL the reference images provided - each image shows a different garment/product
+      - IDENTIFY ALL distinct garments/products across ALL reference images
       - SPECIFY which product(s) should change to ${targetColor}
       - ENSURE the color change maintains overall ensemble coordination
       - PRESERVE the original colors and design of products not being changed
       - MAINTAIN proper color harmony between all products in the outfit
+      - REMEMBER: Each reference image shows a separate item - consider them together as one outfit
       `
           : ""
       }
@@ -1417,12 +1419,14 @@ Only one single final image must be generated — no collages, no split frames, 
       ${
         isMultipleProducts
           ? `
-      🛍️ MULTIPLE PRODUCTS BACK SIDE MODE: The reference image contains MULTIPLE GARMENTS/PRODUCTS with both front and back views. You MUST analyze and describe ALL products visible from both angles and coordinate them properly as an ensemble.
+      🛍️ MULTIPLE PRODUCTS BACK SIDE MODE: You are receiving MULTIPLE SEPARATE REFERENCE IMAGES showing different garments/products with both front and back views. You MUST analyze and describe ALL products visible across all reference images from both angles and coordinate them properly as an ensemble.
 
       CRITICAL MULTIPLE PRODUCTS BACK SIDE REQUIREMENTS:
-      - ANALYZE each product from both front AND back angles
+      - ANALYZE ALL the reference images provided - each may show different garments/products
+      - ANALYZE each product from both front AND back angles across all reference images
       - DESCRIBE how all products coordinate together from all viewing angles
       - ENSURE proper layering and fit from both front and back perspectives
+      - REMEMBER: Each reference image shows separate items - combine them intelligently
       `
           : ""
       }
@@ -1492,15 +1496,17 @@ Only one single final image must be generated — no collages, no split frames, 
       ${
         isMultipleProducts
           ? `
-      🛍️ MULTIPLE PRODUCTS MODE: The reference image contains MULTIPLE GARMENTS/PRODUCTS that form a complete outfit/ensemble. You MUST mention and describe ALL products visible in the reference image, not just one or two. Each product is equally important and must be properly described and fitted onto the ${modelGenderText}.
+      🛍️ MULTIPLE PRODUCTS MODE: You are receiving MULTIPLE SEPARATE REFERENCE IMAGES, each showing a different garment/product that together form a complete outfit/ensemble. You MUST analyze ALL the reference images provided and describe every single product visible across all images. Each product is equally important and must be properly described and fitted onto the ${modelGenderText}.
 
       CRITICAL MULTIPLE PRODUCTS REQUIREMENTS:
-      - ANALYZE the reference image carefully and COUNT how many distinct garments/products are present
-      - DESCRIBE each product individually with its specific design details, colors, patterns, and construction elements
-      - ENSURE that ALL products are mentioned in your prompt - do not skip any product
-      - COORDINATE how all products work together as a complete ensemble
+      - ANALYZE ALL the reference images provided - each image shows a different garment/product
+      - COUNT how many distinct garments/products are present across ALL reference images
+      - DESCRIBE each product individually with its specific design details, colors, patterns, and construction elements from their respective reference images
+      - ENSURE that ALL products from ALL reference images are mentioned in your prompt - do not skip any product
+      - COORDINATE how all products work together as a complete ensemble when worn together
       - SPECIFY the proper layering, positioning, and interaction between products
       - MAINTAIN the original design of each individual product while showing them as a coordinated outfit
+      - REMEMBER: Each reference image shows a separate item - combine them intelligently into one cohesive outfit
       `
           : ""
       }
@@ -1602,7 +1608,7 @@ Only one single final image must be generated — no collages, no split frames, 
     // Resim verilerini içerecek parts dizisini hazırla
     const parts = [{ text: promptForGemini }];
 
-    // Back side analysis modunda 2 resim gönder, normal modda 1 resim gönder
+    // Multi-mode resim gönderimi: Back side analysis, Multiple products, veya Normal mod
     if (isBackSideAnalysis && referenceImages && referenceImages.length >= 2) {
       console.log(
         "🔄 [BACK_SIDE] Gemini'ye 2 resim gönderiliyor (ön + arka)..."
@@ -1666,6 +1672,54 @@ Only one single final image must be generated — no collages, no split frames, 
       } catch (imageError) {
         console.error(
           `🔄 [BACK_SIDE] Resim yüklenirken hata: ${imageError.message}`
+        );
+      }
+    } else if (
+      isMultipleProducts &&
+      referenceImages &&
+      referenceImages.length > 1
+    ) {
+      // Multi-product mode: Tüm referans resimleri gönder
+      console.log(
+        `🛍️ [MULTI-PRODUCT] Gemini'ye ${referenceImages.length} adet referans resmi gönderiliyor...`
+      );
+
+      try {
+        for (let i = 0; i < referenceImages.length; i++) {
+          const referenceImage = referenceImages[i];
+          const imageUrl = referenceImage.uri || referenceImage;
+
+          console.log(
+            `🛍️ [MULTI-PRODUCT] ${
+              i + 1
+            }. resim Gemini'ye gönderiliyor: ${imageUrl}`
+          );
+
+          const imageResponse = await axios.get(imageUrl, {
+            responseType: "arraybuffer",
+            timeout: 15000,
+          });
+          const imageBuffer = imageResponse.data;
+          const base64Image = Buffer.from(imageBuffer).toString("base64");
+
+          parts.push({
+            inlineData: {
+              mimeType: "image/jpeg",
+              data: base64Image,
+            },
+          });
+
+          console.log(
+            `🛍️ [MULTI-PRODUCT] ${i + 1}. resim başarıyla Gemini'ye eklendi`
+          );
+        }
+
+        console.log(
+          `🛍️ [MULTI-PRODUCT] Toplam ${referenceImages.length} adet referans resmi Gemini'ye gönderildi`
+        );
+      } catch (imageError) {
+        console.error(
+          `🛍️ [MULTI-PRODUCT] Referans resimleri yüklenirken hata: ${imageError.message}`
         );
       }
     } else {
@@ -3933,7 +3987,9 @@ router.post("/generate", async (req, res) => {
           null, // customDetail
           false, // isEditMode
           null, // editPrompt
-          isRefinerMode // isRefinerMode - yeni parametre
+          isRefinerMode, // isRefinerMode - yeni parametre
+          req.body.isBackSideAnalysis || false, // Arka taraf analizi modu mu?
+          referenceImages // Multi-product için tüm referans resimler
         );
       } else if (isPoseChange) {
         console.log(
@@ -3982,7 +4038,7 @@ router.post("/generate", async (req, res) => {
           editPrompt, // editPrompt
           false, // isRefinerMode
           req.body.isBackSideAnalysis || false, // Arka taraf analizi modu mu?
-          req.body.referenceImages // Back side analysis için 2 resim
+          referenceImages // Multi-product için tüm referans resimler
         );
       }
       backgroundRemovedImage = finalImage; // Orijinal image'ı kullan, arkaplan silme yok
@@ -4029,7 +4085,7 @@ router.post("/generate", async (req, res) => {
         editPrompt, // EditScreen'den gelen prompt
         isRefinerMode, // RefinerScreen modu mu?
         req.body.isBackSideAnalysis || false, // Arka taraf analizi modu mu?
-        req.body.referenceImages // Back side analysis için 2 resim
+        referenceImages // Multi-product için tüm referans resimler
       );
 
       // ⏳ Sadece Gemini prompt iyileştirme bekle

@@ -1,0 +1,878 @@
+🚀 man pose'ları işleniyor...
+📊 Toplam 500 pose bulundu
+
+🔄 [1/500] İşleniyor: pose_arms_crossed_confident
+📝 Title: Arms crossed over the chest, exuding confidence.
+🔄 pose_arms_crossed_confident için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: f86fdcm0w5rme0cs2x5r8ad44c
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: f86fdcm0w5rme0cs2x5r8ad44c
+Polling attempt 1: status = starting
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = processing
+Polling attempt 6: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/LKpYavQKfVTaJSocVDNZveUcAiHwDGRuFfwOASJV0ylSQ8jqA/tmpgvem5lmx.png
+📤 pose_arms_crossed_confident Supabase'e yükleniyor...
+📤 pose_arms_crossed_confident Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/LKpYavQKfVTaJSocVDNZveUcAiHwDGRuFfwOASJV0ylSQ8jqA/tmpgvem5lmx.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1103393 bytes
+❌ Supabase yükleme hatası: {
+  statusCode: '403',
+  error: 'Unauthorized',
+  message: 'new row violates row-level security policy'
+}
+
+🔧 RLS HATASI ÇÖZÜMÜ:
+Supabase'de 'new_poses' bucket için Row Level Security (RLS) politikası eksik.
+
+Çözüm:
+1. Supabase Dashboard'a git
+2. Storage -> new_poses bucket -> Policies
+3. Aşağıdaki INSERT politikasını ekle:
+
+Name: Allow file uploads
+Definition: true
+Operation: INSERT
+
+Veya SQL ile:
+CREATE POLICY "Allow file uploads" ON storage.objects
+FOR INSERT WITH CHECK (bucket_id = 'new_poses');
+        
+❌ Supabase yükleme hatası: new row violates row-level security policy
+❌ pose_arms_crossed_confident işlenirken hata: new row violates row-level security policy
+⏭️ pose_arms_crossed_confident RLS hatası nedeniyle atlanıyor, sonraki pose'a geçiliyor...
+
+🔄 [2/500] İşleniyor: pose_hands_in_pockets_relaxed
+📝 Title: Hands in pockets, standing relaxed and confident.
+🔄 pose_hands_in_pockets_relaxed için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+❌ Nano Banana API hatası (Deneme 1/3): fetch failed
+🔄 Diğer hata, retry yapılıyor... (1/3)
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 2/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: dkz765zj8hrma0cs2x5v9ehtkc
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: dkz765zj8hrma0cs2x5v9ehtkc
+Polling attempt 1: status = starting
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = processing
+Polling attempt 6: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/V5YgDjfKCQxaOiSLjfnB3SWYUeGqVEvtfg0OevaxPtV4ExPqC/tmpqxlnedu5.png
+📤 pose_hands_in_pockets_relaxed Supabase'e yükleniyor...
+📤 pose_hands_in_pockets_relaxed Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/V5YgDjfKCQxaOiSLjfnB3SWYUeGqVEvtfg0OevaxPtV4ExPqC/tmpqxlnedu5.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1040948 bytes
+✅ pose_hands_in_pockets_relaxed Supabase'e yüklendi
+💾 pose_hands_in_pockets_relaxed JSON'a ekleniyor...
+✅ JSON güncellendi: pose_hands_in_pockets_relaxed -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hands_in_pockets_relaxed.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_hands_in_pockets_relaxed başarıyla tamamlandı!
+
+🔄 [3/500] İşleniyor: pose_one_hand_on_chin_thoughtful
+📝 Title: One hand on the chin, with a thoughtful expression.
+🔄 pose_one_hand_on_chin_thoughtful için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: d5fa62j8psrm80cs2x6bg80mym
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: d5fa62j8psrm80cs2x6bg80mym
+Polling attempt 1: status = starting
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/eTAl5TbNVJRhFStuPxjhUJw21q1XzrrgWeVVPQAYmgV8IejqA/tmp2sez8dmg.png
+📤 pose_one_hand_on_chin_thoughtful Supabase'e yükleniyor...
+📤 pose_one_hand_on_chin_thoughtful Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/eTAl5TbNVJRhFStuPxjhUJw21q1XzrrgWeVVPQAYmgV8IejqA/tmp2sez8dmg.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1096089 bytes
+✅ pose_one_hand_on_chin_thoughtful Supabase'e yüklendi
+💾 pose_one_hand_on_chin_thoughtful JSON'a ekleniyor...
+✅ JSON güncellendi: pose_one_hand_on_chin_thoughtful -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_one_hand_on_chin_thoughtful.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_one_hand_on_chin_thoughtful başarıyla tamamlandı!
+
+🔄 [4/500] İşleniyor: pose_leaning_against_wall_casual
+📝 Title: Leaning against a wall, standing casually.
+🔄 pose_leaning_against_wall_casual için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: v1np2753zxrme0cs2x6b6m51mg
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: v1np2753zxrme0cs2x6b6m51mg
+Polling attempt 1: status = processing
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = processing
+Polling attempt 6: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/kHBO4OWS1c6HDtlqmEURtWNWM5HolB18fxJHirsxcfHWJejqA/tmpv5v123pc.png
+📤 pose_leaning_against_wall_casual Supabase'e yükleniyor...
+📤 pose_leaning_against_wall_casual Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/kHBO4OWS1c6HDtlqmEURtWNWM5HolB18fxJHirsxcfHWJejqA/tmpv5v123pc.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1057913 bytes
+✅ pose_leaning_against_wall_casual Supabase'e yüklendi
+💾 pose_leaning_against_wall_casual JSON'a ekleniyor...
+✅ JSON güncellendi: pose_leaning_against_wall_casual -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_leaning_against_wall_casual.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_leaning_against_wall_casual başarıyla tamamlandı!
+
+🔄 [5/500] İşleniyor: pose_hands_on_hips_powerful
+📝 Title: Hands on hips, standing strong and determined.
+🔄 pose_hands_on_hips_powerful için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: 1b88dmfj2nrm80cs2x6bysdvww
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: 1b88dmfj2nrm80cs2x6bysdvww
+Polling attempt 1: status = starting
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = processing
+Polling attempt 6: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/4f9UBXyYUdweV0ZbTvB8ZYhiB5Ee9WIYn6yXd3GDKpGST8jqA/tmpxmc5l7m9.png
+📤 pose_hands_on_hips_powerful Supabase'e yükleniyor...
+📤 pose_hands_on_hips_powerful Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/4f9UBXyYUdweV0ZbTvB8ZYhiB5Ee9WIYn6yXd3GDKpGST8jqA/tmpxmc5l7m9.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1211308 bytes
+✅ pose_hands_on_hips_powerful Supabase'e yüklendi
+💾 pose_hands_on_hips_powerful JSON'a ekleniyor...
+✅ JSON güncellendi: pose_hands_on_hips_powerful -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hands_on_hips_powerful.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_hands_on_hips_powerful başarıyla tamamlandı!
+
+🔄 [6/500] İşleniyor: pose_sitting_hands_on_knees
+📝 Title: Sitting with hands on knees, in a formal yet relaxed pose.
+🔄 pose_sitting_hands_on_knees için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: 75qg9ga2ehrme0cs2x6tqandfg
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: 75qg9ga2ehrme0cs2x6tqandfg
+Polling attempt 1: status = starting
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = processing
+Polling attempt 6: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/Yroe2Nx6fZvogk4ueF240DTxXx3FdrFE3xhKkTQy5sR6T8jqA/tmpm7x4jzwd.png
+📤 pose_sitting_hands_on_knees Supabase'e yükleniyor...
+📤 pose_sitting_hands_on_knees Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/Yroe2Nx6fZvogk4ueF240DTxXx3FdrFE3xhKkTQy5sR6T8jqA/tmpm7x4jzwd.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1372145 bytes
+✅ pose_sitting_hands_on_knees Supabase'e yüklendi
+💾 pose_sitting_hands_on_knees JSON'a ekleniyor...
+✅ JSON güncellendi: pose_sitting_hands_on_knees -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_sitting_hands_on_knees.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_sitting_hands_on_knees başarıyla tamamlandı!
+
+🔄 [7/500] İşleniyor: pose_pointing_forward_direct
+📝 Title: Pointing forward with a determined expression.
+🔄 pose_pointing_forward_direct için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: 4ygk58md8nrmc0cs2x6snyer9w
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: 4ygk58md8nrmc0cs2x6snyer9w
+Polling attempt 1: status = starting
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = processing
+Polling attempt 6: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/nZVNFJCKtZLmB5zyDWioxTBbfp6QoKzqhYg9dbTi47eQKejqA/tmpj51_z5vy.png
+📤 pose_pointing_forward_direct Supabase'e yükleniyor...
+📤 pose_pointing_forward_direct Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/nZVNFJCKtZLmB5zyDWioxTBbfp6QoKzqhYg9dbTi47eQKejqA/tmpj51_z5vy.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1094978 bytes
+✅ pose_pointing_forward_direct Supabase'e yüklendi
+💾 pose_pointing_forward_direct JSON'a ekleniyor...
+✅ JSON güncellendi: pose_pointing_forward_direct -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_pointing_forward_direct.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_pointing_forward_direct başarıyla tamamlandı!
+
+🔄 [8/500] İşleniyor: pose_running_pose_active
+📝 Title: One leg forward, ready to run, in an active stance.
+🔄 pose_running_pose_active için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: v5r2yhpxr5rm80cs2x6srrr6gr
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: v5r2yhpxr5rm80cs2x6srrr6gr
+Polling attempt 1: status = starting
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = processing
+Polling attempt 6: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/pDbs24UI4mr7O1z2owVHbGKLgI8IRKPAygrj2yn2SzopifoKA/tmp4fdh_omj.png
+📤 pose_running_pose_active Supabase'e yükleniyor...
+📤 pose_running_pose_active Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/pDbs24UI4mr7O1z2owVHbGKLgI8IRKPAygrj2yn2SzopifoKA/tmp4fdh_omj.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1144708 bytes
+✅ pose_running_pose_active Supabase'e yüklendi
+💾 pose_running_pose_active JSON'a ekleniyor...
+✅ JSON güncellendi: pose_running_pose_active -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_running_pose_active.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_running_pose_active başarıyla tamamlandı!
+
+🔄 [9/500] İşleniyor: pose_hand_behind_neck_shy
+📝 Title: One hand behind the neck, with a slightly shy or hesitant look.
+🔄 pose_hand_behind_neck_shy için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: 6mhpej9rw1rma0cs2x792ks86g
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: 6mhpej9rw1rma0cs2x792ks86g
+Polling attempt 1: status = starting
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = processing
+Polling attempt 6: status = processing
+Polling attempt 7: status = processing
+Polling attempt 8: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/OZCDbMmt0UqaJ91uICf0VSkl4eoW8ea9pODh8xdgXsICW8jqA/tmpxsr171ao.png
+📤 pose_hand_behind_neck_shy Supabase'e yükleniyor...
+📤 pose_hand_behind_neck_shy Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/OZCDbMmt0UqaJ91uICf0VSkl4eoW8ea9pODh8xdgXsICW8jqA/tmpxsr171ao.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1079774 bytes
+✅ pose_hand_behind_neck_shy Supabase'e yüklendi
+💾 pose_hand_behind_neck_shy JSON'a ekleniyor...
+✅ JSON güncellendi: pose_hand_behind_neck_shy -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_behind_neck_shy.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_hand_behind_neck_shy başarıyla tamamlandı!
+
+🔄 [10/500] İşleniyor: pose_waving_hand_friendly
+📝 Title: Waving hand in a friendly greeting.
+🔄 pose_waving_hand_friendly için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: mqgddmp17hrme0cs2x7aftfm4w
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: mqgddmp17hrme0cs2x7aftfm4w
+Polling attempt 1: status = processing
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = processing
+Polling attempt 6: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/LefrqQA19ThG4kzUpUhbSffRz2yTLrEh4dJDEdq1fLeC4ifoKA/tmpze4fefol.png
+📤 pose_waving_hand_friendly Supabase'e yükleniyor...
+📤 pose_waving_hand_friendly Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/LefrqQA19ThG4kzUpUhbSffRz2yTLrEh4dJDEdq1fLeC4ifoKA/tmpze4fefol.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1139701 bytes
+✅ pose_waving_hand_friendly Supabase'e yüklendi
+💾 pose_waving_hand_friendly JSON'a ekleniyor...
+✅ JSON güncellendi: pose_waving_hand_friendly -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_waving_hand_friendly.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_waving_hand_friendly başarıyla tamamlandı!
+
+🔄 [11/500] İşleniyor: pose_thumbs_up_approving
+📝 Title: Giving a thumbs-up, with an approving expression.
+🔄 pose_thumbs_up_approving için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: mf8mv1gnndrm80cs2x7syxxnvg
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: mf8mv1gnndrm80cs2x7syxxnvg
+Polling attempt 1: status = starting
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = processing
+Polling attempt 6: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/ztrZWakLS64rNpJSnQdrR7eAW1eT1CmHW4Zv4ftfp8mZv4HVB/tmpxbee_tyn.png
+📤 pose_thumbs_up_approving Supabase'e yükleniyor...
+📤 pose_thumbs_up_approving Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/ztrZWakLS64rNpJSnQdrR7eAW1eT1CmHW4Zv4ftfp8mZv4HVB/tmpxbee_tyn.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1165212 bytes
+✅ pose_thumbs_up_approving Supabase'e yüklendi
+💾 pose_thumbs_up_approving JSON'a ekleniyor...
+✅ JSON güncellendi: pose_thumbs_up_approving -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_thumbs_up_approving.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_thumbs_up_approving başarıyla tamamlandı!
+
+🔄 [12/500] İşleniyor: pose_arms_stretched_open_welcome
+📝 Title: Arms stretched wide open, offering a warm welcome.
+🔄 pose_arms_stretched_open_welcome için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: 10n19av3nsrm80cs2x7tz8j5xw
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: 10n19av3nsrm80cs2x7tz8j5xw
+Polling attempt 1: status = starting
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = processing
+Polling attempt 6: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/rvOwPeYZZx1CTiwxnVrgFxXS3Tsi6I0sHfGcqqdTGWpJMejqA/tmp_8yh6o1m.png
+📤 pose_arms_stretched_open_welcome Supabase'e yükleniyor...
+📤 pose_arms_stretched_open_welcome Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/rvOwPeYZZx1CTiwxnVrgFxXS3Tsi6I0sHfGcqqdTGWpJMejqA/tmp_8yh6o1m.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 957943 bytes
+✅ pose_arms_stretched_open_welcome Supabase'e yüklendi
+💾 pose_arms_stretched_open_welcome JSON'a ekleniyor...
+✅ JSON güncellendi: pose_arms_stretched_open_welcome -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_arms_stretched_open_welcome.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_arms_stretched_open_welcome başarıyla tamamlandı!
+
+🔄 [13/500] İşleniyor: pose_hand_on_chest_honest
+📝 Title: Hand on the chest, with a sincere and honest expression.
+🔄 pose_hand_on_chest_honest için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: y75h3rq0c1rme0cs2x7th23974
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: y75h3rq0c1rme0cs2x7th23974
+Polling attempt 1: status = processing
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/qx9GfaLFyE1FeUyWq0xf8BNCwVdMzQLmiq0A2Dgc4pegy4HVB/tmphngyg2iz.png
+📤 pose_hand_on_chest_honest Supabase'e yükleniyor...
+📤 pose_hand_on_chest_honest Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/qx9GfaLFyE1FeUyWq0xf8BNCwVdMzQLmiq0A2Dgc4pegy4HVB/tmphngyg2iz.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1148732 bytes
+✅ pose_hand_on_chest_honest Supabase'e yüklendi
+💾 pose_hand_on_chest_honest JSON'a ekleniyor...
+✅ JSON güncellendi: pose_hand_on_chest_honest -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_on_chest_honest.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_hand_on_chest_honest başarıyla tamamlandı!
+
+🔄 [14/500] İşleniyor: pose_fingers_snapping_playful
+📝 Title: Snapping fingers in a playful pose.
+🔄 pose_fingers_snapping_playful için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: zq9y0xhdk9rma0cs2x8ajsxmyc
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: zq9y0xhdk9rma0cs2x8ajsxmyc
+Polling attempt 1: status = processing
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = processing
+Polling attempt 6: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/BQx3NMtAdJ7JIFOcJpIQauoMiIsIRQoqVPNR8YN6uOIPjfoKA/tmpyxzsnc4w.png
+📤 pose_fingers_snapping_playful Supabase'e yükleniyor...
+📤 pose_fingers_snapping_playful Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/BQx3NMtAdJ7JIFOcJpIQauoMiIsIRQoqVPNR8YN6uOIPjfoKA/tmpyxzsnc4w.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1024759 bytes
+✅ pose_fingers_snapping_playful Supabase'e yüklendi
+💾 pose_fingers_snapping_playful JSON'a ekleniyor...
+✅ JSON güncellendi: pose_fingers_snapping_playful -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_fingers_snapping_playful.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_fingers_snapping_playful başarıyla tamamlandı!
+
+🔄 [15/500] İşleniyor: pose_kneeling_on_one_knee
+📝 Title: Kneeling on one knee, in a serious or proposing stance.
+🔄 pose_kneeling_on_one_knee için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: 6w0y11kwwnrmc0cs2x8b8emyv8
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: 6w0y11kwwnrmc0cs2x8b8emyv8
+Polling attempt 1: status = starting
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = processing
+Polling attempt 6: status = processing
+Polling attempt 7: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/iekyVQZ0fYsTnUeVKR8nLeWNdKiJzvonR8pI5uq4pKaI14HVB/tmp2ir3yli8.png
+📤 pose_kneeling_on_one_knee Supabase'e yükleniyor...
+📤 pose_kneeling_on_one_knee Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/iekyVQZ0fYsTnUeVKR8nLeWNdKiJzvonR8pI5uq4pKaI14HVB/tmp2ir3yli8.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1303692 bytes
+✅ pose_kneeling_on_one_knee Supabase'e yüklendi
+💾 pose_kneeling_on_one_knee JSON'a ekleniyor...
+✅ JSON güncellendi: pose_kneeling_on_one_knee -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_kneeling_on_one_knee.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_kneeling_on_one_knee başarıyla tamamlandı!
+
+🔄 [16/500] İşleniyor: pose_arms_up_flexing_muscles
+📝 Title: Arms raised, flexing muscles, showing strength.
+🔄 pose_arms_up_flexing_muscles için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+❌ Nano Banana API hatası (Deneme 1/3): API hatası: 502 - <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+</body>
+</html>
+
+🔄 Diğer hata, retry yapılıyor... (1/3)
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 2/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: ta9ghkh9p9rme0cs2x8rfekync
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: ta9ghkh9p9rme0cs2x8rfekync
+Polling attempt 1: status = processing
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = failed
+Replicate işlemi başarısız: The input or output was flagged as sensitive. Please try again with different inputs. (E005)
+⚠️ Sensitive content hatası, sonraki pose'a geçiliyor: The input or output was flagged as sensitive. Please try again with different inputs. (E005)
+Polling attempt 4 hatası: SKIP_POSE: The input or output was flagged as sensitive. Please try again with different inputs. (E005)
+❌ Nano Banana API hatası (Deneme 2/3): SKIP_POSE: The input or output was flagged as sensitive. Please try again with different inputs. (E005)
+🔄 Diğer hata, retry yapılıyor... (2/3)
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 3/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: ym83szve85rme0cs2x8r8hww8c
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: ym83szve85rme0cs2x8r8hww8c
+Polling attempt 1: status = starting
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/3x0dDskvvBLeRKj2fXAig0zcRj0zxxjKxcWFsGUm9RBNOejqA/tmp8h6tp5c_.png
+📤 pose_arms_up_flexing_muscles Supabase'e yükleniyor...
+📤 pose_arms_up_flexing_muscles Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/3x0dDskvvBLeRKj2fXAig0zcRj0zxxjKxcWFsGUm9RBNOejqA/tmp8h6tp5c_.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1248925 bytes
+✅ pose_arms_up_flexing_muscles Supabase'e yüklendi
+💾 pose_arms_up_flexing_muscles JSON'a ekleniyor...
+✅ JSON güncellendi: pose_arms_up_flexing_muscles -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_arms_up_flexing_muscles.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_arms_up_flexing_muscles başarıyla tamamlandı!
+
+🔄 [17/500] İşleniyor: pose_sitting_back_in_chair
+📝 Title: Sitting back in a chair, looking relaxed and confident.
+🔄 pose_sitting_back_in_chair için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: kja9qtnpdxrma0cs2x8s4941c4
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: kja9qtnpdxrma0cs2x8s4941c4
+Polling attempt 1: status = processing
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = processing
+Polling attempt 6: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/9ugkyUP7JeznB6N3Nf1iD1dysRvZ7Li1POCL8NgC9hShOejqA/tmpsm2u82gk.png
+📤 pose_sitting_back_in_chair Supabase'e yükleniyor...
+📤 pose_sitting_back_in_chair Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/9ugkyUP7JeznB6N3Nf1iD1dysRvZ7Li1POCL8NgC9hShOejqA/tmpsm2u82gk.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 975662 bytes
+✅ pose_sitting_back_in_chair Supabase'e yüklendi
+💾 pose_sitting_back_in_chair JSON'a ekleniyor...
+✅ JSON güncellendi: pose_sitting_back_in_chair -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_sitting_back_in_chair.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_sitting_back_in_chair başarıyla tamamlandı!
+
+🔄 [18/500] İşleniyor: pose_leaning_forward_interested
+📝 Title: Leaning forward, with a look of interest and attentiveness.
+🔄 pose_leaning_forward_interested için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: whg2swra4xrm80cs2x99kb8hm0
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: whg2swra4xrm80cs2x99kb8hm0
+Polling attempt 1: status = starting
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = processing
+Polling attempt 6: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/iXu3sf3NVrSbdqlmSeRONc0bnH6sAANLNOeqHcZIae8Z74HVB/tmpv6mrwxoi.png
+📤 pose_leaning_forward_interested Supabase'e yükleniyor...
+📤 pose_leaning_forward_interested Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/iXu3sf3NVrSbdqlmSeRONc0bnH6sAANLNOeqHcZIae8Z74HVB/tmpv6mrwxoi.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1288481 bytes
+✅ pose_leaning_forward_interested Supabase'e yüklendi
+💾 pose_leaning_forward_interested JSON'a ekleniyor...
+✅ JSON güncellendi: pose_leaning_forward_interested -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_leaning_forward_interested.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_leaning_forward_interested başarıyla tamamlandı!
+
+🔄 [19/500] İşleniyor: pose_hand_out_stop_gesture
+📝 Title: Hand extended forward in a 'stop' gesture.
+🔄 pose_hand_out_stop_gesture için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: 5355b5b195rmc0cs2x9ak9z6q0
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: 5355b5b195rmc0cs2x9ak9z6q0
+Polling attempt 1: status = starting
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = processing
+Polling attempt 6: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/tHvrNUAaYEokHtoNVK6JzcPkBxNL7cerat7zj2gSeuBMPejqA/tmpksb5mb_r.png
+📤 pose_hand_out_stop_gesture Supabase'e yükleniyor...
+📤 pose_hand_out_stop_gesture Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/tHvrNUAaYEokHtoNVK6JzcPkBxNL7cerat7zj2gSeuBMPejqA/tmpksb5mb_r.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1145688 bytes
+✅ pose_hand_out_stop_gesture Supabase'e yüklendi
+💾 pose_hand_out_stop_gesture JSON'a ekleniyor...
+✅ JSON güncellendi: pose_hand_out_stop_gesture -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_out_stop_gesture.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_hand_out_stop_gesture başarıyla tamamlandı!
+
+🔄 [20/500] İşleniyor: pose_side_profile_serious
+📝 Title: Side profile with a serious and thoughtful look.
+🔄 pose_side_profile_serious için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: rrd16mxjt1rma0cs2x9a8mwx4g
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: rrd16mxjt1rma0cs2x9a8mwx4g
+Polling attempt 1: status = processing
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/6joWI72ertSVWqbMTfFfqr1itZVA2byhV0oNdY0zODjBf4HVB/tmp0sw0p3z4.png
+📤 pose_side_profile_serious Supabase'e yükleniyor...
+📤 pose_side_profile_serious Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/6joWI72ertSVWqbMTfFfqr1itZVA2byhV0oNdY0zODjBf4HVB/tmp0sw0p3z4.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1069782 bytes
+✅ pose_side_profile_serious Supabase'e yüklendi
+💾 pose_side_profile_serious JSON'a ekleniyor...
+✅ JSON güncellendi: pose_side_profile_serious -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_side_profile_serious.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_side_profile_serious başarıyla tamamlandı!
+
+🔄 [21/500] İşleniyor: pose_hands_clasped_formal
+📝 Title: Hands clasped in front, standing in a formal pose.
+🔄 pose_hands_clasped_formal için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: v3sv9szy3drme0cs2x99z55yfm
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: v3sv9szy3drme0cs2x99z55yfm
+Polling attempt 1: status = starting
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = processing
+Polling attempt 6: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/CJPE5So97BofaK2WjHyUkv0ygRvQcrutlTeOw5xY1WI1PejqA/tmpiote_vpw.png
+📤 pose_hands_clasped_formal Supabase'e yükleniyor...
+📤 pose_hands_clasped_formal Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/CJPE5So97BofaK2WjHyUkv0ygRvQcrutlTeOw5xY1WI1PejqA/tmpiote_vpw.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 970891 bytes
+✅ pose_hands_clasped_formal Supabase'e yüklendi
+💾 pose_hands_clasped_formal JSON'a ekleniyor...
+✅ JSON güncellendi: pose_hands_clasped_formal -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hands_clasped_formal.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_hands_clasped_formal başarıyla tamamlandı!
+
+🔄 [22/500] İşleniyor: pose_hand_in_hair_stressed
+📝 Title: Hand running through hair, with a stressed or pensive expression.
+🔄 pose_hand_in_hair_stressed için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: wdk92qtn2drmc0cs2x9rvz6wvw
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: wdk92qtn2drmc0cs2x9rvz6wvw
+Polling attempt 1: status = processing
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = processing
+Polling attempt 6: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/LSb2e1BVGnT5YyOXDwSDclibCzo2dHLNcCpExVQqVfFMQejqA/tmpdn_1i5ua.png
+📤 pose_hand_in_hair_stressed Supabase'e yükleniyor...
+📤 pose_hand_in_hair_stressed Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/LSb2e1BVGnT5YyOXDwSDclibCzo2dHLNcCpExVQqVfFMQejqA/tmpdn_1i5ua.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1189866 bytes
+✅ pose_hand_in_hair_stressed Supabase'e yüklendi
+💾 pose_hand_in_hair_stressed JSON'a ekleniyor...
+✅ JSON güncellendi: pose_hand_in_hair_stressed -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hand_in_hair_stressed.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_hand_in_hair_stressed başarıyla tamamlandı!
+
+🔄 [23/500] İşleniyor: pose_fist_pump_victorious
+📝 Title: Fist raised in the air in a victorious gesture.
+🔄 pose_fist_pump_victorious için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: 47bf77nk45rm80cs2x9tzpb7h0
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: 47bf77nk45rm80cs2x9tzpb7h0
+Polling attempt 1: status = starting
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = processing
+Polling attempt 6: status = processing
+Polling attempt 7: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/0QshWAOeTyUgeUyFQeuUmbKmnKWwHMnlmT9LxfInFORVC5HVB/tmppejmjg9h.png
+📤 pose_fist_pump_victorious Supabase'e yükleniyor...
+📤 pose_fist_pump_victorious Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/0QshWAOeTyUgeUyFQeuUmbKmnKWwHMnlmT9LxfInFORVC5HVB/tmppejmjg9h.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1090935 bytes
+✅ pose_fist_pump_victorious Supabase'e yüklendi
+💾 pose_fist_pump_victorious JSON'a ekleniyor...
+✅ JSON güncellendi: pose_fist_pump_victorious -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_fist_pump_victorious.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_fist_pump_victorious başarıyla tamamlandı!
+
+🔄 [24/500] İşleniyor: pose_sitting_cross_legged
+📝 Title: Sitting cross-legged on the ground, relaxed and natural.
+🔄 pose_sitting_cross_legged için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: c65zn7gzh5rma0cs2xabty05cm
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: c65zn7gzh5rma0cs2xabty05cm
+Polling attempt 1: status = starting
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/YxH5R5mZ6gqsERTcAwNZIJomYYHlNRMMNjtwQMPnqbRPkfoKA/tmp2jtmpvsj.png
+📤 pose_sitting_cross_legged Supabase'e yükleniyor...
+📤 pose_sitting_cross_legged Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/YxH5R5mZ6gqsERTcAwNZIJomYYHlNRMMNjtwQMPnqbRPkfoKA/tmp2jtmpvsj.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1327503 bytes
+✅ pose_sitting_cross_legged Supabase'e yüklendi
+💾 pose_sitting_cross_legged JSON'a ekleniyor...
+✅ JSON güncellendi: pose_sitting_cross_legged -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_sitting_cross_legged.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_sitting_cross_legged başarıyla tamamlandı!
+
+🔄 [25/500] İşleniyor: pose_leaning_on_table_talking
+📝 Title: Leaning on a table, talking or explaining something.
+🔄 pose_leaning_on_table_talking için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: trhhpabktsrmc0cs2xabff3m5c
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: trhhpabktsrmc0cs2xabff3m5c
+Polling attempt 1: status = starting
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/ORSb8rv6P6YPPleOegzJFWUqdLC0lFyNJGGynzCvpXuTRejqA/tmpw8rl5f1y.png
+📤 pose_leaning_on_table_talking Supabase'e yükleniyor...
+📤 pose_leaning_on_table_talking Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/ORSb8rv6P6YPPleOegzJFWUqdLC0lFyNJGGynzCvpXuTRejqA/tmpw8rl5f1y.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1320071 bytes
+✅ pose_leaning_on_table_talking Supabase'e yüklendi
+💾 pose_leaning_on_table_talking JSON'a ekleniyor...
+✅ JSON güncellendi: pose_leaning_on_table_talking -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_leaning_on_table_talking.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_leaning_on_table_talking başarıyla tamamlandı!
+
+🔄 [26/500] İşleniyor: pose_both_hands_on_head_shocked
+📝 Title: Both hands on the head, with a shocked expression.
+🔄 pose_both_hands_on_head_shocked için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: 3dfmrpy2rdrm80cs2xa9d2xta0
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: 3dfmrpy2rdrm80cs2xa9d2xta0
+Polling attempt 1: status = processing
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = processing
+Polling attempt 6: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/lVGTRe9jEA3IRqxTUKMOAWIFNtRFYsOdmOGExweiaJ1qRejqA/tmpsbd8cba8.png
+📤 pose_both_hands_on_head_shocked Supabase'e yükleniyor...
+📤 pose_both_hands_on_head_shocked Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/lVGTRe9jEA3IRqxTUKMOAWIFNtRFYsOdmOGExweiaJ1qRejqA/tmpsbd8cba8.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 1133563 bytes
+✅ pose_both_hands_on_head_shocked Supabase'e yüklendi
+💾 pose_both_hands_on_head_shocked JSON'a ekleniyor...
+✅ JSON güncellendi: pose_both_hands_on_head_shocked -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_both_hands_on_head_shocked.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_both_hands_on_head_shocked başarıyla tamamlandı!
+
+🔄 [27/500] İşleniyor: pose_hands_behind_back
+📝 Title: Hands clasped behind the back, standing formally and disciplined.
+🔄 pose_hands_behind_back için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: hreqcj0pg1rme0cs2xat5bnax0
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: hreqcj0pg1rme0cs2xat5bnax0
+Polling attempt 1: status = starting
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
+Polling attempt 5: status = succeeded
+Replicate işlemi başarıyla tamamlandı
+✅ Resim başarıyla oluşturuldu!
+🔗 Generated URL: https://replicate.delivery/xezq/3mquj7f83yxNQyr4gHUSgU3W2P3JgSLgIrmsFptobKCeRejqA/tmpqzgoh9yf.png
+📤 pose_hands_behind_back Supabase'e yükleniyor...
+📤 pose_hands_behind_back Supabase'e yükleniyor...
+🔗 Image URL: https://replicate.delivery/xezq/3mquj7f83yxNQyr4gHUSgU3W2P3JgSLgIrmsFptobKCeRejqA/tmpqzgoh9yf.png
+📥 Resim indiriliyor...
+📦 Resim boyutu: 941780 bytes
+✅ pose_hands_behind_back Supabase'e yüklendi
+💾 pose_hands_behind_back JSON'a ekleniyor...
+✅ JSON güncellendi: pose_hands_behind_back -> https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_hands_behind_back.png
+💾 JSON dosyası kaydedildi: /Users/soneradiyaman/Documents/GitHub/diress-project/server/lib/man_poses_new.json
+✅ pose_hands_behind_back başarıyla tamamlandı!
+
+🔄 [28/500] İşleniyor: pose_hand_on_chin_smiling
+📝 Title: Hand on chin, with a slight smile.
+🔄 pose_hand_on_chin_smiling için işlem başlatılıyor...
+🎨 man pose için Nano Banana'ya istek gönderiliyor... (Deneme 1/3)
+📝 Prompt: Generate a professional fashion photograph of a real male model.
+The model is wearing a solid white ...
+📡 API isteği gönderiliyor...
+📄 İlk yanıt alındı, prediction ID: qegy8vjz6srmc0cs2xarwp238w
+⏳ Durum: starting
+Replicate prediction polling başlatılıyor: qegy8vjz6srmc0cs2xarwp238w
+Polling attempt 1: status = starting
+Polling attempt 2: status = processing
+Polling attempt 3: status = processing
+Polling attempt 4: status = processing
