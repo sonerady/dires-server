@@ -2950,9 +2950,61 @@ async function combineImagesOnCanvas(
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    // Beyaz arka plan çiz
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    // Arka planı beyaz yerine ilk resmi (varsa) bulanıklaştırılmış haliyle doldur
+    if (loadedImages.length > 0) {
+      const backgroundImage = loadedImages[0];
+      const imgAspectRatio = backgroundImage.width / backgroundImage.height;
+      const canvasAspectRatio = canvas.width / canvas.height;
+
+      let sx, sy, sWidth, sHeight; // Source rectangle
+      let dx = 0,
+        dy = 0,
+        dWidth = canvas.width,
+        dHeight = canvas.height; // Destination rectangle
+
+      // Calculate source rectangle to cover the canvas
+      if (imgAspectRatio > canvasAspectRatio) {
+        // Image is wider than canvas, crop left/right
+        sHeight = backgroundImage.height;
+        sWidth = sHeight * canvasAspectRatio;
+        sx = (backgroundImage.width - sWidth) / 2;
+        sy = 0;
+      } else {
+        // Image is taller than canvas, crop top/bottom
+        sWidth = backgroundImage.width;
+        sHeight = sWidth / canvasAspectRatio;
+        sx = 0;
+        sy = (backgroundImage.height - sHeight) / 2;
+      }
+
+      ctx.drawImage(
+        backgroundImage,
+        sx,
+        sy,
+        sWidth,
+        sHeight,
+        dx,
+        dy,
+        dWidth,
+        dHeight
+      );
+
+      // Add blur effect
+      ctx.filter = "blur(10px)"; // Adjust blur amount as needed
+      ctx.drawImage(canvas, 0, 0); // Draw the blurred image back onto the canvas
+      ctx.filter = "none"; // Reset filter for subsequent drawings
+    } else {
+      ctx.fillStyle = "#FFFFFF"; // Varsayılan beyaz arka plan
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // Eğer tek resim ise, mainImage değişkenini ayarla
+    let mainImage = null;
+    if (loadedImages.length === 1) {
+      mainImage = loadedImages[0];
+    }
+
+    const loadedProductImages = [];
 
     if (gridLayoutInfo && gridLayoutInfo.cols && gridLayoutInfo.rows) {
       // 🛍️ GRID LAYOUT MODU: Kombin resimleri kare grid'e yerleştir
