@@ -1217,6 +1217,14 @@ Integrate the model, garment, and background into one cohesive, seamless photo t
 
 Only one single final image must be generated — no collages, no split frames, no duplicates.
 
+Composition aligned with professional fashion standards (rule of thirds, balanced framing, depth of field).
+
+Output must always be a single, hyper-realistic, high-end fashion photograph; never a plain catalog image.
+
+Editorial-level fashion shoot aesthetic.
+
+Confident model poses.
+
       USER REQUEST: "${editPrompt.trim()}"
       
       EXAMPLES:
