@@ -1086,6 +1086,35 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       console.log("💇 [GEMINI] Hair style prompt section eklendi");
     }
 
+    // Location image bilgisi için ek prompt section
+    let locationPromptSection = "";
+    if (locationImage) {
+      locationPromptSection = `
+    
+    LOCATION ENVIRONMENT REFERENCE: A location reference image has been provided to show the desired environment and setting for the fashion photography. Please analyze this location image carefully and create a detailed, comprehensive environment description that includes:
+
+    ENVIRONMENT ANALYSIS REQUIREMENTS:
+    - Analyze the architectural elements, lighting conditions, and atmospheric details visible in the location image
+    - Identify the specific type of environment (indoor/outdoor, studio, urban, natural, etc.)
+    - Describe the lighting characteristics (natural light, artificial lighting, time of day, etc.)
+    - Note any distinctive features, textures, colors, and mood of the location
+    - Identify any props, furniture, or environmental elements that could enhance the fashion shoot
+    - Consider how the environment complements the garment and overall aesthetic
+
+    DETAILED ENVIRONMENT DESCRIPTION:
+    Create a rich, detailed description of the environment that will serve as the backdrop for the fashion photography. Include specific details about:
+    - The physical space and its characteristics
+    - Lighting setup and mood
+    - Color palette and atmosphere
+    - Any distinctive architectural or design elements
+    - How the environment enhances the garment presentation
+    - Professional photography considerations for this specific location
+
+    The environment description should be detailed enough to guide the AI image generation model in creating a photorealistic, professional fashion photograph that seamlessly integrates the model and garment into this specific location setting.`;
+
+      console.log("🏞️ [GEMINI] Location prompt section eklendi");
+    }
+
     // Text-based hair style requirement if user selected hairStyle string
     let hairStyleTextSection = "";
     if (settings?.hairStyle) {
@@ -1187,6 +1216,14 @@ Maintain true-to-life colors and accurate material textures; avoid dull or overe
 Integrate the model, garment, and background into one cohesive, seamless photo that feels like it was captured in a real professional photoshoot environment.
 
 Only one single final image must be generated — no collages, no split frames, no duplicates.
+
+Composition aligned with professional fashion standards (rule of thirds, balanced framing, depth of field).
+
+Output must always be a single, hyper-realistic, high-end fashion photograph; never a plain catalog image.
+
+Editorial-level fashion shoot aesthetic.
+
+Confident model poses.
 
       USER REQUEST: "${editPrompt.trim()}"
       
@@ -1482,6 +1519,7 @@ Only one single final image must be generated — no collages, no split frames, 
       ${perspectivePromptSection}
       ${hairStylePromptSection}
       ${hairStyleTextSection}
+      ${locationPromptSection}
       ${faceDescriptionSection}
       
       Generate a concise prompt focused on showcasing both front and back garment details while maintaining all original design elements. REMEMBER: Your response must START with "Replace" and emphasize back design features.
@@ -1587,6 +1625,7 @@ Only one single final image must be generated — no collages, no split frames, 
       ${perspectivePromptSection}
       ${hairStylePromptSection}
       ${hairStyleTextSection}
+      ${locationPromptSection}
       ${faceDescriptionSection}
       
       Generate a concise prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace". Apply all rules silently and do not include any rule text or headings in the output.
@@ -1814,6 +1853,40 @@ Only one single final image must be generated — no collages, no split frames, 
       } catch (hairStyleImageError) {
         console.error(
           `💇 Hair style görseli eklenirken hata: ${hairStyleImageError.message}`
+        );
+      }
+    }
+
+    // Location image'ını da Gemini'ye gönder
+    if (locationImage) {
+      try {
+        // URL'den query parametrelerini temizle
+        const cleanLocationImageUrl = locationImage.split("?")[0];
+        console.log(
+          `🏞️ Location görsel base64'e çeviriliyor: ${cleanLocationImageUrl}`
+        );
+
+        const locationImageResponse = await axios.get(cleanLocationImageUrl, {
+          responseType: "arraybuffer",
+          timeout: 15000,
+        });
+        const locationImageBuffer = locationImageResponse.data;
+
+        // Base64'e çevir
+        const base64LocationImage =
+          Buffer.from(locationImageBuffer).toString("base64");
+
+        parts.push({
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: base64LocationImage,
+          },
+        });
+
+        console.log("🏞️ Location görsel başarıyla Gemini'ye eklendi");
+      } catch (locationImageError) {
+        console.error(
+          `🏞️ Location görseli eklenirken hata: ${locationImageError.message}`
         );
       }
     }

@@ -1164,8 +1164,7 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
 
     // Gemini'ye gönderilecek metin - güvenli flag-safe versiyon
     const criticalDirectives = `
-    BRAND SAFETY: If the input image contains any brand names or logos (e.g., Nike, Adidas, Prada, Gucci, Louis Vuitton, Chanel, Balenciaga, Versace, Dior, Hermès), please refer to them generically (e.g., "brand label", "logo") without naming the specific brand.
-    LENGTH CONSTRAINT: Please keep your entire output within 512 tokens maximum for optimal processing.`;
+    BRAND SAFETY: If the input image contains any brand names or logos (e.g., Nike, Adidas, Prada, Gucci, Louis Vuitton, Chanel, Balenciaga, Versace, Dior, Hermès), please refer to them generically (e.g., "brand label", "logo") without naming the specific brand.`;
 
     // Flux Max için genel garment transform talimatları (güvenli flag-safe versiyon)
     const fluxMaxGarmentTransformationDirectives = `
@@ -1604,7 +1603,7 @@ Confident model poses.
       - SPECIFY the proper fit and positioning of each product on the model
       - ENSURE no product is overlooked or generically described
       `
-          : "PRODUCT DETAIL COVERAGE (MANDATORY): Describe the garment's construction details. Keep this within the 512-token limit; prioritize the most visually verifiable details."
+          : ""
       }
 
       ${fluxMaxGarmentTransformationDirectives}
