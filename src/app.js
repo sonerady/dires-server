@@ -51,7 +51,7 @@ const bodyShapeRoutes = require("./routes/bodyShapeRoutes");
 const hairStyleRoutes = require("./routes/hairStyleRoutes");
 const hairColorRoutes = require("./routes/hairColorRoutes");
 const aiBackgroundsRouter = require("./routes/aiBackgroundsRoutes");
-const poseRoutes = require("./routes/poseRoutes");
+const poseRoutes = require("./routes/poseRoutes"); // Eski poseRoutes geri getirildi
 const purchaseRoutes = require("./routes/purchaseRoutes");
 const consRoutes = require("./routes/consRoutes");
 const changeColorRoutes = require("./routes/changeColorRoutes");
@@ -59,6 +59,7 @@ const changeColorRoutesV2 = require("./routes/changeColorRoutesV2");
 const infoModalRoutes = require("./routes/infoModalRoutes");
 const appLinksRoutes = require("./routes/appLinksRoutes");
 const modalContentsRoutes = require("./routes/modalContentsRoutes");
+const modelPosesRoutes = require("./routes/modelPosesRoutes"); // Yeni eklenen route
 // RevenueCat webhook route import
 const revenuecatWebhookRouterv2 = require("./routes/revenuecatWebhookv2");
 // const revenuecatWebhookRouter = require("./routes/revenuecatWebhook"); // ESKİ WEBHOOK DEVRE DIŞI
@@ -171,7 +172,7 @@ app.use("/api/referenceRefiner", referenceRefinerRoutes);
 app.use("/api", consRoutes);
 app.use("/api", changeColorRoutes);
 app.use("/api", changeColorRoutesV2);
-app.use("/api/poses", poseRoutes);
+app.use("/api/poses", poseRoutes); // Eski poseRoutes geri getirildi
 app.use("/api/user", infoModalRoutes);
 app.use("/api/editRoom", editRoomRoutes);
 app.use("/api/canvas", canvasCombineRoutes);
@@ -202,6 +203,9 @@ app.use("/api/app-links", appLinksRoutes);
 
 // Modal Contents routes ekle
 app.use(modalContentsRoutes);
+
+// Model Poses routes ekle (artık /api/posesNew altında olacak)
+app.use("/api", modelPosesRoutes); // Yeni eklenen route'u /api/posesNew olarak ayarla
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, "0.0.0.0", () => {
