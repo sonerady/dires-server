@@ -1164,8 +1164,7 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
 
     // Gemini'ye gönderilecek metin - güvenli flag-safe versiyon
     const criticalDirectives = `
-    BRAND SAFETY: If the input image contains any brand names or logos (e.g., Nike, Adidas, Prada, Gucci, Louis Vuitton, Chanel, Balenciaga, Versace, Dior, Hermès), please refer to them generically (e.g., "brand label", "logo") without naming the specific brand.
-    LENGTH CONSTRAINT: Please keep your entire output within 512 tokens maximum for optimal processing.`;
+    BRAND SAFETY: If the input image contains any brand names or logos (e.g., Nike, Adidas, Prada, Gucci, Louis Vuitton, Chanel, Balenciaga, Versace, Dior, Hermès), please refer to them generically (e.g., "brand label", "logo") without naming the specific brand.`;
 
     // Flux Max için genel garment transform talimatları (güvenli flag-safe versiyon)
     const fluxMaxGarmentTransformationDirectives = `
@@ -1193,15 +1192,7 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       3. Describes ONLY the specific modification requested
       4. Does NOT mention garments, models, poses, backgrounds, or photography details
       5. Keeps existing scene unchanged
-      
-
-CRITICAL RULES:
-
-Exclude all original flat-lay elements (hanger, frame, shadows, textures, painting, or any other artifacts). Only the garment itself must be transferred.
-
-The original background must be completely replaced with the newly described background. Do not keep or reuse any part of the input photo background.
-
-The output must be hyper-realistic, high-end professional fashion editorial quality, suitable for commercial catalog presentation.
+ 
 
 Only one single professional fashion photograph must be generated — no collage, no split views, no duplicates, no extra flat product shots.
 
@@ -1528,6 +1519,63 @@ Confident model poses.
       // NORMAL MODE - Standart garment replace
       promptForGemini = `
       MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
+         When generating fashion photography prompts, you must always structure the text into four separate paragraphs using \n\n line breaks. Do not output one long block of text.
+
+Paragraph 1 → Model Description & Pose
+
+Introduce the model (age, gender, editorial features).
+
+Describe the pose with confident, fashion-forward language.
+
+Paragraph 2 → Garment & Fabric Physics
+
+Use fashion and textile jargon.
+
+Describe fabric drape, weight, tension, folds, stitching.
+
+Keep all design, color, patterns, trims, logos exactly the same as the reference.
+
+Paragraph 3 → Environment & Ambiance
+
+Describe the setting in editorial tone (minimalist, refined, photogenic).
+
+Mention architecture, light play, textures.
+
+Keep it supportive, not distracting.
+
+Paragraph 4 → Lighting, Composition & Final Output
+
+Always describe lighting as “natural daylight blended with studio-grade softness”.
+
+Mention composition: rule of thirds, depth of field, eye-level or three-quarter perspective.
+
+Conclude with: “The final result must be a single, hyper-realistic, editorial-quality fashion photograph, seamlessly integrating model, garment, and environment at campaign-ready standards
+
+      
+
+CRITICAL RULES:
+
+Always construct prompts in the language and style of editorial fashion photography. Use precise fashion industry jargon rather than plain product description.
+
+Describe the garment using textile and tailoring terminology (drape, silhouette, cut, ribbed, pleated, piqué knit, melange, structured detailing, trims, seams, stitchwork, etc.).
+
+Define the model’s appearance with editorial tone (sculpted jawline, refined cheekbones, luminous gaze, poised stance).
+
+Lighting must be described in studio-grade fashion terms (diffused daylight, editorial softness, balanced exposure, flattering shadow play, high-definition clarity).
+
+Composition should reference fashion photography language (rule of thirds, depth of field, eye-level perspective, polished framing, editorial atmosphere).
+
+Environment must remain minimalist and photogenic, complementing the garment without distraction. Use words like “sophisticated”, “refined”, “contemporary”, “elevated backdrop”.
+
+Always conclude that the result is a single, high-end professional fashion photograph, polished to editorial standards, suitable for premium catalogs and campaigns.
+
+Do not use plain catalog language. Do not produce technical listing-style descriptions. The tone must always reflect editorial-level fashion shoot aesthetic
+
+Exclude all original flat-lay elements (hanger, frame, shadows, textures, painting, or any other artifacts). Only the garment itself must be transferred.
+
+The original background must be completely replaced with the newly described background. Do not keep or reuse any part of the input photo background.
+
+The output must be hyper-realistic, high-end professional fashion editorial quality, suitable for commercial catalog presentation.
 
       ${criticalDirectives}
 
@@ -1604,7 +1652,7 @@ Confident model poses.
       - SPECIFY the proper fit and positioning of each product on the model
       - ENSURE no product is overlooked or generically described
       `
-          : "PRODUCT DETAIL COVERAGE (MANDATORY): Describe the garment's construction details. Keep this within the 512-token limit; prioritize the most visually verifiable details."
+          : ""
       }
 
       ${fluxMaxGarmentTransformationDirectives}
