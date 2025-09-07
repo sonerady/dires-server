@@ -899,7 +899,9 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
         : "garment/product";
       posePromptSection = `
     
-    INTELLIGENT POSE SELECTION: Since no specific pose was selected by the user, please analyze the ${garmentText} in the reference image and intelligently select the MOST APPROPRIATE pose for the ${baseModelText} that will:
+    DEFAULT RANDOM EDITORIAL POSE: If no specific pose is provided, randomly select a confident editorial-style fashion pose.  
+VARIETY RULES: Rotate between front-facing, relaxed stance, casual elegance, or dynamic editorial gesture.  
+IMPORTANT: Ensure garment details (logos, chest prints, seams, collars, cuffs) remain fully visible.
     - Best showcase ${
       isMultipleProducts
         ? "all products in the ensemble and their coordination"
@@ -1022,7 +1024,6 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
         : "garment/product";
       perspectivePromptSection = `
     
-    INTELLIGENT CAMERA PERSPECTIVE SELECTION: Since no specific camera perspective was selected by the user, please analyze the ${garmentText} and intelligently choose the MOST APPROPRIATE camera angle and perspective that will:
     - Best capture ${
       isMultipleProducts
         ? "all products' most important design features and their coordination"
@@ -1394,11 +1395,10 @@ Confident model poses.
       First analyze the current pose in the image, then select a CONTRASTING pose:
       - If standing straight → choose dynamic or angled pose
       - If hands down → choose hands on hips/crossed arms
-      - If facing forward → choose profile or three-quarter turn
       - If static → choose movement-implied pose
       - If casual → choose editorial/dramatic pose
 
-      POSE EXAMPLES: Editorial stance, runway walk, hand-on-hip power pose, elegant turn, dramatic profile, commercial casual, editorial fierce, crossed arms confident, leaning pose, walking stride
+      POSE EXAMPLES: Editorial stance, runway walk, hand-on-hip power pose, elegant turn, commercial casual, editorial fierce, crossed arms confident, leaning pose, walking stride
 
       QUALITY TERMS TO INCLUDE: sharp focus, crisp details, high definition, professional photography lighting, clear image quality
 
@@ -1519,7 +1519,10 @@ Confident model poses.
       // NORMAL MODE - Standart garment replace
       promptForGemini = `
       MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
-         When generating fashion photography prompts, you must always structure the text into four separate paragraphs using \n\n line breaks. Do not output one long block of text.
+         
+      DEFAULT POSE INSTRUCTION: If no specific pose is provided by the user, you must randomly select an editorial-style fashion pose that best showcases the garment’s unique details, fit, and silhouette. The pose should be confident and photogenic, with body language that emphasizes fabric drape, construction, and design elements, while remaining natural and commercially appealing. Always ensure the garment’s critical features (neckline, sleeves, logos, seams, textures) are clearly visible from the chosen pose.
+
+      When generating fashion photography prompts, you must always structure the text into four separate paragraphs using \n\n line breaks. Do not output one long block of text.
 
 Paragraph 1 → Model Description & Pose
 
@@ -1547,7 +1550,6 @@ Paragraph 4 → Lighting, Composition & Final Output
 
 Always describe lighting as “natural daylight blended with studio-grade softness”.
 
-Mention composition: rule of thirds, depth of field, eye-level or three-quarter perspective.
 
 Conclude with: “The final result must be a single, hyper-realistic, editorial-quality fashion photograph, seamlessly integrating model, garment, and environment at campaign-ready standards
 
@@ -1686,7 +1688,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
     if (!originalPrompt || !originalPrompt.includes("Model's pose")) {
       // Eğer poz seçilmemişse akıllı poz seçimi, seçilmişse belirtilen poz
       if (!settings?.pose && !poseImage) {
-        promptForGemini += `Since no specific pose was provided, intelligently select the most suitable pose and camera angle for the ${baseModelText} that showcases the garment's design features, fit, and construction quality. Choose poses appropriate for the garment category with body language that complements the style and allows clear visibility of craftsmanship details. Select camera perspectives that create appealing commercial presentations highlighting the garment's key selling points.`;
+        promptForGemini += `Since no specific pose was provided, you must randomly select from editorial-style fashion poses. Rotate between front-facing, casual relaxed, and dynamic stances.  Always ensure garment details remain fully visible.`;
       }
     }
 
@@ -1995,7 +1997,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
         
         Composition & Framing: Follow professional composition guidelines (rule of thirds, balanced framing). The model and garment must be the primary focus, with the background supporting but never distracting.
         
-        Camera Perspective: Use appropriate fashion shot perspectives (full body, three-quarter, or mid-shot) depending on garment type. Avoid extreme or distorted angles unless explicitly requested.
+        Camera Perspective: Use appropriate fashion shot perspectives (full body, or mid-shot) depending on garment type. Avoid extreme or distorted angles unless explicitly requested.
         
         Garment Presentation: Ensure the garment is perfectly centered, wrinkle-minimized, and fully visible. Critical details like logos, embroidery, seams, and textures must be sharp and unobstructed.
         
