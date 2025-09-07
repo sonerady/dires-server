@@ -1690,7 +1690,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
     if (!originalPrompt || !originalPrompt.includes("Model's pose")) {
       // Eğer poz seçilmemişse akıllı poz seçimi, seçilmişse belirtilen poz
       if (!settings?.pose && !poseImage) {
-        promptForGemini += `Since no specific pose was provided, intelligently select the most suitable pose and camera angle for the ${baseModelText} that showcases the garment's design features, fit, and construction quality. Choose poses appropriate for the garment category with body language that complements the style and allows clear visibility of craftsmanship details. Select camera perspectives that create appealing commercial presentations highlighting the garment's key selling points.`;
+        promptForGemini += `Since no specific pose was provided, you must randomly select from editorial-style fashion poses. Rotate between front-facing, mild three-quarter, casual relaxed, and dynamic stances. Side-profile is allowed occasionally but must NOT dominate. Always ensure garment details remain fully visible.`;
       }
     }
 
