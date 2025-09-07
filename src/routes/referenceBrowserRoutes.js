@@ -899,7 +899,9 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
         : "garment/product";
       posePromptSection = `
     
-    INTELLIGENT POSE SELECTION: Since no specific pose was selected by the user, please analyze the ${garmentText} in the reference image and intelligently select the MOST APPROPRIATE pose for the ${baseModelText} that will:
+    DEFAULT RANDOM EDITORIAL POSE: If no specific pose is provided, randomly select a confident editorial-style fashion pose.  
+VARIETY RULES: Rotate between front-facing, mild three-quarter, relaxed stance, casual elegance, or dynamic editorial gesture.  
+IMPORTANT: Side-profile may be used occasionally but must NOT dominate. Ensure garment details (logos, chest prints, seams, collars, cuffs) remain fully visible.
     - Best showcase ${
       isMultipleProducts
         ? "all products in the ensemble and their coordination"
@@ -1519,7 +1521,10 @@ Confident model poses.
       // NORMAL MODE - Standart garment replace
       promptForGemini = `
       MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
-         When generating fashion photography prompts, you must always structure the text into four separate paragraphs using \n\n line breaks. Do not output one long block of text.
+         
+      DEFAULT POSE INSTRUCTION: If no specific pose is provided by the user, you must randomly select an editorial-style fashion pose that best showcases the garment’s unique details, fit, and silhouette. The pose should be confident and photogenic, with body language that emphasizes fabric drape, construction, and design elements, while remaining natural and commercially appealing. Always ensure the garment’s critical features (neckline, sleeves, logos, seams, textures) are clearly visible from the chosen pose.
+
+      When generating fashion photography prompts, you must always structure the text into four separate paragraphs using \n\n line breaks. Do not output one long block of text.
 
 Paragraph 1 → Model Description & Pose
 
@@ -1547,7 +1552,6 @@ Paragraph 4 → Lighting, Composition & Final Output
 
 Always describe lighting as “natural daylight blended with studio-grade softness”.
 
-Mention composition: rule of thirds, depth of field, eye-level or three-quarter perspective.
 
 Conclude with: “The final result must be a single, hyper-realistic, editorial-quality fashion photograph, seamlessly integrating model, garment, and environment at campaign-ready standards
 
