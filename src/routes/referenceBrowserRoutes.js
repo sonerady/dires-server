@@ -899,9 +899,14 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
         : "garment/product";
       posePromptSection = `
     
-    DEFAULT RANDOM EDITORIAL POSE: If no specific pose is provided, randomly select a confident editorial-style fashion pose.  
-VARIETY RULES: Rotate between front-facing, relaxed stance, casual elegance, or dynamic editorial gesture.  
-IMPORTANT: Ensure garment details (logos, chest prints, seams, collars, cuffs) remain fully visible.
+DEFAULT POSE: If no specific pose is provided, use natural, product-focused poses.  
+POSE RULES: 
+- Prefer mostly front-facing or slightly angled stances, but never hide garment details.  
+- Keep both hands outside pockets; avoid poses that cover logos, prints, or seams.  
+- Posture should remain relaxed and photogenic, but garment visibility is always priority.  
+IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remain clearly visible.
+
+
     - Best showcase ${
       isMultipleProducts
         ? "all products in the ensemble and their coordination"
@@ -1691,7 +1696,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
     if (!originalPrompt || !originalPrompt.includes("Model's pose")) {
       // Eğer poz seçilmemişse akıllı poz seçimi, seçilmişse belirtilen poz
       if (!settings?.pose && !poseImage) {
-        promptForGemini += `Since no specific pose was provided, you must randomly select from editorial-style fashion poses. Rotate between front-facing, casual relaxed, and dynamic stances.  Always ensure garment details remain fully visible.`;
+        promptForGemini += `Since no specific pose was provided, use a natural pose that keeps the garment fully visible. The stance may be front-facing or slightly angled, but avoid hiding details. Do not put hands in pockets. Ensure garment features are clearly shown.`;
       }
     }
 
