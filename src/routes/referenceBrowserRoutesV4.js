@@ -88,6 +88,46 @@ function normalizeReferenceEntry(entry) {
   return normalized.uri ? normalized : null;
 }
 
+async function ensureRemoteReferenceImage(imageEntry, userId) {
+  if (!imageEntry) {
+    return null;
+  }
+
+  if (typeof imageEntry === "string") {
+    if (imageEntry.startsWith("file://")) {
+      throw new Error(
+        "Yerel dosya path'i desteklenmiyor. Base64 data gönderilmelidir."
+      );
+    }
+    return { uri: sanitizeImageUrl(imageEntry) };
+  }
+
+  const result = { ...imageEntry };
+  const currentUri = result.uri || result.url || null;
+
+  if (currentUri && currentUri.startsWith("file://")) {
+    if (result.base64) {
+      const uploadSource = `data:image/jpeg;base64,${result.base64}`;
+      const uploadedUrl = await uploadReferenceImageToSupabase(
+        uploadSource,
+        userId
+      );
+      result.uri = uploadedUrl;
+      delete result.base64;
+    } else {
+      throw new Error(
+        "Yerel dosya path'i tespit edildi ancak base64 verisi bulunamadı."
+      );
+    }
+  }
+
+  if (result.uri) {
+    result.uri = sanitizeImageUrl(result.uri);
+  }
+
+  return result;
+}
+
 // Kullanıcının pro olup olmadığını kontrol etme fonksiyonu
 async function checkUserProStatus(userId) {
   try {
@@ -3725,6 +3765,20 @@ router.post("/generate", async (req, res) => {
         source: "selectAge",
       };
     }
+
+    // Yerel dosya path'lerini Supabase'e upload ederek URL'leri normalize et
+    referenceImages = (
+      await Promise.all(
+        referenceImages.map((img) =>
+          ensureRemoteReferenceImage(img, requestUserId)
+        )
+      )
+    ).filter(Boolean);
+
+    modelReferenceImage = await ensureRemoteReferenceImage(
+      modelReferenceImage,
+      requestUserId
+    );
 
     // isMultipleProducts'ı değiştirilebilir hale getir (kombin modu için)
     let isMultipleProducts = originalIsMultipleProducts;
