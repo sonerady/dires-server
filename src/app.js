@@ -25,6 +25,7 @@ const uploadImageRouter = require("./routes/uploadImage");
 const generateTrain = require("./routes/generateTrain");
 const referenceBrowserRoutesV2 = require("./routes/referenceBrowserRoutesV2");
 const referenceBrowserRoutesV3 = require("./routes/referenceBrowserRoutesV3");
+const referenceBrowserRoutesV4 = require("./routes/referenceBrowserRoutesV4");
 const referenceBrowserRoutesWithoutCanvas = require("./routes/referenceBrowserRoutesWithoutCanvas");
 const checkStatusRouter = require("./routes/checkStatus");
 const getTrainRequestRouter = require("./routes/getTrainRequest");
@@ -35,6 +36,7 @@ const generateImgToVidRouter = require("./routes/generateImgToVid");
 const getPredictionsRouter = require("./routes/getPredictions");
 const registerAnonymousUserRouter = require("./routes/registerAnonymousUser");
 const registerAnonymousUserRouterV2 = require("./routes/registerAnonymousUserV2");
+const registerAnonymousUserRouterV3 = require("./routes/registerAnonymousUserV3");
 const posesRouter = require("./routes/posesRoutes");
 const generateImagesJsonRouter = require("./routes/generateImagesJson");
 const locationRoutes = require("./routes/locationRoutes");
@@ -47,12 +49,16 @@ const imageClarityProcessRouter = require("./routes/imageClarityProcess");
 const referenceBrowserRoutes = require("./routes/referenceBrowserRoutes");
 const referencePhotoshootRoutes = require("./routes/referencePhotoshootRoutes");
 const referenceRefinerRoutes = require("./routes/referenceRefinerRoutes");
+const referenceImageRoutes = require("./routes/referenceImageRoutes");
 const bodyShapeRoutes = require("./routes/bodyShapeRoutes");
+const historyRoutes = require("./routes/historyRoutes");
 const hairStyleRoutes = require("./routes/hairStyleRoutes");
 const hairColorRoutes = require("./routes/hairColorRoutes");
 const aiBackgroundsRouter = require("./routes/aiBackgroundsRoutes");
 const poseRoutes = require("./routes/poseRoutes"); // Eski poseRoutes geri getirildi
 const purchaseRoutes = require("./routes/purchaseRoutes");
+const purchaseSummaryRoutes = require("./routes/purchaseSummaryRoutes");
+const appConfigRoutes = require("./routes/appConfigRoutes");
 const consRoutes = require("./routes/consRoutes");
 const changeColorRoutes = require("./routes/changeColorRoutes");
 const changeColorRoutesV2 = require("./routes/changeColorRoutesV2");
@@ -65,6 +71,12 @@ const revenuecatWebhookRouterv2 = require("./routes/revenuecatWebhookv2");
 // const revenuecatWebhookRouter = require("./routes/revenuecatWebhook"); // ESKİ WEBHOOK DEVRE DIŞI
 // Custom Pose routes import
 const customPoseRoutes = require("./routes/customPoseRoutes");
+// Custom Hair Style routes import
+const customHairStyleRoutes = require("./routes/customHairStyleRoutes");
+// Pose Favorites routes import
+const poseFavoritesRoutes = require("./routes/poseFavoritesRoutes");
+// Hair Style Favorites routes import
+const hairStyleFavoritesRoutes = require("./routes/hairStyleFavoritesRoutes");
 // Canvas Combine routes import
 const canvasCombineRoutes = require("./routes/canvasCombineRoutes");
 // Icon Generator routes import
@@ -72,10 +84,16 @@ const iconGeneratorRoutes = require("./routes/iconGeneratorRoutes");
 // Create Location routes import
 const createLocationRoutes = require("./routes/createLocationRoutes");
 const createLocationRoutesV2 = require("./routes/createLocationRoutes_v2");
+// Create Model routes import
+const createModelRoutes = require("./routes/createModelRoutes");
 // Favorites routes import
 const favoritesRoutes = require("./routes/favoritesRoutes");
 // Video routes import
 const videoRoutes = require("./routes/videoRoutes");
+// Hair Styles routes import
+const hairStylesRoutes = require("./routes/hairStylesRoutes");
+// User Visibility routes import
+const userVisibilityRoutes = require("./routes/userVisibilityRoutes");
 // Generation Status routes import
 
 const app = express();
@@ -145,12 +163,17 @@ app.use("/api", getPredictionsRouter);
 app.use("/api", getBalance);
 app.use("/api", registerAnonymousUserRouter);
 app.use("/api/v2", registerAnonymousUserRouterV2);
+app.use("/api/v3", registerAnonymousUserRouterV3);
 app.use("/api", generateImgToVidRouter);
 app.use("/api", posesRouter);
 app.use("/api", generateImagesJsonRouter);
 app.use("/api", locationRoutes);
 app.use("/api/backgrounds", backgroundRoutes);
 app.use("/api/bodyshapes", bodyShapeRoutes);
+app.use("/api/history", historyRoutes);
+
+const downloadRoutes = require("./routes/downloadRoutes");
+app.use("/api/download", downloadRoutes);
 app.use("/api/hairstyles", hairStyleRoutes);
 app.use("/api/haircolors", hairColorRoutes);
 app.use("/api", geminiImageProcessRouter);
@@ -162,6 +185,8 @@ app.use("/api/referenceBrowser", referenceBrowserRoutes);
 app.use("/api/referenceBrowserBack", referenceBrowserRoutesBack);
 app.use("/api/referenceBrowserV2", referenceBrowserRoutesV2);
 app.use("/api/referenceBrowserV3", referenceBrowserRoutesV3);
+app.use("/api/referenceBrowserV4", referenceBrowserRoutesV4);
+app.use("/api/reference-images", referenceImageRoutes);
 app.use(
   "/api/referenceBrowserWithoutCanvas",
   referenceBrowserRoutesWithoutCanvas
@@ -181,19 +206,43 @@ app.use("/api/canvas", canvasCombineRoutes);
 app.use("/revenuecatv2", revenuecatWebhookRouterv2);
 
 app.use("/purchase", purchaseRoutes);
+app.use("/api/purchase-summary", purchaseSummaryRoutes);
+app.use("/api", appConfigRoutes);
 
 // Custom Pose routes ekle
 app.use("/api/customPose", customPoseRoutes);
 
+// Custom Hair Style routes ekle
+app.use("/api/customHairStyle", customHairStyleRoutes);
+
+// Pose Favorites routes ekle
+app.use("/api/pose-favorites", poseFavoritesRoutes);
+
+// Hair Style Favorites routes ekle
+app.use("/api/hair-style-favorites", hairStyleFavoritesRoutes);
+
+// Last Selected Pose routes ekle
+const lastSelectedPoseRoutes = require("./routes/lastSelectedPoseRoutes");
+app.use("/api/last-selected-pose", lastSelectedPoseRoutes);
+
 // Create Location routes ekle
 app.use("/api/location", createLocationRoutes);
 app.use("/api/location/v2", createLocationRoutesV2);
+
+// Create Model routes ekle
+app.use("/api/model", createModelRoutes);
+
+// Hair Styles routes ekle
+app.use("/api/hair-styles", hairStylesRoutes);
 
 // Favorites routes ekle
 app.use("/api/favorites", favoritesRoutes);
 
 // Video routes ekle
 app.use("/api", videoRoutes);
+
+// User Visibility routes ekle
+app.use("/api", userVisibilityRoutes);
 
 // Icon Generator routes ekle
 app.use("/api/icon-generator", iconGeneratorRoutes);

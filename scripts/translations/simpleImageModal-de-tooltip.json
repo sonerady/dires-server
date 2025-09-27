@@ -1,8 +1,0 @@
-{
-  "tooltip_back_pose_title": "Rückansicht",
-  "tooltip_back_pose_description": "Verwenden Sie diese Funktion, um die Rückseite des Kleidungsstücks zu sehen. KI dreht das Model um, um die Rückendetails des Produkts zu zeigen.",
-  "tooltip_different_pose_title": "Verschiedene Posen",
-  "tooltip_different_pose_description": "Verwenden Sie diese Option, um dasselbe Kleidungsstück in verschiedenen Posen zu sehen. Betrachten Sie das Model aus verschiedenen Winkeln und Positionen.",
-  "tooltip_next": "Weiter",
-  "tooltip_done": "Fertig"
-}

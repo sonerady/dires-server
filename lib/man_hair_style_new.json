@@ -1,0 +1,940 @@
+{
+  "categories": [
+    {
+      "category_key": "mens_short_hair",
+      "title": "Men’s Short Hair Styles",
+      "styles": [
+        {
+          "key": "classic_crew_cut",
+          "prompt": "hair style: a classic crew cut with the top cut short and tapered toward the crown, while the sides and back are clipped neatly close to the scalp. The clean, military-inspired silhouette is timeless and practical.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/classic_crew_cut.png"
+        },
+        {
+          "key": "buzz_cut",
+          "prompt": "hair style: an ultra-short buzz cut shaved evenly across the head with clippers. The minimal, low-maintenance style emphasizes head shape and sharp masculinity.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/buzz_cut.png"
+        },
+        {
+          "key": "ivy_league_cut",
+          "prompt": "hair style: an ivy league cut with slightly longer length on top styled neatly with a side part, while the sides and back are tapered short. The style is refined and collegiate, balancing sharpness with versatility.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/ivy_league_cut.png"
+        },
+        {
+          "key": "fade_cut",
+          "prompt": "hair style: a fade cut with hair gradually tapering from longer at the top to very short near the ears and nape. The smooth gradient creates a clean, modern barbershop finish.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/fade_cut.png"
+        },
+        {
+          "key": "high_fade_with_short_top",
+          "prompt": "hair style: a high fade with sides shaved close and sharp contrast to a short, textured top. The crisp fade emphasizes structure and sharpness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/high_fade_with_short_top.png"
+        },
+        {
+          "key": "low_fade_with_cropped_top",
+          "prompt": "hair style: a low fade where the taper begins near the ears, blending into a short cropped top with subtle texture. The look is sleek yet understated.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/low_fade_with_cropped_top.png"
+        },
+        {
+          "key": "mid_fade_with_brushed_up_top",
+          "prompt": "hair style: a mid fade with sides tapered evenly while the top is styled upward and brushed back. The lifted crown creates modern, youthful energy.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/mid_fade_with_brushed_up_top.png"
+        },
+        {
+          "key": "caesar_cut",
+          "prompt": "hair style: a caesar cut with short, horizontally cut fringe across the forehead. The top is cropped evenly with minimal layering, creating a bold, structured Roman-inspired look.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/caesar_cut.png"
+        },
+        {
+          "key": "textured_crop",
+          "prompt": "hair style: a textured crop with short, choppy layers on top styled forward. The jagged texture creates a modern, edgy effect with casual roughness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/textured_crop.png"
+        },
+        {
+          "key": "french_crop",
+          "prompt": "hair style: a French crop with a short, blunt fringe and slightly longer textured top. The style is paired with tapered or faded sides for sharp contrast.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/french_crop.png"
+        },
+        {
+          "key": "butch_cut",
+          "prompt": "hair style: a butch cut with hair clipped very short but slightly longer than a buzz. The even length all around produces a rugged, masculine effect.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/butch_cut.png"
+        },
+        {
+          "key": "flat_top",
+          "prompt": "hair style: a flat top with hair standing upright and trimmed flat across the top in a squared shape. The geometric silhouette emphasizes precision and boldness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/flat_top.png"
+        },
+        {
+          "key": "short_spiky_cut",
+          "prompt": "hair style: a short spiky cut styled with gel or wax to create upward, jagged spikes. The playful, textured silhouette adds casual modern flair.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/short_spiky_cut.png"
+        },
+        {
+          "key": "buzz_cut_with_hard_part",
+          "prompt": "hair style: a buzz cut enhanced with a shaved hard part line. The sharp separation adds detail and a barbershop-inspired finish to the minimal style.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/buzz_cut_with_hard_part.png"
+        },
+        {
+          "key": "military_high_and_tight",
+          "prompt": "hair style: a high-and-tight military cut with the sides clipped extremely short while the top is kept slightly longer. The strong contrast creates a disciplined, rugged look.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/military_high_and_tight.png"
+        },
+        {
+          "key": "short_brushed_forward",
+          "prompt": "hair style: a short cut styled with the top brushed forward into neat, compact layers. The forward direction adds subtle texture and sharp edges.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/short_brushed_forward.png"
+        },
+        {
+          "key": "short_side_part",
+          "prompt": "hair style: a short haircut styled with a defined side part and smooth finish. The sides are tapered close, giving a neat, professional appearance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/short_side_part.png"
+        },
+        {
+          "key": "short_messy_cut",
+          "prompt": "hair style: a short haircut styled with messy, tousled texture on top, created with light layering. The casual styling gives a relaxed, modern vibe.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/short_messy_cut.png"
+        },
+        {
+          "key": "buzz_cut_with_fade",
+          "prompt": "hair style: a buzz cut combined with a gradual fade on the sides and back. The smooth blending adds refinement to the simple, short silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/buzz_cut_with_fade.png"
+        },
+        {
+          "key": "short_taper_cut",
+          "prompt": "hair style: a taper cut with short hair gradually shortened around the ears and neckline, while the top remains slightly longer. The classic barber style is timeless and versatile.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/short_taper_cut.png"
+        },
+        {
+          "key": "short_with_line_up",
+          "prompt": "hair style: a short haircut with sharp, defined line-up at the hairline and temples. The crisp edges create a geometric, modern frame for the face.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/short_with_line_up.png"
+        },
+        {
+          "key": "ivy_league_fade",
+          "prompt": "hair style: an ivy league cut combined with a faded side taper. The longer top is styled neatly with a side part, contrasting with the faded sides.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/ivy_league_fade.png"
+        },
+        {
+          "key": "buzz_cut_with_beard_blend",
+          "prompt": "hair style: a buzz cut styled with faded sides blending seamlessly into a beard. The smooth transition adds cohesion and modern sharpness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/buzz_cut_with_beard_blend.png"
+        },
+        {
+          "key": "short_disconnected_undercut",
+          "prompt": "hair style: a short cut with the top left slightly longer, disconnected abruptly from very short sides. The strong contrast adds bold, edgy character.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/short_disconnected_undercut.png"
+        },
+        {
+          "key": "short_curly_crop",
+          "prompt": "hair style: a short crop styled with natural curls kept compact and defined. The cut controls volume while showcasing curl texture.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/short_curly_crop.png"
+        },
+        {
+          "key": "caesar_fade",
+          "prompt": "hair style: a Caesar cut combined with a fade on the sides. The blunt fringe contrasts with the gradual taper, creating a modernized classic look.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/caesar_fade.png"
+        },
+        {
+          "key": "buzz_cut_skin_fade",
+          "prompt": "hair style: a buzz cut paired with a skin fade, where the sides are shaved down to the skin. The bold contrast gives a sharp, barbershop-perfect finish.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/buzz_cut_skin_fade.png"
+        },
+        {
+          "key": "short_textured_quiff",
+          "prompt": "hair style: a short haircut with the top styled into a mini quiff using texture. The subtle height and lift add modern sharpness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/short_textured_quiff.png"
+        },
+        {
+          "key": "crew_cut_with_high_fade",
+          "prompt": "hair style: a crew cut styled with a high fade on the sides. The neat top contrasts with the skin-tight taper, giving bold, disciplined character.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/crew_cut_with_high_fade.png"
+        },
+        {
+          "key": "military_burr_cut",
+          "prompt": "hair style: a burr cut clipped very close to the scalp, slightly longer than a shave but shorter than a butch. The rugged, minimal look emphasizes structure.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/military_burr_cut.png"
+        }
+      ]
+    },
+    {
+      "category_key": "mens_short_hair",
+      "title": "Men’s Short Hair Styles",
+      "styles": [
+        {
+          "key": "classic_crew_cut",
+          "prompt": "hair style: a classic crew cut with the top cut short and tapered toward the crown, while the sides and back are clipped neatly close to the scalp. The clean, military-inspired silhouette is timeless and practical.",
+          "image_url": ""
+        },
+        {
+          "key": "buzz_cut",
+          "prompt": "hair style: an ultra-short buzz cut shaved evenly across the head with clippers. The minimal, low-maintenance style emphasizes head shape and sharp masculinity.",
+          "image_url": ""
+        },
+        {
+          "key": "ivy_league_cut",
+          "prompt": "hair style: an ivy league cut with slightly longer length on top styled neatly with a side part, while the sides and back are tapered short. The style is refined and collegiate, balancing sharpness with versatility.",
+          "image_url": ""
+        },
+        {
+          "key": "fade_cut",
+          "prompt": "hair style: a fade cut with hair gradually tapering from longer at the top to very short near the ears and nape. The smooth gradient creates a clean, modern barbershop finish.",
+          "image_url": ""
+        },
+        {
+          "key": "high_fade_with_short_top",
+          "prompt": "hair style: a high fade with sides shaved close and sharp contrast to a short, textured top. The crisp fade emphasizes structure and sharpness.",
+          "image_url": ""
+        },
+        {
+          "key": "low_fade_with_cropped_top",
+          "prompt": "hair style: a low fade where the taper begins near the ears, blending into a short cropped top with subtle texture. The look is sleek yet understated.",
+          "image_url": ""
+        },
+        {
+          "key": "mid_fade_with_brushed_up_top",
+          "prompt": "hair style: a mid fade with sides tapered evenly while the top is styled upward and brushed back. The lifted crown creates modern, youthful energy.",
+          "image_url": ""
+        },
+        {
+          "key": "caesar_cut",
+          "prompt": "hair style: a caesar cut with short, horizontally cut fringe across the forehead. The top is cropped evenly with minimal layering, creating a bold, structured Roman-inspired look.",
+          "image_url": ""
+        },
+        {
+          "key": "textured_crop",
+          "prompt": "hair style: a textured crop with short, choppy layers on top styled forward. The jagged texture creates a modern, edgy effect with casual roughness.",
+          "image_url": ""
+        },
+        {
+          "key": "french_crop",
+          "prompt": "hair style: a French crop with a short, blunt fringe and slightly longer textured top. The style is paired with tapered or faded sides for sharp contrast.",
+          "image_url": ""
+        },
+        {
+          "key": "butch_cut",
+          "prompt": "hair style: a butch cut with hair clipped very short but slightly longer than a buzz. The even length all around produces a rugged, masculine effect.",
+          "image_url": ""
+        },
+        {
+          "key": "flat_top",
+          "prompt": "hair style: a flat top with hair standing upright and trimmed flat across the top in a squared shape. The geometric silhouette emphasizes precision and boldness.",
+          "image_url": ""
+        },
+        {
+          "key": "short_spiky_cut",
+          "prompt": "hair style: a short spiky cut styled with gel or wax to create upward, jagged spikes. The playful, textured silhouette adds casual modern flair.",
+          "image_url": ""
+        },
+        {
+          "key": "buzz_cut_with_hard_part",
+          "prompt": "hair style: a buzz cut enhanced with a shaved hard part line. The sharp separation adds detail and a barbershop-inspired finish to the minimal style.",
+          "image_url": ""
+        },
+        {
+          "key": "military_high_and_tight",
+          "prompt": "hair style: a high-and-tight military cut with the sides clipped extremely short while the top is kept slightly longer. The strong contrast creates a disciplined, rugged look.",
+          "image_url": ""
+        },
+        {
+          "key": "short_brushed_forward",
+          "prompt": "hair style: a short cut styled with the top brushed forward into neat, compact layers. The forward direction adds subtle texture and sharp edges.",
+          "image_url": ""
+        },
+        {
+          "key": "short_side_part",
+          "prompt": "hair style: a short haircut styled with a defined side part and smooth finish. The sides are tapered close, giving a neat, professional appearance.",
+          "image_url": ""
+        },
+        {
+          "key": "short_messy_cut",
+          "prompt": "hair style: a short haircut styled with messy, tousled texture on top, created with light layering. The casual styling gives a relaxed, modern vibe.",
+          "image_url": ""
+        },
+        {
+          "key": "buzz_cut_with_fade",
+          "prompt": "hair style: a buzz cut combined with a gradual fade on the sides and back. The smooth blending adds refinement to the simple, short silhouette.",
+          "image_url": ""
+        },
+        {
+          "key": "short_taper_cut",
+          "prompt": "hair style: a taper cut with short hair gradually shortened around the ears and neckline, while the top remains slightly longer. The classic barber style is timeless and versatile.",
+          "image_url": ""
+        },
+        {
+          "key": "short_with_line_up",
+          "prompt": "hair style: a short haircut with sharp, defined line-up at the hairline and temples. The crisp edges create a geometric, modern frame for the face.",
+          "image_url": ""
+        },
+        {
+          "key": "ivy_league_fade",
+          "prompt": "hair style: an ivy league cut combined with a faded side taper. The longer top is styled neatly with a side part, contrasting with the faded sides.",
+          "image_url": ""
+        },
+        {
+          "key": "buzz_cut_with_beard_blend",
+          "prompt": "hair style: a buzz cut styled with faded sides blending seamlessly into a beard. The smooth transition adds cohesion and modern sharpness.",
+          "image_url": ""
+        },
+        {
+          "key": "short_disconnected_undercut",
+          "prompt": "hair style: a short cut with the top left slightly longer, disconnected abruptly from very short sides. The strong contrast adds bold, edgy character.",
+          "image_url": ""
+        },
+        {
+          "key": "short_curly_crop",
+          "prompt": "hair style: a short crop styled with natural curls kept compact and defined. The cut controls volume while showcasing curl texture.",
+          "image_url": ""
+        },
+        {
+          "key": "caesar_fade",
+          "prompt": "hair style: a Caesar cut combined with a fade on the sides. The blunt fringe contrasts with the gradual taper, creating a modernized classic look.",
+          "image_url": ""
+        },
+        {
+          "key": "buzz_cut_skin_fade",
+          "prompt": "hair style: a buzz cut paired with a skin fade, where the sides are shaved down to the skin. The bold contrast gives a sharp, barbershop-perfect finish.",
+          "image_url": ""
+        },
+        {
+          "key": "short_textured_quiff",
+          "prompt": "hair style: a short haircut with the top styled into a mini quiff using texture. The subtle height and lift add modern sharpness.",
+          "image_url": ""
+        },
+        {
+          "key": "crew_cut_with_high_fade",
+          "prompt": "hair style: a crew cut styled with a high fade on the sides. The neat top contrasts with the skin-tight taper, giving bold, disciplined character.",
+          "image_url": ""
+        },
+        {
+          "key": "military_burr_cut",
+          "prompt": "hair style: a burr cut clipped very close to the scalp, slightly longer than a shave but shorter than a butch. The rugged, minimal look emphasizes structure.",
+          "image_url": ""
+        }
+      ]
+    },
+    {
+      "category_key": "mens_long_hair",
+      "title": "Men’s Long Hair Styles",
+      "styles": [
+        {
+          "key": "classic_long_straight",
+          "prompt": "hair style: long straight hair grown past the shoulders, styled sleek with a center part. The smooth, glossy texture emphasizes length and minimalism.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/classic_long_straight.png"
+        },
+        {
+          "key": "long_wavy_layers",
+          "prompt": "hair style: long hair styled into natural waves with layered cutting for movement. The flowing texture creates relaxed, effortless masculinity.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/long_wavy_layers.png"
+        },
+        {
+          "key": "long_curly",
+          "prompt": "hair style: long curly hair extending past the shoulders with full volume and bounce. The natural curls create expressive, bold energy.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/long_curly.png"
+        },
+        {
+          "key": "surfer_long_hair",
+          "prompt": "hair style: surfer-inspired long hair styled with tousled, sun-kissed waves. The undone, carefree flow creates casual and adventurous character.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/surfer_long_hair.png"
+        },
+        {
+          "key": "man_bun",
+          "prompt": "hair style: long hair tied into a bun at the crown or back of the head. The compact knot keeps length controlled while emphasizing modern style.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/man_bun.png"
+        },
+        {
+          "key": "half_up_half_down",
+          "prompt": "hair style: long hair styled half up and half down, with the top section tied back while the rest flows loose. The balance creates casual elegance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/half_up_half_down.png"
+        },
+        {
+          "key": "samurai_topknot",
+          "prompt": "hair style: long hair styled into a samurai-inspired topknot tied tightly at the crown. The bold knot creates strong, traditional warrior energy.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/samurai_topknot.png"
+        },
+        {
+          "key": "long_shag",
+          "prompt": "hair style: a long shag cut with layered, choppy ends and tousled texture. The uneven structure creates rebellious, rock-inspired masculinity.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/long_shag.png"
+        },
+        {
+          "key": "long_dreadlocks",
+          "prompt": "hair style: long dreadlocks styled evenly, extending past the shoulders. The rope-like texture emphasizes cultural strength and individuality.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/long_dreadlocks.png"
+        },
+        {
+          "key": "long_braids",
+          "prompt": "hair style: long hair styled into thick braids or multiple braids cascading down the back. The woven structure adds boldness and heritage-inspired design.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/long_braids.png"
+        },
+        {
+          "key": "loose_ponytail",
+          "prompt": "hair style: long hair gathered into a low, loose ponytail tied casually at the nape. The relaxed structure adds simplicity with natural flow.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/loose_ponytail.png"
+        },
+        {
+          "key": "high_ponytail",
+          "prompt": "hair style: long hair styled into a high ponytail at the crown. The elevated placement emphasizes length and strong silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/high_ponytail.png"
+        },
+        {
+          "key": "boho_long_hair",
+          "prompt": "hair style: bohemian-inspired long hair styled with scattered braids and loose waves. The eclectic texture creates artistic, free-spirited energy.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/boho_long_hair.png"
+        },
+        {
+          "key": "long_hair_with_bandana",
+          "prompt": "hair style: long hair styled naturally and accessorized with a bandana wrapped around the forehead. The look blends casual flow with rugged style.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/long_hair_with_bandana.png"
+        },
+        {
+          "key": "grunge_long_hair",
+          "prompt": "hair style: long hair styled messy with unkempt, grunge-inspired flow. The disheveled structure emphasizes edgy, rebellious masculinity.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/grunge_long_hair.png"
+        },
+        {
+          "key": "long_layered_cuts",
+          "prompt": "hair style: long layered haircut styled with staggered lengths for softness and movement. The structured layering prevents heaviness while keeping flow.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/long_layered_cuts.png"
+        },
+        {
+          "key": "viking_braids",
+          "prompt": "hair style: long hair styled into thick, warrior-inspired braids, sometimes paired with shaved sides. The bold silhouette emphasizes strength and tradition.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/viking_braids.png"
+        },
+        {
+          "key": "long_loose_with_beard",
+          "prompt": "hair style: long hair worn loose with natural flow, paired with a beard for rugged masculine balance. The combination emphasizes boldness and maturity.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/long_loose_with_beard.png"
+        },
+        {
+          "key": "slicked_back_long",
+          "prompt": "hair style: long hair slicked backward smoothly with product, keeping strands polished yet free-flowing at the ends. The glossy finish adds refinement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/slicked_back_long.png"
+        },
+        {
+          "key": "rockstar_long",
+          "prompt": "hair style: long hair styled messy and voluminous with layers, inspired by rock musicians. The tousled energy gives rebellious and dramatic character.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/rockstar_long.png"
+        },
+        {
+          "key": "braided_half_up",
+          "prompt": "hair style: long hair styled half up with braids securing the crown, while the rest flows loose. The combination of structure and flow adds artistic detail.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/braided_half_up.png"
+        },
+        {
+          "key": "long_hair_with_hat",
+          "prompt": "hair style: long hair styled naturally and worn with a hat, allowing strands to flow casually. The relaxed look emphasizes ease and freedom.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/long_hair_with_hat.png"
+        },
+        {
+          "key": "center_part_long",
+          "prompt": "hair style: long hair styled straight with a precise center part, falling evenly across the shoulders. The symmetry creates classic, timeless elegance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/center_part_long.png"
+        },
+        {
+          "key": "side_part_long",
+          "prompt": "hair style: long hair styled with a deep side part, sweeping across the forehead and cascading asymmetrically. The shape adds drama and refinement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/side_part_long.png"
+        },
+        {
+          "key": "layered_curly_long",
+          "prompt": "hair style: long curly hair shaped with layers to balance volume. The layered structure emphasizes bounce and prevents heaviness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/layered_curly_long.png"
+        },
+        {
+          "key": "hippie_long",
+          "prompt": "hair style: hippie-inspired long hair styled naturally with free waves, sometimes accessorized with a headband. The style reflects freedom and vintage character.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/hippie_long.png"
+        },
+        {
+          "key": "long_with_undercut",
+          "prompt": "hair style: long hair left flowing on top while sides are shaved in an undercut. The sharp contrast creates bold, modern masculinity.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/long_with_undercut.png"
+        },
+        {
+          "key": "long_afro",
+          "prompt": "hair style: a long afro with extended natural curls creating a voluminous rounded silhouette. The dramatic shape emphasizes strength and heritage.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/long_afro.png"
+        },
+        {
+          "key": "braided_long_ponytail",
+          "prompt": "hair style: long hair styled into a single, thick braid tied into a ponytail. The combination of structure and flow adds bold masculine presence.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/braided_long_ponytail.png"
+        },
+        {
+          "key": "extra_long_flow",
+          "prompt": "hair style: extremely long hair styled straight or wavy, extending to the waist or beyond. The length itself creates dramatic, eye-catching impact.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/extra_long_flow.png"
+        }
+      ]
+    },
+    {
+      "category_key": "mens_fade_undercut",
+      "title": "Men’s Fade & Undercut Variations",
+      "styles": [
+        {
+          "key": "low_fade",
+          "prompt": "hair style: a low fade where the taper begins just above the ears and blends gradually into the longer top. The subtle gradient creates a polished and understated finish.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/low_fade.png"
+        },
+        {
+          "key": "mid_fade",
+          "prompt": "hair style: a mid fade with the taper starting midway up the sides, creating balanced contrast between the sides and top. The look is versatile and modern.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/mid_fade.png"
+        },
+        {
+          "key": "high_fade",
+          "prompt": "hair style: a high fade with the sides shaved very short almost to the crown, leaving a stark contrast with the longer top. The bold cut emphasizes sharpness and strength.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/high_fade.png"
+        },
+        {
+          "key": "skin_fade",
+          "prompt": "hair style: a skin fade where the sides taper all the way down to bare skin. The clean, tight gradient emphasizes precision and fresh barbershop detail.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/skin_fade.png"
+        },
+        {
+          "key": "bald_fade",
+          "prompt": "hair style: a bald fade where the sides and back are shaved to the skin with smooth blending into the top. The sharp, bold finish creates a crisp silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/bald_fade.png"
+        },
+        {
+          "key": "drop_fade",
+          "prompt": "hair style: a drop fade where the taper dips lower behind the ears and around the nape, creating a curved fade line. The contour adds shape and modern refinement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/drop_fade.png"
+        },
+        {
+          "key": "burst_fade",
+          "prompt": "hair style: a burst fade that arcs around the ears in a circular gradient, blending into longer hair on top. The rounded fade creates a bold, unique effect.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/burst_fade.png"
+        },
+        {
+          "key": "taper_fade",
+          "prompt": "hair style: a taper fade that gradually shortens around the temples and neckline without cutting high. The subtle transition keeps the style professional and classic.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/taper_fade.png"
+        },
+        {
+          "key": "temple_fade",
+          "prompt": "hair style: a temple fade with sharp fading localized around the temples, leaving the rest of the sides longer. The precise detail adds modern sharpness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/temple_fade.png"
+        },
+        {
+          "key": "shadow_fade",
+          "prompt": "hair style: a shadow fade with gradual blending from dark to light, leaving soft contrast instead of exposing skin. The effect is subtle and natural-looking.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/shadow_fade.png"
+        },
+        {
+          "key": "high_top_fade",
+          "prompt": "hair style: a high top fade with hair left tall and flat on top, while the sides are shaved close with a fade. The geometric silhouette is bold and expressive.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/high_top_fade.png"
+        },
+        {
+          "key": "afro_fade",
+          "prompt": "hair style: an afro fade with natural curls left voluminous on top while the sides taper cleanly. The shape emphasizes texture with modern sharpness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/afro_fade.png"
+        },
+        {
+          "key": "curly_fade",
+          "prompt": "hair style: a fade paired with natural curls on top, keeping the volume defined and controlled while the sides are cleanly tapered.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/curly_fade.png"
+        },
+        {
+          "key": "wavy_fade",
+          "prompt": "hair style: a fade combined with wavy hair styled loosely on top. The smooth gradient contrasts with textured flow above.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/wavy_fade.png"
+        },
+        {
+          "key": "pompadour_fade",
+          "prompt": "hair style: a pompadour styled with high volume swept back at the crown, paired with faded sides. The bold top contrasts with polished gradients.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/pompadour_fade.png"
+        },
+        {
+          "key": "quiff_fade",
+          "prompt": "hair style: a quiff styled with height and volume at the front, blended into faded sides. The lifted silhouette balances structure with modern edge.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/quiff_fade.png"
+        },
+        {
+          "key": "comb_over_fade",
+          "prompt": "hair style: a comb-over with longer hair swept to one side on top, paired with faded sides. The neat styling and gradient create professional polish.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/comb_over_fade.png"
+        },
+        {
+          "key": "slick_back_fade",
+          "prompt": "hair style: a slicked-back top styled with gel or pomade, combined with faded sides. The glossy texture emphasizes modern refinement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/slick_back_fade.png"
+        },
+        {
+          "key": "side_part_fade",
+          "prompt": "hair style: a side part defined sharply at the crown, paired with clean faded sides. The structured separation highlights precision and contrast.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/side_part_fade.png"
+        },
+        {
+          "key": "spiky_fade",
+          "prompt": "hair style: short, spiky top styled with wax or gel, paired with faded sides. The jagged spikes add youthful, playful energy to the sharp cut.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/spiky_fade.png"
+        },
+        {
+          "key": "mohawk_fade",
+          "prompt": "hair style: a mohawk with the central strip of hair left long and spiked, while the sides are faded clean. The dramatic style balances rebellion with precision.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/mohawk_fade.png"
+        },
+        {
+          "key": "faux_hawk_fade",
+          "prompt": "hair style: a faux hawk with the top styled into a central ridge, paired with faded sides. The bold look is edgy yet more wearable than a full mohawk.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/faux_hawk_fade.png"
+        },
+        {
+          "key": "disconnected_undercut",
+          "prompt": "hair style: a disconnected undercut with the long top sharply separated from shaved sides, without blending. The bold contrast emphasizes dramatic styling.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/disconnected_undercut.png"
+        },
+        {
+          "key": "slick_back_undercut",
+          "prompt": "hair style: an undercut with the top left long and slicked back tightly, while the sides are shaved clean. The contrast highlights sharp modernism.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/slick_back_undercut.png"
+        },
+        {
+          "key": "long_top_undercut",
+          "prompt": "hair style: an undercut where the top is left long and styled into waves, curls, or sleek flow, sharply divided from shaved sides. The separation is striking and bold.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/long_top_undercut.png"
+        },
+        {
+          "key": "curly_undercut",
+          "prompt": "hair style: an undercut with curly hair left full on top while the sides are shaved clean. The contrast enhances natural texture with edgy structure.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/curly_undercut.png"
+        },
+        {
+          "key": "wavy_undercut",
+          "prompt": "hair style: an undercut paired with wavy hair styled loosely on top. The soft texture contrasts with the severe sharpness of shaved sides.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/wavy_undercut.png"
+        },
+        {
+          "key": "textured_undercut",
+          "prompt": "hair style: an undercut where the top is cut into choppy, textured layers, styled casually with volume. The bold top pairs with sleek, shaved sides for impact.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/textured_undercut.png"
+        },
+        {
+          "key": "messy_undercut",
+          "prompt": "hair style: a messy undercut with longer hair left tousled and unstructured on top. The relaxed styling contrasts with sharp shaved sides.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/messy_undercut.png"
+        },
+        {
+          "key": "undercut_with_hard_part",
+          "prompt": "hair style: an undercut styled with a shaved hard part line dividing the top from the sides. The detail emphasizes barbershop precision and boldness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/undercut_with_hard_part.png"
+        }
+      ]
+    },
+    {
+      "category_key": "mens_beard_hair_combos",
+      "title": "Men’s Beard + Hair Combo Styles",
+      "styles": [
+        {
+          "key": "buzz_cut_with_full_beard",
+          "prompt": "hair style: ultra-short buzz cut paired with a full, thick beard. The contrast between minimal hair and dense facial hair creates bold, masculine balance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/buzz_cut_with_full_beard.png"
+        },
+        {
+          "key": "crew_cut_with_stubble",
+          "prompt": "hair style: a neat crew cut combined with light stubble beard. The clean, low-maintenance look emphasizes sharpness with casual ruggedness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/crew_cut_with_stubble.png"
+        },
+        {
+          "key": "fade_with_sharp_beard",
+          "prompt": "hair style: a high fade haircut paired with a sharply edged beard. The crisp lines of both hair and beard create a cohesive, barbered aesthetic.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/fade_with_sharp_beard.png"
+        },
+        {
+          "key": "ivy_league_with_goatee",
+          "prompt": "hair style: an ivy league haircut styled with a side part, paired with a short goatee. The combination balances refinement with artistic edge.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/ivy_league_with_goatee.png"
+        },
+        {
+          "key": "slick_back_with_full_beard",
+          "prompt": "hair style: medium-length slicked-back hair matched with a thick, full beard. The glossy crown and rugged beard create a powerful, commanding presence.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/slick_back_with_full_beard.png"
+        },
+        {
+          "key": "quiff_with_stubble",
+          "prompt": "hair style: a textured quiff styled with height, combined with subtle stubble beard. The balance is modern, clean, and stylish without being overly sharp.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/quiff_with_stubble.png"
+        },
+        {
+          "key": "pompadour_with_beard",
+          "prompt": "hair style: a voluminous pompadour paired with a well-groomed beard. The bold height and polished facial hair create a strong, masculine silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/pompadour_with_beard.png"
+        },
+        {
+          "key": "long_hair_with_beard",
+          "prompt": "hair style: long, flowing hair combined with a full beard. The rugged combination creates dramatic, adventurous energy and timeless masculinity.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/long_hair_with_beard.png"
+        },
+        {
+          "key": "man_bun_with_beard",
+          "prompt": "hair style: long hair tied into a man bun, paired with a thick beard. The urban, modern combination emphasizes strength and contemporary style.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/man_bun_with_beard.png"
+        },
+        {
+          "key": "undercut_with_beard",
+          "prompt": "hair style: a disconnected undercut with long top and shaved sides, combined with a sharp, full beard. The contrast emphasizes bold, edgy fashion.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/undercut_with_beard.png"
+        },
+        {
+          "key": "curly_hair_with_beard",
+          "prompt": "hair style: natural curls left medium to long on top, paired with a thick beard. The textured combination creates rugged yet stylish harmony.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/curly_hair_with_beard.png"
+        },
+        {
+          "key": "short_fade_with_goatee",
+          "prompt": "hair style: a short fade haircut paired with a small, defined goatee. The neat haircut contrasts with the compact facial hair for sharp balance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/short_fade_with_goatee.png"
+        },
+        {
+          "key": "textured_crop_with_stubble",
+          "prompt": "hair style: a textured crop cut short with forward layers, paired with light stubble beard. The combination emphasizes casual, street-style masculinity.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/textured_crop_with_stubble.png"
+        },
+        {
+          "key": "buzz_cut_with_mustache",
+          "prompt": "hair style: a buzz cut combined with a prominent mustache. The minimalist haircut allows the mustache to stand out as a statement feature.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/buzz_cut_with_mustache.png"
+        },
+        {
+          "key": "fade_with_long_beard",
+          "prompt": "hair style: a high fade haircut paired with a long, full beard. The clean sides contrast with the extended beard for dramatic presence.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/fade_with_long_beard.png"
+        },
+        {
+          "key": "short_spiky_with_beard",
+          "prompt": "hair style: a short spiky haircut styled upward, combined with a trimmed beard. The edgy crown pairs with rugged facial hair for youthful energy.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/short_spiky_with_beard.png"
+        },
+        {
+          "key": "slick_part_with_beard",
+          "prompt": "hair style: a slick side part with polished finish, paired with a shaped beard. The formal haircut and refined beard create gentlemanly sophistication.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/slick_part_with_beard.png"
+        },
+        {
+          "key": "long_waves_with_beard",
+          "prompt": "hair style: long wavy hair styled loosely, paired with a thick beard. The flowing texture and dense facial hair enhance adventurous, bold energy.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/long_waves_with_beard.png"
+        },
+        {
+          "key": "high_top_fade_with_beard",
+          "prompt": "hair style: a high top fade haircut with tall flat crown, paired with a shaped beard. The combination highlights structure and cultural style.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/high_top_fade_with_beard.png"
+        },
+        {
+          "key": "short_side_part_with_stubble",
+          "prompt": "hair style: a short side-part haircut styled neatly, paired with light stubble. The refined haircut balanced by casual beard growth creates modern versatility.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/short_side_part_with_stubble.png"
+        },
+        {
+          "key": "messy_medium_with_beard",
+          "prompt": "hair style: medium messy hair styled tousled, combined with a rugged beard. The unkempt crown and full beard create raw, masculine presence.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/messy_medium_with_beard.png"
+        },
+        {
+          "key": "crew_cut_with_beard",
+          "prompt": "hair style: a classic crew cut paired with a shaped beard. The neat haircut provides sharp contrast to the rugged fullness of facial hair.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/crew_cut_with_beard.png"
+        },
+        {
+          "key": "ivy_with_beard_fade",
+          "prompt": "hair style: an ivy league haircut styled with taper fade sides, paired with a beard faded seamlessly into the haircut. The blend creates barbered precision.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/ivy_with_beard_fade.png"
+        },
+        {
+          "key": "buzz_with_chinstrap",
+          "prompt": "hair style: a buzz cut paired with a chinstrap beard outlining the jawline. The minimal crown contrasts with sharp, defined facial framing.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/buzz_with_chinstrap.png"
+        },
+        {
+          "key": "curtain_hair_with_beard",
+          "prompt": "hair style: medium curtain hairstyle with center part, paired with a full beard. The retro-inspired crown harmonizes with rugged masculinity.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/curtain_hair_with_beard.png"
+        },
+        {
+          "key": "pompadour_with_faded_beard",
+          "prompt": "hair style: a voluminous pompadour paired with a beard gradually faded at the sides. The balance creates bold height with smooth blending.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/pompadour_with_faded_beard.png"
+        },
+        {
+          "key": "shaggy_long_with_beard",
+          "prompt": "hair style: a long shag cut with uneven texture, paired with a thick beard. The rough layers and rugged facial hair emphasize rebellious masculinity.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/shaggy_long_with_beard.png"
+        },
+        {
+          "key": "slick_back_with_stubble",
+          "prompt": "hair style: slicked-back medium-length hair paired with short stubble beard. The polished crown contrasts with casual facial texture for modern versatility.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/slick_back_with_stubble.png"
+        },
+        {
+          "key": "short_curly_with_beard",
+          "prompt": "hair style: short curly hair cropped close, paired with a thick beard. The compact curls contrast with the fullness of facial hair.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/short_curly_with_beard.png"
+        },
+        {
+          "key": "military_cut_with_beard",
+          "prompt": "hair style: a high-and-tight military cut paired with a shaped full beard. The disciplined haircut contrasts with bold facial hair for powerful presence.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/military_cut_with_beard.png"
+        }
+      ]
+    },
+    {
+      "category_key": "mens_curly_afro",
+      "title": "Men’s Curly & Afro Styles",
+      "styles": [
+        {
+          "key": "short_curly_fade",
+          "prompt": "hair style: short curly hair styled with a clean fade at the sides. The curls remain defined on top while the fade provides sharp contrast and structure.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/short_curly_fade.png"
+        },
+        {
+          "key": "tapered_curly_cut",
+          "prompt": "hair style: natural curls shaped into a tapered cut, with volume at the crown gradually narrowing toward the neckline. The structured silhouette emphasizes curl texture.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/tapered_curly_cut.png"
+        },
+        {
+          "key": "curly_high_top",
+          "prompt": "hair style: curly high top with length built upward, creating a tall silhouette. The sides are trimmed short for contrast, emphasizing bold, cultural style.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/curly_high_top.png"
+        },
+        {
+          "key": "short_afro",
+          "prompt": "hair style: a short afro with tight curls shaped into a rounded silhouette. The balanced proportions highlight natural volume and texture.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/short_afro.png"
+        },
+        {
+          "key": "medium_afro",
+          "prompt": "hair style: a medium-length afro styled evenly with natural curls. The full, rounded form emphasizes expressive cultural strength.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/medium_afro.png"
+        },
+        {
+          "key": "long_afro",
+          "prompt": "hair style: a long afro grown out with extended volume, creating a dramatic, rounded silhouette. The bold length emphasizes natural fullness.",
+          "image_url": ""
+        },
+        {
+          "key": "curly_taper_fade",
+          "prompt": "hair style: curly hair styled with a taper fade at the sides and back. The gradual shortening frames the textured curls with modern refinement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/curly_taper_fade.png"
+        },
+        {
+          "key": "curly_drop_fade",
+          "prompt": "hair style: curly top combined with a drop fade, where the fade dips behind the ears. The curved fade complements the natural roundness of curls.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/curly_drop_fade.png"
+        },
+        {
+          "key": "tight_curl_crop",
+          "prompt": "hair style: tight curls cropped close to the scalp, keeping the texture compact and controlled. The low profile creates neat, rugged appeal.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/tight_curl_crop.png"
+        },
+        {
+          "key": "loose_curl_medium",
+          "prompt": "hair style: medium-length loose curls styled naturally with soft volume. The flowing texture adds casual charm and relaxed masculinity.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/loose_curl_medium.png"
+        },
+        {
+          "key": "curly_mohawk",
+          "prompt": "hair style: curly hair styled into a mohawk strip with faded or shaved sides. The defined curls along the center create bold, rebellious energy.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/curly_mohawk.png"
+        },
+        {
+          "key": "curly_faux_hawk",
+          "prompt": "hair style: curly hair shaped into a faux hawk, lifted at the crown with tapered sides. The style combines edgy shape with natural curl definition.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/curly_faux_hawk.png"
+        },
+        {
+          "key": "afro_with_line_up",
+          "prompt": "hair style: afro haircut paired with a sharp line-up at the forehead and temples. The clean edges contrast with the natural roundness of curls.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/afro_with_line_up.png"
+        },
+        {
+          "key": "curly_high_fade",
+          "prompt": "hair style: curly top styled with a high fade, creating extreme contrast between textured volume and shaved sides. The bold shape emphasizes modern edge.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/curly_high_fade.png"
+        },
+        {
+          "key": "afro_with_braided_sides",
+          "prompt": "hair style: afro styled with natural curls on top while the sides are braided tightly. The mix of textures highlights creativity and cultural style.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/afro_with_braided_sides.png"
+        },
+        {
+          "key": "long_curly_layers",
+          "prompt": "hair style: long curly hair styled into layered lengths for balanced shape. The cascading curls emphasize natural fullness and softness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/long_curly_layers.png"
+        },
+        {
+          "key": "short_curly_quiff",
+          "prompt": "hair style: short curly hair styled upward at the front into a mini quiff. The lifted curls add playful height and modern sharpness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/short_curly_quiff.png"
+        },
+        {
+          "key": "twist_out_curls",
+          "prompt": "hair style: twist-out curls styled with defined, springy coils separated for texture. The sculpted finish adds precision to natural curls.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/twist_out_curls.png"
+        },
+        {
+          "key": "curly_side_part",
+          "prompt": "hair style: curly hair parted distinctly to one side, with volume flowing asymmetrically. The structured separation adds refinement to natural curls.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/curly_side_part.png"
+        },
+        {
+          "key": "curly_top_with_beard",
+          "prompt": "hair style: curly top styled naturally with volume, paired with a full beard. The combination balances texture above with ruggedness below.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/curly_top_with_beard.png"
+        },
+        {
+          "key": "afro_puff",
+          "prompt": "hair style: afro puff where curls are gathered upward into a rounded puff at the crown. The lifted silhouette emphasizes volume and playful shape.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/afro_puff.png"
+        },
+        {
+          "key": "curly_brush_up",
+          "prompt": "hair style: curls styled upward with volume and product to hold shape, creating a textured brush-up. The dynamic lift adds bold, youthful energy.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/curly_brush_up.png"
+        },
+        {
+          "key": "curly_burst_fade",
+          "prompt": "hair style: curly top paired with a burst fade around the ears. The circular fade complements the textured curls with bold definition.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/curly_burst_fade.png"
+        },
+        {
+          "key": "twists_with_fade",
+          "prompt": "hair style: short or medium twists combined with faded sides. The structured coils emphasize creativity while the fade keeps it sharp.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/twists_with_fade.png"
+        },
+        {
+          "key": "curly_taper_with_design",
+          "prompt": "hair style: curly top paired with a taper fade that includes etched barber designs. The sharp patterns add artistry to natural curls.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/curly_taper_with_design.png"
+        },
+        {
+          "key": "medium_curly_shag",
+          "prompt": "hair style: medium-length curly shag cut with layered, messy volume. The casual texture creates retro-inspired rebellious energy.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/medium_curly_shag.png"
+        },
+        {
+          "key": "long_afro_with_braids",
+          "prompt": "hair style: long afro styled with natural volume and sections braided for accent. The hybrid texture highlights bold creativity.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/long_afro_with_braids.png"
+        },
+        {
+          "key": "curly_top_with_low_fade",
+          "prompt": "hair style: curly top styled with a low fade blending gradually into the sides. The subtle gradient keeps the curls as the central focus.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/curly_top_with_low_fade.png"
+        },
+        {
+          "key": "defined_coils",
+          "prompt": "hair style: natural hair styled into tightly defined coils with springy shape. The polished definition emphasizes texture and precision.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/defined_coils.png"
+        },
+        {
+          "key": "freeform_afro",
+          "prompt": "hair style: freeform afro grown naturally without strict shaping. The wild, expressive silhouette emphasizes individuality and natural freedom.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/man/freeform_afro.png"
+        }
+      ]
+    }
+  ]
+}

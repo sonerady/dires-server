@@ -1,0 +1,27 @@
+{
+  "hairStyleModal": {
+    "warning": "Uyarı",
+    "pleaseFillDescription": "Lütfen saç stili açıklaması giriniz",
+    "sensitiveContent": "İçerik Uygun Değil",
+    "contentNotAppropriate": "Lütfen farklı bir saç stili açıklaması ile tekrar deneyin",
+    "tryAgain": "Yeniden Dene",
+    "couldNotCreateHairStyle": "Saç stili oluşturulamadı",
+    "createCustomHairStyle": "Özel Saç Stili Oluştur",
+    "tooltip_title": "Kendi Saç Stilini Oluştur",
+    "tooltip_description": "Buradaki hazır saç stilleri yerine buradan da kendi saç stilini oluşturabilirsin. AI ile istediğin saç stilini tanımla ve modelin o saç stiliyle görüntülenmesini sağla!",
+    "tooltip_got_it": "Anladım!",
+    "createNewHairStyle": "Yeni Saç Stili Oluştur",
+    "enterHairStyleDescription": "Saç stili açıklamasını giriniz",
+    "publicHairStyle": "Herkes tarafından görülebilir",
+    "privateHairStyle": "Sadece benim",
+    "publicHairStyleDescription": "Diğer kullanıcılar bu saç stilini görebilir ve kullanabilir",
+    "privateHairStyleDescription": "Sadece sizin saç stili listenizde görünür",
+    "createHairStyle": "Saç Stili Oluştur",
+    "creating": "Oluşturuluyor..."
+  },
+  "customHairStyleModal": {
+    "error": "Hata",
+    "networkError": "Ağ hatası oluştu",
+    "creating": "Oluşturuluyor..."
+  }
+}

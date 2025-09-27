@@ -1662,11 +1662,6 @@
     "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/woman/pose_hand_on_chin_gazing_down.png"
   },
   {
-    "id": 263,
-    "key": "pose_leg_crossed_back_against_wall",
-    "title": "Leaning back against a wall with crossed legs casually."
-  },
-  {
     "id": 264,
     "key": "pose_arm_extended_backwards",
     "title": "Extending one arm backwards with grace and balance.",
@@ -1720,12 +1715,7 @@
     "title": "Jumping mid-air with arms spread wide and a joyful smile.",
     "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/woman/pose_jumping_in_air.png"
   },
-  {
-    "id": 273,
-    "key": "pose_sitting_on_ground_hand_reach",
-    "title": "Sitting on the ground with one hand reaching toward the camera.",
-    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/woman/pose_sitting_on_ground_hand_reach.png"
-  },
+
   {
     "id": 274,
     "key": "pose_backbend_graceful",
@@ -2752,12 +2742,7 @@
     "title": "Holding sunglasses delicately with a playful smile.",
     "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/woman/pose_hand_holding_sunglasses.png"
   },
-  {
-    "id": 445,
-    "key": "pose_leaning_on_balcony_railing",
-    "title": "Leaning forward on a balcony railing gazing outward.",
-    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/woman/pose_leaning_on_balcony_railing.png"
-  },
+
   {
     "id": 446,
     "key": "pose_hand_covering_sunlight",
@@ -2950,12 +2935,7 @@
     "title": "Both hands tucked inside coat pockets in a chic street style.",
     "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/woman/pose_hand_in_coat_pocket.png"
   },
-  {
-    "id": 478,
-    "key": "pose_standing_with_backlight",
-    "title": "Standing tall against a strong backlight creating a dramatic silhouette.",
-    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/woman/pose_standing_with_backlight.png"
-  },
+
   {
     "id": 479,
     "key": "pose_hand_touching_chin_thoughtful",
@@ -3034,11 +3014,7 @@
     "title": "Side profile with hand gently supporting chin gracefully.",
     "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/woman/pose_hand_under_chin_side_profile.png"
   },
-  {
-    "id": 491,
-    "key": "pose_hand_under_chin_side_profile",
-    "title": "Side profile with hand gently supporting chin gracefully."
-  },
+
   {
     "id": 492,
     "key": "pose_sitting_on_floor_arms_hugging_knees",

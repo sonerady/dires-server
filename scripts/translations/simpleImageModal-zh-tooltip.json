@@ -1,8 +1,0 @@
-{
-  "tooltip_back_pose_title": "背面姿势",
-  "tooltip_back_pose_description": "使用此功能查看服装的背面。AI转动模型以显示产品的背面细节。",
-  "tooltip_different_pose_title": "不同姿势",
-  "tooltip_different_pose_description": "使用此选项以不同姿势查看相同服装。从不同角度和位置查看模型。",
-  "tooltip_next": "下一步",
-  "tooltip_done": "完成"
-}

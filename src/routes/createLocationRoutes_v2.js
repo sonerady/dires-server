@@ -63,16 +63,16 @@ async function uploadImageToSupabaseStorage(imageUrl, userId, replicateId) {
   }
 }
 
-// Flux 1.1 Pro Ultra ile location image generate et
-async function generateLocationWithFlux11ProUltra(prompt, userId) {
+// Google Imagen-4-fast ile location image generate et
+async function generateLocationWithImagen4Fast(prompt, userId) {
   try {
     console.log(
-      "📸 Flux 1.1 Pro Ultra ile location generation başlatılıyor..."
+      "📸 Google Imagen-4-fast ile location generation başlatılıyor..."
     );
     console.log("Prompt:", prompt);
 
     const response = await fetch(
-      "https://api.replicate.com/v1/models/black-forest-labs/flux-1.1-pro-ultra/predictions",
+      "https://api.replicate.com/v1/models/google/imagen-4-ultra/predictions",
       {
         method: "POST",
         headers: {
@@ -82,12 +82,10 @@ async function generateLocationWithFlux11ProUltra(prompt, userId) {
         },
         body: JSON.stringify({
           input: {
-            raw: false,
-            prompt: `${prompt} The scene must be rendered strictly from the perspective of a standing fashion model, while keeping the model completely hidden and not visible in the final image.`,
+            prompt: `${prompt} The image should have vibrant colors, high contrast, excellent lighting, and sharp visual quality.`,
             aspect_ratio: "1:1",
             output_format: "jpg",
-            safety_tolerance: 2,
-            image_prompt_strength: 0.1,
+            safety_filter_level: "block_only_high",
           },
         }),
       }
@@ -95,13 +93,13 @@ async function generateLocationWithFlux11ProUltra(prompt, userId) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Flux 1.1 Pro Ultra API Error:", errorText);
-      throw new Error(`Flux 1.1 Pro Ultra API Error: ${response.status}`);
+      console.error("Google Imagen-4-fast API Error:", errorText);
+      throw new Error(`Google Imagen-4-fast API Error: ${response.status}`);
     }
 
     const result = await response.json();
-    console.log("✅ Flux 1.1 Pro Ultra generation tamamlandı");
-    console.log("Flux result:", result);
+    console.log("✅ Google Imagen-4-fast generation tamamlandı");
+    console.log("Imagen result:", result);
 
     // Output string veya array olabilir
     let imageUrl = null;
@@ -127,10 +125,10 @@ async function generateLocationWithFlux11ProUltra(prompt, userId) {
         replicateId: result.id,
       };
     } else {
-      throw new Error("Flux 1.1 Pro Ultra'dan görsel çıkışı alınamadı");
+      throw new Error("Google Imagen-4-fast'dan görsel çıkışı alınamadı");
     }
   } catch (error) {
-    console.error("Flux 1.1 Pro Ultra generation hatası:", error);
+    console.error("Google Imagen-4-fast generation hatası:", error);
     throw error;
   }
 }
@@ -523,8 +521,8 @@ router.post("/create-location", async (req, res) => {
     const enhancedPrompt = gptResult.prompt;
     const generatedTitle = gptResult.title;
 
-    // 2. Flux 1.1 Pro Ultra ile görsel generate et
-    const fluxResult = await generateLocationWithFlux11ProUltra(
+    // 2. Google Imagen-4-fast ile görsel generate et
+    const imagenResult = await generateLocationWithImagen4Fast(
       enhancedPrompt,
       actualUserId
     );
@@ -550,8 +548,8 @@ router.post("/create-location", async (req, res) => {
         generatedTitle.trim(), // Gemini'den gelen kısa title (5-10 kelime)
         prompt.trim(),
         enhancedPrompt,
-        fluxResult.imageUrl, // Supabase storage'dan gelen public URL
-        fluxResult.replicateId,
+        imagenResult.imageUrl, // Supabase storage'dan gelen public URL
+        imagenResult.replicateId,
         category,
         actualUserId,
         isPublic,
@@ -560,7 +558,7 @@ router.post("/create-location", async (req, res) => {
       );
 
       console.log(
-        "✅ Create location işlemi tamamlandı (Flux 1.1 Pro Ultra ile veritabanına kaydedildi)"
+        "✅ Create location işlemi tamamlandı (Google Imagen-4-fast ile veritabanına kaydedildi)"
       );
 
       res.json({
@@ -591,10 +589,10 @@ router.post("/create-location", async (req, res) => {
         data: {
           title: title.trim(),
           generatedTitle: generatedTitle,
-          imageUrl: optimizeImageUrl(fluxResult.imageUrl),
+          imageUrl: optimizeImageUrl(imagenResult.imageUrl),
           originalPrompt: prompt.trim(),
           enhancedPrompt: enhancedPrompt,
-          replicateId: fluxResult.replicateId,
+          replicateId: imagenResult.replicateId,
           category: category,
           userId: actualUserId,
         },
@@ -663,13 +661,27 @@ router.get("/user-locations/:userId", async (req, res) => {
   }
 });
 
-// Diziyi karıştıran yardımcı fonksiyon
-const shuffleArray = (array) => {
+// Diziyi karıştıran yardımcı fonksiyon - Seed ile daha iyi randomness
+const shuffleArray = (array, seed = null) => {
   const shuffled = [...array];
+
+  // Eğer seed verilmemişse, current timestamp + random kullan
+  const randomSeed = seed || Date.now() + Math.random() * 1000000;
+
+  // Simple seeded random function
+  let randomValue = randomSeed;
+  const seededRandom = () => {
+    randomValue = (randomValue * 9301 + 49297) % 233280;
+    return randomValue / 233280;
+  };
+
+  // Fisher-Yates shuffle with seeded random
   for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(seededRandom() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
+
+  console.log(`🎲 Shuffled with seed: ${randomSeed}`);
   return shuffled;
 };
 
@@ -728,11 +740,13 @@ router.get("/public-locations", async (req, res) => {
       shuffle = "true", // Default shuffle kalıyor
       sort = "created_at_desc", // newest, oldest, created_at_desc, created_at_asc
       includeStudio = "false", // Studio'ları dahil et mi?
+      t = null, // Timestamp cache buster / shuffle seed
     } = req.query;
 
     console.log("🔀 Public locations fetch - shuffle:", shuffle, "sort:", sort);
     console.log("📝 Limit:", limit, "Offset:", offset);
     console.log("🎬 Include Studio:", includeStudio);
+    console.log("⏰ Timestamp seed:", t);
 
     // Location type filtresi - studio dahil mi?
     const allowedLocationTypes =
@@ -765,9 +779,14 @@ router.get("/public-locations", async (req, res) => {
         throw error;
       }
 
-      // Shuffle yap
-      const shuffledData = shuffleArray(allData || []);
-      console.log(`🎲 Shuffled ${shuffledData.length} locations`);
+      // Shuffle yap - timestamp'i seed olarak kullan (opsiyonel)
+      const shuffleSeed = t ? parseInt(t) : null;
+      const shuffledData = shuffleArray(allData || [], shuffleSeed);
+      console.log(
+        `🎲 Shuffled ${shuffledData.length} locations with seed: ${
+          shuffleSeed || "auto-generated"
+        }`
+      );
 
       // Pagination uygula
       const startIndex = parseInt(offset);

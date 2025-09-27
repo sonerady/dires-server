@@ -1281,42 +1281,50 @@
   {
     "id": 199,
     "key": "pose_head_lowered_shadow",
-    "title": "Head lowered slightly to cast natural shadow over the eyes."
+    "title": "Head lowered slightly to cast natural shadow over the eyes.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_head_lowered_shadow.png"
   },
   {
     "id": 200,
     "key": "pose_arms_neutral_breath",
-    "title": "Arms hanging loosely while taking a slow, calm breath."
+    "title": "Arms hanging loosely while taking a slow, calm breath.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_arms_neutral_breath.png"
   },
   {
     "id": 201,
     "key": "pose_profile_with_soft_smile",
-    "title": "Profile view with a soft, subtle smile."
+    "title": "Profile view with a soft, subtle smile.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_profile_with_soft_smile.png"
   },
   {
     "id": 202,
     "key": "pose_step_back_balance",
-    "title": "Taking a step backward, feet balanced evenly."
+    "title": "Taking a step backward, feet balanced evenly.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_step_back_balance.png"
   },
   {
     "id": 203,
     "key": "pose_wrists_crossed_behind",
-    "title": "Wrists crossed lightly behind the back in a natural pose."
+    "title": "Wrists crossed lightly behind the back in a natural pose.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_wrists_crossed_behind.png"
   },
   {
     "id": 204,
     "key": "pose_gaze_upward_thoughtful",
-    "title": "Eyes lifted upward thoughtfully, jawline emphasized."
+    "title": "Eyes lifted upward thoughtfully, jawline emphasized.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_gaze_upward_thoughtful.png"
   },
   {
     "id": 205,
     "key": "pose_arm_angle_frame_face",
-    "title": "Arm lifted to subtly frame the face without touching it."
+    "title": "Arm lifted to subtly frame the face without touching it.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_arm_angle_frame_face.png"
   },
   {
     "id": 206,
     "key": "pose_subtle_c_shape_torso",
-    "title": "Torso forming a subtle C-shape curve for elegance."
+    "title": "Torso forming a subtle C-shape curve for elegance.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_subtle_c_shape_torso.png"
   },
   {
     "id": 207,
@@ -1326,7 +1334,8 @@
   {
     "id": 208,
     "key": "pose_micro_lunge_side",
-    "title": "A soft lunge to the side with torso upright."
+    "title": "A soft lunge to the side with torso upright.",
+    "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/new_poses/man/pose_micro_lunge_side.png"
   },
   {
     "id": 209,

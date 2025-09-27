@@ -13,9 +13,15 @@ const supabase = createClient(
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 
 // JSON dosyalarının yolları
-const WOMAN_POSES_FILE = path.join(__dirname, "../lib/woman_poses_new.json");
-const MAN_POSES_FILE = path.join(__dirname, "../lib/man_poses_new.json");
-const EXAMPLE_IMAGE_PATH = path.join(__dirname, "../lib/man_pose.jpg");
+const WOMAN_HAIR_STYLES_FILE = path.join(
+  __dirname,
+  "../lib/woman_hair_style_new.json"
+);
+const MAN_HAIR_STYLES_FILE = path.join(
+  __dirname,
+  "../lib/man_hair_style_new.json"
+);
+const EXAMPLE_IMAGE_PATH = path.join(__dirname, "../lib/example_hair.jpg");
 
 // Dosya varlığını kontrol et
 if (!fs.existsSync(EXAMPLE_IMAGE_PATH)) {
@@ -138,7 +144,7 @@ async function callNanoBanana(prompt, imagePath, gender) {
   for (let retry = 1; retry <= maxRetries; retry++) {
     try {
       console.log(
-        `🎨 ${gender} pose için Nano Banana'ya istek gönderiliyor... (Deneme ${retry}/${maxRetries})`
+        `🎨 ${gender} hair style için Nano Banana'ya istek gönderiliyor... (Deneme ${retry}/${maxRetries})`
       );
       console.log(`📝 Prompt: ${prompt.substring(0, 100)}...`);
 
@@ -286,7 +292,7 @@ async function uploadToSupabase(imageUrl, fileName, gender) {
 
     // Supabase'e yükle
     const { data, error } = await supabase.storage
-      .from("new_poses")
+      .from("hair_styles")
       .upload(`${gender}/${fileName}.png`, imageBuffer, {
         contentType: "image/png",
         cacheControl: "3600",
@@ -303,11 +309,11 @@ async function uploadToSupabase(imageUrl, fileName, gender) {
       ) {
         console.error(`
 🔧 RLS HATASI ÇÖZÜMÜ:
-Supabase'de 'new_poses' bucket için Row Level Security (RLS) politikası eksik.
+Supabase'de 'hair_styles' bucket için Row Level Security (RLS) politikası eksik.
 
 Çözüm:
 1. Supabase Dashboard'a git
-2. Storage -> new_poses bucket -> Policies
+2. Storage -> hair_styles bucket -> Policies
 3. Aşağıdaki INSERT politikasını ekle:
 
 Name: Allow file uploads
@@ -316,7 +322,7 @@ Operation: INSERT
 
 Veya SQL ile:
 CREATE POLICY "Allow file uploads" ON storage.objects
-FOR INSERT WITH CHECK (bucket_id = 'new_poses');
+FOR INSERT WITH CHECK (bucket_id = 'hair_styles');
         `);
       }
 
@@ -327,7 +333,7 @@ FOR INSERT WITH CHECK (bucket_id = 'new_poses');
 
     // Public URL al
     const { data: urlData } = supabase.storage
-      .from("new_poses")
+      .from("hair_styles")
       .getPublicUrl(`${gender}/${fileName}.png`);
 
     return urlData.publicUrl;
@@ -337,142 +343,145 @@ FOR INSERT WITH CHECK (bucket_id = 'new_poses');
   }
 }
 
-// Prompt oluştur
-function createPrompt(title, gender) {
+// Prompt oluştur (hair style için)
+function createPrompt(hairStylePrompt, gender) {
   const genderText = gender === "woman" ? "female" : "male";
 
-  return `IMPORTANT: CHANGE THE POSE TO: ${title}. 
-
-MAKE THIS POSE VERY PROMINENT AND CLEAR IN THE IMAGE - THE POSE MUST BE EXTREMELY OBVIOUS AND DISTINCTIVE.
-
-Create a professional fashion photograph of a real ${genderText} person in a clean white seamless studio. The model is wearing a plain white athletic tank top paired with fitted white training shorts, presented as a simple and safe sports outfit. 
-
-CRITICAL POSE REQUIREMENT: The model must be performing this specific pose: ${title}. Make sure this pose is the main focus and clearly visible.
-
-A colorful pose chart must be overlaid directly onto the clothing: bold lines connect each body joint, with bright round dots at the key points such as shoulders, elbows, wrists, hips, knees, ankles, and the head connection. Each limb section should use a distinct bright gradient color so the design appears sharp, vibrant, and aligned perfectly with the natural body curves. The overlay should look flat and graphic, integrated as if printed directly on the outfit, never floating above it. The model's skin, hair, and face must remain unchanged and photorealistic while the background stays pure white and distraction-free, ensuring the result looks like a professional fashion studio photo used for educational visualization.
-`;
+  return `CHANGE HAIR STYLE: ${hairStylePrompt}. Keep the mannequin head exactly the same - white featureless head on white background. Only change the hair style, do not make it a real person.`;
 }
 
-// JSON dosyasını güncelle
-function updateJsonFile(filePath, poseData) {
+// JSON dosyasını güncelle (hair style için)
+function updateJsonFile(filePath, styleData) {
   try {
     const jsonData = JSON.parse(fs.readFileSync(filePath, "utf8"));
 
-    // Pose'u bul ve image_url ekle
-    const pose = jsonData.find((p) => p.id === poseData.id);
-    if (pose) {
-      pose.image_url = poseData.image_url;
-      console.log(`✅ JSON güncellendi: ${pose.key} -> ${poseData.image_url}`);
-    } else {
-      console.warn(`⚠️ Pose bulunamadı: ID ${poseData.id}`);
+    // Category ve style'ı bul ve image_url ekle
+    for (const category of jsonData.categories) {
+      const style = category.styles.find((s) => s.key === styleData.key);
+      if (style) {
+        style.image_url = styleData.image_url;
+        console.log(
+          `✅ JSON güncellendi: ${style.key} -> ${styleData.image_url}`
+        );
+
+        // Dosyayı kaydet
+        fs.writeFileSync(filePath, JSON.stringify(jsonData, null, 2));
+        console.log(`💾 JSON dosyası kaydedildi: ${filePath}`);
+        return;
+      }
     }
 
-    // Dosyayı kaydet
-    fs.writeFileSync(filePath, JSON.stringify(jsonData, null, 2));
-    console.log(`💾 JSON dosyası kaydedildi: ${filePath}`);
+    console.warn(`⚠️ Hair style bulunamadı: ${styleData.key}`);
   } catch (error) {
     console.error("❌ JSON güncelleme hatası:", error.message);
     throw error;
   }
 }
 
-// Ana işlem fonksiyonu
-async function processPoses(gender = "woman", startFromPose = null) {
+// Ana işlem fonksiyonu (hair styles için)
+async function processHairStyles(gender = "woman", startFromStyle = null) {
   try {
-    console.log(`🚀 ${gender} pose'ları işleniyor...`);
+    console.log(`🚀 ${gender} hair style'ları işleniyor...`);
 
     // JSON dosyasını oku
-    const jsonFile = gender === "woman" ? WOMAN_POSES_FILE : MAN_POSES_FILE;
-    const poses = JSON.parse(fs.readFileSync(jsonFile, "utf8"));
+    const jsonFile =
+      gender === "woman" ? WOMAN_HAIR_STYLES_FILE : MAN_HAIR_STYLES_FILE;
+    const hairData = JSON.parse(fs.readFileSync(jsonFile, "utf8"));
 
-    console.log(`📊 Toplam ${poses.length} pose bulundu`);
-
-    // Başlangıç pose'unu bul
-    let startIndex = 0;
-    if (startFromPose) {
-      startIndex = poses.findIndex((pose) => pose.key === startFromPose);
-      if (startIndex === -1) {
-        console.error(`❌ Pose bulunamadı: ${startFromPose}`);
-        process.exit(1);
-      }
-      console.log(
-        `🎯 ${startFromPose} pose'undan başlanıyor (${startIndex + 1}/${
-          poses.length
-        })`
-      );
+    // Toplam style sayısını hesapla
+    let totalStyles = 0;
+    for (const category of hairData.categories) {
+      totalStyles += category.styles.length;
     }
 
-    // Her pose için işlem yap
-    for (let i = startIndex; i < poses.length; i++) {
-      const pose = poses[i];
+    console.log(`📊 Toplam ${totalStyles} hair style bulundu`);
 
-      console.log(`\n🔄 [${i + 1}/${poses.length}] İşleniyor: ${pose.key}`);
-      console.log(`📝 Title: ${pose.title}`);
+    let processedCount = 0;
+    let startProcessing = !startFromStyle; // Eğer startFromStyle yoksa baştan başla
 
-      try {
-        // Prompt oluştur
-        const prompt = createPrompt(pose.title, gender);
+    // Her kategori ve style için işlem yap
+    for (const category of hairData.categories) {
+      console.log(
+        `\n📂 Kategori: ${category.title} (${category.styles.length} style)`
+      );
 
-        // Nano Banana'ya gönder (retry ile)
-        console.log(`🔄 ${pose.key} için işlem başlatılıyor...`);
-        const generatedImageUrl = await callNanoBanana(
-          prompt,
-          EXAMPLE_IMAGE_PATH,
-          gender
-        );
+      for (const style of category.styles) {
+        processedCount++;
 
-        // Supabase'e yükle
-        console.log(`📤 ${pose.key} Supabase'e yükleniyor...`);
-        const supabaseUrl = await uploadToSupabase(
-          generatedImageUrl,
-          pose.key,
-          gender
-        );
-
-        // JSON'u güncelle
-        console.log(`💾 ${pose.key} JSON'a ekleniyor...`);
-        updateJsonFile(jsonFile, {
-          id: pose.id,
-          image_url: supabaseUrl,
-        });
-
-        console.log(`✅ ${pose.key} başarıyla tamamlandı!`);
-
-        // Rate limiting için bekle
-        await delay(2000);
-      } catch (error) {
-        console.error(`❌ ${pose.key} işlenirken hata:`, error.message);
-
-        // SKIP_POSE hatası ise sonraki pose'a geç
-        if (error.message.includes("SKIP_POSE")) {
-          console.log(`⏭️ ${pose.key} atlanıyor, sonraki pose'a geçiliyor...`);
-          continue;
+        // Başlangıç style'ını kontrol et
+        if (!startProcessing) {
+          if (style.key === startFromStyle) {
+            startProcessing = true;
+            console.log(`🎯 ${startFromStyle} style'ından başlanıyor`);
+          } else {
+            continue; // Bu style'ı atla
+          }
         }
 
-        // RLS hatası ise sonraki pose'a geç (Supabase politikası eksik)
-        if (error.message.includes("row-level security policy")) {
-          console.log(
-            `⏭️ ${pose.key} RLS hatası nedeniyle atlanıyor, sonraki pose'a geçiliyor...`
+        console.log(
+          `\n🔄 [${processedCount}/${totalStyles}] İşleniyor: ${style.key}`
+        );
+        console.log(`📝 Prompt: ${style.prompt.substring(0, 100)}...`);
+
+        try {
+          // Prompt oluştur
+          const prompt = createPrompt(style.prompt, gender);
+
+          // Nano Banana'ya gönder (retry ile)
+          console.log(`🔄 ${style.key} için işlem başlatılıyor...`);
+          const generatedImageUrl = await callNanoBanana(
+            prompt,
+            EXAMPLE_IMAGE_PATH,
+            gender
           );
-          continue;
-        }
 
-        // RETRYABLE_ERROR hatası ise daha uzun bekle
-        if (error.message.includes("RETRYABLE_ERROR")) {
-          console.log(`⏳ Retryable hata, 30 saniye bekleniyor...`);
-          await delay(30000);
-        } else {
+          // Supabase'e yükle
+          console.log(`📤 ${style.key} Supabase'e yükleniyor...`);
+          const supabaseUrl = await uploadToSupabase(
+            generatedImageUrl,
+            style.key,
+            gender
+          );
+
+          // JSON'u güncelle
+          console.log(`💾 ${style.key} JSON'a ekleniyor...`);
+          updateJsonFile(jsonFile, {
+            key: style.key,
+            image_url: supabaseUrl,
+          });
+
+          console.log(`✅ ${style.key} başarıyla tamamlandı!`);
+
+          // Rate limiting için bekle
+          await delay(2000);
+        } catch (error) {
+          console.error(`❌ ${style.key} işlenirken hata:`, error.message);
+
+          // SKIP_POSE hatası ise sonraki style'a geç
+          if (error.message.includes("SKIP_POSE")) {
+            console.log(
+              `⏭️ ${style.key} atlanıyor, sonraki style'a geçiliyor...`
+            );
+            continue;
+          }
+
+          // RLS hatası ise sonraki style'a geç (Supabase politikası eksik)
+          if (error.message.includes("row-level security policy")) {
+            console.log(
+              `⏭️ ${style.key} RLS hatası nedeniyle atlanıyor, sonraki style'a geçiliyor...`
+            );
+            continue;
+          }
+
+          // Hata durumunda kısa bekle ve devam et
           console.log(`⏳ 10 saniye bekleniyor...`);
           await delay(10000);
+          continue;
         }
-
-        console.log(`🔄 ${pose.key} tekrar deneniyor...`);
-        i--; // Aynı pose'u tekrar dene
-        continue;
       }
     }
 
-    console.log(`\n🎉 ${gender} pose'ları işlemi tamamlandı!`);
+    console.log(`\n🎉 ${gender} hair style'ları işlemi tamamlandı!`);
   } catch (error) {
     console.error("❌ Ana işlem hatası:", error.message);
     throw error;
@@ -482,17 +491,17 @@ async function processPoses(gender = "woman", startFromPose = null) {
 // CLI argümanlarını kontrol et
 const args = process.argv.slice(2);
 const gender = args[0] || "woman";
-const startFromPose = args[1] || null; // İkinci argüman: başlangıç pose'u
+const startFromStyle = args[1] || null; // İkinci argüman: başlangıç style'u
 
 if (!["woman", "man"].includes(gender)) {
   console.error(
-    "❌ Geçersiz gender. Kullanım: node generate-pose-images.js [woman|man] [startFromPose]"
+    "❌ Geçersiz gender. Kullanım: node generate-hair-styles.js [woman|man] [startFromStyle]"
   );
   process.exit(1);
 }
 
 // Ana fonksiyonu çalıştır
-processPoses(gender, startFromPose)
+processHairStyles(gender, startFromStyle)
   .then(() => {
     console.log("🎉 Script başarıyla tamamlandı!");
     process.exit(0);

@@ -11,13 +11,9 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const NANO_BANANA_API_URL =
   "https://api.replicate.com/v1/models/google/nano-banana/predictions";
 
-// Example image paths - gender'a göre
-const getExampleImagePath = (gender) => {
-  if (gender === "female") {
-    return path.join(__dirname, "../../lib/woman_pose.jpg");
-  } else {
-    return path.join(__dirname, "../../lib/man_pose.jpg");
-  }
+// Example image paths - hair styles için
+const getExampleHairImagePath = () => {
+  return path.join(__dirname, "../../lib/example_hair.jpg");
 };
 
 // Gemini API için istemci oluştur
@@ -28,10 +24,10 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// Prediction durumunu kontrol et (generate-pose-images.js'den alındı)
+// Prediction durumunu kontrol et
 async function pollReplicateResult(predictionId, maxAttempts = 60) {
   console.log(
-    `🔄 [NANO BANANA] Prediction polling başlatılıyor: ${predictionId}`
+    `🔄 [NANO BANANA HAIR] Prediction polling başlatılıyor: ${predictionId}`
   );
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
@@ -50,16 +46,16 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
 
       const result = response.data;
       console.log(
-        `🔍 [NANO BANANA] Polling attempt ${attempt + 1}: status = ${
+        `🔍 [NANO BANANA HAIR] Polling attempt ${attempt + 1}: status = ${
           result.status
         }`
       );
 
       if (result.status === "succeeded") {
-        console.log("✅ [NANO BANANA] İşlem başarıyla tamamlandı");
+        console.log("✅ [NANO BANANA HAIR] İşlem başarıyla tamamlandı");
         return result;
       } else if (result.status === "failed") {
-        console.error("❌ [NANO BANANA] İşlem başarısız:", result.error);
+        console.error("❌ [NANO BANANA HAIR] İşlem başarısız:", result.error);
 
         // E005 (sensitive content) ve diğer kalıcı hatalar için hata fırlat
         if (
@@ -71,7 +67,7 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
             result.error.includes("Content moderated"))
         ) {
           console.log(
-            "⚠️ [NANO BANANA] Sensitive content hatası:",
+            "⚠️ [NANO BANANA HAIR] Sensitive content hatası:",
             result.error
           );
           throw new Error(`Sensitive content error: ${result.error}`);
@@ -86,16 +82,16 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
             result.error.includes("Please try again later"))
         ) {
           console.log(
-            "🔄 [NANO BANANA] Geçici hata tespit edildi:",
+            "🔄 [NANO BANANA HAIR] Geçici hata tespit edildi:",
             result.error
           );
           throw new Error(`Service temporarily unavailable: ${result.error}`);
         }
 
-        throw new Error(result.error || "Nano Banana processing failed");
+        throw new Error(result.error || "Nano Banana hair processing failed");
       } else if (result.status === "canceled") {
-        console.error("❌ [NANO BANANA] İşlem iptal edildi");
-        throw new Error("Nano Banana processing was canceled");
+        console.error("❌ [NANO BANANA HAIR] İşlem iptal edildi");
+        throw new Error("Nano Banana hair processing was canceled");
       }
 
       // Processing veya starting durumundaysa bekle
@@ -105,7 +101,7 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
       }
     } catch (error) {
       console.error(
-        `❌ [NANO BANANA] Polling attempt ${attempt + 1} hatası:`,
+        `❌ [NANO BANANA HAIR] Polling attempt ${attempt + 1} hatası:`,
         error.message
       );
 
@@ -122,34 +118,35 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
   throw new Error("Polling timeout - maksimum deneme sayısına ulaşıldı");
 }
 
-// Nano Banana API'ye istek gönder (retry ile)
-async function callNanoBanana(prompt, gender) {
+// Nano Banana API'ye hair style isteği gönder (retry ile)
+async function callNanoBananaForHair(prompt, gender) {
   const maxRetries = 3;
   let lastError = null;
 
   for (let retry = 1; retry <= maxRetries; retry++) {
     try {
       console.log(
-        `🎨 [NANO BANANA] ${gender} pose için API'ye istek gönderiliyor... (Deneme ${retry}/${maxRetries})`
+        `🎨 [NANO BANANA HAIR] ${gender} hair style için API'ye istek gönderiliyor... (Deneme ${retry}/${maxRetries})`
       );
-      console.log("🚻 [NANO BANANA] Gender debug:", {
+      console.log("🚻 [NANO BANANA HAIR] Gender debug:", {
         receivedGender: gender,
         genderType: typeof gender,
         isEqualToFemale: gender === "female",
         isEqualToMale: gender === "male",
       });
-      console.log(`📝 [NANO BANANA] Prompt: ${prompt.substring(0, 200)}...`);
+      console.log(
+        `📝 [NANO BANANA HAIR] Prompt: ${prompt.substring(0, 200)}...`
+      );
 
-      // Gender'a göre example resmi seç ve okuyup base64'e çevir
-      const exampleImagePath = getExampleImagePath(gender);
-      console.log("🖼️ [NANO BANANA] Kullanılan example image:", {
-        gender,
+      // Hair style için example resmi kullan
+      const exampleImagePath = getExampleHairImagePath();
+      console.log("🖼️ [NANO BANANA HAIR] Kullanılan example image:", {
         imagePath: exampleImagePath,
         fileExists: fs.existsSync(exampleImagePath),
       });
 
       if (!fs.existsSync(exampleImagePath)) {
-        throw new Error(`Example image bulunamadı: ${exampleImagePath}`);
+        throw new Error(`Example hair image bulunamadı: ${exampleImagePath}`);
       }
 
       const imageBuffer = fs.readFileSync(exampleImagePath);
@@ -164,8 +161,8 @@ async function callNanoBanana(prompt, gender) {
         },
       };
 
-      console.log("📡 [NANO BANANA] API isteği gönderiliyor...");
-      console.log("📦 [NANO BANANA] Request body:", {
+      console.log("📡 [NANO BANANA HAIR] API isteği gönderiliyor...");
+      console.log("📦 [NANO BANANA HAIR] Request body:", {
         prompt: prompt.substring(0, 150),
         imageInputSize: dataUrl.length,
         imageFormat: dataUrl.substring(0, 30) + "...",
@@ -194,7 +191,7 @@ async function callNanoBanana(prompt, gender) {
           errorText.includes("E004")
         ) {
           console.log(
-            `⚠️ [NANO BANANA] Service unavailable hatası, ${
+            `⚠️ [NANO BANANA HAIR] Service unavailable hatası, ${
               retry < maxRetries ? "retry yapılıyor..." : "son deneme başarısız"
             }`
           );
@@ -209,16 +206,18 @@ async function callNanoBanana(prompt, gender) {
 
       const result = await response.json();
       console.log(
-        "📄 [NANO BANANA] İlk yanıt alındı, prediction ID:",
+        "📄 [NANO BANANA HAIR] İlk yanıt alındı, prediction ID:",
         result.id
       );
-      console.log("⏳ [NANO BANANA] Durum:", result.status);
+      console.log("⏳ [NANO BANANA HAIR] Durum:", result.status);
 
       // Polling ile sonucu bekle
       const prediction = await pollReplicateResult(result.id);
 
       if (prediction.status === "succeeded" && prediction.output) {
-        console.log("✅ [NANO BANANA] Resim başarıyla oluşturuldu!");
+        console.log(
+          "✅ [NANO BANANA HAIR] Hair style resmi başarıyla oluşturuldu!"
+        );
 
         // Output'u kontrol et - string veya array olabilir
         let imageUrl;
@@ -235,7 +234,7 @@ async function callNanoBanana(prompt, gender) {
           );
         }
 
-        console.log("🔗 [NANO BANANA] Generated URL:", imageUrl);
+        console.log("🔗 [NANO BANANA HAIR] Generated URL:", imageUrl);
 
         // URL kontrolü
         if (!imageUrl || typeof imageUrl !== "string" || imageUrl.length < 10) {
@@ -251,7 +250,7 @@ async function callNanoBanana(prompt, gender) {
       }
     } catch (error) {
       console.error(
-        `❌ [NANO BANANA] API hatası (Deneme ${retry}/${maxRetries}):`,
+        `❌ [NANO BANANA HAIR] API hatası (Deneme ${retry}/${maxRetries}):`,
         error.message
       );
       lastError = error;
@@ -260,7 +259,7 @@ async function callNanoBanana(prompt, gender) {
       if (error.message.includes("Service temporarily unavailable")) {
         if (retry < maxRetries) {
           console.log(
-            `🔄 [NANO BANANA] Service hata, retry yapılıyor... (${retry}/${maxRetries})`
+            `🔄 [NANO BANANA HAIR] Service hata, retry yapılıyor... (${retry}/${maxRetries})`
           );
           await delay(5000 * retry); // Exponential backoff
           continue;
@@ -270,7 +269,7 @@ async function callNanoBanana(prompt, gender) {
       // Diğer hatalar için retry yapma
       if (retry < maxRetries) {
         console.log(
-          `🔄 [NANO BANANA] Diğer hata, retry yapılıyor... (${retry}/${maxRetries})`
+          `🔄 [NANO BANANA HAIR] Diğer hata, retry yapılıyor... (${retry}/${maxRetries})`
         );
         await delay(3000 * retry);
         continue;
@@ -282,43 +281,43 @@ async function callNanoBanana(prompt, gender) {
   throw lastError || new Error("Tüm retry denemeleri başarısız oldu");
 }
 
-// Prompt oluştur (generate-pose-images.js'den alındı)
-function createPosePrompt(poseDescription, gender) {
+// Hair style prompt oluştur
+function createHairStylePrompt(hairStyleDescription, gender) {
   const genderText = gender === "female" ? "female" : "male";
 
-  return `${poseDescription}. Create a professional fashion photograph of a real person in a clean white seamless studio. The model is wearing a plain white athletic tank top paired with fitted white training shorts, presented as a simple and safe sports outfit. A colorful pose chart must be overlaid directly onto the clothing: bold lines connect each body joint, with bright round dots at the key points such as shoulders, elbows, wrists, hips, knees, ankles, and the head connection. Each limb section should use a distinct bright gradient color so the design appears sharp, vibrant, and aligned perfectly with the natural body curves. The overlay should look flat and graphic, integrated as if printed directly on the outfit, never floating above it. The model's skin, hair, and face must remain unchanged and photorealistic while the background stays pure white and distraction-free, ensuring the result looks like a professional fashion studio photo used for educational visualization.`;
+  return `CHANGE HAIR STYLE: ${hairStyleDescription}. Keep the mannequin head exactly the same - white featureless head on white background. Only change the hair style, do not make it a real person. The ${genderText} mannequin should have the new hair style: ${hairStyleDescription}. Maintain the clean, minimalist aesthetic with focus only on the hair transformation.`;
 }
 
-// Poz açıklamasından otomatik başlık oluştur
-async function generatePoseTitleWithGemini(poseDescription, gender) {
+// Hair style açıklamasından otomatik başlık oluştur
+async function generateHairStyleTitleWithGemini(hairStyleDescription, gender) {
   try {
-    console.log("🏷️ [GEMINI] Poz başlığı oluşturuluyor...");
+    console.log("🏷️ [GEMINI HAIR] Hair style başlığı oluşturuluyor...");
     console.log(
-      "🏷️ [GEMINI] Description:",
-      poseDescription.substring(0, 50) + "..."
+      "🏷️ [GEMINI HAIR] Description:",
+      hairStyleDescription.substring(0, 50) + "..."
     );
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const titlePrompt = `
-Create a short, catchy title for this pose description:
+Create a short, catchy title for this hair style description:
 
-POSE DESCRIPTION: "${poseDescription}"
+HAIR STYLE DESCRIPTION: "${hairStyleDescription}"
 GENDER: ${gender}
 
 REQUIREMENTS:
 - Maximum 3-4 words
 - Professional and descriptive
-- Suitable for fashion photography
+- Suitable for hair styling
 - In English
 - No quotes or special characters
 
 EXAMPLES:
-- "Confident Standing" 
-- "Casual Lean"
-- "Power Pose"
-- "Relaxed Portrait"
-- "Dynamic Stance"
+- "Curly Bob"
+- "Long Waves"
+- "Pixie Cut"
+- "Beach Waves"
+- "Sleek Straight"
 
 Generate ONLY the title, nothing else.
     `;
@@ -329,40 +328,60 @@ Generate ONLY the title, nothing else.
 
     const generatedTitle = result.response.text().trim().replace(/['"]/g, "");
 
-    console.log("✅ [GEMINI] Generated title:", generatedTitle);
+    console.log("✅ [GEMINI HAIR] Generated title:", generatedTitle);
     return generatedTitle;
   } catch (error) {
-    console.error("❌ [GEMINI] Title generation hatası:", error);
+    console.error("❌ [GEMINI HAIR] Title generation hatası:", error);
     // Fallback: basit başlık
-    return "Custom Pose";
+    return "Custom Hair Style";
   }
 }
 
-// Poz açıklamasını Gemini ile İngilizce'ye çevir ve enhance et
-async function enhancePoseDescriptionWithGemini(originalDescription, gender) {
+// Hair style açıklamasını Gemini ile İngilizce'ye çevir ve enhance et
+async function enhanceHairStyleDescriptionWithGemini(
+  originalDescription,
+  gender
+) {
   try {
-    console.log("🤖 [GEMINI] Poz açıklaması enhance ediliyor...");
-    console.log("🤖 [GEMINI] Original description:", originalDescription);
-    console.log("🤖 [GEMINI] Gender:", gender);
+    console.log("🤖 [GEMINI HAIR] Hair style açıklaması enhance ediliyor...");
+    console.log("🤖 [GEMINI HAIR] Original description:", originalDescription);
+    console.log("🤖 [GEMINI HAIR] Gender:", gender);
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const promptForGemini = `
-Translate and convert this pose description to English:
+Translate and convert this hair style description to English with detailed professional description:
 
 INPUT: "${originalDescription}"
 GENDER: ${gender}
 
 Return ONLY a JSON object:
 {
-  "enhancedPrompt": "A professional fashion model (${gender}) [detailed pose description with body positioning, hand placement, facial expression]. The model should be positioned naturally for fashion photography.",
-  "poseDescription": "Detailed English pose description (8-12 words, include body language and mood)"
+  "enhancedPrompt": "A ${gender} mannequin with [detailed hair style description including length, texture, color, cut]. Focus only on hair transformation while maintaining mannequin appearance.",
+  "hairStyleDescription": "DETAILED professional hair style description (40-60 words minimum, include cut details, texture, layering, styling, and overall silhouette)"
 }
 
+EXAMPLE OUTPUT:
+{
+  "enhancedPrompt": "A female mannequin with a timeless classic pixie cut, closely cropped around the ears and nape with slightly longer layers at the crown",
+  "hairStyleDescription": "A timeless classic pixie cut, closely cropped around the ears and nape with slightly longer layers at the crown. The top is softly feathered to create natural volume and light movement, while the sides are neatly tapered to frame the face with precision. The overall silhouette hugs the head but retains a chic, airy texture, making it versatile and modern."
+}
+
+REQUIREMENTS for hairStyleDescription:
+- Minimum 40-60 words
+- Include specific cut details (length, layers, graduation)
+- Describe texture and styling elements
+- Mention how it frames the face
+- Include overall silhouette and aesthetic
+- Professional hairstyling terminology
+- Detailed and descriptive like a professional hair stylist would describe
+
 Examples:
-- Input: "Eller cepte" → "poseDescription": "Hands casually in pockets, relaxed stance"
-- Input: "Kollar kavuşturulmuş" → "poseDescription": "Arms crossed confidently, upright posture"
-- Input: "Saçını düzeltiyor" → "poseDescription": "Hand gently adjusting hair, natural expression"
+- Input: "Kıvırcık saç" → "hairStyleDescription": "A voluminous curly hairstyle featuring natural spiral curls with varied textures throughout. The curls cascade from a center part, creating dynamic movement and bounce. The layers are strategically cut to enhance the curl pattern while preventing excessive bulk, resulting in a balanced silhouette that frames the face beautifully with soft, defined ringlets."
+
+- Input: "Düz uzun saç" → "hairStyleDescription": "A sleek, long straight hairstyle that flows gracefully past the shoulders with a glass-like shine. The hair is cut in subtle layers to create gentle movement while maintaining the clean, linear appearance. The ends are precision-cut to create a healthy, blunt finish that enhances the hair's natural luster and creates an elegant, sophisticated silhouette."
+
+- Input: "Kısa bob kesim" → "hairStyleDescription": "A classic bob cut that falls just below the jawline, featuring clean geometric lines and a blunt perimeter. The hair is cut in a precise A-line shape that gradually lengthens from the back to the front, creating a flattering angle that frames the face. The interior layers are minimal to maintain the bob's structural integrity while allowing for subtle movement and body."
 
 IMPORTANT: Return ONLY valid JSON, no extra text.
     `;
@@ -372,7 +391,7 @@ IMPORTANT: Return ONLY valid JSON, no extra text.
     });
 
     const responseText = result.response.text().trim();
-    console.log("🔍 [GEMINI] Raw response:", responseText);
+    console.log("🔍 [GEMINI HAIR] Raw response:", responseText);
 
     // JSON'dan önce ve sonraki backtick'leri ve markdown formatını temizle
     const cleanedResponse = responseText
@@ -381,21 +400,21 @@ IMPORTANT: Return ONLY valid JSON, no extra text.
       .replace(/`/g, "")
       .trim();
 
-    console.log("🧹 [GEMINI] Cleaned response:", cleanedResponse);
+    console.log("🧹 [GEMINI HAIR] Cleaned response:", cleanedResponse);
 
     try {
       const parsedResult = JSON.parse(cleanedResponse);
-      console.log("✅ [GEMINI] Enhanced result:", {
+      console.log("✅ [GEMINI HAIR] Enhanced result:", {
         prompt: parsedResult.enhancedPrompt?.substring(0, 50) + "...",
-        poseDesc: parsedResult.poseDescription,
+        hairStyleDesc: parsedResult.hairStyleDescription,
       });
       return parsedResult;
     } catch (parseError) {
-      console.error("❌ [GEMINI] JSON parse hatası:", parseError);
-      console.log("🔄 [GEMINI] Tekrar deneniyor...");
+      console.error("❌ [GEMINI HAIR] JSON parse hatası:", parseError);
+      console.log("🔄 [GEMINI HAIR] Tekrar deneniyor...");
 
       // Daha basit prompt ile tekrar dene
-      const simplePrompt = `Translate "${originalDescription}" to English pose description (max 5 words). Return JSON: {"enhancedPrompt": "A ${gender} model in ${originalDescription} pose", "poseDescription": "translated pose"}`;
+      const simplePrompt = `Translate "${originalDescription}" to detailed English hair style description (minimum 40 words). Return JSON: {"enhancedPrompt": "A ${gender} mannequin with detailed ${originalDescription} hair style", "hairStyleDescription": "detailed professional hair style description with cut details, texture, and styling elements"}`;
 
       const retryResult = await model.generateContent({
         contents: [{ parts: [{ text: simplePrompt }] }],
@@ -410,35 +429,38 @@ IMPORTANT: Return ONLY valid JSON, no extra text.
           .replace(/`/g, "")
           .trim();
         const retryParsed = JSON.parse(retryText);
-        console.log("✅ [GEMINI] Retry başarılı:", retryParsed);
+        console.log("✅ [GEMINI HAIR] Retry başarılı:", retryParsed);
         return retryParsed;
       } catch (retryError) {
-        console.error("❌ [GEMINI] Retry de başarısız:", retryError);
-        throw new Error("Gemini response could not be parsed");
+        console.error("❌ [GEMINI HAIR] Retry de başarısız:", retryError);
+        throw new Error("Gemini hair style response could not be parsed");
       }
     }
   } catch (error) {
-    console.error("❌ [GEMINI] Pose description enhancement hatası:", error);
-    throw new Error("Gemini API failed to generate pose description");
+    console.error(
+      "❌ [GEMINI HAIR] Hair style description enhancement hatası:",
+      error
+    );
+    throw new Error("Gemini API failed to generate hair style description");
   }
 }
 
 /**
- * Kullanıcının özel pozunu kaydetme ve görsel oluşturma
- * POST /api/customPose/create
+ * Kullanıcının özel hair style'ını kaydetme ve görsel oluşturma
+ * POST /api/customHairStyle/create
  */
 router.post("/create", async (req, res) => {
   try {
     const {
       userId,
-      poseDescription,
+      hairStyleDescription,
       gender = "female", // varsayılan kadın
       isPublic = true, // varsayılan herkese açık
     } = req.body;
 
-    console.log("🎭 [CUSTOM POSE] Yeni poz oluşturma isteği:", {
+    console.log("💇 [CUSTOM HAIR STYLE] Yeni hair style oluşturma isteği:", {
       userId,
-      poseDescription: poseDescription?.substring(0, 100) + "...",
+      hairStyleDescription: hairStyleDescription?.substring(0, 100) + "...",
       gender,
       isPublic,
       originalGender: gender,
@@ -446,44 +468,53 @@ router.post("/create", async (req, res) => {
       allRequestBody: req.body,
     });
 
-    // Validasyon - poseTitle artık gerekli değil
-    if (!userId || !poseDescription) {
+    // Validasyon
+    if (!userId || !hairStyleDescription) {
       return res.status(400).json({
         success: false,
-        error: "userId ve poseDescription zorunludur",
+        error: "userId ve hairStyleDescription zorunludur",
       });
     }
 
     // Unique ID oluştur
-    const poseId = uuidv4();
+    const hairStyleId = uuidv4();
     const timestamp = new Date().toISOString();
 
     // 🏷️ Gemini ile otomatik başlık oluştur
-    const generatedTitle = await generatePoseTitleWithGemini(
-      poseDescription,
+    const generatedTitle = await generateHairStyleTitleWithGemini(
+      hairStyleDescription,
       gender
     );
 
-    // 🤖 Gemini ile poz açıklamasını enhance et
-    const geminiResult = await enhancePoseDescriptionWithGemini(
-      poseDescription,
+    // 🤖 Gemini ile hair style açıklamasını enhance et
+    const geminiResult = await enhanceHairStyleDescriptionWithGemini(
+      hairStyleDescription,
       gender
     );
 
-    // Nano Banana için prompt hazırla (poz overlay ile)
-    const posePrompt = createPosePrompt(geminiResult.poseDescription, gender);
+    // Nano Banana için prompt hazırla
+    const hairStylePrompt = createHairStylePrompt(
+      geminiResult.hairStyleDescription,
+      gender
+    );
 
-    console.log("🎨 [NANO BANANA] Görsel oluşturma başlatılıyor...");
-    console.log("🚻 [PROMPT] Gender ve prompt debug:", {
+    console.log("🎨 [NANO BANANA HAIR] Görsel oluşturma başlatılıyor...");
+    console.log("🚻 [PROMPT HAIR] Gender ve prompt debug:", {
       inputGender: gender,
       genderInPrompt: gender === "female" ? "FEMALE" : "MALE",
-      enhancedDescription: geminiResult.poseDescription?.substring(0, 100),
-      finalPrompt: posePrompt?.substring(0, 200),
+      enhancedDescription: geminiResult.hairStyleDescription?.substring(0, 100),
+      finalPrompt: hairStylePrompt?.substring(0, 200),
     });
-    console.log("🎨 [NANO BANANA] Full Pose prompt:", posePrompt);
+    console.log(
+      "🎨 [NANO BANANA HAIR] Full Hair Style prompt:",
+      hairStylePrompt
+    );
 
     // Nano Banana API çağrısı (retry ile)
-    const nanoBananaResult = await callNanoBanana(posePrompt, gender);
+    const nanoBananaResult = await callNanoBananaForHair(
+      hairStylePrompt,
+      gender
+    );
 
     let imageUrl = null;
     let nanoBananaPredictionId = nanoBananaResult.predictionId;
@@ -491,13 +522,15 @@ router.post("/create", async (req, res) => {
 
     if (nanoBananaResult.imageUrl) {
       console.log(
-        "✅ [NANO BANANA] Görsel başarıyla oluşturuldu:",
+        "✅ [NANO BANANA HAIR] Hair style görseli başarıyla oluşturuldu:",
         nanoBananaResult.imageUrl
       );
 
       // 📁 Nano Banana'dan gelen görseli Supabase'e kaydet
       try {
-        console.log("📁 [SUPABASE] Görsel Supabase storage'a kaydediliyor...");
+        console.log(
+          "📁 [SUPABASE HAIR] Görsel Supabase storage'a kaydediliyor..."
+        );
 
         // Nano Banana'dan görseli indir
         const imageResponse = await axios.get(nanoBananaResult.imageUrl, {
@@ -505,47 +538,56 @@ router.post("/create", async (req, res) => {
         });
         const imageBuffer = Buffer.from(imageResponse.data);
 
-        // Supabase storage path: custom-poses/userId/poseId.png
-        const storagePath = `${userId}/${poseId}.png`;
+        // Supabase storage path: custom-hair-styles/userId/hairStyleId.png
+        const storagePath = `${userId}/${hairStyleId}.png`;
         supabaseImagePath = storagePath;
 
         // Supabase'e yükle
         const { data: uploadData, error: uploadError } = await supabase.storage
-          .from("custom-poses")
+          .from("custom-hair-styles")
           .upload(storagePath, imageBuffer, {
             contentType: "image/png",
             upsert: true,
           });
 
         if (uploadError) {
-          console.error("❌ [SUPABASE] Storage upload hatası:", uploadError);
+          console.error(
+            "❌ [SUPABASE HAIR] Storage upload hatası:",
+            uploadError
+          );
           // Nano Banana URL'sini kullan fallback olarak
           imageUrl = nanoBananaResult.imageUrl;
         } else {
           // Supabase public URL al
           const { data: publicUrlData } = supabase.storage
-            .from("custom-poses")
+            .from("custom-hair-styles")
             .getPublicUrl(storagePath);
 
           imageUrl = publicUrlData.publicUrl;
-          console.log("✅ [SUPABASE] Görsel başarıyla kaydedildi:", imageUrl);
+          console.log(
+            "✅ [SUPABASE HAIR] Hair style görseli başarıyla kaydedildi:",
+            imageUrl
+          );
         }
       } catch (storageError) {
-        console.error("❌ [SUPABASE] Storage işlemi hatası:", storageError);
+        console.error(
+          "❌ [SUPABASE HAIR] Storage işlemi hatası:",
+          storageError
+        );
         // Nano Banana URL'sini kullan fallback olarak
         imageUrl = nanoBananaResult.imageUrl;
       }
     }
 
-    // 💾 Supabase'e poz bilgilerini kaydet
-    const { data: poseData, error: insertError } = await supabase
-      .from("custom_poses")
+    // 💾 Supabase'e hair style bilgilerini kaydet
+    const { data: hairStyleData, error: insertError } = await supabase
+      .from("custom_hair_styles")
       .insert({
-        id: poseId,
+        id: hairStyleId,
         user_id: userId,
         title: generatedTitle, // Gemini ile oluşturulan başlık
-        description: poseDescription, // Kullanıcının orijinal açıklaması
-        enhanced_description: geminiResult.poseDescription, // Gemini'den gelen kısa İngilizce poz tarifi
+        description: hairStyleDescription, // Kullanıcının orijinal açıklaması
+        enhanced_description: geminiResult.hairStyleDescription, // Gemini'den gelen kısa İngilizce hair style tarifi
         gender: gender,
         image_url: imageUrl,
         supabase_image_path: supabaseImagePath,
@@ -559,26 +601,32 @@ router.post("/create", async (req, res) => {
       .single();
 
     if (insertError) {
-      console.error("❌ [SUPABASE] Poz kaydetme hatası:", insertError);
+      console.error(
+        "❌ [SUPABASE HAIR] Hair style kaydetme hatası:",
+        insertError
+      );
       return res.status(500).json({
         success: false,
-        error: "Poz kaydedilemedi: " + insertError.message,
+        error: "Hair style kaydedilemedi: " + insertError.message,
       });
     }
 
-    console.log("✅ [CUSTOM POSE] Poz başarıyla oluşturuldu:", poseData.id);
+    console.log(
+      "✅ [CUSTOM HAIR STYLE] Hair style başarıyla oluşturuldu:",
+      hairStyleData.id
+    );
 
     res.json({
       success: true,
       result: {
-        pose: poseData,
+        hairStyle: hairStyleData,
         message: imageUrl
-          ? "Poz başarıyla oluşturuldu ve görsel hazırlandı!"
-          : "Poz oluşturuldu, görsel hazırlanıyor...",
+          ? "Hair style başarıyla oluşturuldu ve görsel hazırlandı!"
+          : "Hair style oluşturuldu, görsel hazırlanıyor...",
       },
     });
   } catch (error) {
-    console.error("❌ [CUSTOM POSE] Genel hata:", error);
+    console.error("❌ [CUSTOM HAIR STYLE] Genel hata:", error);
 
     // Sensitive content hatası kontrolü
     if (
@@ -591,14 +639,14 @@ router.post("/create", async (req, res) => {
       res.status(400).json({
         success: false,
         error:
-          "İçerik uygun değil. Lütfen farklı bir poz açıklaması ile tekrar deneyin.",
+          "İçerik uygun değil. Lütfen farklı bir hair style açıklaması ile tekrar deneyin.",
         errorType: "sensitive_content",
         canRetry: true,
       });
     } else {
       res.status(500).json({
         success: false,
-        error: "Poz oluşturulurken hata oluştu: " + error.message,
+        error: "Hair style oluşturulurken hata oluştu: " + error.message,
         canRetry: true,
       });
     }
@@ -606,22 +654,22 @@ router.post("/create", async (req, res) => {
 });
 
 /**
- * Kullanıcının özel pozlarını listeleme
- * GET /api/customPose/list/:userId
+ * Kullanıcının özel hair style'larını listeleme
+ * GET /api/customHairStyle/list/:userId
  */
 router.get("/list/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
     const { gender, category } = req.query;
 
-    console.log("📋 [CUSTOM POSE] Poz listesi isteniyor:", {
+    console.log("📋 [CUSTOM HAIR STYLE] Hair style listesi isteniyor:", {
       userId,
       gender,
       category,
     });
 
     let query = supabase
-      .from("custom_poses")
+      .from("custom_hair_styles")
       .select("*")
       .eq("user_id", userId)
       .eq("is_active", true)
@@ -635,44 +683,49 @@ router.get("/list/:userId", async (req, res) => {
       query = query.eq("category", category);
     }
 
-    const { data: poses, error } = await query;
+    const { data: hairStyles, error } = await query;
 
     if (error) {
-      console.error("❌ [SUPABASE] Poz listesi hatası:", error);
+      console.error("❌ [SUPABASE HAIR] Hair style listesi hatası:", error);
       return res.status(500).json({
         success: false,
-        error: "Pozlar getirilemedi: " + error.message,
+        error: "Hair style'lar getirilemedi: " + error.message,
       });
     }
 
-    console.log(`✅ [CUSTOM POSE] ${poses.length} poz bulundu`);
+    console.log(
+      `✅ [CUSTOM HAIR STYLE] ${hairStyles.length} hair style bulundu`
+    );
 
     res.json({
       success: true,
       result: {
-        poses: poses,
-        count: poses.length,
+        hairStyles: hairStyles,
+        count: hairStyles.length,
       },
     });
   } catch (error) {
-    console.error("❌ [CUSTOM POSE] Liste hatası:", error);
+    console.error("❌ [CUSTOM HAIR STYLE] Liste hatası:", error);
     res.status(500).json({
       success: false,
-      error: "Poz listesi alınırken hata oluştu: " + error.message,
+      error: "Hair style listesi alınırken hata oluştu: " + error.message,
     });
   }
 });
 
 /**
- * Özel poz silme
- * DELETE /api/customPose/delete/:poseId
+ * Özel hair style silme
+ * DELETE /api/customHairStyle/delete/:hairStyleId
  */
-router.delete("/delete/:poseId", async (req, res) => {
+router.delete("/delete/:hairStyleId", async (req, res) => {
   try {
-    const { poseId } = req.params;
+    const { hairStyleId } = req.params;
     const { userId } = req.body;
 
-    console.log("🗑️ [CUSTOM POSE] Poz silme isteği:", { poseId, userId });
+    console.log("🗑️ [CUSTOM HAIR STYLE] Hair style silme isteği:", {
+      hairStyleId,
+      userId,
+    });
 
     if (!userId) {
       return res.status(400).json({
@@ -682,79 +735,85 @@ router.delete("/delete/:poseId", async (req, res) => {
     }
 
     // Soft delete - is_active false yap
-    const { data: deletedPose, error } = await supabase
-      .from("custom_poses")
+    const { data: deletedHairStyle, error } = await supabase
+      .from("custom_hair_styles")
       .update({
         is_active: false,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", poseId)
+      .eq("id", hairStyleId)
       .eq("user_id", userId)
       .select()
       .single();
 
     if (error) {
-      console.error("❌ [SUPABASE] Poz silme hatası:", error);
+      console.error("❌ [SUPABASE HAIR] Hair style silme hatası:", error);
       return res.status(500).json({
         success: false,
-        error: "Poz silinemedi: " + error.message,
+        error: "Hair style silinemedi: " + error.message,
       });
     }
 
-    if (!deletedPose) {
+    if (!deletedHairStyle) {
       return res.status(404).json({
         success: false,
-        error: "Poz bulunamadı veya size ait değil",
+        error: "Hair style bulunamadı veya size ait değil",
       });
     }
 
-    console.log("✅ [CUSTOM POSE] Poz başarıyla silindi:", poseId);
+    console.log(
+      "✅ [CUSTOM HAIR STYLE] Hair style başarıyla silindi:",
+      hairStyleId
+    );
 
     res.json({
       success: true,
       result: {
-        message: "Poz başarıyla silindi",
-        deletedPose: deletedPose,
+        message: "Hair style başarıyla silindi",
+        deletedHairStyle: deletedHairStyle,
       },
     });
   } catch (error) {
-    console.error("❌ [CUSTOM POSE] Silme hatası:", error);
+    console.error("❌ [CUSTOM HAIR STYLE] Silme hatası:", error);
     res.status(500).json({
       success: false,
-      error: "Poz silinirken hata oluştu: " + error.message,
+      error: "Hair style silinirken hata oluştu: " + error.message,
     });
   }
 });
 
 /**
- * Poz görsel durumunu kontrol etme
- * GET /api/customPose/status/:poseId
+ * Hair style görsel durumunu kontrol etme
+ * GET /api/customHairStyle/status/:hairStyleId
  */
-router.get("/status/:poseId", async (req, res) => {
+router.get("/status/:hairStyleId", async (req, res) => {
   try {
-    const { poseId } = req.params;
+    const { hairStyleId } = req.params;
 
-    console.log("🔍 [CUSTOM POSE] Poz durumu kontrol ediliyor:", poseId);
+    console.log(
+      "🔍 [CUSTOM HAIR STYLE] Hair style durumu kontrol ediliyor:",
+      hairStyleId
+    );
 
-    const { data: pose, error } = await supabase
-      .from("custom_poses")
+    const { data: hairStyle, error } = await supabase
+      .from("custom_hair_styles")
       .select("*")
-      .eq("id", poseId)
+      .eq("id", hairStyleId)
       .eq("is_active", true)
       .single();
 
-    if (error || !pose) {
+    if (error || !hairStyle) {
       return res.status(404).json({
         success: false,
-        error: "Poz bulunamadı",
+        error: "Hair style bulunamadı",
       });
     }
 
     // Eğer görsel henüz hazır değilse Nano Banana API'den kontrol et
-    if (!pose.image_url && pose.nano_banana_prediction_id) {
+    if (!hairStyle.image_url && hairStyle.nano_banana_prediction_id) {
       try {
         const statusResponse = await axios.get(
-          `https://api.replicate.com/v1/predictions/${pose.nano_banana_prediction_id}`,
+          `https://api.replicate.com/v1/predictions/${hairStyle.nano_banana_prediction_id}`,
           {
             headers: {
               Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
@@ -771,24 +830,27 @@ router.get("/status/:poseId", async (req, res) => {
             : statusResponse.data.output;
 
           // Supabase'i güncelle
-          const { data: updatedPose, error: updateError } = await supabase
-            .from("custom_poses")
+          const { data: updatedHairStyle, error: updateError } = await supabase
+            .from("custom_hair_styles")
             .update({
               image_url: imageUrl,
               updated_at: new Date().toISOString(),
             })
-            .eq("id", poseId)
+            .eq("id", hairStyleId)
             .select()
             .single();
 
           if (!updateError) {
-            pose.image_url = imageUrl;
-            console.log("✅ [CUSTOM POSE] Görsel URL güncellendi:", imageUrl);
+            hairStyle.image_url = imageUrl;
+            console.log(
+              "✅ [CUSTOM HAIR STYLE] Görsel URL güncellendi:",
+              imageUrl
+            );
           }
         }
       } catch (nanoBananaError) {
         console.error(
-          "❌ [NANO BANANA] Status kontrolü hatası:",
+          "❌ [NANO BANANA HAIR] Status kontrolü hatası:",
           nanoBananaError.message
         );
       }
@@ -797,15 +859,16 @@ router.get("/status/:poseId", async (req, res) => {
     res.json({
       success: true,
       result: {
-        pose: pose,
-        status: pose.image_url ? "ready" : "processing",
+        hairStyle: hairStyle,
+        status: hairStyle.image_url ? "ready" : "processing",
       },
     });
   } catch (error) {
-    console.error("❌ [CUSTOM POSE] Durum kontrol hatası:", error);
+    console.error("❌ [CUSTOM HAIR STYLE] Durum kontrol hatası:", error);
     res.status(500).json({
       success: false,
-      error: "Poz durumu kontrol edilirken hata oluştu: " + error.message,
+      error:
+        "Hair style durumu kontrol edilirken hata oluştu: " + error.message,
     });
   }
 });

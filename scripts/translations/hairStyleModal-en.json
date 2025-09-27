@@ -1,0 +1,27 @@
+{
+  "hairStyleModal": {
+    "warning": "Warning",
+    "pleaseFillDescription": "Please enter hair style description",
+    "sensitiveContent": "Content Not Appropriate",
+    "contentNotAppropriate": "Please try again with a different hair style description",
+    "tryAgain": "Try Again",
+    "couldNotCreateHairStyle": "Could not create hair style",
+    "createCustomHairStyle": "Create Custom Hair Style",
+    "tooltip_title": "Create Your Own Hair Style",
+    "tooltip_description": "Instead of using these ready hair styles, you can also create your own hair style here. Describe the hair style you want with AI and have the model displayed with that hair style!",
+    "tooltip_got_it": "Got it!",
+    "createNewHairStyle": "Create New Hair Style",
+    "enterHairStyleDescription": "Enter hair style description",
+    "publicHairStyle": "Visible to everyone",
+    "privateHairStyle": "Only mine",
+    "publicHairStyleDescription": "Other users can see and use this hair style",
+    "privateHairStyleDescription": "Only appears in your hair style list",
+    "createHairStyle": "Create Hair Style",
+    "creating": "Creating..."
+  },
+  "customHairStyleModal": {
+    "error": "Error",
+    "networkError": "Network error occurred",
+    "creating": "Creating..."
+  }
+}

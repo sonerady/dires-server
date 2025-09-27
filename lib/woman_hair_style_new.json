@@ -1,0 +1,2027 @@
+{
+  "categories": [
+    {
+      "category_key": "short_hair",
+      "title": "Short Hair",
+      "styles": [
+        {
+          "key": "classic_pixie_cut",
+          "prompt": "hair style: a timeless classic pixie cut, closely cropped around the ears and nape with slightly longer layers at the crown. The top is softly feathered to create natural volume and light movement, while the sides are neatly tapered to frame the face with precision. The overall silhouette hugs the head but retains a chic, airy texture, making it versatile and modern.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/classic_pixie_cut.png"
+        },
+        {
+          "key": "long_pixie_cut",
+          "prompt": "hair style: a long pixie cut featuring extended top layers that sweep gracefully to the side, paired with shorter, tapered sides and back. The crown is gently textured for softness, while the elongated fringe skims across the forehead for an effortlessly stylish look. This cut blends sharpness with femininity, offering both structure and flow.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/long_pixie_cut.png"
+        },
+        {
+          "key": "textured_pixie_cut",
+          "prompt": "hair style: a textured pixie cut designed with choppy, uneven layers across the top and crown to create dimension and movement. The sides are neatly cropped while the crown is styled to appear tousled and playful, giving a lived-in, fashion-forward edge. The combination of soft spikes and feathered ends enhances the youthful, dynamic appeal of this style.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/textured_pixie_cut.png"
+        },
+        {
+          "key": "undercut_pixie",
+          "prompt": "hair style: an edgy undercut pixie where the sides and nape are buzzed short, contrasting sharply with the longer, voluminous top. The upper layers can be styled forward, swept sideways, or tousled for attitude. This bold cut emphasizes structure and showcases the head shape, blending minimalism with contemporary fashion energy.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/undercut_pixie.png"
+        },
+        {
+          "key": "french_bob",
+          "prompt": "hair style: a chic French bob that sits at chin length, cut with sharp blunt edges and paired with a soft middle part. The smooth surface and even weight line give it a polished, geometric silhouette, while the overall style highlights the jawline with Parisian elegance. The subtle inward curve of the ends creates refinement without losing natural flow.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/french_bob.png"
+        },
+        {
+          "key": "italian_bob",
+          "prompt": "hair style: an Italian bob with a fuller, slightly longer length that rests just above the shoulders. It is cut to maintain weight at the ends for volume, paired with a soft blowout texture that enhances shine and bounce. The look exudes effortless glamour while retaining a timeless, wearable shape.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/italian_bob.png"
+        },
+        {
+          "key": "blunt_bob",
+          "prompt": "hair style: a sharp blunt bob cut to a single length with no visible layers, giving a strong geometric shape. The hair falls perfectly straight with crisp edges at the chin, emphasizing the jawline with striking clarity. This style is sleek, minimalist, and distinctly modern.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/blunt_bob.png"
+        },
+        {
+          "key": "stacked_bob",
+          "prompt": "hair style: a stacked bob with short, layered back sections that build volume at the crown, gradually lengthening toward the front. The rounded silhouette creates fullness and movement, while the angled profile highlights the neckline with precision.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/stacked_bob.png"
+        },
+        {
+          "key": "angled_bob",
+          "prompt": "hair style: an angled bob with a diagonal cut, shorter at the nape and progressively longer toward the chin. The clean angle creates a bold, modern look, while the front sections frame the face with elegance. The sleek finish enhances the sharpness of the silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/angled_bob.png"
+        },
+        {
+          "key": "asymmetrical_bob",
+          "prompt": "hair style: an asymmetrical bob where one side is noticeably longer than the other, creating a strikingly modern silhouette. The clean lines emphasize the jawline, while the longer side adds drama and dimension. Perfect for a bold, editorial-inspired look.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/asymmetrical_bob.png"
+        },
+        {
+          "key": "choppy_bob",
+          "prompt": "hair style: a choppy bob with uneven, razor-cut layers throughout, producing a messy, carefree vibe. The textured ends add movement and edge, giving the cut a casual, rock-chic appeal that works both polished and undone.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/choppy_bob.png"
+        },
+        {
+          "key": "shaggy_bob",
+          "prompt": "hair style: a shaggy bob with feathered layers and tousled texture, styled to look deliberately undone. The irregular layering creates volume and body, while the ends flip outward with playful movement. This style channels effortless cool and youthfulness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/shaggy_bob.png"
+        },
+        {
+          "key": "wavy_bob",
+          "prompt": "hair style: a wavy bob with soft, natural waves flowing through the length, giving a relaxed, beach-inspired texture. The cut balances structure with casual freedom, creating a lightweight and versatile silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/wavy_bob.png"
+        },
+        {
+          "key": "curly_bob",
+          "prompt": "hair style: a curly bob featuring bouncy, well-defined curls cut to chin length. The curls create fullness and playful movement, while the shape frames the face with dynamic texture. A lively and energetic short style.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curly_bob.png"
+        },
+        {
+          "key": "textured_bob",
+          "prompt": "hair style: a textured bob with multiple layers carved throughout to add lightness and lift. The irregular ends and soft feathering give the style a casual, modern aesthetic that moves easily with every step.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/textured_bob.png"
+        },
+        {
+          "key": "pageboy_cut",
+          "prompt": "hair style: a pageboy cut with a rounded shape, blunt ends, and a smooth fringe curving across the forehead. The cut falls just below the ears, emphasizing symmetry and structure, with a retro-inspired charm.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/pageboy_cut.png"
+        },
+        {
+          "key": "boy_cut",
+          "prompt": "hair style: a minimalist boy cut kept very short all around, cleanly tapered to the scalp. The simple outline emphasizes head shape and creates a fresh, youthful energy. Low-maintenance and timelessly chic.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/boy_cut.png"
+        },
+        {
+          "key": "buzz_cut",
+          "prompt": "hair style: a uniform buzz cut with hair clipped to an ultra-short length, evenly covering the entire scalp. The style is sharp, minimal, and emphasizes bone structure with bold simplicity.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/buzz_cut.png"
+        },
+        {
+          "key": "crew_cut",
+          "prompt": "hair style: a crew cut with neatly tapered sides and slightly longer hair on the crown, styled upward for subtle lift. The cut has clean military roots but remains versatile and modern in fashion settings.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/crew_cut.png"
+        },
+        {
+          "key": "ivy_league_cut",
+          "prompt": "hair style: an ivy league cut with polished tapering around the sides and back, while the top is left long enough to be side-parted neatly. The look is classic, preppy, and refined with a collegiate elegance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/ivy_league_cut.png"
+        },
+        {
+          "key": "micro_bangs_bob",
+          "prompt": "hair style: a short bob paired with ultra-short, straight-across micro bangs cut high above the eyebrows. The sharp edges and strong contrast give this style a daring, fashion-forward statement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/micro_bangs_bob.png"
+        },
+        {
+          "key": "side_swept_pixie",
+          "prompt": "hair style: a pixie cut styled with longer top layers swept dramatically to one side, blending into neatly cropped sides. The asymmetry creates flow and movement, adding elegance to the bold short silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/side_swept_pixie.png"
+        },
+        {
+          "key": "feathered_pixie",
+          "prompt": "hair style: a feathered pixie with delicately layered strands across the crown, styled outward for airy movement. The layers soften the outline, giving a light, breezy aesthetic that balances edge with softness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/feathered_pixie.png"
+        },
+        {
+          "key": "spiky_pixie",
+          "prompt": "hair style: a spiky pixie cut with short crown layers styled upward and outward for edgy, defined texture. The tousled spikes create height and bold character, perfect for a rebellious, contemporary edge.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/spiky_pixie.png"
+        },
+        {
+          "key": "shaved_sides_bob",
+          "prompt": "hair style: a bob cut with closely shaved sides and longer hair on top and front, blending sleekness with bold undercut contrast. The mix of lengths creates a daring, avant-garde appearance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/shaved_sides_bob.png"
+        },
+        {
+          "key": "graduated_bob",
+          "prompt": "hair style: a graduated bob with stacked layers at the back that progressively lengthen toward the front. The angled silhouette and rounded crown give the cut body, while the front maintains sharp definition.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/graduated_bob.png"
+        },
+        {
+          "key": "messy_pixie",
+          "prompt": "hair style: a messy pixie cut with tousled, uneven strands styled deliberately disheveled for a carefree effect. The textured crown and irregular finish make it playful and easygoing with urban chic vibes.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/messy_pixie.png"
+        },
+        {
+          "key": "layered_short_cut",
+          "prompt": "hair style: a layered short cut with multiple feathered tiers across the head, producing natural movement and volume. The overall structure is soft, textured, and versatile, with a polished yet relaxed feel.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/layered_short_cut.png"
+        }
+      ]
+    },
+    {
+      "category_key": "medium_hair",
+      "title": "Medium Hair",
+      "styles": [
+        {
+          "key": "shoulder_length_blunt_cut",
+          "prompt": "hair style: a shoulder-length blunt cut with ends sliced in a perfectly straight line. The overall surface is sleek and polished, free of layers, creating a crisp geometric silhouette. This modern style frames the face with precision while highlighting the collarbone area with minimalist elegance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/shoulder_length_blunt_cut.png"
+        },
+        {
+          "key": "layered_medium_cut",
+          "prompt": "hair style: a medium-length layered cut with subtle graduation throughout the crown and sides. The feathered layers provide lift and volume while maintaining soft, tapered edges. This versatile style allows natural movement and flow, flattering a wide range of face shapes.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/layered_medium_cut.png"
+        },
+        {
+          "key": "medium_wavy_lob",
+          "prompt": "hair style: a long bob cut falling just below the shoulders, styled with loose, natural waves. The waves give body and dimension, creating a relaxed yet polished vibe. The look balances casual texture with refined lines, ideal for contemporary fashion settings.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_wavy_lob.png"
+        },
+        {
+          "key": "medium_curly_cut",
+          "prompt": "hair style: a medium-length cut emphasizing full, springy curls that frame the shoulders. The curls are well-defined but soft, producing a voluminous silhouette with playful bounce. This cut enhances natural curl pattern while maintaining balance and control.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_curly_cut.png"
+        },
+        {
+          "key": "shag_cut_medium",
+          "prompt": "hair style: a medium shag cut featuring choppy, feathered layers starting at cheek level and continuing to the shoulders. The deliberately undone texture adds rock-inspired energy, while wispy ends and layered volume create an effortlessly cool silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/shag_cut_medium.png"
+        },
+        {
+          "key": "straight_lob_center_part",
+          "prompt": "hair style: a sleek lob cut with hair reaching collarbone length, styled with a precise center part. The ends are blunt and even, while the surface is polished to a smooth, glass-like finish. This modern and minimalist style enhances facial symmetry.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/straight_lob_center_part.png"
+        },
+        {
+          "key": "textured_medium_cut",
+          "prompt": "hair style: a textured medium cut with layers strategically placed throughout the length to build movement and lightness. The edges are slightly razored, producing a natural, airy effect. The tousled surface gives a lived-in, modern look.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/textured_medium_cut.png"
+        },
+        {
+          "key": "medium_cut_with_bangs",
+          "prompt": "hair style: a medium-length cut paired with a full, eyebrow-grazing fringe. The body of the hair sits around the shoulders, with subtle layering for softness. The fringe frames the eyes, adding structure and sophistication to the overall look.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_cut_with_bangs.png"
+        },
+        {
+          "key": "curtain_bangs_medium",
+          "prompt": "hair style: a medium cut styled with long, sweeping curtain bangs parted in the center. The bangs flow into the rest of the cut seamlessly, creating face-framing softness. This style blends retro influence with contemporary casual elegance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curtain_bangs_medium.png"
+        },
+        {
+          "key": "feathered_medium_cut",
+          "prompt": "hair style: a feathered medium cut with light, wispy layers cascading from the crown to the shoulders. The feathering creates airy volume and graceful movement, giving a soft, feminine silhouette with natural texture.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/feathered_medium_cut.png"
+        },
+        {
+          "key": "medium_beach_waves",
+          "prompt": "hair style: a shoulder-length cut styled into loose, tousled beach waves. The waves are casual, imperfect, and airy, producing a carefree, sun-kissed aesthetic. The texture adds body while keeping the look relaxed and youthful.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_beach_waves.png"
+        },
+        {
+          "key": "sleek_medium_cut",
+          "prompt": "hair style: a medium-length cut worn completely straight and polished with mirror-like shine. The blunt ends and smooth finish create a sharp, modern silhouette that emphasizes simplicity and elegance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/sleek_medium_cut.png"
+        },
+        {
+          "key": "choppy_lob",
+          "prompt": "hair style: a long bob with deliberately uneven, choppy ends and textured layering. The casual, edgy vibe makes it appear effortlessly undone while retaining structure around the shoulders.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/choppy_lob.png"
+        },
+        {
+          "key": "medium_inverted_bob",
+          "prompt": "hair style: a medium inverted bob with stacked layers in the back, gradually longer sections in the front. The angled silhouette highlights the jawline while the rounded crown adds volume and depth.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_inverted_bob.png"
+        },
+        {
+          "key": "medium_shaggy_lob",
+          "prompt": "hair style: a shag-inspired lob with layered, messy texture and undone volume. The cut appears lived-in with tapered ends, giving it a cool, grunge-inspired fashion appeal.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_shaggy_lob.png"
+        },
+        {
+          "key": "medium_cut_with_face_framing_layers",
+          "prompt": "hair style: a medium-length cut featuring layers around the face that taper softly toward the shoulders. These layers highlight facial features while the rest of the hair flows smoothly with balanced weight.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_cut_with_face_framing_layers.png"
+        },
+        {
+          "key": "medium_cut_side_part",
+          "prompt": "hair style: a shoulder-length cut styled with a deep side part. The asymmetry creates movement and flow while the body of the hair remains sleek and structured, giving a confident and dramatic effect.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_cut_side_part.png"
+        },
+        {
+          "key": "medium_cut_with_loose_curls",
+          "prompt": "hair style: a medium cut styled with loose, romantic curls cascading around the shoulders. The curls add softness and volume, enhancing the feminine shape of the style with natural flow.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_cut_with_loose_curls.png"
+        },
+        {
+          "key": "medium_cut_with_layers_and_bounce",
+          "prompt": "hair style: a medium-length cut with layers designed for bounce and body. The lifted crown and tapered ends create movement and lightness, producing a youthful, energetic silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_cut_with_layers_and_bounce.png"
+        },
+        {
+          "key": "medium_cut_razored_ends",
+          "prompt": "hair style: a medium cut finished with razored ends to achieve a slightly jagged, undone effect. The sharp texture softens the blunt outline, making the style modern and dynamic.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_cut_razored_ends.png"
+        },
+        {
+          "key": "medium_cut_soft_waves",
+          "prompt": "hair style: a medium-length cut styled with gentle, flowing waves. The waves provide light body and graceful elegance, creating a timeless, romantic look with soft texture.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_cut_soft_waves.png"
+        },
+        {
+          "key": "medium_cut_straight_with_volume",
+          "prompt": "hair style: a straight medium cut polished flat but with added volume at the roots for lift. The combination of sleek texture and height creates a balanced, fashion-forward aesthetic.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_cut_straight_with_volume.png"
+        },
+        {
+          "key": "lob_with_subtle_layers",
+          "prompt": "hair style: a lob that falls just below the shoulders, enhanced with subtle layers near the ends. These layers introduce softness without breaking the sleek outline, keeping the style refined yet natural.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/lob_with_subtle_layers.png"
+        },
+        {
+          "key": "medium_cut_flipped_ends",
+          "prompt": "hair style: a medium cut where the ends are styled outward in a flipped shape. The outward movement adds playful energy and retro-inspired flair to the otherwise straight silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_cut_flipped_ends.png"
+        },
+        {
+          "key": "medium_cut_inward_curl",
+          "prompt": "hair style: a medium-length cut styled with inward-curving ends. The edges curl softly toward the neckline, creating a polished, salon-finished look with gentle framing.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_cut_inward_curl.png"
+        },
+        {
+          "key": "medium_cut_with_micro_layers",
+          "prompt": "hair style: a medium cut with very fine, micro layering across the length. The layering adds imperceptible lightness and flow, maintaining a sleek outline while enhancing natural movement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_cut_with_micro_layers.png"
+        },
+        {
+          "key": "medium_cut_tousled_finish",
+          "prompt": "hair style: a shoulder-length cut styled with a tousled, windblown finish. The strands appear slightly undone yet deliberate, giving a relaxed, effortless, editorial-inspired look.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_cut_tousled_finish.png"
+        },
+        {
+          "key": "medium_cut_classic_lob",
+          "prompt": "hair style: a classic lob resting between the shoulders and collarbone, cut blunt with no layering. The style balances length with sharp precision, making it timeless and versatile for both casual and formal looks.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_cut_classic_lob.png"
+        },
+        {
+          "key": "medium_cut_soft_shag",
+          "prompt": "hair style: a soft shag cut at medium length with lightly feathered layers throughout. The texture creates gentle volume and natural movement, blending retro charm with modern softness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_cut_soft_shag.png"
+        }
+      ]
+    },
+    {
+      "category_key": "braided_styles",
+      "title": "Braided Styles",
+      "styles": [
+        {
+          "key": "classic_three_strand_braid",
+          "prompt": "hair style: a traditional three-strand braid starting at the nape of the neck, woven evenly down the back with tight, uniform sections. The finish is neat and symmetrical, giving a timeless, polished appearance suitable for both casual and formal looks.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/classic_three_strand_braid.png"
+        },
+        {
+          "key": "french_braid",
+          "prompt": "hair style: a classic French braid beginning at the crown, gradually incorporating hair from each side into a sleek, tight weave. The braid runs down the back of the head with clean, structured sections, creating an elegant and sophisticated silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/french_braid.png"
+        },
+        {
+          "key": "dutch_braid",
+          "prompt": "hair style: a Dutch braid created by weaving strands under instead of over, forming a raised braid effect that sits on top of the hair. The sections are bold and pronounced, producing a striking, dimensional look across the scalp.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/dutch_braid.png"
+        },
+        {
+          "key": "fishtail_braid",
+          "prompt": "hair style: a fishtail braid made with two main sections, weaving small pieces from each side across one another. The result is an intricate, herringbone-like pattern with a sleek, elegant finish that elongates the silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/fishtail_braid.png"
+        },
+        {
+          "key": "waterfall_braid",
+          "prompt": "hair style: a waterfall braid cascading diagonally across the head, allowing strands to fall free like streams while others weave into the braid. The flowing effect creates a romantic, delicate appearance with graceful movement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/waterfall_braid.png"
+        },
+        {
+          "key": "crown_braid",
+          "prompt": "hair style: a circular crown braid wrapping entirely around the head, woven tightly against the scalp like a halo. The style exudes regal elegance and keeps the hair neatly secured while framing the face in an ornamental way.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/crown_braid.png"
+        },
+        {
+          "key": "box_braids",
+          "prompt": "hair style: long box braids created by sectioning the hair into small squares and braiding each individually. The braids are uniform and sleek, extending down with a neat, protective finish that emphasizes texture and style longevity.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/box_braids.png"
+        },
+        {
+          "key": "cornrows",
+          "prompt": "hair style: tight cornrows braided close to the scalp in straight, parallel rows. The braids are narrow and consistent, producing a sleek, geometric look with strong cultural and stylistic roots.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/cornrows.png"
+        },
+        {
+          "key": "halo_braid",
+          "prompt": "hair style: a halo braid encircling the crown of the head with strands woven upward and around, resembling a soft braided wreath. The look is feminine, angelic, and perfect for romantic or bohemian themes.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/halo_braid.png"
+        },
+        {
+          "key": "rope_braid",
+          "prompt": "hair style: a rope braid made by twisting two strands tightly in one direction and then wrapping them together in the opposite direction. The result is a thick, rope-like texture that appears bold and structured.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/rope_braid.png"
+        },
+        {
+          "key": "double_dutch_braids",
+          "prompt": "hair style: two Dutch braids running parallel from the crown down to the nape, tightly woven to create bold, raised sections. The mirrored effect provides balance and sporty energy.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/double_dutch_braids.png"
+        },
+        {
+          "key": "milkmaid_braid",
+          "prompt": "hair style: a milkmaid braid created by crossing two braids over the top of the head and pinning them in place. The style forms a soft crown with a rustic, romantic aesthetic.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/milkmaid_braid.png"
+        },
+        {
+          "key": "side_braid",
+          "prompt": "hair style: a loose braid pulled to one side of the head, draping over the shoulder. The braid is relaxed and slightly messy, creating a casual, effortless look.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/side_braid.png"
+        },
+        {
+          "key": "lace_braid",
+          "prompt": "hair style: a lace braid woven along the hairline, gradually incorporating strands only from one side. The braid sits delicately on the surface, producing a soft, intricate framing effect.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/lace_braid.png"
+        },
+        {
+          "key": "ladder_braid",
+          "prompt": "hair style: a ladder braid featuring two parallel braids connected by interwoven strands, creating the illusion of rungs. The result is a decorative, intricate design with architectural appeal.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/ladder_braid.png"
+        },
+        {
+          "key": "mermaid_braid",
+          "prompt": "hair style: a voluminous mermaid braid where multiple sections are loosely woven to create a thick, flowing plait. The style is wide and textured, resembling cascading ocean waves.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/mermaid_braid.png"
+        },
+        {
+          "key": "snake_braid",
+          "prompt": "hair style: a snake braid formed by weaving strands in a twisting, serpentine pattern. The irregular movement gives a creative, unconventional look with strong visual interest.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/snake_braid.png"
+        },
+        {
+          "key": "zigzag_cornrows",
+          "prompt": "hair style: cornrows braided in bold zigzag patterns across the scalp. The sections are tight and precise, producing a dynamic geometric design that emphasizes structure.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/zigzag_cornrows.png"
+        },
+        {
+          "key": "goddess_braids",
+          "prompt": "hair style: large, thick goddess braids braided close to the scalp with bold, raised sections. The look is dramatic and regal, combining elegance with strength.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/goddess_braids.png"
+        },
+        {
+          "key": "infinity_braid",
+          "prompt": "hair style: an infinity braid shaped by weaving strands in a figure-eight looping pattern. The continuous flow creates a decorative, artistic plait with striking visual rhythm.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/infinity_braid.png"
+        },
+        {
+          "key": "pancake_braid",
+          "prompt": "hair style: a wide, flat braid created by gently pulling apart the sections of a traditional braid. The expanded surface produces a soft, voluminous effect perfect for bohemian styling.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/pancake_braid.png"
+        },
+        {
+          "key": "pull_through_braid",
+          "prompt": "hair style: a pull-through braid made by securing small ponytail sections and weaving them through one another. The result mimics a braid but with a thicker, bubble-like appearance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/pull_through_braid.png"
+        },
+        {
+          "key": "stitch_braids",
+          "prompt": "hair style: stitch braids created by parting hair into precise, straight lines and braiding in tight, defined rows. The clean divisions give a sharp, technical aesthetic.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/stitch_braids.png"
+        },
+        {
+          "key": "celtic_knot_braid",
+          "prompt": "hair style: a decorative Celtic knot braid where strands interlace into an intricate knot-like design. The style emphasizes symmetry and artistry with a woven, ornamental appearance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/celtic_knot_braid.png"
+        },
+        {
+          "key": "half_up_braid",
+          "prompt": "hair style: a half-up braid where the top section is braided while the rest of the hair flows loose. The combination adds detail while keeping softness and natural movement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/half_up_braid.png"
+        },
+        {
+          "key": "braided_bun",
+          "prompt": "hair style: a bun created by braiding the hair first and then wrapping it into a coiled knot. The woven texture adds interest to the classic bun silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/braided_bun.png"
+        },
+        {
+          "key": "braided_ponytail",
+          "prompt": "hair style: a high or low ponytail that transitions into a braid. The tight braid extends the length of the ponytail, combining sleekness with dynamic detail.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/braided_ponytail.png"
+        },
+        {
+          "key": "side_fishtail_braid",
+          "prompt": "hair style: a fishtail braid styled to fall over one shoulder, with intricate herringbone weaving. The asymmetry and texture create a romantic, bohemian aesthetic.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/side_fishtail_braid.png"
+        },
+        {
+          "key": "braided_crown_with_loose_waves",
+          "prompt": "hair style: a braided crown wrapping around the head, paired with loose waves cascading below. The mix of woven structure and free-flowing texture creates softness and contrast.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/braided_crown_with_loose_waves.png"
+        },
+        {
+          "key": "triple_braids",
+          "prompt": "hair style: three separate braids evenly spaced across the scalp or down the back, woven neatly and symmetrically. The repetition creates a bold, decorative look.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/triple_braids.png"
+        },
+        {
+          "key": "braided_pigtails",
+          "prompt": "hair style: two braids styled as pigtails, starting high or low on each side of the head. The look is playful, youthful, and neatly structured with uniform weaving.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/braided_pigtails.png"
+        }
+      ]
+    },
+    {
+      "category_key": "curly_styles",
+      "title": "Curly Styles",
+      "styles": [
+        {
+          "key": "tight_corkscrew_curls",
+          "prompt": "hair style: tight corkscrew curls densely packed from root to tip, forming a springy, voluminous texture. Each curl is narrow and coiled, creating a lively, energetic silhouette with strong definition.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/tight_corkscrew_curls.png"
+        },
+        {
+          "key": "loose_romantic_curls",
+          "prompt": "hair style: loose curls with a soft, flowing shape that cascade naturally around the shoulders. The wide, relaxed spirals create a romantic and graceful appearance with gentle bounce.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/loose_romantic_curls.png"
+        },
+        {
+          "key": "spiral_ringlets",
+          "prompt": "hair style: spiral ringlets formed in uniform corkscrew spirals, highly defined and glossy. The curls hang in structured coils, producing a playful, doll-like texture full of bounce.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/spiral_ringlets.png"
+        },
+        {
+          "key": "afro_curls",
+          "prompt": "hair style: natural afro curls densely coiled into a rounded shape that extends outward from the scalp. The texture is voluminous, bold, and expressive, highlighting the hair’s natural density and spring.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/afro_curls.png"
+        },
+        {
+          "key": "voluminous_curly_bob",
+          "prompt": "hair style: a bob cut styled with full, voluminous curls. The curls frame the face and add height at the crown, giving a lively and youthful effect with balanced roundness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/voluminous_curly_bob.png"
+        },
+        {
+          "key": "medium_curls_with_layers",
+          "prompt": "hair style: medium-length curls shaped with layered cutting to distribute volume evenly. The layers create natural lift, while the curls remain defined yet soft, giving dynamic movement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_curls_with_layers.png"
+        },
+        {
+          "key": "curly_lob",
+          "prompt": "hair style: a long bob styled with structured curls, falling just past the shoulders. The curls are springy and defined, balancing length with fullness in a polished silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curly_lob.png"
+        },
+        {
+          "key": "glamorous_hollywood_curls",
+          "prompt": "hair style: large, uniform curls styled in smooth waves reminiscent of old Hollywood glamour. The curls are polished, glossy, and voluminous, cascading with elegance and refinement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/glamorous_hollywood_curls.png"
+        },
+        {
+          "key": "curly_shag",
+          "prompt": "hair style: a shag haircut styled with curls, layered unevenly to create rock-inspired volume. The curls add texture and bounce, enhancing the playful, undone character of the cut.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curly_shag.png"
+        },
+        {
+          "key": "natural_curly_updo",
+          "prompt": "hair style: an updo styled with naturally curly hair pinned and gathered loosely at the back. The curls spill softly around the edges, producing a romantic, effortless shape full of texture.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/natural_curly_updo.png"
+        },
+        {
+          "key": "curly_high_ponytail",
+          "prompt": "hair style: curls gathered into a high ponytail at the crown, cascading downward with natural spring. The look emphasizes volume at the top while keeping curls dynamic and playful.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curly_high_ponytail.png"
+        },
+        {
+          "key": "defined_ringlets",
+          "prompt": "hair style: small, precisely defined ringlets styled evenly throughout the head. The uniformity and bounce create a neat, doll-like texture with glossy, structured curls.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/defined_ringlets.png"
+        },
+        {
+          "key": "loose_curly_bangs",
+          "prompt": "hair style: curls styled with soft bangs across the forehead. The bangs are light and curly, blending into the rest of the style seamlessly while adding framing detail.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/loose_curly_bangs.png"
+        },
+        {
+          "key": "curly_afro_bob",
+          "prompt": "hair style: a bob cut shaped with afro-textured curls, creating a rounded silhouette around the jawline. The style blends classic bob structure with bold curl density.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curly_afro_bob.png"
+        },
+        {
+          "key": "messy_curly_bun",
+          "prompt": "hair style: curls loosely gathered into a messy bun at the back of the head, with tendrils escaping freely. The undone look balances elegance with a casual, carefree vibe.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/messy_curly_bun.png"
+        },
+        {
+          "key": "curly_half_updo",
+          "prompt": "hair style: curls styled half up and half down, with the top section pinned back. The combination keeps curls voluminous while opening the face with structured framing.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curly_half_updo.png"
+        },
+        {
+          "key": "curly_side_swept",
+          "prompt": "hair style: curls swept dramatically to one side, draping over the shoulder. The asymmetry adds drama while highlighting the fullness and movement of the curls.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curly_side_swept.png"
+        },
+        {
+          "key": "spiral_curly_updo",
+          "prompt": "hair style: structured curls arranged into an elegant updo, with spiral tendrils pinned intricately. The defined coils create dimension and a decorative effect suitable for formal settings.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/spiral_curly_updo.png"
+        },
+        {
+          "key": "wet_look_curls",
+          "prompt": "hair style: curls styled with a glossy wet look, tightly defined and clumped together. The finish emphasizes shine and definition while giving a bold, editorial appearance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/wet_look_curls.png"
+        },
+        {
+          "key": "curly_layered_shoulder_cut",
+          "prompt": "hair style: shoulder-length curls shaped with layered cutting, allowing volume to build gradually from crown to ends. The layering creates flow and lightness with balanced proportion.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curly_layered_shoulder_cut.png"
+        },
+        {
+          "key": "voluminous_curly_afro",
+          "prompt": "hair style: a large, voluminous afro with curls extending outward in all directions. The dense, rounded shape emphasizes fullness and creates a striking silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/voluminous_curly_afro.png"
+        },
+        {
+          "key": "curly_pixie_cut",
+          "prompt": "hair style: a pixie cut styled with natural curls kept short around the ears and nape, with textured curls at the crown. The cropped silhouette retains curl character with playful bounce.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curly_pixie_cut.png"
+        },
+        {
+          "key": "curly_side_bun",
+          "prompt": "hair style: curls gathered into a bun positioned to one side near the ear. Loose curls spill from the bun, softening the structured shape with romantic detail.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curly_side_bun.png"
+        },
+        {
+          "key": "curly_ponytail_with_braided_base",
+          "prompt": "hair style: curls styled into a ponytail secured with a braided base at the crown. The braid adds structure while the curls remain free and full of movement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curly_ponytail_with_braided_base.png"
+        },
+        {
+          "key": "curly_updo_with_loose_tendrils",
+          "prompt": "hair style: an updo of curls pinned elegantly at the back, with loose curly tendrils framing the face. The combination of structure and softness creates a romantic, timeless aesthetic.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curly_updo_with_loose_tendrils.png"
+        },
+        {
+          "key": "curly_wolf_cut",
+          "prompt": "hair style: a wolf cut adapted for curls, with layered, tousled sections producing messy volume and edgy shape. The curls enhance the wild, rebellious vibe of the silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curly_wolf_cut.png"
+        },
+        {
+          "key": "curly_low_bun",
+          "prompt": "hair style: curls pulled into a low bun at the nape, neatly secured with volume concentrated at the crown. The style balances sleekness at the base with fullness in the curls.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curly_low_bun.png"
+        },
+        {
+          "key": "curly_crown",
+          "prompt": "hair style: curls styled upward and outward, forming a rounded crown-like silhouette above the head. The voluminous top creates regal drama while maintaining soft definition.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curly_crown.png"
+        },
+        {
+          "key": "curly_high_bun",
+          "prompt": "hair style: curls gathered tightly into a high bun at the crown, forming a textured, voluminous knot. Loose tendrils soften the look with casual charm.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curly_high_bun.png"
+        },
+        {
+          "key": "curly_half_up_braided",
+          "prompt": "hair style: curls styled half up with the top section braided before blending into the loose curls. The braid adds contrast and structure to the otherwise free-flowing texture.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curly_half_up_braided.png"
+        }
+      ]
+    },
+    {
+      "category_key": "wavy_styles",
+      "title": "Wavy Styles",
+      "styles": [
+        {
+          "key": "beach_waves",
+          "prompt": "hair style: casual beach waves with loose, tousled texture, styled to look sun-kissed and windblown. The waves are imperfect and natural, creating a carefree, effortless vibe.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/beach_waves.png"
+        },
+        {
+          "key": "soft_romantic_waves",
+          "prompt": "hair style: gentle waves cascading softly around the shoulders, creating a romantic, feminine look. The smooth, flowing texture emphasizes grace and light movement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/soft_romantic_waves.png"
+        },
+        {
+          "key": "hollywood_glam_waves",
+          "prompt": "hair style: structured, polished waves styled in a uniform S-shape, reminiscent of old Hollywood glamour. The glossy, symmetrical texture creates a refined, luxurious appearance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/hollywood_glam_waves.png"
+        },
+        {
+          "key": "loose_waves",
+          "prompt": "hair style: wide, relaxed waves styled to add body and natural movement. The casual flow gives a fresh, modern look with soft texture and minimal structure.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/loose_waves.png"
+        },
+        {
+          "key": "deep_waves",
+          "prompt": "hair style: pronounced, defined waves with a sculpted, ridged texture. The waves are glossy and bold, forming a dramatic and editorial silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/deep_waves.png"
+        },
+        {
+          "key": "wavy_lob",
+          "prompt": "hair style: a long bob styled with soft waves that fall just below the shoulders. The waves add casual texture to the clean shape of the lob, making it modern and versatile.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/wavy_lob.png"
+        },
+        {
+          "key": "wavy_bob",
+          "prompt": "hair style: a chin-length bob styled with relaxed waves, giving body and texture to the sharp bob outline. The waves soften the silhouette while keeping it stylish and fresh.",
+          "image_url": ""
+        },
+        {
+          "key": "boho_waves",
+          "prompt": "hair style: bohemian-inspired waves with uneven, slightly messy texture. The flowing, airy movement creates a carefree, festival-ready vibe full of personality.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/boho_waves.png"
+        },
+        {
+          "key": "textured_waves",
+          "prompt": "hair style: heavily textured waves created with layered cutting and tousled styling. The irregular, undone appearance emphasizes dimension and a casual, chic aesthetic.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/textured_waves.png"
+        },
+        {
+          "key": "wet_look_waves",
+          "prompt": "hair style: waves styled with a glossy, wet finish that clumps strands together. The shiny texture highlights definition while giving a bold, editorial runway look.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/wet_look_waves.png"
+        },
+        {
+          "key": "side_part_waves",
+          "prompt": "hair style: medium-length waves swept into a deep side part. The asymmetry enhances volume on one side, giving drama and balance to the overall look.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/side_part_waves.png"
+        },
+        {
+          "key": "center_part_waves",
+          "prompt": "hair style: waves styled with a clean center part, falling evenly on both sides. The symmetry emphasizes harmony and structure while the waves maintain softness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/center_part_waves.png"
+        },
+        {
+          "key": "long_layered_waves",
+          "prompt": "hair style: long hair shaped with layers to encourage cascading waves. The layered structure adds dimension and movement while keeping the waves light and flowing.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/long_layered_waves.png"
+        },
+        {
+          "key": "mermaid_waves",
+          "prompt": "hair style: long, flowing mermaid waves with a uniform, elongated S-shape. The waves are glossy and sleek, creating a mystical, ocean-inspired silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/mermaid_waves.png"
+        },
+        {
+          "key": "crimped_waves",
+          "prompt": "hair style: crimped waves created with sharp, zigzag texture. The effect is bold and edgy, giving the waves a structured, fashion-forward appeal.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/crimped_waves.png"
+        },
+        {
+          "key": "windswept_waves",
+          "prompt": "hair style: waves styled to appear windblown and dynamic, with strands flowing in different directions. The result is airy, free-spirited, and full of motion.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/windswept_waves.png"
+        },
+        {
+          "key": "glossy_defined_waves",
+          "prompt": "hair style: smooth, glossy waves with clean definition and high shine. The polished finish creates a refined, professional look perfect for formal settings.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/glossy_defined_waves.png"
+        },
+        {
+          "key": "voluminous_waves",
+          "prompt": "hair style: large, voluminous waves styled with lift at the roots and fullness throughout. The bold, glamorous texture emphasizes drama and presence.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/voluminous_waves.png"
+        },
+        {
+          "key": "relaxed_shoulder_waves",
+          "prompt": "hair style: shoulder-length waves styled loosely for a casual, everyday aesthetic. The soft, natural flow adds texture without overpowering the simple shape.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/relaxed_shoulder_waves.png"
+        },
+        {
+          "key": "layered_wavy_bob",
+          "prompt": "hair style: a bob cut enhanced with layered waves, creating dimension and body. The layers emphasize the movement of the waves while softening the blunt outline.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/layered_wavy_bob.png"
+        },
+        {
+          "key": "textured_beach_waves",
+          "prompt": "hair style: tousled beach waves styled with added grit and texture. The finish is deliberately undone, producing a natural, carefree effect with youthful energy.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/textured_beach_waves.png"
+        },
+        {
+          "key": "asymmetrical_waves",
+          "prompt": "hair style: waves styled with asymmetry, longer on one side than the other. The uneven structure adds modern flair while keeping the texture soft and wavy.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/asymmetrical_waves.png"
+        },
+        {
+          "key": "retro_waves",
+          "prompt": "hair style: retro-inspired waves with precise, glossy ridges that form a vintage silhouette. The sculpted texture channels old-school glamour and sophistication.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/retro_waves.png"
+        },
+        {
+          "key": "messy_waves",
+          "prompt": "hair style: deliberately messy waves with strands styled loosely and unevenly. The casual finish gives an effortless, edgy aesthetic with lots of character.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/messy_waves.png"
+        },
+        {
+          "key": "s_shaped_waves",
+          "prompt": "hair style: waves styled into distinct S-shapes, flowing smoothly along the length of the hair. The continuous rhythm creates a uniform, flowing texture.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/s_shaped_waves.png"
+        },
+        {
+          "key": "natural_air_dried_waves",
+          "prompt": "hair style: natural waves formed by air drying without heavy styling, producing an organic, authentic texture. The look is soft, casual, and relaxed.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/natural_air_dried_waves.png"
+        },
+        {
+          "key": "curtain_waves",
+          "prompt": "hair style: waves parted in the middle with volume sweeping outward, resembling curtain-like framing around the face. The texture is soft and face-enhancing.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curtain_waves.png"
+        },
+        {
+          "key": "layered_collarbone_waves",
+          "prompt": "hair style: waves cut to collarbone length with subtle layers to add bounce and flow. The waves are smooth yet dynamic, creating a balanced silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/layered_collarbone_waves.png"
+        },
+        {
+          "key": "romantic_waves_with_tendrils",
+          "prompt": "hair style: waves styled loosely with a few tendrils falling naturally around the face. The look is soft and romantic, ideal for evening or bridal themes.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/romantic_waves_with_tendrils.png"
+        },
+        {
+          "key": "extra_long_waves",
+          "prompt": "hair style: very long hair styled into extended, flowing waves that reach the waist or beyond. The elongated shape creates a dramatic, eye-catching effect.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/extra_long_waves.png"
+        }
+      ]
+    },
+    {
+      "category_key": "updos",
+      "title": "Updos",
+      "styles": [
+        {
+          "key": "classic_chignon",
+          "prompt": "hair style: a classic chignon created by tucking hair into a smooth, low knot at the nape. The finish is sleek and polished, emphasizing symmetry and timeless elegance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/classic_chignon.png"
+        },
+        {
+          "key": "low_bun",
+          "prompt": "hair style: a simple low bun gathered at the nape of the neck, styled tightly for neatness or slightly loose for softness. The silhouette is understated and versatile.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/low_bun.png"
+        },
+        {
+          "key": "messy_bun",
+          "prompt": "hair style: a messy bun styled with loose strands escaping around the face and crown. The bun is imperfect and textured, creating a casual yet chic effect.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/messy_bun.png"
+        },
+        {
+          "key": "ballerina_bun",
+          "prompt": "hair style: a high, sleek ballerina bun coiled tightly at the crown. The surface is smooth with no stray hairs, giving a disciplined, graceful appearance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/ballerina_bun.png"
+        },
+        {
+          "key": "french_twist",
+          "prompt": "hair style: a French twist created by rolling hair vertically and securing it against the back of the head. The look is sleek and sophisticated with a tapered, elongated shape.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/french_twist.png"
+        },
+        {
+          "key": "braided_bun",
+          "prompt": "hair style: a bun styled by braiding the hair first and then wrapping it into a coiled knot. The woven texture adds detail to the classic bun silhouette.",
+          "image_url": ""
+        },
+        {
+          "key": "side_bun",
+          "prompt": "hair style: a bun positioned low and to one side near the ear. The asymmetry creates a romantic, feminine silhouette with a playful edge.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/side_bun.png"
+        },
+        {
+          "key": "twisted_updo",
+          "prompt": "hair style: an updo created by twisting sections of hair and pinning them intricately at the back. The overlapping twists add dimension and elegance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/twisted_updo.png"
+        },
+        {
+          "key": "curly_updo",
+          "prompt": "hair style: an updo styled with natural curls pinned loosely at the crown and nape. The curls spill softly around the edges, giving a textured, romantic appearance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curly_updo.png"
+        },
+        {
+          "key": "high_bun",
+          "prompt": "hair style: a bun styled high on the crown, coiled neatly into a compact knot. The lifted placement emphasizes the face and neckline, giving drama and height.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/high_bun.png"
+        },
+        {
+          "key": "double_buns",
+          "prompt": "hair style: two symmetrical buns styled on each side of the head, either high or low. The look is playful and bold with balanced symmetry.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/double_buns.png"
+        },
+        {
+          "key": "low_knot",
+          "prompt": "hair style: a minimal low knot tied close to the nape, polished or slightly undone. The knot is compact, understated, and elegant in its simplicity.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/low_knot.png"
+        },
+        {
+          "key": "braided_crown_updo",
+          "prompt": "hair style: an updo featuring a braided crown wrapped around the head, with the rest pinned into a bun. The look combines woven detail with refined structure.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/braided_crown_updo.png"
+        },
+        {
+          "key": "half_up_bun",
+          "prompt": "hair style: the top section of the hair gathered into a bun while the bottom remains loose. The contrast creates a casual, trendy half-up silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/half_up_bun.png"
+        },
+        {
+          "key": "knotted_updo",
+          "prompt": "hair style: multiple sections of hair tied into small knots and pinned together to form an intricate updo. The knotted texture adds uniqueness and visual interest.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/knotted_updo.png"
+        },
+        {
+          "key": "retro_roll_updo",
+          "prompt": "hair style: a vintage-inspired updo with rolled sections styled across the crown and sides. The structured rolls give a glamorous, retro effect.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/retro_roll_updo.png"
+        },
+        {
+          "key": "gibson_tuck",
+          "prompt": "hair style: a Gibson tuck where the hair is rolled inward and pinned at the nape. The result is a soft, romantic silhouette with historical charm.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/gibson_tuck.png"
+        },
+        {
+          "key": "braided_low_bun",
+          "prompt": "hair style: a low bun created by braiding the hair first, then coiling it at the nape. The braids give texture and decorative detail to the bun.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/braided_low_bun.png"
+        },
+        {
+          "key": "twisted_crown_updo",
+          "prompt": "hair style: sections of hair twisted and wrapped around the head like a crown, with the remaining hair pinned up. The design is elegant and ornamental.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/twisted_crown_updo.png"
+        },
+        {
+          "key": "messy_low_bun",
+          "prompt": "hair style: a low bun styled loosely with tendrils escaping around the face. The undone finish makes it soft, romantic, and casual yet elegant.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/messy_low_bun.png"
+        },
+        {
+          "key": "sleek_high_bun",
+          "prompt": "hair style: a high bun styled tightly and polished with a glossy finish. The sleekness emphasizes sophistication and discipline, perfect for formal occasions.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/sleek_high_bun.png"
+        },
+        {
+          "key": "side_swept_updo",
+          "prompt": "hair style: an updo swept to one side with pinned sections overlapping diagonally. The asymmetry adds glamour and drama to the silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/side_swept_updo.png"
+        },
+        {
+          "key": "chignon_with_twist",
+          "prompt": "hair style: a chignon enhanced with twisted sections leading into the bun. The added detail enriches the timeless base with modern variation.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/chignon_with_twist.png"
+        },
+        {
+          "key": "floral_updo",
+          "prompt": "hair style: an updo accessorized with floral arrangements woven into the pinned sections. The flowers add softness and decorative charm, ideal for weddings or special events.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/floral_updo.png"
+        },
+        {
+          "key": "intricate_braided_updo",
+          "prompt": "hair style: an elaborate updo featuring multiple braids interwoven across the crown and secured into a bun. The complexity creates a statement look full of artistry.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/intricate_braided_updo.png"
+        },
+        {
+          "key": "knotted_bun",
+          "prompt": "hair style: a bun styled by knotting sections of hair together and wrapping them into a coiled form. The knotting produces an intricate texture that looks sculptural.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/knotted_bun.png"
+        },
+        {
+          "key": "low_chignon_with_loose_strands",
+          "prompt": "hair style: a low chignon styled softly with strands left loose around the face. The balance of structure and softness creates a romantic, timeless finish.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/low_chignon_with_loose_strands.png"
+        },
+        {
+          "key": "boho_updo",
+          "prompt": "hair style: a bohemian-inspired updo styled loosely with braids and tendrils. The look is relaxed and whimsical, full of texture and personality.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/boho_updo.png"
+        },
+        {
+          "key": "top_knot",
+          "prompt": "hair style: a compact bun styled at the very top of the crown. The knot is neat and tight, emphasizing bold height and modern minimalism.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/top_knot.png"
+        },
+        {
+          "key": "elegant_wedding_updo",
+          "prompt": "hair style: a wedding-inspired updo intricately styled with curls, twists, and pinned sections, polished to perfection. The silhouette is refined, romantic, and ideal for formal occasions.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/elegant_wedding_updo.png"
+        }
+      ]
+    },
+    {
+      "category_key": "ponytails",
+      "title": "Ponytails",
+      "styles": [
+        {
+          "key": "high_sleek_ponytail",
+          "prompt": "hair style: a high sleek ponytail gathered tightly at the crown, with hair polished flat against the scalp. The ponytail falls long and straight, glossy and sharp, giving a modern, powerful silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/high_sleek_ponytail.png"
+        },
+        {
+          "key": "low_relaxed_ponytail",
+          "prompt": "hair style: a low ponytail tied loosely at the nape of the neck, styled with softness and gentle movement. The casual finish gives an understated, effortless look.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/low_relaxed_ponytail.png"
+        },
+        {
+          "key": "bubble_ponytail",
+          "prompt": "hair style: a bubble ponytail created by tying sections along the length of the ponytail to form rounded, bubble-like segments. The style is playful, modern, and full of dimension.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/bubble_ponytail.png"
+        },
+        {
+          "key": "braided_ponytail",
+          "prompt": "hair style: a ponytail styled into a full braid running down the back. The sleek base transitions into woven texture, blending practicality with decorative detail.",
+          "image_url": ""
+        },
+        {
+          "key": "wrapped_base_ponytail",
+          "prompt": "hair style: a ponytail with the elastic base hidden by a strand of hair wrapped neatly around it. The wrap creates a polished, refined finish while keeping the look simple and chic.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/wrapped_base_ponytail.png"
+        },
+        {
+          "key": "side_ponytail",
+          "prompt": "hair style: a ponytail positioned low and to one side, draping softly over the shoulder. The asymmetry adds a playful, romantic touch to the look.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/side_ponytail.png"
+        },
+        {
+          "key": "curly_high_ponytail",
+          "prompt": "hair style: a high ponytail styled with full, springy curls cascading downward. The contrast between the sleek base and voluminous curls creates drama and movement.",
+          "image_url": ""
+        },
+        {
+          "key": "wavy_low_ponytail",
+          "prompt": "hair style: a low ponytail styled with loose waves, tied casually at the nape. The waves add softness and flow, making the look relaxed and versatile.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/wavy_low_ponytail.png"
+        },
+        {
+          "key": "double_ponytails",
+          "prompt": "hair style: two ponytails styled symmetrically on each side of the head, either high or low. The playful, youthful look emphasizes balance and fun energy.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/double_ponytails.png"
+        },
+        {
+          "key": "braided_base_ponytail",
+          "prompt": "hair style: a ponytail secured with a braided base at the crown, where the braid transitions into a loose flowing length. The detail adds texture and polish to the style.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/braided_base_ponytail.png"
+        },
+        {
+          "key": "voluminous_high_ponytail",
+          "prompt": "hair style: a high ponytail with teased roots and added volume at the crown. The lifted silhouette is bold and glamorous, perfect for dramatic fashion looks.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/voluminous_high_ponytail.png"
+        },
+        {
+          "key": "sleek_low_ponytail",
+          "prompt": "hair style: a low ponytail tied tightly with smooth, polished strands. The glossy texture and minimal silhouette create a clean, sophisticated effect.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/sleek_low_ponytail.png"
+        },
+        {
+          "key": "twisted_ponytail",
+          "prompt": "hair style: a ponytail styled with twisted sections at the base before securing, adding detail and dimension. The twist enhances the otherwise simple shape.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/twisted_ponytail.png"
+        },
+        {
+          "key": "layered_ponytail",
+          "prompt": "hair style: a ponytail styled to emphasize layered cutting, with shorter layers framing the face and longer lengths flowing behind. The result is dynamic and textured.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/layered_ponytail.png"
+        },
+        {
+          "key": "half_up_ponytail",
+          "prompt": "hair style: the top section of the hair tied into a ponytail while the rest flows freely. The half-up placement creates balance between structure and softness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/half_up_ponytail.png"
+        },
+        {
+          "key": "low_messy_ponytail",
+          "prompt": "hair style: a loosely tied low ponytail with strands escaping naturally around the face. The undone, casual look balances comfort with subtle elegance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/low_messy_ponytail.png"
+        },
+        {
+          "key": "braided_side_ponytail",
+          "prompt": "hair style: a side ponytail with the length styled into a braid, draping neatly over the shoulder. The combination of braid and asymmetry gives detail and charm.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/braided_side_ponytail.png"
+        },
+        {
+          "key": "pouf_high_ponytail",
+          "prompt": "hair style: a high ponytail styled with a pouf at the crown for extra height and drama. The lifted roots add glamour and a retro-inspired edge.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/pouf_high_ponytail.png"
+        },
+        {
+          "key": "twintail_high",
+          "prompt": "hair style: two high ponytails styled symmetrically on each side of the crown, bold and playful with youthful, anime-inspired energy.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/twintail_high.png"
+        },
+        {
+          "key": "twintail_low",
+          "prompt": "hair style: two low ponytails styled symmetrically near the nape, soft and girlish. The balanced placement creates a sweet, innocent appearance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/twintail_low.png"
+        },
+        {
+          "key": "long_sleek_ponytail",
+          "prompt": "hair style: a ponytail styled to extend long and straight, polished with glossy shine. The minimal silhouette emphasizes length and sleekness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/long_sleek_ponytail.png"
+        },
+        {
+          "key": "short_ponytail",
+          "prompt": "hair style: a ponytail styled with shorter hair, leaving a compact length at the back. The style is practical and casual, yet keeps the classic ponytail structure.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/short_ponytail.png"
+        },
+        {
+          "key": "bubble_high_ponytail",
+          "prompt": "hair style: a high ponytail styled into multiple bubble sections along its length. The bold, rounded shapes give playful dimension and modern flair.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/bubble_high_ponytail.png"
+        },
+        {
+          "key": "braided_high_ponytail",
+          "prompt": "hair style: a high ponytail fully styled into a tight, uniform braid cascading down. The sleek base and woven length create a bold, structured effect.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/braided_high_ponytail.png"
+        },
+        {
+          "key": "messy_high_ponytail",
+          "prompt": "hair style: a high ponytail styled with undone texture, loose strands escaping at the crown and sides. The look is casual, relaxed, and full of youthful energy.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/messy_high_ponytail.png"
+        },
+        {
+          "key": "curly_low_ponytail",
+          "prompt": "hair style: a low ponytail styled with natural curls flowing freely. The sleek base contrasts with the voluminous, bouncy length.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curly_low_ponytail.png"
+        },
+        {
+          "key": "wrapped_high_ponytail",
+          "prompt": "hair style: a high ponytail secured with a sleek wrap of hair at the base. The elevated placement and hidden elastic make it refined and editorial-ready.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/wrapped_high_ponytail.png"
+        },
+        {
+          "key": "wavy_high_ponytail",
+          "prompt": "hair style: a high ponytail styled with loose waves flowing down the back. The texture adds movement and softness to the dramatic height.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/wavy_high_ponytail.png"
+        },
+        {
+          "key": "braided_half_ponytail",
+          "prompt": "hair style: a half-up ponytail where the gathered section is styled into a braid, while the rest flows free. The mix of textures adds contrast and visual appeal.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/braided_half_ponytail.png"
+        },
+        {
+          "key": "decorated_ponytail",
+          "prompt": "hair style: a ponytail accessorized with clips, ribbons, or decorative bands along its length. The embellishments transform the simple base into a statement style.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/decorated_ponytail.png"
+        }
+      ]
+    },
+    {
+      "category_key": "bangs_styles",
+      "title": "Bangs / Fringe Styles",
+      "styles": [
+        {
+          "key": "blunt_bangs",
+          "prompt": "hair style: blunt bangs cut straight across the forehead with sharp, even edges. The clean horizontal line emphasizes the eyes and creates a bold, geometric frame for the face.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/blunt_bangs.png"
+        },
+        {
+          "key": "wispy_bangs",
+          "prompt": "hair style: wispy bangs styled with thin, feathered strands spread softly across the forehead. The light texture creates a delicate, airy framing effect.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/wispy_bangs.png"
+        },
+        {
+          "key": "curtain_bangs",
+          "prompt": "hair style: curtain bangs parted in the middle and swept to each side, blending seamlessly into the rest of the hair. The style softens the face with a flowing, retro-inspired look.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curtain_bangs.png"
+        },
+        {
+          "key": "side_swept_bangs",
+          "prompt": "hair style: bangs styled diagonally across the forehead, swept to one side with smooth texture. The asymmetry creates movement and softens the face shape.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/side_swept_bangs.png"
+        },
+        {
+          "key": "choppy_bangs",
+          "prompt": "hair style: choppy bangs cut unevenly with jagged ends for a textured, edgy effect. The irregular finish gives a casual, rock-inspired character.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/choppy_bangs.png"
+        },
+        {
+          "key": "baby_bangs",
+          "prompt": "hair style: baby bangs cut very short, sitting high on the forehead above the eyebrows. The sharp, daring silhouette creates a bold, avant-garde appearance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/baby_bangs.png"
+        },
+        {
+          "key": "arched_bangs",
+          "prompt": "hair style: arched bangs cut in a curved line, longer at the temples and shorter in the middle. The shape creates a rounded, feminine frame for the eyes.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/arched_bangs.png"
+        },
+        {
+          "key": "layered_bangs",
+          "prompt": "hair style: bangs cut with layers to add softness and dimension. The layered structure blends seamlessly with the rest of the hair, producing a natural, textured flow.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/layered_bangs.png"
+        },
+        {
+          "key": "long_bangs",
+          "prompt": "hair style: long bangs extending past the eyebrows, styled to sweep slightly into the eyes. The length creates a sultry, mysterious aesthetic.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/long_bangs.png"
+        },
+        {
+          "key": "asymmetrical_bangs",
+          "prompt": "hair style: bangs cut asymmetrically, longer on one side than the other. The uneven angle produces a bold, fashion-forward look full of contrast.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/asymmetrical_bangs.png"
+        },
+        {
+          "key": "feathered_bangs",
+          "prompt": "hair style: feathered bangs cut with delicate layers, styled outward for airy softness. The lightweight texture creates a relaxed, retro-inspired effect.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/feathered_bangs.png"
+        },
+        {
+          "key": "textured_bangs",
+          "prompt": "hair style: bangs styled with jagged, textured ends, giving a messy, tousled effect. The rough edges add modern, casual energy to the silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/textured_bangs.png"
+        },
+        {
+          "key": "rounded_bangs",
+          "prompt": "hair style: bangs cut in a rounded shape following the curve of the eyebrows. The smooth contour frames the eyes while softening facial proportions.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/rounded_bangs.png"
+        },
+        {
+          "key": "parted_bangs",
+          "prompt": "hair style: bangs parted slightly off-center, with strands framing the forehead unevenly. The gentle separation adds softness and casual elegance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/parted_bangs.png"
+        },
+        {
+          "key": "voluminous_bangs",
+          "prompt": "hair style: bangs styled with lift at the roots to create volume and fullness. The elevated texture adds drama and boldness to the overall look.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/voluminous_bangs.png"
+        },
+        {
+          "key": "micro_bangs",
+          "prompt": "hair style: ultra-short micro bangs cut above mid-forehead. The compact length creates a daring, high-fashion aesthetic with strong character.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/micro_bangs.png"
+        },
+        {
+          "key": "blended_bangs",
+          "prompt": "hair style: bangs blended seamlessly into layered hair, with no harsh line. The soft transition gives a natural, effortless framing effect.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/blended_bangs.png"
+        },
+        {
+          "key": "angled_bangs",
+          "prompt": "hair style: bangs cut at an angle, gradually lengthening from one side to the other. The diagonal line produces a sleek, face-contouring silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/angled_bangs.png"
+        },
+        {
+          "key": "thick_bangs",
+          "prompt": "hair style: bangs cut with heavy density, thick and full across the forehead. The bold volume emphasizes the eyes with dramatic framing.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/thick_bangs.png"
+        },
+        {
+          "key": "piecey_bangs",
+          "prompt": "hair style: bangs styled into separated, piecey sections for a modern, relaxed finish. The broken-up texture adds casual softness and movement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/piecey_bangs.png"
+        },
+        {
+          "key": "curly_bangs",
+          "prompt": "hair style: natural curls cut into bangs that frame the forehead with springy, defined texture. The curly finish creates playful bounce and personality.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/curly_bangs.png"
+        },
+        {
+          "key": "shaggy_bangs",
+          "prompt": "hair style: bangs styled with uneven, shaggy layers, blending into a textured haircut. The look is messy, retro-inspired, and effortlessly cool.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/shaggy_bangs.png"
+        },
+        {
+          "key": "long_side_bangs",
+          "prompt": "hair style: long side bangs sweeping diagonally across the face, blending with the rest of the length. The extended fringe adds movement and elegance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/long_side_bangs.png"
+        },
+        {
+          "key": "see_through_bangs",
+          "prompt": "hair style: see-through bangs styled with fine, transparent strands covering the forehead lightly. The airy texture creates a delicate, modern appearance popular in Asian fashion.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/see_through_bangs.png"
+        },
+        {
+          "key": "blowout_bangs",
+          "prompt": "hair style: bangs styled with a voluminous blowout, slightly curved under at the ends. The lifted, bouncy finish enhances fullness and glamour.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/blowout_bangs.png"
+        },
+        {
+          "key": "center_split_bangs",
+          "prompt": "hair style: bangs split precisely down the middle, falling naturally to either side. The sharp symmetry gives a balanced, controlled frame for the face.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/center_split_bangs.png"
+        },
+        {
+          "key": "arched_micro_bangs",
+          "prompt": "hair style: micro bangs cut in a curved arch across the forehead, higher in the center and longer at the edges. The shape is bold, retro, and editorial.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/arched_micro_bangs.png"
+        },
+        {
+          "key": "flipped_out_bangs",
+          "prompt": "hair style: bangs styled outward with a flipped finish at the ends, creating playful movement. The retro-inspired effect adds fun and lightness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/flipped_out_bangs.png"
+        },
+        {
+          "key": "disconnected_bangs",
+          "prompt": "hair style: bangs cut separately from the rest of the hair with no blending, producing a sharp disconnection. The bold contrast gives a striking, avant-garde look.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/disconnected_bangs.png"
+        },
+        {
+          "key": "rounded_thick_bangs",
+          "prompt": "hair style: thick bangs cut in a rounded arc, curving softly along the brow line. The density and shape emphasize the eyes with strong framing.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/rounded_thick_bangs.png"
+        }
+      ]
+    },
+    {
+      "category_key": "long_hair_styles",
+      "title": "Long Hair Styles",
+      "styles": [
+        {
+          "key": "classic_straight_long",
+          "prompt": "hair style: extra-long hair styled pin-straight, falling smoothly past the waist with glossy, polished texture. The sleek finish emphasizes length and precision with minimal layering.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/classic_straight_long.png"
+        },
+        {
+          "key": "layered_long_cut",
+          "prompt": "hair style: long hair cut with multiple layers to add body and movement. The staggered lengths create dynamic flow and prevent heaviness while keeping the length intact.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/layered_long_cut.png"
+        },
+        {
+          "key": "bohemian_long_waves",
+          "prompt": "hair style: long, tousled waves with a relaxed, bohemian feel. The airy movement and undone texture create a carefree, festival-ready aesthetic.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/bohemian_long_waves.png"
+        },
+        {
+          "key": "mermaid_hair",
+          "prompt": "hair style: extremely long, flowing waves cascading past the waist. The uniform, glossy S-shape waves give a magical, ocean-inspired silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/mermaid_hair.png"
+        },
+        {
+          "key": "straight_with_center_part",
+          "prompt": "hair style: long, straight hair styled with a precise center part. The symmetry emphasizes facial balance while the smooth length enhances refinement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/straight_with_center_part.png"
+        },
+        {
+          "key": "long_curly",
+          "prompt": "hair style: full-length hair styled with springy curls from root to tip. The curls add volume and body, creating a lively, textured silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/long_curly.png"
+        },
+        {
+          "key": "hollywood_glam_long",
+          "prompt": "hair style: long, structured waves styled with a polished, glossy finish reminiscent of Hollywood red carpet glamour. The cascading waves emphasize luxury and drama.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/hollywood_glam_long.png"
+        },
+        {
+          "key": "layered_with_face_framing",
+          "prompt": "hair style: long layered cut with shorter strands framing the face, blending seamlessly into the length. The layers highlight facial features while keeping the length flowing.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/layered_with_face_framing.png"
+        },
+        {
+          "key": "voluminous_blowout",
+          "prompt": "hair style: long hair styled with a voluminous blowout, full of body and bounce. The lifted roots and smooth finish create a glamorous, salon-ready effect.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/voluminous_blowout.png"
+        },
+        {
+          "key": "sleek_high_shine",
+          "prompt": "hair style: long hair styled ultra-sleek with a high-shine finish. The mirror-like smoothness creates a refined, minimalist look perfect for editorials.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/sleek_high_shine.png"
+        },
+        {
+          "key": "straight_with_side_part",
+          "prompt": "hair style: long straight hair styled with a deep side part, adding asymmetry and drama while maintaining glossy smoothness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/straight_with_side_part.png"
+        },
+        {
+          "key": "beachy_long_waves",
+          "prompt": "hair style: long beach waves styled loosely with textured, sun-kissed finish. The undone surface creates a relaxed, summery vibe.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/beachy_long_waves.png"
+        },
+        {
+          "key": "long_hair_with_bangs",
+          "prompt": "hair style: long hair paired with straight-across bangs covering the forehead. The length contrasts with the sharp fringe, giving a bold, modern effect.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/long_hair_with_bangs.png"
+        },
+        {
+          "key": "layered_cascading_waves",
+          "prompt": "hair style: long layers styled into cascading waves, falling in tiers down the back. The flowing texture creates elegance and dimension.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/layered_cascading_waves.png"
+        },
+        {
+          "key": "boho_braids",
+          "prompt": "hair style: long hair styled with small, scattered braids woven through loose strands. The bohemian finish adds playful, festival-inspired character.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/boho_braids.png"
+        },
+        {
+          "key": "extra_long_straight",
+          "prompt": "hair style: extremely long, straight hair reaching past the hips. The smooth, even texture emphasizes dramatic length and minimalism.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/extra_long_straight.png"
+        },
+        {
+          "key": "romantic_loose_curls",
+          "prompt": "hair style: long hair styled into wide, loose curls falling softly over the shoulders. The romantic flow enhances femininity and softness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/romantic_loose_curls.png"
+        },
+        {
+          "key": "textured_long_layers",
+          "prompt": "hair style: long layered cut with razored ends for added texture. The lightweight finish creates movement and avoids heaviness while keeping the silhouette soft.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/textured_long_layers.png"
+        },
+        {
+          "key": "long_shag",
+          "prompt": "hair style: a long shag cut with uneven, feathered layers. The texture creates volume and rock-inspired character with a modern edge.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/long_shag.png"
+        },
+        {
+          "key": "half_up_half_down",
+          "prompt": "hair style: long hair styled half up and half down, with the top section pinned or tied back. The look balances structure with flowing softness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/half_up_half_down.png"
+        },
+        {
+          "key": "long_straight_with_blowout",
+          "prompt": "hair style: long straight hair styled with a voluminous blowout, combining sleekness with airy lift. The roots are elevated while the ends remain polished.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/long_straight_with_blowout.png"
+        },
+        {
+          "key": "braided_long",
+          "prompt": "hair style: long hair styled into a single braid running down the back. The woven length emphasizes simplicity with decorative structure.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/braided_long.png"
+        },
+        {
+          "key": "sleek_low_long",
+          "prompt": "hair style: long hair styled straight and tied into a low, sleek ponytail. The glossy finish keeps it refined and controlled.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/sleek_low_long.png"
+        },
+        {
+          "key": "layered_with_soft_waves",
+          "prompt": "hair style: long layered cut styled into soft waves, blending movement with structure. The waves create gentle body and relaxed elegance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/layered_with_soft_waves.png"
+        },
+        {
+          "key": "long_curly_blowout",
+          "prompt": "hair style: long curls styled into a voluminous blowout, polished yet bouncy. The lifted roots and defined ends emphasize fullness and glamour.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/long_curly_blowout.png"
+        },
+        {
+          "key": "straight_with_tapered_layers",
+          "prompt": "hair style: long straight hair cut with tapered layers toward the ends. The layers reduce weight and add light movement while preserving sleekness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/straight_with_tapered_layers.png"
+        },
+        {
+          "key": "boho_loose_waves",
+          "prompt": "hair style: long hair styled into tousled, loose waves with a natural, bohemian vibe. The undone finish enhances casual charm and flow.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/boho_loose_waves.png"
+        },
+        {
+          "key": "extra_long_wavy",
+          "prompt": "hair style: very long hair styled with wide, uniform waves. The extended length and flowing movement create dramatic, ethereal presence.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/extra_long_wavy.png"
+        },
+        {
+          "key": "straight_with_feathered_layers",
+          "prompt": "hair style: long straight hair cut with feathered layers around the face, styled to flip slightly outward. The feathering creates softness and movement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/straight_with_feathered_layers.png"
+        },
+        {
+          "key": "romantic_half_up",
+          "prompt": "hair style: long hair styled half up with soft curls falling from the crown. The pinned section adds structure while the curls maintain romance and flow.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/romantic_half_up.png"
+        }
+      ]
+    },
+    {
+      "category_key": "retro_vintage_styles",
+      "title": "Retro / Vintage Styles",
+      "styles": [
+        {
+          "key": "1920s_finger_waves",
+          "prompt": "hair style: 1920s finger waves styled flat against the scalp, forming uniform, glossy S-shaped ridges. The sculpted texture creates a sleek, glamorous silhouette typical of the Jazz Age.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/1920s_finger_waves.png"
+        },
+        {
+          "key": "1930s_soft_curls",
+          "prompt": "hair style: 1930s-inspired soft curls styled close to the head, polished and smooth. The curls frame the face gently, producing a refined, vintage Hollywood look.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/1930s_soft_curls.png"
+        },
+        {
+          "key": "1940s_victory_rolls",
+          "prompt": "hair style: 1940s victory rolls with large, rolled sections of hair positioned on top of the head. The bold rolls add volume and structure, giving a patriotic, pin-up aesthetic.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/1940s_victory_rolls.png"
+        },
+        {
+          "key": "1950s_poodle_cut",
+          "prompt": "hair style: 1950s poodle cut styled with short, tight curls clustered around the head. The rounded, fluffy texture creates a playful and youthful silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/1950s_poodle_cut.png"
+        },
+        {
+          "key": "1960s_beehive",
+          "prompt": "hair style: 1960s beehive styled with extreme height at the crown, tightly backcombed and sculpted into a tall, rounded shape. The bold volume makes a dramatic statement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/1960s_beehive.png"
+        },
+        {
+          "key": "1960s_mod_bob",
+          "prompt": "hair style: 1960s mod bob cut blunt at the jawline with a sharp outline, styled ultra-straight with a glossy finish. The look is minimalist, geometric, and fashion-forward.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/1960s_mod_bob.png"
+        },
+        {
+          "key": "1970s_feathered_hair",
+          "prompt": "hair style: 1970s feathered hair styled with layers flipped outward from the face, creating soft, airy movement. The look is voluminous and free-spirited with retro charm.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/1970s_feathered_hair.png"
+        },
+        {
+          "key": "1970s_long_boho_waves",
+          "prompt": "hair style: 1970s-inspired long bohemian waves, loose and tousled with natural flow. The relaxed, carefree movement reflects the hippie aesthetic.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/1970s_long_boho_waves.png"
+        },
+        {
+          "key": "1980s_big_curls",
+          "prompt": "hair style: 1980s big curls styled with heavy volume and dramatic bounce. The curls are bold and untamed, creating a powerful, statement-making silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/1980s_big_curls.png"
+        },
+        {
+          "key": "1980s_crimped_hair",
+          "prompt": "hair style: 1980s crimped hair styled with zigzag waves running through the entire length. The structured texture gives a rebellious, eccentric vibe.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/1980s_crimped_hair.png"
+        },
+        {
+          "key": "1990s_straight_with_flipped_ends",
+          "prompt": "hair style: 1990s-inspired straight hair with ends flipped outward. The glossy, flat-ironed length contrasts with playful outward curves at the tips.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/1990s_straight_with_flipped_ends.png"
+        },
+        {
+          "key": "1990s_high_pony_with_scrunchie",
+          "prompt": "hair style: 1990s high ponytail secured with a scrunchie, styled with straight or slightly wavy length. The scrunchie adds playful, nostalgic character.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/1990s_high_pony_with_scrunchie.png"
+        },
+        {
+          "key": "retro_pin_curls",
+          "prompt": "hair style: pin curls styled in tight, glossy spirals pinned flat to the head. The polished coils create a vintage Hollywood effect full of structure and glamour.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/retro_pin_curls.png"
+        },
+        {
+          "key": "retro_gibson_girl_updo",
+          "prompt": "hair style: Gibson Girl updo with voluminous hair piled high at the crown, styled in loose waves and pinned neatly. The silhouette is romantic and Edwardian-inspired.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/retro_gibson_girl_updo.png"
+        },
+        {
+          "key": "retro_marcel_waves",
+          "prompt": "hair style: marcel waves styled with deep, glossy ridges running through the length. The sculpted texture creates a dramatic, glamorous finish.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/retro_marcel_waves.png"
+        },
+        {
+          "key": "retro_pageboy",
+          "prompt": "hair style: retro pageboy cut styled with a rounded shape, smooth surface, and curled-under ends. The cut frames the jawline with vintage precision.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/retro_pageboy.png"
+        },
+        {
+          "key": "retro_shag",
+          "prompt": "hair style: retro shag haircut styled with choppy layers and messy texture. The uneven surface gives rebellious, rock-inspired attitude from the 70s and 80s.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/retro_shag.png"
+        },
+        {
+          "key": "retro_bouffant",
+          "prompt": "hair style: bouffant hairstyle with teased roots at the crown for extreme height and volume. The sleek sides emphasize the dramatic lifted silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/retro_bouffant.png"
+        },
+        {
+          "key": "retro_pompadour",
+          "prompt": "hair style: pompadour styled with hair swept upward and backward, creating exaggerated height at the front. The bold shape is glossy, polished, and theatrical.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/retro_pompadour.png"
+        },
+        {
+          "key": "retro_vintage_updo",
+          "prompt": "hair style: a vintage-inspired updo with rolled curls and pinned sections, styled neatly at the back of the head. The ornate detail emphasizes refinement and timeless beauty.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/retro_vintage_updo.png"
+        },
+        {
+          "key": "retro_rockabilly_roll",
+          "prompt": "hair style: rockabilly victory roll styled at the front, coiled high and dramatic. The rest of the hair may be slicked back or left down, emphasizing bold retro flair.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/retro_rockabilly_roll.png"
+        },
+        {
+          "key": "retro_half_up_beehive",
+          "prompt": "hair style: half-up style with a mini beehive at the crown, teased for volume and pinned neatly, while the rest flows freely. The balance creates playful 60s charm.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/retro_half_up_beehive.png"
+        },
+        {
+          "key": "retro_flapper_bob",
+          "prompt": "hair style: 1920s flapper bob styled short and blunt with finger waves. The glossy finish creates a sharp, youthful silhouette full of vintage spirit.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/retro_flapper_bob.png"
+        },
+        {
+          "key": "retro_vintage_braid_crown",
+          "prompt": "hair style: a braided crown styled with vintage intricacy, encircling the head while the rest is pinned up. The ornamental look is romantic and period-inspired.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/retro_vintage_braid_crown.png"
+        },
+        {
+          "key": "retro_vintage_low_bun",
+          "prompt": "hair style: a low bun styled sleekly with vintage pins or combs for decoration. The polished finish emphasizes historical elegance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/retro_vintage_low_bun.png"
+        },
+        {
+          "key": "retro_high_curly_updo",
+          "prompt": "hair style: curls piled high into an elaborate updo, polished and pinned with decorative detail. The voluminous silhouette is bold and theatrical.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/retro_high_curly_updo.png"
+        },
+        {
+          "key": "retro_side_rolls",
+          "prompt": "hair style: side rolls created by rolling large sections of hair backward from the temples and pinning them neatly. The sculpted rolls give dramatic retro volume.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/retro_side_rolls.png"
+        },
+        {
+          "key": "retro_teased_volume",
+          "prompt": "hair style: retro hair styled with heavy teasing for exaggerated volume, creating a bold, fluffy silhouette. The style emphasizes drama and rebellious character.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/retro_teased_volume.png"
+        },
+        {
+          "key": "retro_low_chignon",
+          "prompt": "hair style: a vintage low chignon styled at the nape, sleekly polished and secured with pins. The timeless finish creates refined, understated elegance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/retro_low_chignon.png"
+        },
+        {
+          "key": "retro_faux_bob",
+          "prompt": "hair style: long hair pinned under to mimic the look of a short bob, polished neatly to create a 1920s-inspired illusion. The result is chic and playful.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/retro_faux_bob.png"
+        }
+      ]
+    },
+    {
+      "category_key": "layered_styles",
+      "title": "Layered Styles",
+      "styles": [
+        {
+          "key": "long_layered_cut",
+          "prompt": "hair style: long layered cut with staggered lengths cascading down the back. The layers reduce heaviness while creating soft, flowing movement throughout the length.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/long_layered_cut.png"
+        },
+        {
+          "key": "short_layered_bob",
+          "prompt": "hair style: a bob cut styled with short, stacked layers at the back and longer pieces in the front. The layering creates volume and dimension for a modern edge.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/short_layered_bob.png"
+        },
+        {
+          "key": "medium_feathered_layers",
+          "prompt": "hair style: medium-length cut styled with feathered layers, producing airy softness and outward flicks. The lightweight structure enhances bounce and grace.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_feathered_layers.png"
+        },
+        {
+          "key": "face_framing_layers",
+          "prompt": "hair style: long hair with shorter layers cut around the face, softening features and adding framing. The blending creates a flattering, feminine shape.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/face_framing_layers.png"
+        },
+        {
+          "key": "shaggy_layers",
+          "prompt": "hair style: a shag haircut with uneven, choppy layers and tousled texture. The irregular silhouette gives rock-inspired energy and modern boldness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/shaggy_layers.png"
+        },
+        {
+          "key": "layered_pixie_cut",
+          "prompt": "hair style: a pixie cut styled with layered strands at the crown for added lift and shape. The layered texture balances shortness with movement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/layered_pixie_cut.png"
+        },
+        {
+          "key": "v_cut_layers",
+          "prompt": "hair style: long hair shaped into V-cut layers, where the ends form a pointed angle at the back. The layers create dimension and elongate the silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/v_cut_layers.png"
+        },
+        {
+          "key": "u_cut_layers",
+          "prompt": "hair style: long layers styled into a U-shaped cut with rounded ends. The layering softens the length and enhances natural movement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/u_cut_layers.png"
+        },
+        {
+          "key": "razored_layers",
+          "prompt": "hair style: layered cut finished with razored ends for sharper texture. The layers appear edgy and dynamic, giving a lightweight, modern finish.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/razored_layers.png"
+        },
+        {
+          "key": "step_cut_layers",
+          "prompt": "hair style: step cut with distinct layers placed at intervals, producing a tiered effect. The structured graduation creates strong visual rhythm.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/step_cut_layers.png"
+        },
+        {
+          "key": "butterfly_layers",
+          "prompt": "hair style: butterfly haircut with short face-framing layers blending into longer cascading layers. The dual structure creates bounce, lift, and softness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/butterfly_layers.png"
+        },
+        {
+          "key": "wolf_cut_layers",
+          "prompt": "hair style: wolf cut styled with heavily textured layers and shaggy, undone edges. The layers create rebellious, high-volume energy with casual flair.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/wolf_cut_layers.png"
+        },
+        {
+          "key": "layered_curly_cut",
+          "prompt": "hair style: curly hair styled with layered shaping to control density and add bounce. The layers distribute volume evenly, enhancing curl definition.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/layered_curly_cut.png"
+        },
+        {
+          "key": "layered_wavy_cut",
+          "prompt": "hair style: wavy hair styled with layers that emphasize natural flow. The layered structure adds dimension and highlights the movement of the waves.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/layered_wavy_cut.png"
+        },
+        {
+          "key": "medium_layered_lob",
+          "prompt": "hair style: a long bob cut enhanced with layers for added volume and softness. The structured yet relaxed finish gives modern versatility.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/medium_layered_lob.png"
+        },
+        {
+          "key": "layered_side_part",
+          "prompt": "hair style: layered cut styled with a deep side part, creating asymmetry and flow. The layers emphasize movement and highlight facial structure.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/layered_side_part.png"
+        },
+        {
+          "key": "layered_center_part",
+          "prompt": "hair style: layers styled evenly with a center part, producing symmetrical flow on both sides. The look is balanced and naturally soft.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/layered_center_part.png"
+        },
+        {
+          "key": "layered_with_bangs",
+          "prompt": "hair style: layered cut paired with straight bangs across the forehead. The contrast of sharp fringe and flowing layers creates modern drama.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/layered_with_bangs.png"
+        },
+        {
+          "key": "soft_layered_cut",
+          "prompt": "hair style: long, soft layers blended seamlessly for gentle flow and natural bounce. The understated structure emphasizes femininity and grace.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/soft_layered_cut.png"
+        },
+        {
+          "key": "heavy_layered_cut",
+          "prompt": "hair style: a layered cut with strong, visible graduations. The bold step-like layers create dramatic volume and sharp definition.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/heavy_layered_cut.png"
+        },
+        {
+          "key": "choppy_layered_cut",
+          "prompt": "hair style: layered cut with uneven, choppy ends for edgy texture. The irregular finish adds casual, street-style appeal.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/choppy_layered_cut.png"
+        },
+        {
+          "key": "multi_layered_cut",
+          "prompt": "hair style: a multi-layered cut with numerous lengths blending together for full volume. The layering builds dynamic structure and depth.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/multi_layered_cut.png"
+        },
+        {
+          "key": "graduated_layers",
+          "prompt": "hair style: graduated layers cut shorter at the crown and gradually longer toward the ends. The structure provides height and balance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/graduated_layers.png"
+        },
+        {
+          "key": "layered_bob_with_bangs",
+          "prompt": "hair style: a bob haircut enhanced with layers and paired with bangs. The structure creates volume and modern contrast in a short silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/layered_bob_with_bangs.png"
+        },
+        {
+          "key": "long_feathered_layers",
+          "prompt": "hair style: long feathered layers styled outward for retro-inspired softness. The layers create airy, light volume with graceful movement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/long_feathered_layers.png"
+        },
+        {
+          "key": "disconnected_layers",
+          "prompt": "hair style: a layered cut where some layers are disconnected for sharp contrast. The uneven lengths create bold, avant-garde energy.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/disconnected_layers.png"
+        },
+        {
+          "key": "short_layered_pixie",
+          "prompt": "hair style: a pixie cut styled with micro layers throughout, giving lift at the crown and light texture across the head. The result is edgy yet delicate.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/short_layered_pixie.png"
+        },
+        {
+          "key": "angled_layered_cut",
+          "prompt": "hair style: angled cut with forward-facing layers that elongate the face. The sharp graduation blends with soft texture for balanced modernity.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/angled_layered_cut.png"
+        },
+        {
+          "key": "boho_layered_cut",
+          "prompt": "hair style: bohemian-inspired layered cut styled loosely with texture and movement. The airy layers give a carefree, relaxed aesthetic.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/boho_layered_cut.png"
+        },
+        {
+          "key": "extra_long_layers",
+          "prompt": "hair style: very long layers cascading with multiple graduations. The layered shape prevents heaviness, creating flowing elegance with softness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/extra_long_layers.png"
+        }
+      ]
+    },
+    {
+      "category_key": "special_occasion_styles",
+      "title": "Special Occasion Styles",
+      "styles": [
+        {
+          "key": "bridal_updo",
+          "prompt": "hair style: a bridal updo styled with soft curls pinned intricately at the back, decorated with subtle accessories. The look is elegant, timeless, and perfect for weddings.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/bridal_updo.png"
+        },
+        {
+          "key": "romantic_half_up",
+          "prompt": "hair style: a romantic half-up style with soft waves cascading down, while the top section is pinned delicately with volume. The balance is graceful and feminine.",
+          "image_url": ""
+        },
+        {
+          "key": "chignon_with_accessories",
+          "prompt": "hair style: a low chignon polished neatly at the nape, enhanced with jeweled pins or floral details. The style is refined and luxurious, ideal for formal occasions.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/chignon_with_accessories.png"
+        },
+        {
+          "key": "glamorous_curls",
+          "prompt": "hair style: long, voluminous curls styled in glossy spirals with strong definition. The glamorous texture creates drama and red-carpet sophistication.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/glamorous_curls.png"
+        },
+        {
+          "key": "hollywood_waves",
+          "prompt": "hair style: structured, glossy waves cascading in uniform S-shapes, reminiscent of Hollywood icons. The elegant rhythm emphasizes shine and luxury.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/hollywood_waves.png"
+        },
+        {
+          "key": "sleek_high_bun",
+          "prompt": "hair style: a high bun styled tightly and polished with sleek shine. The elevated silhouette adds drama and poise, perfect for black-tie events.",
+          "image_url": ""
+        },
+        {
+          "key": "braided_updo",
+          "prompt": "hair style: an intricate updo incorporating braids woven into the bun. The braided texture adds detail and ornamentation to the refined structure.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/braided_updo.png"
+        },
+        {
+          "key": "low_twisted_bun",
+          "prompt": "hair style: a low bun styled with twisted sections wrapped and pinned at the nape. The overlapping twists add subtle dimension and elegance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/low_twisted_bun.png"
+        },
+        {
+          "key": "elegant_side_swept",
+          "prompt": "hair style: long hair styled into smooth waves swept dramatically to one side. The asymmetry creates a sophisticated, glamorous red-carpet finish.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/elegant_side_swept.png"
+        },
+        {
+          "key": "decorated_braided_crown",
+          "prompt": "hair style: a braided crown encircling the head, adorned with pearls or floral details. The style is ornate, regal, and ideal for ceremonies.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/decorated_braided_crown.png"
+        },
+        {
+          "key": "twisted_chignon",
+          "prompt": "hair style: a chignon styled with twisted sections wrapped into a compact knot. The structure is classic, minimal, and full of refinement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/twisted_chignon.png"
+        },
+        {
+          "key": "high_voluminous_ponytail",
+          "prompt": "hair style: a high ponytail styled with teased volume and glossy finish. The dramatic height and polished length create a glamorous silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/high_voluminous_ponytail.png"
+        },
+        {
+          "key": "messy_romantic_updo",
+          "prompt": "hair style: an updo styled loosely with curls pinned softly and tendrils escaping around the face. The undone texture creates romance and charm.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/messy_romantic_updo.png"
+        },
+        {
+          "key": "braided_low_chignon",
+          "prompt": "hair style: a low chignon styled with a braid incorporated into the base. The braid adds decorative texture to the sleek, timeless bun.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/braided_low_chignon.png"
+        },
+        {
+          "key": "voluminous_blowout",
+          "prompt": "hair style: long hair styled into a voluminous blowout with lift at the roots and smooth, bouncy waves. The glamorous finish is perfect for evening events.",
+          "image_url": ""
+        },
+        {
+          "key": "side_bun_with_curls",
+          "prompt": "hair style: a side-positioned bun styled with curled sections pinned intricately. The asymmetry and curls add softness and elegance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/side_bun_with_curls.png"
+        },
+        {
+          "key": "half_up_braided_style",
+          "prompt": "hair style: a half-up style where the top section is braided and pinned, while the rest flows loose in waves. The combination creates decorative balance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/half_up_braided_style.png"
+        },
+        {
+          "key": "gibson_tuck_formal",
+          "prompt": "hair style: a Gibson tuck styled with polished precision at the nape, enhanced with subtle shine. The romantic silhouette is ideal for formal occasions.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/gibson_tuck_formal.png"
+        },
+        {
+          "key": "side_swept_curls",
+          "prompt": "hair style: long curls swept to one side and pinned discreetly, producing dramatic asymmetry. The flowing curls create glamour and poise.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/side_swept_curls.png"
+        },
+        {
+          "key": "intricate_braided_updo",
+          "prompt": "hair style: an elaborate updo featuring multiple braids pinned into an ornate bun. The decorative complexity makes it perfect for special events.",
+          "image_url": ""
+        },
+        {
+          "key": "low_chignon_with_accessories",
+          "prompt": "hair style: a sleek low chignon decorated with jeweled hairpieces or combs. The polished finish and subtle sparkle enhance sophistication.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/low_chignon_with_accessories.png"
+        },
+        {
+          "key": "retro_vintage_updo",
+          "prompt": "hair style: a vintage-inspired updo styled with structured curls and polished rolls. The retro silhouette is elegant and timeless.",
+          "image_url": ""
+        },
+        {
+          "key": "boho_wedding_style",
+          "prompt": "hair style: a bohemian-inspired special occasion style with braids, loose waves, and floral accessories. The casual elegance blends romance with individuality.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/boho_wedding_style.png"
+        },
+        {
+          "key": "twisted_half_up",
+          "prompt": "hair style: a half-up style where two sections are twisted and pinned at the back, while the rest flows freely. The twist adds detail to the romantic silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/twisted_half_up.png"
+        },
+        {
+          "key": "curly_high_bun",
+          "prompt": "hair style: a high bun styled with voluminous curls pinned at the crown. The texture adds drama and boldness, perfect for a statement look.",
+          "image_url": ""
+        },
+        {
+          "key": "braided_side_updo",
+          "prompt": "hair style: an updo styled with braids wrapping diagonally to one side, pinned neatly with elegant structure. The asymmetry adds glamour.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/braided_side_updo.png"
+        },
+        {
+          "key": "floral_half_up",
+          "prompt": "hair style: a half-up style decorated with fresh or artificial flowers woven into the pinned section. The floral accents create softness and beauty.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/floral_half_up.png"
+        },
+        {
+          "key": "sleek_straight_formal",
+          "prompt": "hair style: long, pin-straight hair styled with sleek shine and a sharp center part. The minimalism and gloss make it modern yet formal.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/sleek_straight_formal.png"
+        },
+        {
+          "key": "twisted_side_chignon",
+          "prompt": "hair style: a side chignon created with twisted sections pinned at the jawline. The asymmetry adds drama while remaining elegant.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/twisted_side_chignon.png"
+        },
+        {
+          "key": "bridal_braided_crown",
+          "prompt": "hair style: a bridal crown braid paired with soft waves cascading below. The combination of woven structure and free movement creates a dreamy aesthetic.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/bridal_braided_crown.png"
+        },
+        {
+          "key": "luxury_red_carpet_waves",
+          "prompt": "hair style: glamorous long waves styled with precision and high gloss, cascading with uniform rhythm. The luxurious finish is perfect for red carpet appearances.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/luxury_red_carpet_waves.png"
+        }
+      ]
+    },
+    {
+      "category_key": "bob_variations",
+      "title": "Bob Variations",
+      "styles": [
+        {
+          "key": "classic_bob",
+          "prompt": "hair style: a classic bob cut bluntly at chin length, polished smooth with sharp edges. The clean outline emphasizes the jawline and creates timeless sophistication.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/classic_bob.png"
+        },
+        {
+          "key": "inverted_bob",
+          "prompt": "hair style: an inverted bob with stacked layers at the back and longer front sections framing the face. The angled silhouette adds bold structure and modern flair.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/inverted_bob.png"
+        },
+        {
+          "key": "asymmetrical_bob",
+          "prompt": "hair style: an asymmetrical bob where one side is cut longer than the other, styled sleek for contrast. The imbalance creates edgy, fashion-forward drama.",
+          "image_url": ""
+        },
+        {
+          "key": "textured_bob",
+          "prompt": "hair style: a textured bob with choppy, razored ends and tousled styling. The uneven finish adds casual movement and youthful energy.",
+          "image_url": ""
+        },
+        {
+          "key": "layered_bob",
+          "prompt": "hair style: a bob enhanced with layered cutting to add volume and softness. The layers break up the blunt outline, giving flow and versatility.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/layered_bob.png"
+        },
+        {
+          "key": "lob_long_bob",
+          "prompt": "hair style: a long bob (lob) cut at collarbone length, styled smooth or wavy. The length balances modern versatility with classic bob precision.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/lob_long_bob.png"
+        },
+        {
+          "key": "french_bob",
+          "prompt": "hair style: a chic French bob cut blunt at chin length with a center part, styled smooth with subtle inward curve at the ends. The polished finish exudes Parisian elegance.",
+          "image_url": ""
+        },
+        {
+          "key": "italian_bob",
+          "prompt": "hair style: an Italian bob styled with fullness and slight outward curve at the ends, reaching just above the shoulders. The volume and body give glamorous sophistication.",
+          "image_url": ""
+        },
+        {
+          "key": "blunt_bob",
+          "prompt": "hair style: a blunt bob with no layering, cut straight across at jaw or chin. The geometric sharpness emphasizes precision and minimalism.",
+          "image_url": ""
+        },
+        {
+          "key": "graduated_bob",
+          "prompt": "hair style: a graduated bob with shorter layers stacked at the back and longer sections toward the front. The rounded crown adds lift and dimension.",
+          "image_url": ""
+        },
+        {
+          "key": "angled_bob",
+          "prompt": "hair style: an angled bob cut diagonally shorter at the nape and longer at the chin. The silhouette is sharp and striking, emphasizing bold contrast.",
+          "image_url": ""
+        },
+        {
+          "key": "curly_bob",
+          "prompt": "hair style: a bob styled with natural curls, creating volume and bounce at chin or jaw length. The textured curls soften the outline with playful energy.",
+          "image_url": ""
+        },
+        {
+          "key": "wavy_bob",
+          "prompt": "hair style: a bob styled with soft waves, giving a casual, relaxed flow. The texture adds body and makes the bob more versatile and youthful.",
+          "image_url": ""
+        },
+        {
+          "key": "shaggy_bob",
+          "prompt": "hair style: a shag-inspired bob cut with uneven, feathered layers. The messy texture adds casual coolness and retro-inspired charm.",
+          "image_url": ""
+        },
+        {
+          "key": "pageboy_bob",
+          "prompt": "hair style: a pageboy bob with rounded edges and smooth surface, falling just below the ears. The polished finish has vintage, structured elegance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/pageboy_bob.png"
+        },
+        {
+          "key": "stacked_bob",
+          "prompt": "hair style: a stacked bob with sharply graduated layers at the back, creating fullness and a rounded crown. The precise cut emphasizes bold geometry.",
+          "image_url": ""
+        },
+        {
+          "key": "bob_with_bangs",
+          "prompt": "hair style: a classic bob paired with blunt bangs across the forehead. The straight fringe adds sharp framing to the polished bob silhouette.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/bob_with_bangs.png"
+        },
+        {
+          "key": "bob_with_side_swept_bangs",
+          "prompt": "hair style: a bob combined with side-swept bangs falling diagonally across the forehead. The asymmetry adds softness and movement.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/bob_with_side_swept_bangs.png"
+        },
+        {
+          "key": "a_line_bob",
+          "prompt": "hair style: an A-line bob longer in the front and shorter at the back, styled sleek for precision. The angled outline emphasizes structure and boldness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/a_line_bob.png"
+        },
+        {
+          "key": "bob_with_undercut",
+          "prompt": "hair style: a bob combined with an undercut at the nape or sides, hidden beneath longer top layers. The contrast of sleek bob and edgy undercut creates bold character.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/bob_with_undercut.png"
+        },
+        {
+          "key": "bob_with_texture",
+          "prompt": "hair style: a bob styled with razored ends and tousled waves for added texture. The irregular surface adds volume and casual elegance.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/bob_with_texture.png"
+        },
+        {
+          "key": "chin_length_bob",
+          "prompt": "hair style: a bob cut at chin length with a polished surface. The style emphasizes facial structure with classic proportions.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/chin_length_bob.png"
+        },
+        {
+          "key": "jaw_length_bob",
+          "prompt": "hair style: a bob ending precisely at jawline, highlighting the bone structure with sharp lines. The sleek outline creates bold emphasis.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/jaw_length_bob.png"
+        },
+        {
+          "key": "shoulder_length_bob",
+          "prompt": "hair style: a bob extended to shoulder length, styled smooth or wavy. The longer version adds versatility while keeping bob precision.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/shoulder_length_bob.png"
+        },
+        {
+          "key": "choppy_bob",
+          "prompt": "hair style: a bob cut with uneven, choppy layers and razored ends. The texture adds casual roughness and urban edge.",
+          "image_url": ""
+        },
+        {
+          "key": "pixie_bob",
+          "prompt": "hair style: a pixie-inspired bob with short back and sides blending into longer crown layers. The hybrid silhouette is edgy yet feminine.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/pixie_bob.png"
+        },
+        {
+          "key": "long_bob_with_waves",
+          "prompt": "hair style: a lob styled with soft, cascading waves that fall just below the shoulders. The flowing texture adds glamour and softness.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/long_bob_with_waves.png"
+        },
+        {
+          "key": "bob_with_inward_curl",
+          "prompt": "hair style: a bob styled with ends curled inward toward the jawline. The inward curve softens the outline while keeping the structure sharp.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/bob_with_inward_curl.png"
+        },
+        {
+          "key": "bob_with_flipped_ends",
+          "prompt": "hair style: a bob styled with ends flipped outward, creating playful movement. The retro-inspired finish adds character and fun.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/bob_with_flipped_ends.png"
+        },
+        {
+          "key": "layered_long_bob",
+          "prompt": "hair style: a long bob enhanced with soft, blended layers for extra movement and lightness. The layering makes the cut versatile and dynamic.",
+          "image_url": "https://egpfenrpripkjpemjxtg.supabase.co/storage/v1/object/public/hair_styles/woman/layered_long_bob.png"
+        }
+      ]
+    }
+  ]
+}
