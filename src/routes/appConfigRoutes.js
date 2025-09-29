@@ -46,13 +46,15 @@ const normaliseStoreUrl = (baseUrl, lang) => {
 
     if (segments.length >= 2) {
       segments[1] = safeLang;
-      url.pathname = `/${segments.join("/" )}`;
+      url.pathname = `/${segments.join("/")}`;
       return url.toString();
     }
 
     return baseUrl;
   } catch (error) {
-    const match = baseUrl.match(/^(https?:\/\/[^\/]+\/(?:apps\.apple\.com\/)[a-z]{2})(\/.*)$/i);
+    const match = baseUrl.match(
+      /^(https?:\/\/[^\/]+\/(?:apps\.apple\.com\/)[a-z]{2})(\/.*)$/i
+    );
     if (match) {
       const [, prefix, rest] = match;
       return `${prefix.replace(/\/[a-z]{2}$/i, `/${safeLang}`)}${rest}`;
@@ -95,7 +97,7 @@ router.get("/app-config/version", async (req, res) => {
       minVersion: data.min_version || null,
       latestVersion: data.latest_version || null,
       forceUpdate: data.force_update === true,
-      updateUrl: normaliseStoreUrl(data.update_url, lang),
+      updateUrl: "https://apps.apple.com/app/id6738030797",
       changelogUrl: data.changelog_url || null,
       message: resolveMessage(data, lang),
       metadata: data.metadata || null,

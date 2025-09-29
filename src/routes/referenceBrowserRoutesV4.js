@@ -3804,10 +3804,18 @@ router.post("/generate", async (req, res) => {
     console.log("✏️ [BACKEND] isEditMode:", isEditMode);
     console.log("✏️ [BACKEND] editPrompt:", editPrompt);
     console.log("🔧 [BACKEND] isRefinerMode:", isRefinerMode);
+    const incomingReferenceCount = referenceImages?.length || 0;
+    const totalReferenceCount =
+      incomingReferenceCount + (modelReferenceImage ? 1 : 0);
+
     console.log(
       "📤 [BACKEND] Gelen referenceImages:",
-      referenceImages?.length || 0,
+      incomingReferenceCount,
       "adet"
+    );
+    console.log(
+      "📤 [BACKEND] Toplam referans (model dahil):",
+      totalReferenceCount
     );
 
     // EditScreen modunda promptText boş olabilir (editPrompt kullanılacak)
@@ -3825,12 +3833,7 @@ router.post("/generate", async (req, res) => {
     );
     console.log("🔍 [VALIDATION] hasValidPrompt:", hasValidPrompt);
 
-    if (
-      !hasValidPrompt ||
-      !referenceImages ||
-      !Array.isArray(referenceImages) ||
-      referenceImages.length < 1
-    ) {
+    if (!hasValidPrompt || totalReferenceCount < 1) {
       return res.status(400).json({
         success: false,
         result: {
