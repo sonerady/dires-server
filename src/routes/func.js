@@ -1,4 +1,4 @@
-2.0-flashasync function enhancePromptWithGemini(
+async function enhancePromptWithGemini(
   originalPrompt,
   imageUrl,
   settings = {},
