@@ -1,4 +1,4 @@
-const express = require("express");
+2.0-flashconst express = require("express");
 const router = express.Router();
 // Updated Gemini API with latest gemini-2.0-flash model
 // Using @google/generative-ai with new safety settings configuration
