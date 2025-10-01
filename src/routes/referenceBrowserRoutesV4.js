@@ -845,7 +845,7 @@ async function enhancePromptWithGemini(
     console.log("🔄 [GEMINI] Back side analysis mode:", isBackSideAnalysis);
 
     // Gemini 2.0 Flash modeli - Yeni SDK
-    const model = "gemini-2.5-flash";
+    const model = "gemini-2.5-flash-lite";
 
     // Settings'in var olup olmadığını kontrol et
     const hasValidSettings =
@@ -5490,7 +5490,7 @@ async function generatePoseDescriptionWithGemini(
     console.log("🤸 Garment type:", garmentType);
 
     // Gemini 2.0 Flash modeli - Yeni SDK
-    const model = "gemini-2.5-flash";
+    const model = "gemini-2.5-flash-lite";
 
     // Gender mapping
     const modelGenderText =
