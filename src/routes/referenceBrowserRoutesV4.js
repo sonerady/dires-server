@@ -1410,46 +1410,62 @@ Confident model poses.
     } else if (isRefinerMode) {
       // REFINER MODE - Teknik profesyonel e-ticaret fotoğraf geliştirme prompt'u
       promptForGemini = `
-      MANDATORY INSTRUCTION: Generate a detailed technical e-commerce photography prompt that follows the EXACT structure and style of this REFERENCE TEMPLATE. You MUST start with "Transform" and follow the same technical formatting.
+MANDATORY INSTRUCTION (READ CAREFULLY, FOLLOW EXACTLY):
 
-      REFERENCE TEMPLATE TO FOLLOW:
-      "Transform this amateur product photo into a professional high-end e-commerce product photo. Remove the original background and replace it with a pure seamless white studio background (#FFFFFF). Present the item in a ghost mannequin / invisible mannequin style where applicable (e.g., clothing items such as jackets, shirts, dresses), ensuring the garment looks as if worn naturally on an invisible mannequin — perfectly symmetrical, centered, and wrinkle-free.
+You are a prompt generator for e-commerce product photo transformation. Produce ONE single technical prompt that an image editor/AI will follow to convert a raw product photo into a professional, Amazon-compliant catalog image.
 
-      For non-clothing products (e.g., jewelry, hats, shoes, accessories), ensure the item is presented cleanly and centered with professional studio lighting, sharp details, and no distracting reflections.
+STRICT STYLE & FORMAT:
+- The prompt you produce MUST start with: "Transform this amateur product photo into a professional high-end e-commerce product photo."
+- Use clear technical sections in THIS ORDER and with THESE HEADINGS exactly:
+  Background:
+  Presentation (Invisible Mannequin / Staging):
+  Symmetry & Alignment:
+  Material & Micro-Detail:
+  Lighting:
+  Color Accuracy:
+  Cleanup & Finishing:
+  Final Output Quality:
+- End the prompt with EXACTLY this line:
+  "The final result must look like a flawless product photo ready for e-commerce catalogs, fashion websites, or online marketplaces. Maintain a photorealistic, luxury presentation suitable for premium retail."
+- Length target: 200–280 words.
 
-      Symmetry & Alignment: Straighten the product so it appears perfectly balanced and professional.
+BACKGROUND (ALWAYS):
+- Replace background with a pure seamless white studio background (#FFFFFF).
 
-      Fabric / Material Detail: Highlight textures (fabric weave, metal shine, gemstone brilliance, leather grain, etc.) with high clarity.
+ADAPTIVE PRODUCT LOGIC:
+- If CLOTHING → apply ghost mannequin / invisible mannequin.
+- If ACCESSORIES (bags, hats, wallets) → center item, arrange straps/chains neatly.
+- If JEWELRY → gemstone brilliance, polished metals.
+- If WATCHES → dial clarity, bracelet sharpness, mechanism detail.
+- If FOOTWEAR → align pairs, outsole visible, no distortion.
+- If OTHER GOODS → maintain geometry, no moiré, logos clean.
 
-      Lighting: Use bright, even, shadowless lighting as in a professional studio setup.
+CORRECTION & ENHANCEMENT RULES:
+- If the product is tilted, rotated, or distorted in the amateur photo → straighten, correct perspective, and present at a natural, professional angle.
+- Remove any wrinkles in fabrics, dents, bends, or collapsed product shapes.
+- Eliminate dust, fingerprints, stains, smudges, packaging marks, or price tags/stickers.
+- Correct lighting inconsistencies; remove unwanted shadows and glare.
+- Ensure product looks brand-new, undamaged, and premium.
 
-      Color Accuracy: Ensure true-to-life color reproduction without distortion.
+VARIABLE HANDLING:
+- If \${isMultipleProducts} is true → adapt “Presentation” for a coordinated collection.
+- Use \${productCategory} and \${desiredAngle} when available.
 
-      Finishing: Remove dust, scratches, wrinkles, or defects. Edges must be sharp and precise.
+OUTPUT:
+- Generate ONLY the final technical prompt using the exact headings above. Do not include these instructions, variables, or commentary.
 
-      The final result must look like a flawless product photo ready for e-commerce catalogs, fashion websites, or online marketplaces. Maintain a photorealistic, luxury presentation suitable for premium retail."
+EXAMPLE (for format illustration only):
+"Transform this amateur product photo into a professional high-end e-commerce product photo. Remove the background and replace it with a pure seamless white studio background (#FFFFFF).
 
-      YOUR TASK:
-      Create a prompt that follows this EXACT structure and technical detail level for the ${
-        isMultipleProducts ? "products/garments" : "product/garment"
-      } in the reference image. 
-
-      MANDATORY REQUIREMENTS:
-      1. Start with "Transform this amateur product photo into a professional high-end e-commerce product photo"
-      2. Include all technical sections: Background, Invisible Mannequin/Presentation, Symmetry & Alignment, Fabric/Material Detail, Lighting, Color Accuracy, Finishing
-      3. Specify exact background color: pure seamless white studio background (#FFFFFF)
-      4. Include invisible mannequin technique for clothing items
-      5. End with "The final result must look like a flawless product photo ready for e-commerce catalogs, fashion websites, or online marketplaces. Maintain a photorealistic, luxury presentation suitable for premium retail."
-      6. Be specific about material types based on what you see in the image (leather, fabric, metal, etc.)
-      7. Use the same technical and professional language style
-      ${
-        isMultipleProducts
-          ? `8. Adapt the prompt to handle multiple products as a coordinated collection`
-          : ""
-      }
-
-      Generate ONLY the technical prompt following this reference structure. Do not add explanations or commentary.
-      `;
+Background: Pure seamless white studio background (#FFFFFF).
+Presentation: Center the xxx and stage it professionally.
+Symmetry & Alignment: Straighten the xxx, correct any tilt or perspective issues so it looks perfectly balanced.
+Material & Micro-Detail: Highlight the xxx surface texture and metallic details with crisp clarity.
+Lighting: Bright, even, shadowless studio lighting. Remove glare or uneven highlights.
+Color Accuracy: Ensure the xxx colors are true-to-life and faithful to the original product.
+Cleanup & Finishing: Remove dust, wrinkles, scratches, price tags, or any visible defects. Keep edges razor-sharp and surfaces pristine.
+Final Output Quality: Single flawless, photorealistic image ready for Amazon/e-commerce catalogs. Maintain a photorealistic, luxury presentation suitable for premium retail."
+`;
     } else if (isColorChange && targetColor && targetColor !== "original") {
       // COLOR CHANGE MODE - Sadece renk değiştirme
       promptForGemini = `
