@@ -1418,7 +1418,7 @@ STRICT STYLE & FORMAT:
 - The prompt you produce MUST start with: "Transform this amateur product photo into a professional high-end e-commerce product photo."
 - Use clear technical sections in THIS ORDER and with THESE HEADINGS exactly:
   Background:
-  Presentation (Invisible Mannequin / Staging):
+  Presentation (Invisible Mannequin / Ghost Effect):
   Symmetry & Alignment:
   Material & Micro-Detail:
   Lighting:
@@ -1427,29 +1427,33 @@ STRICT STYLE & FORMAT:
   Final Output Quality:
 - End the prompt with EXACTLY this line:
   "The final result must look like a flawless product photo ready for e-commerce catalogs, fashion websites, or online marketplaces. Maintain a photorealistic, luxury presentation suitable for premium retail."
-- Length target: 200–280 words.
+- Length target: 200–300 words.
 
 BACKGROUND (ALWAYS):
 - Replace background with a pure seamless white studio background (#FFFFFF).
 
 ADAPTIVE PRODUCT LOGIC:
-- If CLOTHING → apply ghost mannequin / invisible mannequin.
-- If ACCESSORIES (bags, hats, wallets) → center item, arrange straps/chains neatly.
-- If JEWELRY → gemstone brilliance, polished metals.
-- If WATCHES → dial clarity, bracelet sharpness, mechanism detail.
-- If FOOTWEAR → align pairs, outsole visible, no distortion.
-- If OTHER GOODS → maintain geometry, no moiré, logos clean.
+- If CLOTHING → 
+  • Apply invisible mannequin / ghost mannequin effect: remove mannequin completely so garment looks naturally filled, with the inside neckline and interior area clearly visible.  
+  • Garment must not copy the amateur photo posture; adjust to an ideal professional catalog stance with straightened shoulders, centered neckline, and balanced hemline.  
+  • Remove wrinkles, folds, or collapsed areas — garment should look freshly pressed and showroom-ready.  
+
+- If ACCESSORIES (bags, hats, wallets) → center item, arrange straps/chains elegantly, adjust posture if needed to look professional.  
+- If JEWELRY → emphasize gemstone brilliance and polished metals; correct perspective.  
+- If WATCHES → ensure dial upright, bracelet symmetrical, glass crystal-clear.  
+- If FOOTWEAR → align pairs or singles correctly, outsole visible, no tilt.  
+- If OTHER GOODS → correct geometry, keep branding legible, remove packaging marks.  
 
 CORRECTION & ENHANCEMENT RULES:
-- If the product is tilted, rotated, or distorted in the amateur photo → straighten, correct perspective, and present at a natural, professional angle.
-- Remove any wrinkles in fabrics, dents, bends, or collapsed product shapes.
-- Eliminate dust, fingerprints, stains, smudges, packaging marks, or price tags/stickers.
-- Correct lighting inconsistencies; remove unwanted shadows and glare.
-- Ensure product looks brand-new, undamaged, and premium.
+- Correct any tilt, distortion, or unnatural angle so product looks perfectly upright and centered.  
+- Ensure the product is displayed more professionally than the original amateur photo.  
+- Remove any dust, lint, stains, stickers, price tags, or background remnants.  
 
-VARIABLE HANDLING:
-- If \${isMultipleProducts} is true → adapt “Presentation” for a coordinated collection.
-- Use \${productCategory} and \${desiredAngle} when available.
+LIGHTING:
+- Apply bright, even, shadowless studio lighting. Prevent harsh reflections or glare. Allow subtle, realistic depth where necessary.  
+
+COLOR ACCURACY:
+- Ensure faithful, true-to-life colors without oversaturation or washed-out tones. Neutral white balance.  
 
 OUTPUT:
 - Generate ONLY the final technical prompt using the exact headings above. Do not include these instructions, variables, or commentary.
@@ -1458,12 +1462,12 @@ EXAMPLE (for format illustration only):
 "Transform this amateur product photo into a professional high-end e-commerce product photo. Remove the background and replace it with a pure seamless white studio background (#FFFFFF).
 
 Background: Pure seamless white studio background (#FFFFFF).
-Presentation: Center the xxx and stage it professionally.
-Symmetry & Alignment: Straighten the xxx, correct any tilt or perspective issues so it looks perfectly balanced.
-Material & Micro-Detail: Highlight the xxx surface texture and metallic details with crisp clarity.
-Lighting: Bright, even, shadowless studio lighting. Remove glare or uneven highlights.
-Color Accuracy: Ensure the xxx colors are true-to-life and faithful to the original product.
-Cleanup & Finishing: Remove dust, wrinkles, scratches, price tags, or any visible defects. Keep edges razor-sharp and surfaces pristine.
+Presentation (Invisible Mannequin / Ghost Effect): Remove the xxx mannequin completely and apply ghost mannequin effect so the interior neckline and inside garment area are visible. Adjust posture to professional catalog stance, not identical to amateur photo.
+Symmetry & Alignment: Straighten the xxx, correct tilt/perspective so it appears upright and balanced.
+Material & Micro-Detail: Highlight the xxx fabric texture, seams, and trims with sharp clarity. Remove wrinkles and folds so garment looks freshly pressed.
+Lighting: Apply bright, even, shadowless studio lighting. No glare or uneven shadows.
+Color Accuracy: Ensure the xxx colors are faithfully reproduced, vibrant yet natural.
+Cleanup & Finishing: Remove imperfections, dust, or stickers. Keep edges razor-sharp and garment pristine.
 Final Output Quality: Single flawless, photorealistic image ready for Amazon/e-commerce catalogs. Maintain a photorealistic, luxury presentation suitable for premium retail."
 `;
     } else if (isColorChange && targetColor && targetColor !== "original") {
