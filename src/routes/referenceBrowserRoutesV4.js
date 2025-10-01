@@ -1434,26 +1434,51 @@ BACKGROUND (ALWAYS):
 
 ADAPTIVE PRODUCT LOGIC:
 - If CLOTHING → 
-  • Apply invisible mannequin / ghost mannequin effect: remove mannequin completely so garment looks naturally filled, with the inside neckline and interior area clearly visible.  
-  • Garment must not copy the amateur photo posture; adjust to an ideal professional catalog stance with straightened shoulders, centered neckline, and balanced hemline.  
-  • Remove wrinkles, folds, or collapsed areas — garment should look freshly pressed and showroom-ready.  
+  • Apply ghost mannequin effect (remove mannequin/hanger, keep inside visible).  
+  • Adjust garment to professional catalog stance, not amateur photo posture.  
+  • Shoulders straight, neckline centered, hemline balanced.  
+  • Wrinkle-free, freshly pressed look.  
 
-- If ACCESSORIES (bags, hats, wallets) → center item, arrange straps/chains elegantly, adjust posture if needed to look professional.  
-- If JEWELRY → emphasize gemstone brilliance and polished metals; correct perspective.  
-- If WATCHES → ensure dial upright, bracelet symmetrical, glass crystal-clear.  
-- If FOOTWEAR → align pairs or singles correctly, outsole visible, no tilt.  
-- If OTHER GOODS → correct geometry, keep branding legible, remove packaging marks.  
+- If ACCESSORIES (bags, hats, wallets) → 
+  • Center product, arrange straps/chains elegantly.  
+  • Correct tilt or sag, present in luxury catalog stance.  
+
+- If JEWELRY → 
+  • Macro-level clarity for gemstones and metals.  
+  • No glare, natural brilliance, precise reflections.  
+
+- If WATCHES → 
+  • Dial upright, bezel and bracelet symmetrical.  
+  • Glass crystal-clear, no reflections.  
+  • Mechanism details sharp.  
+
+- If FOOTWEAR → 
+  • Remove legs/feet completely.  
+  • Present shoes in industry-standard e-commerce views:  
+    – Main image MUST be **side profile view** (outer side).  
+    – Secondary angle (if pair) in **45° angled view** to show depth.  
+  • Avoid top-down flat perspectives unless explicitly required.  
+  • Shoes must appear upright, stable, perfectly aligned.  
+  • Correct perspective so outsole is horizontal and silhouette natural.  
+  • Highlight stitching, mesh, sole patterns, and logo/branding clearly.  
+  • Remove dust, creases, scuffs; present as brand-new.  
+
+- If OTHER GOODS → 
+  • Correct geometry, straighten angles, remove packaging distortions.  
 
 CORRECTION & ENHANCEMENT RULES:
-- Correct any tilt, distortion, or unnatural angle so product looks perfectly upright and centered.  
-- Ensure the product is displayed more professionally than the original amateur photo.  
-- Remove any dust, lint, stains, stickers, price tags, or background remnants.  
+- Correct tilt, rotation, or unnatural posture.  
+- Ensure product looks **more professional and ideal than the amateur photo**.  
+- Remove all imperfections: dust, lint, stickers, price tags, stains.  
 
 LIGHTING:
-- Apply bright, even, shadowless studio lighting. Prevent harsh reflections or glare. Allow subtle, realistic depth where necessary.  
+- Bright, even, shadowless studio lighting.  
+- Prevent glare or blown highlights.  
+- Allow subtle, realistic depth to preserve 3D form.  
 
 COLOR ACCURACY:
-- Ensure faithful, true-to-life colors without oversaturation or washed-out tones. Neutral white balance.  
+- Faithful, true-to-life reproduction.  
+- Neutral white balance, no oversaturation or dull tones.  
 
 OUTPUT:
 - Generate ONLY the final technical prompt using the exact headings above. Do not include these instructions, variables, or commentary.
@@ -1462,13 +1487,13 @@ EXAMPLE (for format illustration only):
 "Transform this amateur product photo into a professional high-end e-commerce product photo. Remove the background and replace it with a pure seamless white studio background (#FFFFFF).
 
 Background: Pure seamless white studio background (#FFFFFF).
-Presentation (Invisible Mannequin / Ghost Effect): Remove the xxx mannequin completely and apply ghost mannequin effect so the interior neckline and inside garment area are visible. Adjust posture to professional catalog stance, not identical to amateur photo.
-Symmetry & Alignment: Straighten the xxx, correct tilt/perspective so it appears upright and balanced.
-Material & Micro-Detail: Highlight the xxx fabric texture, seams, and trims with sharp clarity. Remove wrinkles and folds so garment looks freshly pressed.
-Lighting: Apply bright, even, shadowless studio lighting. No glare or uneven shadows.
-Color Accuracy: Ensure the xxx colors are faithfully reproduced, vibrant yet natural.
-Cleanup & Finishing: Remove imperfections, dust, or stickers. Keep edges razor-sharp and garment pristine.
-Final Output Quality: Single flawless, photorealistic image ready for Amazon/e-commerce catalogs. Maintain a photorealistic, luxury presentation suitable for premium retail."
+Presentation (Invisible Mannequin / Ghost Effect): Since xxx is footwear, remove the legs and stage both shoes in catalog-standard angles: one shoe in clear side profile view, the other at 45° for depth. Ensure stable and natural stance.
+Symmetry & Alignment: Correct tilt and perspective so outsole is level and shoes are symmetrical.
+Material & Micro-Detail: Highlight stitching, mesh, sole patterns, and branding with sharp clarity. Remove creases and scuffs.
+Lighting: Apply bright, even, shadowless lighting. No glare or blown highlights.
+Color Accuracy: Ensure xxx colors are faithful, with neutral white balance.
+Cleanup & Finishing: Remove dust, marks, or imperfections. Keep edges crisp and pristine.
+Final Output Quality: Single flawless, photorealistic catalog photo ready for Amazon/e-commerce platforms."
 `;
     } else if (isColorChange && targetColor && targetColor !== "original") {
       // COLOR CHANGE MODE - Sadece renk değiştirme
