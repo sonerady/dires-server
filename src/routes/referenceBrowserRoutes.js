@@ -4105,9 +4105,9 @@ router.post("/generate", async (req, res) => {
         }
       } // Back side analysis else bloğu kapatma
     } else {
-      // Tek resim için ratio'ya göre canvas işlemi
+      // Tek resim için Supabase URL'sini doğrudan kullanmak üzere hazırlık yap
       console.log(
-        "🖼️ [BACKEND] Tek resim için ratio'ya göre canvas işlemi başlatılıyor..."
+        "🖼️ [BACKEND] Tek resim için Supabase yükleme işlemi başlatılıyor..."
       );
 
       const referenceImage = referenceImages[0];
@@ -4149,18 +4149,8 @@ router.post("/generate", async (req, res) => {
         userId
       );
 
-      // Tek resim için de ratio'ya göre canvas'a yerleştir (grid layout yok)
-      finalImage = await combineImagesOnCanvas(
-        [{ uri: uploadedImageUrl }], // Tek resmi array içinde gönder
-        userId,
-        false, // isMultipleProducts = false
-        ratio, // aspectRatio
-        null, // gridLayoutInfo
-        false // isBackSideAnalysis (tek resimde arka analizi yok)
-      );
-
-      // Canvas işleminden sonra oluşan resmi geçici dosyalar listesine ekle
-      temporaryFiles.push(finalImage);
+      // Tek resim senaryosunda Supabase URL'sini doğrudan kullan
+      finalImage = uploadedImageUrl;
     }
 
     console.log("Supabase'den alınan final resim URL'si:", finalImage);
@@ -4445,11 +4435,14 @@ router.post("/generate", async (req, res) => {
           imageInputArray = [combinedImageForReplicate];
         }
 
+        const aspectRatioForRequest = formattedRatio || "9:16";
+
         const requestBody = {
           input: {
             prompt: enhancedPrompt,
             image_input: imageInputArray,
             output_format: "png",
+            aspect_ratio: aspectRatioForRequest,
           },
         };
 
@@ -4462,6 +4455,7 @@ router.post("/generate", async (req, res) => {
             : "single combined image",
           imageInputArray: imageInputArray,
           outputFormat: "jpg",
+          aspectRatio: aspectRatioForRequest,
         });
 
         // Replicate API çağrısı - Prefer: wait header ile
