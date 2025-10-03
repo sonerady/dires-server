@@ -809,6 +809,44 @@ function formatAspectRatio(ratioStr) {
   }
 }
 
+function sanitizePoseText(text) {
+  if (!text || typeof text !== "string") {
+    return text;
+  }
+
+  try {
+    const forbiddenKeywords = [
+      "background",
+      "backdrop",
+      "environment",
+      "studio",
+      "set",
+    ];
+
+    const sentences = text
+      .split(/(?<=[.!?])\s+/)
+      .map((sentence) => sentence.trim())
+      .filter(Boolean);
+
+    const filtered = sentences.filter((sentence) => {
+      const lower = sentence.toLowerCase();
+      return !forbiddenKeywords.some((keyword) => lower.includes(keyword));
+    });
+
+    const joined = filtered.join(" ").trim();
+    if (joined) {
+      return joined;
+    }
+
+    const keywordRegex = /(studio|background|backdrop|environment|set)/gi;
+    const stripped = text.replace(keywordRegex, "").replace(/\s+/g, " ").trim();
+    return stripped;
+  } catch (error) {
+    console.error("❌ Pose metni temizlenirken hata:", error);
+    return text;
+  }
+}
+
 async function enhancePromptWithGemini(
   originalPrompt,
   imageUrl,
@@ -1113,6 +1151,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
       console.log("🤸 [GEMINI] Pose prompt section eklendi");
     } else if (settings?.pose) {
       // Check if we have a detailed pose description (from our new Gemini pose system)
+      const poseNameForPrompt = sanitizePoseText(settings.pose);
       let detailedPoseDescription = null;
 
       // Try to get detailed pose description from Gemini
@@ -1122,7 +1161,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
           settings.pose
         );
         detailedPoseDescription = await generatePoseDescriptionWithGemini(
-          settings.pose,
+          poseNameForPrompt,
           poseImage,
           settings.gender || "female",
           "clothing"
@@ -1136,13 +1175,16 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
       }
 
       if (detailedPoseDescription) {
+        const cleanedPoseDescription = sanitizePoseText(detailedPoseDescription);
         posePromptSection = `
     
     DETAILED POSE INSTRUCTION: The user has selected the pose "${
-      settings.pose
+      poseNameForPrompt
     }". Use this detailed pose instruction for the ${baseModelText}:
     
-    "${detailedPoseDescription}"
+    "${cleanedPoseDescription}"
+    
+    IMPORTANT: If the pose description above mentions any studio, backdrop, background, environment, or set, you must ignore those parts and instead describe and preserve the exact background that already exists in the provided model image.
     
     Ensure the ${baseModelText} follows this pose instruction precisely while maintaining natural movement and ensuring the pose complements ${
           isMultipleProducts
@@ -1156,12 +1198,12 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
         posePromptSection = `
     
     SPECIFIC POSE REQUIREMENT: The user has selected a specific pose: "${
-      settings.pose
+      poseNameForPrompt
     }". Please ensure the ${baseModelText} adopts this pose while maintaining natural movement and ensuring the pose complements ${
           isMultipleProducts
             ? "all products in the ensemble being showcased"
             : "the garment being showcased"
-        }.`;
+        }. Ignore any background/backdrop/studio/environment directions that may be associated with that pose and always keep the original background from the input image unchanged and accurately described.`;
 
         console.log(
           "🤸 [GEMINI] Basit pose açıklaması kullanılıyor (fallback)"
@@ -1621,6 +1663,7 @@ Final Output Quality: Single flawless, photorealistic catalog photo ready for Am
       - Explicitly instruct that the existing background remains exactly the same with zero alterations
       - Emphasize keeping the same model identity, face, hairstyle, makeup, accessories, and outfit with no modifications
       - Mention notable background elements (walls, furniture, decor, floor, lighting fixtures, scenery) and insist they stay identical
+      - If any pose references mention backgrounds (e.g., studio, backdrop, set, environment), explicitly override those directions: state that the original background from the provided image stays unchanged and must be described faithfully. Never introduce or suggest a new background.
 
       CRITICAL FORMATTING REQUIREMENTS:
       - Your response MUST start with "Change"
@@ -1633,7 +1676,7 @@ Final Output Quality: Single flawless, photorealistic catalog photo ready for Am
       - The background and environment MUST remain completely unchanged and explicitly described as such
       - Be specific but concise about the exact pose
 
-      Generate a focused, efficient pose transformation prompt that starts with "Change", clearly states the original background and model remain unchanged, and gets straight to the point.
+      Generate a focused, efficient pose transformation prompt that starts with "Change", clearly states the original background and model remain unchanged, overrides any conflicting background instructions from pose references, and gets straight to the point.
       `;
     } else if (isBackSideAnalysis) {
       // BACK SIDE ANALYSIS MODE - Özel arka taraf analizi prompt'u
@@ -3575,10 +3618,21 @@ router.post("/generate", async (req, res) => {
         console.log("📝 [GEMINI CALL - POSE] Prompt içeriği:", promptToUse);
 
         // Pose change için sadece model fotoğrafını Gemini'ye gönder
-        const modelImageForGemini =
-          referenceImages && referenceImages.length > 0
-            ? referenceImages[0].uri || referenceImages[0]
-            : finalImage;
+        let modelImageForGemini;
+        if (modelReferenceImage && (modelReferenceImage.uri || modelReferenceImage.url)) {
+          modelImageForGemini = sanitizeImageUrl(
+            modelReferenceImage.uri || modelReferenceImage.url
+          );
+        } else if (referenceImages && referenceImages.length > 0) {
+          const firstReference = referenceImages[0];
+          modelImageForGemini = sanitizeImageUrl(
+            (firstReference && (firstReference.uri || firstReference.url))
+              ? firstReference.uri || firstReference.url
+              : firstReference
+          );
+        } else {
+          modelImageForGemini = finalImage;
+        }
 
         console.log(
           "🤖 [GEMINI CALL - POSE] Sadece model fotoğrafı gönderiliyor:",
@@ -4824,11 +4878,18 @@ async function generatePoseDescriptionWithGemini(
     const poseDescription = result.text.trim();
     console.log("🤸 Gemini'nin ürettiği pose açıklaması:", poseDescription);
 
-    return poseDescription;
+    const sanitizedDescription = sanitizePoseText(poseDescription);
+    if (sanitizedDescription !== poseDescription) {
+      console.log("🤸 Pose açıklaması temizlendi:", sanitizedDescription);
+    }
+
+    return sanitizedDescription;
   } catch (error) {
     console.error("🤸 Gemini pose açıklaması hatası:", error);
     // Fallback: Basit pose açıklaması
-    return `Professional ${gender.toLowerCase()} model pose: ${poseTitle}. Stand naturally with good posture, position body to showcase the garment effectively.`;
+    return sanitizePoseText(
+      `Professional ${gender.toLowerCase()} model pose: ${poseTitle}. Stand naturally with good posture, position body to showcase the garment effectively.`
+    );
   }
 }
 
