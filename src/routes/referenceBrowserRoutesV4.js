@@ -1572,7 +1572,7 @@ Final Output Quality: Single flawless, photorealistic catalog photo ready for Am
     } else if (isPoseChange) {
       // POSE CHANGE MODE - Optimize edilmiş poz değiştirme prompt'u (100-150 token)
       promptForGemini = `
-      FASHION POSE TRANSFORMATION: Generate a focused, detailed English prompt (100-150 words) that transforms the model's pose efficiently. Focus ONLY on pose change - do NOT mention garment replacement or background changes.
+      FASHION POSE TRANSFORMATION: Generate a focused, detailed English prompt (100-150 words) that transforms the model's pose efficiently. Focus ONLY on altering the pose while keeping the existing model, outfit, lighting, and background exactly the same. You MUST explicitly describe the original background/environment details and state that they stay unchanged.
 
       USER POSE REQUEST: ${
         settings?.pose && settings.pose.trim()
@@ -1616,6 +1616,12 @@ Final Output Quality: Single flawless, photorealistic catalog photo ready for Am
       - Depth of field that focuses on the model and pose
       - Professional composition that frames the pose perfectly
 
+      6. BACKGROUND & IDENTITY PRESERVATION:
+      - Carefully observe and describe the current background/environment (location type, colors, props, textures, lighting)
+      - Explicitly instruct that the existing background remains exactly the same with zero alterations
+      - Emphasize keeping the same model identity, face, hairstyle, makeup, accessories, and outfit with no modifications
+      - Mention notable background elements (walls, furniture, decor, floor, lighting fixtures, scenery) and insist they stay identical
+
       CRITICAL FORMATTING REQUIREMENTS:
       - Your response MUST start with "Change"
       - Must be 100-150 words (concise but detailed)
@@ -1623,11 +1629,11 @@ Final Output Quality: Single flawless, photorealistic catalog photo ready for Am
       - Focus ONLY on pose transformation
       - Do NOT include any generic fashion photography rules
       - Do NOT mention garment replacement
-      - Do NOT include background changes
-      - The background and environment MUST remain completely unchanged
+      - Do NOT propose background changes; instead, clearly state the background stays identical to the original photo
+      - The background and environment MUST remain completely unchanged and explicitly described as such
       - Be specific but concise about the exact pose
 
-      Generate a focused, efficient pose transformation prompt that starts with "Change" and gets straight to the point.
+      Generate a focused, efficient pose transformation prompt that starts with "Change", clearly states the original background and model remain unchanged, and gets straight to the point.
       `;
     } else if (isBackSideAnalysis) {
       // BACK SIDE ANALYSIS MODE - Özel arka taraf analizi prompt'u
