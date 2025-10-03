@@ -658,6 +658,44 @@ function formatAspectRatio(ratioStr) {
   }
 }
 
+function sanitizePoseText(text) {
+  if (!text || typeof text !== "string") {
+    return text;
+  }
+
+  try {
+    const forbiddenKeywords = [
+      "background",
+      "backdrop",
+      "environment",
+      "studio",
+      "set",
+    ];
+
+    const sentences = text
+      .split(/(?<=[.!?])\s+/)
+      .map((sentence) => sentence.trim())
+      .filter(Boolean);
+
+    const filtered = sentences.filter((sentence) => {
+      const lower = sentence.toLowerCase();
+      return !forbiddenKeywords.some((keyword) => lower.includes(keyword));
+    });
+
+    const joined = filtered.join(" ").trim();
+    if (joined) {
+      return joined;
+    }
+
+    const keywordRegex = /(studio|background|backdrop|environment|set)/gi;
+    const stripped = text.replace(keywordRegex, "").replace(/\s+/g, " ").trim();
+    return stripped;
+  } catch (error) {
+    console.error("❌ Pose metni temizlenirken hata:", error);
+    return text;
+  }
+}
+
 async function enhancePromptWithGemini(
   originalPrompt,
   imageUrl,
@@ -961,6 +999,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
       console.log("🤸 [GEMINI] Pose prompt section eklendi");
     } else if (settings?.pose) {
       // Check if we have a detailed pose description (from our new Gemini pose system)
+      const poseNameForPrompt = sanitizePoseText(settings.pose);
       let detailedPoseDescription = null;
 
       // Try to get detailed pose description from Gemini
@@ -970,7 +1009,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
           settings.pose
         );
         detailedPoseDescription = await generatePoseDescriptionWithGemini(
-          settings.pose,
+          poseNameForPrompt,
           poseImage,
           settings.gender || "female",
           "clothing"
@@ -984,13 +1023,16 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
       }
 
       if (detailedPoseDescription) {
+        const cleanedPoseDescription = sanitizePoseText(detailedPoseDescription);
         posePromptSection = `
     
     DETAILED POSE INSTRUCTION: The user has selected the pose "${
-      settings.pose
+      poseNameForPrompt
     }". Use this detailed pose instruction for the ${baseModelText}:
     
-    "${detailedPoseDescription}"
+    "${cleanedPoseDescription}"
+    
+    IMPORTANT: If the pose description above mentions any studio, backdrop, background, environment, or set, you must ignore those parts and instead describe and preserve the exact background that already exists in the provided model image.
     
     Ensure the ${baseModelText} follows this pose instruction precisely while maintaining natural movement and ensuring the pose complements ${
           isMultipleProducts
@@ -1004,12 +1046,12 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
         posePromptSection = `
     
     SPECIFIC POSE REQUIREMENT: The user has selected a specific pose: "${
-      settings.pose
+      poseNameForPrompt
     }". Please ensure the ${baseModelText} adopts this pose while maintaining natural movement and ensuring the pose complements ${
           isMultipleProducts
             ? "all products in the ensemble being showcased"
             : "the garment being showcased"
-        }.`;
+        }. Ignore any background/backdrop/studio/environment directions that may be associated with that pose and always keep the original background from the input image unchanged and accurately described.`;
 
         console.log(
           "🤸 [GEMINI] Basit pose açıklaması kullanılıyor (fallback)"
@@ -1418,41 +1460,71 @@ Final Output Quality: Single flawless, photorealistic catalog photo ready for Am
       }
       `;
     } else if (isPoseChange) {
-      // POSE CHANGE MODE - Basit poz değiştirme
+      // POSE CHANGE MODE - Optimize edilmiş poz değiştirme prompt'u (100-150 kelime)
       promptForGemini = `
-      PROFESSIONAL FASHION POSE SELECTION: Generate a high-quality English prompt (30-50 words) that changes the model's pose to a DIFFERENT famous fashion modeling pose while enhancing image quality and sharpness.
+      FASHION POSE TRANSFORMATION: Generate a focused, detailed English prompt (100-150 words) that transforms the model's pose efficiently. Focus ONLY on altering the pose while keeping the existing model, outfit, lighting, and background exactly the same. You MUST explicitly describe the original background/environment details and state that they stay unchanged.
 
-      CRITICAL REQUIREMENTS:
-      - MUST select a COMPLETELY DIFFERENT pose from the current image
-      - Analyze current pose in the image and choose an OPPOSITE or CONTRASTING pose
-      - Select from iconic fashion poses: editorial, runway, commercial, high-fashion
-      - Consider garment style and setting for pose compatibility  
-      - Include quality enhancement terms: "sharp", "crisp", "high definition", "professional photography"
-      - NO garment descriptions
-      - NO background changes
-      - NO model appearance changes
-      - Must be in English
-      - Minimum 30 words, Maximum 50 words
-      - Start with "Change"
-
-      USER REQUEST: ${
-        customDetail && customDetail.trim()
-          ? `Change pose to: ${customDetail.trim()}`
-          : "Change to a completely different iconic professional fashion modeling pose that contrasts with the current pose"
+      USER POSE REQUEST: ${
+        settings?.pose && settings.pose.trim()
+          ? `Transform the model to: ${settings.pose.trim()}`
+          : customDetail && customDetail.trim()
+          ? `Transform the model to: ${customDetail.trim()}`
+          : "Transform to a completely different iconic professional fashion modeling pose that contrasts dramatically with the current pose"
       }
 
-      POSE ANALYSIS INSTRUCTION: 
-      First analyze the current pose in the image, then select a CONTRASTING pose:
-      - If standing straight → choose dynamic or angled pose
-      - If hands down → choose hands on hips/crossed arms
-      - If static → choose movement-implied pose
-      - If casual → choose editorial/dramatic pose
+      COMPREHENSIVE POSE TRANSFORMATION REQUIREMENTS:
 
-      POSE EXAMPLES: Editorial stance, runway walk, hand-on-hip power pose, elegant turn, commercial casual, editorial fierce, crossed arms confident, leaning pose, walking stride
+      1. POSE ANALYSIS & TRANSFORMATION:
+      - Analyze the current pose in the image thoroughly
+      - Select a DRAMATICALLY CONTRASTING pose that showcases the garment beautifully
+      - Describe the new pose in elaborate detail: body positioning, limb placement, weight distribution, head angle, eye direction
+      - Include subtle pose nuances: shoulder positioning, hip angle, foot placement, hand gestures
+      - Ensure the pose enhances the garment's silhouette and flow
 
-      QUALITY TERMS TO INCLUDE: sharp focus, crisp details, high definition, professional photography lighting, clear image quality
+      2. BODY LANGUAGE & EXPRESSION:
+      - Describe confident, editorial-worthy body language
+      - Include facial expression that matches the pose energy
+      - Specify eye contact direction and intensity
+      - Detail posture that conveys fashion-forward attitude
 
-      Generate ONLY the focused pose change prompt with quality enhancement, nothing else.
+      3. POSE-SPECIFIC DETAILS:
+      - If sitting pose: describe chair interaction, leg positioning, back posture
+      - If standing pose: weight distribution, stance width, hip positioning
+      - If leaning pose: support points, angle, natural flow
+      - If walking pose: stride, arm movement, head position
+      - If editorial pose: dramatic angles, fashion-forward positioning
+
+      4. GARMENT INTERACTION:
+      - Describe how the pose allows the garment to drape naturally
+      - Ensure pose doesn't create unflattering fabric bunching
+      - Show garment details and construction through pose
+      - Allow fabric to flow and move naturally with the pose
+
+      5. PROFESSIONAL PHOTOGRAPHY ELEMENTS:
+      - Studio-grade lighting that enhances the pose
+      - Camera angle that best captures the pose and garment
+      - Depth of field that focuses on the model and pose
+      - Professional composition that frames the pose perfectly
+
+      6. BACKGROUND & IDENTITY PRESERVATION:
+      - Carefully observe and describe the current background/environment (location type, colors, props, textures, lighting)
+      - Explicitly instruct that the existing background remains exactly the same with zero alterations
+      - Emphasize keeping the same model identity, face, hairstyle, makeup, accessories, and outfit with no modifications
+      - Mention notable background elements (walls, furniture, decor, floor, lighting fixtures, scenery) and insist they stay identical
+      - If any pose references mention backgrounds (e.g., studio, backdrop, set, environment), explicitly override those directions: state that the original background from the provided image stays unchanged and must be described faithfully. Never introduce or suggest a new background.
+
+      CRITICAL FORMATTING REQUIREMENTS:
+      - Your response MUST start with "Change"
+      - Must be 100-150 words (concise but detailed)
+      - Must be entirely in English
+      - Focus ONLY on pose transformation
+      - Do NOT include any generic fashion photography rules
+      - Do NOT mention garment replacement
+      - Do NOT propose background changes; instead, clearly state the background stays identical to the original photo
+      - The background and environment MUST remain completely unchanged and explicitly described as such
+      - Be specific but concise about the exact pose
+
+      Generate a focused, efficient pose transformation prompt that starts with "Change", clearly states the original background and model remain unchanged, overrides any conflicting background instructions from pose references, and gets straight to the point.
       `;
     } else if (isBackSideAnalysis) {
       // BACK SIDE ANALYSIS MODE - Özel arka taraf analizi prompt'u
@@ -3686,7 +3758,7 @@ router.post("/generate", async (req, res) => {
   let temporaryFiles = []; // Silinecek geçici dosyalar
 
   try {
-    const {
+    let {
       ratio,
       promptText,
       referenceImages,
@@ -3719,6 +3791,16 @@ router.post("/generate", async (req, res) => {
 
     // userId'yi scope için ata
     userId = requestUserId;
+
+    const hasRequestField = (fieldName) =>
+      Object.prototype.hasOwnProperty.call(req.body, fieldName);
+
+    if (!isPoseChange && hasRequestField("hasProductPhotos")) {
+      console.log(
+        "🕺 [BACKEND] ChangeModelPose payload tespit edildi (hasProductPhotos mevcut), isPoseChange true olarak işaretleniyor"
+      );
+      isPoseChange = true;
+    }
 
     console.log("🖼️ [BACKEND] isMultipleImages:", isMultipleImages);
     console.log("🛍️ [BACKEND] isMultipleProducts:", isMultipleProducts);
@@ -4240,9 +4322,25 @@ router.post("/generate", async (req, res) => {
         );
         console.log("📝 [GEMINI CALL - POSE] Prompt içeriği:", promptToUse);
 
+        let modelImageForGemini;
+        if (referenceImages && referenceImages.length > 0) {
+          const firstReference = referenceImages[0];
+          modelImageForGemini =
+            (firstReference && (firstReference.uri || firstReference.url))
+              ? firstReference.uri || firstReference.url
+              : firstReference;
+        } else {
+          modelImageForGemini = finalImage;
+        }
+
+        console.log(
+          "🤖 [GEMINI CALL - POSE] Sadece model fotoğrafı gönderiliyor:",
+          modelImageForGemini
+        );
+
         enhancedPrompt = await enhancePromptWithGemini(
           promptToUse, // EditScreen'de editPrompt, normal modda promptText
-          finalImage, // isPoseChange modunda finalImage kullan (kombin modunda birleştirilmiş grid)
+          modelImageForGemini, // isPoseChange modunda model fotoğrafı gönder
           settings || {},
           locationImage,
           poseImage,
@@ -5381,11 +5479,18 @@ async function generatePoseDescriptionWithGemini(
     const poseDescription = result.text.trim();
     console.log("🤸 Gemini'nin ürettiği pose açıklaması:", poseDescription);
 
-    return poseDescription;
+    const sanitizedDescription = sanitizePoseText(poseDescription);
+    if (sanitizedDescription !== poseDescription) {
+      console.log("🤸 Pose açıklaması temizlendi:", sanitizedDescription);
+    }
+
+    return sanitizedDescription;
   } catch (error) {
     console.error("🤸 Gemini pose açıklaması hatası:", error);
     // Fallback: Basit pose açıklaması
-    return `Professional ${gender.toLowerCase()} model pose: ${poseTitle}. Stand naturally with good posture, position body to showcase the garment effectively.`;
+    return sanitizePoseText(
+      `Professional ${gender.toLowerCase()} model pose: ${poseTitle}. Stand naturally with good posture, position body to showcase the garment effectively.`
+    );
   }
 }
 

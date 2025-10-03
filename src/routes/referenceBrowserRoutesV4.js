@@ -3094,6 +3094,16 @@ router.post("/generate", async (req, res) => {
       console.log("🧍 [BACKEND] Model referans görseli bulunamadı");
     }
 
+    const hasRequestField = (fieldName) =>
+      Object.prototype.hasOwnProperty.call(req.body, fieldName);
+
+    if (!isPoseChange && hasRequestField("hasProductPhotos")) {
+      console.log(
+        "🕺 [BACKEND] ChangeModelPose payload tespit edildi (hasProductPhotos mevcut), isPoseChange true olarak işaretleniyor"
+      );
+      isPoseChange = true;
+    }
+
     console.log("🖼️ [BACKEND] isMultipleImages:", isMultipleImages);
     console.log("🛍️ [BACKEND] isMultipleProducts:", isMultipleProducts);
     console.log("🎨 [BACKEND] isColorChange:", isColorChange);
