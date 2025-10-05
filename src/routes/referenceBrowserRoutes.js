@@ -930,8 +930,12 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
     let posePromptSection = "";
     let perspectivePromptSection = "";
 
+    const hasPoseText =
+      typeof settings?.pose === "string" && settings.pose.trim().length > 0;
+    const hasPoseImage = Boolean(poseImage);
+
     // Pose handling - enhanced with detailed descriptions
-    if (!settings?.pose && !poseImage) {
+    if (!hasPoseText && !hasPoseImage) {
       const garmentText = isMultipleProducts
         ? "multiple garments/products ensemble"
         : "garment/product";
@@ -939,10 +943,12 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
     
 DEFAULT POSE: If no specific pose is provided, use natural, product-focused poses.  
 POSE RULES: 
-- Prefer mostly front-facing or slightly angled stances, but never hide garment details.  
-- Keep both hands outside pockets; avoid poses that cover logos, prints, or seams.  
-- Posture should remain relaxed and photogenic, but garment visibility is always priority.  
-IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remain clearly visible.
+- PRIORITY: Keep the ${garmentText} oriented toward the camera so the entire design stays open and unobstructed. A straight-on stance or a subtle angle toward the lens (only if every key detail remains visible) is acceptable.  
+- Avoid dramatic side profiles, over-the-shoulder turns, or poses that hide large sections of the ${garmentText} from the lens.  
+- Encourage a confident, editorial pose that still keeps the torso presented to the camera; slight dynamic twists are fine as long as seams, closures, and logos remain clear.  
+- Keep both hands away from pockets or positions that would cover prints, trims, or construction details.  
+- Maintain a polished posture and engaged expression (toward the camera or slightly off-camera) that highlights the product professionally.  
+IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remain fully visible and well lit.
 
 
     - Best showcase ${
@@ -987,7 +993,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
           isMultipleProducts ? "çoklu ürün ensembline" : "kıyafete"
         } uygun poz önerilecek`
       );
-    } else if (poseImage) {
+    } else if (hasPoseImage) {
       posePromptSection = `
     
     POSE REFERENCE: A pose reference image has been provided to show the desired body position and posture for the ${baseModelText}. Please analyze this pose image carefully and incorporate the exact body positioning, hand placement, stance, facial expression, and overall posture into your enhanced prompt. The ${baseModelText} should adopt this specific pose naturally and convincingly${
@@ -997,7 +1003,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
       }.`;
 
       console.log("🤸 [GEMINI] Pose prompt section eklendi");
-    } else if (settings?.pose) {
+    } else if (hasPoseText) {
       // Check if we have a detailed pose description (from our new Gemini pose system)
       const poseNameForPrompt = sanitizePoseText(settings.pose);
       let detailedPoseDescription = null;
