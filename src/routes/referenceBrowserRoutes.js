@@ -1072,9 +1072,6 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
 
     // Eğer perspective seçilmemişse, Gemini'ye kıyafete uygun perspektif önerisi yap
     if (!settings?.perspective) {
-      const garmentText = isMultipleProducts
-        ? "multiple products ensemble"
-        : "garment/product";
       perspectivePromptSection = `
     
     - Best capture ${
@@ -1218,7 +1215,8 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
 
     // Gemini'ye gönderilecek metin - güvenli flag-safe versiyon
     const criticalDirectives = `
-    BRAND SAFETY: If the input image contains any brand names or logos (e.g., Nike, Adidas, Prada, Gucci, Louis Vuitton, Chanel, Balenciaga, Versace, Dior, Hermès), please refer to them generically (e.g., "brand label", "logo") without naming the specific brand.`;
+    BRAND SAFETY: If the input image contains any brand names or logos (e.g., Nike, Adidas, Prada, Gucci, Louis Vuitton, Chanel, Balenciaga, Versace, Dior, Hermès), please refer to them generically (e.g., "brand label", "logo") without naming the specific brand.
+    ACCESSORY PRESENTATION: When the hero item is footwear, a handbag, backpack, small leather good, hat, watch, jewelry, eyewear, belt, or any similar fashion accessory, explicitly require modern fashion campaign posing and camera angles that hero the accessory. Specify refined hand/foot/head placement, keep every design detail fully visible, and reference popular e-commerce hero perspectives (runway footwear angles, wrist-level watch close-ups, eye-line eyewear framing, handbag-on-hip hero shot, etc.) while maintaining premium fashion styling.`;
 
     // Flux Max için genel garment transform talimatları (güvenli flag-safe versiyon)
     const fluxMaxGarmentTransformationDirectives = `
