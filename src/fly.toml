@@ -7,10 +7,10 @@ primary_region = "fra"
 
 [env]
   NODE_ENV = "production"
-  PORT = "3001"   # Fly UI’de verdiğin PORT ile eşleşsin
+  PORT = "3000"   # Fly UI’de verdiğin PORT ile eşleşsin
 
 [[services]]
-  internal_port = 3001
+  internal_port = 3000
   protocol = "tcp"
 
   [[services.ports]]
