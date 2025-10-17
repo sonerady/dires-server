@@ -7,7 +7,7 @@ primary_region = "fra"
 
 [env]
   NODE_ENV = "production"
-  PORT = "3000"
+  PORT = "3000"   # Fly UI’de verdiğin PORT ile eşleşsin
 
 [[services]]
   internal_port = 3000
@@ -16,7 +16,6 @@ primary_region = "fra"
   [[services.ports]]
     port = 80
     handlers = ["http"]
-
   [[services.ports]]
     port = 443
     handlers = ["tls", "http"]
