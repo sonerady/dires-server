@@ -1,11 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const Replicate = require("replicate");
+const axios = require("axios");
 const supabase = require("../supabaseClient");
 
-const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN,
-});
+const REPLICATE_ENDPOINT =
+  "https://api.replicate.com/v1/models/philz1337x/crystal-upscaler/predictions";
 
 router.post("/", async (req, res) => {
   const CREDIT_COST = 5; // Image enhancement için kredi maliyeti
@@ -98,22 +97,36 @@ router.post("/", async (req, res) => {
     }
 
     console.log("2. Starting Replicate API call...");
-    const replicateResponse = await replicate.run("bria/increase-resolution", {
-      input: {
-        sync: true,
-        image: imageUrl,
-        preserve_alpha: preserveAlpha,
-        desired_increase: scale,
-        content_moderation: contentModeration,
+    const replicateResponse = await axios.post(
+      REPLICATE_ENDPOINT,
+      {
+        input: {
+          image: imageUrl,
+          scale_factor: Number(scale) || 2,
+        },
       },
-    });
-    console.log("3. Replicate API response:", replicateResponse);
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+          "Content-Type": "application/json",
+          Prefer: "wait",
+        },
+      }
+    );
+    console.log("3. Replicate API response:", replicateResponse.data);
+
+    const { status, output } = replicateResponse.data || {};
+    if (status !== "succeeded") {
+      throw new Error(
+        `Replicate enhancement failed with status: ${status || "unknown"}`
+      );
+    }
 
     const response = {
       success: true,
       input: imageUrl,
-      output: replicateResponse,
-      enhancedImageUrl: replicateResponse.output,
+      output,
+      enhancedImageUrl: Array.isArray(output) ? output[0] : output,
     };
     console.log("4. Sending response to client:", response);
 
