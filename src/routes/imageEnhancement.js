@@ -1,14 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const Replicate = require("replicate");
+const axios = require("axios");
 const supabase = require("../supabaseClient");
 
-const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN,
-});
+const REPLICATE_ENDPOINT =
+  "https://api.replicate.com/v1/models/philz1337x/crystal-upscaler/predictions";
 
 router.post("/", async (req, res) => {
-  const CREDIT_COST = 5; // Image enhancement için kredi maliyeti
+  const CREDIT_COST = 10; // Image enhancement için kredi maliyeti
   let creditDeducted = false;
   let userId;
 
@@ -98,22 +97,83 @@ router.post("/", async (req, res) => {
     }
 
     console.log("2. Starting Replicate API call...");
-    const replicateResponse = await replicate.run("bria/increase-resolution", {
-      input: {
-        sync: true,
-        image: imageUrl,
-        preserve_alpha: preserveAlpha,
-        desired_increase: scale,
-        content_moderation: contentModeration,
+    const replicateResponse = await axios.post(
+      REPLICATE_ENDPOINT,
+      {
+        input: {
+          image: imageUrl,
+          scale_factor: Number(scale) || 2,
+        },
       },
-    });
-    console.log("3. Replicate API response:", replicateResponse);
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+          "Content-Type": "application/json",
+          Prefer: "wait",
+        },
+      }
+    );
+    console.log("3. Replicate API response:", replicateResponse.data);
+
+    let { status, output, urls } = replicateResponse.data || {};
+
+    // Replicate bazen "Prefer: wait" header'ına rağmen işlemi async başlatabiliyor.
+    // Bu durumda status "starting" veya "processing" olarak gelebilir.
+    if (
+      urls?.get &&
+      status &&
+      ["starting", "processing"].includes(status.toLowerCase())
+    ) {
+      console.log(
+        `⚙️ Replicate prediction ${status}, polling until completion...`
+      );
+
+      const maxAttempts = 30; // ~60 saniye (30 x 2s)
+      const pollInterval = 2000;
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, pollInterval));
+
+        const pollResponse = await axios.get(urls.get, {
+          headers: {
+            Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        status = pollResponse.data?.status || status;
+        output = pollResponse.data?.output || output;
+
+        console.log(
+          `🔄 Poll attempt ${attempt}: status=${status}, hasOutput=${
+            pollResponse.data?.output ? "yes" : "no"
+          }`
+        );
+
+        if (status === "succeeded") {
+          break;
+        }
+
+        if (["failed", "canceled"].includes(status)) {
+          throw new Error(`Replicate enhancement failed with status: ${status}`);
+        }
+      }
+    }
+
+    if (status !== "succeeded") {
+      throw new Error(
+        `Replicate enhancement failed with status: ${status || "unknown"}`
+      );
+    }
+
+    const normalizedOutput = Array.isArray(output) ? output[0] : output;
 
     const response = {
       success: true,
       input: imageUrl,
-      output: replicateResponse,
-      enhancedImageUrl: replicateResponse.output,
+      output: normalizedOutput,
+      rawOutput: output,
+      enhancedImageUrl: normalizedOutput,
     };
     console.log("4. Sending response to client:", response);
 

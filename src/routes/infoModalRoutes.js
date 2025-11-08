@@ -28,9 +28,15 @@ router.get("/info-modal/check/:userId", async (req, res) => {
 
     if (modalsError) {
       console.error("❌ Info Modal - Supabase hatası:", modalsError);
-      return res.status(500).json({
+      const statusCode = modalsError?.message?.includes("fetch failed")
+        ? 503
+        : 500;
+      return res.status(statusCode).json({
         success: false,
-        message: "Database error",
+        message:
+          statusCode === 503
+            ? "Database temporarily unavailable"
+            : "Database error",
         error: modalsError.message,
       });
     }
@@ -118,9 +124,15 @@ router.get("/info-modal/check/:userId", async (req, res) => {
 
     if (interactionsError) {
       console.error("❌ Info Modal - Interactions hatası:", interactionsError);
-      return res.status(500).json({
+      const statusCode = interactionsError?.message?.includes("fetch failed")
+        ? 503
+        : 500;
+      return res.status(statusCode).json({
         success: false,
-        message: "Database error",
+        message:
+          statusCode === 503
+            ? "Database temporarily unavailable"
+            : "Database error",
         error: interactionsError.message,
       });
     }

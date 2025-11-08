@@ -1038,17 +1038,47 @@ router.get("/user-models/:userId", async (req, res) => {
       });
     }
 
-    const { data, error } = await supabase
-      .from("user_models")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("status", "completed")
-      .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1);
+    let data;
+    try {
+      const result = await supabase
+        .from("user_models")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("status", "completed")
+        .order("created_at", { ascending: false })
+        .range(offset, offset + limit - 1);
 
-    if (error) {
-      console.error("Supabase user models fetch hatası:", error);
-      throw error;
+      if (result.error) {
+        console.error("Supabase user models fetch hatası:", result.error);
+        const statusCode = result.error.message?.includes("fetch failed")
+          ? 503
+          : 500;
+        return res.status(statusCode).json({
+          success: false,
+          error:
+            statusCode === 503
+              ? "Database temporarily unavailable"
+              : "User models getirilemedi",
+          details: result.error.message,
+        });
+      }
+
+      data = result.data;
+    } catch (fetchError) {
+      console.error(
+        "Supabase user models fetch sırasında beklenmeyen hata:",
+        fetchError
+      );
+      const statusCode =
+        fetchError?.message?.includes("fetch failed") ? 503 : 500;
+      return res.status(statusCode).json({
+        success: false,
+        error:
+          statusCode === 503
+            ? "Database temporarily unavailable"
+            : "User models getirilemedi",
+        details: fetchError?.message,
+      });
     }
 
     console.log("✅ User models found:", data?.length || 0);
