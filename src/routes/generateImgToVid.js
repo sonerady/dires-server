@@ -33,7 +33,7 @@ async function generateVideoPrompt(imageUrl, userPrompt) {
     console.log("Gemini ile video prompt oluşturma başlatılıyor");
 
     // Gemini modeli
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
     // Gemini'ye gönderilecek metin
     const promptForGemini = `

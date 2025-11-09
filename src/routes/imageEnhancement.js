@@ -7,7 +7,7 @@ const REPLICATE_ENDPOINT =
   "https://api.replicate.com/v1/models/philz1337x/crystal-upscaler/predictions";
 
 router.post("/", async (req, res) => {
-  const CREDIT_COST = 10; // Image enhancement için kredi maliyeti
+  const CREDIT_COST = 5; // Image enhancement için kredi maliyeti
   let creditDeducted = false;
   let userId;
 
@@ -37,7 +37,7 @@ router.post("/", async (req, res) => {
     // Kredi kontrolü ve düşme
     if (userId && userId !== "anonymous_user") {
       try {
-        console.log("💰 Kredi kontrolü yapılıyor...");
+        console.log("💰 [BACKEND] Kredi kontrolü yapılıyor, userId:", userId);
 
         const { data: userCredit, error: creditError } = await supabase
           .from("users")
@@ -46,7 +46,7 @@ router.post("/", async (req, res) => {
           .single();
 
         if (creditError) {
-          console.error("❌ Kredi sorgulama hatası:", creditError);
+          console.error("❌ [BACKEND] Kredi sorgulama hatası:", creditError);
           return res.status(500).json({
             success: false,
             error: "Kredi bilgisi alınamadı",
@@ -55,10 +55,15 @@ router.post("/", async (req, res) => {
 
         const currentCredit = userCredit?.credit_balance || 0;
         console.log(
-          `💳 Mevcut kredi: ${currentCredit}, gerekli: ${CREDIT_COST}`
+          `💳 [BACKEND] Mevcut kredi: ${currentCredit}, gerekli: ${CREDIT_COST}, Yeterli mi? ${
+            currentCredit >= CREDIT_COST ? "EVET ✅" : "HAYIR ❌"
+          }`
         );
 
         if (currentCredit < CREDIT_COST) {
+          console.log(
+            `❌ [BACKEND] Kredi yetersiz! ${currentCredit} < ${CREDIT_COST}, 402 dönüyor`
+          );
           return res.status(402).json({
             success: false,
             error: "Yetersiz kredi",
@@ -66,6 +71,10 @@ router.post("/", async (req, res) => {
             currentCredit: currentCredit,
           });
         }
+
+        console.log(
+          `✅ [BACKEND] Kredi yeterli! ${currentCredit} >= ${CREDIT_COST}, devam ediliyor...`
+        );
 
         // Krediyi düş
         const { error: updateError } = await supabase
@@ -155,7 +164,9 @@ router.post("/", async (req, res) => {
         }
 
         if (["failed", "canceled"].includes(status)) {
-          throw new Error(`Replicate enhancement failed with status: ${status}`);
+          throw new Error(
+            `Replicate enhancement failed with status: ${status}`
+          );
         }
       }
     }
@@ -179,15 +190,19 @@ router.post("/", async (req, res) => {
 
     res.json(response);
   } catch (error) {
-    console.error("Image enhancement error details:", {
+    console.error("❌ [BACKEND] Image enhancement error details:", {
       message: error.message,
       stack: error.stack,
       response: error.response?.data,
+      errorType: error.constructor.name,
     });
 
     // Hata durumunda kredi iade et
     if (creditDeducted && userId && userId !== "anonymous_user") {
       try {
+        console.log(
+          `💰 [BACKEND] Kredi iade ediliyor, userId: ${userId}, amount: ${CREDIT_COST}`
+        );
         const { data: currentUserCredit } = await supabase
           .from("users")
           .select("credit_balance")
@@ -202,15 +217,26 @@ router.post("/", async (req, res) => {
           })
           .eq("id", userId);
 
-        console.log(`💰 ${CREDIT_COST} kredi iade edildi (hata nedeniyle)`);
+        console.log(
+          `✅ [BACKEND] ${CREDIT_COST} kredi iade edildi (hata nedeniyle)`
+        );
       } catch (refundError) {
-        console.error("❌ Kredi iade hatası:", refundError);
+        console.error("❌ [BACKEND] Kredi iade hatası:", refundError);
       }
+    } else {
+      console.log(
+        `ℹ️ [BACKEND] Kredi iade edilmedi (creditDeducted: ${creditDeducted}, userId: ${userId})`
+      );
     }
 
+    console.log(
+      `❌ [BACKEND] 500 hatası dönüyor (Paywall AÇILMAMALI!):`,
+      error.message
+    );
     res.status(500).json({
       success: false,
       error: "Failed to enhance image",
+      errorMessage: error.message,
     });
   }
 });

@@ -883,7 +883,7 @@ async function enhancePromptWithGemini(
     console.log("🔄 [GEMINI] Back side analysis mode:", isBackSideAnalysis);
 
     // Gemini 2.0 Flash modeli - Yeni SDK
-    const model = "gemini-2.5-flash-lite";
+    const model = "gemini-2.5-flash";
 
     // Settings'in var olup olmadığını kontrol et
     const hasValidSettings =
@@ -1182,12 +1182,12 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
       }
 
       if (detailedPoseDescription) {
-        const cleanedPoseDescription = sanitizePoseText(detailedPoseDescription);
+        const cleanedPoseDescription = sanitizePoseText(
+          detailedPoseDescription
+        );
         posePromptSection = `
     
-    DETAILED POSE INSTRUCTION: The user has selected the pose "${
-      poseNameForPrompt
-    }". Use this detailed pose instruction for the ${baseModelText}:
+    DETAILED POSE INSTRUCTION: The user has selected the pose "${poseNameForPrompt}". Use this detailed pose instruction for the ${baseModelText}:
     
     "${cleanedPoseDescription}"
     
@@ -1204,9 +1204,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
         // Fallback to simple pose mention
         posePromptSection = `
     
-    SPECIFIC POSE REQUIREMENT: The user has selected a specific pose: "${
-      poseNameForPrompt
-    }". Please ensure the ${baseModelText} adopts this pose while maintaining natural movement and ensuring the pose complements ${
+    SPECIFIC POSE REQUIREMENT: The user has selected a specific pose: "${poseNameForPrompt}". Please ensure the ${baseModelText} adopts this pose while maintaining natural movement and ensuring the pose complements ${
           isMultipleProducts
             ? "all products in the ensemble being showcased"
             : "the garment being showcased"
@@ -2219,7 +2217,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
 
     // Gemini'den cevap al (retry mekanizması ile) - Yeni API
     let enhancedPrompt;
-    const maxRetries = 10;
+    const maxRetries = 2;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -3634,14 +3632,17 @@ router.post("/generate", async (req, res) => {
 
         // Pose change için sadece model fotoğrafını Gemini'ye gönder
         let modelImageForGemini;
-        if (modelReferenceImage && (modelReferenceImage.uri || modelReferenceImage.url)) {
+        if (
+          modelReferenceImage &&
+          (modelReferenceImage.uri || modelReferenceImage.url)
+        ) {
           modelImageForGemini = sanitizeImageUrl(
             modelReferenceImage.uri || modelReferenceImage.url
           );
         } else if (referenceImages && referenceImages.length > 0) {
           const firstReference = referenceImages[0];
           modelImageForGemini = sanitizeImageUrl(
-            (firstReference && (firstReference.uri || firstReference.url))
+            firstReference && (firstReference.uri || firstReference.url)
               ? firstReference.uri || firstReference.url
               : firstReference
           );
@@ -4809,7 +4810,7 @@ async function generatePoseDescriptionWithGemini(
     console.log("🤸 Garment type:", garmentType);
 
     // Gemini 2.0 Flash modeli - Yeni SDK
-    const model = "gemini-2.5-flash-lite";
+    const model = "gemini-2.5-flash";
 
     // Gender mapping
     const modelGenderText =
