@@ -71,7 +71,7 @@ async function generateEnhancedPrompt(
   generationConfig = {}
 ) {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     // Create the prompt request with two parts: product details and photo enhancement instructions
     const promptRequest = {
@@ -247,7 +247,7 @@ router.post("/gemini-process", upload.single("image"), async (req, res) => {
         // First, send the image to Gemini 1.5 Flash to generate a prompt
         console.log("Gemini 1.5 Flash ile prompt oluşturuluyor...");
         const promptModel = genAI.getGenerativeModel({
-          model: "gemini-2.5-flash-lite",
+          model: "gemini-2.5-flash",
         });
 
         // Get the user description from request body
@@ -370,7 +370,7 @@ Your response must be ONLY the prompt itself with no additional commentary or in
 
         // Now, use the generated prompt to process the image with Gemini 2.0 Flash
         const model = genAI.getGenerativeModel({
-          model: "gemini-2.5-flash-lite",
+          model: "gemini-2.5-flash",
           generationConfig: {
             responseModalities: ["Text", "Image"],
             temperature: 1,
