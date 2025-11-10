@@ -851,1974 +851,246 @@ async function enhancePromptWithGemini(
   originalPrompt,
   imageUrl,
   settings = {},
-  locationImage,
-  poseImage,
-  hairStyleImage,
   isMultipleProducts = false,
-  isColorChange = false, // Renk değiştirme mi?
-  targetColor = null, // Hedef renk
-  isPoseChange = false, // Poz değiştirme mi?
-  customDetail = null, // Özel detay
-  isEditMode = false, // EditScreen modu mu?
-  editPrompt = null, // EditScreen'den gelen prompt
-  isRefinerMode = false, // RefinerScreen modu mu?
-  isBackSideAnalysis = false, // Arka taraf analizi modu mu?
-  referenceImages = null, // Back side analysis için 2 resim
-  isMultipleImages = false // Çoklu resim modu mu?
+  isColorChange = false,
+  targetColor = null,
+  isEditMode = false,
+  editPrompt = null,
+  isRefinerMode = false,
+  referenceImages = null
 ) {
   try {
     console.log(
-      "🤖 Gemini 2.0 Flash ile prompt iyileştirme başlatılıyor (tek resim için)"
+      "💎 Gemini 2.5 Flash ile jewelry prompt iyileştirme başlatılıyor"
     );
-    console.log("🏞️ [GEMINI] Location image parametresi:", locationImage);
-    console.log("🤸 [GEMINI] Pose image parametresi:", poseImage);
-    console.log("💇 [GEMINI] Hair style image parametresi:", hairStyleImage);
-    console.log("🛍️ [GEMINI] Multiple products mode:", isMultipleProducts);
-    console.log("🎨 [GEMINI] ControlNet direktifi her zaman aktif");
-    console.log("🎨 [GEMINI] Color change mode:", isColorChange);
-    console.log("🎨 [GEMINI] Target color:", targetColor);
-    console.log("✏️ [GEMINI] Edit mode:", isEditMode);
-    console.log("✏️ [GEMINI] Edit prompt:", editPrompt);
-    console.log("🔧 [GEMINI] Refiner mode:", isRefinerMode);
-    console.log("🔄 [GEMINI] Back side analysis mode:", isBackSideAnalysis);
 
-    // Gemini 2.0 Flash modeli - Yeni SDK
     const model = "gemini-2.5-flash";
-
-    // Settings'in var olup olmadığını kontrol et
     const hasValidSettings =
       settings &&
       Object.entries(settings).some(
-        ([key, value]) => value !== null && value !== undefined && value !== ""
+        ([k, v]) => v !== null && v !== undefined && v !== ""
       );
 
-    console.log("🎛️ [BACKEND GEMINI] Settings kontrolü:", hasValidSettings);
+    console.log("🎛️ Jewelry Settings kontrolü:", hasValidSettings);
 
-    // Cinsiyet belirleme - varsayılan olarak kadın
-    const gender = settings?.gender || "female";
-    const age = settings?.age || "";
-    const parsedAgeInt = parseInt(age, 10);
+    // Jewelry için genel güvenli yönergeler
+    const jewelryDirectives = `
+JEWELRY RETOUCHING & PHOTOGRAPHY STANDARDS (MANDATORY):
+- Always describe the item as a jewelry product (ring, earring, necklace, bracelet, watch, etc.)
+- If multiple items are shown, treat them as a coordinated high-end jewelry collection.
+- Remove all imperfections such as dust, scratches, fingerprints, or smudges.
+- Polish gemstones and metal surfaces to a flawless, mirror-like brilliance.
+- Maintain true-to-life color accuracy and realistic reflections.
+- Ensure sharp focus on the main jewelry piece; background slightly softened for depth.
+- Lighting must simulate luxury macro studio photography — bright, soft, diffused light with professional highlights and controlled shadows.
+- Avoid artificial glow, exaggerated shine, or over-saturation.
+- The result must look like a real professional jewelry catalog photo for luxury retail or e-commerce.
+- Maintain natural reflections, realistic shadow fall, and perfect symmetry alignment.
+- Never include models, hands, mannequins, or body parts unless explicitly shown in the reference image.
+- Focus only on the jewelry itself — clarity, brilliance, detail, precision.
+`;
 
-    // Gender mapping'ini düzelt - hem man/woman hem de male/female değerlerini handle et
-    let modelGenderText;
-    let baseModelText;
-    const genderLower = gender.toLowerCase();
-
-    // Yaş grupları tanımlaması
-    // 0-1   : baby (infant)
-    // 2-3   : toddler
-    // 4-12  : child
-    // 13-16 : teenage
-    // 17+   : adult
-
-    if (!isNaN(parsedAgeInt) && parsedAgeInt <= 3) {
-      // Baby/Toddler
-      let ageGroupWord;
-      if (parsedAgeInt <= 1) {
-        ageGroupWord = "baby"; // 0-1 yaş için baby
-      } else {
-        ageGroupWord = "toddler"; // 2-3 yaş için toddler
-      }
-      const genderWord =
-        genderLower === "male" || genderLower === "man" ? "boy" : "girl";
-
-      if (parsedAgeInt <= 1) {
-        // Baby için daha spesifik tanım
-        modelGenderText = `${parsedAgeInt}-year-old ${ageGroupWord} ${genderWord} (infant)`;
-        baseModelText = `${ageGroupWord} ${genderWord} (infant)`;
-      } else {
-        modelGenderText = `${parsedAgeInt} year old ${ageGroupWord} ${genderWord}`;
-        baseModelText = `${ageGroupWord} ${genderWord}`;
-      }
-    } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
-      // Child
-      const ageGroupWord = "child";
-      const genderWord =
-        genderLower === "male" || genderLower === "man" ? "boy" : "girl";
-      modelGenderText = `${parsedAgeInt} year old ${ageGroupWord} ${genderWord}`;
-      baseModelText = `${ageGroupWord} ${genderWord}`;
-    } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
-      // Teenage
-      const ageGroupWord = "teenage";
-      const genderWord =
-        genderLower === "male" || genderLower === "man" ? "boy" : "girl";
-      modelGenderText = `${parsedAgeInt} year old ${ageGroupWord} ${genderWord}`;
-      baseModelText = `${ageGroupWord} ${genderWord}`;
-    } else {
-      // Yetişkin mantığı - güvenli flag-safe tanımlar
-      if (genderLower === "male" || genderLower === "man") {
-        modelGenderText = "adult male model";
-      } else if (genderLower === "female" || genderLower === "woman") {
-        modelGenderText = "adult female model with confident expression";
-      } else {
-        modelGenderText = "adult female model with confident expression"; // varsayılan
-      }
-      baseModelText = modelGenderText; // age'siz sürüm
-
-      // Eğer yaş bilgisini yetişkinlerde kullanmak istersen
-      if (age) {
-        modelGenderText =
-          genderLower === "male" || genderLower === "man"
-            ? `${age} year old adult male model`
-            : `${age} year old adult female model with confident expression`;
-      }
-    }
-
-    console.log("👤 [GEMINI] Gelen gender ayarı:", gender);
-    console.log("👶 [GEMINI] Gelen age ayarı:", age);
-    console.log("👤 [GEMINI] Base model türü:", baseModelText);
-    console.log("👤 [GEMINI] Age'li model türü:", modelGenderText);
-
-    // Age specification - use client's age info naturally but limited
-    let ageSection = "";
-    if (age) {
-      console.log("👶 [GEMINI] Yaş bilgisi tespit edildi:", age);
-
-      ageSection = `
-    AGE SPECIFICATION:
-    The user provided age information is "${age}". IMPORTANT: Mention this age information EXACTLY 2 times in your entire prompt — once when first introducing the model, and once more naturally later in the description. Do not mention the age a third time.`;
-    }
-
-    // Yaş grupları için basit ve güvenli prompt yönlendirmesi
-    let childPromptSection = "";
-    const parsedAge = parseInt(age, 10);
-    if (!isNaN(parsedAge) && parsedAge <= 16) {
-      if (parsedAge <= 3) {
-        // Baby/Toddler - çok basit
-        childPromptSection = `
-Age-appropriate modeling for young child (${parsedAge} years old). Natural, comfortable poses suitable for children's fashion photography.`;
-      } else {
-        // Child/teenage - sadece temel kurallar
-        childPromptSection = `
-Child model (${parsedAge} years old). Use age-appropriate poses and expressions suitable for children's fashion photography. Keep styling natural and comfortable.`;
-      }
-    }
-
-    // Body shape measurements handling
-    let bodyShapeMeasurementsSection = "";
-    if (settings?.type === "custom_measurements" && settings?.measurements) {
-      const { bust, waist, hips, height, weight } = settings.measurements;
-      console.log(
-        "📏 [BACKEND GEMINI] Custom body measurements alındı:",
-        settings.measurements
-      );
-
-      bodyShapeMeasurementsSection = `
-    
-    CUSTOM BODY MEASUREMENTS PROVIDED:
-    The user has provided custom body measurements for the ${baseModelText}:
-    - Bust: ${bust} cm
-    - Waist: ${waist} cm  
-    - Hips: ${hips} cm
-    ${height ? `- Height: ${height} cm` : ""}
-    ${weight ? `- Weight: ${weight} kg` : ""}
-    
-    IMPORTANT: Use these exact measurements to ensure the ${baseModelText} has realistic body proportions that match the provided measurements. The garment should fit naturally on a body with these specific measurements. Consider how the garment would drape and fit on someone with these proportions. The model's body should reflect these measurements in a natural and proportional way.`;
-
-      console.log("📏 [BACKEND GEMINI] Body measurements section oluşturuldu");
-    }
-
-    let settingsPromptSection = "";
-
-    if (hasValidSettings) {
-      const settingsText = Object.entries(settings)
-        .filter(
-          ([key, value]) =>
-            value !== null &&
-            value !== undefined &&
-            value !== "" &&
-            key !== "measurements" &&
-            key !== "type" &&
-            key !== "locationEnhancedPrompt" // Enhanced prompt'u settings text'inden hariç tut
-        )
-        .map(([key, value]) => `${key}: ${value}`)
-        .join(", ");
-
-      console.log("🎛️ [BACKEND GEMINI] Settings için prompt oluşturuluyor...");
-      console.log("📝 [BACKEND GEMINI] Settings text:", settingsText);
-      console.log(
-        "🏞️ [BACKEND GEMINI] Location enhanced prompt:",
-        settings?.locationEnhancedPrompt
-      );
-      console.log("🎨 [BACKEND GEMINI] Product color:", settings?.productColor);
-
-      settingsPromptSection = `
-    User selected settings: ${settingsText}
-    
-    SETTINGS DETAIL FOR BETTER PROMPT CREATION:
-    ${Object.entries(settings)
-      .filter(
-        ([key, value]) =>
-          value !== null &&
-          value !== undefined &&
-          value !== "" &&
-          key !== "measurements" &&
-          key !== "type" &&
-          key !== "locationEnhancedPrompt" // Enhanced prompt'u detay listesinden hariç tut
-      )
-      .map(
-        ([key, value]) =>
-          `- ${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
-      )
-      .join("\n    ")}${
-        settings?.locationEnhancedPrompt &&
-        settings.locationEnhancedPrompt.trim()
-          ? `\n    \n    SPECIAL LOCATION DESCRIPTION:\n    User has provided a detailed location description: "${settings.locationEnhancedPrompt}"\n    IMPORTANT: Use this exact location description for the environment setting instead of a generic location name.`
-          : ""
-      }${
-        settings?.productColor && settings.productColor !== "original"
-          ? `\n    \n    🎨 PRODUCT COLOR REQUIREMENT:\n    The user has specifically selected "${settings.productColor}" as the product color. CRITICAL: Ensure the garment/product appears in ${settings.productColor} color in the final image. This color selection must be prominently featured and accurately represented.`
-          : ""
-      }
-    
-    IMPORTANT: Please incorporate ALL user settings above into your description when appropriate.${
-      settings?.productColor && settings.productColor !== "original"
-        ? ` Pay special attention to the product color requirement - the garment must be ${settings.productColor}.`
-        : ""
-    }`;
-    }
-
-    // Pose ve perspective için akıllı öneri sistemi - JEWELRY FOCUSED
-    let posePromptSection = "";
-    let perspectivePromptSection = "";
-
-    const hasPoseText =
-      typeof settings?.pose === "string" && settings.pose.trim().length > 0;
-    const hasPoseImage = Boolean(poseImage);
-
-    // Pose handling - JEWELRY FOCUSED with detailed descriptions
-    if (!hasPoseText && !hasPoseImage) {
-      const jewelryText = isMultipleProducts
-        ? "multiple jewelry pieces ensemble"
-        : "jewelry piece";
-      posePromptSection = `
-    
-DEFAULT POSE FOR JEWELRY PHOTOGRAPHY: If no specific pose is provided, use natural poses that showcase jewelry pieces effectively, inspired by popular jewelry photography styles.
-POSE RULES FOR JEWELRY: 
-- PRIORITY: Position the model so the jewelry piece is prominently displayed and fully visible. The pose should naturally showcase the jewelry piece based on where it is worn on the body.
-- Use poses inspired by popular jewelry photography campaigns: elegant head tilts, gentle hand gestures, subtle shoulder turns, wrist-forward positions, and other poses that highlight jewelry effectively.
-- Avoid poses that hide or obscure the jewelry piece. Keep hands and body positioning natural while ensuring the jewelry remains the focal point.
-- Maintain a polished, elegant posture that complements luxury jewelry presentation. The pose should feel natural yet refined, suitable for high-end jewelry catalogs.
-- Facial expression should be confident and elegant, with eyes directed toward camera or slightly off-camera for a sophisticated look.
-IMPORTANT: Ensure jewelry details (gemstones, metal finish, clasps, settings, engravings) remain fully visible and well lit. The jewelry should be the hero of the image.
-
-
-    - Best showcase ${
-      isMultipleProducts
-        ? "all jewelry pieces in the ensemble and their coordination"
-        : "the jewelry piece's design, craftsmanship, and unique details"
-    }
-    - Highlight ${
-      isMultipleProducts
-        ? "how the jewelry pieces work together and each piece's unique selling points"
-        : "the jewelry piece's unique features, gemstones, metal work, and design elements"
-    }
-    - Demonstrate how ${
-      isMultipleProducts
-        ? "different jewelry pieces complement each other when worn together"
-        : "the jewelry piece sits naturally on the model, following body contours"
-    }
-    - Show ${
-      isMultipleProducts
-        ? "how all jewelry pieces create an appealing coordinated look"
-        : "the jewelry piece's scale, proportion, and how it enhances the model's appearance"
-    }
-    - Match the style and aesthetic of ${
-      isMultipleProducts
-        ? "the coordinated jewelry ensemble (elegant, modern, vintage, minimalist, etc.)"
-        : "the jewelry piece (elegant, modern, vintage, minimalist, etc.)"
-    }
-    - Allow clear visibility of important jewelry elements ${
-      isMultipleProducts
-        ? "across all pieces"
-        : "like gemstones, metal details, clasps, settings, and engravings"
-    }
-    - Create an appealing and natural presentation that would be suitable for luxury jewelry commercial photography
-    ${
-      isMultipleProducts
-        ? "- Ensure each jewelry piece in the ensemble is visible and well-positioned\n    - Demonstrate the styling versatility of combining these jewelry pieces"
-        : ""
-    }
-    - Use camera angles and poses inspired by popular jewelry photography: close-up shots for detail, elegant full-body poses for overall presentation, and sophisticated editorial-style compositions.`;
-
-      console.log(
-        `💎 [GEMINI] Akıllı poz seçimi aktif - ${
-          isMultipleProducts ? "çoklu takı ensembline" : "takıya"
-        } uygun poz önerilecek`
-      );
-    } else if (hasPoseImage) {
-      posePromptSection = `
-    
-    POSE REFERENCE FOR JEWELRY: A pose reference image has been provided to show the desired body position and posture for the ${baseModelText} wearing jewelry, inspired by popular jewelry photography campaigns. Please analyze this pose image carefully and incorporate the exact body positioning, hand placement, stance, facial expression, and overall posture into your enhanced prompt. The ${baseModelText} should adopt this specific pose naturally and convincingly${
-        isMultipleProducts
-          ? ", ensuring all jewelry pieces in the ensemble remain clearly visible and well-positioned"
-          : ", ensuring the jewelry piece remains clearly visible and well-positioned"
-      }. Ensure the pose showcases the jewelry effectively, naturally highlighting the jewelry piece based on where it is worn on the body.`;
-
-      console.log("💎 [GEMINI] Jewelry pose prompt section eklendi");
-    } else if (hasPoseText) {
-      // Check if we have a detailed pose description (from our new Gemini pose system)
-      const poseNameForPrompt = sanitizePoseText(settings.pose);
-      let detailedPoseDescription = null;
-
-      // Try to get detailed pose description from Gemini
-      try {
-        console.log(
-          "🤸 [GEMINI] Pose için detaylı açıklama oluşturuluyor:",
-          settings.pose
-        );
-        detailedPoseDescription = await generatePoseDescriptionWithGemini(
-          poseNameForPrompt,
-          poseImage,
-          settings.gender || "female",
-          "jewelry"
-        );
-        console.log(
-          "🤸 [GEMINI] Detaylı pose açıklaması alındı:",
-          detailedPoseDescription
-        );
-      } catch (poseDescError) {
-        console.error("🤸 [GEMINI] Pose açıklaması hatası:", poseDescError);
-      }
-
-      if (detailedPoseDescription) {
-        const cleanedPoseDescription = sanitizePoseText(
-          detailedPoseDescription
-        );
-        posePromptSection = `
-    
-    DETAILED POSE INSTRUCTION FOR JEWELRY: The user has selected the pose "${poseNameForPrompt}". Use this detailed pose instruction for the ${baseModelText} wearing jewelry, inspired by popular jewelry photography campaigns:
-    
-    "${cleanedPoseDescription}"
-    
-    IMPORTANT: If the pose description above mentions any studio, backdrop, background, environment, or set, you must ignore those parts and instead describe and preserve the exact background that already exists in the provided model image.
-    
-    Ensure the ${baseModelText} follows this pose instruction precisely while maintaining natural movement and ensuring the pose complements ${
-          isMultipleProducts
-            ? "all jewelry pieces in the ensemble being showcased"
-            : "the jewelry piece being showcased"
-        }. The pose should enhance the presentation of the jewelry and create an appealing commercial jewelry photography composition, inspired by popular jewelry campaigns. Ensure the jewelry piece is clearly visible and naturally highlighted based on where it is worn on the body.`;
-
-        console.log("💎 [GEMINI] Detaylı jewelry pose açıklaması kullanılıyor");
-      } else {
-        // Fallback to simple pose mention - Jewelry odaklı
-        posePromptSection = `
-    
-    SPECIFIC POSE REQUIREMENT FOR JEWELRY: The user has selected a specific pose: "${poseNameForPrompt}". Please ensure the ${baseModelText} adopts this pose while maintaining natural movement and ensuring the pose complements ${
-          isMultipleProducts
-            ? "all jewelry pieces in the ensemble being showcased"
-            : "the jewelry piece being showcased"
-        }, inspired by popular jewelry photography campaigns. Ignore any background/backdrop/studio/environment directions that may be associated with that pose and always keep the original background from the input image unchanged and accurately described. Ensure the jewelry piece is clearly visible and naturally highlighted based on where it is worn on the body.`;
-
-        console.log(
-          "💎 [GEMINI] Basit jewelry pose açıklaması kullanılıyor (fallback)"
-        );
-      }
-
-      console.log(
-        "🤸 [GEMINI] Kullanıcı tarafından seçilen poz:",
-        settings.pose
-      );
-    }
-
-    // Eğer perspective seçilmemişse, Gemini'ye takıya uygun perspektif önerisi yap
-    if (!settings?.perspective) {
-      perspectivePromptSection = `
-    
-    JEWELRY PHOTOGRAPHY CAMERA ANGLES:
-    - Best capture ${
-      isMultipleProducts
-        ? "all jewelry pieces' most important design features and their coordination"
-        : "the jewelry piece's most important design features, gemstones, and craftsmanship details"
-    }
-    - Show ${
-      isMultipleProducts
-        ? "the craftsmanship quality and detail work of each jewelry piece"
-        : "the jewelry piece's craftsmanship quality, metal work, gemstone settings, and intricate details"
-    }
-    - Highlight ${
-      isMultipleProducts
-        ? "how all jewelry pieces work together and create a cohesive ensemble look"
-        : "how the jewelry piece enhances the model's appearance and sits naturally on the body"
-    }
-    - Create the most appealing and commercial-quality presentation ${
-      isMultipleProducts
-        ? "for the multi-piece jewelry styling"
-        : "inspired by popular jewelry photography campaigns"
-    }
-    - Match ${
-      isMultipleProducts
-        ? "the jewelry ensemble's style and intended market positioning (luxury, fashion, minimalist, etc.)"
-        : "the jewelry piece's style and intended market positioning (luxury, fashion, minimalist, etc.)"
-    }
-    - Use camera angles inspired by popular jewelry photography: close-up shots for detail work, elegant mid-shots for overall presentation, sophisticated full-body compositions for lifestyle jewelry photography
-    ${
-      isMultipleProducts
-        ? "- Ensure all jewelry pieces are visible and well-framed within the composition"
-        : "- Ensure the jewelry piece is the hero of the image with optimal lighting and focus"
-    }`;
-
-      console.log(
-        `💎 [GEMINI] Akıllı perspektif seçimi aktif - ${
-          isMultipleProducts ? "çoklu takı ensembline" : "takıya"
-        } uygun kamera açısı önerilecek`
-      );
-    } else {
-      perspectivePromptSection = `
-    
-    SPECIFIC CAMERA PERSPECTIVE: The user has selected a specific camera perspective: "${
-      settings.perspective
-    }". Please ensure the photography follows this perspective while maintaining professional composition and optimal ${
-        isMultipleProducts ? "multi-piece jewelry ensemble" : "jewelry piece"
-      } presentation, inspired by popular jewelry photography styles.`;
-
-      console.log(
-        "💎 [GEMINI] Kullanıcı tarafından seçilen perspektif:",
-        settings.perspective
-      );
-    }
-
-    // Location prompt section kaldırıldı - artık kullanılmıyor
-
-    // Hair style bilgisi için ek prompt section
-    let hairStylePromptSection = "";
-    if (hairStyleImage) {
-      hairStylePromptSection = `
-    
-    HAIR STYLE REFERENCE: A hair style reference image has been provided to show the desired hairstyle for the ${baseModelText}. Please analyze this hair style image carefully and incorporate the exact hair length, texture, cut, styling, and overall hair appearance into your enhanced prompt. The ${baseModelText} should have this specific hairstyle that complements ${
-        isMultipleProducts ? "the multi-product ensemble" : "the garment"
-      } and overall aesthetic.`;
-
-      console.log("💇 [GEMINI] Hair style prompt section eklendi");
-    }
-
-    // Location image bilgisi için ek prompt section
-    let locationPromptSection = "";
-    if (locationImage) {
-      locationPromptSection = `
-    
-    LOCATION ENVIRONMENT REFERENCE: A location reference image has been provided to show the desired environment and setting for the fashion photography. Please analyze this location image carefully and create a detailed, comprehensive environment description that includes:
-
-    ENVIRONMENT ANALYSIS REQUIREMENTS:
-    - Analyze the architectural elements, lighting conditions, and atmospheric details visible in the location image
-    - Identify the specific type of environment (indoor/outdoor, studio, urban, natural, etc.)
-    - Describe the lighting characteristics (natural light, artificial lighting, time of day, etc.)
-    - Note any distinctive features, textures, colors, and mood of the location
-    - Identify any props, furniture, or environmental elements that could enhance the fashion shoot
-    - Consider how the environment complements the garment and overall aesthetic
-
-    DETAILED ENVIRONMENT DESCRIPTION:
-    Create a rich, detailed description of the environment that will serve as the backdrop for the fashion photography. Include specific details about:
-    - The physical space and its characteristics
-    - Lighting setup and mood
-    - Color palette and atmosphere
-    - Any distinctive architectural or design elements
-    - How the environment enhances the garment presentation
-    - Professional photography considerations for this specific location
-
-    The environment description should be detailed enough to guide the AI image generation model in creating a photorealistic, professional fashion photograph that seamlessly integrates the model and garment into this specific location setting.`;
-
-      console.log("🏞️ [GEMINI] Location prompt section eklendi");
-    }
-
-    // Text-based hair style requirement if user selected hairStyle string
-    let hairStyleTextSection = "";
-    if (settings?.hairStyle) {
-      hairStyleTextSection = `
-    
-    SPECIFIC HAIR STYLE REQUIREMENT: The user has selected a specific hair style: "${settings.hairStyle}". Please ensure the ${baseModelText} is styled with this exact hair style, matching its length, texture and overall look naturally.`;
-      console.log(
-        "💇 [GEMINI] Hair style text section eklendi:",
-        settings.hairStyle
-      );
-    }
-
-    // Dinamik yüz tanımı - çeşitlilik için
-    const faceDescriptorsAdult = [
-      "soft angular jawline with friendly eyes",
-      "gentle oval face and subtle dimples",
-      "defined cheekbones with warm smile",
-      "rounded face with expressive eyebrows",
-      "heart-shaped face and bright eyes",
-      "slightly sharp chin and relaxed expression",
-      "broad forehead with calm gaze",
-    ];
-    const faceDescriptorsChild = [
-      "round cheeks and bright curious eyes",
-      "button nose and playful grin",
-      "soft chubby cheeks with gentle smile",
-      "big innocent eyes and tiny nose",
-      "freckled cheeks and joyful expression",
-    ];
-
-    let faceDescriptor;
-    if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
-      faceDescriptor =
-        faceDescriptorsChild[
-          Math.floor(Math.random() * faceDescriptorsChild.length)
-        ];
-    } else {
-      faceDescriptor =
-        faceDescriptorsAdult[
-          Math.floor(Math.random() * faceDescriptorsAdult.length)
-        ];
-    }
-
-    const faceDescriptionSection = `
-    
-    FACE DESCRIPTION GUIDELINE: Below is *one example* of a possible face description → "${faceDescriptor}". This is **only an example**; do NOT reuse it verbatim. Instead, create your own natural-sounding, age-appropriate face description for the ${baseModelText} so that each generation features a unique and photogenic look.`;
-
-    // Gemini'ye gönderilecek metin - JEWELRY FOCUSED
-    const criticalDirectives = `
-    BRAND SAFETY: If the input image contains any brand names or logos (e.g., Tiffany & Co., Cartier, Bulgari, Van Cleef & Arpels, Harry Winston, David Yurman, Pandora, Swarovski), please refer to them generically (e.g., "brand label", "logo") without naming the specific brand.
-    JEWELRY PRESENTATION: The hero item is jewelry. Explicitly require modern jewelry photography posing and camera angles that hero the jewelry piece. Use poses and angles inspired by popular jewelry campaigns that naturally showcase the jewelry based on where it is worn on the body. Keep every jewelry detail fully visible (gemstones, metal finish, clasps, settings, engravings). Reference popular jewelry photography perspectives: close-up detail shots, elegant mid-shots showcasing the piece on the model, sophisticated full-body lifestyle compositions. Maintain premium luxury jewelry styling with refined lighting that highlights gemstone brilliance and metal luster.`;
-
-    // Gemini'ye gönderilecek metin - Edit mode vs Color change vs Normal replace
+    // Refiner Mode (E-commerce macro retouch)
     let promptForGemini;
-
-    if (isEditMode && editPrompt && editPrompt.trim()) {
-      // EDIT MODE - EditScreen'den gelen özel prompt
+    if (isRefinerMode) {
       promptForGemini = `
-      SIMPLE EDIT INSTRUCTION: Generate a very short, focused prompt (maximum 30 words) that:
-      
-      1. STARTS with "Replace"
-      2. Translates the user's request to English if needed  
-      3. Describes ONLY the specific modification requested
-      4. Does NOT mention garments, models, poses, backgrounds, or photography details
-      5. Keeps existing scene unchanged
- 
+Transform this amateur jewelry product photo into a professional, high-end e-commerce jewelry image. Use the following structure:
 
-Only one single professional fashion photograph must be generated — no collage, no split views, no duplicates, no extra flat product shots.
+Background:
+- Replace with seamless pure white (#FFFFFF) or neutral studio gradient background.
+- No texture, no props, no distractions.
 
-The output must look like a high-end professional fashion photograph, suitable for luxury catalogs and editorial campaigns.
+Lighting:
+- Studio-grade macro lighting setup.
+- Bright, even illumination; soft shadows under the jewelry for depth.
+- Subtle reflection on the base to add realism.
+- No overexposure or dark shadows.
 
-Apply studio-grade fashion lighting blended naturally with ambient light so the model and garment are perfectly lit, with no flat or artificial look.
+Presentation:
+- Perfectly centered jewelry with balanced symmetry.
+- Clean alignment of gemstones, chains, or metallic parts.
+- Natural reflections and subtle highlights.
 
-Ensure crisp focus, maximum clarity, and editorial-level sharpness across the entire image; no blur, no washed-out textures.
+Detail Enhancement:
+- Sharpen all gemstone facets and metal edges precisely.
+- Polish surfaces to eliminate fingerprints or dust.
+- Ensure prongs, mounts, engravings, and cuts are crisp.
 
-Maintain true-to-life colors and accurate material textures; avoid dull or overexposed tones.
+Color & Material Accuracy:
+- Maintain true metallic hues (gold, silver, platinum, rose gold).
+- Gemstones must show natural color dispersion and brilliance.
+- Avoid hue shifts or artificial glow.
 
-Integrate the model, garment, and background into one cohesive, seamless photo that feels like it was captured in a real professional photoshoot environment.
-
-Only one single final image must be generated — no collages, no split frames, no duplicates.
-
-Composition aligned with professional fashion standards (rule of thirds, balanced framing, depth of field).
-
-Output must always be a single, hyper-realistic, high-end fashion photograph; never a plain catalog image.
-
-Editorial-level fashion shoot aesthetic.
-
-Confident model poses.
-
-      USER REQUEST: "${editPrompt.trim()}"
-      
-      EXAMPLES:
-      - User: "modele dövme ekle" → "Replace the model's skin with elegant tattoos while maintaining photorealistic quality."
-      - User: "saçını kırmızı yap" → "Replace the hair color with vibrant red while keeping natural texture."
-      - User: "arka planı mavi yap" → "Replace the background with blue color while preserving lighting."
-      
-      Generate ONLY the focused edit prompt, nothing else.
-      ${
-        isMultipleProducts
-          ? "11. MANDATORY: Ensure ALL garments/products in the ensemble remain visible and properly coordinated after the edit"
-          : ""
-      }
-
-      GEMINI TASK:
-      1. Understand what modification the user wants
-      2. ${
-        isMultipleProducts
-          ? "Identify how this modification affects ALL products in the ensemble"
-          : "Create a professional English prompt that applies this modification"
-      }
-      3. Ensure the modification is technically possible and realistic${
-        isMultipleProducts ? " for the complete multi-product outfit" : ""
-      }
-      4. Maintain the overall quality and style of the original image
-      5. Describe the change in detail while preserving other elements${
-        isMultipleProducts ? " and ALL unaffected products" : ""
-      }
-
-      LANGUAGE REQUIREMENT: Always generate your prompt in English and START with "Replace, change...".
-
-      ${originalPrompt ? `Additional context: ${originalPrompt}.` : ""}
-      `;
-    } else if (isRefinerMode) {
-      // REFINER MODE - Teknik profesyonel e-ticaret fotoğraf geliştirme prompt'u
-      promptForGemini = `
-MANDATORY INSTRUCTION (READ CAREFULLY, FOLLOW EXACTLY):
-
-You are a prompt generator for e-commerce product photo transformation. Produce ONE single technical prompt that an image editor/AI will follow to convert a raw product photo into a professional, Amazon-compliant catalog image.
-
-STRICT STYLE & FORMAT:
-- The prompt you produce MUST start with: "Transform this amateur product photo into a professional high-end e-commerce product photo."
-- Use clear technical sections in THIS ORDER and with THESE HEADINGS exactly:
-  Background:
-  Presentation (Invisible Mannequin / Ghost Effect):
-  Symmetry & Alignment:
-  Material & Micro-Detail:
-  Lighting:
-  Color Accuracy:
-  Cleanup & Finishing:
-  Final Output Quality:
-- End the prompt with EXACTLY this line:
-  "The final result must look like a flawless product photo ready for e-commerce catalogs, fashion websites, or online marketplaces. Maintain a photorealistic, luxury presentation suitable for premium retail."
-- Length target: 200–300 words.
-
-BACKGROUND (ALWAYS):
-- Replace background with a pure seamless white studio background (#FFFFFF).
-
-ADAPTIVE PRODUCT LOGIC:
-- If CLOTHING → 
-  • Apply ghost mannequin effect (remove mannequin/hanger, keep inside visible).  
-  • Adjust garment to professional catalog stance, not amateur photo posture.  
-  • Shoulders straight, neckline centered, hemline balanced.  
-  • Wrinkle-free, freshly pressed look.  
-
-- If ACCESSORIES (bags, hats, wallets) → 
-  • Center product, arrange straps/chains elegantly.  
-  • Correct tilt or sag, present in luxury catalog stance.  
-
-- If JEWELRY → 
-  • Macro-level clarity for gemstones and metals.  
-  • No glare, natural brilliance, precise reflections.  
-
-- If WATCHES → 
-  • Dial upright, bezel and bracelet symmetrical.  
-  • Glass crystal-clear, no reflections.  
-  • Mechanism details sharp.  
-
-- If FOOTWEAR → 
-  • Remove legs/feet completely.  
-  • Present shoes in industry-standard e-commerce views:  
-    – Main image MUST be **side profile view** (outer side).  
-    – Secondary angle (if pair) in **45° angled view** to show depth.  
-  • Avoid top-down flat perspectives unless explicitly required.  
-  • Shoes must appear upright, stable, perfectly aligned.  
-  • Correct perspective so outsole is horizontal and silhouette natural.  
-  • Highlight stitching, mesh, sole patterns, and logo/branding clearly.  
-  • Remove dust, creases, scuffs; present as brand-new.  
-
-- If OTHER GOODS → 
-  • Correct geometry, straighten angles, remove packaging distortions.  
-
-CORRECTION & ENHANCEMENT RULES:
-- Correct tilt, rotation, or unnatural posture.  
-- Ensure product looks **more professional and ideal than the amateur photo**.  
-- Remove all imperfections: dust, lint, stickers, price tags, stains.  
-
-LIGHTING:
-- Bright, even, shadowless studio lighting.  
-- Prevent glare or blown highlights.  
-- Allow subtle, realistic depth to preserve 3D form.  
-
-COLOR ACCURACY:
-- Faithful, true-to-life reproduction.  
-- Neutral white balance, no oversaturation or dull tones.  
-
-OUTPUT:
-- Generate ONLY the final technical prompt using the exact headings above. Do not include these instructions, variables, or commentary.
-
-EXAMPLE (for format illustration only):
-"Transform this amateur product photo into a professional high-end e-commerce product photo. Remove the background and replace it with a pure seamless white studio background (#FFFFFF).
-
-Background: Pure seamless white studio background (#FFFFFF).
-Presentation (Invisible Mannequin / Ghost Effect): Since xxx is footwear, remove the legs and stage both shoes in catalog-standard angles: one shoe in clear side profile view, the other at 45° for depth. Ensure stable and natural stance.
-Symmetry & Alignment: Correct tilt and perspective so outsole is level and shoes are symmetrical.
-Material & Micro-Detail: Highlight stitching, mesh, sole patterns, and branding with sharp clarity. Remove creases and scuffs.
-Lighting: Apply bright, even, shadowless lighting. No glare or blown highlights.
-Color Accuracy: Ensure xxx colors are faithful, with neutral white balance.
-Cleanup & Finishing: Remove dust, marks, or imperfections. Keep edges crisp and pristine.
-Final Output Quality: Single flawless, photorealistic catalog photo ready for Amazon/e-commerce platforms."
+Final Output:
+- The result must be a single, ultra-realistic, flawless jewelry product image suitable for luxury e-commerce platforms.
+- Perfect focus, perfect symmetry, studio-level clarity.
+${jewelryDirectives}
 `;
     } else if (isColorChange && targetColor && targetColor !== "original") {
-      // COLOR CHANGE MODE - Sadece renk değiştirme
       promptForGemini = `
-      MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "change". Do not include any introduction, explanation, or commentary.
-
-      ${criticalDirectives}
-
-      ${
-        isMultipleProducts
-          ? `
-      🛍️ MULTIPLE PRODUCTS COLOR CHANGE: You are receiving MULTIPLE SEPARATE REFERENCE IMAGES, each showing a different garment/product. When changing the color to ${targetColor}, you MUST analyze ALL reference images, specify which product(s) to change and ensure ALL products remain properly coordinated as an ensemble.
-
-      CRITICAL MULTIPLE PRODUCTS COLOR REQUIREMENTS:
-      - ANALYZE ALL the reference images provided - each image shows a different garment/product
-      - IDENTIFY ALL distinct garments/products across ALL reference images
-      - SPECIFY which product(s) should change to ${targetColor}
-      - ENSURE the color change maintains overall ensemble coordination
-      - PRESERVE the original colors and design of products not being changed
-      - MAINTAIN proper color harmony between all products in the outfit
-      - REMEMBER: Each reference image shows a separate item - consider them together as one outfit
-      `
-          : ""
-      }
-
-      Create a professional fashion photography prompt in English that STARTS with "change" for changing ONLY the color of ${
-        isMultipleProducts
-          ? "the specified product(s)/garment(s)"
-          : "the product/garment"
-      } from the reference image to ${targetColor}.
-      
-      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
-
-      IMPORTANT: Please explicitly mention in your generated prompt that this is for "professional fashion photography" to ensure the AI image model understands the context and produces high-quality fashion photography results.
-
-      CRITICAL REQUIREMENTS FOR COLOR CHANGE:
-      1. The prompt MUST begin with "Replace the ${
-        isMultipleProducts
-          ? "specified product(s)/garment(s)"
-          : "product/garment"
-      }..."
-      2. ONLY change the color to ${targetColor}${
-        isMultipleProducts ? " for the specified product(s)" : ""
-      }
-      3. Keep EVERYTHING else exactly the same: design, shape, patterns, details, style, fit, texture
-      4. Do not modify ${
-        isMultipleProducts ? "any garment" : "the garment"
-      } design, cut, or any other aspect except the color
-      5. The final image should be photorealistic, showing ${
-        isMultipleProducts
-          ? "the complete ensemble with the specified color changes"
-          : `the same garment but in ${targetColor} color`
-      }
-      6. Use natural studio lighting with a clean background
-      7. Preserve ALL original details except color: patterns (but in new color), textures, hardware, stitching, logos, graphics, and construction elements
-      8. ${
-        isMultipleProducts
-          ? `ALL garments/products must appear identical to the reference image, just with the specified color change to ${targetColor} and proper ensemble coordination`
-          : `The garment must appear identical to the reference image, just in ${targetColor} color instead of the original color`
-      }
-      9. MANDATORY: Include "professional fashion photography" phrase in your generated prompt
-      ${
-        isMultipleProducts
-          ? `10. MANDATORY: Clearly specify which product(s) change color and which remain in their original colors`
-          : ""
-      }
-
-      LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "change".
-
-      ${
-        originalPrompt
-          ? `Additional color change requirements: ${originalPrompt}.`
-          : ""
-      }
-      `;
-    } else if (isPoseChange) {
-      // POSE CHANGE MODE - Optimize edilmiş poz değiştirme prompt'u (100-150 token)
+Change ONLY the jewelry's primary metal or gemstone color to ${targetColor}, keeping every other detail identical.
+Do not modify shape, design, reflections, or materials except for this color adjustment.
+Maintain realistic reflections, metal texture, gemstone sparkle, and surface microdetails.
+Keep lighting, composition, and background exactly as in the original image.
+Ensure the result looks like a high-end studio photo, not edited.
+${jewelryDirectives}
+`;
+    } else if (isEditMode && editPrompt && editPrompt.trim()) {
       promptForGemini = `
-      FASHION POSE TRANSFORMATION: Generate a focused, detailed English prompt (100-150 words) that transforms the model's pose efficiently. Focus ONLY on altering the pose while keeping the existing model, outfit, lighting, and background exactly the same. You MUST explicitly describe the original background/environment details and state that they stay unchanged.
+Edit Instruction: ${editPrompt.trim()}.
 
-      USER POSE REQUEST: ${
-        settings?.pose && settings.pose.trim()
-          ? `Transform the model to: ${settings.pose.trim()}`
-          : customDetail && customDetail.trim()
-          ? `Transform the model to: ${customDetail.trim()}`
-          : "Transform to a completely different iconic professional fashion modeling pose that contrasts dramatically with the current pose"
-      }
-
-      COMPREHENSIVE POSE TRANSFORMATION REQUIREMENTS:
-
-      1. POSE ANALYSIS & TRANSFORMATION:
-      - Analyze the current pose in the image thoroughly
-      - Select a DRAMATICALLY CONTRASTING pose that showcases the garment beautifully
-      - Describe the new pose in elaborate detail: body positioning, limb placement, weight distribution, head angle, eye direction
-      - Include subtle pose nuances: shoulder positioning, hip angle, foot placement, hand gestures
-      - Ensure the pose enhances the garment's silhouette and flow
-
-      2. BODY LANGUAGE & EXPRESSION:
-      - Describe confident, editorial-worthy body language
-      - Include facial expression that matches the pose energy
-      - Specify eye contact direction and intensity
-      - Detail posture that conveys fashion-forward attitude
-
-      3. POSE-SPECIFIC DETAILS:
-      - If sitting pose: describe chair interaction, leg positioning, back posture
-      - If standing pose: weight distribution, stance width, hip positioning
-      - If leaning pose: support points, angle, natural flow
-      - If walking pose: stride, arm movement, head position
-      - If editorial pose: dramatic angles, fashion-forward positioning
-
-      4. GARMENT INTERACTION:
-      - Describe how the pose allows the garment to drape naturally
-      - Ensure pose doesn't create unflattering fabric bunching
-      - Show garment details and construction through pose
-      - Allow fabric to flow and move naturally with the pose
-
-      5. PROFESSIONAL PHOTOGRAPHY ELEMENTS:
-      - Studio-grade lighting that enhances the pose
-      - Camera angle that best captures the pose and garment
-      - Depth of field that focuses on the model and pose
-      - Professional composition that frames the pose perfectly
-
-      6. BACKGROUND & IDENTITY PRESERVATION:
-      - Carefully observe and describe the current background/environment (location type, colors, props, textures, lighting)
-      - Explicitly instruct that the existing background remains exactly the same with zero alterations
-      - Emphasize keeping the same model identity, face, hairstyle, makeup, accessories, and outfit with no modifications
-      - Mention notable background elements (walls, furniture, decor, floor, lighting fixtures, scenery) and insist they stay identical
-      - If any pose references mention backgrounds (e.g., studio, backdrop, set, environment), explicitly override those directions: state that the original background from the provided image stays unchanged and must be described faithfully. Never introduce or suggest a new background.
-
-      CRITICAL FORMATTING REQUIREMENTS:
-      - Your response MUST start with "Change"
-      - Must be 100-150 words (concise but detailed)
-      - Must be entirely in English
-      - Focus ONLY on pose transformation
-      - Do NOT include any generic fashion photography rules
-      - Do NOT mention garment replacement
-      - Do NOT propose background changes; instead, clearly state the background stays identical to the original photo
-      - The background and environment MUST remain completely unchanged and explicitly described as such
-      - Be specific but concise about the exact pose
-
-      Generate a focused, efficient pose transformation prompt that starts with "Change", clearly states the original background and model remain unchanged, overrides any conflicting background instructions from pose references, and gets straight to the point.
-      `;
-    } else if (isBackSideAnalysis) {
-      // BACK SIDE ANALYSIS MODE - Özel arka taraf analizi prompt'u
-      promptForGemini = `
-      MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
-
-      🔄 CRITICAL BACK DESIGN SHOWCASE MODE:
-      
-      ANALYSIS REQUIREMENT: You are looking at TWO distinct views of the SAME garment:
-      1. TOP IMAGE: Shows the garment worn on a model from the FRONT
-      2. BOTTOM IMAGE (labeled "ARKA ÜRÜN"): Shows the BACK design of the same garment
-      
-      YOUR MISSION: Transform the TOP image so the model displays the BACK design from the BOTTOM image.
-      
-      🚫 DO NOT CREATE: Generic walking poses, editorial strides, front-facing poses, or standard fashion poses
-      
-      ✅ MANDATORY REQUIREMENTS:
-      1. **BODY POSITIONING**: Model MUST be turned completely around (180 degrees) to show their BACK to the camera
-      2. **BACK DESIGN FOCUS**: The exact back graphic/pattern/design from the "ARKA ÜRÜN" image must be clearly visible on the model's back
-      3. **CAMERA ANGLE**: Shoot from behind the model to capture the back design prominently
-      4. **HEAD POSITION**: Model can either face completely away OR look back over shoulder (choose based on garment style)
-      
-      SPECIFIC BACK POSE EXECUTION:
-      - **Primary View**: Full back view showing the complete back design
-      - **Model Stance**: Natural standing pose with back to camera, may include subtle over-shoulder glance
-      - **Design Visibility**: Ensure the back graphic/pattern from "ARKA ÜRÜN" image is the main focal point
-      - **Garment Fit**: Show how the back design sits on the model's back naturally
-      
-      TECHNICAL REQUIREMENTS:
-      - Camera positioned BEHIND the model
-      - Back design from "ARKA ÜRÜN" clearly showcased
-      - Professional fashion photography lighting
-      - Sharp focus on back design details
-      - Model wearing the exact same garment as shown in both reference images
-      
-      EXAMPLE STRUCTURE: "Replace the front-facing model with a back-facing pose, showing the model turned away from camera to display the [describe specific back design elements you see in ARKA ÜRÜN image] prominently across their back, captured with professional photography lighting..."
-      
-      🎯 FINAL GOAL: Create a back view that matches the "ARKA ÜRÜN" reference but worn on the model from the top image.
-
-      ${criticalDirectives}
-
-      ${
-        isMultipleProducts
-          ? `
-      🛍️ MULTIPLE PRODUCTS BACK SIDE MODE: You are receiving MULTIPLE SEPARATE REFERENCE IMAGES showing different garments/products with both front and back views. You MUST analyze and describe ALL products visible across all reference images from both angles and coordinate them properly as an ensemble.
-
-      CRITICAL MULTIPLE PRODUCTS BACK SIDE REQUIREMENTS:
-      - ANALYZE ALL the reference images provided - each may show different garments/products
-      - ANALYZE each product from both front AND back angles across all reference images
-      - DESCRIBE how all products coordinate together from all viewing angles
-      - ENSURE proper layering and fit from both front and back perspectives
-      - REMEMBER: Each reference image shows separate items - combine them intelligently
-      `
-          : ""
-      }
-
-      Create a professional fashion photography prompt in English that shows the model from the BACK VIEW wearing the garment, specifically displaying the back design elements visible in the "ARKA ÜRÜN" image.
-      
-      🚨 CRITICAL SINGLE OUTPUT REQUIREMENT:
-      - GENERATE ONLY ONE SINGLE RESULT IMAGE showing the back view
-      - DO NOT create multiple separate images, split views, or collages
-      - DO NOT generate both front and back images
-      - DO NOT create flat product photos or extra product shots
-      - FOCUS ONLY on the back view transformation - one unified fashion photograph
-      - RESULT MUST BE: Professional back-view fashion model shot ONLY
-      
-      CRITICAL PROMPT ELEMENTS TO INCLUDE:
-      - "model turned away from camera"
-      - "back view" or "rear view"  
-      - "showing the back of the garment"
-      - "single fashion photograph"
-      - "one unified image"
-      - Description of the specific back design (graphic, pattern, text, etc.) you see in the "ARKA ÜRÜN" image
-      - "professional fashion photography"
-      - "back design prominently displayed"
-      
-      IMPORTANT: Your generated prompt MUST result in a BACK VIEW of the model, not a front view or side view. The model should be facing AWAY from the camera to show the back design. Output ONLY ONE single image.
-
-      ${fluxMaxGarmentTransformationDirectives}
-
-      MANDATORY BACK SIDE PROMPT SUFFIX:
-      After generating your main prompt, ALWAYS append this exact text to the end:
-      
-      "The garment must appear realistic with natural drape, folds along the shoulders, and accurate fabric texture. The print must wrap seamlessly on the fabric, following the model's back curvature. The lighting, background, and perspective must match the original scene, resulting in one cohesive and photorealistic image."
-
-      LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace".
-
-      ${
-        originalPrompt
-          ? `USER CONTEXT: The user has provided these specific requirements: ${originalPrompt}. Please integrate these requirements naturally into your back side analysis prompt while maintaining professional structure.`
-          : ""
-      }
-      
-      ${ageSection}
-      ${childPromptSection}
-      ${bodyShapeMeasurementsSection}
-      ${settingsPromptSection}
-      ${posePromptSection}
-      ${perspectivePromptSection}
-      ${hairStylePromptSection}
-      ${hairStyleTextSection}
-      ${locationPromptSection}
-      ${faceDescriptionSection}
-      
-      Generate a concise prompt focused on showcasing both front and back garment details while maintaining all original design elements. REMEMBER: Your response must START with "Replace" and emphasize back design features.
-      `;
+Generate a focused, professional English prompt that starts with "Retouch" or "Replace" and clearly describes only the requested change.
+Keep all jewelry details identical — same reflections, metals, gemstones, background.
+Maintain realistic studio lighting and sharpness.
+Example edits:
+- "Retouch the jewelry photo to remove dust and increase gemstone sparkle."
+- "Replace the gemstone color with sapphire blue while keeping reflections natural."
+- "Retouch the background to pure white while preserving all jewelry details."
+${jewelryDirectives}
+`;
     } else {
-      // NORMAL MODE - Standart garment replace
+      // Default Jewelry Prompt
       promptForGemini = `
-      🚨 ABSOLUTE MANDATORY FIRST STEP - IMAGE ANALYSIS:
-      
-      BEFORE YOU WRITE ANYTHING, YOU MUST:
-      1. LOOK AT THE REFERENCE IMAGE CAREFULLY
-      2. IDENTIFY EXACTLY what type of jewelry is shown:
-         - EARRINGS (worn on ears)
-         - NECKLACE (worn around neck)  
-         - RING (worn on finger)
-         - BRACELET (worn on wrist)
-      3. REMEMBER THIS TYPE - you will use ONLY this type throughout your entire prompt
-      4. DO NOT use generic terms like "jewelry piece" - use the SPECIFIC type you identified
-      
-      🚨 CRITICAL RULE: If the image shows EARRINGS, write ONLY about EARRINGS. If it shows a BRACELET, write ONLY about a BRACELET. If it shows a NECKLACE, write ONLY about a NECKLACE. If it shows a RING, write ONLY about a RING. DO NOT mix types or add jewelry that is not in the image.
-      
-      MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
-         
-      DEFAULT POSE INSTRUCTION: If no specific pose is provided by the user, you must select a pose that showcases the SPECIFIC jewelry type you identified in STEP 1. The pose must highlight WHERE that jewelry type is worn on the body. The pose should be elegant and photogenic, with body language that emphasizes the identified jewelry type's beauty. DO NOT mention other jewelry types or body parts unrelated to the identified type.
+Retouch the jewelry photo to look like a professional high-end studio shot suitable for luxury catalogs and e-commerce.
+You must automatically detect the jewelry type (ring, earring, bracelet, necklace, watch, etc.) and adapt lighting, angle, and retouching accordingly.
 
-      After constructing the description of the SPECIFIC jewelry type you identified, model, and background descriptions, you must also generate an additional block that describes a professional jewelry photography effect. This effect must adapt to the SPECIFIC jewelry type you identified, its gemstone types, metal finish, color palette, lighting conditions, and background environment. Do not use generic examples. Instead, analyze the ACTUAL jewelry type from the image and propose an effect that enhances it. Your effect description must cover color grading, lighting treatment, detail visibility, background integration, focus and depth of field, and overall editorial polish. Always ensure the tone is professional, realistic, and aligned with the visual language of high-end jewelry campaigns. The effect description must make the final result feel like a hyper-realistic editorial-quality photograph, seamlessly blending the SPECIFIC jewelry type you identified, model, and environment into a single cohesive campaign-ready image.
+Main Requirements:
+1. Clarity & Focus:
+   - Macro-level sharpness on gemstones, metal edges, and texture.
+   - Every engraving, cut, or reflection must be crisp and visible.
 
+2. Lighting:
+   - Studio lighting: soft, even illumination from multiple angles.
+   - Gentle highlight reflections along metal surfaces.
+   - Controlled shadows under jewelry for depth and realism.
 
-      When generating jewelry photography prompts, you must always structure the text into four separate paragraphs using \n\n line breaks. Do not output one long block of text.
+3. Material & Surface:
+   - Polish metal (gold, silver, platinum) surfaces to flawless sheen.
+   - Remove all dust, fingerprints, and scratches.
+   - Enhance gemstone clarity, brilliance, and fire.
+   - Preserve natural imperfections that convey realism — avoid CGI look.
 
-Paragraph 1 → Model Description & Pose
+4. Composition:
+   - Center the jewelry with balanced symmetry.
+   - Maintain elegant minimal background (pure white, light gradient, or reflective surface).
+   - Avoid any text, props, or branding.
 
-Introduce the model (age, gender, editorial features).
+5. Color & Tone:
+   - Keep true color balance.
+   - Maintain gemstone hue accuracy.
+   - Avoid over-saturation or over-brightness.
 
-Describe the pose with elegant, jewelry-focused language, inspired by popular jewelry photography campaigns. Ensure the pose showcases the jewelry piece effectively.
+6. Final Presentation:
+   - Single ultra-realistic jewelry image only (no collage or multiple frames).
+   - Ready for catalog or e-commerce listing.
+   - Photorealistic finish, soft vignette, commercial polish.
 
-🚨 CRITICAL FOR PARAGRAPH 1 - POSE MUST MATCH JEWELRY TYPE FROM STEP 1:
-You MUST have identified the jewelry type in STEP 1. Now describe the pose based on THAT EXACT type:
+${
+  isMultipleProducts
+    ? "If multiple jewelry items are visible, treat them as part of a cohesive collection — balance their positioning and lighting uniformly."
+    : ""
+}
 
-- If STEP 1 identified EARRINGS → Describe poses that show the EARS clearly (head tilts, hair styled away from ears, etc.). The pose must highlight the EARS where earrings are worn. FORBIDDEN: Do NOT mention "collarbone", "neck", "décolletage", "wrist", "hands", "fingers", or any positioning related to necklaces, bracelets, or rings.
+${
+  hasValidSettings
+    ? `User provided settings: ${Object.entries(settings)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(", ")}`
+    : ""
+}
 
-- If STEP 1 identified NECKLACE → Describe poses that show the NECK and décolletage clearly (head position, shoulder turns, etc.). The pose must highlight the NECK where necklaces are worn. FORBIDDEN: Do NOT mention "ears", "earlobes", "wrist", "hands", "fingers", or any positioning related to earrings, bracelets, or rings.
-
-- If STEP 1 identified RING → Describe poses that show the HANDS and FINGERS naturally and clearly. The pose must highlight the FINGERS where rings are worn. FORBIDDEN: Do NOT mention "neck", "ears", "wrist", or any positioning related to necklaces, earrings, or bracelets.
-
-- If STEP 1 identified BRACELET → Describe poses that show the WRISTS clearly and prominently. The pose must highlight the WRISTS where bracelets are worn (hands extended, wrists forward, etc.). FORBIDDEN: Do NOT mention "neck", "ears", "fingers", or any positioning related to necklaces, earrings, or rings.
-
-🚨 REMEMBER: The pose you describe MUST match the jewelry type from STEP 1. If you identified a bracelet, the pose MUST showcase wrists, NOT ears or neck.
-
-Paragraph 2 → Jewelry Piece & Craftsmanship Details
-
-🚨 CRITICAL REMINDER: You MUST have already identified the jewelry type in STEP 1. In Paragraph 2, you MUST describe ONLY that exact jewelry type. Do NOT change, mix, or add other jewelry types.
-
-🚨 MANDATORY RULES FOR PARAGRAPH 2 - STRICT TYPE ENFORCEMENT:
-
-- If STEP 1 identified EARRINGS → You MUST describe ONLY earrings. Use ONLY these terms: "earrings", "ear hooks", "posts", "earlobes", "ears", "ear studs", "ear drops". FORBIDDEN terms: "necklace", "neck", "décolletage", "chain", "pendant", "bracelet", "wrist", "ring", "finger", or ANY terms related to other jewelry types.
-
-- If STEP 1 identified NECKLACE → You MUST describe ONLY a necklace. Use ONLY these terms: "necklace", "chain", "pendant", "neck", "décolletage", "clasp", "chain links". FORBIDDEN terms: "earrings", "ears", "earlobes", "bracelet", "wrist", "ring", "finger", or ANY terms related to other jewelry types.
-
-- If STEP 1 identified RING → You MUST describe ONLY a ring. Use ONLY these terms: "ring", "finger", "band", "setting", "ring finger", "finger band". FORBIDDEN terms: "necklace", "neck", "earrings", "ears", "bracelet", "wrist", or ANY terms related to other jewelry types.
-
-- If STEP 1 identified BRACELET → You MUST describe ONLY a bracelet. Use ONLY these terms: "bracelet", "wrist", "wristband", "bangle", "cuff", "wrist chain", "clasp". FORBIDDEN terms: "necklace", "neck", "earrings", "ears", "ring", "finger", or ANY terms related to other jewelry types.
-
-🚨 CRITICAL DESCRIPTION RULES:
-1. Look at the ACTUAL reference image and describe EXACTLY what you see - the real design, the actual gemstones visible, the actual metal work, the real settings, clasps, and craftsmanship details.
-2. Do NOT use placeholder text like "[insert...]", "e.g.,", "for example", or hypothetical descriptions.
-3. Do NOT mix jewelry types - if you see a bracelet, describe ONLY a bracelet. Do NOT add earrings, necklaces, or rings.
-4. Do NOT use example jewelry descriptions - describe ONLY what is actually visible in the reference image.
-5. If the image shows jewelry with specific gemstones, describe THOSE gemstones. Do NOT add jewelry that is not visible in the image.
-6. Use jewelry and gemology terminology to describe the SPECIFIC jewelry piece shown in the reference image.
-7. Keep all design, colors, gemstones, metal finish, engravings EXACTLY the same as shown in the reference image.
-8. Describe only what is ACTUALLY VISIBLE in the reference image, not hypothetical or example jewelry.
-
-Paragraph 3 → Environment & Ambiance
-
-Describe the setting in editorial tone (minimalist, refined, photogenic, luxury).
-
-Mention architecture, light play, textures.
-
-Keep it supportive, not distracting from the jewelry piece.
-
-Paragraph 4 → Lighting, Composition & Final Output
-
-Always describe lighting as "refined studio lighting that highlights gemstone brilliance and metal luster, blended with natural daylight softness".
-
-After Paragraph 4, you MUST add a "CRITICAL RULES FOR JEWELRY PHOTOGRAPHY" section. This section should include professional jewelry photography guidelines covering: output requirements (single photograph only), lighting (refined studio lighting highlighting gemstone brilliance and metal luster), clarity and detail requirements, composition and framing guidelines, camera perspective, jewelry presentation, color accuracy, jewelry positioning, background control, depth and realism, posture and pose, focus and sharpness, and atmosphere. Write these rules in a professional, comprehensive manner suitable for high-end jewelry photography. Do NOT copy static rules - write them naturally as part of your prompt generation.
-
-Conclude with: "The final result must be a single, hyper-realistic, editorial-quality jewelry photograph, seamlessly integrating model, jewelry piece, and environment at campaign-ready standards, inspired by popular jewelry photography styles
-
-      
-
-CRITICAL RULES FOR JEWELRY PHOTOGRAPHY:
-
-Always construct prompts in the language and style of editorial jewelry photography. Use precise jewelry and gemology terminology rather than plain product description.
-
-Describe the jewelry piece using jewelry industry terminology (gemstone cut, metal finish, setting style, clasp type, craftsmanship details, etc.).
-
-Define the model's appearance with editorial tone (sculpted jawline, refined cheekbones, luminous gaze, poised stance) that complements luxury jewelry presentation.
-
-Lighting must be described in jewelry photography terms (refined studio lighting, gemstone brilliance, metal luster, diffused daylight, balanced exposure, flattering shadow play, high-definition clarity that captures every detail).
-
-Composition should reference jewelry photography language (close-up detail shots, elegant mid-shots, sophisticated full-body lifestyle compositions, rule of thirds, depth of field, polished framing, editorial atmosphere).
-
-Environment must remain minimalist and photogenic, complementing the jewelry piece without distraction. Use words like "sophisticated", "refined", "contemporary", "luxury", "elevated backdrop".
-
-Always conclude that the result is a single, high-end professional jewelry photograph, polished to editorial standards, suitable for luxury jewelry catalogs and campaigns, inspired by popular jewelry photography styles.
-
-Do not use plain catalog language. Do not produce technical listing-style descriptions. The tone must always reflect editorial-level jewelry shoot aesthetic.
-
-Exclude all original flat-lay elements (display stand, shadow box, packaging, textures, painting, or any other artifacts). Only the jewelry piece itself must be transferred.
-
-The original background must be completely replaced with the newly described background. Do not keep or reuse any part of the input photo background.
-
-The output must be hyper-realistic, high-end professional jewelry editorial quality, suitable for luxury commercial catalog presentation, inspired by popular jewelry photography campaigns.
-
-      ${criticalDirectives}
-
-      ${
-        isMultipleProducts
-          ? `
-      💎 MULTIPLE JEWELRY PIECES MODE: You are receiving MULTIPLE SEPARATE REFERENCE IMAGES, each showing a different jewelry piece that together form a complete jewelry ensemble. You MUST analyze ALL the reference images provided and describe every single jewelry piece visible across all images. Each jewelry piece is equally important and must be properly described and positioned on the ${modelGenderText}.
-
-      CRITICAL MULTIPLE JEWELRY PIECES REQUIREMENTS:
-      - ANALYZE ALL the reference images provided - each image shows a different jewelry piece
-      - COUNT how many distinct jewelry pieces are present across ALL reference images
-      - DESCRIBE each jewelry piece individually with its specific design details, gemstones, metal finish, settings, clasps, and craftsmanship elements from their respective reference images
-      - ENSURE that ALL jewelry pieces from ALL reference images are mentioned in your prompt - do not skip any piece
-      - COORDINATE how all jewelry pieces work together as a complete ensemble when worn together
-      - SPECIFY the proper positioning and interaction between jewelry pieces
-      - MAINTAIN the original design of each individual jewelry piece while showing them as a coordinated ensemble
-      - REMEMBER: Each reference image shows a separate jewelry piece - combine them intelligently into one cohesive jewelry look
-      `
-          : ""
-      }
-
-      🚨 CRITICAL FIRST STEP - MANDATORY IMAGE ANALYSIS: 
-      
-      BEFORE YOU WRITE A SINGLE WORD, YOU MUST:
-      1. CAREFULLY EXAMINE the reference image(s) provided
-      2. IDENTIFY EXACTLY what type of jewelry is shown - look at WHERE it would be worn on the body
-      3. CONFIRM the jewelry type: EARRINGS (worn on ears), NECKLACE (worn around neck), RING (worn on fingers), or BRACELET (worn on wrists)
-      4. WRITE DOWN the identified jewelry type mentally before proceeding
-      
-      VISUAL IDENTIFICATION GUIDE:
-      - EARRINGS: Small pieces designed to hang from or attach to the earlobes. Look for hooks, posts, or studs. They are NOT worn around the neck or on wrists.
-      - NECKLACE: A chain, cord, or strand designed to be worn around the neck. It hangs from the neck, NOT from ears or wrists.
-      - RING: A circular band designed to be worn on a finger. It fits around a finger, NOT around the neck, wrist, or attached to ears.
-      - BRACELET: A band or chain designed to be worn around the wrist. It wraps around the wrist, NOT around the neck, on fingers, or attached to ears.
-      
-      🚨 ABSOLUTE RULE: Once you identify the jewelry type in STEP 1, you MUST describe ONLY that specific type throughout your ENTIRE prompt. 
-      
-      - If you see EARRINGS → Describe ONLY earrings. NEVER mention "necklace", "neck", "décolletage", "chain", "pendant", "bracelet", "wrist", "ring", "finger", or any terms related to other jewelry types.
-      - If you see a NECKLACE → Describe ONLY a necklace. NEVER mention "earrings", "ears", "earlobes", "bracelet", "wrist", "ring", "finger", or any terms related to other jewelry types.
-      - If you see a RING → Describe ONLY a ring. NEVER mention "necklace", "neck", "earrings", "ears", "bracelet", "wrist", or any terms related to other jewelry types.
-      - If you see a BRACELET → Describe ONLY a bracelet. NEVER mention "necklace", "neck", "earrings", "ears", "ring", "finger", or any terms related to other jewelry types.
-      
-      🚨 CRITICAL: Do NOT guess, assume, or use example jewelry. Look at the ACTUAL image and describe EXACTLY what you see. If the image shows a bracelet, you MUST write about a bracelet. If it shows earrings, you MUST write about earrings. Do NOT mix types or add jewelry that is not in the image.
-      
-      STEP 2 - PROMPT GENERATION: Now create a professional jewelry photography prompt in English that STARTS with "Replace" for replacing ${
-        isMultipleProducts
-          ? "ALL the jewelry pieces from the reference image"
-          : "the jewelry piece from the reference image"
-      } onto a ${modelGenderText}, inspired by popular jewelry photography campaigns.
-      
-      JEWELRY PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional jewelry photography and commercial jewelry presentation. Ensure the output is suitable for high-end jewelry shoots, editorial styling, and luxury commercial jewelry photography, inspired by popular jewelry campaigns.
-
-      IMPORTANT: Please explicitly mention in your generated prompt that this is for "professional jewelry photography" or "luxury jewelry photography" to ensure the AI image model understands the context and produces high-quality jewelry photography results.
-
-      CRITICAL REQUIREMENTS FOR JEWELRY:
-      1. The prompt MUST begin with "Replace the ${
-        isMultipleProducts ? "multiple jewelry pieces" : "jewelry piece"
-      }..."
-      2. Keep ${
-        isMultipleProducts
-          ? "ALL original jewelry pieces"
-          : "the original jewelry piece"
-      } exactly the same without changing any design, shape, gemstones, metal finish, settings, clasps, or details
-      3. Do not modify or redesign ${
-        isMultipleProducts ? "any of the jewelry pieces" : "the jewelry piece"
-      } in any way
-      4. The final image should be photorealistic, showing ${
-        isMultipleProducts
-          ? "ALL jewelry pieces perfectly positioned and coordinated on the model"
-          : "the same jewelry piece perfectly positioned"
-      } on the ${baseModelText}
-      5. Use refined studio lighting that highlights gemstone brilliance and metal luster, with a clean or sophisticated background
-      6. Preserve ALL original details of ${
-        isMultipleProducts ? "EACH jewelry piece" : "the jewelry piece"
-      }: gemstones, metal finish, settings, clasps, engravings, and craftsmanship details
-      7. ${
-        isMultipleProducts
-          ? "ALL jewelry pieces must appear identical to the reference image, just worn by the model as a complete coordinated jewelry ensemble"
-          : "The jewelry piece must appear identical to the reference image, just worn by the model instead of being displayed flat"
-      }
-      8. MANDATORY: Include "professional jewelry photography" or "luxury jewelry photography" phrase in your generated prompt
-      9. MANDATORY: Use poses and camera angles inspired by popular jewelry photography campaigns
-      10. 🚨 CRITICAL - MANDATORY IMAGE ANALYSIS FIRST: You MUST complete STEP 1 (IMAGE ANALYSIS) before writing ANY paragraph. Look at the reference image and identify EXACTLY what type of jewelry is shown. Once you identify the jewelry type in STEP 1, you MUST stick to that EXACT type throughout the ENTIRE prompt - in Paragraph 1, Paragraph 2, Paragraph 3, and Paragraph 4.
-      
-      TYPE-SPECIFIC ENFORCEMENT:
-      - If STEP 1 identified EARRINGS → Describe ONLY earrings in ALL paragraphs. NEVER mention "necklace", "neck", "décolletage", "chain", "pendant", "bracelet", "wrist", "ring", "finger", or ANY terms related to other jewelry types in ANY paragraph.
-      - If STEP 1 identified NECKLACE → Describe ONLY a necklace in ALL paragraphs. NEVER mention "earrings", "ears", "earlobes", "bracelet", "wrist", "ring", "finger", or ANY terms related to other jewelry types in ANY paragraph.
-      - If STEP 1 identified RING → Describe ONLY a ring in ALL paragraphs. NEVER mention "necklace", "neck", "earrings", "ears", "bracelet", "wrist", or ANY terms related to other jewelry types in ANY paragraph.
-      - If STEP 1 identified BRACELET → Describe ONLY a bracelet in ALL paragraphs. NEVER mention "necklace", "neck", "earrings", "ears", "ring", "finger", or ANY terms related to other jewelry types in ANY paragraph.
-      
-      🚨 ABSOLUTE RULE: Describe EXACTLY what you see in the reference image. Do NOT use placeholder text like "[insert...]", "e.g.,", "for example", or hypothetical descriptions. Do NOT mix jewelry types. Do NOT add jewelry that is not in the image. If the image shows a bracelet, write ONLY about a bracelet. If it shows earrings, write ONLY about earrings. Do NOT add "blue stone earrings" or "diamond necklace" if they are not visible in the reference image.
-      ${
-        isMultipleProducts
-          ? "11. MANDATORY: Explicitly mention and describe EACH individual jewelry piece visible in the reference image - do not generalize or group them"
-          : ""
-      }
-
-      ${
-        isMultipleProducts
-          ? `
-      MULTIPLE JEWELRY PIECES DETAIL COVERAGE (MANDATORY): 
-      - ANALYZE the reference image and identify EACH distinct jewelry piece
-      - DESCRIBE each jewelry piece's specific craftsmanship details, gemstones, metal work, settings, and design elements that you ACTUALLY SEE in the reference image
-      - Do NOT use placeholder text like "[insert...]", "e.g.,", or example descriptions. Describe only what is visible in the image.
-      - EXPLAIN how the jewelry pieces coordinate together as an ensemble
-      - SPECIFY the proper positioning of each jewelry piece on the model based on where it is naturally worn
-      - ENSURE no jewelry piece is overlooked or generically described. Describe each piece exactly as it appears in the reference image.
-      `
-          : ""
-      }
-
-      JEWELRY TRANSFORMATION REQUIREMENTS:
-      - Generate ONLY ONE SINGLE unified jewelry photograph, not multiple images or split views
-      - Transform the flat-lay jewelry piece into a hyper-realistic, three-dimensional jewelry piece worn on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance.
-      - Ensure realistic jewelry positioning: the jewelry piece should be positioned naturally based on where it is worn on the body, following natural body contours and movements.
-      - Preserve all original jewelry details including exact gemstones, metal finish, settings, clasps, engravings, and craftsmanship elements. Avoid redesigning the original jewelry piece.
-      - Maintain photorealistic integration with the model and scene including correct scale, perspective, lighting that highlights gemstone brilliance and metal luster, cast shadows, and occlusions that match the camera angle and scene lighting.
-      - Focus on transforming the jewelry piece onto the existing model and seamlessly integrating it into the scene. Avoid introducing new background elements unless a location reference is explicitly provided.
-      - OUTPUT: One single professional jewelry photograph only, inspired by popular jewelry photography campaigns
-
-      LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace".
-
-      ${
-        originalPrompt
-          ? `USER CONTEXT: The user has provided these specific requirements: ${originalPrompt}. Please integrate these requirements naturally into your jewelry replacement prompt while maintaining the professional structure and flow.`
-          : ""
-      }
-      
-      ${ageSection}
-      ${childPromptSection}
-      ${bodyShapeMeasurementsSection}
-      ${settingsPromptSection}
-      ${posePromptSection}
-      ${perspectivePromptSection}
-      ${hairStylePromptSection}
-      ${hairStyleTextSection}
-      ${locationPromptSection}
-      ${faceDescriptionSection}
-      
-      Generate a concise prompt focused on jewelry replacement while maintaining all original details. REMEMBER: Your response must START with "Replace". Apply all rules silently and do not include any rule text or headings in the output.
-      
-      🚨 CRITICAL REMINDER - FINAL CHECK BEFORE WRITING:
-      
-      Before writing ANY paragraph, you MUST:
-      1. Look at the reference image CAREFULLY
-      2. Identify EXACTLY what type of jewelry is shown: EARRINGS, NECKLACE, RING, or BRACELET
-      3. Remember: EARRINGS hang from ears, NECKLACE goes around neck, RING fits on finger, BRACELET wraps around wrist
-      4. Once identified, describe ONLY that exact type throughout ALL paragraphs
-      
-      TYPE-SPECIFIC REMINDERS:
-      - If image shows EARRINGS → Write ONLY about earrings. FORBIDDEN: "necklace", "neck", "décolletage", "chain", "bracelet", "wrist", "ring", "finger"
-      - If image shows NECKLACE → Write ONLY about necklace. FORBIDDEN: "earrings", "ears", "earlobes", "bracelet", "wrist", "ring", "finger"
-      - If image shows RING → Write ONLY about ring. FORBIDDEN: "necklace", "neck", "earrings", "ears", "bracelet", "wrist"
-      - If image shows BRACELET → Write ONLY about bracelet. FORBIDDEN: "necklace", "neck", "earrings", "ears", "ring", "finger"
-      
-      🚨 ABSOLUTE RULES:
-      - Describe EXACTLY what you see in the reference image - the actual design, real gemstones, actual metal work
-      - Do NOT write placeholder text like "[insert specific jewelry type here, e.g., diamond pendant necklace]" or use example descriptions
-      - Do NOT mix jewelry types - if you see a bracelet, write ONLY about a bracelet
-      - Do NOT add jewelry that is not in the image - if the image shows a bracelet, do NOT add "blue stone earrings" or "diamond necklace"
-      - Look at the ACTUAL image and describe ONLY what is visible
-      
-      EXAMPLE FORMAT: "Replace the jewelry piece from the input image directly onto a [model description] while keeping the original jewelry piece exactly the same, using poses and camera angles inspired by popular jewelry photography campaigns..."
-      `;
+${jewelryDirectives}
+`;
     }
 
-    // Eğer originalPrompt'ta "Model's pose" ibaresi yoksa ek cümle ekleyelim:
-    if (!originalPrompt || !originalPrompt.includes("Model's pose")) {
-      // Eğer poz seçilmemişse akıllı poz seçimi, seçilmişse belirtilen poz
-      if (!settings?.pose && !poseImage) {
-        promptForGemini += `Since no specific pose was provided, use a natural pose inspired by popular jewelry photography campaigns that keeps the jewelry piece fully visible. The pose should naturally highlight the jewelry piece based on where it is worn on the body. Ensure jewelry details (gemstones, metal finish, settings) are clearly visible and well-lit.`;
-      }
-    }
+    console.log("💎 Gemini'ye gönderilen jewelry prompt:", promptForGemini);
 
-    console.log("Gemini'ye gönderilen istek:", promptForGemini);
-
-    // Resim verilerini içerecek parts dizisini hazırla
+    // Görseli base64'e çevir ve Gemini'ye gönder
     const parts = [{ text: promptForGemini }];
 
-    // Multi-mode resim gönderimi: Back side analysis, Multiple products, veya Normal mod
-    if (isBackSideAnalysis && referenceImages && referenceImages.length >= 2) {
-      console.log(
-        "🔄 [BACK_SIDE] Gemini'ye 2 resim gönderiliyor (ön + arka)..."
-      );
+    try {
+      console.log(`📸 Görsel Gemini'ye gönderiliyor: ${imageUrl}`);
+      const imageResponse = await axios.get(imageUrl, {
+        responseType: "arraybuffer",
+        timeout: 15000,
+      });
+      const imageBuffer = imageResponse.data;
+      const base64Image = Buffer.from(imageBuffer).toString("base64");
+      parts.push({
+        inlineData: {
+          mimeType: "image/jpeg",
+          data: base64Image,
+        },
+      });
+    } catch (e) {
+      console.error("📸 Görsel yüklenemedi:", e.message);
+    }
 
-      try {
-        // İlk resim (ön taraf)
-        console.log(
-          `🔄 [BACK_SIDE] İlk resim (ön taraf) Gemini'ye gönderiliyor: ${
-            referenceImages[0].uri || referenceImages[0]
-          }`
-        );
-
-        const firstImageUrl = referenceImages[0].uri || referenceImages[0];
-        const firstImageResponse = await axios.get(firstImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 15000,
-        });
-        const firstImageBuffer = firstImageResponse.data;
-        const base64FirstImage =
-          Buffer.from(firstImageBuffer).toString("base64");
-
-        parts.push({
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: base64FirstImage,
-          },
-        });
-
-        console.log(
-          "🔄 [BACK_SIDE] İlk resim (ön taraf) başarıyla Gemini'ye eklendi"
-        );
-
-        // İkinci resim (arka taraf)
-        console.log(
-          `🔄 [BACK_SIDE] İkinci resim (arka taraf) Gemini'ye gönderiliyor: ${
-            referenceImages[1].uri || referenceImages[1]
-          }`
-        );
-
-        const secondImageUrl = referenceImages[1].uri || referenceImages[1];
-        const secondImageResponse = await axios.get(secondImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 15000,
-        });
-        const secondImageBuffer = secondImageResponse.data;
-        const base64SecondImage =
-          Buffer.from(secondImageBuffer).toString("base64");
-
-        parts.push({
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: base64SecondImage,
-          },
-        });
-
-        console.log(
-          "🔄 [BACK_SIDE] İkinci resim (arka taraf) başarıyla Gemini'ye eklendi"
-        );
-        console.log("🔄 [BACK_SIDE] Toplam 2 resim Gemini'ye gönderildi");
-      } catch (imageError) {
-        console.error(
-          `🔄 [BACK_SIDE] Resim yüklenirken hata: ${imageError.message}`
-        );
-      }
-    } else if (
-      isMultipleProducts &&
-      referenceImages &&
-      referenceImages.length > 1
-    ) {
-      // Multi-product mode: Tüm referans resimleri gönder
-      console.log(
-        `🛍️ [MULTI-PRODUCT] Gemini'ye ${referenceImages.length} adet referans resmi gönderiliyor...`
-      );
-
-      try {
-        for (let i = 0; i < referenceImages.length; i++) {
-          const referenceImage = referenceImages[i];
-          const imageUrl = referenceImage.uri || referenceImage;
-
-          console.log(
-            `🛍️ [MULTI-PRODUCT] ${
-              i + 1
-            }. resim Gemini'ye gönderiliyor: ${imageUrl}`
-          );
-
-          const imageResponse = await axios.get(imageUrl, {
+    // Multi-image mode
+    if (referenceImages && referenceImages.length > 1) {
+      console.log(`💍 Multiple reference images: ${referenceImages.length}`);
+      for (const ref of referenceImages) {
+        try {
+          const url = ref.uri || ref;
+          const resp = await axios.get(url, {
             responseType: "arraybuffer",
             timeout: 15000,
           });
-          const imageBuffer = imageResponse.data;
-          const base64Image = Buffer.from(imageBuffer).toString("base64");
-
+          const buf = resp.data;
+          const base64 = Buffer.from(buf).toString("base64");
           parts.push({
-            inlineData: {
-              mimeType: "image/jpeg",
-              data: base64Image,
-            },
+            inlineData: { mimeType: "image/jpeg", data: base64 },
           });
-
-          console.log(
-            `🛍️ [MULTI-PRODUCT] ${i + 1}. resim başarıyla Gemini'ye eklendi`
-          );
+        } catch (err) {
+          console.error("💍 Multi image load error:", err.message);
         }
-
-        console.log(
-          `🛍️ [MULTI-PRODUCT] Toplam ${referenceImages.length} adet referans resmi Gemini'ye gönderildi`
-        );
-      } catch (imageError) {
-        console.error(
-          `🛍️ [MULTI-PRODUCT] Referans resimleri yüklenirken hata: ${imageError.message}`
-        );
-      }
-    } else {
-      // Normal mod: Tek resim gönder
-      try {
-        console.log(`Referans görsel Gemini'ye gönderiliyor: ${imageUrl}`);
-
-        const imageResponse = await axios.get(imageUrl, {
-          responseType: "arraybuffer",
-          timeout: 15000, // 30s'den 15s'ye düşürüldü
-        });
-        const imageBuffer = imageResponse.data;
-
-        // Base64'e çevir
-        const base64Image = Buffer.from(imageBuffer).toString("base64");
-
-        parts.push({
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: base64Image,
-          },
-        });
-
-        console.log("Referans görsel başarıyla Gemini'ye yüklendi");
-      } catch (imageError) {
-        console.error(`Görsel yüklenirken hata: ${imageError.message}`);
       }
     }
 
-    // Location image handling kaldırıldı - artık kullanılmıyor
-
-    // Pose image'ını da Gemini'ye gönder
-    if (poseImage) {
-      try {
-        // URL'den query parametrelerini temizle
-        const cleanPoseImageUrl = poseImage.split("?")[0];
-        console.log(
-          `🤸 Pose görsel base64'e çeviriliyor: ${cleanPoseImageUrl}`
-        );
-
-        const poseImageResponse = await axios.get(cleanPoseImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 15000, // 30s'den 15s'ye düşürüldü
-        });
-        const poseImageBuffer = poseImageResponse.data;
-
-        // Base64'e çevir
-        const base64PoseImage = Buffer.from(poseImageBuffer).toString("base64");
-
-        parts.push({
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: base64PoseImage,
-          },
-        });
-
-        console.log("🤸 Pose görsel başarıyla Gemini'ye eklendi");
-      } catch (poseImageError) {
-        console.error(
-          `🤸 Pose görseli eklenirken hata: ${poseImageError.message}`
-        );
-      }
-    }
-
-    // Hair style image'ını da Gemini'ye gönder
-    if (hairStyleImage) {
-      try {
-        // URL'den query parametrelerini temizle
-        const cleanHairStyleImageUrl = hairStyleImage.split("?")[0];
-        console.log(
-          `💇 Hair style görsel base64'e çeviriliyor: ${cleanHairStyleImageUrl}`
-        );
-
-        const hairStyleImageResponse = await axios.get(cleanHairStyleImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 15000, // 30s'den 15s'ye düşürüldü
-        });
-        const hairStyleImageBuffer = hairStyleImageResponse.data;
-
-        // Base64'e çevir
-        const base64HairStyleImage =
-          Buffer.from(hairStyleImageBuffer).toString("base64");
-
-        parts.push({
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: base64HairStyleImage,
-          },
-        });
-
-        console.log("💇 Hair style görsel başarıyla Gemini'ye eklendi");
-      } catch (hairStyleImageError) {
-        console.error(
-          `💇 Hair style görseli eklenirken hata: ${hairStyleImageError.message}`
-        );
-      }
-    }
-
-    // Location image'ını da Gemini'ye gönder
-    if (locationImage) {
-      try {
-        // URL'den query parametrelerini temizle
-        const cleanLocationImageUrl = locationImage.split("?")[0];
-        console.log(
-          `🏞️ Location görsel base64'e çeviriliyor: ${cleanLocationImageUrl}`
-        );
-
-        const locationImageResponse = await axios.get(cleanLocationImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 15000,
-        });
-        const locationImageBuffer = locationImageResponse.data;
-
-        // Base64'e çevir
-        const base64LocationImage =
-          Buffer.from(locationImageBuffer).toString("base64");
-
-        parts.push({
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: base64LocationImage,
-          },
-        });
-
-        console.log("🏞️ Location görsel başarıyla Gemini'ye eklendi");
-      } catch (locationImageError) {
-        console.error(
-          `🏞️ Location görseli eklenirken hata: ${locationImageError.message}`
-        );
-      }
-    }
-
-    // Gemini'den cevap al (retry mekanizması ile) - Yeni API
-    let enhancedPrompt;
-    const maxRetries = 10;
+    // Gemini API çağrısı
+    const maxRetries = 2;
+    let enhancedPrompt = "";
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`🤖 [GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
-
+        console.log(`✨ Gemini çağrısı: Attempt ${attempt}/${maxRetries}`);
         const result = await genAI.models.generateContent({
           model,
-          contents: [
-            {
-              role: "user",
-              parts: parts,
-            },
-          ],
+          contents: [{ role: "user", parts }],
         });
 
-        const geminiGeneratedPrompt =
+        const text =
           result.text?.trim() || result.response?.text()?.trim() || "";
+        if (!text) throw new Error("Empty Gemini response");
 
-        // Gemini response kontrolü
-        if (!geminiGeneratedPrompt) {
-          console.error("❌ Gemini API response boş:", result);
-          throw new Error("Gemini API response is empty or invalid");
-        }
-
-        // ControlNet direktifini dinamik olarak ekle
-        // let controlNetDirective = "";
-        // if (!hasControlNet) {
-        //   controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
-
-        // `;
-        // } else {
-        //   controlNetDirective = `BACKGROUND REMOVED IMAGE GUIDANCE: The input image shows the original garment with background removed (white background) for clear color and texture reference. Focus on analyzing the garment's design, construction details, fabric characteristics, and styling elements. Use this clean product image to understand the garment's true colors, textures, patterns, and structural features without any background distractions.
-
-        // `;
-        // }
-
-        // CRITICAL RULES artık Gemini tarafından yazılacak, statik olarak gönderilmiyor
-        enhancedPrompt = geminiGeneratedPrompt;
-        console.log(
-          "🤖 [BACKEND GEMINI] Gemini'nin ürettiği prompt:",
-          geminiGeneratedPrompt
-        );
-        console.log(
-          "✨ [BACKEND GEMINI] Final enhanced prompt (statik kurallarla):",
-          enhancedPrompt
-        );
-        break; // Başarılı olursa loop'tan çık
-      } catch (geminiError) {
-        console.error(
-          `Gemini API attempt ${attempt} failed:`,
-          geminiError.message
-        );
-
+        enhancedPrompt = text + jewelryDirectives;
+        console.log("💍 Gemini jewelry prompt üretildi:", text);
+        break;
+      } catch (err) {
+        console.error(`Gemini hata (attempt ${attempt}):`, err.message);
         if (attempt === maxRetries) {
-          console.error(
-            "Gemini API all attempts failed, using original prompt"
+          console.log(
+            "⚠️ Gemini başarısız, fallback jewelry prompt kullanılıyor"
           );
-          // Hata durumunda da uygun direktifi ekle
-          // let controlNetDirective = "";
-          // if (hasControlNet) {
-          //   controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
-
-          // `;
-          // } else {
-          //   controlNetDirective = `BACKGROUND REMOVED IMAGE GUIDANCE: The input image shows the original garment with background removed (white background) for clear color and texture reference. Focus on analyzing the garment's design, construction details, fabric characteristics, and styling elements. Use this clean product image to understand the garment's true colors, textures, patterns, and structural features without any background distractions.
-
-          // `;
-          // }
-          // Fallback durumunda da statik kuralları ekle - Jewelry odaklı
-          const staticRules = `
-
-CRITICAL RULES FOR JEWELRY PHOTOGRAPHY:
-
-The output must be a single, high-end professional jewelry photograph only — no collages, duplicates, or extra frames.
-
-Apply refined studio lighting that highlights gemstone brilliance and metal luster, blended naturally with daylight, ensuring flawless exposure, vibrant gemstone colors, and sharp focus on jewelry details.
-
-Guarantee editorial-level clarity and detail, with no blur, dull tones, or artificial look. Every jewelry detail (gemstones, metal finish, settings, clasps) must be crystal clear.
-
-Model, jewelry piece, and environment must integrate into one cohesive, seamless professional jewelry photograph suitable for luxury commercial catalogs and editorial campaigns, inspired by popular jewelry photography styles.`;
-
-          enhancedPrompt = originalPrompt + staticRules;
-          break;
+          enhancedPrompt = `
+Retouch the jewelry photo to look like a professional high-end studio shot.
+Bright, even lighting; pure white background; flawless polishing.
+Gemstones clear and brilliant; metals reflective with perfect symmetry.
+No dust, no scratches, no blur. Photorealistic result ready for catalog use.
+${jewelryDirectives}`;
         }
-
-        // Exponential backoff: 1s, 2s, 4s
-        const waitTime = Math.pow(2, attempt - 1) * 1000;
-        console.log(`Waiting ${waitTime}ms before retry...`);
-        await new Promise((resolve) => setTimeout(resolve, waitTime));
-      }
-    }
-
-    // Eğer Gemini sonuç üretemediyse (enhancedPrompt orijinal prompt ile aynıysa) direkt fallback prompt kullan
-    if (enhancedPrompt === originalPrompt) {
-      console.log(
-        "🔄 [FALLBACK] Gemini başarısız, detaylı fallback prompt kullanılıyor"
-      );
-
-      // Settings'ten bilgileri çıkar
-      const location = settings?.location;
-      const locationEnhancedPrompt = settings?.locationEnhancedPrompt; // Enhanced prompt bilgisini al
-      const weather = settings?.weather;
-      const age = settings?.age;
-      const gender = settings?.gender;
-      const productColor = settings?.productColor;
-      const mood = settings?.mood;
-      const perspective = settings?.perspective;
-      const accessories = settings?.accessories;
-      const skinTone = settings?.skinTone;
-      const hairStyle = settings?.hairStyle;
-      const hairColor = settings?.hairColor;
-      const bodyShape = settings?.bodyShape;
-      const pose = settings?.pose;
-      const ethnicity = settings?.ethnicity;
-
-      // Model tanımı
-      let modelDescription = "";
-
-      // Yaş ve cinsiyet - aynı koşullar kullanılıyor
-      const genderLower = gender ? gender.toLowerCase() : "female";
-      let parsedAgeInt = null;
-
-      // Yaş sayısını çıkar
-      if (age) {
-        if (age.includes("years old")) {
-          const ageMatch = age.match(/(\d+)\s*years old/);
-          if (ageMatch) {
-            parsedAgeInt = parseInt(ageMatch[1]);
-          }
-        } else if (age.includes("baby") || age.includes("bebek")) {
-          parsedAgeInt = 1;
-        } else if (age.includes("child") || age.includes("çocuk")) {
-          parsedAgeInt = 5;
-        } else if (age.includes("young") || age.includes("genç")) {
-          parsedAgeInt = 22;
-        } else if (age.includes("adult") || age.includes("yetişkin")) {
-          parsedAgeInt = 45;
-        }
-      }
-
-      // Yaş grupları - güvenli flag-safe tanımlar
-      if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
-        // Çocuk/genç yaş grupları için güvenli tanımlar
-        if (parsedAgeInt <= 12) {
-          modelDescription =
-            genderLower === "male" || genderLower === "man"
-              ? "child model (male)"
-              : "child model (female)";
-        } else {
-          modelDescription =
-            genderLower === "male" || genderLower === "man"
-              ? "teenage model (male)"
-              : "teenage model (female)";
-        }
-      } else {
-        // Yetişkin - güvenli tanımlar
-        if (genderLower === "male" || genderLower === "man") {
-          modelDescription = "adult male model";
-        } else {
-          modelDescription = "adult female model with confident expression";
-        }
-      }
-
-      // Etnik köken
-      if (ethnicity) {
-        modelDescription += ` ${ethnicity}`;
-      }
-
-      // Ten rengi
-      if (skinTone) {
-        modelDescription += ` with ${skinTone} skin`;
-      }
-
-      // Saç detayları
-      if (hairColor && hairStyle) {
-        modelDescription += `, ${hairColor} ${hairStyle}`;
-      } else if (hairColor) {
-        modelDescription += `, ${hairColor} hair`;
-      } else if (hairStyle) {
-        modelDescription += `, ${hairStyle}`;
-      }
-
-      // Vücut tipi
-      if (bodyShape) {
-        modelDescription += `, ${bodyShape} body shape`;
-      }
-
-      // Poz ve ifade
-      let poseDescription = "";
-      if (pose) poseDescription += `, ${pose}`;
-      if (mood) poseDescription += ` with ${mood} expression`;
-
-      // Aksesuarlar
-      let accessoriesDescription = "";
-      if (accessories) {
-        accessoriesDescription += `, wearing ${accessories}`;
-      }
-
-      // Ortam - enhanced prompt öncelikli
-      let environmentDescription = "";
-      if (locationEnhancedPrompt && locationEnhancedPrompt.trim()) {
-        environmentDescription += ` in ${locationEnhancedPrompt}`;
-        console.log(
-          "🏞️ [FALLBACK] Enhanced location prompt kullanılıyor:",
-          locationEnhancedPrompt
+        await new Promise((r) =>
+          setTimeout(r, Math.pow(2, attempt - 1) * 1000)
         );
-      } else if (location) {
-        environmentDescription += ` in ${location}`;
-        console.log("🏞️ [FALLBACK] Basit location kullanılıyor:", location);
       }
-      if (weather) environmentDescription += ` during ${weather} weather`;
-
-      // Kamera açısı
-      let cameraDescription = "";
-      if (perspective) {
-        cameraDescription += `, ${perspective} camera angle`;
-      }
-
-      // Ürün rengi
-      let clothingDescription = "";
-      if (productColor && productColor !== "original") {
-        clothingDescription += `, wearing ${productColor} colored clothing`;
-      }
-
-      // Ana prompt oluştur - Jewelry photography odaklı (çoklu ürün desteği ile)
-      let fallbackPrompt = `Replace the ${
-        isMultipleProducts ? "multiple jewelry pieces" : "jewelry piece"
-      } from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}, using poses and camera angles inspired by popular jewelry photography campaigns. `;
-
-      // Jewelry photography ve kalite gereksinimleri
-      fallbackPrompt += `This is for professional jewelry photography and commercial jewelry presentation, inspired by popular jewelry campaigns. Preserve ${
-        isMultipleProducts
-          ? "ALL original jewelry pieces"
-          : "the original jewelry piece"
-      } exactly as is, without altering any design, shape, gemstones, metal finish, settings, clasps, or details. The photorealistic output must show ${
-        isMultipleProducts
-          ? "ALL identical jewelry pieces perfectly positioned and coordinated"
-          : "the identical jewelry piece perfectly positioned"
-      } on the dynamic model for high-end jewelry shoots. `;
-
-      // Takı özellikleri (genel)
-      fallbackPrompt += `${
-        isMultipleProducts ? "Each jewelry piece" : "The jewelry piece"
-      } features high-quality craftsmanship with proper gemstone settings, metal work, and design details. `;
-
-      // Çoklu ürün için ek koordinasyon talimatları
-      if (isMultipleProducts) {
-        fallbackPrompt += `Ensure ALL jewelry pieces work together as a coordinated ensemble, maintaining proper positioning and visual harmony between all pieces. `;
-      }
-
-      // Temizlik gereksinimleri - jewelry odaklı
-      fallbackPrompt += `Please ensure that all display stands, shadow boxes, packaging, and flat-lay artifacts are completely removed. Transform the ${
-        isMultipleProducts ? "jewelry pieces" : "jewelry piece"
-      } into hyper-realistic, three-dimensional jewelry worn on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
-
-      // Takı pozisyonlama gereksinimleri
-      fallbackPrompt += `Ensure realistic jewelry positioning for ${
-        isMultipleProducts ? "ALL jewelry pieces" : "the jewelry piece"
-      }: the jewelry should be positioned naturally based on where it is worn on the body, following natural body contours and movements. Maintain a clean commercial presentation with proper jewelry placement. `;
-
-      // Detay koruma - jewelry odaklı
-      fallbackPrompt += `Preserve all original details of ${
-        isMultipleProducts ? "EACH jewelry piece" : "the jewelry piece"
-      } including exact gemstones, metal finish, settings, clasps, engravings, and craftsmanship elements. Avoid redesigning ${
-        isMultipleProducts
-          ? "any of the original jewelry pieces"
-          : "the original jewelry piece"
-      }. `;
-
-      // Final kalite - Jewelry photography standartları
-      fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting that highlights gemstone brilliance and metal luster, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional jewelry photography aesthetic suitable for luxury commercial and editorial use, inspired by popular jewelry photography campaigns.`;
-
-      console.log(
-        "🔄 [FALLBACK] Generated detailed fallback prompt:",
-        fallbackPrompt
-      );
-
-      enhancedPrompt = fallbackPrompt + fallbackStaticRules;
     }
 
     return enhancedPrompt;
   } catch (error) {
-    console.error("🤖 Gemini 2.0 Flash prompt iyileştirme hatası:", error);
-    // Hata durumunda da uygun direktifi ekle
-    // let controlNetDirective = "";
-    // if (hasControlNet) {
-    //   controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
-
-    // `;
-    // } else {
-    //   controlNetDirective = `BACKGROUND REMOVED IMAGE GUIDANCE: The input image shows the original garment with background removed (white background) for clear color and texture reference. Focus on analyzing the garment's design, construction details, fabric characteristics, and styling elements. Use this clean product image to understand the garment's true colors, textures, patterns, and structural features without any background distractions.
-
-    // `;
-    // }
-
-    // Fallback prompt - detaylı kıyafet odaklı format
-    console.log(
-      "🔄 [FALLBACK] Enhanced prompt oluşturulamadı, detaylı fallback prompt kullanılıyor"
-    );
-
-    // Statik kuralları fallback prompt'un sonuna da ekle - Jewelry odaklı
-    const fallbackStaticRules = `
-
-CRITICAL RULES FOR JEWELRY PHOTOGRAPHY:
-
-The output must be a single, high-end professional jewelry photograph only — no collages, duplicates, or extra frames.
-
-Apply refined studio lighting that highlights gemstone brilliance and metal luster, blended naturally with daylight, ensuring flawless exposure, vibrant gemstone colors, and sharp focus on jewelry details.
-
-Guarantee editorial-level clarity and detail, with no blur, dull tones, or artificial look. Every jewelry detail (gemstones, metal finish, settings, clasps) must be crystal clear.
-
-Model, jewelry piece, and environment must integrate into one cohesive, seamless professional jewelry photograph suitable for luxury commercial catalogs and editorial campaigns, inspired by popular jewelry photography styles.`;
-
-    // Settings'ten bilgileri çıkar
-    const location = settings?.location;
-    const locationEnhancedPrompt = settings?.locationEnhancedPrompt; // Enhanced prompt bilgisini al
-    const weather = settings?.weather;
-    const age = settings?.age;
-    const gender = settings?.gender;
-    const productColor = settings?.productColor;
-    const mood = settings?.mood;
-    const perspective = settings?.perspective;
-    const accessories = settings?.accessories;
-    const skinTone = settings?.skinTone;
-    const hairStyle = settings?.hairStyle;
-    const hairColor = settings?.hairColor;
-    const bodyShape = settings?.bodyShape;
-    const pose = settings?.pose;
-    const ethnicity = settings?.ethnicity;
-
-    // Model tanımı
-    let modelDescription = "";
-
-    // Yaş ve cinsiyet - aynı koşullar kullanılıyor
-    const genderLower = gender ? gender.toLowerCase() : "female";
-    let parsedAgeInt = null;
-
-    // Yaş sayısını çıkar
-    if (age) {
-      if (age.includes("years old")) {
-        const ageMatch = age.match(/(\d+)\s*years old/);
-        if (ageMatch) {
-          parsedAgeInt = parseInt(ageMatch[1]);
-        }
-      } else if (age.includes("baby") || age.includes("bebek")) {
-        parsedAgeInt = 1;
-      } else if (age.includes("child") || age.includes("çocuk")) {
-        parsedAgeInt = 5;
-      } else if (age.includes("young") || age.includes("genç")) {
-        parsedAgeInt = 22;
-      } else if (age.includes("adult") || age.includes("yetişkin")) {
-        parsedAgeInt = 45;
-      }
-    }
-
-    // Yaş grupları - güvenli flag-safe tanımlar (ikinci fallback)
-    if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
-      // Çocuk/genç yaş grupları için güvenli tanımlar
-      if (parsedAgeInt <= 12) {
-        modelDescription =
-          genderLower === "male" || genderLower === "man"
-            ? "child model (male)"
-            : "child model (female)";
-      } else {
-        modelDescription =
-          genderLower === "male" || genderLower === "man"
-            ? "teenage model (male)"
-            : "teenage model (female)";
-      }
-    } else {
-      // Yetişkin - güvenli tanımlar
-      if (genderLower === "male" || genderLower === "man") {
-        modelDescription = "adult male model";
-      } else {
-        modelDescription = "adult female model with confident expression";
-      }
-    }
-
-    // Etnik köken
-    if (ethnicity) {
-      modelDescription += ` ${ethnicity}`;
-    }
-
-    // Ten rengi
-    if (skinTone) {
-      modelDescription += ` with ${skinTone} skin`;
-    }
-
-    // Saç detayları
-    if (hairColor && hairStyle) {
-      modelDescription += `, ${hairColor} ${hairStyle}`;
-    } else if (hairColor) {
-      modelDescription += `, ${hairColor} hair`;
-    } else if (hairStyle) {
-      modelDescription += `, ${hairStyle}`;
-    }
-
-    // Vücut tipi
-    if (bodyShape) {
-      modelDescription += `, ${bodyShape} body shape`;
-    }
-
-    // Poz ve ifade
-    let poseDescription = "";
-    if (pose) poseDescription += `, ${pose}`;
-    if (mood) poseDescription += ` with ${mood} expression`;
-
-    // Aksesuarlar
-    let accessoriesDescription = "";
-    if (accessories) {
-      accessoriesDescription += `, wearing ${accessories}`;
-    }
-
-    // Ortam - enhanced prompt öncelikli
-    let environmentDescription = "";
-    if (locationEnhancedPrompt && locationEnhancedPrompt.trim()) {
-      environmentDescription += ` in ${locationEnhancedPrompt}`;
-      console.log(
-        "🏞️ [FALLBACK ERROR] Enhanced location prompt kullanılıyor:",
-        locationEnhancedPrompt
-      );
-    } else if (location) {
-      environmentDescription += ` in ${location}`;
-      console.log("🏞️ [FALLBACK ERROR] Basit location kullanılıyor:", location);
-    }
-    if (weather) environmentDescription += ` during ${weather} weather`;
-
-    // Kamera açısı
-    let cameraDescription = "";
-    if (perspective) {
-      cameraDescription += `, ${perspective} camera angle`;
-    }
-
-    // Ürün rengi
-    let clothingDescription = "";
-    if (productColor && productColor !== "original") {
-      clothingDescription += `, wearing ${productColor} colored clothing`;
-    }
-
-    // Ana prompt oluştur (çoklu ürün desteği ile) - Jewelry odaklı
-    let fallbackPrompt = `Replace the ${
-      isMultipleProducts ? "multiple jewelry pieces" : "jewelry piece"
-    } from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}, using poses and camera angles inspired by popular jewelry photography campaigns. `;
-
-    // Jewelry photography ve kalite gereksinimleri
-    fallbackPrompt += `This is for professional jewelry photography and commercial jewelry presentation, inspired by popular jewelry campaigns. Preserve ${
-      isMultipleProducts
-        ? "ALL original jewelry pieces"
-        : "the original jewelry piece"
-    } exactly as is, without altering any design, shape, gemstones, metal finish, settings, clasps, or details. The photorealistic output must show ${
-      isMultipleProducts
-        ? "ALL identical jewelry pieces perfectly positioned and coordinated"
-        : "the identical jewelry piece perfectly positioned"
-    } on the dynamic model for high-end jewelry shoots. `;
-
-    // Takı özellikleri (genel)
-    fallbackPrompt += `${
-      isMultipleProducts ? "Each jewelry piece" : "The jewelry piece"
-    } features high-quality craftsmanship with proper gemstone settings, metal work, and design details. `;
-
-    // Çoklu ürün için ek koordinasyon talimatları
-    if (isMultipleProducts) {
-      fallbackPrompt += `Ensure ALL jewelry pieces work together as a coordinated ensemble, maintaining proper positioning and visual harmony between all pieces. `;
-    }
-
-    // Temizlik gereksinimleri - jewelry odaklı
-    fallbackPrompt += `Please ensure that all display stands, shadow boxes, packaging, and flat-lay artifacts are completely removed. Transform the ${
-      isMultipleProducts ? "jewelry pieces" : "jewelry piece"
-    } into hyper-realistic, three-dimensional jewelry worn on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
-
-    // Takı pozisyonlama gereksinimleri
-    fallbackPrompt += `Ensure realistic jewelry positioning for ${
-      isMultipleProducts ? "ALL jewelry pieces" : "the jewelry piece"
-    }: the jewelry should be positioned naturally based on where it is worn on the body, following natural body contours and movements. Maintain a clean commercial presentation with proper jewelry placement. `;
-
-    // Detay koruma - jewelry odaklı
-    fallbackPrompt += `Preserve all original details of ${
-      isMultipleProducts ? "EACH jewelry piece" : "the jewelry piece"
-    } including exact gemstones, metal finish, settings, clasps, engravings, and craftsmanship elements. Avoid redesigning ${
-      isMultipleProducts
-        ? "any of the original jewelry pieces"
-        : "the original jewelry piece"
-    }. `;
-
-    // Final kalite - Jewelry photography standartları
-    fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting that highlights gemstone brilliance and metal luster, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional jewelry photography aesthetic suitable for luxury commercial and editorial use, inspired by popular jewelry photography campaigns.`;
-
-    console.log(
-      "🔄 [FALLBACK] Generated detailed fallback prompt:",
-      fallbackPrompt
-    );
-
-    // Son fallback durumunda da statik kuralları ekle - Jewelry odaklı
-    const finalStaticRules = `
-
-CRITICAL RULES FOR JEWELRY PHOTOGRAPHY:
-
-The output must be a single, high-end professional jewelry photograph only — no collages, duplicates, or extra frames.
-
-Apply refined studio lighting that highlights gemstone brilliance and metal luster, blended naturally with daylight, ensuring flawless exposure, vibrant gemstone colors, and sharp focus on jewelry details.
-
-Guarantee editorial-level clarity and detail, with no blur, dull tones, or artificial look. Every jewelry detail (gemstones, metal finish, settings, clasps) must be crystal clear.
-
-Model, jewelry piece, and environment must integrate into one cohesive, seamless professional jewelry photograph suitable for luxury commercial catalogs and editorial campaigns, inspired by popular jewelry photography styles.`;
-
-    return fallbackPrompt + finalStaticRules;
+    console.error("💎 Jewelry prompt iyileştirme hatası:", error);
+    return `
+Retouch the jewelry photo to look like a professional studio photograph with flawless lighting, perfect clarity, and high-end catalog quality.
+${jewelryDirectives}`;
   }
 }
 
@@ -4839,13 +3111,13 @@ async function generatePoseDescriptionWithGemini(
   poseTitle,
   poseImage,
   gender = "female",
-  garmentType = "jewelry"
+  garmentType = "clothing"
 ) {
   try {
-    console.log("💎 Gemini ile jewelry pose açıklaması oluşturuluyor...");
-    console.log("💎 Pose title:", poseTitle);
-    console.log("💎 Gender:", gender);
-    console.log("💎 Garment type:", garmentType);
+    console.log("🤸 Gemini ile pose açıklaması oluşturuluyor...");
+    console.log("🤸 Pose title:", poseTitle);
+    console.log("🤸 Gender:", gender);
+    console.log("🤸 Garment type:", garmentType);
 
     // Gemini 2.0 Flash modeli - Yeni SDK
     const model = "gemini-2.5-flash";
@@ -4856,31 +3128,30 @@ async function generatePoseDescriptionWithGemini(
         ? "male model"
         : "female model";
 
-    // Pose açıklaması için özel prompt - Jewelry odaklı
+    // Pose açıklaması için özel prompt
     const posePrompt = `
-    JEWELRY POSE DESCRIPTION TASK:
+    POSE DESCRIPTION TASK:
     
-    You are a professional jewelry photography director. Create a detailed, technical pose description for a ${modelGenderText} wearing ${garmentType}, inspired by popular jewelry photography campaigns.
+    You are a professional fashion photography director. Create a detailed, technical pose description for a ${modelGenderText} wearing ${garmentType}.
     
     POSE TITLE: "${poseTitle}"
     
-    REQUIREMENTS FOR JEWELRY PHOTOGRAPHY:
+    REQUIREMENTS:
     - Generate ONLY a detailed pose description/instruction
     - Do NOT create image generation prompts or visual descriptions
-    - Focus on body positioning, hand placement, stance, and posture that showcases jewelry effectively
+    - Focus on body positioning, hand placement, stance, and posture
     - Include specific technical directions for the model
-    - Keep it professional and suitable for jewelry photography
+    - Keep it professional and suitable for fashion photography
     - Make it clear and actionable for a model to follow
-    - Consider how the pose will showcase the jewelry piece effectively, naturally highlighting it based on where it is worn on the body
-    - Use poses inspired by popular jewelry photography campaigns: elegant head tilts, gentle hand gestures, subtle shoulder turns, wrist-forward positions, and other poses that naturally highlight jewelry
+    - Consider how the pose will showcase the garment effectively
     
     OUTPUT FORMAT:
     Provide only the pose instruction in a clear, professional manner. Start directly with the pose description without any introductory text.
     
-    EXAMPLE OUTPUT STYLE FOR JEWELRY:
-    "Stand with feet shoulder-width apart, weight shifted to the back leg. Tilt head elegantly to one side to showcase the jewelry piece, ensuring it is clearly visible. Place left hand gently in a natural position that highlights the jewelry, fingers curved naturally. Extend right arm down and slightly away from body. Keep shoulders relaxed and down. Maintain confident, elegant eye contact with camera, with a subtle smile that complements luxury jewelry presentation."
+    EXAMPLE OUTPUT STYLE:
+    "Stand with feet shoulder-width apart, weight shifted to the back leg. Turn torso slightly at a 45-degree angle to the camera. Place left hand on hip with thumb pointing backward, fingers curved naturally. Extend right arm down and slightly away from body. Keep shoulders relaxed and down. Tilt head slightly toward the raised shoulder. Maintain confident eye contact with camera."
     
-    Generate a similar detailed pose instruction for the given pose title "${poseTitle}" for a ${modelGenderText} wearing jewelry, inspired by popular jewelry photography campaigns.
+    Generate a similar detailed pose instruction for the given pose title "${poseTitle}" for a ${modelGenderText}.
     `;
 
     console.log("🤸 Gemini'ye gönderilen pose prompt:", posePrompt);
@@ -4943,7 +3214,7 @@ async function generatePoseDescriptionWithGemini(
     console.error("🤸 Gemini pose açıklaması hatası:", error);
     // Fallback: Basit pose açıklaması
     return sanitizePoseText(
-      `Professional ${gender.toLowerCase()} model pose: ${poseTitle}. Stand naturally with good posture, position body to showcase the jewelry piece effectively, inspired by popular jewelry photography campaigns. The pose should naturally highlight the jewelry piece based on where it is worn on the body.`
+      `Professional ${gender.toLowerCase()} model pose: ${poseTitle}. Stand naturally with good posture, position body to showcase the garment effectively.`
     );
   }
 }
@@ -4955,7 +3226,7 @@ router.post("/generatePoseDescription", async (req, res) => {
       poseTitle,
       poseImage,
       gender = "female",
-      garmentType = "jewelry",
+      garmentType = "clothing",
     } = req.body;
 
     console.log("🤸 Pose açıklaması isteği alındı:");
