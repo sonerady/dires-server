@@ -264,7 +264,7 @@ async function enhancePromptWithGemini(
     console.log("💇 [GEMINI] Hair style image parametresi:", hairStyleImage);
 
     // Gemini modeli
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
     // Settings'in var olup olmadığını kontrol et
     const hasValidSettings =

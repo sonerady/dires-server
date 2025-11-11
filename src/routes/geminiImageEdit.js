@@ -71,7 +71,7 @@ async function generateEnhancedPrompt(
   generationConfig = {}
 ) {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
     // Create the prompt request to generate an instruction prompt based on user input
     const promptRequest = {
@@ -238,7 +238,7 @@ router.post("/gemini-image-edit", upload.single("image"), async (req, res) => {
         // First, send the image to Gemini 1.5 Flash to generate a prompt
         console.log("Gemini 1.5 Flash ile prompt oluşturuluyor...");
         const promptModel = genAI.getGenerativeModel({
-          model: "gemini-2.5-flash",
+          model: "gemini-flash-latest",
         });
 
         // Get the user description from request body
@@ -315,7 +315,7 @@ Your prompt should be in English, under 100 words, and only contain the edit ins
 
         // Now, use the generated prompt to process the image with Gemini 2.0 Flash
         const model = genAI.getGenerativeModel({
-          model: "gemini-2.5-flash",
+          model: "gemini-flash-latest",
           generationConfig: {
             responseModalities: ["Text", "Image"],
             temperature: 1,

@@ -360,7 +360,7 @@ async function enhanceConsistentCharacterPrompt(
 
     // Gemini 2.0 Flash modeli - En yeni API yapısı
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: "gemini-flash-latest",
     });
 
     // Consistent character için basit settings

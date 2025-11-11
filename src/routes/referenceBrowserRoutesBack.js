@@ -686,7 +686,7 @@ async function enhancePromptWithGemini(
     console.log("✏️ [GEMINI] Edit prompt:", editPrompt);
 
     // Gemini 2.0 Flash modeli - Yeni SDK
-    const model = "gemini-2.5-flash";
+    const model = "gemini-flash-latest";
 
     // Settings'in var olup olmadığını kontrol et
     const hasValidSettings =

@@ -1069,8 +1069,9 @@ router.get("/user-models/:userId", async (req, res) => {
         "Supabase user models fetch sırasında beklenmeyen hata:",
         fetchError
       );
-      const statusCode =
-        fetchError?.message?.includes("fetch failed") ? 503 : 500;
+      const statusCode = fetchError?.message?.includes("fetch failed")
+        ? 503
+        : 500;
       return res.status(statusCode).json({
         success: false,
         error:
@@ -1166,7 +1167,7 @@ router.post("/detect-gender", async (req, res) => {
     console.log("🔍 [GENDER_DETECT] Starting gender detection...");
 
     // Gemini ile gender detection
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
     // Base64 data'yı ayıkla
     const base64Data = selectedImage.uri.replace(
