@@ -82,7 +82,7 @@ async function generateLocationWithImagen4Fast(prompt, userId) {
         },
         body: JSON.stringify({
           input: {
-            prompt: `${prompt} The image should have vibrant colors, high contrast, excellent lighting, and sharp visual quality.`,
+            prompt: `${prompt} The image should have vibrant colors, high contrast, excellent lighting, and sharp visual quality. No people, no humans, no figures, no mannequins, no characters, empty location, vacant space.`,
             aspect_ratio: "1:1",
             output_format: "jpg",
             safety_filter_level: "block_only_high",
@@ -168,12 +168,13 @@ Generate a SHORT, SIMPLE ENGLISH prompt (max 512 tokens) following best practice
 - Depth: "foreground to background", "layered composition"
 
 🚫 PROHIBITIONS:
-- NO people, humans, figures, characters
+- NO people, humans, figures, characters, mannequins, models, or any living beings
 - NO busy, cluttered, distracting elements
 - NO extreme angles, unusual perspectives
 - NO text, logos, branded elements
 - NO dim, dark, moody, vintage, aged lighting
 - NO technical camera specifications (no f/8, no lens types, no DSLR)
+- The location MUST be completely empty, vacant, and unoccupied
 
 LOCATION TYPE ANALYSIS:
 You MUST analyze the location description and determine if it's:
@@ -183,7 +184,7 @@ You MUST analyze the location description and determine if it's:
 
 OUTPUT FORMAT (MUST BE IN ENGLISH):
 {
-  "prompt": "[simple 200-400 word English prompt with vibrant colors and realistic details - NO technical camera specs, focus on visual description - translate any non-English concepts to English]",
+  "prompt": "[simple 200-400 word English prompt with vibrant colors and realistic details - NO technical camera specs, NO people, NO humans, NO figures, NO mannequins - focus on visual description of an EMPTY, VACANT location - translate any non-English concepts to English]",
   "title": "[short 5-10 word English location title]",
   "locationType": "[outdoor/indoor/studio]"
 }
