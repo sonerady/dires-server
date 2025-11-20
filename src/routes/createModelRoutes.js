@@ -179,14 +179,47 @@ Generate the appropriate first name:`;
   }
 }
 
+// Kullanıcının mevcut modellerinin isimlerini çek
+async function getUserExistingModelNames(userId) {
+  try {
+    const { data, error } = await supabase
+      .from("user_models")
+      .select("name")
+      .eq("user_id", userId)
+      .eq("status", "completed");
+
+    if (error) {
+      console.error("❌ Mevcut modeller çekilirken hata:", error);
+      return [];
+    }
+
+    const modelNames = data.map((model) => model.name).filter(Boolean);
+    console.log("📋 Kullanıcının mevcut modelleri:", modelNames);
+    return modelNames;
+  } catch (error) {
+    console.error("❌ Mevcut modeller çekilirken hata:", error);
+    return [];
+  }
+}
+
 // GPT-4O-mini ile ID photo prompt enhance et
 // Gemini ile resimli prompt enhance (upload edilen resim için)
-async function analyzeImageAndGeneratePrompt(uploadedImageUrl) {
+async function analyzeImageAndGeneratePrompt(
+  uploadedImageUrl,
+  modelName = null,
+  languageCode = "en",
+  regionCode = "US",
+  existingModelNames = []
+) {
   try {
     console.log(
       "🤖 Gemini ile resim analizi ve prompt oluşturma başlatılıyor..."
     );
     console.log("📸 Upload edilen resim URL:", uploadedImageUrl);
+    console.log("📝 Model Name:", modelName);
+    console.log("🌍 Language Code:", languageCode);
+    console.log("🌍 Region Code:", regionCode);
+    console.log("📋 Existing Model Names:", existingModelNames);
 
     // Resmi base64'e çevir
     const imageResponse = await axios.get(uploadedImageUrl, {
@@ -228,16 +261,24 @@ async function analyzeImageAndGeneratePrompt(uploadedImageUrl) {
 INPUT DATA STRUCTURE:
 ${JSON.stringify(requestData, null, 2)}
 
+LANGUAGE INFORMATION:
+- Language Code: ${languageCode}
+- Region Code: ${regionCode}
+${modelName ? `\nUSER PROVIDED NAME: ${modelName} (You can use this or suggest a better modern name based on the person's appearance)` : `\nMODEL NAME GENERATION REQUIRED: Generate a MODERN, contemporary name appropriate for language ${languageCode} and region ${regionCode}`}
+${existingModelNames.length > 0 ? `\nEXISTING MODEL NAMES (DO NOT USE THESE): ${existingModelNames.join(", ")}` : ''}
+
 ANALYSIS REQUIREMENTS:
 1. Detect the person's gender (woman/man)
 2. Estimate their age (number between 18-80)
 3. Analyze physical features (skin tone, hair, eyes, facial structure)
 4. Generate a professional ID photo prompt
+5. ALWAYS generate a MODERN, contemporary name appropriate for the detected person, matching the language and region. The name must be different from existing model names and should be a popular, modern name that fits the person's appearance and age. ${modelName ? `You can use "${modelName}" if it fits, or suggest a better modern name based on the person's appearance.` : ''}
 
 RESPONSE FORMAT (JSON):
 {
   "gender": "woman" or "man",
   "age": estimated_age_as_number,
+  "suggestedName": "a_name_appropriate_for_language_and_region_based_on_person_appearance",
   "prompt": "detailed_professional_id_photo_prompt_in_english"
 }
 
@@ -250,6 +291,9 @@ PROMPT REQUIREMENTS:
 - Professional studio lighting with even illumination, no shadows
 - High quality, sharp focus throughout
 - Clean composition with proper ID photo proportions
+- Include the suggested name (from suggestedName field) in the prompt
+- Include the detected gender (woman/man) in the prompt
+- Include the estimated age (as a number) in the prompt
 
 CRITICAL REQUIREMENTS:
 - Crystal clear, sharp focus throughout the entire image
@@ -257,6 +301,11 @@ CRITICAL REQUIREMENTS:
 - NO soft focus, NO dreamy effects, NO artistic blur
 - Maximum sharpness and clarity on face, hair, clothing, and background
 - NO borders, NO frames, NO text, NO watermarks, NO overlays
+
+IMPORTANT: The prompt must include:
+1. The suggested name from the "suggestedName" field (MUST be a MODERN, contemporary name appropriate for language ${languageCode} and region ${regionCode}, different from existing names: ${existingModelNames.length > 0 ? existingModelNames.join(", ") : "none"})
+2. The detected gender (woman/man)
+3. The estimated age (as a number, e.g., "25 years old")
 
 Analyze the image and return the JSON response:`,
       },
@@ -296,10 +345,25 @@ Analyze the image and return the JSON response:`,
         throw new Error("Missing required fields in analysis result");
       }
 
+      // Prompt'a model ismi, yaş ve cinsiyeti ekle
+      let finalPrompt = analysisResult.prompt;
+      const detectedGender = analysisResult.gender;
+      const detectedAge = analysisResult.age;
+      // Her zaman suggestedName kullan, yoksa modelName'i kullan (fallback)
+      const suggestedName = analysisResult.suggestedName || modelName || null;
+      
+      // Prompt'un başına model ismi, yaş ve cinsiyeti ekle
+      if (suggestedName) {
+        finalPrompt = `${suggestedName}, a ${detectedAge}-year-old ${detectedGender}, ${finalPrompt}`;
+      } else {
+        finalPrompt = `a ${detectedAge}-year-old ${detectedGender}, ${finalPrompt}`;
+      }
+
       return {
-        detectedGender: analysisResult.gender,
-        detectedAge: analysisResult.age,
-        enhancedPrompt: analysisResult.prompt,
+        detectedGender: detectedGender,
+        detectedAge: detectedAge,
+        enhancedPrompt: finalPrompt,
+        suggestedName: suggestedName, // Önerilen isim (varsa)
       };
     } catch (parseError) {
       console.error("❌ JSON parse hatası:", parseError);
@@ -309,24 +373,50 @@ Analyze the image and return the JSON response:`,
       const genderMatch = responseText.match(/"gender":\s*"(woman|man)"/i);
       const ageMatch = responseText.match(/"age":\s*(\d+)/);
       const promptMatch = responseText.match(/"prompt":\s*"([^"]+)"/);
+      const suggestedNameMatch = responseText.match(/"suggestedName":\s*"([^"]+)"/i);
+
+      const detectedGender = genderMatch ? genderMatch[1].toLowerCase() : "woman";
+      const detectedAge = ageMatch ? parseInt(ageMatch[1]) : 25;
+      const fallbackSuggestedName = suggestedNameMatch ? suggestedNameMatch[1] : modelName;
+      let fallbackPrompt = promptMatch
+        ? promptMatch[1]
+        : `Professional ID photo of a person wearing a clean white t-shirt against a pure white background. Shot straight on with professional studio lighting. High quality, sharp focus, passport photo style. NO borders, NO frames, NO text, NO watermarks.`;
+
+      // Fallback prompt'a da model ismi, yaş ve cinsiyeti ekle
+      if (fallbackSuggestedName) {
+        fallbackPrompt = `${fallbackSuggestedName}, a ${detectedAge}-year-old ${detectedGender}, ${fallbackPrompt}`;
+      } else {
+        fallbackPrompt = `a ${detectedAge}-year-old ${detectedGender}, ${fallbackPrompt}`;
+      }
 
       return {
-        detectedGender: genderMatch ? genderMatch[1].toLowerCase() : "woman",
-        detectedAge: ageMatch ? parseInt(ageMatch[1]) : 25,
-        enhancedPrompt: promptMatch
-          ? promptMatch[1]
-          : `Professional ID photo of a person wearing a clean white t-shirt against a pure white background. Shot straight on with professional studio lighting. High quality, sharp focus, passport photo style. NO borders, NO frames, NO text, NO watermarks.`,
+        detectedGender: detectedGender,
+        detectedAge: detectedAge,
+        enhancedPrompt: fallbackPrompt,
+        suggestedName: fallbackSuggestedName, // Önerilen isim (varsa)
       };
     }
   } catch (error) {
     console.error("❌ Gemini image analysis hatası:", error);
 
     // Fallback
+    const fallbackGender = "woman";
+    const fallbackAge = 25;
+    const fallbackSuggestedName = modelName || null;
+    let fallbackPrompt = "Professional ID photo of a person wearing a clean white t-shirt against a pure white background. Shot straight on with professional studio lighting. High quality, sharp focus, passport photo style. NO borders, NO frames, NO text, NO watermarks.";
+    
+    // Error fallback prompt'a da model ismi, yaş ve cinsiyeti ekle
+    if (fallbackSuggestedName) {
+      fallbackPrompt = `${fallbackSuggestedName}, a ${fallbackAge}-year-old ${fallbackGender}, ${fallbackPrompt}`;
+    } else {
+      fallbackPrompt = `a ${fallbackAge}-year-old ${fallbackGender}, ${fallbackPrompt}`;
+    }
+
     return {
-      detectedGender: "woman",
-      detectedAge: 25,
-      enhancedPrompt:
-        "Professional ID photo of a person wearing a clean white t-shirt against a pure white background. Shot straight on with professional studio lighting. High quality, sharp focus, passport photo style. NO borders, NO frames, NO text, NO watermarks.",
+      detectedGender: fallbackGender,
+      detectedAge: fallbackAge,
+      enhancedPrompt: fallbackPrompt,
+      suggestedName: fallbackSuggestedName, // Önerilen isim (varsa)
     };
   }
 }
@@ -627,29 +717,45 @@ async function saveModelToDatabase(
   gender,
   age,
   userId,
-  isPublic = false
+  isPublic = false,
+  termsAccepted = null,
+  originalImageUrl = null
 ) {
   try {
     console.log("💾 Model Supabase'e kaydediliyor...");
     console.log("📝 Model name:", name);
     console.log("📝 Gender:", gender);
     console.log("📝 Age:", age);
+    console.log("📝 Terms Accepted:", termsAccepted);
+    console.log("📝 Original Image URL:", originalImageUrl);
+
+    const insertData = {
+      name: name,
+      original_prompt: originalPrompt,
+      enhanced_prompt: enhancedPrompt,
+      image_url: imageUrl, // Supabase storage'dan gelen public URL (transform edilmiş)
+      replicate_id: replicateId,
+      gender: gender,
+      age: age,
+      user_id: userId,
+      is_public: isPublic,
+      status: "completed",
+      created_at: new Date().toISOString(),
+    };
+
+    // Terms accepted sadece null değilse ekle (eski versiyonlar için uyumluluk)
+    if (termsAccepted !== null) {
+      insertData.terms_accepted = termsAccepted;
+    }
+
+    // Original image URL sadece null değilse ekle (eski versiyonlar için uyumluluk)
+    if (originalImageUrl !== null) {
+      insertData.original_image_url = originalImageUrl;
+    }
 
     const { data, error } = await supabase
       .from("user_models")
-      .insert({
-        name: name,
-        original_prompt: originalPrompt,
-        enhanced_prompt: enhancedPrompt,
-        image_url: imageUrl, // Supabase storage'dan gelen public URL
-        replicate_id: replicateId,
-        gender: gender,
-        age: age,
-        user_id: userId,
-        is_public: isPublic,
-        status: "completed",
-        created_at: new Date().toISOString(),
-      })
+      .insert(insertData)
       .select()
       .single();
 
@@ -836,6 +942,7 @@ router.post("/create-model", async (req, res) => {
       selectedImage = null,
       languageCode = "en",
       regionCode = "US",
+      termsAccepted = null, // Şartları kabul etme durumu (nullable - eski versiyonlar için)
     } = req.body;
 
     console.log("🚀 Create model işlemi başlatıldı");
@@ -847,6 +954,7 @@ router.post("/create-model", async (req, res) => {
     console.log("User ID:", userId);
     console.log("Is Public:", isPublic);
     console.log("Selected Image:", !!selectedImage);
+    console.log("Terms Accepted:", termsAccepted);
 
     // User ID validation
     let actualUserId = userId;
@@ -895,6 +1003,7 @@ router.post("/create-model", async (req, res) => {
 
     let imagenResult;
     let analysisResult = null; // Image analysis result'ı store et
+    let uploadedImageUrl = null; // Orijinal yüklenen resim URL'i
 
     if (selectedImage) {
       // Image upload edilmişse: Resmi Supabase'e yükle, sonra nano-banana ile transform et
@@ -905,15 +1014,24 @@ router.post("/create-model", async (req, res) => {
       // 1. Upload edilen resmi Supabase'e yükle
       console.log("📸 selectedImage.uri:", selectedImage.uri);
 
-      const uploadedImageUrl = await uploadImageToSupabase(
+      uploadedImageUrl = await uploadImageToSupabase(
         selectedImage.uri,
         actualUserId
       );
       console.log("✅ Resim Supabase'e yüklendi:", uploadedImageUrl);
 
-      // 1.5. Gemini ile resmi analiz et ve gender/age detect et
+      // 1.5. Kullanıcının mevcut modellerini çek
+      const existingModelNames = await getUserExistingModelNames(actualUserId);
+      
+      // 1.6. Gemini ile resmi analiz et ve gender/age detect et
       console.log("🔍 Gemini ile resim analiz ve gender/age detection...");
-      analysisResult = await analyzeImageAndGeneratePrompt(uploadedImageUrl);
+      analysisResult = await analyzeImageAndGeneratePrompt(
+        uploadedImageUrl,
+        modelName.trim() || null,
+        languageCode,
+        regionCode,
+        existingModelNames
+      );
       console.log("✅ Gemini analysis result:", analysisResult);
 
       const detectedGender = analysisResult.detectedGender;
@@ -971,21 +1089,42 @@ router.post("/create-model", async (req, res) => {
     const finalFinalAge = selectedImage
       ? analysisResult?.detectedAge || finalAge
       : finalAge;
+    
+    // Model ismini belirle: analiz sonucunda gelen suggestedName'i öncelikli kullan
+    // Eğer analiz sonucunda isim yoksa, kullanıcının girdiği ismi kullan
+    const finalModelName = analysisResult?.suggestedName || modelName.trim() || "Model";
 
     console.log(
-      `💾 Saving to DB with: gender=${finalGender}, age=${finalFinalAge}`
+      `💾 Saving to DB with: gender=${finalGender}, age=${finalFinalAge}, name=${finalModelName}`
     );
 
+    // Veritabanına kaydedilecek kısa açıklama oluştur
+    // Fotoğraf oluşturma için uzun prompt kullanılacak, ama veritabanına kısa açıklama kaydedilecek
+    let shortDescription = "";
+    if (selectedImage && analysisResult) {
+      // Resim upload edildiyse: yaş ve cinsiyet ile kısa açıklama
+      const genderText = finalGender === "woman" ? "woman" : "man";
+      shortDescription = `${finalFinalAge}-year-old ${genderText}`;
+    } else {
+      // Text prompt ise: kısa versiyonu
+      shortDescription = prompt.trim().substring(0, 100); // İlk 100 karakter
+      if (prompt.trim().length > 100) {
+        shortDescription += "...";
+      }
+    }
+
     const savedModel = await saveModelToDatabase(
-      modelName.trim(), // Kullanıcıdan gelen isim
-      prompt.trim(),
-      prompt.trim(), // Enhanced prompt şimdilik aynı
-      imagenResult.imageUrl, // Supabase storage'dan gelen public URL
+      finalModelName, // Kullanıcıdan gelen isim veya önerilen isim
+      prompt.trim(), // Original prompt
+      shortDescription, // Kısa açıklama (veritabanına kaydedilecek)
+      imagenResult.imageUrl, // Supabase storage'dan gelen public URL (transform edilmiş)
       imagenResult.replicateId,
       finalGender, // Detected gender kullan
       finalFinalAge, // Detected age kullan
       actualUserId,
-      isPublic
+      isPublic,
+      termsAccepted, // Şartları kabul etme durumu
+      uploadedImageUrl // Orijinal yüklenen resim URL'i (null olabilir)
     );
 
     console.log("✅ Create model işlemi tamamlandı");
@@ -1005,6 +1144,9 @@ router.post("/create-model", async (req, res) => {
         isPublic: savedModel.is_public,
         createdAt: savedModel.created_at,
         userId: savedModel.user_id,
+        suggestedName: analysisResult?.suggestedName || null, // Analiz sonucunda önerilen isim
+        detectedGender: analysisResult?.detectedGender || null, // Analiz sonucunda tespit edilen cinsiyet
+        detectedAge: analysisResult?.detectedAge || null, // Analiz sonucunda tespit edilen yaş
       },
     });
   } catch (error) {
@@ -1013,6 +1155,97 @@ router.post("/create-model", async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Model oluşturulurken hata oluştu",
+      details: error.message,
+    });
+  }
+});
+
+// ANALYZE IMAGE - Fotoğraf yüklendiğinde analiz yap ve isim, yaş, cinsiyet döndür
+router.post("/analyze-image", async (req, res) => {
+  try {
+    const {
+      selectedImage = null,
+      languageCode = "en",
+      regionCode = "US",
+      userId = null,
+    } = req.body;
+
+    console.log("🔍 [ANALYZE_IMAGE] Image analysis başlatılıyor...");
+    console.log("🌍 Language Code:", languageCode);
+    console.log("🌍 Region Code:", regionCode);
+
+    if (!selectedImage || !selectedImage.uri) {
+      return res.status(400).json({
+        success: false,
+        error: "Image data is required",
+      });
+    }
+
+    // User ID validation
+    let actualUserId = userId;
+    if (!actualUserId) {
+      actualUserId = req.headers["x-user-id"] || req.headers["user-id"];
+    }
+
+    // UUID format validation
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (actualUserId && !uuidRegex.test(actualUserId)) {
+      console.error("❌ Invalid UUID format:", actualUserId);
+      return res.status(400).json({
+        success: false,
+        error: "Invalid user ID format. UUID required.",
+      });
+    }
+
+    // 1. Upload edilen resmi Supabase'e yükle
+    let uploadedImageUrl;
+    try {
+      uploadedImageUrl = await uploadImageToSupabase(
+        selectedImage.uri,
+        actualUserId || "temp"
+      );
+      console.log("✅ Resim Supabase'e yüklendi:", uploadedImageUrl);
+    } catch (uploadError) {
+      console.error("❌ Image upload hatası:", uploadError);
+      return res.status(500).json({
+        success: false,
+        error: "Image upload failed",
+        details: uploadError.message,
+      });
+    }
+
+    // 2. Kullanıcının mevcut modellerini çek (eğer userId varsa)
+    let existingModelNames = [];
+    if (actualUserId) {
+      existingModelNames = await getUserExistingModelNames(actualUserId);
+    }
+
+    // 3. Gemini ile resmi analiz et
+    const analysisResult = await analyzeImageAndGeneratePrompt(
+      uploadedImageUrl,
+      null, // modelName yok, analiz sonucunda önerilecek
+      languageCode,
+      regionCode,
+      existingModelNames
+    );
+
+    console.log("✅ [ANALYZE_IMAGE] Analysis result:", analysisResult);
+
+    // 4. Sonuçları döndür
+    res.json({
+      success: true,
+      data: {
+        suggestedName: analysisResult.suggestedName || null,
+        detectedGender: analysisResult.detectedGender || null,
+        detectedAge: analysisResult.detectedAge || null,
+      },
+    });
+  } catch (error) {
+    console.error("❌ [ANALYZE_IMAGE] Analysis hatası:", error);
+    res.status(500).json({
+      success: false,
+      error: "Image analysis failed",
       details: error.message,
     });
   }

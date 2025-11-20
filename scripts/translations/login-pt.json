@@ -1,0 +1,14 @@
+{
+  "login": {
+    "welcome": "Bem-vindo ao Diress",
+    "subtitle": "Faça login para sincronizar seus dados em todos os seus dispositivos",
+    "continueWithApple": "Continuar com Apple",
+    "continueWithGoogle": "Continuar com Google",
+    "termsText": "Ao continuar, você concorda com nossos Termos de Serviço e Política de Privacidade",
+    "comingSoon": "Em breve",
+    "appleComingSoon": "Login com Apple estará disponível em breve.",
+    "googleComingSoon": "Login com Google estará disponível em breve.",
+    "signInOrSignUp": "Entrar / Cadastrar"
+  }
+}
+

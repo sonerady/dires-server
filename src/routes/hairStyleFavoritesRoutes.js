@@ -2,6 +2,30 @@ const express = require("express");
 const router = express.Router();
 const supabase = require("../supabaseClient");
 
+// Supabase resim URL'lerini optimize eden yardımcı fonksiyon (düşük boyut için)
+const optimizeImageUrl = (imageUrl) => {
+  if (!imageUrl) return imageUrl;
+
+  // Supabase storage URL'si ise optimize et - dikey kartlar için yüksek boyut
+  if (imageUrl.includes("supabase.co")) {
+    // Eğer zaten render URL'i ise, query parametrelerini güncelle
+    if (imageUrl.includes("/storage/v1/render/image/public/")) {
+      // Mevcut query parametrelerini kaldır ve yeni ekle
+      const baseUrl = imageUrl.split("?")[0];
+      return baseUrl + "?width=600&height=1200&quality=80";
+    }
+    // Normal object URL'i ise render URL'ine çevir
+    return (
+      imageUrl.replace(
+        "/storage/v1/object/public/",
+        "/storage/v1/render/image/public/"
+      ) + "?width=600&height=1200&quality=80"
+    );
+  }
+
+  return imageUrl;
+};
+
 /**
  * Favori ekleme/çıkarma (toggle)
  * POST /api/hair-style-favorites/toggle
@@ -162,11 +186,17 @@ router.get("/list/:userId", async (req, res) => {
       });
     }
 
+    // Image URL'leri optimize et
+    const optimizedFavorites = favorites.map((fav) => ({
+      ...fav,
+      hair_style_image_url: optimizeImageUrl(fav.hair_style_image_url),
+    }));
+
     res.json({
       success: true,
       result: {
-        favorites,
-        count: favorites.length,
+        favorites: optimizedFavorites,
+        count: optimizedFavorites.length,
         page: parseInt(page),
         limit: parseInt(limit),
       },

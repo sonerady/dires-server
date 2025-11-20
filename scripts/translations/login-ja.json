@@ -1,0 +1,14 @@
+{
+  "login": {
+    "welcome": "Diressへようこそ",
+    "subtitle": "サインインして、すべてのデバイス間でデータを同期します",
+    "continueWithApple": "Appleで続ける",
+    "continueWithGoogle": "Googleで続ける",
+    "termsText": "続行することで、利用規約およびプライバシーポリシーに同意したことになります",
+    "comingSoon": "近日公開",
+    "appleComingSoon": "Appleサインインは間もなく利用可能になります。",
+    "googleComingSoon": "Googleサインインは間もなく利用可能になります。",
+    "signInOrSignUp": "サインイン / サインアップ"
+  }
+}
+

@@ -19,6 +19,30 @@ const getExampleHairImagePath = () => {
 // Gemini API için istemci oluştur
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+// Supabase resim URL'lerini optimize eden yardımcı fonksiyon (düşük boyut için)
+const optimizeImageUrl = (imageUrl) => {
+  if (!imageUrl) return imageUrl;
+
+  // Supabase storage URL'si ise optimize et - dikey kartlar için yüksek boyut
+  if (imageUrl.includes("supabase.co")) {
+    // Eğer zaten render URL'i ise, query parametrelerini güncelle
+    if (imageUrl.includes("/storage/v1/render/image/public/")) {
+      // Mevcut query parametrelerini kaldır ve yeni ekle
+      const baseUrl = imageUrl.split("?")[0];
+      return baseUrl + "?width=600&height=1200&quality=80";
+    }
+    // Normal object URL'i ise render URL'ine çevir
+    return (
+      imageUrl.replace(
+        "/storage/v1/object/public/",
+        "/storage/v1/render/image/public/"
+      ) + "?width=600&height=1200&quality=80"
+    );
+  }
+
+  return imageUrl;
+};
+
 // Delay fonksiyonu
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -697,11 +721,17 @@ router.get("/list/:userId", async (req, res) => {
       `✅ [CUSTOM HAIR STYLE] ${hairStyles.length} hair style bulundu`
     );
 
+    // Image URL'leri optimize et
+    const optimizedHairStyles = hairStyles.map((hairStyle) => ({
+      ...hairStyle,
+      image_url: optimizeImageUrl(hairStyle.image_url),
+    }));
+
     res.json({
       success: true,
       result: {
-        hairStyles: hairStyles,
-        count: hairStyles.length,
+        hairStyles: optimizedHairStyles,
+        count: optimizedHairStyles.length,
       },
     });
   } catch (error) {

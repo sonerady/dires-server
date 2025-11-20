@@ -599,21 +599,32 @@ router.get("/user/:userId", async (req, res) => {
       const result = await supabase
         .from("users")
         .select(
-          "credit_balance, is_pro, subscription_type, received_initial_credit"
+          "credit_balance, is_pro, subscription_type, received_initial_credit, owner"
         )
         .eq("id", userId)
         .single();
       userData = result.data;
       userError = result.error;
     } catch (error) {
-      // Bazı columnlar yoksa, sadece temel alanları al
-      const result = await supabase
-        .from("users")
-        .select("credit_balance, is_pro")
-        .eq("id", userId)
-        .single();
-      userData = result.data;
-      userError = result.error;
+      // Bazı columnlar yoksa, owner ile dene
+      try {
+        const result = await supabase
+          .from("users")
+          .select("credit_balance, is_pro, owner")
+          .eq("id", userId)
+          .single();
+        userData = result.data;
+        userError = result.error;
+      } catch (fallbackError) {
+        // owner column yoksa, sadece temel alanları al
+        const result = await supabase
+          .from("users")
+          .select("credit_balance, is_pro")
+          .eq("id", userId)
+          .single();
+        userData = result.data;
+        userError = result.error;
+      }
     }
 
     if (userError || !userData) {
@@ -630,6 +641,7 @@ router.get("/user/:userId", async (req, res) => {
       is_pro: userData.is_pro || false,
       subscription_type: userData.subscription_type || null,
       received_initial_credit: userData.received_initial_credit || false,
+      owner: userData.owner || false,
       timestamp: new Date().toISOString(), // Cache busting için timestamp ekle
     });
   } catch (error) {

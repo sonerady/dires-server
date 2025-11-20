@@ -121,12 +121,28 @@ router.get("/user/:userId", async (req, res) => {
       `📊 [HISTORY] Pagination: page=${parsedPage}, limit=${parsedLimit}, offset=${offset}`
     );
 
-    // Toplam sayıyı al
-    const { count: totalCount, error: countError } = await supabase
+    // Toplam sayıyı al (visibility kolonu varsa true olanları, yoksa tümünü)
+    let countQuery = supabase
       .from("reference_results")
       .select("*", { count: "exact", head: true })
       .eq("user_id", userId)
-      .in("status", ["completed", "failed"]);
+      .in("status", ["completed", "failed"])
+      .eq("visibility", true);
+    
+    let { count: totalCount, error: countError } = await countQuery;
+    
+    // Eğer visibility kolonu yoksa (hata alırsak), visibility filtresiz tekrar dene
+    if (countError && (countError.message?.includes("visibility") || countError.code === "PGRST116")) {
+      console.log("⚠️ [HISTORY] Visibility column not found, retrying without visibility filter");
+      const fallbackQuery = supabase
+        .from("reference_results")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .in("status", ["completed", "failed"]);
+      const fallbackResult = await fallbackQuery;
+      totalCount = fallbackResult.count;
+      countError = fallbackResult.error;
+    }
 
     if (countError) {
       console.error("❌ [HISTORY] Count query error:", countError);
@@ -136,8 +152,8 @@ router.get("/user/:userId", async (req, res) => {
       });
     }
 
-    // History verilerini getir
-    const { data: historyData, error: historyError } = await supabase
+    // History verilerini getir (visibility kolonu varsa true olanları, yoksa tümünü)
+    let historyQuery = supabase
       .from("reference_results")
       .select(
         `
@@ -157,8 +173,41 @@ router.get("/user/:userId", async (req, res) => {
       )
       .eq("user_id", userId)
       .in("status", ["completed", "failed"])
+      .eq("visibility", true)
       .order("created_at", { ascending: false })
       .range(offset, offset + parsedLimit - 1);
+    
+    let { data: historyData, error: historyError } = await historyQuery;
+    
+    // Eğer visibility kolonu yoksa (hata alırsak), visibility filtresiz tekrar dene
+    if (historyError && (historyError.message?.includes("visibility") || historyError.code === "PGRST116")) {
+      console.log("⚠️ [HISTORY] Visibility column not found, retrying without visibility filter");
+      const fallbackQuery = supabase
+        .from("reference_results")
+        .select(
+          `
+          id,
+          user_id,
+          generation_id,
+          status,
+          result_image_url,
+          reference_images,
+          location_image,
+          aspect_ratio,
+          created_at,
+          credits_before_generation,
+          credits_deducted,
+          credits_after_generation
+        `
+        )
+        .eq("user_id", userId)
+        .in("status", ["completed", "failed"])
+        .order("created_at", { ascending: false })
+        .range(offset, offset + parsedLimit - 1);
+      const fallbackResult = await fallbackQuery;
+      historyData = fallbackResult.data;
+      historyError = fallbackResult.error;
+    }
 
     if (historyError) {
       console.error("❌ [HISTORY] Query error:", historyError);
@@ -209,11 +258,26 @@ router.get("/stats/:userId", async (req, res) => {
       });
     }
 
-    // İstatistikleri getir
-    const { data: statsData, error: statsError } = await supabase
+    // İstatistikleri getir (visibility kolonu varsa true olanları, yoksa tümünü)
+    let statsQuery = supabase
       .from("reference_results")
       .select("status, credits_deducted")
-      .eq("user_id", userId);
+      .eq("user_id", userId)
+      .eq("visibility", true);
+    
+    let { data: statsData, error: statsError } = await statsQuery;
+    
+    // Eğer visibility kolonu yoksa (hata alırsak), visibility filtresiz tekrar dene
+    if (statsError && (statsError.message?.includes("visibility") || statsError.code === "PGRST116")) {
+      console.log("⚠️ [HISTORY_STATS] Visibility column not found, retrying without visibility filter");
+      const fallbackQuery = supabase
+        .from("reference_results")
+        .select("status, credits_deducted")
+        .eq("user_id", userId);
+      const fallbackResult = await fallbackQuery;
+      statsData = fallbackResult.data;
+      statsError = fallbackResult.error;
+    }
 
     if (statsError) {
       console.error("❌ [HISTORY_STATS] Query error:", statsError);
@@ -238,6 +302,76 @@ router.get("/stats/:userId", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ [HISTORY_STATS] Unexpected error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+});
+
+/**
+ * DELETE /api/history/delete/:generationId
+ * History item'ını sil (visibility = false yap)
+ */
+router.delete("/delete/:generationId", async (req, res) => {
+  try {
+    const { generationId } = req.params;
+    const { userId } = req.body;
+
+    console.log(`🗑️ [HISTORY] Delete request for generationId: ${generationId}, userId: ${userId}`);
+
+    // Input validation
+    if (!generationId) {
+      return res.status(400).json({
+        success: false,
+        message: "Generation ID required",
+      });
+    }
+
+    if (!userId || userId === "anonymous_user") {
+      return res.status(400).json({
+        success: false,
+        message: "Valid user ID required",
+      });
+    }
+
+    // Visibility'yi false yap (soft delete)
+    const { data: updatedData, error: updateError } = await supabase
+      .from("reference_results")
+      .update({
+        visibility: false,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("generation_id", generationId)
+      .eq("user_id", userId)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error("❌ [HISTORY] Update error:", updateError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to delete history item",
+        error: updateError.message,
+      });
+    }
+
+    if (!updatedData) {
+      return res.status(404).json({
+        success: false,
+        message: "History item not found or unauthorized",
+      });
+    }
+
+    console.log(`✅ [HISTORY] History item deleted (visibility=false): ${generationId}`);
+
+    return res.json({
+      success: true,
+      message: "History item deleted successfully",
+      data: updatedData,
+    });
+  } catch (error) {
+    console.error("❌ [HISTORY] Unexpected error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",

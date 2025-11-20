@@ -90,6 +90,7 @@ router.post("/registerAnonymousUser", async (req, res) => {
               received_initial_credit: true, // 🎯 Bu kullanıcı initial kredi aldı
               initial_credit_date: new Date().toISOString(), // 📅 Kredi alım tarihi
               created_at: new Date().toISOString(),
+              owner: false, // 👤 Owner değil (default false)
             },
           ]);
 
@@ -143,6 +144,7 @@ router.post("/registerAnonymousUser", async (req, res) => {
           received_initial_credit: true, // 🎯 Bu kullanıcı initial kredi aldı
           initial_credit_date: new Date().toISOString(), // 📅 Kredi alım tarihi
           created_at: new Date().toISOString(),
+          owner: false, // 👤 Owner değil (default false)
         },
       ]);
 

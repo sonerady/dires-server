@@ -86,6 +86,11 @@ const iconGeneratorRoutes = require("./routes/iconGeneratorRoutes");
 // Create Location routes import
 const createLocationRoutes = require("./routes/createLocationRoutes");
 const createLocationRoutesV2 = require("./routes/createLocationRoutes_v2");
+const createLocationRoutesV3 = require("./routes/createLocationRoutes_v3");
+// Search Location routes import
+const searchLocationRoutes = require("./routes/searchLocationRoutes");
+// Location Suggestion routes import
+const locationSuggestionRoutes = require("./routes/locationSuggestionRoutes");
 // Create Model routes import
 const createModelRoutes = require("./routes/createModelRoutes");
 // Favorites routes import
@@ -96,6 +101,10 @@ const videoRoutes = require("./routes/videoRoutes");
 const hairStylesRoutes = require("./routes/hairStylesRoutes");
 // User Visibility routes import
 const userVisibilityRoutes = require("./routes/userVisibilityRoutes");
+// Push Notification routes import
+const pushNotificationRoutes = require("./routes/pushNotificationRoutes");
+// Auth routes import
+const authRoutes = require("./routes/authRoutes");
 // Generation Status routes import
 
 const app = express();
@@ -152,6 +161,7 @@ app.use("/api/faceSwap", faceSwapRouter);
 app.use("/api", updateCreditRouter);
 app.use("/api", getUserRouter);
 app.use("/api", notificationRoutes);
+app.use("/api/push-notifications", pushNotificationRoutes);
 app.use("/api/uploadImage", uploadImageRouter);
 app.use("/api", generateTrain);
 app.use("/api/checkStatus", checkStatusRouter);
@@ -231,6 +241,12 @@ app.use("/api/last-selected-pose", lastSelectedPoseRoutes);
 // Create Location routes ekle
 app.use("/api/location", createLocationRoutes);
 app.use("/api/location/v2", createLocationRoutesV2);
+app.use("/api/location/v3", createLocationRoutesV3);
+// Search Location routes ekle
+app.use("/api/location/v2", searchLocationRoutes);
+
+// Location Suggestion routes ekle
+app.use("/api/location-suggestions", locationSuggestionRoutes);
 
 // Create Model routes ekle
 app.use("/api/model", createModelRoutes);
@@ -252,6 +268,7 @@ app.use("/api/icon-generator", iconGeneratorRoutes);
 
 // App Links routes ekle
 app.use("/api/app-links", appLinksRoutes);
+app.use("/api/auth", authRoutes);
 
 // Modal Contents routes ekle
 app.use(modalContentsRoutes);

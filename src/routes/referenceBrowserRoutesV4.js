@@ -11,6 +11,9 @@ const fs = require("fs");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const { createCanvas, loadImage } = require("canvas");
+const {
+  sendGenerationCompletedNotification,
+} = require("../services/pushNotificationService");
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -729,6 +732,22 @@ async function updateGenerationStatus(
         console.log(`💳 [TRIGGER] Kredi düşürme kontrolü başlatılıyor...`);
         await deductCreditOnSuccess(generationId, userId);
       }
+
+      // 📱 Push notification gönder (sadece yeni completed ise)
+      if (!alreadyCompleted) {
+        console.log(
+          `📱 [NOTIFICATION] Generation completed - notification gönderiliyor: ${generationId}`
+        );
+        sendGenerationCompletedNotification(userId, generationId).catch(
+          (error) => {
+            console.error(
+              `❌ [NOTIFICATION] Notification gönderme hatası:`,
+              error
+            );
+            // Notification hatası generation'ı etkilemesin, sessizce devam et
+          }
+        );
+      }
     }
 
     return data[0];
@@ -905,24 +924,42 @@ async function enhancePromptWithGemini(
     const genderLower = gender.toLowerCase();
 
     // Yaş grupları tanımlaması
-    // 0-1   : baby (infant)
+    // 0     : newborn (yenidoğan)
+    // 1     : baby (infant)
     // 2-3   : toddler
     // 4-12  : child
     // 13-16 : teenage
     // 17+   : adult
 
-    if (!isNaN(parsedAgeInt) && parsedAgeInt <= 3) {
-      // Baby/Toddler
+    // Newborn kontrolü - hem "newborn" string'i hem de 0 yaş kontrolü
+    const isNewborn =
+      age?.toLowerCase() === "newborn" ||
+      age?.toLowerCase() === "yenidoğan" ||
+      (!isNaN(parsedAgeInt) && parsedAgeInt === 0);
+
+    if (isNewborn) {
+      // NEWBORN (0 yaş) - Özel newborn fashion photography
+      const genderWord =
+        genderLower === "male" || genderLower === "man" ? "boy" : "girl";
+
+      modelGenderText = `newborn baby ${genderWord} (0 months old, infant)`;
+      baseModelText = `newborn baby ${genderWord}`;
+
+      console.log(
+        "👶 [GEMINI] NEWBORN MODE tespit edildi - Newborn fashion photography"
+      );
+    } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 3) {
+      // Baby/Toddler (1-3 yaş)
       let ageGroupWord;
-      if (parsedAgeInt <= 1) {
-        ageGroupWord = "baby"; // 0-1 yaş için baby
+      if (parsedAgeInt === 1) {
+        ageGroupWord = "baby"; // 1 yaş için baby
       } else {
         ageGroupWord = "toddler"; // 2-3 yaş için toddler
       }
       const genderWord =
         genderLower === "male" || genderLower === "man" ? "boy" : "girl";
 
-      if (parsedAgeInt <= 1) {
+      if (parsedAgeInt === 1) {
         // Baby için daha spesifik tanım
         modelGenderText = `${parsedAgeInt}-year-old ${ageGroupWord} ${genderWord} (infant)`;
         baseModelText = `${ageGroupWord} ${genderWord} (infant)`;
@@ -982,9 +1019,35 @@ async function enhancePromptWithGemini(
     // Yaş grupları için basit ve güvenli prompt yönlendirmesi
     let childPromptSection = "";
     const parsedAge = parseInt(age, 10);
-    if (!isNaN(parsedAge) && parsedAge <= 16) {
+
+    if (isNewborn) {
+      // NEWBORN (0 yaş) - Özel newborn fashion photography direktifleri
+      childPromptSection = `
+NEWBORN FASHION PHOTOGRAPHY MODE:
+This is a professional newborn fashion photography session. The model is a newborn baby (0 months old, infant). 
+
+CRITICAL NEWBORN PHOTOGRAPHY REQUIREMENTS:
+- The newborn must be photographed in a safe, comfortable, and natural position suitable for newborn fashion photography
+- Use soft, gentle poses that are appropriate for newborns - lying down positions, swaddled poses, or supported sitting positions
+- Ensure the garment/product fits naturally on the newborn's small frame
+- Use soft, diffused lighting that is gentle on the newborn's eyes
+- Maintain a peaceful, serene atmosphere typical of newborn photography
+- The newborn should appear comfortable, content, and naturally positioned
+- Focus on showcasing the garment/product while ensuring the newborn's safety and comfort in the composition
+- Use professional newborn photography techniques: natural fabric draping, gentle positioning, and age-appropriate styling
+- The overall aesthetic should be gentle, tender, and suitable for newborn fashion photography campaigns
+
+CAMERA FRAMING REQUIREMENT FOR NEWBORN:
+- Use CLOSE-UP framing (tight crop) that focuses on the newborn and the garment/product
+- The composition should be intimate and detail-focused, capturing the newborn's delicate features and the product's details
+- Frame the shot to emphasize the newborn's face, hands, and the garment/product being showcased
+- Avoid wide shots - maintain a close-up perspective that creates an intimate, tender atmosphere
+- The camera should be positioned close to the subject, creating a warm, personal connection with the viewer
+
+IMPORTANT: This is newborn fashion photography - maintain professional standards while ensuring all poses and positions are safe and appropriate for a newborn infant.`;
+    } else if (!isNaN(parsedAge) && parsedAge <= 16) {
       if (parsedAge <= 3) {
-        // Baby/Toddler - çok basit
+        // Baby/Toddler (1-3 yaş) - çok basit
         childPromptSection = `
 Age-appropriate modeling for young child (${parsedAge} years old). Natural, comfortable poses suitable for children's fashion photography.`;
       } else {
@@ -1346,9 +1409,23 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
       "big innocent eyes and tiny nose",
       "freckled cheeks and joyful expression",
     ];
+    const faceDescriptorsNewborn = [
+      "tiny delicate features with soft round cheeks",
+      "peaceful sleeping expression with closed eyes",
+      "gentle newborn face with small button nose",
+      "serene infant features with soft skin",
+      "tender newborn appearance with tiny lips",
+      "calm sleeping baby with peaceful expression",
+    ];
 
     let faceDescriptor;
-    if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
+    if (isNewborn) {
+      // Newborn için özel yüz tanımları
+      faceDescriptor =
+        faceDescriptorsNewborn[
+          Math.floor(Math.random() * faceDescriptorsNewborn.length)
+        ];
+    } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
       faceDescriptor =
         faceDescriptorsChild[
           Math.floor(Math.random() * faceDescriptorsChild.length)
@@ -1879,9 +1956,23 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
           : "the garment from the reference image"
       } onto a ${modelGenderText}.
       
-      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
+      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for ${
+        isNewborn
+          ? "professional newborn fashion photography"
+          : "professional fashion photography"
+      } and commercial garment presentation. Ensure the output is suitable for ${
+        isNewborn
+          ? "high-end newborn fashion photography shoots, newborn editorial styling, and newborn commercial product photography"
+          : "high-end fashion shoots, editorial styling, and commercial product photography"
+      }.
 
-      IMPORTANT: Please explicitly mention in your generated prompt that this is for "professional fashion photography" to ensure the AI image model understands the context and produces high-quality fashion photography results.
+      IMPORTANT: Please explicitly mention in your generated prompt that this is for "${
+        isNewborn
+          ? "professional newborn fashion photography"
+          : "professional fashion photography"
+      }" to ensure the AI image model understands the context and produces high-quality ${
+        isNewborn ? "newborn " : ""
+      }fashion photography results.
 
       CRITICAL REQUIREMENTS:
       1. The prompt MUST begin with "Replace the ${
@@ -2379,6 +2470,12 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
       const genderLower = gender ? gender.toLowerCase() : "female";
       let parsedAgeInt = null;
 
+      // Newborn kontrolü - fallback prompt için
+      const isNewbornFallback =
+        age?.toLowerCase() === "newborn" ||
+        age?.toLowerCase() === "yenidoğan" ||
+        age === "0";
+
       // Yaş sayısını çıkar
       if (age) {
         if (age.includes("years old")) {
@@ -2386,6 +2483,8 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
           if (ageMatch) {
             parsedAgeInt = parseInt(ageMatch[1]);
           }
+        } else if (isNewbornFallback || age === "0") {
+          parsedAgeInt = 0; // Newborn
         } else if (age.includes("baby") || age.includes("bebek")) {
           parsedAgeInt = 1;
         } else if (age.includes("child") || age.includes("çocuk")) {
@@ -2394,11 +2493,22 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
           parsedAgeInt = 22;
         } else if (age.includes("adult") || age.includes("yetişkin")) {
           parsedAgeInt = 45;
+        } else {
+          // Direkt sayı olarak parse et
+          const numericAge = parseInt(age, 10);
+          if (!isNaN(numericAge)) {
+            parsedAgeInt = numericAge;
+          }
         }
       }
 
       // Yaş grupları - güvenli flag-safe tanımlar
-      if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
+      if (isNewbornFallback || (!isNaN(parsedAgeInt) && parsedAgeInt === 0)) {
+        // NEWBORN (0 yaş) - Fallback prompt için
+        const genderWord =
+          genderLower === "male" || genderLower === "man" ? "boy" : "girl";
+        modelDescription = `newborn baby ${genderWord} (0 months old, infant)`;
+      } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
         // Çocuk/genç yaş grupları için güvenli tanımlar
         if (parsedAgeInt <= 12) {
           modelDescription =
@@ -2535,6 +2645,11 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
         isMultipleProducts ? "ALL products" : "the garment"
       }: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
 
+      // Newborn fashion photography direktifleri (fallback prompt için)
+      if (isNewbornFallback || (!isNaN(parsedAgeInt) && parsedAgeInt === 0)) {
+        fallbackPrompt += `NEWBORN FASHION PHOTOGRAPHY MODE: This is professional newborn fashion photography. The model is a newborn baby (0 months old, infant). Use safe, gentle poses appropriate for newborns - lying down positions, swaddled poses, or supported sitting positions. Ensure soft, diffused lighting gentle on the newborn's eyes. Maintain a peaceful, serene atmosphere. The newborn should appear comfortable, content, and naturally positioned. Focus on showcasing the garment/product while ensuring the newborn's safety and comfort. Use professional newborn photography techniques with natural fabric draping and age-appropriate styling. The overall aesthetic should be gentle, tender, and suitable for newborn fashion photography campaigns. CAMERA FRAMING: Use CLOSE-UP framing (tight crop) that focuses on the newborn and the garment/product. The composition should be intimate and detail-focused, capturing the newborn's delicate features and the product's details. Frame the shot to emphasize the newborn's face, hands, and the garment/product being showcased. Avoid wide shots - maintain a close-up perspective that creates an intimate, tender atmosphere. The camera should be positioned close to the subject, creating a warm, personal connection with the viewer. `;
+      }
+
       // Final kalite - Fashion photography standartları
       fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
 
@@ -2603,6 +2718,12 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
     const genderLower = gender ? gender.toLowerCase() : "female";
     let parsedAgeInt = null;
 
+    // Newborn kontrolü - ikinci fallback prompt için
+    const isNewbornFallbackError =
+      age?.toLowerCase() === "newborn" ||
+      age?.toLowerCase() === "yenidoğan" ||
+      age === "0";
+
     // Yaş sayısını çıkar
     if (age) {
       if (age.includes("years old")) {
@@ -2610,6 +2731,8 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
         if (ageMatch) {
           parsedAgeInt = parseInt(ageMatch[1]);
         }
+      } else if (isNewbornFallbackError || age === "0") {
+        parsedAgeInt = 0; // Newborn
       } else if (age.includes("baby") || age.includes("bebek")) {
         parsedAgeInt = 1;
       } else if (age.includes("child") || age.includes("çocuk")) {
@@ -2618,11 +2741,25 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
         parsedAgeInt = 22;
       } else if (age.includes("adult") || age.includes("yetişkin")) {
         parsedAgeInt = 45;
+      } else {
+        // Direkt sayı olarak parse et
+        const numericAge = parseInt(age, 10);
+        if (!isNaN(numericAge)) {
+          parsedAgeInt = numericAge;
+        }
       }
     }
 
     // Yaş grupları - güvenli flag-safe tanımlar (ikinci fallback)
-    if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
+    if (
+      isNewbornFallbackError ||
+      (!isNaN(parsedAgeInt) && parsedAgeInt === 0)
+    ) {
+      // NEWBORN (0 yaş) - İkinci fallback prompt için
+      const genderWord =
+        genderLower === "male" || genderLower === "man" ? "boy" : "girl";
+      modelDescription = `newborn baby ${genderWord} (0 months old, infant)`;
+    } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
       // Çocuk/genç yaş grupları için güvenli tanımlar
       if (parsedAgeInt <= 12) {
         modelDescription =
@@ -2758,6 +2895,14 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
     fallbackPrompt += `Integrate prints/patterns correctly over the 3D form for ${
       isMultipleProducts ? "ALL products" : "the garment"
     }: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
+
+    // Newborn fashion photography direktifleri (ikinci fallback prompt için)
+    if (
+      isNewbornFallbackError ||
+      (!isNaN(parsedAgeInt) && parsedAgeInt === 0)
+    ) {
+      fallbackPrompt += `NEWBORN FASHION PHOTOGRAPHY MODE: This is professional newborn fashion photography. The model is a newborn baby (0 months old, infant). Use safe, gentle poses appropriate for newborns - lying down positions, swaddled poses, or supported sitting positions. Ensure soft, diffused lighting gentle on the newborn's eyes. Maintain a peaceful, serene atmosphere. The newborn should appear comfortable, content, and naturally positioned. Focus on showcasing the garment/product while ensuring the newborn's safety and comfort. Use professional newborn photography techniques with natural fabric draping and age-appropriate styling. The overall aesthetic should be gentle, tender, and suitable for newborn fashion photography campaigns. CAMERA FRAMING: Use CLOSE-UP framing (tight crop) that focuses on the newborn and the garment/product. The composition should be intimate and detail-focused, capturing the newborn's delicate features and the product's details. Frame the shot to emphasize the newborn's face, hands, and the garment/product being showcased. Avoid wide shots - maintain a close-up perspective that creates an intimate, tender atmosphere. The camera should be positioned close to the subject, creating a warm, personal connection with the viewer. `;
+    }
 
     // Final kalite - Fashion photography standartları
     fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
@@ -3808,7 +3953,7 @@ router.post("/generate", async (req, res) => {
     console.log("📝 [BACKEND MAIN] Original prompt:", promptText);
     console.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
 
-    // Replicate google/nano-banana modeli ile istek gönder
+    // Replicate google/nano-banana-pro modeli ile istek gönder
     let replicateResponse;
     const maxRetries = 3;
     let totalRetryAttempts = 0;
@@ -3817,10 +3962,10 @@ router.post("/generate", async (req, res) => {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         console.log(
-          `🔄 Replicate google/nano-banana API attempt ${attempt}/${maxRetries}`
+          `🔄 Replicate google/nano-banana-pro API attempt ${attempt}/${maxRetries}`
         );
 
-        console.log("🚀 Replicate google/nano-banana API çağrısı yapılıyor...");
+        console.log("🚀 Replicate google/nano-banana-pro API çağrısı yapılıyor...");
 
         // Replicate API için request body hazırla
         let imageInputArray;
@@ -3904,27 +4049,31 @@ router.post("/generate", async (req, res) => {
           requestBody = {
             input: {
               prompt: enhancedPrompt, // Gemini'den gelen pose change prompt'u
+              resolution: "2K", // Default 2K resolution
               image_input: imageInputArray,
-              output_format: "png",
               aspect_ratio: aspectRatioForRequest,
+              output_format: "png",
+              safety_filter_level: "block_only_high", // Default safety filter
               // Pose change için optimize edilmiş parametreler (hız için)
               guidance_scale: 7.5, // Normal ile aynı (hız için)
               num_inference_steps: 20, // Normal ile aynı (hız için)
             },
           };
-          console.log("🕺 [POSE_CHANGE] Nano Banana request body hazırlandı");
+          console.log("🕺 [POSE_CHANGE] Nano Banana Pro request body hazırlandı");
           console.log(
             "🕺 [POSE_CHANGE] Prompt:",
             enhancedPrompt.substring(0, 200) + "..."
           );
         } else {
-          // NORMAL MODE - Orijinal parametreler
+          // NORMAL MODE - Nano Banana Pro parametreleri
           requestBody = {
             input: {
               prompt: enhancedPrompt,
+              resolution: "2K", // Default 2K resolution
               image_input: imageInputArray,
-              output_format: "png",
               aspect_ratio: aspectRatioForRequest,
+              output_format: "png",
+              safety_filter_level: "block_only_high", // Default safety filter
             },
           };
         }
@@ -3941,9 +4090,9 @@ router.post("/generate", async (req, res) => {
           aspectRatio: aspectRatioForRequest,
         });
 
-        // Replicate API çağrısı - Prefer: wait header ile
+        // Replicate API çağrısı - Prefer: wait header ile (Nano Banana Pro)
         const response = await axios.post(
-          "https://api.replicate.com/v1/models/google/nano-banana/predictions",
+          "https://api.replicate.com/v1/models/google/nano-banana-pro/predictions",
           requestBody,
           {
             headers: {
@@ -3983,7 +4132,7 @@ router.post("/generate", async (req, res) => {
           };
 
           console.log(
-            `✅ Replicate google/nano-banana API başarılı (attempt ${attempt})`
+            `✅ Replicate google/nano-banana-pro API başarılı (attempt ${attempt})`
           );
           break; // Başarılı olursa loop'tan çık
         } else if (
@@ -4008,7 +4157,7 @@ router.post("/generate", async (req, res) => {
           };
 
           console.log(
-            `⏳ Replicate google/nano-banana API processing (attempt ${attempt}) - polling gerekecek`
+            `⏳ Replicate google/nano-banana-pro API processing (attempt ${attempt}) - polling gerekecek`
           );
           break; // Processing durumunda da loop'tan çık ve polling'e geç
         } else if (response.data.status === "failed") {
@@ -4034,12 +4183,12 @@ router.post("/generate", async (req, res) => {
               ))
           ) {
             console.log(
-              `🔄 Geçici nano-banana hatası tespit edildi (attempt ${attempt}), retry yapılacak:`,
+              `🔄 Geçici nano-banana-pro hatası tespit edildi (attempt ${attempt}), retry yapılacak:`,
               response.data.error
             );
             retryReasons.push(`Attempt ${attempt}: ${response.data.error}`);
             throw new Error(
-              `RETRYABLE_NANO_BANANA_ERROR: ${response.data.error}`
+              `RETRYABLE_NANO_BANANA_PRO_ERROR: ${response.data.error}`
             );
           }
 
@@ -4055,7 +4204,7 @@ router.post("/generate", async (req, res) => {
         }
       } catch (apiError) {
         console.error(
-          `❌ Replicate google/nano-banana API attempt ${attempt} failed:`,
+          `❌ Replicate google/nano-banana-pro API attempt ${attempt} failed:`,
           apiError.message
         );
 
@@ -4080,10 +4229,10 @@ router.post("/generate", async (req, res) => {
         // Son deneme değilse ve network hataları veya geçici hatalar ise tekrar dene
         if (
           attempt < maxRetries &&
-          (apiError.code === "ECONNRESET" ||
+          (            apiError.code === "ECONNRESET" ||
             apiError.code === "ENOTFOUND" ||
             apiError.response?.status >= 500 ||
-            apiError.message.includes("RETRYABLE_NANO_BANANA_ERROR"))
+            apiError.message.includes("RETRYABLE_NANO_BANANA_PRO_ERROR"))
         ) {
           totalRetryAttempts++;
           const waitTime = attempt * 2000; // 2s, 4s, 6s bekle
@@ -4155,7 +4304,7 @@ router.post("/generate", async (req, res) => {
       });
     }
 
-    // Replicate google/nano-banana API - Status kontrolü ve polling (retry mekanizmalı)
+    // Replicate google/nano-banana-pro API - Status kontrolü ve polling (retry mekanizmalı)
     const startTime = Date.now();
     let finalResult;
     let processingTime;
@@ -4165,7 +4314,7 @@ router.post("/generate", async (req, res) => {
     if (initialResult.status === "succeeded") {
       // Direkt başarılı sonuç
       console.log(
-        "🎯 Replicate google/nano-banana - başarılı sonuç, polling atlanıyor"
+        "🎯 Replicate google/nano-banana-pro - başarılı sonuç, polling atlanıyor"
       );
       finalResult = initialResult;
       processingTime = Math.round((Date.now() - startTime) / 1000);
@@ -4175,7 +4324,7 @@ router.post("/generate", async (req, res) => {
     ) {
       // Processing durumunda polling yap
       console.log(
-        "⏳ Replicate google/nano-banana - processing status, polling başlatılıyor"
+        "⏳ Replicate google/nano-banana-pro - processing status, polling başlatılıyor"
       );
 
       try {
@@ -4214,7 +4363,7 @@ router.post("/generate", async (req, res) => {
     } else {
       // Diğer durumlar (failed, vs) - retry mekanizmasıyla
       console.log(
-        "🎯 Replicate google/nano-banana - failed status, retry mekanizması başlatılıyor"
+        "🎯 Replicate google/nano-banana-pro - failed status, retry mekanizması başlatılıyor"
       );
 
       // Failed status için retry logic
@@ -4244,7 +4393,7 @@ router.post("/generate", async (req, res) => {
             referenceImages.length >= 2
           ) {
             console.log(
-              "🔄 [RETRY BACK_SIDE] 2 ayrı resim Nano Banana'ya gönderiliyor..."
+              "🔄 [RETRY BACK_SIDE] 2 ayrı resim Nano Banana Pro'ya gönderiliyor..."
             );
             retryImageInputArray = [
               referenceImages[0].uri || referenceImages[0], // Ön resim - direkt string
@@ -4258,7 +4407,7 @@ router.post("/generate", async (req, res) => {
             const totalRefs =
               referenceImages.length + (modelReferenceImage ? 1 : 0);
             console.log(
-              `🔄 [RETRY MULTIPLE] ${totalRefs} ayrı resim Nano Banana'ya gönderiliyor...`
+              `🔄 [RETRY MULTIPLE] ${totalRefs} ayrı resim Nano Banana Pro'ya gönderiliyor...`
             );
 
             const sortedImages = [];
@@ -4294,17 +4443,20 @@ router.post("/generate", async (req, res) => {
           const retryRequestBody = {
             input: {
               prompt: enhancedPrompt,
+              resolution: "2K", // Default 2K resolution
               image_input: retryImageInputArray,
-              output_format: "jpg",
+              aspect_ratio: aspectRatioForRequest,
+              output_format: "png",
+              safety_filter_level: "block_only_high", // Default safety filter
             },
           };
 
           console.log(
-            `🔄 Retry ${retryAttempt}: Yeni prediction oluşturuluyor...`
+            `🔄 Retry ${retryAttempt}: Yeni prediction oluşturuluyor (Nano Banana Pro)...`
           );
 
           const retryResponse = await axios.post(
-            "https://api.replicate.com/v1/models/google/nano-banana/predictions",
+            "https://api.replicate.com/v1/models/google/nano-banana-pro/predictions",
             retryRequestBody,
             {
               headers: {

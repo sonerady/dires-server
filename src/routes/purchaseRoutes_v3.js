@@ -420,25 +420,36 @@ router.get("/user/:userId", async (req, res) => {
       Expires: "0",
     });
 
-    // Get user data from database - önce subscription_type ile dene
+    // Get user data from database - önce subscription_type ve owner ile dene
     let userData, userError;
     try {
       const result = await supabase
         .from("users")
-        .select("credit_balance, is_pro, subscription_type")
+        .select("credit_balance, is_pro, subscription_type, owner")
         .eq("id", userId)
         .single();
       userData = result.data;
       userError = result.error;
     } catch (error) {
-      // subscription_type column yoksa, sadece temel alanları al
-      const result = await supabase
-        .from("users")
-        .select("credit_balance, is_pro")
-        .eq("id", userId)
-        .single();
-      userData = result.data;
-      userError = result.error;
+      // subscription_type veya owner column yoksa, sadece temel alanları al
+      try {
+        const result = await supabase
+          .from("users")
+          .select("credit_balance, is_pro, owner")
+          .eq("id", userId)
+          .single();
+        userData = result.data;
+        userError = result.error;
+      } catch (fallbackError) {
+        // owner column yoksa, sadece credit_balance ve is_pro al
+        const result = await supabase
+          .from("users")
+          .select("credit_balance, is_pro")
+          .eq("id", userId)
+          .single();
+        userData = result.data;
+        userError = result.error;
+      }
     }
 
     if (userError || !userData) {
@@ -454,6 +465,7 @@ router.get("/user/:userId", async (req, res) => {
       credit_balance: userData.credit_balance || 0,
       is_pro: userData.is_pro || false,
       subscription_type: userData.subscription_type || null,
+      owner: userData.owner || false,
       timestamp: new Date().toISOString(), // Cache busting için timestamp ekle
     });
   } catch (error) {

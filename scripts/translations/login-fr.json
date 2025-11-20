@@ -1,0 +1,14 @@
+{
+  "login": {
+    "welcome": "Bienvenue sur Diress",
+    "subtitle": "Connectez-vous pour synchroniser vos données sur tous vos appareils",
+    "continueWithApple": "Continuer avec Apple",
+    "continueWithGoogle": "Continuer avec Google",
+    "termsText": "En continuant, vous acceptez nos Conditions d'utilisation et notre Politique de confidentialité",
+    "comingSoon": "Bientôt disponible",
+    "appleComingSoon": "La connexion Apple sera bientôt disponible.",
+    "googleComingSoon": "La connexion Google sera bientôt disponible.",
+    "signInOrSignUp": "Se connecter / S'inscrire"
+  }
+}
+

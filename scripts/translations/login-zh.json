@@ -1,0 +1,14 @@
+{
+  "login": {
+    "welcome": "欢迎来到 Diress",
+    "subtitle": "登录以在所有设备上同步您的数据",
+    "continueWithApple": "使用 Apple 继续",
+    "continueWithGoogle": "使用 Google 继续",
+    "termsText": "继续即表示您同意我们的服务条款和隐私政策",
+    "comingSoon": "即将推出",
+    "appleComingSoon": "Apple 登录即将推出。",
+    "googleComingSoon": "Google 登录即将推出。",
+    "signInOrSignUp": "登录 / 注册"
+  }
+}
+

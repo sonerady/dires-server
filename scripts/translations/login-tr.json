@@ -1,0 +1,14 @@
+{
+  "login": {
+    "welcome": "Diress'e Hoş Geldiniz",
+    "subtitle": "Tüm cihazlarınızda verilerinizi senkronize etmek için giriş yapın",
+    "continueWithApple": "Apple ile Devam Et",
+    "continueWithGoogle": "Google ile Devam Et",
+    "termsText": "Devam ederek Hizmet Şartlarımızı ve Gizlilik Politikamızı kabul etmiş olursunuz",
+    "comingSoon": "Yakında",
+    "appleComingSoon": "Apple ile Giriş yakında kullanılabilir olacak.",
+    "googleComingSoon": "Google ile Giriş yakında kullanılabilir olacak.",
+    "signInOrSignUp": "Giriş Yap / Kayıt Ol"
+  }
+}
+

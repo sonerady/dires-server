@@ -9,17 +9,24 @@ const womanPoses = require(path.join(
 ));
 const manPoses = require(path.join(__dirname, "../../lib/man_poses_new.json"));
 
-// Supabase resim URL'lerini optimize eden yardımcı fonksiyon
+// Supabase resim URL'lerini optimize eden yardımcı fonksiyon (düşük boyut için)
 const optimizeImageUrl = (imageUrl) => {
   if (!imageUrl) return imageUrl;
 
-  // Supabase storage URL'si ise optimize et
+  // Supabase storage URL'si ise optimize et - dikey kartlar için yüksek boyut
   if (imageUrl.includes("supabase.co")) {
+    // Eğer zaten render URL'i ise, query parametrelerini güncelle
+    if (imageUrl.includes("/storage/v1/render/image/public/")) {
+      // Mevcut query parametrelerini kaldır ve yeni ekle
+      const baseUrl = imageUrl.split("?")[0];
+      return baseUrl + "?width=400&height=800&quality=80";
+    }
+    // Normal object URL'i ise render URL'ine çevir
     return (
       imageUrl.replace(
         "/storage/v1/object/public/",
         "/storage/v1/render/image/public/"
-      ) + "?width=736&height=1408&quality=85"
+      ) + "?width=400&height=800&quality=80"
     );
   }
 
@@ -98,8 +105,8 @@ router.get("/posesNew", async (req, res) => {
             id: `custom_${pose.id}`,
             title: pose.description,
             key: pose.description,
-            image: pose.image_url,
-            image_url: pose.image_url,
+            image: optimizeImageUrl(pose.image_url), // Image URL'ini optimize et
+            image_url: optimizeImageUrl(pose.image_url), // Image URL'ini optimize et
             isCustom: true,
             isPublic: true,
             userId: pose.user_id,

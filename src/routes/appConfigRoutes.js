@@ -86,10 +86,23 @@ router.get("/app-config/version", async (req, res) => {
     }
 
     if (!data) {
-      return res.status(404).json({
-        success: false,
-        message: "No configuration found for platform",
-      });
+      // Config bulunamazsa default değerlerle devam et (404 yerine 200)
+      console.log(`⚠️ [APP_CONFIG] No config found for platform: ${platform}, using defaults`);
+      const defaultPayload = {
+        platform,
+        minVersion: null,
+        latestVersion: null,
+        forceUpdate: false,
+        updateUrl: platform === "ios" 
+          ? "https://apps.apple.com/app/id6738030797"
+          : "https://play.google.com/store/apps/details?id=com.monailisa.diress",
+        changelogUrl: null,
+        message: null,
+        metadata: null,
+        lang,
+        fetchedAt: new Date().toISOString(),
+      };
+      return res.json({ success: true, data: defaultPayload });
     }
 
     const responsePayload = {
