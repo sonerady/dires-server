@@ -3953,7 +3953,7 @@ router.post("/generate", async (req, res) => {
     console.log("📝 [BACKEND MAIN] Original prompt:", promptText);
     console.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
 
-    // Replicate google/nano-banana-pro modeli ile istek gönder
+    // Replicate google/nano-banana modeli ile istek gönder
     let replicateResponse;
     const maxRetries = 3;
     let totalRetryAttempts = 0;
@@ -3962,10 +3962,10 @@ router.post("/generate", async (req, res) => {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         console.log(
-          `🔄 Replicate google/nano-banana-pro API attempt ${attempt}/${maxRetries}`
+          `🔄 Replicate google/nano-banana API attempt ${attempt}/${maxRetries}`
         );
 
-        console.log("🚀 Replicate google/nano-banana-pro API çağrısı yapılıyor...");
+        console.log("🚀 Replicate google/nano-banana API çağrısı yapılıyor...");
 
         // Replicate API için request body hazırla
         let imageInputArray;
@@ -4049,31 +4049,27 @@ router.post("/generate", async (req, res) => {
           requestBody = {
             input: {
               prompt: enhancedPrompt, // Gemini'den gelen pose change prompt'u
-              resolution: "2K", // Default 2K resolution
               image_input: imageInputArray,
-              aspect_ratio: aspectRatioForRequest,
               output_format: "png",
-              safety_filter_level: "block_only_high", // Default safety filter
+              aspect_ratio: aspectRatioForRequest,
               // Pose change için optimize edilmiş parametreler (hız için)
               guidance_scale: 7.5, // Normal ile aynı (hız için)
               num_inference_steps: 20, // Normal ile aynı (hız için)
             },
           };
-          console.log("🕺 [POSE_CHANGE] Nano Banana Pro request body hazırlandı");
+          console.log("🕺 [POSE_CHANGE] Nano Banana request body hazırlandı");
           console.log(
             "🕺 [POSE_CHANGE] Prompt:",
             enhancedPrompt.substring(0, 200) + "..."
           );
         } else {
-          // NORMAL MODE - Nano Banana Pro parametreleri
+          // NORMAL MODE - Orijinal parametreler
           requestBody = {
             input: {
               prompt: enhancedPrompt,
-              resolution: "2K", // Default 2K resolution
               image_input: imageInputArray,
-              aspect_ratio: aspectRatioForRequest,
               output_format: "png",
-              safety_filter_level: "block_only_high", // Default safety filter
+              aspect_ratio: aspectRatioForRequest,
             },
           };
         }
@@ -4090,9 +4086,9 @@ router.post("/generate", async (req, res) => {
           aspectRatio: aspectRatioForRequest,
         });
 
-        // Replicate API çağrısı - Prefer: wait header ile (Nano Banana Pro)
+        // Replicate API çağrısı - Prefer: wait header ile
         const response = await axios.post(
-          "https://api.replicate.com/v1/models/google/nano-banana-pro/predictions",
+          "https://api.replicate.com/v1/models/google/nano-banana/predictions",
           requestBody,
           {
             headers: {
@@ -4132,7 +4128,7 @@ router.post("/generate", async (req, res) => {
           };
 
           console.log(
-            `✅ Replicate google/nano-banana-pro API başarılı (attempt ${attempt})`
+            `✅ Replicate google/nano-banana API başarılı (attempt ${attempt})`
           );
           break; // Başarılı olursa loop'tan çık
         } else if (
@@ -4157,7 +4153,7 @@ router.post("/generate", async (req, res) => {
           };
 
           console.log(
-            `⏳ Replicate google/nano-banana-pro API processing (attempt ${attempt}) - polling gerekecek`
+            `⏳ Replicate google/nano-banana API processing (attempt ${attempt}) - polling gerekecek`
           );
           break; // Processing durumunda da loop'tan çık ve polling'e geç
         } else if (response.data.status === "failed") {
@@ -4183,12 +4179,12 @@ router.post("/generate", async (req, res) => {
               ))
           ) {
             console.log(
-              `🔄 Geçici nano-banana-pro hatası tespit edildi (attempt ${attempt}), retry yapılacak:`,
+              `🔄 Geçici nano-banana hatası tespit edildi (attempt ${attempt}), retry yapılacak:`,
               response.data.error
             );
             retryReasons.push(`Attempt ${attempt}: ${response.data.error}`);
             throw new Error(
-              `RETRYABLE_NANO_BANANA_PRO_ERROR: ${response.data.error}`
+              `RETRYABLE_NANO_BANANA_ERROR: ${response.data.error}`
             );
           }
 
@@ -4204,7 +4200,7 @@ router.post("/generate", async (req, res) => {
         }
       } catch (apiError) {
         console.error(
-          `❌ Replicate google/nano-banana-pro API attempt ${attempt} failed:`,
+          `❌ Replicate google/nano-banana API attempt ${attempt} failed:`,
           apiError.message
         );
 
@@ -4229,10 +4225,10 @@ router.post("/generate", async (req, res) => {
         // Son deneme değilse ve network hataları veya geçici hatalar ise tekrar dene
         if (
           attempt < maxRetries &&
-          (            apiError.code === "ECONNRESET" ||
+          (apiError.code === "ECONNRESET" ||
             apiError.code === "ENOTFOUND" ||
             apiError.response?.status >= 500 ||
-            apiError.message.includes("RETRYABLE_NANO_BANANA_PRO_ERROR"))
+            apiError.message.includes("RETRYABLE_NANO_BANANA_ERROR"))
         ) {
           totalRetryAttempts++;
           const waitTime = attempt * 2000; // 2s, 4s, 6s bekle
@@ -4304,7 +4300,7 @@ router.post("/generate", async (req, res) => {
       });
     }
 
-    // Replicate google/nano-banana-pro API - Status kontrolü ve polling (retry mekanizmalı)
+    // Replicate google/nano-banana API - Status kontrolü ve polling (retry mekanizmalı)
     const startTime = Date.now();
     let finalResult;
     let processingTime;
@@ -4314,7 +4310,7 @@ router.post("/generate", async (req, res) => {
     if (initialResult.status === "succeeded") {
       // Direkt başarılı sonuç
       console.log(
-        "🎯 Replicate google/nano-banana-pro - başarılı sonuç, polling atlanıyor"
+        "🎯 Replicate google/nano-banana - başarılı sonuç, polling atlanıyor"
       );
       finalResult = initialResult;
       processingTime = Math.round((Date.now() - startTime) / 1000);
@@ -4324,7 +4320,7 @@ router.post("/generate", async (req, res) => {
     ) {
       // Processing durumunda polling yap
       console.log(
-        "⏳ Replicate google/nano-banana-pro - processing status, polling başlatılıyor"
+        "⏳ Replicate google/nano-banana - processing status, polling başlatılıyor"
       );
 
       try {
@@ -4363,7 +4359,7 @@ router.post("/generate", async (req, res) => {
     } else {
       // Diğer durumlar (failed, vs) - retry mekanizmasıyla
       console.log(
-        "🎯 Replicate google/nano-banana-pro - failed status, retry mekanizması başlatılıyor"
+        "🎯 Replicate google/nano-banana - failed status, retry mekanizması başlatılıyor"
       );
 
       // Failed status için retry logic
@@ -4393,7 +4389,7 @@ router.post("/generate", async (req, res) => {
             referenceImages.length >= 2
           ) {
             console.log(
-              "🔄 [RETRY BACK_SIDE] 2 ayrı resim Nano Banana Pro'ya gönderiliyor..."
+              "🔄 [RETRY BACK_SIDE] 2 ayrı resim Nano Banana'ya gönderiliyor..."
             );
             retryImageInputArray = [
               referenceImages[0].uri || referenceImages[0], // Ön resim - direkt string
@@ -4407,7 +4403,7 @@ router.post("/generate", async (req, res) => {
             const totalRefs =
               referenceImages.length + (modelReferenceImage ? 1 : 0);
             console.log(
-              `🔄 [RETRY MULTIPLE] ${totalRefs} ayrı resim Nano Banana Pro'ya gönderiliyor...`
+              `🔄 [RETRY MULTIPLE] ${totalRefs} ayrı resim Nano Banana'ya gönderiliyor...`
             );
 
             const sortedImages = [];
@@ -4443,20 +4439,17 @@ router.post("/generate", async (req, res) => {
           const retryRequestBody = {
             input: {
               prompt: enhancedPrompt,
-              resolution: "2K", // Default 2K resolution
               image_input: retryImageInputArray,
-              aspect_ratio: aspectRatioForRequest,
-              output_format: "png",
-              safety_filter_level: "block_only_high", // Default safety filter
+              output_format: "jpg",
             },
           };
 
           console.log(
-            `🔄 Retry ${retryAttempt}: Yeni prediction oluşturuluyor (Nano Banana Pro)...`
+            `🔄 Retry ${retryAttempt}: Yeni prediction oluşturuluyor...`
           );
 
           const retryResponse = await axios.post(
-            "https://api.replicate.com/v1/models/google/nano-banana-pro/predictions",
+            "https://api.replicate.com/v1/models/google/nano-banana/predictions",
             retryRequestBody,
             {
               headers: {
