@@ -87,7 +87,7 @@ router.post("/sync-user", async (req, res) => {
       const insertData = {
         id: newUserId,
         supabase_user_id: supabaseUserId,
-        credit_balance: 60, // Yeni kullanıcıya 60 kredi hediye
+        credit_balance: 40, // Yeni kullanıcıya 40 kredi hediye
         received_initial_credit: true,
         initial_credit_date: new Date().toISOString(),
         created_at: new Date().toISOString(),

@@ -78,14 +78,14 @@ router.post("/registerAnonymousUser", async (req, res) => {
         .single();
 
       if (error || !user) {
-        // Kayıt yoksa yeni oluştur - 60 kredi ile
+        // Kayıt yoksa yeni oluştur - 40 kredi ile
         userId = uuidv4();
         const { data, error: insertError } = await supabase
           .from("users")
           .insert([
             {
               id: userId,
-              credit_balance: 60, // 🎁 YENİ KULLANICI HEDİYESİ: 60 KREDİ
+              credit_balance: 40, // 🎁 YENİ KULLANICI HEDİYESİ: 40 KREDİ
               device_id: deviceId || null,
               received_initial_credit: true, // 🎯 Bu kullanıcı initial kredi aldı
               initial_credit_date: new Date().toISOString(), // 📅 Kredi alım tarihi
@@ -103,12 +103,12 @@ router.post("/registerAnonymousUser", async (req, res) => {
         }
 
         console.log(
-          `🎉 [NEW USER] Yeni kullanıcı oluşturuldu: ${userId} (60 kredi hediye)`
+          `🎉 [NEW USER] Yeni kullanıcı oluşturuldu: ${userId} (40 kredi hediye)`
         );
         return res.status(200).json({
           message: "Yeni anonim kullanıcı oluşturuldu",
           userId,
-          creditBalance: 60,
+          creditBalance: 40,
           isNewUser: true,
         });
       } else {
@@ -134,12 +134,12 @@ router.post("/registerAnonymousUser", async (req, res) => {
         });
       }
     } else {
-      // userId yoksa yeni userId oluştur - 60 kredi ile
+      // userId yoksa yeni userId oluştur - 40 kredi ile
       userId = uuidv4();
       const { data, error } = await supabase.from("users").insert([
         {
           id: userId,
-          credit_balance: 60, // 🎁 YENİ KULLANICI HEDİYESİ: 60 KREDİ
+          credit_balance: 40, // 🎁 YENİ KULLANICI HEDİYESİ: 40 KREDİ
           device_id: deviceId || null,
           received_initial_credit: true, // 🎯 Bu kullanıcı initial kredi aldı
           initial_credit_date: new Date().toISOString(), // 📅 Kredi alım tarihi
@@ -157,12 +157,12 @@ router.post("/registerAnonymousUser", async (req, res) => {
       }
 
       console.log(
-        `🎉 [NEW USER] Yeni kullanıcı oluşturuldu: ${userId} (60 kredi hediye)`
+        `🎉 [NEW USER] Yeni kullanıcı oluşturuldu: ${userId} (40 kredi hediye)`
       );
       return res.status(200).json({
         message: "Yeni anonim kullanıcı oluşturuldu",
         userId,
-        creditBalance: 60,
+        creditBalance: 40,
         isNewUser: true,
       });
     }

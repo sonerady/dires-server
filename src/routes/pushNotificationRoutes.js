@@ -18,7 +18,18 @@ router.post("/save-device-token", async (req, res) => {
       });
     }
 
-    console.log(`📱 [PUSH_TOKEN] Device token kaydediliyor: ${userId?.slice(0, 8)} (language: ${language || "not provided"})`);
+    // Dil kodunu normalize et (tr-TR -> tr, en-US -> en)
+    let normalizedLanguage = "en";
+    if (language) {
+      normalizedLanguage = language.split("-")[0].toLowerCase();
+      // Desteklenen diller listesi
+      const supportedLanguages = ["en", "tr", "es", "fr", "de", "it", "ja", "ko", "pt", "ru", "zh"];
+      if (!supportedLanguages.includes(normalizedLanguage)) {
+        normalizedLanguage = "en";
+      }
+    }
+
+    console.log(`📱 [PUSH_TOKEN] Device token kaydediliyor: ${userId?.slice(0, 8)} (raw language: ${language || "not provided"}, normalized: ${normalizedLanguage})`);
 
     // Token'ı users tablosuna kaydet/güncelle
     // Language'i de kaydet (eğer kolon varsa)
@@ -27,10 +38,8 @@ router.post("/save-device-token", async (req, res) => {
       push_token_updated_at: new Date().toISOString(),
     };
     
-    // Language'i de ekle (eğer varsa ve kolon mevcutsa)
-    if (language) {
-      updateData.preferred_language = language;
-    }
+    // Normalize edilmiş language'i kaydet
+    updateData.preferred_language = normalizedLanguage;
 
     const { data, error } = await supabase
       .from("users")

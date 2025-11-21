@@ -23,9 +23,20 @@ try {
   console.error("❌ [LOCALES] Locales yükleme hatası:", error);
 }
 
+// Dil kodunu normalize et (tr-TR -> tr, en-US -> en)
+function normalizeLanguageCode(language) {
+  if (!language) return "en";
+  // İlk 2 karakteri al (tr-TR -> tr, en-US -> en)
+  const normalized = language.split("-")[0].toLowerCase();
+  // Desteklenen diller listesi
+  const supportedLanguages = ["en", "tr", "es", "fr", "de", "it", "ja", "ko", "pt", "ru", "zh"];
+  // Eğer desteklenen dillerden biri değilse "en" döndür
+  return supportedLanguages.includes(normalized) ? normalized : "en";
+}
+
 // Notification metinlerini al
 function getNotificationText(language, key) {
-  const lang = language || "en";
+  const lang = normalizeLanguageCode(language);
   const locale = translations[lang] || translations["en"];
   return locale?.notification?.[key] || translations["en"]?.notification?.[key] || "";
 }
@@ -137,7 +148,11 @@ async function sendGenerationCompletedNotification(userId, generationId) {
       .eq("id", userId)
       .single();
 
-    const language = userData?.preferred_language || "en";
+    const rawLanguage = userData?.preferred_language || "en";
+    // Dil kodunu normalize et (tr-TR -> tr)
+    const language = normalizeLanguageCode(rawLanguage);
+    
+    console.log(`🌐 [NOTIFICATION] Raw language: ${rawLanguage}, Normalized: ${language}`);
     
     // Lokalize edilmiş metinleri al
     const title = getNotificationText(language, "generationCompletedTitle");

@@ -168,7 +168,9 @@ router.get("/user/:userId", async (req, res) => {
         created_at,
         credits_before_generation,
         credits_deducted,
-        credits_after_generation
+        credits_after_generation,
+        settings,
+        quality_version
       `
       )
       .eq("user_id", userId)
@@ -197,7 +199,9 @@ router.get("/user/:userId", async (req, res) => {
           created_at,
           credits_before_generation,
           credits_deducted,
-          credits_after_generation
+          credits_after_generation,
+          settings,
+          quality_version
         `
         )
         .eq("user_id", userId)
