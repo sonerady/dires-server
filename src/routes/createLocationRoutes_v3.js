@@ -1,16 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-const { GoogleGenAI } = require("@google/genai");
+// Updated: Using Replicate's google/gemini-2.5-flash model for prompt and tag generation
+// No longer using @google/genai or @google/generative-ai SDKs
+const axios = require("axios");
 const supabase = require("../supabaseClient");
-
-// Gemini API setup (eski)
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-// Gemini API setup (yeni SDK - tag generation için)
-const genAITags = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
 
 // Replicate'den gelen resmi Supabase storage'a kaydet
 async function uploadImageToSupabaseStorage(imageUrl, userId, replicateId) {
@@ -146,18 +139,16 @@ async function generateLocationTagsWithGPT(
   locationType
 ) {
   try {
-    console.log("🏷️ Gemini ile tag generation başlatılıyor...");
-    console.log("Location Title:", locationTitle);
-    console.log("Location Description:", locationDescription?.substring(0, 100) || "N/A");
-    console.log("Location Type:", locationType);
+    console.log("🏷️ [REPLICATE GEMINI] Tag generation başlatılıyor...");
+    console.log("🏷️ [REPLICATE GEMINI] Location Title:", locationTitle);
+    console.log("🏷️ [REPLICATE GEMINI] Location Description:", locationDescription?.substring(0, 100) || "N/A");
+    console.log("🏷️ [REPLICATE GEMINI] Location Type:", locationType);
 
     // locationDescription null/undefined kontrolü
     if (!locationDescription || typeof locationDescription !== "string") {
       console.error("❌ Location description geçersiz:", locationDescription);
       throw new Error("Location description is required for tag generation");
     }
-
-    const model = "gemini-flash-latest";
 
     const prompt = `Generate location tags for fashion photography. Each tag must be EXACTLY ONE WORD (single word, no spaces, no hyphens). Tags must be DIRECTLY RELATED to the location's main subject and theme.
 
@@ -223,23 +214,98 @@ OUTPUT FORMAT (valid JSON only):
 
 IMPORTANT: Return ONLY valid JSON, no explanations, no markdown, no code blocks.`;
 
-    // Gemini API çağrısı
-    const result = await genAITags.models.generateContent({
-      model,
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: prompt }],
-        },
-      ],
-    });
+    // Replicate API çağrısı
+    const replicateRequestBody = {
+      input: {
+        top_p: 0.95,
+        images: [], // Tag generation için resim gerekmez
+        prompt: prompt,
+        videos: [],
+        temperature: 1,
+        dynamic_thinking: false,
+        max_output_tokens: 65535,
+      },
+    };
 
-    const geminiResponse =
-      result.text?.trim() || result.response?.text()?.trim() || "";
+    console.log(
+      `🏷️ [REPLICATE GEMINI] Request: prompt length: ${prompt.length}`
+    );
+
+    // Replicate API çağrısı
+    const replicateResponse = await axios.post(
+      "https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions",
+      replicateRequestBody,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+          "Content-Type": "application/json",
+          Prefer: "wait", // Synchronous response
+        },
+        timeout: 120000, // 2 dakika timeout
+      }
+    );
+
+    const result = replicateResponse.data;
+
+    // Response kontrolü ve polling (gerekirse)
+    let geminiResponse = "";
+    if (result.status === "succeeded" && result.output) {
+      // Output bir array, birleştir
+      geminiResponse = Array.isArray(result.output)
+        ? result.output.join("").trim()
+        : String(result.output || "").trim();
+    } else if (result.status === "processing" || result.status === "starting") {
+      // Processing durumunda polling yap
+      console.log("⏳ [REPLICATE GEMINI] Processing, polling başlatılıyor...");
+
+      let pollingResult = result;
+      const maxPollingAttempts = 30;
+
+      for (
+        let pollAttempt = 0;
+        pollAttempt < maxPollingAttempts;
+        pollAttempt++
+      ) {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        const pollResponse = await axios.get(
+          `https://api.replicate.com/v1/predictions/${result.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+            },
+            timeout: 10000,
+          }
+        );
+
+        pollingResult = pollResponse.data;
+
+        if (pollingResult.status === "succeeded" && pollingResult.output) {
+          geminiResponse = Array.isArray(pollingResult.output)
+            ? pollingResult.output.join("").trim()
+            : String(pollingResult.output || "").trim();
+          break;
+        } else if (pollingResult.status === "failed") {
+          throw new Error(
+            `Replicate Gemini polling failed: ${
+              pollingResult.error || "Unknown error"
+            }`
+          );
+        }
+      }
+
+      if (!geminiResponse) {
+        throw new Error("Replicate Gemini polling timeout");
+      }
+    } else {
+      throw new Error(
+        `Replicate Gemini API unexpected status: ${result.status}`
+      );
+    }
 
     if (!geminiResponse) {
-      console.error("❌ Gemini API response boş:", result);
-      throw new Error("Gemini API response is empty or invalid");
+      console.error("❌ [REPLICATE GEMINI] API response boş:", result);
+      throw new Error("Replicate Gemini API response is empty or invalid");
     }
 
     console.log(
@@ -324,20 +390,76 @@ IMPORTANT: Return ONLY valid JSON, no explanations, no markdown, no code blocks.
           200
         )}". MANDATORY: Extract key words from title and description - the MAIN SUBJECT mentioned MUST be included in tags. Focus on main subjects, objects, places, styles mentioned. DO NOT use generic atmosphere tags. If location mentions specific objects (car, ship, building, etc.), these MUST be in the tags. Return JSON with languages: en, es, pt, fr, de, it, tr, ru, uk, ar, fa, zh, zh-tw, ja, ko, hi, id. Each language must have exactly 5 tags (minimum 5, maximum 5), each tag exactly one word. Return ONLY valid JSON, no explanations.`;
 
-        const retryResult = await genAITags.models.generateContent({
-          model,
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: retryPrompt }],
-            },
-          ],
-        });
+        const retryRequestBody = {
+          input: {
+            top_p: 0.95,
+            images: [],
+            prompt: retryPrompt,
+            videos: [],
+            temperature: 1,
+            dynamic_thinking: false,
+            max_output_tokens: 65535,
+          },
+        };
 
-        const retryGeminiResponse =
-          retryResult.text?.trim() ||
-          retryResult.response?.text()?.trim() ||
-          "";
+        const retryResponse = await axios.post(
+          "https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions",
+          retryRequestBody,
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+              "Content-Type": "application/json",
+              Prefer: "wait",
+            },
+            timeout: 120000,
+          }
+        );
+
+        const retryResult = retryResponse.data;
+
+        let retryGeminiResponse = "";
+        if (retryResult.status === "succeeded" && retryResult.output) {
+          retryGeminiResponse = Array.isArray(retryResult.output)
+            ? retryResult.output.join("").trim()
+            : String(retryResult.output || "").trim();
+        } else if (retryResult.status === "processing" || retryResult.status === "starting") {
+          // Polling
+          let pollingResult = retryResult;
+          const maxPollingAttempts = 30;
+
+          for (
+            let pollAttempt = 0;
+            pollAttempt < maxPollingAttempts;
+            pollAttempt++
+          ) {
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
+            const pollResponse = await axios.get(
+              `https://api.replicate.com/v1/predictions/${retryResult.id}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+                },
+                timeout: 10000,
+              }
+            );
+
+            pollingResult = pollResponse.data;
+
+            if (pollingResult.status === "succeeded" && pollingResult.output) {
+              retryGeminiResponse = Array.isArray(pollingResult.output)
+                ? pollingResult.output.join("").trim()
+                : String(pollingResult.output || "").trim();
+              break;
+            } else if (pollingResult.status === "failed") {
+              throw new Error(
+                `Replicate Gemini polling failed: ${
+                  pollingResult.error || "Unknown error"
+                }`
+              );
+            }
+          }
+        }
 
         if (retryGeminiResponse) {
           let cleanedRetryResponse = retryGeminiResponse.trim();
@@ -350,20 +472,20 @@ IMPORTANT: Return ONLY valid JSON, no explanations, no markdown, no code blocks.
           }
 
           tags = JSON.parse(cleanedRetryResponse);
-          console.log("✅ Retry successful, tags generated");
+          console.log("✅ [REPLICATE GEMINI] Retry successful, tags generated");
         } else {
           throw new Error("Retry failed - no output");
         }
       } catch (retryError) {
-        console.error("❌ Retry also failed:", retryError);
+        console.error("❌ [REPLICATE GEMINI] Retry also failed:", retryError);
         throw new Error("Tag generation failed after retry");
       }
     }
 
-    console.log("✅ Gemini tag generation tamamlandı");
+    console.log("✅ [REPLICATE GEMINI] Tag generation tamamlandı");
     return tags;
   } catch (error) {
-    console.error("❌ Gemini tag generation hatası:", error.message);
+    console.error("❌ [REPLICATE GEMINI] Tag generation hatası:", error.message);
     console.error("❌ Full error:", error);
 
     throw error;
@@ -373,9 +495,7 @@ IMPORTANT: Return ONLY valid JSON, no explanations, no markdown, no code blocks.
 // Gemini ile prompt enhance et
 async function enhanceLocationPromptWithGPT(originalPrompt) {
   try {
-    console.log("🤖 Gemini ile prompt enhancement başlatılıyor...");
-
-    const model = "gemini-flash-latest";
+    console.log("🤖 [REPLICATE GEMINI] Prompt enhancement başlatılıyor...");
 
     const promptForGemini = `You are an expert AI prompt engineer specializing in photorealistic location photography. Create SHORT, SIMPLE prompts optimized for image generation.
 
@@ -439,50 +559,118 @@ IMPORTANT: You MUST return a valid JSON object with these exact keys: prompt, ti
 
 Create a detailed location photography prompt from: "${originalPrompt}"`;
 
-    // Gemini API çağrısı (retry mekanizması ile)
+    // Replicate API çağrısı (retry mekanizması ile)
     let geminiResponse = "";
     const maxRetries = 2;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         console.log(
-          `🤖 [LOCATION_PROMPT] Gemini API çağrısı attempt ${attempt}/${maxRetries}`
+          `🤖 [REPLICATE GEMINI] Location prompt API çağrısı attempt ${attempt}/${maxRetries}`
         );
 
-        const result = await genAITags.models.generateContent({
-          model,
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: promptForGemini }],
-            },
-          ],
-        });
+        const replicateRequestBody = {
+          input: {
+            top_p: 0.95,
+            images: [], // Prompt enhancement için resim gerekmez
+            prompt: promptForGemini,
+            videos: [],
+            temperature: 1,
+            dynamic_thinking: false,
+            max_output_tokens: 65535,
+          },
+        };
 
-        geminiResponse =
-          result.text?.trim() || result.response?.text()?.trim() || "";
+        const replicateResponse = await axios.post(
+          "https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions",
+          replicateRequestBody,
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+              "Content-Type": "application/json",
+              Prefer: "wait",
+            },
+            timeout: 120000,
+          }
+        );
+
+        const result = replicateResponse.data;
+
+        // Response kontrolü
+        if (result.status === "succeeded" && result.output) {
+          geminiResponse = Array.isArray(result.output)
+            ? result.output.join("").trim()
+            : String(result.output || "").trim();
+        } else if (result.status === "processing" || result.status === "starting") {
+          // Processing durumunda polling yap
+          console.log("⏳ [REPLICATE GEMINI] Processing, polling başlatılıyor...");
+
+          let pollingResult = result;
+          const maxPollingAttempts = 30;
+
+          for (
+            let pollAttempt = 0;
+            pollAttempt < maxPollingAttempts;
+            pollAttempt++
+          ) {
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
+            const pollResponse = await axios.get(
+              `https://api.replicate.com/v1/predictions/${result.id}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+                },
+                timeout: 10000,
+              }
+            );
+
+            pollingResult = pollResponse.data;
+
+            if (pollingResult.status === "succeeded" && pollingResult.output) {
+              geminiResponse = Array.isArray(pollingResult.output)
+                ? pollingResult.output.join("").trim()
+                : String(pollingResult.output || "").trim();
+              break;
+            } else if (pollingResult.status === "failed") {
+              throw new Error(
+                `Replicate Gemini polling failed: ${
+                  pollingResult.error || "Unknown error"
+                }`
+              );
+            }
+          }
+
+          if (!geminiResponse) {
+            throw new Error("Replicate Gemini polling timeout");
+          }
+        } else {
+          throw new Error(
+            `Replicate Gemini API unexpected status: ${result.status}`
+          );
+        }
 
         if (!geminiResponse) {
-          console.error("❌ [LOCATION_PROMPT] Gemini API response boş");
+          console.error("❌ [REPLICATE GEMINI] API response boş");
           if (attempt === maxRetries) {
-            throw new Error("Gemini API response is empty or invalid");
+            throw new Error("Replicate Gemini API response is empty or invalid");
           }
           continue;
         }
 
         console.log(
-          "🤖 [LOCATION_PROMPT] Gemini response:",
+          "🤖 [REPLICATE GEMINI] Location prompt response:",
           geminiResponse.substring(0, 200) + "..."
         );
         break; // Başarılı olduysa döngüden çık
-      } catch (geminiError) {
+      } catch (replicateError) {
         console.error(
-          `❌ [LOCATION_PROMPT] Gemini API attempt ${attempt} failed:`,
-          geminiError.message
+          `❌ [REPLICATE GEMINI] Location prompt API attempt ${attempt} failed:`,
+          replicateError.message
         );
 
         if (attempt === maxRetries) {
-          throw geminiError;
+          throw replicateError;
         } else {
           const waitTime = Math.pow(2, attempt - 1) * 1000;
           console.log(`⏳ ${waitTime}ms bekleniyor, sonra tekrar denenecek...`);
@@ -492,7 +680,7 @@ Create a detailed location photography prompt from: "${originalPrompt}"`;
     }
 
     if (!geminiResponse) {
-      throw new Error("Gemini API response is empty after retries");
+      throw new Error("Replicate Gemini API response is empty after retries");
     }
 
     console.log("🎯 Gemini raw response:", geminiResponse);
@@ -588,7 +776,7 @@ Create a detailed location photography prompt from: "${originalPrompt}"`;
       console.log("Token sayısı:", tokenCount);
     }
 
-    console.log("✅ Gemini prompt enhancement tamamlandı");
+    console.log("✅ [REPLICATE GEMINI] Prompt enhancement tamamlandı");
     console.log("Generated title:", generatedTitle);
     console.log(
       "Enhanced prompt preview:",
@@ -602,11 +790,11 @@ Create a detailed location photography prompt from: "${originalPrompt}"`;
       locationType: locationType,
     };
   } catch (error) {
-    console.error("❌ Gemini enhancement hatası:", error.message);
+    console.error("❌ [REPLICATE GEMINI] Enhancement hatası:", error.message);
     console.error("❌ Full error:", error);
 
     // Fallback yok - hata fırlat
-    throw new Error(`Gemini prompt generation failed: ${error.message}`);
+    throw new Error(`Replicate Gemini prompt generation failed: ${error.message}`);
   }
 }
 

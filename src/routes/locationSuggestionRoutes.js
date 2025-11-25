@@ -1,13 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { GoogleGenAI } = require("@google/genai");
+// Updated: Using Replicate's google/gemini-2.5-flash model for location suggestions
+// No longer using @google/genai SDK
 const axios = require("axios");
 const sharp = require("sharp");
-
-// Gemini API için istemci oluştur
-const genAI = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
 
 /**
  * Kıyafet resmine göre mekan önerileri oluştur
@@ -26,12 +22,9 @@ router.post("/generate", async (req, res) => {
       });
     }
 
-    console.log("🏞️ [LOCATION_SUGGESTIONS] Mekan önerisi isteği alındı");
-    console.log("🖼️ [LOCATION_SUGGESTIONS] Image URL:", imageUrl);
-    console.log("🌐 [LOCATION_SUGGESTIONS] Language:", language);
-
-    // Gemini 2.0 Flash modeli
-    const model = "gemini-flash-latest";
+    console.log("🏞️ [REPLICATE GEMINI] Mekan önerisi isteği alındı");
+    console.log("🖼️ [REPLICATE GEMINI] Image URL:", imageUrl);
+    console.log("🌐 [REPLICATE GEMINI] Language:", language);
 
     // Prompt oluştur - dil bilgisini ekle
     const promptForGemini = `
@@ -67,143 +60,173 @@ IMPORTANT:
 
 Analyze the image, identify the category and product type, then generate 5 location suggestions as a JSON array in ${language} language.`;
 
-    // Resim verilerini içerecek parts dizisini hazırla
-    const parts = [{ text: promptForGemini }];
+    // Replicate API için resim URL'ini hazırla
+    let imageUrlForReplicate = imageUrl;
 
-    // Resmi Gemini'ye gönder - referenceBrowserRoutesV4.js'deki mantıkla aynı
-    try {
-      console.log("📤 [LOCATION_SUGGESTIONS] Resim Gemini'ye gönderiliyor...");
-      console.log(
-        "🖼️ [LOCATION_SUGGESTIONS] Image URL format:",
-        imageUrl.substring(0, 50) + "..."
-      );
-
-      let imageBuffer;
-
-      // HTTP URL ise indir, base64 data URL ise direkt kullan (referenceBrowserRoutesV4.js mantığı)
-      if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
-        // HTTP URL - normal indirme
-        console.log("🌐 [LOCATION_SUGGESTIONS] HTTP URL indiriliyor...");
-        const imageResponse = await axios.get(imageUrl, {
-          responseType: "arraybuffer",
-          timeout: 15000,
-        });
-        imageBuffer = Buffer.from(imageResponse.data);
-      } else if (imageUrl.startsWith("data:image/")) {
-        // Base64 data URL - direkt buffer'a çevir
-        console.log(
-          "📦 [LOCATION_SUGGESTIONS] Base64 data URL kullanılıyor..."
-        );
-        const base64Data = imageUrl.split(",")[1];
-        imageBuffer = Buffer.from(base64Data, "base64");
-      } else {
-        throw new Error(
-          "Desteklenmeyen resim formatı. HTTP URL veya base64 data URL gerekli."
-        );
-      }
-
-      // EXIF rotation düzeltmesi uygula (referenceBrowserRoutesV4.js mantığı)
-      let processedBuffer;
+    // Base64 data URL ise Supabase'e upload et ve URL al (Replicate direkt base64 kabul etmiyor)
+    if (imageUrl.startsWith("data:image/")) {
+      console.log("📦 [REPLICATE GEMINI] Base64 data URL tespit edildi, Supabase'e upload ediliyor...");
       try {
-        processedBuffer = await sharp(imageBuffer)
-          .rotate() // EXIF orientation bilgisini otomatik uygula
-          .jpeg({ quality: 100 })
-          .toBuffer();
-        console.log("🔄 [LOCATION_SUGGESTIONS] EXIF rotation uygulandı");
-      } catch (sharpError) {
-        console.error(
-          "❌ [LOCATION_SUGGESTIONS] Sharp işleme hatası:",
-          sharpError.message
-        );
+        // Base64'ten buffer oluştur
+        const base64Data = imageUrl.split(",")[1];
+        const imageBuffer = Buffer.from(base64Data, "base64");
 
-        // Sharp hatası durumunda orijinal buffer'ı kullan
-        if (
-          sharpError.message.includes("Empty JPEG") ||
-          sharpError.message.includes("DNL not supported")
-        ) {
-          try {
-            processedBuffer = await sharp(imageBuffer)
-              .rotate() // EXIF rotation burada da dene
-              .png({ quality: 100 })
-              .toBuffer();
-            console.log(
-              "✅ [LOCATION_SUGGESTIONS] PNG'ye dönüştürüldü (EXIF rotation uygulandı)"
-            );
-          } catch (pngError) {
-            console.error(
-              "❌ [LOCATION_SUGGESTIONS] PNG dönüştürme hatası:",
-              pngError.message
-            );
-            processedBuffer = imageBuffer; // Son çare: orijinal buffer
-            console.log(
-              "⚠️ [LOCATION_SUGGESTIONS] Orijinal buffer kullanılıyor (EXIF rotation uygulanamadı)"
-            );
-          }
-        } else {
-          processedBuffer = imageBuffer; // Son çare: orijinal buffer
-          console.log(
-            "⚠️ [LOCATION_SUGGESTIONS] Orijinal buffer kullanılıyor (EXIF rotation uygulanamadı)"
-          );
+        // EXIF rotation düzeltmesi uygula
+        let processedBuffer;
+        try {
+          processedBuffer = await sharp(imageBuffer)
+            .rotate()
+            .jpeg({ quality: 100 })
+            .toBuffer();
+        } catch (sharpError) {
+          processedBuffer = imageBuffer; // Fallback
         }
+
+        // Supabase'e upload et (geçici olarak)
+        const { createClient } = require("@supabase/supabase-js");
+        const supabaseUrl = process.env.SUPABASE_URL;
+        const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY;
+        const supabase = createClient(supabaseUrl, supabaseKey, {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+          },
+        });
+
+        const timestamp = Date.now();
+        const fileName = `temp_location_suggestion_${timestamp}.jpg`;
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("reference")
+          .upload(fileName, processedBuffer, {
+            contentType: "image/jpeg",
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (uploadError) {
+          throw uploadError;
+        }
+
+        const { data: urlData } = supabase.storage
+          .from("reference")
+          .getPublicUrl(fileName);
+
+        imageUrlForReplicate = urlData.publicUrl;
+        console.log("✅ [REPLICATE GEMINI] Base64 resim Supabase'e upload edildi");
+      } catch (uploadError) {
+        console.error("❌ [REPLICATE GEMINI] Supabase upload hatası:", uploadError.message);
+        return res.status(500).json({
+          success: false,
+          result: {
+            message: "Görsel yüklenirken hata oluştu",
+            error: uploadError.message,
+          },
+        });
       }
-
-      // Processed buffer'ı base64'e çevir
-      const base64Image = processedBuffer.toString("base64");
-
-      parts.push({
-        inlineData: {
-          mimeType: "image/jpeg",
-          data: base64Image,
-        },
-      });
-
-      console.log(
-        "✅ [LOCATION_SUGGESTIONS] Resim başarıyla Gemini'ye yüklendi"
-      );
-    } catch (imageError) {
-      console.error(
-        "❌ [LOCATION_SUGGESTIONS] Görsel yüklenirken hata:",
-        imageError.message
-      );
-      return res.status(500).json({
-        success: false,
-        result: {
-          message: "Görsel yüklenirken hata oluştu",
-          error: imageError.message,
-        },
-      });
     }
 
-    // Gemini'den cevap al (retry mekanizması ile)
+    // Replicate API'den cevap al (retry mekanizması ile)
     let suggestions = null;
     const maxRetries = 2;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         console.log(
-          `🤖 [LOCATION_SUGGESTIONS] Gemini API çağrısı attempt ${attempt}/${maxRetries}`
+          `🤖 [REPLICATE GEMINI] Location suggestions API çağrısı attempt ${attempt}/${maxRetries}`
         );
 
-        const result = await genAI.models.generateContent({
-          model,
-          contents: [
-            {
-              role: "user",
-              parts: parts,
-            },
-          ],
-        });
+        // Replicate API request body hazırla
+        const replicateRequestBody = {
+          input: {
+            top_p: 0.95,
+            images: [imageUrlForReplicate], // Array of image URLs
+            prompt: promptForGemini,
+            videos: [],
+            temperature: 1,
+            dynamic_thinking: false,
+            max_output_tokens: 65535,
+          },
+        };
 
-        const geminiResponse =
-          result.text?.trim() || result.response?.text()?.trim() || "";
+        const replicateResponse = await axios.post(
+          "https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions",
+          replicateRequestBody,
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+              "Content-Type": "application/json",
+              Prefer: "wait",
+            },
+            timeout: 120000,
+          }
+        );
+
+        const result = replicateResponse.data;
+
+        // Response kontrolü
+        let geminiResponse = "";
+        if (result.status === "succeeded" && result.output) {
+          // Output bir array, birleştir
+          geminiResponse = Array.isArray(result.output)
+            ? result.output.join("").trim()
+            : String(result.output || "").trim();
+        } else if (result.status === "processing" || result.status === "starting") {
+          // Processing durumunda polling yap
+          console.log("⏳ [REPLICATE GEMINI] Processing, polling başlatılıyor...");
+
+          let pollingResult = result;
+          const maxPollingAttempts = 30;
+
+          for (
+            let pollAttempt = 0;
+            pollAttempt < maxPollingAttempts;
+            pollAttempt++
+          ) {
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
+            const pollResponse = await axios.get(
+              `https://api.replicate.com/v1/predictions/${result.id}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+                },
+                timeout: 10000,
+              }
+            );
+
+            pollingResult = pollResponse.data;
+
+            if (pollingResult.status === "succeeded" && pollingResult.output) {
+              geminiResponse = Array.isArray(pollingResult.output)
+                ? pollingResult.output.join("").trim()
+                : String(pollingResult.output || "").trim();
+              break;
+            } else if (pollingResult.status === "failed") {
+              throw new Error(
+                `Replicate Gemini polling failed: ${
+                  pollingResult.error || "Unknown error"
+                }`
+              );
+            }
+          }
+
+          if (!geminiResponse) {
+            throw new Error("Replicate Gemini polling timeout");
+          }
+        } else {
+          throw new Error(
+            `Replicate Gemini API unexpected status: ${result.status}`
+          );
+        }
 
         if (!geminiResponse) {
-          console.error("❌ [LOCATION_SUGGESTIONS] Gemini API response boş");
-          throw new Error("Gemini API response is empty or invalid");
+          console.error("❌ [REPLICATE GEMINI] API response boş");
+          throw new Error("Replicate Gemini API response is empty or invalid");
         }
 
         console.log(
-          "🤖 [LOCATION_SUGGESTIONS] Gemini response:",
+          "🤖 [REPLICATE GEMINI] Location suggestions response:",
           geminiResponse.substring(0, 200) + "..."
         );
 
@@ -230,7 +253,7 @@ Analyze the image, identify the category and product type, then generate 5 locat
           // 5 öneri kontrolü
           if (suggestions.length !== 5) {
             console.warn(
-              `⚠️ [LOCATION_SUGGESTIONS] Beklenen 5 öneri, ${suggestions.length} alındı`
+              `⚠️ [REPLICATE GEMINI] Beklenen 5 öneri, ${suggestions.length} alındı`
             );
             // Eğer 5'ten azsa, eksikleri doldur
             while (suggestions.length < 5) {
@@ -243,16 +266,16 @@ Analyze the image, identify the category and product type, then generate 5 locat
           }
 
           console.log(
-            `✅ [LOCATION_SUGGESTIONS] ${suggestions.length} öneri başarıyla alındı`
+            `✅ [REPLICATE GEMINI] ${suggestions.length} öneri başarıyla alındı`
           );
           break; // Başarılı olursa loop'tan çık
         } catch (parseError) {
           console.error(
-            "❌ [LOCATION_SUGGESTIONS] JSON parse hatası:",
+            "❌ [REPLICATE GEMINI] JSON parse hatası:",
             parseError.message
           );
           console.log(
-            "📝 [LOCATION_SUGGESTIONS] Raw response:",
+            "📝 [REPLICATE GEMINI] Raw response:",
             geminiResponse
           );
 
@@ -266,16 +289,16 @@ Analyze the image, identify the category and product type, then generate 5 locat
               "Modern studio with white walls, professional lighting setup, minimal decor",
             ];
             console.log(
-              "🔄 [LOCATION_SUGGESTIONS] Fallback önerileri kullanılıyor"
+              "🔄 [REPLICATE GEMINI] Fallback önerileri kullanılıyor"
             );
           } else {
             throw parseError;
           }
         }
-      } catch (geminiError) {
+      } catch (replicateError) {
         console.error(
-          `❌ [LOCATION_SUGGESTIONS] Gemini API attempt ${attempt} failed:`,
-          geminiError.message
+          `❌ [REPLICATE GEMINI] Location suggestions API attempt ${attempt} failed:`,
+          replicateError.message
         );
 
         if (attempt === maxRetries) {
@@ -288,7 +311,7 @@ Analyze the image, identify the category and product type, then generate 5 locat
             "Modern studio with white walls, professional lighting setup, minimal decor",
           ];
           console.log(
-            "🔄 [LOCATION_SUGGESTIONS] Fallback önerileri kullanılıyor (hata durumunda)"
+            "🔄 [REPLICATE GEMINI] Fallback önerileri kullanılıyor (hata durumunda)"
           );
         } else {
           // Exponential backoff: 1s, 2s
@@ -316,7 +339,7 @@ Analyze the image, identify the category and product type, then generate 5 locat
       },
     });
   } catch (error) {
-    console.error("❌ [LOCATION_SUGGESTIONS] Genel hata:", error);
+    console.error("❌ [REPLICATE GEMINI] Genel hata:", error);
     return res.status(500).json({
       success: false,
       result: {
