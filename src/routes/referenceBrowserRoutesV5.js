@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
-// Updated Gemini API with latest gemini-2.0-flash model
-// Using @google/generative-ai with new safety settings configuration
-const { GoogleGenAI } = require("@google/genai");
+// Updated: Using Replicate's google/gemini-2.5-flash model for prompt generation
+// No longer using @google/genai SDK
 const mime = require("mime");
 const { createClient } = require("@supabase/supabase-js");
 const axios = require("axios");
@@ -752,10 +751,7 @@ async function updateGenerationStatus(
   }
 }
 
-// Gemini API için istemci oluştur (yeni SDK)
-const genAI = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
+// Replicate API kullanılacak - genAI client artık gerekli değil
 
 // Aspect ratio formatını düzelten yardımcı fonksiyon
 function formatAspectRatio(ratioStr) {
@@ -882,22 +878,30 @@ async function enhancePromptWithGemini(
 ) {
   try {
     console.log(
-      "🤖 Gemini 2.0 Flash ile prompt iyileştirme başlatılıyor (tek resim için)"
+      "🤖 [REPLICATE GEMINI] Replicate Gemini 2.5 Flash ile prompt iyileştirme başlatılıyor"
     );
-    console.log("🏞️ [GEMINI] Location image parametresi:", locationImage);
-    console.log("🤸 [GEMINI] Pose image parametresi:", poseImage);
-    console.log("💇 [GEMINI] Hair style image parametresi:", hairStyleImage);
-    console.log("🛍️ [GEMINI] Multiple products mode:", isMultipleProducts);
-    console.log("🎨 [GEMINI] ControlNet direktifi her zaman aktif");
-    console.log("🎨 [GEMINI] Color change mode:", isColorChange);
-    console.log("🎨 [GEMINI] Target color:", targetColor);
-    console.log("✏️ [GEMINI] Edit mode:", isEditMode);
-    console.log("✏️ [GEMINI] Edit prompt:", editPrompt);
-    console.log("🔧 [GEMINI] Refiner mode:", isRefinerMode);
-    console.log("🔄 [GEMINI] Back side analysis mode:", isBackSideAnalysis);
-
-    // Gemini 2.0 Flash modeli - Yeni SDK
-    const model = "gemini-flash-latest";
+    console.log(
+      "🏞️ [REPLICATE GEMINI] Location image parametresi:",
+      locationImage
+    );
+    console.log("🤸 [REPLICATE GEMINI] Pose image parametresi:", poseImage);
+    console.log(
+      "💇 [REPLICATE GEMINI] Hair style image parametresi:",
+      hairStyleImage
+    );
+    console.log(
+      "🛍️ [REPLICATE GEMINI] Multiple products mode:",
+      isMultipleProducts
+    );
+    console.log("🎨 [REPLICATE GEMINI] Color change mode:", isColorChange);
+    console.log("🎨 [REPLICATE GEMINI] Target color:", targetColor);
+    console.log("✏️ [REPLICATE GEMINI] Edit mode:", isEditMode);
+    console.log("✏️ [REPLICATE GEMINI] Edit prompt:", editPrompt);
+    console.log("🔧 [REPLICATE GEMINI] Refiner mode:", isRefinerMode);
+    console.log(
+      "🔄 [REPLICATE GEMINI] Back side analysis mode:",
+      isBackSideAnalysis
+    );
 
     // Settings'in var olup olmadığını kontrol et
     const hasValidSettings =
@@ -2052,77 +2056,26 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
       }
     }
 
-    console.log("Gemini'ye gönderilen istek:", promptForGemini);
+    console.log("🤖 [REPLICATE GEMINI] Prompt oluşturuluyor:", promptForGemini);
 
-    // Resim verilerini içerecek parts dizisini hazırla
-    const parts = [{ text: promptForGemini }];
+    // Replicate API için resim URL'lerini topla (base64 yerine direkt URL kullan)
+    const imageUrls = [];
 
     // Multi-mode resim gönderimi: Back side analysis, Multiple products, veya Normal mod
     if (isBackSideAnalysis && referenceImages && referenceImages.length >= 2) {
       console.log(
-        "🔄 [BACK_SIDE] Gemini'ye 2 resim gönderiliyor (ön + arka)..."
+        "🔄 [BACK_SIDE] Replicate Gemini'ye 2 resim gönderiliyor (ön + arka)..."
       );
 
-      try {
-        // İlk resim (ön taraf)
-        console.log(
-          `🔄 [BACK_SIDE] İlk resim (ön taraf) Gemini'ye gönderiliyor: ${
-            referenceImages[0].uri || referenceImages[0]
-          }`
-        );
+      const firstImageUrl = sanitizeImageUrl(
+        referenceImages[0].uri || referenceImages[0]
+      );
+      const secondImageUrl = sanitizeImageUrl(
+        referenceImages[1].uri || referenceImages[1]
+      );
 
-        const firstImageUrl = referenceImages[0].uri || referenceImages[0];
-        const firstImageResponse = await axios.get(firstImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 15000,
-        });
-        const firstImageBuffer = firstImageResponse.data;
-        const base64FirstImage =
-          Buffer.from(firstImageBuffer).toString("base64");
-
-        parts.push({
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: base64FirstImage,
-          },
-        });
-
-        console.log(
-          "🔄 [BACK_SIDE] İlk resim (ön taraf) başarıyla Gemini'ye eklendi"
-        );
-
-        // İkinci resim (arka taraf)
-        console.log(
-          `🔄 [BACK_SIDE] İkinci resim (arka taraf) Gemini'ye gönderiliyor: ${
-            referenceImages[1].uri || referenceImages[1]
-          }`
-        );
-
-        const secondImageUrl = referenceImages[1].uri || referenceImages[1];
-        const secondImageResponse = await axios.get(secondImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 15000,
-        });
-        const secondImageBuffer = secondImageResponse.data;
-        const base64SecondImage =
-          Buffer.from(secondImageBuffer).toString("base64");
-
-        parts.push({
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: base64SecondImage,
-          },
-        });
-
-        console.log(
-          "🔄 [BACK_SIDE] İkinci resim (arka taraf) başarıyla Gemini'ye eklendi"
-        );
-        console.log("🔄 [BACK_SIDE] Toplam 2 resim Gemini'ye gönderildi");
-      } catch (imageError) {
-        console.error(
-          `🔄 [BACK_SIDE] Resim yüklenirken hata: ${imageError.message}`
-        );
-      }
+      imageUrls.push(firstImageUrl, secondImageUrl);
+      console.log("🔄 [BACK_SIDE] Toplam 2 resim Replicate Gemini'ye eklendi");
     } else if (
       isMultipleProducts &&
       referenceImages &&
@@ -2130,222 +2083,128 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
     ) {
       // Multi-product mode: Tüm referans resimleri gönder
       console.log(
-        `🛍️ [MULTI-PRODUCT] Gemini'ye ${referenceImages.length} adet referans resmi gönderiliyor...`
+        `🛍️ [MULTI-PRODUCT] Replicate Gemini'ye ${referenceImages.length} adet referans resmi gönderiliyor...`
       );
 
-      try {
-        for (let i = 0; i < referenceImages.length; i++) {
-          const referenceImage = referenceImages[i];
-          const imageUrl = referenceImage.uri || referenceImage;
-
-          console.log(
-            `🛍️ [MULTI-PRODUCT] ${
-              i + 1
-            }. resim Gemini'ye gönderiliyor: ${imageUrl}`
-          );
-
-          const imageResponse = await axios.get(imageUrl, {
-            responseType: "arraybuffer",
-            timeout: 15000,
-          });
-          const imageBuffer = imageResponse.data;
-          const base64Image = Buffer.from(imageBuffer).toString("base64");
-
-          parts.push({
-            inlineData: {
-              mimeType: "image/jpeg",
-              data: base64Image,
-            },
-          });
-
-          console.log(
-            `🛍️ [MULTI-PRODUCT] ${i + 1}. resim başarıyla Gemini'ye eklendi`
-          );
-        }
-
-        console.log(
-          `🛍️ [MULTI-PRODUCT] Toplam ${referenceImages.length} adet referans resmi Gemini'ye gönderildi`
+      for (let i = 0; i < referenceImages.length; i++) {
+        const imageUrl = sanitizeImageUrl(
+          referenceImages[i].uri || referenceImages[i]
         );
-      } catch (imageError) {
-        console.error(
-          `🛍️ [MULTI-PRODUCT] Referans resimleri yüklenirken hata: ${imageError.message}`
-        );
+        imageUrls.push(imageUrl);
       }
+
+      console.log(
+        `🛍️ [MULTI-PRODUCT] Toplam ${referenceImages.length} adet referans resmi Replicate Gemini'ye eklendi`
+      );
     } else {
       // Normal mod: Tek resim gönder
-      try {
-        console.log(`Referans görsel Gemini'ye gönderiliyor: ${imageUrl}`);
-
-        const imageResponse = await axios.get(imageUrl, {
-          responseType: "arraybuffer",
-          timeout: 15000, // 30s'den 15s'ye düşürüldü
-        });
-        const imageBuffer = imageResponse.data;
-
-        // Base64'e çevir
-        const base64Image = Buffer.from(imageBuffer).toString("base64");
-
-        parts.push({
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: base64Image,
-          },
-        });
-
-        console.log("Referans görsel başarıyla Gemini'ye yüklendi");
-      } catch (imageError) {
-        console.error(`Görsel yüklenirken hata: ${imageError.message}`);
+      if (imageUrl) {
+        imageUrls.push(sanitizeImageUrl(imageUrl));
+        console.log(
+          "🖼️ Referans görsel Replicate Gemini'ye eklendi:",
+          imageUrl
+        );
       }
     }
 
-    // Location image handling kaldırıldı - artık kullanılmıyor
-
-    // Pose image'ını da Gemini'ye gönder
+    // Pose image'ını da ekle
     if (poseImage) {
-      try {
-        // URL'den query parametrelerini temizle
-        const cleanPoseImageUrl = poseImage.split("?")[0];
-        console.log(
-          `🤸 Pose görsel base64'e çeviriliyor: ${cleanPoseImageUrl}`
-        );
-
-        const poseImageResponse = await axios.get(cleanPoseImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 15000, // 30s'den 15s'ye düşürüldü
-        });
-        const poseImageBuffer = poseImageResponse.data;
-
-        // Base64'e çevir
-        const base64PoseImage = Buffer.from(poseImageBuffer).toString("base64");
-
-        parts.push({
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: base64PoseImage,
-          },
-        });
-
-        console.log("🤸 Pose görsel başarıyla Gemini'ye eklendi");
-      } catch (poseImageError) {
-        console.error(
-          `🤸 Pose görseli eklenirken hata: ${poseImageError.message}`
-        );
-      }
+      const cleanPoseImageUrl = sanitizeImageUrl(poseImage.split("?")[0]);
+      imageUrls.push(cleanPoseImageUrl);
+      console.log("🤸 Pose görsel Replicate Gemini'ye eklendi");
     }
 
-    // Hair style image'ını da Gemini'ye gönder
+    // Hair style image'ını da ekle
     if (hairStyleImage) {
-      try {
-        // URL'den query parametrelerini temizle
-        const cleanHairStyleImageUrl = hairStyleImage.split("?")[0];
-        console.log(
-          `💇 Hair style görsel base64'e çeviriliyor: ${cleanHairStyleImageUrl}`
-        );
-
-        const hairStyleImageResponse = await axios.get(cleanHairStyleImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 15000, // 30s'den 15s'ye düşürüldü
-        });
-        const hairStyleImageBuffer = hairStyleImageResponse.data;
-
-        // Base64'e çevir
-        const base64HairStyleImage =
-          Buffer.from(hairStyleImageBuffer).toString("base64");
-
-        parts.push({
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: base64HairStyleImage,
-          },
-        });
-
-        console.log("💇 Hair style görsel başarıyla Gemini'ye eklendi");
-      } catch (hairStyleImageError) {
-        console.error(
-          `💇 Hair style görseli eklenirken hata: ${hairStyleImageError.message}`
-        );
-      }
+      const cleanHairStyleImageUrl = sanitizeImageUrl(
+        hairStyleImage.split("?")[0]
+      );
+      imageUrls.push(cleanHairStyleImageUrl);
+      console.log("💇 Hair style görsel Replicate Gemini'ye eklendi");
     }
 
-    // Location image'ını da Gemini'ye gönder
+    // Location image'ını da ekle
     if (locationImage) {
-      try {
-        // URL'den query parametrelerini temizle
-        const cleanLocationImageUrl = locationImage.split("?")[0];
-        console.log(
-          `🏞️ Location görsel base64'e çeviriliyor: ${cleanLocationImageUrl}`
-        );
-
-        const locationImageResponse = await axios.get(cleanLocationImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 15000,
-        });
-        const locationImageBuffer = locationImageResponse.data;
-
-        // Base64'e çevir
-        const base64LocationImage =
-          Buffer.from(locationImageBuffer).toString("base64");
-
-        parts.push({
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: base64LocationImage,
-          },
-        });
-
-        console.log("🏞️ Location görsel başarıyla Gemini'ye eklendi");
-      } catch (locationImageError) {
-        console.error(
-          `🏞️ Location görseli eklenirken hata: ${locationImageError.message}`
-        );
-      }
+      const cleanLocationImageUrl = sanitizeImageUrl(
+        locationImage.split("?")[0]
+      );
+      imageUrls.push(cleanLocationImageUrl);
+      console.log("🏞️ Location görsel Replicate Gemini'ye eklendi");
     }
 
-    // Gemini'den cevap al (retry mekanizması ile) - Yeni API
+    // Replicate Gemini API'den cevap al (retry mekanizması ile)
     let enhancedPrompt;
     const maxRetries = 2;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`🤖 [GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
+        console.log(
+          `🤖 [REPLICATE GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`
+        );
 
-        const result = await genAI.models.generateContent({
-          model,
-          contents: [
-            {
-              role: "user",
-              parts: parts,
+        // Replicate API request body hazırla
+        const replicateRequestBody = {
+          input: {
+            top_p: 0.95,
+            images: imageUrls, // Array of image URLs
+            prompt: promptForGemini,
+            videos: [],
+            temperature: 1,
+            dynamic_thinking: false,
+            max_output_tokens: 65535,
+          },
+        };
+
+        console.log(
+          `🤖 [REPLICATE GEMINI] Request: ${imageUrls.length} image(s), prompt length: ${promptForGemini.length}`
+        );
+
+        // Replicate API çağrısı
+        const replicateResponse = await axios.post(
+          "https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions",
+          replicateRequestBody,
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+              "Content-Type": "application/json",
+              Prefer: "wait", // Synchronous response
             },
-          ],
-        });
+            timeout: 120000, // 2 dakika timeout
+          }
+        );
 
-        const geminiGeneratedPrompt =
-          result.text?.trim() || result.response?.text()?.trim() || "";
+        const result = replicateResponse.data;
 
-        // Gemini response kontrolü
-        if (!geminiGeneratedPrompt) {
-          console.error("❌ Gemini API response boş:", result);
-          throw new Error("Gemini API response is empty or invalid");
-        }
+        // Response kontrolü
+        if (result.status === "succeeded" && result.output) {
+          // Output bir array, birleştir
+          const geminiGeneratedPrompt = Array.isArray(result.output)
+            ? result.output.join("").trim()
+            : String(result.output || "").trim();
 
-        // ControlNet direktifini dinamik olarak ekle
-        // let controlNetDirective = "";
-        // if (!hasControlNet) {
-        //   controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
+          if (!geminiGeneratedPrompt) {
+            console.error("❌ Replicate Gemini API response boş:", result);
+            throw new Error("Replicate Gemini API response is empty");
+          }
 
-        // `;
-        // } else {
-        //   controlNetDirective = `BACKGROUND REMOVED IMAGE GUIDANCE: The input image shows the original garment with background removed (white background) for clear color and texture reference. Focus on analyzing the garment's design, construction details, fabric characteristics, and styling elements. Use this clean product image to understand the garment's true colors, textures, patterns, and structural features without any background distractions.
+          // ControlNet direktifini dinamik olarak ekle
+          // let controlNetDirective = "";
+          // if (!hasControlNet) {
+          //   controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
 
-        // `;
-        // }
+          // `;
+          // } else {
+          //   controlNetDirective = `BACKGROUND REMOVED IMAGE GUIDANCE: The input image shows the original garment with background removed (white background) for clear color and texture reference. Focus on analyzing the garment's design, construction details, fabric characteristics, and styling elements. Use this clean product image to understand the garment's true colors, textures, patterns, and structural features without any background distractions.
 
-        // Statik kuralları sadece normal mode'da ekle (backside ve pose change'de ekleme)
-        let staticRules = "";
+          // `;
+          // }
 
-        if (!isPoseChange && !isBackSideAnalysis) {
-          // Sadece normal mode'da statik kuralları ekle (backside ve pose change'de değil)
-          staticRules = `
+          // Statik kuralları sadece normal mode'da ekle (backside ve pose change'de ekleme)
+          let staticRules = "";
+
+          if (!isPoseChange && !isBackSideAnalysis) {
+            // Sadece normal mode'da statik kuralları ekle (backside ve pose change'de değil)
+            staticRules = `
 
         CRITICAL RULES (English)
         
@@ -2378,39 +2237,107 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
         Focus & Sharpness: The garment must always be in sharp focus, especially at neckline, chest, and detailing areas. Background can be slightly softened (natural depth of field) to highlight the subject.
         
         Atmosphere: Scene must feel like a real, live professional photoshoot. Lighting, environment, and styling should combine into a polished, high-fashion aesthetic.`;
-        }
+          }
 
-        enhancedPrompt = geminiGeneratedPrompt + staticRules;
-        console.log(
-          "🤖 [BACKEND GEMINI] Gemini'nin ürettiği prompt:",
-          geminiGeneratedPrompt
-        );
-        console.log(
-          "✨ [BACKEND GEMINI] Final enhanced prompt (statik kurallarla):",
-          enhancedPrompt
-        );
-        break; // Başarılı olursa loop'tan çık
-      } catch (geminiError) {
+          enhancedPrompt = geminiGeneratedPrompt + staticRules;
+          console.log(
+            "🤖 [REPLICATE GEMINI] Gemini'nin ürettiği prompt:",
+            geminiGeneratedPrompt.substring(0, 200) + "..."
+          );
+          console.log(
+            "✨ [REPLICATE GEMINI] Final enhanced prompt (statik kurallarla) hazırlandı"
+          );
+          break; // Başarılı olursa loop'tan çık
+        } else if (
+          result.status === "processing" ||
+          result.status === "starting"
+        ) {
+          // Processing durumunda polling yap
+          console.log(
+            `⏳ [REPLICATE GEMINI] Processing durumunda, polling başlatılıyor...`
+          );
+
+          // Polling için prediction ID'yi kullan
+          let pollingResult = result;
+          const maxPollingAttempts = 30; // 30 deneme (yaklaşık 1 dakika)
+
+          for (
+            let pollAttempt = 0;
+            pollAttempt < maxPollingAttempts;
+            pollAttempt++
+          ) {
+            await new Promise((resolve) => setTimeout(resolve, 2000)); // 2 saniye bekle
+
+            const pollResponse = await axios.get(
+              `https://api.replicate.com/v1/predictions/${result.id}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+                },
+                timeout: 10000,
+              }
+            );
+
+            pollingResult = pollResponse.data;
+
+            if (pollingResult.status === "succeeded" && pollingResult.output) {
+              // Output bir array, birleştir
+              const geminiGeneratedPrompt = Array.isArray(pollingResult.output)
+                ? pollingResult.output.join("").trim()
+                : String(pollingResult.output || "").trim();
+
+              if (geminiGeneratedPrompt) {
+                // Statik kuralları ekle
+                let staticRules = "";
+                if (!isPoseChange && !isBackSideAnalysis) {
+                  staticRules = `
+
+        CRITICAL RULES (English)
+        
+        The output must be a single, high-end professional fashion photograph only — no collages, duplicates, or extra frames.
+        
+        Apply studio-grade fashion lighting blended naturally with daylight, ensuring flawless exposure, vibrant textures, and sharp focus.
+        
+        Guarantee editorial-level clarity and detail, with no blur, dull tones, or artificial look.
+        
+        Model, garment, and environment must integrate into one cohesive, seamless professional photo suitable for commercial catalogs and editorial campaigns.`;
+                }
+
+                enhancedPrompt = geminiGeneratedPrompt + staticRules;
+                console.log(
+                  "✅ [REPLICATE GEMINI] Polling başarılı, prompt alındı"
+                );
+                break;
+              }
+            } else if (pollingResult.status === "failed") {
+              throw new Error(
+                `Replicate Gemini polling failed: ${
+                  pollingResult.error || "Unknown error"
+                }`
+              );
+            }
+          }
+
+          if (!enhancedPrompt) {
+            throw new Error("Replicate Gemini polling timeout");
+          }
+
+          break; // Polling başarılı, loop'tan çık
+        } else {
+          throw new Error(
+            `Replicate Gemini API unexpected status: ${result.status}`
+          );
+        }
+      } catch (replicateError) {
         console.error(
-          `Gemini API attempt ${attempt} failed:`,
-          geminiError.message
+          `❌ [REPLICATE GEMINI] API attempt ${attempt} failed:`,
+          replicateError.message
         );
 
         if (attempt === maxRetries) {
           console.error(
-            "Gemini API all attempts failed, using original prompt"
+            "❌ [REPLICATE GEMINI] All attempts failed, using original prompt"
           );
-          // Hata durumunda da uygun direktifi ekle
-          // let controlNetDirective = "";
-          // if (hasControlNet) {
-          //   controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
-
-          // `;
-          // } else {
-          //   controlNetDirective = `BACKGROUND REMOVED IMAGE GUIDANCE: The input image shows the original garment with background removed (white background) for clear color and texture reference. Focus on analyzing the garment's design, construction details, fabric characteristics, and styling elements. Use this clean product image to understand the garment's true colors, textures, patterns, and structural features without any background distractions.
-
-          // `;
-          // }
           // Fallback durumunda da statik kuralları ekle
           const staticRules = `
 
@@ -2430,7 +2357,7 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
 
         // Exponential backoff: 1s, 2s, 4s
         const waitTime = Math.pow(2, attempt - 1) * 1000;
-        console.log(`Waiting ${waitTime}ms before retry...`);
+        console.log(`⏳ ${waitTime}ms bekleniyor, sonra tekrar denenecek...`);
         await new Promise((resolve) => setTimeout(resolve, waitTime));
       }
     }
@@ -4991,13 +4918,10 @@ async function generatePoseDescriptionWithGemini(
   garmentType = "clothing"
 ) {
   try {
-    console.log("🤸 Gemini ile pose açıklaması oluşturuluyor...");
-    console.log("🤸 Pose title:", poseTitle);
-    console.log("🤸 Gender:", gender);
-    console.log("🤸 Garment type:", garmentType);
-
-    // Gemini 2.0 Flash modeli - Yeni SDK
-    const model = "gemini-flash-latest";
+    console.log("🤸 [REPLICATE GEMINI] Pose açıklaması oluşturuluyor...");
+    console.log("🤸 [REPLICATE GEMINI] Pose title:", poseTitle);
+    console.log("🤸 [REPLICATE GEMINI] Gender:", gender);
+    console.log("🤸 [REPLICATE GEMINI] Garment type:", garmentType);
 
     // Gender mapping
     const modelGenderText =
@@ -5031,55 +4955,111 @@ async function generatePoseDescriptionWithGemini(
     Generate a similar detailed pose instruction for the given pose title "${poseTitle}" for a ${modelGenderText}.
     `;
 
-    console.log("🤸 Gemini'ye gönderilen pose prompt:", posePrompt);
+    console.log("🤸 [REPLICATE GEMINI] Pose prompt hazırlandı:", posePrompt);
 
-    // Resim verilerini içerecek parts dizisini hazırla
-    const parts = [{ text: posePrompt }];
+    // Replicate API için resim URL'lerini topla
+    const imageUrls = [];
 
-    // Pose image'ını da Gemini'ye gönder (eğer varsa)
+    // Pose image'ını da ekle (eğer varsa)
     if (poseImage) {
-      try {
-        console.log("🤸 Pose görseli Gemini'ye ekleniyor:", poseImage);
-
-        const cleanPoseImageUrl = poseImage.split("?")[0];
-        const poseImageResponse = await axios.get(cleanPoseImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 15000, // 30s'den 15s'ye düşürüldü
-        });
-        const poseImageBuffer = poseImageResponse.data;
-
-        // Base64'e çevir
-        const base64PoseImage = Buffer.from(poseImageBuffer).toString("base64");
-
-        parts.push({
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: base64PoseImage,
-          },
-        });
-
-        console.log("🤸 Pose görseli başarıyla Gemini'ye eklendi");
-      } catch (poseImageError) {
-        console.error(
-          "🤸 Pose görseli eklenirken hata:",
-          poseImageError.message
-        );
-      }
+      const cleanPoseImageUrl = sanitizeImageUrl(poseImage.split("?")[0]);
+      imageUrls.push(cleanPoseImageUrl);
+      console.log("🤸 [REPLICATE GEMINI] Pose görseli eklendi");
     }
 
-    // Gemini'den cevap al
-    const result = await genAI.models.generateContent({
-      model,
-      contents: [
-        {
-          role: "user",
-          parts: parts,
-        },
-      ],
-    });
+    // Replicate API çağrısı
+    const replicateRequestBody = {
+      input: {
+        top_p: 0.95,
+        images: imageUrls, // Array of image URLs
+        prompt: posePrompt,
+        videos: [],
+        temperature: 1,
+        dynamic_thinking: false,
+        max_output_tokens: 65535,
+      },
+    };
 
-    const poseDescription = result.text.trim();
-    console.log("🤸 Gemini'nin ürettiği pose açıklaması:", poseDescription);
+    console.log(
+      `🤸 [REPLICATE GEMINI] Request: ${imageUrls.length} image(s), prompt length: ${posePrompt.length}`
+    );
+
+    // Replicate API çağrısı
+    const replicateResponse = await axios.post(
+      "https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions",
+      replicateRequestBody,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+          "Content-Type": "application/json",
+          Prefer: "wait", // Synchronous response
+        },
+        timeout: 120000, // 2 dakika timeout
+      }
+    );
+
+    const result = replicateResponse.data;
+
+    // Response kontrolü ve polling (gerekirse)
+    let poseDescription = "";
+    if (result.status === "succeeded" && result.output) {
+      // Output bir array, birleştir
+      poseDescription = Array.isArray(result.output)
+        ? result.output.join("").trim()
+        : String(result.output || "").trim();
+    } else if (result.status === "processing" || result.status === "starting") {
+      // Processing durumunda polling yap
+      console.log("⏳ [REPLICATE GEMINI] Processing, polling başlatılıyor...");
+
+      let pollingResult = result;
+      const maxPollingAttempts = 30;
+
+      for (
+        let pollAttempt = 0;
+        pollAttempt < maxPollingAttempts;
+        pollAttempt++
+      ) {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        const pollResponse = await axios.get(
+          `https://api.replicate.com/v1/predictions/${result.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+            },
+            timeout: 10000,
+          }
+        );
+
+        pollingResult = pollResponse.data;
+
+        if (pollingResult.status === "succeeded" && pollingResult.output) {
+          poseDescription = Array.isArray(pollingResult.output)
+            ? pollingResult.output.join("").trim()
+            : String(pollingResult.output || "").trim();
+          break;
+        } else if (pollingResult.status === "failed") {
+          throw new Error(
+            `Replicate Gemini polling failed: ${
+              pollingResult.error || "Unknown error"
+            }`
+          );
+        }
+      }
+
+      if (!poseDescription) {
+        throw new Error("Replicate Gemini polling timeout");
+      }
+    } else {
+      throw new Error(
+        `Replicate Gemini API unexpected status: ${result.status}`
+      );
+    }
+
+    console.log(
+      "🤸 [REPLICATE GEMINI] Pose açıklaması alındı:",
+      poseDescription.substring(0, 100) + "..."
+    );
 
     const sanitizedDescription = sanitizePoseText(poseDescription);
     if (sanitizedDescription !== poseDescription) {
