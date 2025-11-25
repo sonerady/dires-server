@@ -1,9 +1,15 @@
 const express = require("express");
 const router = express.Router();
-// Updated: Using Replicate's google/gemini-2.5-flash model for location suggestions
-// No longer using @google/genai SDK
+// Updated: Using Google Gemini API for location suggestions
+const { GoogleGenAI } = require("@google/genai");
 const axios = require("axios");
 const sharp = require("sharp");
+const mime = require("mime");
+
+// Gemini API setup
+const genAI = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+});
 
 /**
  * Kıyafet resmine göre mekan önerileri oluştur
@@ -22,9 +28,9 @@ router.post("/generate", async (req, res) => {
       });
     }
 
-    console.log("🏞️ [REPLICATE GEMINI] Mekan önerisi isteği alındı");
-    console.log("🖼️ [REPLICATE GEMINI] Image URL:", imageUrl);
-    console.log("🌐 [REPLICATE GEMINI] Language:", language);
+    console.log("🏞️ [GEMINI] Mekan önerisi isteği alındı");
+    console.log("🖼️ [GEMINI] Image URL:", imageUrl);
+    console.log("🌐 [GEMINI] Language:", language);
 
     // Prompt oluştur - dil bilgisini ekle
     const promptForGemini = `
@@ -60,169 +66,89 @@ IMPORTANT:
 
 Analyze the image, identify the category and product type, then generate 5 location suggestions as a JSON array in ${language} language.`;
 
-    // Replicate API için resim URL'ini hazırla
-    let imageUrlForReplicate = imageUrl;
+    // Google Gemini API için resim verilerini hazırla
+    const parts = [{ text: promptForGemini }];
 
-    // Base64 data URL ise Supabase'e upload et ve URL al (Replicate direkt base64 kabul etmiyor)
-    if (imageUrl.startsWith("data:image/")) {
-      console.log("📦 [REPLICATE GEMINI] Base64 data URL tespit edildi, Supabase'e upload ediliyor...");
-      try {
-        // Base64'ten buffer oluştur
+    // Resim verilerini içerecek parts dizisini hazırla
+    try {
+      console.log("📤 [GEMINI] Resim Gemini'ye gönderiliyor...");
+
+      let imageBuffer;
+
+      // HTTP URL ise indir, base64 data URL ise direkt kullan
+      if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+        // HTTP URL - normal indirme
+        console.log("🌐 [GEMINI] HTTP URL indiriliyor...");
+        const imageResponse = await axios.get(imageUrl, {
+          responseType: "arraybuffer",
+          timeout: 15000,
+        });
+        imageBuffer = Buffer.from(imageResponse.data);
+      } else if (imageUrl.startsWith("data:image/")) {
+        // Base64 data URL
+        console.log("📦 [GEMINI] Base64 data URL kullanılıyor...");
         const base64Data = imageUrl.split(",")[1];
-        const imageBuffer = Buffer.from(base64Data, "base64");
-
-        // EXIF rotation düzeltmesi uygula
-        let processedBuffer;
-        try {
-          processedBuffer = await sharp(imageBuffer)
-            .rotate()
-            .jpeg({ quality: 100 })
-            .toBuffer();
-        } catch (sharpError) {
-          processedBuffer = imageBuffer; // Fallback
-        }
-
-        // Supabase'e upload et (geçici olarak)
-        const { createClient } = require("@supabase/supabase-js");
-        const supabaseUrl = process.env.SUPABASE_URL;
-        const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY;
-        const supabase = createClient(supabaseUrl, supabaseKey, {
-          auth: {
-            autoRefreshToken: false,
-            persistSession: false,
-          },
-        });
-
-        const timestamp = Date.now();
-        const fileName = `temp_location_suggestion_${timestamp}.jpg`;
-
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from("reference")
-          .upload(fileName, processedBuffer, {
-            contentType: "image/jpeg",
-            cacheControl: "3600",
-            upsert: false,
-          });
-
-        if (uploadError) {
-          throw uploadError;
-        }
-
-        const { data: urlData } = supabase.storage
-          .from("reference")
-          .getPublicUrl(fileName);
-
-        imageUrlForReplicate = urlData.publicUrl;
-        console.log("✅ [REPLICATE GEMINI] Base64 resim Supabase'e upload edildi");
-      } catch (uploadError) {
-        console.error("❌ [REPLICATE GEMINI] Supabase upload hatası:", uploadError.message);
-        return res.status(500).json({
-          success: false,
-          result: {
-            message: "Görsel yüklenirken hata oluştu",
-            error: uploadError.message,
-          },
-        });
+        imageBuffer = Buffer.from(base64Data, "base64");
+      } else {
+        throw new Error("Invalid image URL format");
       }
+
+      // EXIF rotation düzeltmesi uygula
+      let processedBuffer;
+      try {
+        processedBuffer = await sharp(imageBuffer)
+          .rotate() // EXIF orientation bilgisini otomatik uygula
+          .jpeg({ quality: 100 })
+          .toBuffer();
+      } catch (sharpError) {
+        processedBuffer = imageBuffer; // Fallback
+      }
+
+      const base64 = processedBuffer.toString("base64");
+      const mimeType = mime.getType(imageUrl) || "image/jpeg";
+      parts.push({
+        inlineData: {
+          data: base64,
+          mimeType: mimeType,
+        },
+      });
+
+      console.log("✅ [GEMINI] Resim Gemini'ye eklendi");
+    } catch (imageError) {
+      console.error("❌ Resim işleme hatası:", imageError);
+      throw new Error(`Image processing error: ${imageError.message}`);
     }
 
-    // Replicate API'den cevap al (retry mekanizması ile)
+    // Google Gemini API çağrısı (retry mekanizması ile)
     let suggestions = null;
     const maxRetries = 2;
+    const model = "gemini-flash-latest";
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         console.log(
-          `🤖 [REPLICATE GEMINI] Location suggestions API çağrısı attempt ${attempt}/${maxRetries}`
+          `🤖 [GEMINI] Location suggestions API çağrısı attempt ${attempt}/${maxRetries}`
         );
 
-        // Replicate API request body hazırla
-        const replicateRequestBody = {
-          input: {
-            top_p: 0.95,
-            images: [imageUrlForReplicate], // Array of image URLs
-            prompt: promptForGemini,
-            videos: [],
-            temperature: 1,
-            dynamic_thinking: false,
-            max_output_tokens: 65535,
-          },
-        };
-
-        const replicateResponse = await axios.post(
-          "https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions",
-          replicateRequestBody,
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-              "Content-Type": "application/json",
-              Prefer: "wait",
+        const result = await genAI.models.generateContent({
+          model,
+          contents: [
+            {
+              role: "user",
+              parts: parts,
             },
-            timeout: 120000,
-          }
-        );
+          ],
+        });
 
-        const result = replicateResponse.data;
-
-        // Response kontrolü
-        let geminiResponse = "";
-        if (result.status === "succeeded" && result.output) {
-          // Output bir array, birleştir
-          geminiResponse = Array.isArray(result.output)
-            ? result.output.join("").trim()
-            : String(result.output || "").trim();
-        } else if (result.status === "processing" || result.status === "starting") {
-          // Processing durumunda polling yap
-          console.log("⏳ [REPLICATE GEMINI] Processing, polling başlatılıyor...");
-
-          let pollingResult = result;
-          const maxPollingAttempts = 30;
-
-          for (
-            let pollAttempt = 0;
-            pollAttempt < maxPollingAttempts;
-            pollAttempt++
-          ) {
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-
-            const pollResponse = await axios.get(
-              `https://api.replicate.com/v1/predictions/${result.id}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-                },
-                timeout: 10000,
-              }
-            );
-
-            pollingResult = pollResponse.data;
-
-            if (pollingResult.status === "succeeded" && pollingResult.output) {
-              geminiResponse = Array.isArray(pollingResult.output)
-                ? pollingResult.output.join("").trim()
-                : String(pollingResult.output || "").trim();
-              break;
-            } else if (pollingResult.status === "failed") {
-              throw new Error(
-                `Replicate Gemini polling failed: ${
-                  pollingResult.error || "Unknown error"
-                }`
-              );
-            }
-          }
-
-          if (!geminiResponse) {
-            throw new Error("Replicate Gemini polling timeout");
-          }
-        } else {
-          throw new Error(
-            `Replicate Gemini API unexpected status: ${result.status}`
-          );
-        }
+        const geminiResponse =
+          result.text?.trim() || result.response?.text()?.trim() || "";
 
         if (!geminiResponse) {
-          console.error("❌ [REPLICATE GEMINI] API response boş");
-          throw new Error("Replicate Gemini API response is empty or invalid");
+          console.error("❌ [GEMINI] API response boş:", result);
+          if (attempt === maxRetries) {
+            throw new Error("Gemini API response is empty or invalid");
+          }
+          continue;
         }
 
         console.log(
@@ -253,7 +179,7 @@ Analyze the image, identify the category and product type, then generate 5 locat
           // 5 öneri kontrolü
           if (suggestions.length !== 5) {
             console.warn(
-              `⚠️ [REPLICATE GEMINI] Beklenen 5 öneri, ${suggestions.length} alındı`
+              `⚠️ [GEMINI] Beklenen 5 öneri, ${suggestions.length} alındı`
             );
             // Eğer 5'ten azsa, eksikleri doldur
             while (suggestions.length < 5) {
@@ -266,16 +192,16 @@ Analyze the image, identify the category and product type, then generate 5 locat
           }
 
           console.log(
-            `✅ [REPLICATE GEMINI] ${suggestions.length} öneri başarıyla alındı`
+            `✅ [GEMINI] ${suggestions.length} öneri başarıyla alındı`
           );
           break; // Başarılı olursa loop'tan çık
         } catch (parseError) {
           console.error(
-            "❌ [REPLICATE GEMINI] JSON parse hatası:",
+            "❌ [GEMINI] JSON parse hatası:",
             parseError.message
           );
           console.log(
-            "📝 [REPLICATE GEMINI] Raw response:",
+            "📝 [GEMINI] Raw response:",
             geminiResponse
           );
 
@@ -289,16 +215,16 @@ Analyze the image, identify the category and product type, then generate 5 locat
               "Modern studio with white walls, professional lighting setup, minimal decor",
             ];
             console.log(
-              "🔄 [REPLICATE GEMINI] Fallback önerileri kullanılıyor"
+              "🔄 [GEMINI] Fallback önerileri kullanılıyor"
             );
           } else {
             throw parseError;
           }
         }
-      } catch (replicateError) {
+      } catch (geminiError) {
         console.error(
-          `❌ [REPLICATE GEMINI] Location suggestions API attempt ${attempt} failed:`,
-          replicateError.message
+          `❌ [GEMINI] Location suggestions API attempt ${attempt} failed:`,
+          geminiError.message
         );
 
         if (attempt === maxRetries) {
@@ -311,7 +237,7 @@ Analyze the image, identify the category and product type, then generate 5 locat
             "Modern studio with white walls, professional lighting setup, minimal decor",
           ];
           console.log(
-            "🔄 [REPLICATE GEMINI] Fallback önerileri kullanılıyor (hata durumunda)"
+            "🔄 [GEMINI] Fallback önerileri kullanılıyor (hata durumunda)"
           );
         } else {
           // Exponential backoff: 1s, 2s
@@ -339,7 +265,7 @@ Analyze the image, identify the category and product type, then generate 5 locat
       },
     });
   } catch (error) {
-    console.error("❌ [REPLICATE GEMINI] Genel hata:", error);
+    console.error("❌ [GEMINI] Genel hata:", error);
     return res.status(500).json({
       success: false,
       result: {
