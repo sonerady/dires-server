@@ -219,6 +219,8 @@ app.use("/api/canvas", canvasCombineRoutes);
 // ESKİ WEBHOOK DEVRE DIŞI - Duplicate kredi sorunu yüzünden kapatıldı
 // app.use("/revenuecat", revenuecatWebhookRouter);
 app.use("/revenuecatv2", revenuecatWebhookRouterv2);
+const revenuecatWebhookRouterv3 = require("./routes/revenuecatWebhookv3");
+app.use("/revenuecatv3", revenuecatWebhookRouterv3);
 
 app.use("/purchase", purchaseRoutes);
 app.use("/api/purchase-summary", purchaseSummaryRoutes);

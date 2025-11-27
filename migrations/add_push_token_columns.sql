@@ -21,3 +21,4 @@ COMMENT ON COLUMN users.push_token_updated_at IS 'Timestamp when the push token 
 
 
 
+

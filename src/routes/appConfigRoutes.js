@@ -95,7 +95,7 @@ router.get("/app-config/version", async (req, res) => {
         forceUpdate: false,
         updateUrl: platform === "ios" 
           ? "https://apps.apple.com/app/id6738030797"
-          : "https://play.google.com/store/apps/details?id=com.monailisa.diress",
+          : "https://play.google.com/store/apps/details?id=com.monalisa.diress.app",
         changelogUrl: null,
         message: null,
         metadata: null,
