@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diress Notification Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            height: 120px;
+            resize: vertical;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            color: #666;
+        }
+
+        .tab.active {
+            border-bottom-color: #007bff;
+            color: #007bff;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔔 Notification Dashboard</h1>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('single')">Single User</div>
+            <div class="tab" onclick="switchTab('broadcast')">Broadcast (All)</div>
+        </div>
+
+        <div id="single-form">
+            <div class="form-group">
+                <label for="userId">User ID</label>
+                <input type="text" id="userId" placeholder="Enter specific user ID (UUID)">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="title">Notification Title</label>
+            <input type="text" id="title" placeholder="e.g., Special Offer!">
+        </div>
+
+        <div class="form-group">
+            <label for="body">Message Body:</label>
+            <textarea id="body" rows="3" placeholder="Enter notification body" required></textarea>
+        </div>
+
+        <div class="form-group"
+            style="display:flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 10px;">
+            <input type="checkbox" id="onlyNonPro" style="width: auto; margin: 0;">
+            <label for="onlyNonPro" style="margin: 0; font-weight: normal; cursor: pointer;">Send ONLY if user is NOT
+                Pro</label>
+        </div>
+
+        <div class="form-group">
+            <label>Target Users (Non-Pro with Notifications Enabled)</label>
+            <div style="margin-bottom: 10px;">
+                <button onclick="fetchTargetUsers()"
+                    style="width: auto; padding: 8px 16px; font-size: 14px; background-color: #6c757d;">Refresh
+                    List</button>
+            </div>
+            <div id="userList"
+                style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; padding: 10px; background-color: #f9f9f9;">
+                <p style="color: #666; font-style: italic;">Click "Refresh List" to see users...</p>
+            </div>
+        </div>
+
+        <button onclick="sendNotification()" id="sendBtn">Send Notification</button>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        let currentMode = 'single';
+
+        function switchTab(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const singleForm = document.getElementById('single-form');
+            if (mode === 'broadcast') {
+                singleForm.style.display = 'none';
+                document.getElementById('sendBtn').textContent = 'Send Broadcast to All Users';
+                document.getElementById('sendBtn').style.backgroundColor = '#28a745';
+            } else {
+                singleForm.style.display = 'block';
+                document.getElementById('sendBtn').textContent = 'Send Notification';
+                document.getElementById('sendBtn').style.backgroundColor = '#007bff';
+            }
+        }
+
+        let currentPage = 1;
+        const limit = 50;
+
+        async function fetchTargetUsers(page = 1) {
+            currentPage = page;
+            const userListDiv = document.getElementById('userList');
+            userListDiv.innerHTML = '<p>Loading...</p>';
+
+            try {
+                const isLocalDev = window.location.port === '5500' || window.location.protocol === 'file:';
+                const baseUrl = isLocalDev ? 'http://localhost:3001' : '';
+
+                const response = await fetch(`${baseUrl}/api/push-notifications/target-users?page=${page}&limit=${limit}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    if (data.users.length === 0) {
+                        userListDiv.innerHTML = '<p>No matching users found.</p>';
+                        return;
+                    }
+
+                    const { total, totalPages } = data.pagination;
+
+                    let html = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="color:#666; font-size:12px;">Total: ${total} users (Page ${page} of ${totalPages})</span>
+                        <div>
+                            <button onclick="fetchTargetUsers(${page - 1})" ${page <= 1 ? 'disabled' : ''} style="padding:4px 8px; font-size:12px; width:auto;">Prev</button>
+                            <button onclick="fetchTargetUsers(${page + 1})" ${page >= totalPages ? 'disabled' : ''} style="padding:4px 8px; font-size:12px; width:auto;">Next</button>
+                        </div>
+                    </div>`;
+
+                    html += '<table style="width:100%; border-collapse: collapse; font-size: 12px;">';
+                    html += '<tr style="text-align:left; border-bottom: 1px solid #ddd;"><th>User ID</th><th>Created</th><th>Action</th></tr>';
+
+                    data.users.forEach(user => {
+                        const date = new Date(user.created_at).toLocaleDateString();
+                        html += `
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 4px;">${user.id.slice(0, 8)}...</td>
+                                <td style="padding: 4px;">${date}</td>
+                                <td style="padding: 4px;">
+                                    <button onclick="selectUser('${user.id}')" style="padding: 2px 6px; font-size: 10px; width: auto; background-color: #17a2b8;">Select</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    html += '</table>';
+                    userListDiv.innerHTML = html;
+                } else {
+                    userListDiv.innerHTML = `<p style="color:red">Error: ${data.error}</p>`;
+                }
+            } catch (error) {
+                userListDiv.innerHTML = `<p style="color:red">Network Error: ${error.message}</p>`;
+            }
+        }
+
+        function selectUser(userId) {
+            document.getElementById('userId').value = userId;
+            // Switch to single mode if not already
+            if (currentMode !== 'single') {
+                switchTab('single');
+            }
+        }
+
+        async function sendNotification() {
+            const title = document.getElementById('title').value;
+            const body = document.getElementById('body').value;
+            const resultDiv = document.getElementById('result');
+            const sendBtn = document.getElementById('sendBtn');
+
+            if (!title || !body) {
+                showResult('Please fill in title and body', false);
+                return;
+            }
+
+            if (currentMode === 'single') {
+                const userId = document.getElementById('userId').value;
+                if (!userId) {
+                    showResult('Please enter a User ID', false);
+                    return;
+                }
+            }
+
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Sending...';
+            resultDiv.style.display = 'none';
+
+            try {
+                // Determine base URL
+                // If running on port 5500 (Live Server) or opening file directly, assume API is on localhost:3001
+                const isLocalDev = window.location.port === '5500' || window.location.protocol === 'file:';
+                const baseUrl = isLocalDev ? 'http://localhost:3001' : '';
+
+                const endpointPath = currentMode === 'single'
+                    ? '/api/push-notifications/send-to-user'
+                    : '/api/push-notifications/send-broadcast';
+
+                const endpoint = `${baseUrl}${endpointPath}`;
+
+                const payload = {
+                    title,
+                    body,
+                    data: { type: 'manual_notification' }
+                };
+
+                if (currentMode === 'single') {
+                    payload.userId = document.getElementById('userId').value;
+                    payload.onlyNonPro = document.getElementById('onlyNonPro').checked;
+                }
+
+                console.log(`Sending request to ${endpoint}`, payload);
+
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                console.log('Response status:', response.status);
+                const text = await response.text();
+                console.log('Response text:', text);
+
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}: ${text}`);
+                }
+
+                if (!text) {
+                    throw new Error('Server returned empty response');
+                }
+
+                const data = JSON.parse(text);
+
+                if (data.success) {
+                    showResult(`Success! ${data.message || 'Notification sent.'}`, true);
+                } else {
+                    showResult(`Error: ${data.error}`, false);
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                showResult(`Error: ${error.message}`, false);
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.textContent = currentMode === 'single' ? 'Send Notification' : 'Send Broadcast to All Users';
+            }
+        }
+
+        function showResult(message, isSuccess) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = `result ${isSuccess ? 'success' : 'error'}`;
+            resultDiv.textContent = message;
+        }
+    </script>
+</body>
+
+</html>

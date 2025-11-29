@@ -104,6 +104,11 @@ const hairStylesRoutes = require("./routes/hairStylesRoutes");
 const userVisibilityRoutes = require("./routes/userVisibilityRoutes");
 // Push Notification routes import
 const pushNotificationRoutes = require("./routes/pushNotificationRoutes");
+const { startScheduler } = require("./services/schedulerService");
+
+// Start the daily notification scheduler
+startScheduler();
+
 // Auth routes import
 const authRoutes = require("./routes/authRoutes");
 // Generation Status routes import
@@ -127,6 +132,11 @@ app.use("/results", express.static(path.join(__dirname, "../results")));
 // Icon Generator UI'yi serve et
 app.get("/icon-generator-ui.html", (req, res) => {
   res.sendFile(path.join(__dirname, "../icon-generator-ui.html"));
+});
+
+// Notification Dashboard UI'yi serve et
+app.get("/notification-dashboard.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "../notification-dashboard.html"));
 });
 
 // Basit test endpointi ekle
@@ -161,8 +171,8 @@ app.use("/api/imageEnhancement", imageEnhancementRouter);
 app.use("/api/faceSwap", faceSwapRouter);
 app.use("/api", updateCreditRouter);
 app.use("/api", getUserRouter);
-app.use("/api", notificationRoutes);
 app.use("/api/push-notifications", pushNotificationRoutes);
+app.use("/api", notificationRoutes);
 app.use("/api/uploadImage", uploadImageRouter);
 app.use("/api", generateTrain);
 app.use("/api/checkStatus", checkStatusRouter);

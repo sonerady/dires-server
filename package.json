@@ -29,6 +29,7 @@
     "mixpanel-react-native": "^3.1.2",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.14.1",
+    "node-cron": "^4.2.1",
     "nodemon": "^3.1.7",
     "openai": "^4.70.2",
     "react-native-confetti-cannon": "^1.5.2",
