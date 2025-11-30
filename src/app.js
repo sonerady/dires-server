@@ -283,6 +283,8 @@ app.use("/api/icon-generator", iconGeneratorRoutes);
 // App Links routes ekle
 app.use("/api/app-links", appLinksRoutes);
 app.use("/api/auth", authRoutes);
+const webAuthRoutes = require("./routes/webAuthRoutes");
+app.use("/api/web/auth", webAuthRoutes);
 
 // Modal Contents routes ekle
 app.use(modalContentsRoutes);

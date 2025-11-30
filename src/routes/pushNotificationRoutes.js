@@ -130,6 +130,7 @@ router.post("/test-notification", async (req, res) => {
  * POST /api/push-notifications/send-to-user
  * Belirli bir kullanıcıya bildirim gönder
  */
+
 router.post("/send-to-user", async (req, res) => {
   try {
     const { userId, title, body, data, onlyNonPro } = req.body;
