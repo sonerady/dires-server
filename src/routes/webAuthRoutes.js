@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { supabase, supabaseAdmin } = require('../supabaseClient');
-const { Resend } = require('resend');
-const resend = new Resend(process.env.RESEND_API_KEY);
+// const { Resend } = require('resend');
+// const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Email/Password Login
 router.post('/login', async (req, res) => {
@@ -64,6 +64,7 @@ router.post('/signup', async (req, res) => {
         console.log(`[Signup] User created and auto-confirmed. ID: ${createdUser.user.id}`);
 
         // 2. Send Welcome Email via Resend (Optional, just for info)
+        /*
         try {
             await resend.emails.send({
                 from: 'Diress <onboarding@resend.dev>',
@@ -81,6 +82,7 @@ router.post('/signup', async (req, res) => {
         } catch (sendErr) {
             console.error("[Signup] Resend exception (ignored):", sendErr);
         }
+        */
 
         res.json({ success: true, data: createdUser });
 
