@@ -1,5 +1,5 @@
 const express = require("express");
-const supabase = require("../supabaseClient");
+const { supabase } = require("../supabaseClient");
 const axios = require("axios");
 
 const router = express.Router();

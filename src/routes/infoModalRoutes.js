@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const supabase = require("../supabaseClient");
+const { supabase } = require("../supabaseClient");
 
 // Test endpoint for info modal routes
 router.get("/info-modal/test", async (req, res) => {

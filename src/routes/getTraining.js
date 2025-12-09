@@ -1,6 +1,6 @@
 const express = require("express");
 const axios = require("axios");
-const supabase = require("../supabaseClient"); // Supabase client
+const { supabase } = require("../supabaseClient"); // Supabase client
 const router = express.Router();
 
 router.get("/:training_id", async (req, res) => {

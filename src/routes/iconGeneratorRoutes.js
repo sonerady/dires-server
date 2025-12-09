@@ -8,7 +8,7 @@ const router = express.Router();
 const accessoryLibrary = require("../../temp/accessoryLibrary_relevant.json");
 
 // Supabase client'ı import et
-const supabase = require("../supabaseClient");
+const { supabase } = require("../supabaseClient");
 
 const GENERATED_ICONS_DIR = path.join(__dirname, "../../generated-icons");
 

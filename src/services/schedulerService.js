@@ -1,5 +1,5 @@
 const cron = require("node-cron");
-const supabase = require("../supabaseClient");
+const { supabase } = require("../supabaseClient");
 const { Expo } = require("expo-server-sdk");
 
 const expo = new Expo();

@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const supabase = require('../supabaseClient');
+const { supabase, supabaseAdmin } = require('../supabaseClient');
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Email/Password Login
 router.post('/login', async (req, res) => {
@@ -22,19 +24,68 @@ router.post('/login', async (req, res) => {
 
 // Email/Password Sign Up
 router.post('/signup', async (req, res) => {
-    const { email, password, options } = req.body;
+    let { email, password, options } = req.body;
+    console.log(`[Signup] Request received for email: ${email}`);
+
+    email = email ? email.trim() : '';
+
+    // Basic Validation
+    if (!email || !email.includes('@')) {
+        return res.status(400).json({ success: false, error: "Please enter a valid email address." });
+    }
+    if (!password || password.length < 6) {
+        return res.status(400).json({ success: false, error: "Password must be at least 6 characters long." });
+    }
 
     try {
-        const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
-            options,
+        console.log(`[Signup] Supabase Admin available: ${!!supabaseAdmin}`);
+
+        if (!supabaseAdmin) {
+            return res.status(500).json({ success: false, error: "Server configuration error: Admin client missing." });
+        }
+
+        // 1. Create User via Admin (Auto-Confirm enabled for testing)
+        const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+            email: email,
+            password: password,
+            email_confirm: true, // AUTO-CONFIRM ENABLED
+            user_metadata: options ? options.data : {}
         });
 
-        if (error) throw error;
+        if (createError) {
+            console.log(`[Signup] Create user error: "${createError.message}" Code: ${createError.status}`);
+            const msg = createError.message.toLowerCase();
+            if (msg.includes("registered") || msg.includes("invalid") || createError.status === 422 || createError.status === 400) {
+                return res.status(400).json({ success: false, error: "This email is already registered. Please sign in instead." });
+            }
+            throw createError;
+        }
 
-        res.json({ success: true, data });
+        console.log(`[Signup] User created and auto-confirmed. ID: ${createdUser.user.id}`);
+
+        // 2. Send Welcome Email via Resend (Optional, just for info)
+        try {
+            await resend.emails.send({
+                from: 'Diress <onboarding@resend.dev>',
+                to: [email],
+                subject: 'Welcome to Diress!',
+                html: `
+                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                        <h2>Welcome to Diress!</h2>
+                        <p>Your account has been created and automatically verified.</p>
+                        <p>You can now sign in to your account.</p>
+                    </div>
+                `
+            });
+            console.log(`[Signup] Welcome email sent via Resend.`);
+        } catch (sendErr) {
+            console.error("[Signup] Resend exception (ignored):", sendErr);
+        }
+
+        res.json({ success: true, data: createdUser });
+
     } catch (error) {
+        console.error("[Signup] Unexpected error:", error);
         res.status(400).json({ success: false, error: error.message });
     }
 });

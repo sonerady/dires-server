@@ -1,5 +1,5 @@
 const express = require("express");
-const supabase = require("../supabaseClient"); // Supabase client'ı import ediyoruz
+const { supabase } = require("../supabaseClient"); // Supabase client'ı import ediyoruz
 
 const router = express.Router();
 

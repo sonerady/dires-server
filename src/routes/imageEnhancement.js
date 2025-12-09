@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
-const supabase = require("../supabaseClient");
+const { supabase } = require("../supabaseClient");
 
 const REPLICATE_ENDPOINT =
   "https://api.replicate.com/v1/models/philz1337x/crystal-upscaler/predictions";

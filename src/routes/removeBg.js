@@ -1,6 +1,6 @@
 // Required modules
 const express = require("express");
-const supabase = require("../supabaseClient");
+const { supabase } = require("../supabaseClient");
 const Replicate = require("replicate");
 const multer = require("multer");
 const { v4: uuidv4 } = require("uuid");

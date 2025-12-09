@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const supabase = require("../supabaseClient");
+const { supabase } = require("../supabaseClient");
 
 // Resim URL'lerine boyut parametresi ekleyen yardımcı fonksiyon
 const optimizeImageUrl = (imageUrl) => {

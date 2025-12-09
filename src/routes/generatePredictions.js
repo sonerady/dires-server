@@ -1,6 +1,6 @@
 const express = require("express");
 const Replicate = require("replicate");
-const supabase = require("../supabaseClient");
+const { supabase } = require("../supabaseClient");
 const { v4: uuidv4 } = require("uuid");
 const path = require("path");
 const fs = require("fs");

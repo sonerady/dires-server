@@ -7,7 +7,7 @@ const path = require("path");
 const axios = require("axios");
 
 // Supabase client
-const supabase = require("../supabaseClient");
+const { supabase } = require("../supabaseClient");
 
 // Replicate
 const Replicate = require("replicate");

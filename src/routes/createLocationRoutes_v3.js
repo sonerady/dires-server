@@ -3,7 +3,7 @@ const router = express.Router();
 // Updated: Using Google Gemini API for prompt and tag generation
 const { GoogleGenAI } = require("@google/genai");
 const axios = require("axios");
-const supabase = require("../supabaseClient");
+const { supabase } = require("../supabaseClient");
 
 // Gemini API setup
 const genAI = new GoogleGenAI({

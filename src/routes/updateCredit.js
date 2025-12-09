@@ -1,7 +1,7 @@
 // routes/updateCredit.js
 
 const express = require("express");
-const supabase = require("../supabaseClient"); // Supabase client'ı içe aktarıyoruz
+const { supabase } = require("../supabaseClient"); // Supabase client'ı içe aktarıyoruz
 
 const router = express.Router();
 

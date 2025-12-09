@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const supabase = require("../supabaseClient");
+const { supabase } = require("../supabaseClient");
 
 // Supabase resim URL'lerini optimize eden yardımcı fonksiyon
 const optimizeImageUrl = (imageUrl) => {

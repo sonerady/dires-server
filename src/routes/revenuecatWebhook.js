@@ -1,7 +1,7 @@
 // routes/revenuecatWebhook.jsMore actions
 const express = require("express");
 const router = express.Router();
-const supabase = require("../supabaseClient"); // supabaseClient.js dosyanın yolu
+const { supabase } = require("../supabaseClient"); // supabaseClient.js dosyanın yolu
 
 router.post("/webhook", async (req, res) => {
   try {

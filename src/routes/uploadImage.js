@@ -1,5 +1,5 @@
 const express = require("express");
-const supabase = require("../supabaseClient"); // Supabase client'ı
+const { supabase } = require("../supabaseClient"); // Supabase client'ı
 const router = express.Router();
 const multer = require("multer"); // Dosya yüklemek için kullanılıyor
 const upload = multer(); // Geçici olarak bellekte tutmak için

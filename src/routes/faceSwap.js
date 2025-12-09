@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Replicate = require("replicate");
-const supabase = require("../supabaseClient");
+const { supabase } = require("../supabaseClient");
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,

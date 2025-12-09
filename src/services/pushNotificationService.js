@@ -1,5 +1,5 @@
 const { Expo } = require("expo-server-sdk");
-const supabase = require("../supabaseClient");
+const { supabase } = require("../supabaseClient");
 const path = require("path");
 const fs = require("fs");
 

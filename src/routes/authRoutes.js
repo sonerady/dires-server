@@ -1,7 +1,7 @@
 // routes/authRoutes.js
 const express = require("express");
 const router = express.Router();
-const supabase = require("../supabaseClient");
+const { supabase } = require("../supabaseClient");
 const { v4: uuidv4 } = require("uuid");
 
 /**

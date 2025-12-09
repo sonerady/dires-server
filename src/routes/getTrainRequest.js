@@ -1,6 +1,6 @@
 // getTrainRequest.js
 const express = require("express");
-const supabase = require("../supabaseClient"); // Adjust the path if necessary
+const { supabase } = require("../supabaseClient"); // Adjust the path if necessary
 
 const router = express.Router();
 

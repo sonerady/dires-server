@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const path = require("path"); // path modülünü import et
-const supabase = require("../supabaseClient"); // Supabase client'ı import et
+const { supabase } = require("../supabaseClient"); // Supabase client'ı import et
 
 const womanPoses = require(path.join(
   __dirname,

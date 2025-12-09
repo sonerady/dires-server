@@ -1,5 +1,5 @@
 const express = require("express");
-const supabase = require("../supabaseClient"); // Supabase client
+const { supabase } = require("../supabaseClient"); // Supabase client
 const router = express.Router();
 
 // İsteğin durumu sorgulayan yeni endpoint
