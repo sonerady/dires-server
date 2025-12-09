@@ -97,8 +97,8 @@ router.get("/target-users", async (req, res) => {
 router.post("/send-to-user", async (req, res) => {
   const { userId, messages, data, onlyNonPro } = req.body;
 
-  if (!userId || !messages || !messages.en) {
-    return res.status(400).json({ success: false, error: "Missing userId or messages (English is required)" });
+  if (!userId || !messages || Object.keys(messages).length === 0) {
+    return res.status(400).json({ success: false, error: "Missing userId or messages" });
   }
 
   try {
@@ -122,6 +122,13 @@ router.post("/send-to-user", async (req, res) => {
     const userLang = normalizeLanguageCode(user.preferred_language);
     const content = messages[userLang] || messages["en"];
 
+    if (!content) {
+      return res.status(400).json({
+        success: false,
+        error: `No message provided for user's language (${userLang}) and no English fallback.`
+      });
+    }
+
     // Send notification
     const result = await sendPushNotification(userId, content.title, content.body, data);
 
@@ -140,8 +147,8 @@ router.post("/send-to-user", async (req, res) => {
 router.post("/send-broadcast", async (req, res) => {
   const { messages, data } = req.body;
 
-  if (!messages || !messages.en) {
-    return res.status(400).json({ success: false, error: "Missing messages (English is required)" });
+  if (!messages || Object.keys(messages).length === 0) {
+    return res.status(400).json({ success: false, error: "Missing messages" });
   }
 
   try {
@@ -171,6 +178,8 @@ router.post("/send-broadcast", async (req, res) => {
     let successCount = 0;
     let skipCount = 0;
 
+    let noContentCount = 0;
+
     for (const user of allUsers) {
       if (!Expo.isExpoPushToken(user.push_token)) {
         skipCount++;
@@ -180,6 +189,11 @@ router.post("/send-broadcast", async (req, res) => {
       // Determine language
       const userLang = normalizeLanguageCode(user.preferred_language);
       const content = messages[userLang] || messages["en"];
+
+      if (!content) {
+        noContentCount++;
+        continue; // Skip user if no content for their language and no fallback
+      }
 
       notifications.push({
         to: user.push_token,
@@ -206,11 +220,12 @@ router.post("/send-broadcast", async (req, res) => {
 
     res.json({
       success: true,
-      message: `Broadcast sent to ${successCount} users`,
+      message: `Broadcast processed. Sent: ${successCount}. Skipped (invalid token): ${skipCount}. Skipped (no content): ${noContentCount}.`,
       details: {
         totalFound: allUsers.length,
         sent: successCount,
-        skipped: skipCount
+        skippedToken: skipCount,
+        skippedNoContent: noContentCount
       }
     });
 

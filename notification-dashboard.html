@@ -235,7 +235,7 @@
     <script>
         let currentMode = 'single';
         const languages = [
-            { code: 'en', name: 'English', required: true },
+            { code: 'en', name: 'English' },
             { code: 'tr', name: 'Turkish' },
             { code: 'de', name: 'German' },
             { code: 'es', name: 'Spanish' },
@@ -336,8 +336,9 @@
             userListDiv.innerHTML = '<p>Loading...</p>';
 
             try {
-                const isLocalDev = window.location.port === '5500' || window.location.protocol === 'file:';
-                const baseUrl = isLocalDev ? 'http://localhost:3001' : '';
+                // const isLocalDev = window.location.port === '5500' || window.location.protocol === 'file:';
+                // const baseUrl = isLocalDev ? 'http://localhost:3001' : '';
+                const baseUrl = 'https://dires-server-production.up.railway.app';
 
                 // Add language filter
                 const response = await fetch(`${baseUrl}/api/push-notifications/target-users?page=${page}&limit=${limit}&lang=${activeLang}`);
@@ -412,8 +413,8 @@
                 }
             });
 
-            if (!hasEnglish) {
-                showResult('English (en) title and body are required as fallback.', false);
+            if (Object.keys(messages).length === 0) {
+                showResult('Please enter a message for at least one language.', false);
                 return;
             }
 
@@ -430,8 +431,9 @@
             resultDiv.style.display = 'none';
 
             try {
-                const isLocalDev = window.location.port === '5500' || window.location.protocol === 'file:';
-                const baseUrl = isLocalDev ? 'http://localhost:3001' : '';
+                // const isLocalDev = window.location.port === '5500' || window.location.protocol === 'file:';
+                // const baseUrl = isLocalDev ? 'http://localhost:3001' : '';
+                const baseUrl = 'https://dires-server-production.up.railway.app';
 
                 const endpointPath = currentMode === 'single'
                     ? '/api/push-notifications/send-to-user'
