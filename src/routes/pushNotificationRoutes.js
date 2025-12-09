@@ -55,15 +55,24 @@ router.post("/save-device-token", async (req, res) => {
 router.get("/target-users", async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 50;
+  const lang = req.query.lang; // Get language filter
   const offset = (page - 1) * limit;
 
   try {
-    // Fetch users with push token and (optionally) non-pro
-    // For dashboard listing, we just show users with push tokens
-    const { data: users, error, count } = await supabase
+    // Start building the query
+    let query = supabase
       .from("users")
       .select("id, created_at, preferred_language, is_pro", { count: "exact" })
-      .not("push_token", "is", null)
+      .not("push_token", "is", null);
+
+    // Apply language filter if provided
+    if (lang) {
+      // Using ilike for case-insensitive matching, and % wildcard to match locales like en-US
+      query = query.ilike("preferred_language", `${lang}%`);
+    }
+
+    // Apply ordering and pagination
+    const { data: users, error, count } = await query
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -136,25 +145,7 @@ router.post("/send-broadcast", async (req, res) => {
   }
 
   try {
-    // Fetch all users with push token who are NOT pro (broadcast usually targets free users for conversion)
-    // Or we can make it optional. For now, let's target non-pro users as per dashboard default behavior implication
-    // But wait, dashboard has a checkbox "Send ONLY if user is NOT Pro" which only appeared in single mode in my code?
-    // Actually in my updated HTML, I kept the checkbox outside the single-form div? No, let me check.
-    // In my HTML update:
-    // <div class="form-group" style="display:flex; ..."> <input type="checkbox" id="onlyNonPro" ...> ... </div>
-    // This is outside #single-form, so it applies to both?
-    // But in JS sendNotification:
-    // if (currentMode === 'single') { payload.onlyNonPro = ... }
-    // So for broadcast, I didn't send onlyNonPro.
-    // Let's assume broadcast targets ALL users with push tokens for now, or maybe I should have added that option to broadcast too.
-    // Given the user request "kullanıcının supabase users tablosundaki dil bilgisi preffered_language neyse o dilin mesajı girilsin",
-    // I should focus on language logic.
-
-    // Let's fetch all users with push tokens
-    // We need to process in chunks to avoid memory issues if there are many users
-    // For simplicity in this iteration, let's fetch them all (assuming < 10k users for now) or use a cursor.
-    // Supabase limit is 1000 by default. We might need pagination.
-
+    // Fetch all users with push token
     let allUsers = [];
     let page = 0;
     const pageSize = 1000;

@@ -219,7 +219,7 @@
             <div style="margin-bottom: 10px;">
                 <button onclick="fetchTargetUsers()"
                     style="width: auto; padding: 8px 16px; font-size: 14px; background-color: #6c757d;">Refresh
-                    List</button>
+                    List (Current Lang: <span id="currentLangDisplay">en</span>)</button>
             </div>
             <div id="userList"
                 style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; padding: 10px; background-color: #f9f9f9;">
@@ -282,6 +282,7 @@
 
         function switchLang(langCode) {
             activeLang = langCode;
+            document.getElementById('currentLangDisplay').textContent = langCode;
 
             // Update tabs
             document.querySelectorAll('.lang-tab').forEach(t => {
@@ -292,6 +293,9 @@
             // Update content
             document.querySelectorAll('.lang-content').forEach(c => c.classList.remove('active'));
             document.getElementById(`content-${langCode}`).classList.add('active');
+
+            // Auto refresh user list for the new language
+            fetchTargetUsers(1);
         }
 
         function checkInput(langCode) {
@@ -335,19 +339,20 @@
                 const isLocalDev = window.location.port === '5500' || window.location.protocol === 'file:';
                 const baseUrl = isLocalDev ? 'http://localhost:3001' : '';
 
-                const response = await fetch(`${baseUrl}/api/push-notifications/target-users?page=${page}&limit=${limit}`);
+                // Add language filter
+                const response = await fetch(`${baseUrl}/api/push-notifications/target-users?page=${page}&limit=${limit}&lang=${activeLang}`);
                 const data = await response.json();
 
                 if (data.success) {
                     if (data.users.length === 0) {
-                        userListDiv.innerHTML = '<p>No matching users found.</p>';
+                        userListDiv.innerHTML = `<p>No matching users found for language: <strong>${activeLang}</strong>.</p>`;
                         return;
                     }
 
                     const { total, totalPages } = data.pagination;
 
                     let html = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <span style="color:#666; font-size:12px;">Total: ${total} users (Page ${page} of ${totalPages})</span>
+                        <span style="color:#666; font-size:12px;">Total: ${total} users (Page ${page} of ${totalPages}) - Filter: ${activeLang}</span>
                         <div>
                             <button onclick="fetchTargetUsers(${page - 1})" ${page <= 1 ? 'disabled' : ''} style="padding:4px 8px; font-size:12px; width:auto;">Prev</button>
                             <button onclick="fetchTargetUsers(${page + 1})" ${page >= totalPages ? 'disabled' : ''} style="padding:4px 8px; font-size:12px; width:auto;">Next</button>
