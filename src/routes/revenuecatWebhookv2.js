@@ -131,6 +131,25 @@ router.post("/webhookv2", async (req, res) => {
 
     // Eğer cancellation/expiration event'i ise kullanıcıyı free yap
     if (cancellationEvents.includes(type)) {
+      console.log(`🚫 Processing ${type} event...`);
+
+      // CANCELLATION durumunda, eğer süresi henüz dolmamışsa işlem yapma
+      if (type === "CANCELLATION" && eventData.event.expiration_at_ms) {
+        const expirationTime = new Date(eventData.event.expiration_at_ms).getTime();
+        const currentTime = Date.now();
+
+        if (expirationTime > currentTime) {
+          console.log(`ℹ️ Subscription cancelled but still active until ${new Date(expirationTime).toISOString()}`);
+          return res.status(200).json({
+            success: true,
+            message: "User cancelled auto-renewal, but subscription is still active",
+            user_id: app_user_id || original_app_user_id,
+            expiration_date: new Date(expirationTime).toISOString(),
+            is_pro: true // Hala PRO
+          });
+        }
+      }
+
       console.log(`🚫 Processing ${type} event - removing user subscription`);
 
       const userId = app_user_id || original_app_user_id;
@@ -487,8 +506,8 @@ router.post("/webhookv2", async (req, res) => {
       type === "TEST"
         ? `TEST webhook processed successfully - ${creditsToAdd} credits added to test user`
         : planType
-        ? `Credits added successfully and user upgraded to PRO with ${planType} plan`
-        : "Credits added successfully and user upgraded to PRO (coin pack)";
+          ? `Credits added successfully and user upgraded to PRO with ${planType} plan`
+          : "Credits added successfully and user upgraded to PRO (coin pack)";
 
     res.status(200).json({
       success: true,
