@@ -114,9 +114,8 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
     // Dosya adı oluştur (otomatik temizleme için timestamp prefix)
     const timestamp = Date.now();
     const randomId = uuidv4().substring(0, 8);
-    const fileName = `temp_${timestamp}_reference_${
-      userId || "anonymous"
-    }_${randomId}.jpg`;
+    const fileName = `temp_${timestamp}_reference_${userId || "anonymous"
+      }_${randomId}.jpg`;
 
     console.log("Supabase'e yüklenecek dosya adı:", fileName);
 
@@ -290,6 +289,90 @@ async function saveGenerationToDatabase(
 // Gemini API için istemci oluştur
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+// Replicate API üzerinden Gemini 2.5 Flash çağrısı yapan helper fonksiyon
+// Hata durumunda 3 kez tekrar dener
+async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
+  const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+
+  if (!REPLICATE_API_TOKEN) {
+    throw new Error("REPLICATE_API_TOKEN environment variable is not set");
+  }
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🤖 [REPLICATE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
+
+      console.log(`🔍 [REPLICATE-GEMINI] Images count: ${imageUrls.length}`);
+      console.log(`🔍 [REPLICATE-GEMINI] Prompt length: ${prompt.length} chars`);
+
+      const requestBody = {
+        input: {
+          top_p: 0.95,
+          images: imageUrls,
+          prompt: prompt,
+          videos: [],
+          temperature: 1,
+          dynamic_thinking: false,
+          max_output_tokens: 65535
+        }
+      };
+
+      const response = await axios.post(
+        "https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions",
+        requestBody,
+        {
+          headers: {
+            "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
+            "Content-Type": "application/json",
+            "Prefer": "wait"
+          },
+          timeout: 120000
+        }
+      );
+
+      const data = response.data;
+
+      if (data.error) {
+        console.error(`❌ [REPLICATE-GEMINI] API error:`, data.error);
+        throw new Error(data.error);
+      }
+
+      if (data.status !== "succeeded") {
+        console.error(`❌ [REPLICATE-GEMINI] Prediction failed with status:`, data.status);
+        throw new Error(`Prediction failed with status: ${data.status}`);
+      }
+
+      let outputText = "";
+      if (Array.isArray(data.output)) {
+        outputText = data.output.join("");
+      } else if (typeof data.output === "string") {
+        outputText = data.output;
+      }
+
+      if (!outputText || outputText.trim() === "") {
+        console.error(`❌ [REPLICATE-GEMINI] Empty response`);
+        throw new Error("Replicate Gemini response is empty");
+      }
+
+      console.log(`✅ [REPLICATE-GEMINI] Başarılı response alındı (attempt ${attempt})`);
+
+      return outputText.trim();
+
+    } catch (error) {
+      console.error(`❌ [REPLICATE-GEMINI] Attempt ${attempt} failed:`, error.message);
+
+      if (attempt === maxRetries) {
+        console.error(`❌ [REPLICATE-GEMINI] All ${maxRetries} attempts failed`);
+        throw error;
+      }
+
+      const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      console.log(`⏳ [REPLICATE-GEMINI] ${waitTime}ms bekleniyor...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+}
+
 // Aspect ratio formatını düzelten yardımcı fonksiyon
 function formatAspectRatio(ratioStr) {
   const validRatios = ["1:1", "4:3", "3:4", "16:9", "9:16", "21:9"];
@@ -380,11 +463,10 @@ async function enhanceConsistentCharacterPrompt(
     - Lighting and composition suggestions
     - Keep the same person's appearance
     
-    ${
-      previousPrompt
+    ${previousPrompt
         ? `IMPORTANT: Here was your previous prompt: "${previousPrompt}"\nCreate a COMPLETELY DIFFERENT prompt this time with different poses, camera angles, and styling.`
         : ""
-    }
+      }
     
     ${originalPrompt ? `User requirements: ${originalPrompt}` : ""}
     
@@ -396,158 +478,47 @@ async function enhanceConsistentCharacterPrompt(
       promptForGemini
     );
 
-    // Resim verilerini içerecek parts dizisini hazırla
-    const parts = [{ text: promptForGemini }];
-
-    // Referans görseli Gemini'ye gönder
-    try {
-      console.log(`Referans görsel Gemini'ye gönderiliyor: ${imageUrl}`);
-
-      const imageResponse = await axios.get(imageUrl, {
-        responseType: "arraybuffer",
-      });
-      const imageBuffer = imageResponse.data;
-
-      // Base64'e çevir
-      const base64Image = Buffer.from(imageBuffer).toString("base64");
-
-      parts.push({
-        inlineData: {
-          mimeType: "image/jpeg",
-          data: base64Image,
-        },
-      });
-
-      console.log("Referans görsel başarıyla Gemini'ye yüklendi");
-    } catch (imageError) {
-      console.error(`Görsel yüklenirken hata: ${imageError.message}`);
+    // Replicate Gemini Flash API için resim URL'lerini hazırla
+    const imageUrls = [];
+    if (imageUrl && (imageUrl.startsWith("http://") || imageUrl.startsWith("https://"))) {
+      imageUrls.push(imageUrl);
+      console.log("🖼️ [CONSISTENT] Referans görsel URL eklendi:", imageUrl);
     }
 
-    // Gemini'den cevap al (retry mekanizması ile) - Yeni API
+    // Replicate Gemini Flash API çağrısı
     let enhancedPrompt;
-    const maxRetries = 3;
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        console.log(
-          `🤖 [CONSISTENT] API çağrısı attempt ${attempt}/${maxRetries}`
-        );
+    try {
+      console.log("🤖 [REPLICATE-GEMINI] Consistent character API çağrısı başlatılıyor...");
 
-        const result = await model.generateContent({
-          contents: [
-            {
-              role: "user",
-              parts: parts,
-            },
-          ],
-        });
+      enhancedPrompt = await callReplicateGeminiFlash(promptForGemini, imageUrls, 3);
 
-        console.log(
-          `🤖 [CONSISTENT] Gemini API response alındı, response keys:`,
-          Object.keys(result)
-        );
-        console.log(
-          `🤖 [CONSISTENT] Response.response keys:`,
-          Object.keys(result.response)
-        );
-
-        // Debug: Candidates array'ini kontrol et
-        console.log(
-          `🤖 [CONSISTENT] Candidates sayısı:`,
-          result.response.candidates?.length || 0
-        );
-
-        if (
-          result.response.candidates &&
-          result.response.candidates.length > 0
-        ) {
-          console.log(
-            `🤖 [CONSISTENT] İlk candidate keys:`,
-            Object.keys(result.response.candidates[0])
-          );
-          console.log(
-            `🤖 [CONSISTENT] İlk candidate finishReason:`,
-            result.response.candidates[0].finishReason
-          );
-        }
-
-        // Önce text() metodunu dene, boşsa candidates'tan al
-        let responseText = "";
-        try {
-          responseText = result.response.text().trim();
-          console.log("🤖 [CONSISTENT] text() metodu kullanıldı");
-        } catch (textError) {
-          console.log(
-            "🤖 [CONSISTENT] text() metodu başarısız, candidates kullanılıyor"
-          );
-        }
-
-        // Eğer text() boşsa veya hata verdiyse candidates'tan al
-        if (
-          !responseText &&
-          result.response.candidates &&
-          result.response.candidates.length > 0
-        ) {
-          const candidate = result.response.candidates[0];
-          if (
-            candidate.content &&
-            candidate.content.parts &&
-            candidate.content.parts.length > 0
-          ) {
-            responseText = candidate.content.parts[0].text?.trim() || "";
-            console.log(
-              "🤖 [CONSISTENT] candidates[0].content.parts[0].text kullanıldı"
-            );
-          }
-        }
-
-        enhancedPrompt = responseText;
-
-        // Eğer hala boşsa, safety filter olmuş olabilir
-        if (!enhancedPrompt || enhancedPrompt.trim().length === 0) {
-          console.log(
-            "⚠️ [CONSISTENT] Gemini response boş - muhtemelen safety filter"
-          );
-          console.log("⚠️ [CONSISTENT] Original prompt fallback kullanılıyor");
-          enhancedPrompt =
-            originalPrompt ||
-            "Generate a professional portrait of this person with different pose and camera angle.";
-        }
-
-        console.log(
-          "🤖 [CONSISTENT] Gemini'nin ürettiği consistent character prompt:",
-          enhancedPrompt
-        );
-        console.log(
-          "🤖 [CONSISTENT] Enhanced prompt uzunluğu:",
-          enhancedPrompt.length
-        );
-        break; // Başarılı olursa loop'tan çık
-      } catch (geminiError) {
-        console.error(
-          `❌ [CONSISTENT] Gemini API attempt ${attempt} failed:`,
-          geminiError.message
-        );
-        console.error(`❌ [CONSISTENT] Gemini error details:`, geminiError);
-
-        if (attempt === maxRetries) {
-          console.error(
-            "❌ [CONSISTENT] All Gemini attempts failed, using original prompt"
-          );
-          enhancedPrompt = originalPrompt;
-          break;
-        }
-
-        // Exponential backoff: 1s, 2s, 4s
-        const waitTime = Math.pow(2, attempt - 1) * 1000;
-        console.log(`Waiting ${waitTime}ms before retry...`);
-        await new Promise((resolve) => setTimeout(resolve, waitTime));
+      if (!enhancedPrompt || enhancedPrompt.trim().length === 0) {
+        console.log("⚠️ [CONSISTENT] Replicate Gemini response boş");
+        enhancedPrompt =
+          originalPrompt ||
+          "Generate a professional portrait of this person with different pose and camera angle.";
       }
+
+      console.log(
+        "🤖 [CONSISTENT] Replicate Gemini'nin ürettiği consistent character prompt:",
+        enhancedPrompt
+      );
+      console.log(
+        "🤖 [CONSISTENT] Enhanced prompt uzunluğu:",
+        enhancedPrompt.length
+      );
+    } catch (geminiError) {
+      console.error(
+        "❌ [CONSISTENT] All Replicate Gemini attempts failed:",
+        geminiError.message
+      );
+      enhancedPrompt = originalPrompt;
     }
 
     return enhancedPrompt;
   } catch (error) {
-    console.error("🤖 Gemini 2.0 Flash prompt iyileştirme hatası:", error);
+    console.error("🤖 Replicate Gemini Flash prompt iyileştirme hatası:", error);
     return originalPrompt;
   }
 }
@@ -720,8 +691,7 @@ async function combineImagesOnCanvas(
         // Metadata'yı al
         const metadata = await sharp(processedBuffer).metadata();
         console.log(
-          `📐 Resim ${i + 1}: ${metadata.width}x${metadata.height} (${
-            metadata.format
+          `📐 Resim ${i + 1}: ${metadata.width}x${metadata.height} (${metadata.format
           })`
         );
 
@@ -794,8 +764,7 @@ async function combineImagesOnCanvas(
         currentX += scaledWidth;
 
         console.log(
-          `🖼️ Ürün ${i + 1} yerleştirildi: (${
-            currentX - scaledWidth
+          `🖼️ Ürün ${i + 1} yerleştirildi: (${currentX - scaledWidth
           }, 0) - ${scaledWidth}x${targetHeight}`
         );
       }
@@ -838,9 +807,8 @@ async function combineImagesOnCanvas(
     // Supabase'e yükle
     const timestamp = Date.now();
     const randomId = uuidv4().substring(0, 8);
-    const fileName = `combined_${isMultipleProducts ? "products" : "images"}_${
-      userId || "anonymous"
-    }_${timestamp}_${randomId}.jpg`;
+    const fileName = `combined_${isMultipleProducts ? "products" : "images"}_${userId || "anonymous"
+      }_${timestamp}_${randomId}.jpg`;
 
     const { data, error } = await supabase.storage
       .from("reference")
@@ -965,8 +933,7 @@ router.post("/consistent/generate", async (req, res) => {
 
         creditDeducted = true;
         console.log(
-          `✅ ${CREDIT_COST} kredi başarıyla düşüldü. Yeni bakiye: ${
-            currentCreditCheck - CREDIT_COST
+          `✅ ${CREDIT_COST} kredi başarıyla düşüldü. Yeni bakiye: ${currentCreditCheck - CREDIT_COST
           }`
         );
       } catch (creditManagementError) {

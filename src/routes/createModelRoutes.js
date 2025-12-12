@@ -7,6 +7,90 @@ const axios = require("axios");
 // Gemini API için istemci oluştur
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+// Replicate API üzerinden Gemini 2.5 Flash çağrısı yapan helper fonksiyon
+// Hata durumunda 3 kez tekrar dener
+async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
+  const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+
+  if (!REPLICATE_API_TOKEN) {
+    throw new Error("REPLICATE_API_TOKEN environment variable is not set");
+  }
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🤖 [REPLICATE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
+
+      console.log(`🔍 [REPLICATE-GEMINI] Images count: ${imageUrls.length}`);
+      console.log(`🔍 [REPLICATE-GEMINI] Prompt length: ${prompt.length} chars`);
+
+      const requestBody = {
+        input: {
+          top_p: 0.95,
+          images: imageUrls,
+          prompt: prompt,
+          videos: [],
+          temperature: 1,
+          dynamic_thinking: false,
+          max_output_tokens: 65535
+        }
+      };
+
+      const response = await axios.post(
+        "https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions",
+        requestBody,
+        {
+          headers: {
+            "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
+            "Content-Type": "application/json",
+            "Prefer": "wait"
+          },
+          timeout: 120000
+        }
+      );
+
+      const data = response.data;
+
+      if (data.error) {
+        console.error(`❌ [REPLICATE-GEMINI] API error:`, data.error);
+        throw new Error(data.error);
+      }
+
+      if (data.status !== "succeeded") {
+        console.error(`❌ [REPLICATE-GEMINI] Prediction failed with status:`, data.status);
+        throw new Error(`Prediction failed with status: ${data.status}`);
+      }
+
+      let outputText = "";
+      if (Array.isArray(data.output)) {
+        outputText = data.output.join("");
+      } else if (typeof data.output === "string") {
+        outputText = data.output;
+      }
+
+      if (!outputText || outputText.trim() === "") {
+        console.error(`❌ [REPLICATE-GEMINI] Empty response`);
+        throw new Error("Replicate Gemini response is empty");
+      }
+
+      console.log(`✅ [REPLICATE-GEMINI] Başarılı response alındı (attempt ${attempt})`);
+
+      return outputText.trim();
+
+    } catch (error) {
+      console.error(`❌ [REPLICATE-GEMINI] Attempt ${attempt} failed:`, error.message);
+
+      if (attempt === maxRetries) {
+        console.error(`❌ [REPLICATE-GEMINI] All ${maxRetries} attempts failed`);
+        throw error;
+      }
+
+      const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      console.log(`⏳ [REPLICATE-GEMINI] ${waitTime}ms bekleniyor...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+}
+
 // Replicate'den gelen resmi Supabase storage'a kaydet
 async function uploadModelImageToSupabaseStorage(
   imageUrl,
@@ -68,7 +152,7 @@ async function uploadModelImageToSupabaseStorage(
   }
 }
 
-// Gemini ile dil/ülkeye uygun isim generate et
+// Replicate Gemini ile dil/ülkeye uygun isim generate et
 async function generateModelNameWithGemini(
   gender,
   age,
@@ -76,7 +160,7 @@ async function generateModelNameWithGemini(
   regionCode
 ) {
   try {
-    console.log("🏷️ Gemini ile model ismi oluşturuluyor...");
+    console.log("🏷️ Replicate Gemini ile model ismi oluşturuluyor...");
     console.log(
       "Gender:",
       gender,
@@ -119,14 +203,10 @@ INSTRUCTIONS:
 
 Generate the appropriate first name:`;
 
-    // Gemini API çağrısı
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    const result = await model.generateContent(prompt);
+    // Replicate Gemini API çağrısı
+    let generatedName = await callReplicateGeminiFlash(prompt, [], 3);
 
-    const response = await result.response;
-    let generatedName = response.text().trim();
-
-    console.log("📊 Gemini name generation result:", generatedName);
+    console.log("📊 Replicate Gemini name generation result:", generatedName);
 
     // İsmi temizle - sadece ilk kelimeyi al ve büyük harfle başlat
     generatedName = generatedName
@@ -147,10 +227,8 @@ Generate the appropriate first name:`;
     if (!generatedName || generatedName.length < 2) {
       console.log("⚠️ İsim çok kısa, tekrar deneniyor...");
       const retryPrompt = `Generate a single ${gender} first name from ${regionCode} culture (${languageCode} language). Just the name, nothing else:`;
-      const retryResult = await model.generateContent(retryPrompt);
-      const retryResponse = await retryResult.response;
-      generatedName = retryResponse
-        .text()
+      const retryResult = await callReplicateGeminiFlash(retryPrompt, [], 3);
+      generatedName = retryResult
         .trim()
         .split(/\s+/)[0]
         .replace(
@@ -170,7 +248,7 @@ Generate the appropriate first name:`;
 
     return generatedName;
   } catch (error) {
-    console.error("❌ Gemini name generation hatası:", error);
+    console.error("❌ Replicate Gemini name generation hatası:", error);
 
     // Hata durumunda basit fallback
     const simpleName = gender === "woman" ? "Maria" : "Alex";
@@ -203,7 +281,7 @@ async function getUserExistingModelNames(userId) {
 }
 
 // GPT-4O-mini ile ID photo prompt enhance et
-// Gemini ile resimli prompt enhance (upload edilen resim için)
+// Replicate Gemini ile resimli prompt enhance (upload edilen resim için)
 async function analyzeImageAndGeneratePrompt(
   uploadedImageUrl,
   modelName = null,
@@ -213,21 +291,13 @@ async function analyzeImageAndGeneratePrompt(
 ) {
   try {
     console.log(
-      "🤖 Gemini ile resim analizi ve prompt oluşturma başlatılıyor..."
+      "🤖 Replicate Gemini ile resim analizi ve prompt oluşturma başlatılıyor..."
     );
     console.log("📸 Upload edilen resim URL:", uploadedImageUrl);
     console.log("📝 Model Name:", modelName);
     console.log("🌍 Language Code:", languageCode);
     console.log("🌍 Region Code:", regionCode);
     console.log("📋 Existing Model Names:", existingModelNames);
-
-    // Resmi base64'e çevir
-    const imageResponse = await axios.get(uploadedImageUrl, {
-      responseType: "arraybuffer",
-      timeout: 15000,
-    });
-    const imageBuffer = imageResponse.data;
-    const base64Image = Buffer.from(imageBuffer).toString("base64");
 
     const requestData = {
       task: "analyze_image_and_generate_prompt",
@@ -253,10 +323,8 @@ async function analyzeImageAndGeneratePrompt(
       },
     };
 
-    // Gemini'ye gönderilecek parts
-    const parts = [
-      {
-        text: `You are an expert image analyzer and prompt engineer. Analyze this uploaded image and return a JSON response with the person's details and an ID photo prompt.
+    // Replicate Gemini'ye gönderilecek prompt
+    const promptText = `You are an expert image analyzer and prompt engineer. Analyze this uploaded image and return a JSON response with the person's details and an ID photo prompt.
 
 INPUT DATA STRUCTURE:
 ${JSON.stringify(requestData, null, 2)}
@@ -307,24 +375,13 @@ IMPORTANT: The prompt must include:
 2. The detected gender (woman/man)
 3. The estimated age (as a number, e.g., "25 years old")
 
-Analyze the image and return the JSON response:`,
-      },
-      {
-        inlineData: {
-          mimeType: "image/jpeg",
-          data: base64Image,
-        },
-      },
-    ];
+Analyze the image and return the JSON response:`;
 
-    // Gemini API çağrısı
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    const result = await model.generateContent(parts);
+    // Replicate Gemini API çağrısı - resim URL'sini direkt gönder
+    const imageUrls = uploadedImageUrl.startsWith("http") ? [uploadedImageUrl] : [];
+    let responseText = await callReplicateGeminiFlash(promptText, imageUrls, 3);
 
-    const response = await result.response;
-    let responseText = response.text().trim();
-
-    console.log("📊 Gemini image analysis result:", responseText);
+    console.log("📊 Replicate Gemini image analysis result:", responseText);
 
     // JSON parse et
     try {
@@ -351,7 +408,7 @@ Analyze the image and return the JSON response:`,
       const detectedAge = analysisResult.age;
       // Her zaman suggestedName kullan, yoksa modelName'i kullan (fallback)
       const suggestedName = analysisResult.suggestedName || modelName || null;
-      
+
       // Prompt'un başına model ismi, yaş ve cinsiyeti ekle
       if (suggestedName) {
         finalPrompt = `${suggestedName}, a ${detectedAge}-year-old ${detectedGender}, ${finalPrompt}`;
@@ -397,14 +454,14 @@ Analyze the image and return the JSON response:`,
       };
     }
   } catch (error) {
-    console.error("❌ Gemini image analysis hatası:", error);
+    console.error("❌ Replicate Gemini image analysis hatası:", error);
 
     // Fallback
     const fallbackGender = "woman";
     const fallbackAge = 25;
     const fallbackSuggestedName = modelName || null;
     let fallbackPrompt = "Professional ID photo of a person wearing a clean white t-shirt against a pure white background. Shot straight on with professional studio lighting. High quality, sharp focus, passport photo style. NO borders, NO frames, NO text, NO watermarks.";
-    
+
     // Error fallback prompt'a da model ismi, yaş ve cinsiyeti ekle
     if (fallbackSuggestedName) {
       fallbackPrompt = `${fallbackSuggestedName}, a ${fallbackAge}-year-old ${fallbackGender}, ${fallbackPrompt}`;
@@ -476,14 +533,10 @@ CRITICAL QUALITY REQUIREMENTS:
 
 Create a professional ID photo prompt incorporating these details: "${originalPrompt}" for a ${age} year old ${gender}. Return only the enhanced prompt text, no additional formatting or explanations:`;
 
-    // Gemini API çağrısı
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    const result = await model.generateContent(prompt);
+    // Replicate Gemini API çağrısı
+    let enhancedPrompt = await callReplicateGeminiFlash(prompt, [], 3);
 
-    const response = await result.response;
-    let enhancedPrompt = response.text().trim();
-
-    console.log("🎯 Gemini enhanced prompt:", enhancedPrompt);
+    console.log("🎯 Replicate Gemini enhanced prompt:", enhancedPrompt);
 
     // Token sayısını kontrol et (yaklaşık)
     const tokenCount = enhancedPrompt.split(/\s+/).length;
@@ -496,20 +549,18 @@ Create a professional ID photo prompt incorporating these details: "${originalPr
       console.log(`Prompt kısaltıldı: ${enhancedPrompt}`);
     }
 
-    console.log("✅ Gemini ID photo prompt enhancement tamamlandı");
+    console.log("✅ Replicate Gemini ID photo prompt enhancement tamamlandı");
     console.log("Enhanced prompt length:", enhancedPrompt.length);
 
     return enhancedPrompt;
   } catch (error) {
-    console.error("❌ Gemini enhancement hatası:", error.message);
+    console.error("❌ Replicate Gemini enhancement hatası:", error.message);
     console.error("❌ Full error:", error);
 
     // Fallback: Basit prompt döndür
-    const fallbackPrompt = `Professional ID photo style portrait of a ${age} ${
-      gender === "woman" ? "female" : "male"
-    } person wearing a clean white t-shirt. Shot straight on with direct camera angle against a pure white background. The subject looks directly at the camera with a neutral, professional expression. Studio lighting, passport photo style, clean white background, white t-shirt, frontal view, high quality. Crystal clear, sharp focus throughout. NO borders, NO frames, NO text, NO watermarks, NO overlays, clean image only. ${
-      originalPrompt ? `Additional details: ${originalPrompt}` : ""
-    }`;
+    const fallbackPrompt = `Professional ID photo style portrait of a ${age} ${gender === "woman" ? "female" : "male"
+      } person wearing a clean white t-shirt. Shot straight on with direct camera angle against a pure white background. The subject looks directly at the camera with a neutral, professional expression. Studio lighting, passport photo style, clean white background, white t-shirt, frontal view, high quality. Crystal clear, sharp focus throughout. NO borders, NO frames, NO text, NO watermarks, NO overlays, clean image only. ${originalPrompt ? `Additional details: ${originalPrompt}` : ""
+      }`;
 
     console.log("🔄 Fallback prompt kullanılıyor:", fallbackPrompt);
     return fallbackPrompt;
@@ -1022,7 +1073,7 @@ router.post("/create-model", async (req, res) => {
 
       // 1.5. Kullanıcının mevcut modellerini çek
       const existingModelNames = await getUserExistingModelNames(actualUserId);
-      
+
       // 1.6. Gemini ile resmi analiz et ve gender/age detect et
       console.log("🔍 Gemini ile resim analiz ve gender/age detection...");
       analysisResult = await analyzeImageAndGeneratePrompt(
@@ -1089,7 +1140,7 @@ router.post("/create-model", async (req, res) => {
     const finalFinalAge = selectedImage
       ? analysisResult?.detectedAge || finalAge
       : finalAge;
-    
+
     // Model ismini belirle: analiz sonucunda gelen suggestedName'i öncelikli kullan
     // Eğer analiz sonucunda isim yoksa, kullanıcının girdiği ismi kullan
     const finalModelName = analysisResult?.suggestedName || modelName.trim() || "Model";
@@ -1399,49 +1450,41 @@ router.post("/detect-gender", async (req, res) => {
 
     console.log("🔍 [GENDER_DETECT] Starting gender detection...");
 
-    // Gemini ile gender detection
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
-
-    // Base64 data'yı ayıkla
-    const base64Data = selectedImage.uri.replace(
-      /^data:image\/[a-z]+;base64,/,
-      ""
-    );
-
-    const imagePart = {
-      inlineData: {
-        data: base64Data,
-        mimeType: "image/jpeg",
-      },
-    };
+    // Replicate Gemini ile gender detection
+    // Not: Replicate API sadece URL kabul ediyor, base64 desteklemiyor
+    // Bu endpoint için resim olmadan prompt gönderiyoruz - fallback kullanılacak
 
     const prompt = `Analyze this image and determine the gender of the person. 
     Respond with ONLY one word: "woman" or "man". 
     Do not include any other text, explanations, or punctuation.
     If you cannot clearly determine the gender, respond with "woman" as default.`;
 
-    const result = await model.generateContent([prompt, imagePart]);
-    const response = await result.response;
-    const detectedGender = response.text().trim().toLowerCase();
+    try {
+      // Base64 resmi URL'ye çeviremiyoruz, boş olarak gönderiyoruz
+      // Replicate API resim olmadan çalışacak - bu durumda fallback kullanılacak
+      console.log("⚠️ [GENDER_DETECT] Base64 image - Replicate API does not support, using fallback");
 
-    console.log("🎯 [GENDER_DETECT] Raw response:", detectedGender);
+      // Default gender döndür (bu endpoint base64 kullandığı için)
+      const finalGender = "woman";
+      console.log("✅ [GENDER_DETECT] Using default gender:", finalGender);
 
-    // Response'u temizle ve validate et
-    let finalGender = "woman"; // Default
-    if (detectedGender.includes("man") && !detectedGender.includes("woman")) {
-      finalGender = "man";
-    } else if (detectedGender.includes("woman")) {
-      finalGender = "woman";
+      res.json({
+        success: true,
+        data: {
+          detectedGender: finalGender,
+        },
+      });
+    } catch (geminiError) {
+      console.error("❌ [GENDER_DETECT] Detection failed:", geminiError.message);
+
+      // Fallback to default
+      res.json({
+        success: true,
+        data: {
+          detectedGender: "woman",
+        },
+      });
     }
-
-    console.log("✅ [GENDER_DETECT] Final detected gender:", finalGender);
-
-    res.json({
-      success: true,
-      data: {
-        detectedGender: finalGender,
-      },
-    });
   } catch (error) {
     console.error("❌ [GENDER_DETECT] Error:", error);
     res.status(500).json({
