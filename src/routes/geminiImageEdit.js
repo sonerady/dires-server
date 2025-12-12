@@ -61,6 +61,82 @@ const apiKey = process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
 const fileManager = new GoogleAIFileManager(apiKey);
 
+// Replicate API üzerinden Gemini 2.5 Flash çağrısı yapan helper fonksiyon
+// Hata durumunda 3 kez tekrar dener
+async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
+  const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+
+  if (!REPLICATE_API_TOKEN) {
+    throw new Error("REPLICATE_API_TOKEN environment variable is not set");
+  }
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🤖 [REPLICATE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
+
+      const requestBody = {
+        input: {
+          top_p: 0.95,
+          images: imageUrls,
+          prompt: prompt,
+          videos: [],
+          temperature: 1,
+          dynamic_thinking: false,
+          max_output_tokens: 65535
+        }
+      };
+
+      const response = await axios.post(
+        "https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions",
+        requestBody,
+        {
+          headers: {
+            "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
+            "Content-Type": "application/json",
+            "Prefer": "wait"
+          },
+          timeout: 120000
+        }
+      );
+
+      const data = response.data;
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      if (data.status !== "succeeded") {
+        throw new Error(`Prediction failed with status: ${data.status}`);
+      }
+
+      let outputText = "";
+      if (Array.isArray(data.output)) {
+        outputText = data.output.join("");
+      } else if (typeof data.output === "string") {
+        outputText = data.output;
+      }
+
+      if (!outputText || outputText.trim() === "") {
+        throw new Error("Replicate Gemini response is empty");
+      }
+
+      console.log(`✅ [REPLICATE-GEMINI] Başarılı response alındı (attempt ${attempt})`);
+      return outputText.trim();
+
+    } catch (error) {
+      console.error(`❌ [REPLICATE-GEMINI] Attempt ${attempt} failed:`, error.message);
+
+      if (attempt === maxRetries) {
+        throw error;
+      }
+
+      const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      console.log(`⏳ [REPLICATE-GEMINI] ${waitTime}ms bekleniyor...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+}
+
 /**
  * Generate an enhanced product photo prompt using Gemini 1.5 Flash
  * @param {string} productDetails - Optional product details to include in the prompt
@@ -259,11 +335,10 @@ router.post("/gemini-image-edit", upload.single("image"), async (req, res) => {
           {
             text: `Look at this product image and create a concise, effective edit prompt based on what you see. 
 
-${
-  userDescription
-    ? `The user wants the following: "${userDescription}". The user prompt may be in any language, so if it's not in English, translate it first.`
-    : "No specific user instructions were provided."
-}
+${userDescription
+                ? `The user wants the following: "${userDescription}". The user prompt may be in any language, so if it's not in English, translate it first.`
+                : "No specific user instructions were provided."
+              }
 
 Write a clear, effective image editing prompt that would help transform this into a professional product photo. Focus on what specific edits would improve this particular image.
 
@@ -339,11 +414,10 @@ Your prompt should be in English, under 100 words, and only contain the edit ins
           {
             text: `${generatedPrompt}
 
-${
-  userDescription
-    ? `Also consider these user instructions: "${userDescription}"`
-    : ""
-}`,
+${userDescription
+                ? `Also consider these user instructions: "${userDescription}"`
+                : ""
+              }`,
           },
         ];
 
@@ -383,7 +457,7 @@ ${
               try {
                 // For debug purpose
                 const debugDir = path.join(__dirname, "../../temp/debug");
-                await mkdirAsync(debugDir, { recursive: true }).catch(() => {});
+                await mkdirAsync(debugDir, { recursive: true }).catch(() => { });
 
                 // Generate file names
                 const imageExt =

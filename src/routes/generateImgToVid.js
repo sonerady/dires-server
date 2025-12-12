@@ -20,6 +20,82 @@ const predictions = replicate.predictions;
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+// Replicate API üzerinden Gemini 2.5 Flash çağrısı yapan helper fonksiyon
+// Hata durumunda 3 kez tekrar dener
+async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
+  const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+
+  if (!REPLICATE_API_TOKEN) {
+    throw new Error("REPLICATE_API_TOKEN environment variable is not set");
+  }
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🤖 [REPLICATE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
+
+      const requestBody = {
+        input: {
+          top_p: 0.95,
+          images: imageUrls,
+          prompt: prompt,
+          videos: [],
+          temperature: 1,
+          dynamic_thinking: false,
+          max_output_tokens: 65535
+        }
+      };
+
+      const response = await axios.post(
+        "https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions",
+        requestBody,
+        {
+          headers: {
+            "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
+            "Content-Type": "application/json",
+            "Prefer": "wait"
+          },
+          timeout: 120000
+        }
+      );
+
+      const data = response.data;
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      if (data.status !== "succeeded") {
+        throw new Error(`Prediction failed with status: ${data.status}`);
+      }
+
+      let outputText = "";
+      if (Array.isArray(data.output)) {
+        outputText = data.output.join("");
+      } else if (typeof data.output === "string") {
+        outputText = data.output;
+      }
+
+      if (!outputText || outputText.trim() === "") {
+        throw new Error("Replicate Gemini response is empty");
+      }
+
+      console.log(`✅ [REPLICATE-GEMINI] Başarılı response alındı (attempt ${attempt})`);
+      return outputText.trim();
+
+    } catch (error) {
+      console.error(`❌ [REPLICATE-GEMINI] Attempt ${attempt} failed:`, error.message);
+
+      if (attempt === maxRetries) {
+        throw error;
+      }
+
+      const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      console.log(`⏳ [REPLICATE-GEMINI] ${waitTime}ms bekleniyor...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+}
+
 /**
  * generateVideoPrompt
  *  - imageUrl: Supabase'ten aldığımız public URL
@@ -30,10 +106,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
  */
 async function generateVideoPrompt(imageUrl, userPrompt) {
   try {
-    console.log("Gemini ile video prompt oluşturma başlatılıyor");
-
-    // Gemini modeli
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+    console.log("Replicate Gemini ile video prompt oluşturma başlatılıyor");
 
     // Gemini'ye gönderilecek metin
     const promptForGemini = `
@@ -51,72 +124,22 @@ async function generateVideoPrompt(imageUrl, userPrompt) {
     User's request: ${userPrompt}
     `;
 
-    // Resim verilerini içerecek parts dizisini hazırla
-    const parts = [{ text: promptForGemini }];
+    // Replicate Gemini Flash API için resim URL'sini hazırla
+    const imageUrls = [];
+    if (imageUrl && imageUrl.startsWith("http")) {
+      imageUrls.push(imageUrl);
+      console.log(`Video prompt için görsel Replicate Gemini'ye gönderilecek: ${imageUrl}`);
+    }
 
-    // Referans görseli Gemini'ye gönder
+    // Replicate Gemini Flash API çağrısı
     try {
-      console.log(
-        `Video prompt için görsel Gemini'ye gönderiliyor: ${imageUrl}`
-      );
-
-      const imageResponse = await axios.get(imageUrl, {
-        responseType: "arraybuffer",
-      });
-      const imageBuffer = imageResponse.data;
-
-      // Base64'e çevir
-      const base64Image = Buffer.from(imageBuffer).toString("base64");
-
-      parts.push({
-        inlineData: {
-          mimeType: "image/jpeg",
-          data: base64Image,
-        },
-      });
-
-      console.log("Video prompt için görsel başarıyla Gemini'ye yüklendi");
-    } catch (imageError) {
-      console.error(
-        `Video prompt görseli yüklenirken hata: ${imageError.message}`
-      );
+      const enhancedPrompt = await callReplicateGeminiFlash(promptForGemini, imageUrls, 3);
+      console.log("🎬 Replicate Gemini'nin ürettiği video prompt:", enhancedPrompt);
+      return enhancedPrompt;
+    } catch (geminiError) {
+      console.error("Replicate Gemini API failed:", geminiError.message);
+      return userPrompt; // Hata durumunda orijinal prompt'u döndür
     }
-
-    // Gemini'den cevap al (retry mekanizması ile)
-    let enhancedPrompt;
-    const maxRetries = 3;
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        const result = await model.generateContent({
-          contents: [{ parts }],
-        });
-
-        enhancedPrompt = result.response.text().trim();
-        console.log("🎬 Gemini'nin ürettiği video prompt:", enhancedPrompt);
-        break; // Başarılı olursa loop'tan çık
-      } catch (geminiError) {
-        console.error(
-          `Gemini API attempt ${attempt} failed:`,
-          geminiError.message
-        );
-
-        if (attempt === maxRetries) {
-          console.error(
-            "Gemini API all attempts failed, using original prompt"
-          );
-          enhancedPrompt = userPrompt;
-          break;
-        }
-
-        // Exponential backoff: 1s, 2s, 4s
-        const waitTime = Math.pow(2, attempt - 1) * 1000;
-        console.log(`Waiting ${waitTime}ms before retry...`);
-        await new Promise((resolve) => setTimeout(resolve, waitTime));
-      }
-    }
-
-    return enhancedPrompt;
   } catch (error) {
     console.error("Video prompt oluşturma hatası:", error);
     return userPrompt; // Hata durumunda orijinal prompt'u döndür

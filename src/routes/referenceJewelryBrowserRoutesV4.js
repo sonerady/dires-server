@@ -277,9 +277,8 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
     // Dosya adı oluştur (otomatik temizleme için timestamp prefix)
     const timestamp = Date.now();
     const randomId = uuidv4().substring(0, 8);
-    const fileName = `temp_${timestamp}_reference_${
-      userId || "anonymous"
-    }_${randomId}.jpg`;
+    const fileName = `temp_${timestamp}_reference_${userId || "anonymous"
+      }_${randomId}.jpg`;
 
     console.log("Supabase'e yüklenecek dosya adı:", fileName);
 
@@ -747,6 +746,90 @@ const genAI = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
+// Replicate API üzerinden Gemini 2.5 Flash çağrısı yapan helper fonksiyon
+// Hata durumunda 3 kez tekrar dener
+async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
+  const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+
+  if (!REPLICATE_API_TOKEN) {
+    throw new Error("REPLICATE_API_TOKEN environment variable is not set");
+  }
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🤖 [REPLICATE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
+
+      console.log(`🔍 [REPLICATE-GEMINI] Images count: ${imageUrls.length}`);
+      console.log(`🔍 [REPLICATE-GEMINI] Prompt length: ${prompt.length} chars`);
+
+      const requestBody = {
+        input: {
+          top_p: 0.95,
+          images: imageUrls,
+          prompt: prompt,
+          videos: [],
+          temperature: 1,
+          dynamic_thinking: false,
+          max_output_tokens: 65535
+        }
+      };
+
+      const response = await axios.post(
+        "https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions",
+        requestBody,
+        {
+          headers: {
+            "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
+            "Content-Type": "application/json",
+            "Prefer": "wait"
+          },
+          timeout: 120000
+        }
+      );
+
+      const data = response.data;
+
+      if (data.error) {
+        console.error(`❌ [REPLICATE-GEMINI] API error:`, data.error);
+        throw new Error(data.error);
+      }
+
+      if (data.status !== "succeeded") {
+        console.error(`❌ [REPLICATE-GEMINI] Prediction failed with status:`, data.status);
+        throw new Error(`Prediction failed with status: ${data.status}`);
+      }
+
+      let outputText = "";
+      if (Array.isArray(data.output)) {
+        outputText = data.output.join("");
+      } else if (typeof data.output === "string") {
+        outputText = data.output;
+      }
+
+      if (!outputText || outputText.trim() === "") {
+        console.error(`❌ [REPLICATE-GEMINI] Empty response`);
+        throw new Error("Replicate Gemini response is empty");
+      }
+
+      console.log(`✅ [REPLICATE-GEMINI] Başarılı response alındı (attempt ${attempt})`);
+
+      return outputText.trim();
+
+    } catch (error) {
+      console.error(`❌ [REPLICATE-GEMINI] Attempt ${attempt} failed:`, error.message);
+
+      if (attempt === maxRetries) {
+        console.error(`❌ [REPLICATE-GEMINI] All ${maxRetries} attempts failed`);
+        throw error;
+      }
+
+      const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      console.log(`⏳ [REPLICATE-GEMINI] ${waitTime}ms bekleniyor...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+}
+
 // Aspect ratio formatını düzelten yardımcı fonksiyon
 function formatAspectRatio(ratioStr) {
   const validRatios = ["1:1", "4:3", "3:4", "16:9", "9:16", "21:9"];
@@ -1040,35 +1123,32 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
     
     SETTINGS DETAIL FOR BETTER PROMPT CREATION:
     ${Object.entries(settings)
-      .filter(
-        ([key, value]) =>
-          value !== null &&
-          value !== undefined &&
-          value !== "" &&
-          key !== "measurements" &&
-          key !== "type" &&
-          key !== "locationEnhancedPrompt" // Enhanced prompt'u detay listesinden hariç tut
-      )
-      .map(
-        ([key, value]) =>
-          `- ${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
-      )
-      .join("\n    ")}${
-        settings?.locationEnhancedPrompt &&
-        settings.locationEnhancedPrompt.trim()
-          ? `\n    \n    SPECIAL LOCATION DESCRIPTION:\n    User has provided a detailed location description: "${settings.locationEnhancedPrompt}"\n    IMPORTANT: Use this exact location description for the environment setting instead of a generic location name.`
-          : ""
-      }${
-        settings?.productColor && settings.productColor !== "original"
+          .filter(
+            ([key, value]) =>
+              value !== null &&
+              value !== undefined &&
+              value !== "" &&
+              key !== "measurements" &&
+              key !== "type" &&
+              key !== "locationEnhancedPrompt" // Enhanced prompt'u detay listesinden hariç tut
+          )
+          .map(
+            ([key, value]) =>
+              `- ${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
+          )
+          .join("\n    ")}${settings?.locationEnhancedPrompt &&
+            settings.locationEnhancedPrompt.trim()
+            ? `\n    \n    SPECIAL LOCATION DESCRIPTION:\n    User has provided a detailed location description: "${settings.locationEnhancedPrompt}"\n    IMPORTANT: Use this exact location description for the environment setting instead of a generic location name.`
+            : ""
+        }${settings?.productColor && settings.productColor !== "original"
           ? `\n    \n    🎨 PRODUCT COLOR REQUIREMENT:\n    The user has specifically selected "${settings.productColor}" as the product color. CRITICAL: Ensure the garment/product appears in ${settings.productColor} color in the final image. This color selection must be prominently featured and accurately represented.`
           : ""
-      }
+        }
     
-    IMPORTANT: Please incorporate ALL user settings above into your description when appropriate.${
-      settings?.productColor && settings.productColor !== "original"
-        ? ` Pay special attention to the product color requirement - the garment must be ${settings.productColor}.`
-        : ""
-    }`;
+    IMPORTANT: Please incorporate ALL user settings above into your description when appropriate.${settings?.productColor && settings.productColor !== "original"
+          ? ` Pay special attention to the product color requirement - the garment must be ${settings.productColor}.`
+          : ""
+        }`;
     }
 
     // Pose ve perspective için akıllı öneri sistemi
@@ -1096,57 +1176,48 @@ POSE RULES:
 IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remain fully visible and well lit.
 
 
-    - Best showcase ${
-      isMultipleProducts
-        ? "all products in the ensemble and their coordination"
-        : "the garment's design, cut, and construction details"
-    }
-    - Highlight ${
-      isMultipleProducts
-        ? "how the products work together and each product's unique selling points"
-        : "the product's unique features and selling points"
-    }
-    - Demonstrate how ${
-      isMultipleProducts
-        ? "the fabrics of different products drape and interact naturally"
-        : "the fabric drapes and moves naturally"
-    }
-    - Show ${
-      isMultipleProducts
-        ? "how all products fit together and create an appealing silhouette"
-        : "the garment's fit and silhouette most effectively"
-    }
-    - Match the style and aesthetic of ${
-      isMultipleProducts
-        ? "the coordinated ensemble (formal, casual, sporty, elegant, etc.)"
-        : "the garment (formal, casual, sporty, elegant, etc.)"
-    }
-    - Allow clear visibility of important design elements ${
-      isMultipleProducts
-        ? "across all products"
-        : "like necklines, sleeves, hems, and patterns"
-    }
+    - Best showcase ${isMultipleProducts
+          ? "all products in the ensemble and their coordination"
+          : "the garment's design, cut, and construction details"
+        }
+    - Highlight ${isMultipleProducts
+          ? "how the products work together and each product's unique selling points"
+          : "the product's unique features and selling points"
+        }
+    - Demonstrate how ${isMultipleProducts
+          ? "the fabrics of different products drape and interact naturally"
+          : "the fabric drapes and moves naturally"
+        }
+    - Show ${isMultipleProducts
+          ? "how all products fit together and create an appealing silhouette"
+          : "the garment's fit and silhouette most effectively"
+        }
+    - Match the style and aesthetic of ${isMultipleProducts
+          ? "the coordinated ensemble (formal, casual, sporty, elegant, etc.)"
+          : "the garment (formal, casual, sporty, elegant, etc.)"
+        }
+    - Allow clear visibility of important design elements ${isMultipleProducts
+          ? "across all products"
+          : "like necklines, sleeves, hems, and patterns"
+        }
     - Create an appealing and natural presentation that would be suitable for commercial photography
-    ${
-      isMultipleProducts
-        ? "- Ensure each product in the ensemble is visible and well-positioned\n    - Demonstrate the styling versatility of combining these products"
-        : ""
-    }
+    ${isMultipleProducts
+          ? "- Ensure each product in the ensemble is visible and well-positioned\n    - Demonstrate the styling versatility of combining these products"
+          : ""
+        }
     - If the featured item is footwear, a handbag, hat, watch, jewelry, eyewear, or other accessory, guide the pose using modern fashion campaign cues that hero the item while keeping every detail visible.`;
 
       console.log(
-        `🤸 [GEMINI] Akıllı poz seçimi aktif - ${
-          isMultipleProducts ? "çoklu ürün ensembline" : "kıyafete"
+        `🤸 [GEMINI] Akıllı poz seçimi aktif - ${isMultipleProducts ? "çoklu ürün ensembline" : "kıyafete"
         } uygun poz önerilecek`
       );
     } else if (hasPoseImage) {
       posePromptSection = `
     
-    POSE REFERENCE: A pose reference image has been provided to show the desired body position and posture for the ${baseModelText}. Please analyze this pose image carefully and incorporate the exact body positioning, hand placement, stance, facial expression, and overall posture into your enhanced prompt. The ${baseModelText} should adopt this specific pose naturally and convincingly${
-        isMultipleProducts
+    POSE REFERENCE: A pose reference image has been provided to show the desired body position and posture for the ${baseModelText}. Please analyze this pose image carefully and incorporate the exact body positioning, hand placement, stance, facial expression, and overall posture into your enhanced prompt. The ${baseModelText} should adopt this specific pose naturally and convincingly${isMultipleProducts
           ? ", ensuring all products in the ensemble remain clearly visible and well-positioned"
           : ""
-      }.`;
+        }.`;
 
       console.log("🤸 [GEMINI] Pose prompt section eklendi");
     } else if (hasPoseText) {
@@ -1186,22 +1257,20 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     
     IMPORTANT: If the pose description above mentions any studio, backdrop, background, environment, or set, you must ignore those parts and instead describe and preserve the exact background that already exists in the provided model image.
     
-    Ensure the ${baseModelText} follows this pose instruction precisely while maintaining natural movement and ensuring the pose complements ${
-          isMultipleProducts
+    Ensure the ${baseModelText} follows this pose instruction precisely while maintaining natural movement and ensuring the pose complements ${isMultipleProducts
             ? "all products in the ensemble being showcased"
             : "the garment being showcased"
-        }. The pose should enhance the presentation of the clothing and create an appealing commercial photography composition.`;
+          }. The pose should enhance the presentation of the clothing and create an appealing commercial photography composition.`;
 
         console.log("🤸 [GEMINI] Detaylı pose açıklaması kullanılıyor");
       } else {
         // Fallback to simple pose mention
         posePromptSection = `
     
-    SPECIFIC POSE REQUIREMENT: The user has selected a specific pose: "${poseNameForPrompt}". Please ensure the ${baseModelText} adopts this pose while maintaining natural movement and ensuring the pose complements ${
-          isMultipleProducts
+    SPECIFIC POSE REQUIREMENT: The user has selected a specific pose: "${poseNameForPrompt}". Please ensure the ${baseModelText} adopts this pose while maintaining natural movement and ensuring the pose complements ${isMultipleProducts
             ? "all products in the ensemble being showcased"
             : "the garment being showcased"
-        }. Ignore any background/backdrop/studio/environment directions that may be associated with that pose and always keep the original background from the input image unchanged and accurately described.`;
+          }. Ignore any background/backdrop/studio/environment directions that may be associated with that pose and always keep the original background from the input image unchanged and accurately described.`;
 
         console.log(
           "🤸 [GEMINI] Basit pose açıklaması kullanılıyor (fallback)"
@@ -1218,48 +1287,39 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     if (!settings?.perspective) {
       perspectivePromptSection = `
     
-    - Best capture ${
-      isMultipleProducts
-        ? "all products' most important design features and their coordination"
-        : "the garment's most important design features"
-    }
-    - Show ${
-      isMultipleProducts
-        ? "the construction quality and craftsmanship details of each product"
-        : "the product's construction quality and craftsmanship details"
-    }
-    - Highlight ${
-      isMultipleProducts
-        ? "how all products fit together and the overall ensemble silhouette"
-        : "the fit and silhouette most effectively"
-    }
-    - Create the most appealing and commercial-quality presentation ${
-      isMultipleProducts ? "for the multi-product styling" : ""
-    }
-    - Match ${
-      isMultipleProducts
-        ? "the ensemble's style and intended market positioning"
-        : "the garment's style and intended market positioning"
-    }
-    ${
-      isMultipleProducts
-        ? "- Ensure all products are visible and well-framed within the composition"
-        : ""
-    }`;
+    - Best capture ${isMultipleProducts
+          ? "all products' most important design features and their coordination"
+          : "the garment's most important design features"
+        }
+    - Show ${isMultipleProducts
+          ? "the construction quality and craftsmanship details of each product"
+          : "the product's construction quality and craftsmanship details"
+        }
+    - Highlight ${isMultipleProducts
+          ? "how all products fit together and the overall ensemble silhouette"
+          : "the fit and silhouette most effectively"
+        }
+    - Create the most appealing and commercial-quality presentation ${isMultipleProducts ? "for the multi-product styling" : ""
+        }
+    - Match ${isMultipleProducts
+          ? "the ensemble's style and intended market positioning"
+          : "the garment's style and intended market positioning"
+        }
+    ${isMultipleProducts
+          ? "- Ensure all products are visible and well-framed within the composition"
+          : ""
+        }`;
 
       console.log(
-        `📸 [GEMINI] Akıllı perspektif seçimi aktif - ${
-          isMultipleProducts ? "çoklu ürün ensembline" : "kıyafete"
+        `📸 [GEMINI] Akıllı perspektif seçimi aktif - ${isMultipleProducts ? "çoklu ürün ensembline" : "kıyafete"
         } uygun kamera açısı önerilecek`
       );
     } else {
       perspectivePromptSection = `
     
-    SPECIFIC CAMERA PERSPECTIVE: The user has selected a specific camera perspective: "${
-      settings.perspective
-    }". Please ensure the photography follows this perspective while maintaining professional composition and optimal ${
-        isMultipleProducts ? "multi-product ensemble" : "garment"
-      } presentation.`;
+    SPECIFIC CAMERA PERSPECTIVE: The user has selected a specific camera perspective: "${settings.perspective
+        }". Please ensure the photography follows this perspective while maintaining professional composition and optimal ${isMultipleProducts ? "multi-product ensemble" : "garment"
+        } presentation.`;
 
       console.log(
         "📸 [GEMINI] Kullanıcı tarafından seçilen perspektif:",
@@ -1274,9 +1334,8 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     if (hairStyleImage) {
       hairStylePromptSection = `
     
-    HAIR STYLE REFERENCE: A hair style reference image has been provided to show the desired hairstyle for the ${baseModelText}. Please analyze this hair style image carefully and incorporate the exact hair length, texture, cut, styling, and overall hair appearance into your enhanced prompt. The ${baseModelText} should have this specific hairstyle that complements ${
-        isMultipleProducts ? "the multi-product ensemble" : "the garment"
-      } and overall aesthetic.`;
+    HAIR STYLE REFERENCE: A hair style reference image has been provided to show the desired hairstyle for the ${baseModelText}. Please analyze this hair style image carefully and incorporate the exact hair length, texture, cut, styling, and overall hair appearance into your enhanced prompt. The ${baseModelText} should have this specific hairstyle that complements ${isMultipleProducts ? "the multi-product ensemble" : "the garment"
+        } and overall aesthetic.`;
 
       console.log("💇 [GEMINI] Hair style prompt section eklendi");
     }
@@ -1344,12 +1403,12 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
       faceDescriptor =
         faceDescriptorsChild[
-          Math.floor(Math.random() * faceDescriptorsChild.length)
+        Math.floor(Math.random() * faceDescriptorsChild.length)
         ];
     } else {
       faceDescriptor =
         faceDescriptorsAdult[
-          Math.floor(Math.random() * faceDescriptorsAdult.length)
+        Math.floor(Math.random() * faceDescriptorsAdult.length)
         ];
     }
 
@@ -1381,13 +1440,12 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
       promptForGemini = `
       JEWELRY PHOTOGRAPHY POSE TRANSFORMATION: Generate a focused, detailed English prompt (100-150 words) that transforms the model's pose efficiently for jewelry photography. Focus ONLY on altering the pose while keeping the existing model, jewelry piece, lighting, and background exactly the same. You MUST explicitly describe the original background/environment details and state that they stay unchanged.
 
-      USER POSE REQUEST: ${
-        settings?.pose && settings.pose.trim()
+      USER POSE REQUEST: ${settings?.pose && settings.pose.trim()
           ? `Transform the model to: ${settings.pose.trim()}`
           : customDetail && customDetail.trim()
-          ? `Transform the model to: ${customDetail.trim()}`
-          : "Transform to a professional jewelry modeling pose that showcases the jewelry piece beautifully"
-      }
+            ? `Transform the model to: ${customDetail.trim()}`
+            : "Transform to a professional jewelry modeling pose that showcases the jewelry piece beautifully"
+        }
 
       JEWELRY-SPECIFIC POSE REQUIREMENTS:
       1. POSE ANALYSIS & TRANSFORMATION:
@@ -1533,8 +1591,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
 
       ${criticalDirectives}
 
-      ${
-        isMultipleProducts
+      ${isMultipleProducts
           ? `
       💎 MULTIPLE JEWELRY PIECES MODE: You are receiving MULTIPLE SEPARATE REFERENCE IMAGES, each showing a different jewelry piece that together form a complete jewelry set/ensemble. You MUST analyze ALL the reference images provided and describe every single jewelry piece visible across all images. Each piece is equally important and must be properly described and positioned on the ${modelGenderText}.
 
@@ -1549,55 +1606,46 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
       - REMEMBER: Each reference image shows a separate jewelry piece - combine them intelligently into one cohesive jewelry set
       `
           : ""
-      }
+        }
 
-      Create a professional jewelry photography prompt in English that STARTS with "Replace" for replacing ${
-        isMultipleProducts
+      Create a professional jewelry photography prompt in English that STARTS with "Replace" for replacing ${isMultipleProducts
           ? "ALL the jewelry pieces from the reference images"
           : "the jewelry piece from the reference image"
-      } onto a ${modelGenderText}.
+        } onto a ${modelGenderText}.
       
       JEWELRY PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional jewelry photography and commercial jewelry presentation. Ensure the output is suitable for high-end jewelry shoots, editorial styling, and commercial jewelry photography.
 
       IMPORTANT: Please explicitly mention in your generated prompt that this is for "professional jewelry photography" to ensure the AI image model understands the context and produces high-quality jewelry photography results.
 
       CRITICAL REQUIREMENTS:
-      1. The prompt MUST begin with "Replace the ${
-        isMultipleProducts
+      1. The prompt MUST begin with "Replace the ${isMultipleProducts
           ? "multiple flat-lay jewelry pieces"
           : "flat-lay jewelry piece"
-      }..."
-      2. Keep ${
-        isMultipleProducts
+        }..."
+      2. Keep ${isMultipleProducts
           ? "ALL original jewelry pieces"
           : "the original jewelry piece"
-      } exactly the same without changing any design, gemstones, metals, settings, engravings, textures, or details
-      3. Do not modify or redesign ${
-        isMultipleProducts ? "any of the jewelry pieces" : "the jewelry piece"
-      } in any way
-      4. The final image should be photorealistic, showing ${
-        isMultipleProducts
+        } exactly the same without changing any design, gemstones, metals, settings, engravings, textures, or details
+      3. Do not modify or redesign ${isMultipleProducts ? "any of the jewelry pieces" : "the jewelry piece"
+        } in any way
+      4. The final image should be photorealistic, showing ${isMultipleProducts
           ? "ALL jewelry pieces perfectly positioned and coordinated"
           : "the same jewelry piece perfectly positioned"
-      } on the ${baseModelText}
+        } on the ${baseModelText}
       5. Use professional jewelry photography lighting that enhances gemstone brilliance and metal reflections
-      6. Preserve ALL original details of ${
-        isMultipleProducts ? "EACH jewelry piece" : "the jewelry piece"
-      }: gemstones, metals, settings, engravings, textures, clasps, and construction elements
-      7. ${
-        isMultipleProducts
+      6. Preserve ALL original details of ${isMultipleProducts ? "EACH jewelry piece" : "the jewelry piece"
+        }: gemstones, metals, settings, engravings, textures, clasps, and construction elements
+      7. ${isMultipleProducts
           ? "ALL jewelry pieces must appear identical to the reference images, just worn by the model as a complete coordinated jewelry set"
           : "The jewelry piece must appear identical to the reference image, just worn by the model instead of being flat"
-      }
+        }
       8. MANDATORY: Include "professional jewelry photography" phrase in your generated prompt
-      ${
-        isMultipleProducts
+      ${isMultipleProducts
           ? "9. MANDATORY: Explicitly mention and describe EACH individual jewelry piece visible in the reference images - do not generalize or group them"
           : ""
-      }
+        }
 
-      ${
-        isMultipleProducts
+      ${isMultipleProducts
           ? `
       MULTIPLE JEWELRY PIECES DETAIL COVERAGE (MANDATORY): 
       - ANALYZE the reference images and identify EACH distinct jewelry piece (e.g., necklace, bracelet, earrings, ring, etc.)
@@ -1607,17 +1655,16 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
       - ENSURE no jewelry piece is overlooked or generically described
       `
           : ""
-      }
+        }
 
       ${jewelryPhotographyDirectives}
 
       LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace".
 
-      ${
-        originalPrompt
+      ${originalPrompt
           ? `USER CONTEXT: The user has provided these specific requirements: ${originalPrompt}. Please integrate these requirements naturally into your jewelry replacement prompt while maintaining the professional structure and flow.`
           : ""
-      }
+        }
       
       ${ageSection}
       ${childPromptSection}
@@ -1660,8 +1707,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
       try {
         // İlk resim (ön taraf)
         console.log(
-          `🔄 [BACK_SIDE] İlk resim (ön taraf) Gemini'ye gönderiliyor: ${
-            referenceImages[0].uri || referenceImages[0]
+          `🔄 [BACK_SIDE] İlk resim (ön taraf) Gemini'ye gönderiliyor: ${referenceImages[0].uri || referenceImages[0]
           }`
         );
 
@@ -1687,8 +1733,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
 
         // İkinci resim (arka taraf)
         console.log(
-          `🔄 [BACK_SIDE] İkinci resim (arka taraf) Gemini'ye gönderiliyor: ${
-            referenceImages[1].uri || referenceImages[1]
+          `🔄 [BACK_SIDE] İkinci resim (arka taraf) Gemini'ye gönderiliyor: ${referenceImages[1].uri || referenceImages[1]
           }`
         );
 
@@ -1733,8 +1778,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
           const imageUrl = referenceImage.uri || referenceImage;
 
           console.log(
-            `🛍️ [MULTI-PRODUCT] ${
-              i + 1
+            `🛍️ [MULTI-PRODUCT] ${i + 1
             }. resim Gemini'ye gönderiliyor: ${imageUrl}`
           );
 
@@ -1895,51 +1939,61 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
       }
     }
 
-    // Gemini'den cevap al (retry mekanizması ile) - Yeni API
-    let enhancedPrompt;
-    const maxRetries = 2;
+    // Replicate Gemini Flash API için resim URL'lerini topla
+    const imageUrls = [];
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        console.log(`🤖 [GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
-
-        const result = await genAI.models.generateContent({
-          model,
-          contents: [
-            {
-              role: "user",
-              parts: parts,
-            },
-          ],
-        });
-
-        const geminiGeneratedPrompt =
-          result.text?.trim() || result.response?.text()?.trim() || "";
-
-        // Gemini response kontrolü
-        if (!geminiGeneratedPrompt) {
-          console.error("❌ Gemini API response boş:", result);
-          throw new Error("Gemini API response is empty or invalid");
+    // Mevcut resim URL'lerini topla (base64 yerine URL kullanıyoruz)
+    if (isBackSideAnalysis && firstImageUrl && secondImageUrl) {
+      imageUrls.push(firstImageUrl, secondImageUrl);
+    } else if (isMultipleProducts && referenceImages && referenceImages.length > 1) {
+      for (const refImg of referenceImages) {
+        const imgUrl = refImg.uri || refImg;
+        if (imgUrl && imgUrl.startsWith("http")) {
+          imageUrls.push(imgUrl);
         }
+      }
+    } else if (imageUrl && imageUrl.startsWith("http")) {
+      imageUrls.push(imageUrl);
+    }
 
-        // ControlNet direktifini dinamik olarak ekle
-        // let controlNetDirective = "";
-        // if (!hasControlNet) {
-        //   controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
+    // Pose, hair style ve location image URL'lerini ekle
+    if (poseImage && poseImage.startsWith("http")) {
+      const cleanPoseUrl = poseImage.split("?")[0];
+      imageUrls.push(cleanPoseUrl);
+    }
+    if (hairStyleImage && hairStyleImage.startsWith("http")) {
+      const cleanHairUrl = hairStyleImage.split("?")[0];
+      imageUrls.push(cleanHairUrl);
+    }
+    if (locationImage && locationImage.startsWith("http")) {
+      const cleanLocUrl = locationImage.split("?")[0];
+      imageUrls.push(cleanLocUrl);
+    }
 
-        // `;
-        // } else {
-        //   controlNetDirective = `BACKGROUND REMOVED IMAGE GUIDANCE: The input image shows the original garment with background removed (white background) for clear color and texture reference. Focus on analyzing the garment's design, construction details, fabric characteristics, and styling elements. Use this clean product image to understand the garment's true colors, textures, patterns, and structural features without any background distractions.
+    console.log(`🖼️ [REPLICATE-GEMINI] Toplam ${imageUrls.length} resim URL'si toplanacak`);
 
-        // `;
-        // }
+    // Replicate Gemini Flash API çağrısı
+    let enhancedPrompt;
 
-        // Statik kuralları sadece normal mode'da ekle (backside ve pose change'de ekleme)
-        let staticRules = "";
+    try {
+      console.log("🤖 [REPLICATE-GEMINI] API çağrısı başlatılıyor...");
 
-        if (!isPoseChange && !isBackSideAnalysis) {
-          // Sadece normal mode'da statik kuralları ekle (backside ve pose change'de değil)
-          staticRules = `
+      // parts[0].text prompt'u içeriyor
+      const promptText = parts[0].text;
+      const geminiGeneratedPrompt = await callReplicateGeminiFlash(promptText, imageUrls, 3);
+
+      // Gemini response kontrolü
+      if (!geminiGeneratedPrompt) {
+        console.error("❌ Replicate Gemini API response boş");
+        throw new Error("Replicate Gemini API response is empty or invalid");
+      }
+
+      // Statik kuralları sadece normal mode'da ekle (backside ve pose change'de ekleme)
+      let staticRules = "";
+
+      if (!isPoseChange && !isBackSideAnalysis) {
+        // Sadece normal mode'da statik kuralları ekle (backside ve pose change'de değil)
+        staticRules = `
 
         CRITICAL RULES (English)
         
@@ -1972,41 +2026,25 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
         Focus & Sharpness: The garment must always be in sharp focus, especially at neckline, chest, and detailing areas. Background can be slightly softened (natural depth of field) to highlight the subject.
         
         Atmosphere: Scene must feel like a real, live professional photoshoot. Lighting, environment, and styling should combine into a polished, high-fashion aesthetic.`;
-        }
+      }
 
-        enhancedPrompt = geminiGeneratedPrompt + staticRules;
-        console.log(
-          "🤖 [BACKEND GEMINI] Gemini'nin ürettiği prompt:",
-          geminiGeneratedPrompt
-        );
-        console.log(
-          "✨ [BACKEND GEMINI] Final enhanced prompt (statik kurallarla):",
-          enhancedPrompt
-        );
-        break; // Başarılı olursa loop'tan çık
-      } catch (geminiError) {
-        console.error(
-          `Gemini API attempt ${attempt} failed:`,
-          geminiError.message
-        );
+      enhancedPrompt = geminiGeneratedPrompt + staticRules;
+      console.log(
+        "🤖 [REPLICATE-GEMINI] Replicate Gemini'nin ürettiği prompt:",
+        geminiGeneratedPrompt
+      );
+      console.log(
+        "✨ [REPLICATE-GEMINI] Final enhanced prompt (statik kurallarla):",
+        enhancedPrompt
+      );
+    } catch (geminiError) {
+      console.error(
+        "❌ [REPLICATE-GEMINI] API failed:",
+        geminiError.message
+      );
 
-        if (attempt === maxRetries) {
-          console.error(
-            "Gemini API all attempts failed, using original prompt"
-          );
-          // Hata durumunda da uygun direktifi ekle
-          // let controlNetDirective = "";
-          // if (hasControlNet) {
-          //   controlNetDirective = `CONTROLNET GUIDANCE: The input image contains two sections separated by a black line. The LEFT side shows the original garment with background removed for color and texture reference. The RIGHT side shows a black and white ControlNet edge detection image that must be used strictly for understanding the garment's structural design, seam placement, silhouette accuracy, and construction details. Use the right side image only for garment structure guidance - it should not influence the model's appearance, pose, facial features, background, or scene composition. The ControlNet data serves exclusively to ensure accurate garment construction and fit.
-
-          // `;
-          // } else {
-          //   controlNetDirective = `BACKGROUND REMOVED IMAGE GUIDANCE: The input image shows the original garment with background removed (white background) for clear color and texture reference. Focus on analyzing the garment's design, construction details, fabric characteristics, and styling elements. Use this clean product image to understand the garment's true colors, textures, patterns, and structural features without any background distractions.
-
-          // `;
-          // }
-          // Fallback durumunda da statik kuralları ekle
-          const staticRules = `
+      // Fallback durumunda da statik kuralları ekle
+      const staticRules = `
 
 CRITICAL RULES:
 
@@ -2018,15 +2056,7 @@ Guarantee editorial-level clarity and detail, with no blur, dull tones, or artif
 
 Model, garment, and environment must integrate into one cohesive, seamless professional photo suitable for commercial catalogs and editorial campaigns.`;
 
-          enhancedPrompt = originalPrompt + staticRules;
-          break;
-        }
-
-        // Exponential backoff: 1s, 2s, 4s
-        const waitTime = Math.pow(2, attempt - 1) * 1000;
-        console.log(`Waiting ${waitTime}ms before retry...`);
-        await new Promise((resolve) => setTimeout(resolve, waitTime));
-      }
+      enhancedPrompt = originalPrompt + staticRules;
     }
 
     // Eğer Gemini sonuç üretemediyse (enhancedPrompt orijinal prompt ile aynıysa) direkt fallback prompt kullan
@@ -2162,27 +2192,23 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
       }
 
       // Ana prompt oluştur - Fashion photography odaklı (çoklu ürün desteği ile)
-      let fallbackPrompt = `Replace the ${
-        isMultipleProducts
-          ? "multiple flat-lay garments/products"
-          : "flat-lay garment"
-      } from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
+      let fallbackPrompt = `Replace the ${isMultipleProducts
+        ? "multiple flat-lay garments/products"
+        : "flat-lay garment"
+        } from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
 
       // Fashion photography ve kalite gereksinimleri
-      fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve ${
-        isMultipleProducts
-          ? "ALL original garments/products"
-          : "the original garment"
-      } exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show ${
-        isMultipleProducts
+      fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve ${isMultipleProducts
+        ? "ALL original garments/products"
+        : "the original garment"
+        } exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show ${isMultipleProducts
           ? "ALL identical garments/products perfectly fitted and coordinated"
           : "the identical garment perfectly fitted"
-      } on the dynamic model for high-end fashion shoots. `;
+        } on the dynamic model for high-end fashion shoots. `;
 
       // Kıyafet özellikleri (genel)
-      fallbackPrompt += `${
-        isMultipleProducts ? "Each garment/product" : "The garment"
-      } features high-quality fabric with proper texture, stitching, and construction details. `;
+      fallbackPrompt += `${isMultipleProducts ? "Each garment/product" : "The garment"
+        } features high-quality fabric with proper texture, stitching, and construction details. `;
 
       // Çoklu ürün için ek koordinasyon talimatları
       if (isMultipleProducts) {
@@ -2190,30 +2216,24 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
       }
 
       // Temizlik gereksinimleri - güvenli versiyon
-      fallbackPrompt += `Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed. Transform the ${
-        isMultipleProducts ? "flat-lay garments/products" : "flat-lay garment"
-      } into hyper-realistic, three-dimensional worn ${
-        isMultipleProducts ? "garments/products" : "garment"
-      } on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
+      fallbackPrompt += `Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed. Transform the ${isMultipleProducts ? "flat-lay garments/products" : "flat-lay garment"
+        } into hyper-realistic, three-dimensional worn ${isMultipleProducts ? "garments/products" : "garment"
+        } on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
 
       // Fizik gereksinimleri
-      fallbackPrompt += `Ensure realistic fabric physics for ${
-        isMultipleProducts ? "ALL garments/products" : "the garment"
-      }: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
+      fallbackPrompt += `Ensure realistic fabric physics for ${isMultipleProducts ? "ALL garments/products" : "the garment"
+        }: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
 
       // Detay koruma - güvenli versiyon
-      fallbackPrompt += `Preserve all original details of ${
-        isMultipleProducts ? "EACH garment/product" : "the garment"
-      } including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning ${
-        isMultipleProducts
+      fallbackPrompt += `Preserve all original details of ${isMultipleProducts ? "EACH garment/product" : "the garment"
+        } including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning ${isMultipleProducts
           ? "any of the original garments/products"
           : "the original garment"
-      }. `;
+        }. `;
 
       // Pattern entegrasyonu
-      fallbackPrompt += `Integrate prints/patterns correctly over the 3D form for ${
-        isMultipleProducts ? "ALL products" : "the garment"
-      }: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
+      fallbackPrompt += `Integrate prints/patterns correctly over the 3D form for ${isMultipleProducts ? "ALL products" : "the garment"
+        }: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
 
       // Final kalite - Fashion photography standartları
       fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
@@ -2386,27 +2406,23 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
     }
 
     // Ana prompt oluştur (çoklu ürün desteği ile)
-    let fallbackPrompt = `Replace the ${
-      isMultipleProducts
-        ? "multiple flat-lay garments/products"
-        : "flat-lay garment"
-    } from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
+    let fallbackPrompt = `Replace the ${isMultipleProducts
+      ? "multiple flat-lay garments/products"
+      : "flat-lay garment"
+      } from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
 
     // Fashion photography ve kalite gereksinimleri
-    fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve ${
-      isMultipleProducts
-        ? "ALL original garments/products"
-        : "the original garment"
-    } exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show ${
-      isMultipleProducts
+    fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve ${isMultipleProducts
+      ? "ALL original garments/products"
+      : "the original garment"
+      } exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show ${isMultipleProducts
         ? "ALL identical garments/products perfectly fitted and coordinated"
         : "the identical garment perfectly fitted"
-    } on the dynamic model for high-end fashion shoots. `;
+      } on the dynamic model for high-end fashion shoots. `;
 
     // Kıyafet özellikleri (genel)
-    fallbackPrompt += `${
-      isMultipleProducts ? "Each garment/product" : "The garment"
-    } features high-quality fabric with proper texture, stitching, and construction details. `;
+    fallbackPrompt += `${isMultipleProducts ? "Each garment/product" : "The garment"
+      } features high-quality fabric with proper texture, stitching, and construction details. `;
 
     // Çoklu ürün için ek koordinasyon talimatları
     if (isMultipleProducts) {
@@ -2414,30 +2430,24 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
     }
 
     // Temizlik gereksinimleri - güvenli versiyon
-    fallbackPrompt += `Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed. Transform the ${
-      isMultipleProducts ? "flat-lay garments/products" : "flat-lay garment"
-    } into hyper-realistic, three-dimensional worn ${
-      isMultipleProducts ? "garments/products" : "garment"
-    } on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
+    fallbackPrompt += `Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed. Transform the ${isMultipleProducts ? "flat-lay garments/products" : "flat-lay garment"
+      } into hyper-realistic, three-dimensional worn ${isMultipleProducts ? "garments/products" : "garment"
+      } on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
 
     // Fizik gereksinimleri
-    fallbackPrompt += `Ensure realistic fabric physics for ${
-      isMultipleProducts ? "ALL garments/products" : "the garment"
-    }: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
+    fallbackPrompt += `Ensure realistic fabric physics for ${isMultipleProducts ? "ALL garments/products" : "the garment"
+      }: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
 
     // Detay koruma - güvenli versiyon
-    fallbackPrompt += `Preserve all original details of ${
-      isMultipleProducts ? "EACH garment/product" : "the garment"
-    } including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning ${
-      isMultipleProducts
+    fallbackPrompt += `Preserve all original details of ${isMultipleProducts ? "EACH garment/product" : "the garment"
+      } including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning ${isMultipleProducts
         ? "any of the original garments/products"
         : "the original garment"
-    }. `;
+      }. `;
 
     // Pattern entegrasyonu
-    fallbackPrompt += `Integrate prints/patterns correctly over the 3D form for ${
-      isMultipleProducts ? "ALL products" : "the garment"
-    }: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
+    fallbackPrompt += `Integrate prints/patterns correctly over the 3D form for ${isMultipleProducts ? "ALL products" : "the garment"
+      }: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
 
     // Final kalite - Fashion photography standartları
     fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
@@ -2700,8 +2710,8 @@ router.post("/generate", async (req, res) => {
     // ReferenceImages sanitization + model referansını yakala
     referenceImages = Array.isArray(referenceImages)
       ? referenceImages
-          .map((img) => normalizeReferenceEntry(img))
-          .filter(Boolean)
+        .map((img) => normalizeReferenceEntry(img))
+        .filter(Boolean)
       : [];
 
     let modelReferenceImage = null;
@@ -2716,7 +2726,7 @@ router.post("/generate", async (req, res) => {
         ...referenceImages[existingModelIndex],
         uri: sanitizeImageUrl(
           referenceImages[existingModelIndex]?.uri ||
-            referenceImages[existingModelIndex]?.url
+          referenceImages[existingModelIndex]?.url
         ),
         type:
           referenceImages[existingModelIndex]?.type ||
@@ -2845,10 +2855,8 @@ router.post("/generate", async (req, res) => {
         }) || [];
 
       console.log(
-        `💳 [SESSION-DEDUP] SessionId ${sessionId} ile ${
-          sessionGenerations.length
-        } generation bulundu (${
-          recentGenerations?.length || 0
+        `💳 [SESSION-DEDUP] SessionId ${sessionId} ile ${sessionGenerations.length
+        } generation bulundu (${recentGenerations?.length || 0
         } recent'tan filtrelendi)`
       );
 
@@ -2878,8 +2886,7 @@ router.post("/generate", async (req, res) => {
         .order("created_at", { ascending: false });
 
       console.log(
-        `💳 [TIME-DEDUP] Son 30 saniyede ${
-          recentGenerations?.length || 0
+        `💳 [TIME-DEDUP] Son 30 saniyede ${recentGenerations?.length || 0
         } generation bulundu`
       );
 
@@ -2970,8 +2977,7 @@ router.post("/generate", async (req, res) => {
 
         creditDeducted = true;
         console.log(
-          `✅ ${totalCreditCost} kredi başarıyla düşüldü (${totalGenerations} generation). Yeni bakiye: ${
-            currentCreditCheck - totalCreditCost
+          `✅ ${totalCreditCost} kredi başarıyla düşüldü (${totalGenerations} generation). Yeni bakiye: ${currentCreditCheck - totalCreditCost
           }`
         );
 
@@ -3006,7 +3012,7 @@ router.post("/generate", async (req, res) => {
     );
     console.log(`🔍 [DEBUG] Generation ID tipi: ${typeof finalGenerationId}`);
 
-      // SessionId ve totalGenerations'ı settings'e ekle (completion'da kredi için gerekli)
+    // SessionId ve totalGenerations'ı settings'e ekle (completion'da kredi için gerekli)
     const settingsWithSession = {
       ...settings,
       totalGenerations: totalGenerations, // Pay-on-success için gerekli
@@ -3466,7 +3472,7 @@ router.post("/generate", async (req, res) => {
           } else if (referenceImages.length > 0 || combinedImageForReplicate) {
             const productSource =
               typeof combinedImageForReplicate === "string" &&
-              combinedImageForReplicate
+                combinedImageForReplicate
                 ? combinedImageForReplicate
                 : referenceImages[0]?.uri || referenceImages[0];
 
@@ -3546,8 +3552,8 @@ router.post("/generate", async (req, res) => {
           imageInput: req.body.isBackSideAnalysis
             ? "2 separate images"
             : isMultipleImages && referenceImages.length > 1
-            ? `${referenceImages.length} separate images`
-            : "single combined image",
+              ? `${referenceImages.length} separate images`
+              : "single combined image",
           imageInputArray: imageInputArray,
           outputFormat: "jpg",
           aspectRatio: aspectRatioForRequest,
@@ -3890,7 +3896,7 @@ router.post("/generate", async (req, res) => {
             } else {
               const productSource =
                 typeof combinedImageForReplicate === "string" &&
-                combinedImageForReplicate
+                  combinedImageForReplicate
                   ? combinedImageForReplicate
                   : referenceImages[0]?.uri || referenceImages[0];
 
@@ -3925,8 +3931,7 @@ router.post("/generate", async (req, res) => {
           }
 
           console.log(
-            `🔄 Retry ${retryAttempt}: Yeni prediction oluşturuluyor... Model: ${
-              qualityVersion === "v2" ? "Nano Banana Pro" : "Nano Banana"
+            `🔄 Retry ${retryAttempt}: Yeni prediction oluşturuluyor... Model: ${qualityVersion === "v2" ? "Nano Banana Pro" : "Nano Banana"
             }`
           );
 
@@ -4476,50 +4481,19 @@ async function generatePoseDescriptionWithGemini(
     // Resim verilerini içerecek parts dizisini hazırla
     const parts = [{ text: posePrompt }];
 
-    // Pose image'ını da Gemini'ye gönder (eğer varsa)
-    if (poseImage) {
-      try {
-        console.log("🤸 Pose görseli Gemini'ye ekleniyor:", poseImage);
+    // Replicate Gemini için resim URL'lerini hazırla
+    const imageUrls = [];
 
-        const cleanPoseImageUrl = poseImage.split("?")[0];
-        const poseImageResponse = await axios.get(cleanPoseImageUrl, {
-          responseType: "arraybuffer",
-          timeout: 15000, // 30s'den 15s'ye düşürüldü
-        });
-        const poseImageBuffer = poseImageResponse.data;
-
-        // Base64'e çevir
-        const base64PoseImage = Buffer.from(poseImageBuffer).toString("base64");
-
-        parts.push({
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: base64PoseImage,
-          },
-        });
-
-        console.log("🤸 Pose görseli başarıyla Gemini'ye eklendi");
-      } catch (poseImageError) {
-        console.error(
-          "🤸 Pose görseli eklenirken hata:",
-          poseImageError.message
-        );
-      }
+    // Pose image'ını URL olarak ekle (base64 yerine)
+    if (poseImage && poseImage.startsWith("http")) {
+      const cleanPoseImageUrl = poseImage.split("?")[0];
+      imageUrls.push(cleanPoseImageUrl);
+      console.log("🤸 Pose görseli Replicate Gemini'ye eklenecek:", cleanPoseImageUrl);
     }
 
-    // Gemini'den cevap al
-    const result = await genAI.models.generateContent({
-      model,
-      contents: [
-        {
-          role: "user",
-          parts: parts,
-        },
-      ],
-    });
-
-    const poseDescription = result.text.trim();
-    console.log("🤸 Gemini'nin ürettiği pose açıklaması:", poseDescription);
+    // Replicate Gemini Flash API çağrısı
+    const poseDescription = await callReplicateGeminiFlash(posePrompt, imageUrls, 3);
+    console.log("🤸 Replicate Gemini'nin ürettiği pose açıklaması:", poseDescription);
 
     const sanitizedDescription = sanitizePoseText(poseDescription);
     if (sanitizedDescription !== poseDescription) {
@@ -4528,7 +4502,7 @@ async function generatePoseDescriptionWithGemini(
 
     return sanitizedDescription;
   } catch (error) {
-    console.error("🤸 Gemini pose açıklaması hatası:", error);
+    console.error("🤸 Replicate Gemini pose açıklaması hatası:", error);
     // Fallback: Basit pose açıklaması
     return sanitizePoseText(
       `Professional ${gender.toLowerCase()} model pose: ${poseTitle}. Stand naturally with good posture, position body to showcase the garment effectively.`
@@ -4646,8 +4620,7 @@ router.get("/generation-status/:generationId", async (req, res) => {
 
       if (userGenerations && userGenerations.length > 0) {
         console.log(
-          `🔍 User ${userId.slice(0, 8)} has ${
-            userGenerations.length
+          `🔍 User ${userId.slice(0, 8)} has ${userGenerations.length
           } active generations:`,
           userGenerations
             .map((g) => `${g.generation_id.slice(0, 8)}(${g.status})`)
@@ -4662,8 +4635,7 @@ router.get("/generation-status/:generationId", async (req, res) => {
 
         if (expiredGenerations.length > 0) {
           console.log(
-            `🧹 Cleaning ${
-              expiredGenerations.length
+            `🧹 Cleaning ${expiredGenerations.length
             } expired generations for user ${userId.slice(0, 8)}`
           );
 
@@ -4753,8 +4725,7 @@ router.get("/generation-status/:generationId", async (req, res) => {
     }
 
     console.log(
-      `✅ Generation durumu: ${finalStatus}${
-        shouldUpdateStatus ? " (timeout nedeniyle güncellendi)" : ""
+      `✅ Generation durumu: ${finalStatus}${shouldUpdateStatus ? " (timeout nedeniyle güncellendi)" : ""
       }`
     );
 
@@ -4917,8 +4888,7 @@ router.get("/user-generations/:userId", async (req, res) => {
     }
 
     console.log(
-      `🔍 User generations sorgusu: ${userId}${
-        status ? ` (status: ${status})` : ""
+      `🔍 User generations sorgusu: ${userId}${status ? ` (status: ${status})` : ""
       }`
     );
 
@@ -4961,8 +4931,7 @@ router.get("/user-generations/:userId", async (req, res) => {
     }
 
     console.log(
-      `✅ ${generations?.length || 0} generation bulundu (${
-        status || "all statuses"
+      `✅ ${generations?.length || 0} generation bulundu (${status || "all statuses"
       })`
     );
 
@@ -5102,11 +5071,11 @@ router.get("/generation/:generationId/reference-images", async (req, res) => {
     // Reference images'ları işle ve array formatında döndür
     const processedReferenceImages = Array.isArray(referenceImages)
       ? referenceImages.map((imageUrl, index) => ({
-          uri: imageUrl,
-          width: 1024,
-          height: 1024,
-          type: index === 0 ? "model" : "product", // İlk resim model, diğerleri product
-        }))
+        uri: imageUrl,
+        width: 1024,
+        height: 1024,
+        type: index === 0 ? "model" : "product", // İlk resim model, diğerleri product
+      }))
       : [];
 
     return res.status(200).json({
