@@ -10,6 +10,96 @@ const genAI = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
+// Replicate API üzerinden Gemini 2.5 Flash çağrısı yapan helper fonksiyon
+// Hata durumunda 3 kez tekrar dener
+async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
+  const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+
+  if (!REPLICATE_API_TOKEN) {
+    throw new Error("REPLICATE_API_TOKEN environment variable is not set");
+  }
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🤖 [REPLICATE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
+
+      // Debug: Request bilgilerini logla
+      console.log(`🔍 [REPLICATE-GEMINI] Images count: ${imageUrls.length}`);
+      console.log(`🔍 [REPLICATE-GEMINI] Prompt length: ${prompt.length} chars`);
+
+      const requestBody = {
+        input: {
+          top_p: 0.95,
+          images: imageUrls, // Direkt URL string array olarak gönder
+          prompt: prompt,
+          videos: [],
+          temperature: 1,
+          dynamic_thinking: false,
+          max_output_tokens: 65535
+        }
+      };
+
+      const response = await axios.post(
+        "https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions",
+        requestBody,
+        {
+          headers: {
+            "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
+            "Content-Type": "application/json",
+            "Prefer": "wait"
+          },
+          timeout: 120000 // 2 dakika timeout
+        }
+      );
+
+      const data = response.data;
+
+      // Hata kontrolü
+      if (data.error) {
+        console.error(`❌ [REPLICATE-GEMINI] API error:`, data.error);
+        throw new Error(data.error);
+      }
+
+      // Status kontrolü
+      if (data.status !== "succeeded") {
+        console.error(`❌ [REPLICATE-GEMINI] Prediction failed with status:`, data.status);
+        throw new Error(`Prediction failed with status: ${data.status}`);
+      }
+
+      // Output'u birleştir (array olarak geliyor)
+      let outputText = "";
+      if (Array.isArray(data.output)) {
+        outputText = data.output.join("");
+      } else if (typeof data.output === "string") {
+        outputText = data.output;
+      }
+
+      if (!outputText || outputText.trim() === "") {
+        console.error(`❌ [REPLICATE-GEMINI] Empty response`);
+        throw new Error("Replicate Gemini response is empty");
+      }
+
+      console.log(`✅ [REPLICATE-GEMINI] Başarılı response alındı (attempt ${attempt})`);
+      console.log(`📊 [REPLICATE-GEMINI] Metrics:`, data.metrics);
+
+      return outputText.trim();
+
+    } catch (error) {
+      console.error(`❌ [REPLICATE-GEMINI] Attempt ${attempt} failed:`, error.message);
+
+      if (attempt === maxRetries) {
+        console.error(`❌ [REPLICATE-GEMINI] All ${maxRetries} attempts failed`);
+        throw error;
+      }
+
+      // Retry öncesi kısa bekleme (exponential backoff)
+      const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      console.log(`⏳ [REPLICATE-GEMINI] ${waitTime}ms bekleniyor...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+}
+
 // Replicate'den gelen resmi Supabase storage'a kaydet
 async function uploadImageToSupabaseStorage(imageUrl, userId, replicateId) {
   try {
@@ -219,28 +309,16 @@ OUTPUT FORMAT (valid JSON only):
 
 IMPORTANT: Return ONLY valid JSON, no explanations, no markdown, no code blocks.`;
 
-    // Google Gemini API çağrısı
-    const model = "gemini-flash-latest";
-    const result = await genAI.models.generateContent({
-      model,
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: prompt }],
-        },
-      ],
-    });
-
-    const geminiResponse =
-      result.text?.trim() || result.response?.text()?.trim() || "";
+    // Replicate Gemini Flash API çağrısı
+    const geminiResponse = await callReplicateGeminiFlash(prompt, [], 3);
 
     if (!geminiResponse) {
-      console.error("❌ Gemini API response boş:", result);
-      throw new Error("Gemini API response is empty or invalid");
+      console.error("❌ Replicate Gemini API response boş");
+      throw new Error("Replicate Gemini API response is empty or invalid");
     }
 
     console.log(
-      "🎯 Gemini raw tags response:",
+      "🎯 Replicate Gemini raw tags response:",
       geminiResponse.substring(0, 200)
     );
 
@@ -321,18 +399,7 @@ IMPORTANT: Return ONLY valid JSON, no explanations, no markdown, no code blocks.
           200
         )}". MANDATORY: Extract key words from title and description - the MAIN SUBJECT mentioned MUST be included in tags. Focus on main subjects, objects, places, styles mentioned. DO NOT use generic atmosphere tags. If location mentions specific objects (car, ship, building, etc.), these MUST be in the tags. Return JSON with languages: en, es, pt, fr, de, it, tr, ru, uk, ar, fa, zh, zh-tw, ja, ko, hi, id. Each language must have exactly 5 tags (minimum 5, maximum 5), each tag exactly one word. Return ONLY valid JSON, no explanations.`;
 
-        const retryResult = await genAI.models.generateContent({
-          model,
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: retryPrompt }],
-            },
-          ],
-        });
-
-        const retryGeminiResponse =
-          retryResult.text?.trim() || retryResult.response?.text()?.trim() || "";
+        const retryGeminiResponse = await callReplicateGeminiFlash(retryPrompt, [], 3);
 
         if (retryGeminiResponse) {
           let cleanedRetryResponse = retryGeminiResponse.trim();
@@ -345,12 +412,12 @@ IMPORTANT: Return ONLY valid JSON, no explanations, no markdown, no code blocks.
           }
 
           tags = JSON.parse(cleanedRetryResponse);
-          console.log("✅ [GEMINI] Retry successful, tags generated");
+          console.log("✅ [REPLICATE-GEMINI] Retry successful, tags generated");
         } else {
           throw new Error("Retry failed - no output");
         }
       } catch (retryError) {
-        console.error("❌ [GEMINI] Retry also failed:", retryError);
+        console.error("❌ [REPLICATE-GEMINI] Retry also failed:", retryError);
         throw new Error("Tag generation failed after retry");
       }
     }
@@ -432,64 +499,16 @@ IMPORTANT: You MUST return a valid JSON object with these exact keys: prompt, ti
 
 Create a detailed location photography prompt from: "${originalPrompt}"`;
 
-    // Google Gemini API çağrısı (retry mekanizması ile)
-    let geminiResponse = "";
-    const maxRetries = 2;
-    const model = "gemini-flash-latest";
+    // Replicate Gemini Flash API çağrısı (built-in retry mekanizması ile)
+    console.log("🤖 [REPLICATE-GEMINI] Location prompt API çağrısı başlatılıyor...");
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        console.log(
-          `🤖 [GEMINI] Location prompt API çağrısı attempt ${attempt}/${maxRetries}`
-        );
-
-        const result = await genAI.models.generateContent({
-          model,
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: promptForGemini }],
-            },
-          ],
-        });
-
-        geminiResponse =
-          result.text?.trim() || result.response?.text()?.trim() || "";
-
-        if (!geminiResponse) {
-          console.error("❌ [GEMINI] API response boş");
-          if (attempt === maxRetries) {
-            throw new Error("Gemini API response is empty or invalid");
-          }
-          continue;
-        }
-
-        console.log(
-          "🤖 [GEMINI] Location prompt response:",
-          geminiResponse.substring(0, 200) + "..."
-        );
-        break; // Başarılı olduysa döngüden çık
-      } catch (geminiError) {
-        console.error(
-          `❌ [GEMINI] Location prompt API attempt ${attempt} failed:`,
-          geminiError.message
-        );
-
-        if (attempt === maxRetries) {
-          throw geminiError;
-        } else {
-          const waitTime = Math.pow(2, attempt - 1) * 1000;
-          console.log(`⏳ ${waitTime}ms bekleniyor, sonra tekrar denenecek...`);
-          await new Promise((resolve) => setTimeout(resolve, waitTime));
-        }
-      }
-    }
+    const geminiResponse = await callReplicateGeminiFlash(promptForGemini, [], 3);
 
     if (!geminiResponse) {
-      throw new Error("Gemini API response is empty after retries");
+      throw new Error("Replicate Gemini API response is empty after retries");
     }
 
-    console.log("🎯 Gemini raw response:", geminiResponse);
+    console.log("🎯 Replicate Gemini raw response:", geminiResponse);
 
     // JSON response'u parse et
     let generatedTitle = null;
@@ -1089,8 +1108,7 @@ router.get("/public-locations", async (req, res) => {
       const shuffleSeed = t ? parseInt(t) : null;
       const shuffledData = shuffleArray(allData || [], shuffleSeed);
       console.log(
-        `🎲 Shuffled ${shuffledData.length} locations with seed: ${
-          shuffleSeed || "auto-generated"
+        `🎲 Shuffled ${shuffledData.length} locations with seed: ${shuffleSeed || "auto-generated"
         }`
       );
 

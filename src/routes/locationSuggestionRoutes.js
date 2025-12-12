@@ -11,6 +11,96 @@ const genAI = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
+// Replicate API üzerinden Gemini 2.5 Flash çağrısı yapan helper fonksiyon
+// Hata durumunda 3 kez tekrar dener
+async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
+  const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+
+  if (!REPLICATE_API_TOKEN) {
+    throw new Error("REPLICATE_API_TOKEN environment variable is not set");
+  }
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🤖 [REPLICATE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
+
+      // Debug: Request bilgilerini logla
+      console.log(`🔍 [REPLICATE-GEMINI] Images count: ${imageUrls.length}`);
+      console.log(`🔍 [REPLICATE-GEMINI] Prompt length: ${prompt.length} chars`);
+
+      const requestBody = {
+        input: {
+          top_p: 0.95,
+          images: imageUrls, // Direkt URL string array olarak gönder
+          prompt: prompt,
+          videos: [],
+          temperature: 1,
+          dynamic_thinking: false,
+          max_output_tokens: 65535
+        }
+      };
+
+      const response = await axios.post(
+        "https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions",
+        requestBody,
+        {
+          headers: {
+            "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
+            "Content-Type": "application/json",
+            "Prefer": "wait"
+          },
+          timeout: 120000 // 2 dakika timeout
+        }
+      );
+
+      const data = response.data;
+
+      // Hata kontrolü
+      if (data.error) {
+        console.error(`❌ [REPLICATE-GEMINI] API error:`, data.error);
+        throw new Error(data.error);
+      }
+
+      // Status kontrolü
+      if (data.status !== "succeeded") {
+        console.error(`❌ [REPLICATE-GEMINI] Prediction failed with status:`, data.status);
+        throw new Error(`Prediction failed with status: ${data.status}`);
+      }
+
+      // Output'u birleştir (array olarak geliyor)
+      let outputText = "";
+      if (Array.isArray(data.output)) {
+        outputText = data.output.join("");
+      } else if (typeof data.output === "string") {
+        outputText = data.output;
+      }
+
+      if (!outputText || outputText.trim() === "") {
+        console.error(`❌ [REPLICATE-GEMINI] Empty response`);
+        throw new Error("Replicate Gemini response is empty");
+      }
+
+      console.log(`✅ [REPLICATE-GEMINI] Başarılı response alındı (attempt ${attempt})`);
+      console.log(`📊 [REPLICATE-GEMINI] Metrics:`, data.metrics);
+
+      return outputText.trim();
+
+    } catch (error) {
+      console.error(`❌ [REPLICATE-GEMINI] Attempt ${attempt} failed:`, error.message);
+
+      if (attempt === maxRetries) {
+        console.error(`❌ [REPLICATE-GEMINI] All ${maxRetries} attempts failed`);
+        throw error;
+      }
+
+      // Retry öncesi kısa bekleme (exponential backoff)
+      const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      console.log(`⏳ [REPLICATE-GEMINI] ${waitTime}ms bekleniyor...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+}
+
 /**
  * Kıyafet resmine göre mekan önerileri oluştur
  * POST /api/location-suggestions/generate
@@ -66,186 +156,111 @@ IMPORTANT:
 
 Analyze the image, identify the category and product type, then generate 5 location suggestions as a JSON array in ${language} language.`;
 
-    // Google Gemini API için resim verilerini hazırla
-    const parts = [{ text: promptForGemini }];
+    // Replicate Gemini Flash API için resim URL'lerini hazırla
+    const imageUrls = [];
 
-    // Resim verilerini içerecek parts dizisini hazırla
-    try {
-      console.log("📤 [GEMINI] Resim Gemini'ye gönderiliyor...");
-
-      let imageBuffer;
-
-      // HTTP URL ise indir, base64 data URL ise direkt kullan
-      if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
-        // HTTP URL - normal indirme
-        console.log("🌐 [GEMINI] HTTP URL indiriliyor...");
-        const imageResponse = await axios.get(imageUrl, {
-          responseType: "arraybuffer",
-          timeout: 15000,
-        });
-        imageBuffer = Buffer.from(imageResponse.data);
-      } else if (imageUrl.startsWith("data:image/")) {
-        // Base64 data URL
-        console.log("📦 [GEMINI] Base64 data URL kullanılıyor...");
-        const base64Data = imageUrl.split(",")[1];
-        imageBuffer = Buffer.from(base64Data, "base64");
-      } else {
-        throw new Error("Invalid image URL format");
-      }
-
-      // EXIF rotation düzeltmesi uygula
-      let processedBuffer;
-      try {
-        processedBuffer = await sharp(imageBuffer)
-          .rotate() // EXIF orientation bilgisini otomatik uygula
-          .jpeg({ quality: 100 })
-          .toBuffer();
-      } catch (sharpError) {
-        processedBuffer = imageBuffer; // Fallback
-      }
-
-      const base64 = processedBuffer.toString("base64");
-      const mimeType = mime.getType(imageUrl) || "image/jpeg";
-      parts.push({
-        inlineData: {
-          data: base64,
-          mimeType: mimeType,
-        },
-      });
-
-      console.log("✅ [GEMINI] Resim Gemini'ye eklendi");
-    } catch (imageError) {
-      console.error("❌ Resim işleme hatası:", imageError);
-      throw new Error(`Image processing error: ${imageError.message}`);
+    // HTTP URL ise direkt kullan, base64 ise URL yok
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+      imageUrls.push(imageUrl);
+      console.log("🖼️ [REPLICATE-GEMINI] Image URL eklendi:", imageUrl);
+    } else if (imageUrl.startsWith("data:image/")) {
+      console.log("⚠️ [REPLICATE-GEMINI] Base64 data URL - resim olmadan devam ediliyor (Replicate API sadece URL destekler)");
     }
 
-    // Google Gemini API çağrısı (retry mekanizması ile)
+    // Replicate Gemini Flash API çağrısı
     let suggestions = null;
-    const maxRetries = 2;
-    const model = "gemini-flash-latest";
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        console.log(
-          `🤖 [GEMINI] Location suggestions API çağrısı attempt ${attempt}/${maxRetries}`
-        );
+    try {
+      console.log("🤖 [REPLICATE-GEMINI] Location suggestions API çağrısı başlatılıyor...");
 
-        const result = await genAI.models.generateContent({
-          model,
-          contents: [
-            {
-              role: "user",
-              parts: parts,
-            },
-          ],
-        });
+      const geminiResponse = await callReplicateGeminiFlash(promptForGemini, imageUrls, 3);
 
-        const geminiResponse =
-          result.text?.trim() || result.response?.text()?.trim() || "";
-
-        if (!geminiResponse) {
-          console.error("❌ [GEMINI] API response boş:", result);
-          if (attempt === maxRetries) {
-            throw new Error("Gemini API response is empty or invalid");
-          }
-          continue;
-        }
-
-        console.log(
-          "🤖 [REPLICATE GEMINI] Location suggestions response:",
-          geminiResponse.substring(0, 200) + "..."
-        );
-
-        // JSON parse et
-        try {
-          // JSON kod bloklarını temizle
-          let cleanedResponse = geminiResponse
-            .replace(/```json/g, "")
-            .replace(/```/g, "")
-            .replace(/`/g, "")
-            .trim();
-
-          // Eğer başında veya sonunda fazladan karakterler varsa temizle
-          cleanedResponse = cleanedResponse.replace(/^[^[]*\[/, "[");
-          cleanedResponse = cleanedResponse.replace(/\][^]]*$/, "]");
-
-          suggestions = JSON.parse(cleanedResponse);
-
-          // Array kontrolü
-          if (!Array.isArray(suggestions)) {
-            throw new Error("Response is not an array");
-          }
-
-          // 5 öneri kontrolü
-          if (suggestions.length !== 5) {
-            console.warn(
-              `⚠️ [GEMINI] Beklenen 5 öneri, ${suggestions.length} alındı`
-            );
-            // Eğer 5'ten azsa, eksikleri doldur
-            while (suggestions.length < 5) {
-              suggestions.push(
-                "Professional fashion photography location with optimal lighting and atmosphere"
-              );
-            }
-            // Eğer 5'ten fazlaysa, ilk 5'i al
-            suggestions = suggestions.slice(0, 5);
-          }
-
-          console.log(
-            `✅ [GEMINI] ${suggestions.length} öneri başarıyla alındı`
-          );
-          break; // Başarılı olursa loop'tan çık
-        } catch (parseError) {
-          console.error(
-            "❌ [GEMINI] JSON parse hatası:",
-            parseError.message
-          );
-          console.log(
-            "📝 [GEMINI] Raw response:",
-            geminiResponse
-          );
-
-          if (attempt === maxRetries) {
-            // Son denemede fallback önerileri kullan (genel amaçlı)
-            suggestions = [
-              "Modern minimalist office environment with large glass windows and natural daylight",
-              "Luxury hotel lobby with marble floors, crystal chandeliers, elegant furniture",
-              "Seaside cafe with wooden decor, tropical plants, open-air setting",
-              "Vintage boutique store with antique items, warm tones, nostalgic atmosphere",
-              "Modern studio with white walls, professional lighting setup, minimal decor",
-            ];
-            console.log(
-              "🔄 [GEMINI] Fallback önerileri kullanılıyor"
-            );
-          } else {
-            throw parseError;
-          }
-        }
-      } catch (geminiError) {
-        console.error(
-          `❌ [GEMINI] Location suggestions API attempt ${attempt} failed:`,
-          geminiError.message
-        );
-
-        if (attempt === maxRetries) {
-          // Son denemede fallback önerileri kullan (genel amaçlı)
-          suggestions = [
-            "Modern minimalist office environment with large glass windows and natural daylight",
-            "Luxury hotel lobby with marble floors, crystal chandeliers, elegant furniture",
-            "Seaside cafe with wooden decor, tropical plants, open-air setting",
-            "Vintage boutique store with antique items, warm tones, nostalgic atmosphere",
-            "Modern studio with white walls, professional lighting setup, minimal decor",
-          ];
-          console.log(
-            "🔄 [GEMINI] Fallback önerileri kullanılıyor (hata durumunda)"
-          );
-        } else {
-          // Exponential backoff: 1s, 2s
-          const waitTime = Math.pow(2, attempt - 1) * 1000;
-          console.log(`⏳ ${waitTime}ms bekleniyor, sonra tekrar denenecek...`);
-          await new Promise((resolve) => setTimeout(resolve, waitTime));
-        }
+      if (!geminiResponse) {
+        throw new Error("Replicate Gemini API response is empty or invalid");
       }
+
+      console.log(
+        "🤖 [REPLICATE-GEMINI] Location suggestions response:",
+        geminiResponse.substring(0, 200) + "..."
+      );
+
+      // JSON parse et
+      try {
+        // JSON kod bloklarını temizle
+        let cleanedResponse = geminiResponse
+          .replace(/```json/g, "")
+          .replace(/```/g, "")
+          .replace(/`/g, "")
+          .trim();
+
+        // Eğer başında veya sonunda fazladan karakterler varsa temizle
+        cleanedResponse = cleanedResponse.replace(/^[^[]*\[/, "[");
+        cleanedResponse = cleanedResponse.replace(/\][^]*$/, "]");
+
+        suggestions = JSON.parse(cleanedResponse);
+
+        // Array kontrolü
+        if (!Array.isArray(suggestions)) {
+          throw new Error("Response is not an array");
+        }
+
+        // 5 öneri kontrolü
+        if (suggestions.length !== 5) {
+          console.warn(
+            `⚠️ [REPLICATE-GEMINI] Beklenen 5 öneri, ${suggestions.length} alındı`
+          );
+          // Eğer 5'ten azsa, eksikleri doldur
+          while (suggestions.length < 5) {
+            suggestions.push(
+              "Professional fashion photography location with optimal lighting and atmosphere"
+            );
+          }
+          // Eğer 5'ten fazlaysa, ilk 5'i al
+          suggestions = suggestions.slice(0, 5);
+        }
+
+        console.log(
+          `✅ [REPLICATE-GEMINI] ${suggestions.length} öneri başarıyla alındı`
+        );
+      } catch (parseError) {
+        console.error(
+          "❌ [REPLICATE-GEMINI] JSON parse hatası:",
+          parseError.message
+        );
+        console.log(
+          "📝 [REPLICATE-GEMINI] Raw response:",
+          geminiResponse
+        );
+
+        // Fallback önerileri kullan (genel amaçlı)
+        suggestions = [
+          "Modern minimalist office environment with large glass windows and natural daylight",
+          "Luxury hotel lobby with marble floors, crystal chandeliers, elegant furniture",
+          "Seaside cafe with wooden decor, tropical plants, open-air setting",
+          "Vintage boutique store with antique items, warm tones, nostalgic atmosphere",
+          "Modern studio with white walls, professional lighting setup, minimal decor",
+        ];
+        console.log(
+          "🔄 [REPLICATE-GEMINI] Fallback önerileri kullanılıyor"
+        );
+      }
+    } catch (geminiError) {
+      console.error(
+        "❌ [REPLICATE-GEMINI] Location suggestions API failed:",
+        geminiError.message
+      );
+
+      // Fallback önerileri kullan (genel amaçlı)
+      suggestions = [
+        "Modern minimalist office environment with large glass windows and natural daylight",
+        "Luxury hotel lobby with marble floors, crystal chandeliers, elegant furniture",
+        "Seaside cafe with wooden decor, tropical plants, open-air setting",
+        "Vintage boutique store with antique items, warm tones, nostalgic atmosphere",
+        "Modern studio with white walls, professional lighting setup, minimal decor",
+      ];
+      console.log(
+        "🔄 [REPLICATE-GEMINI] Fallback önerileri kullanılıyor (hata durumunda)"
+      );
     }
 
     if (!suggestions || suggestions.length === 0) {
