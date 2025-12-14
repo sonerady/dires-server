@@ -6,6 +6,15 @@ const fs = require("fs");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 
+// Nano Banana API endpoint
+const NANO_BANANA_API_URL =
+  "https://api.replicate.com/v1/models/google/nano-banana/predictions";
+
+// Example image paths - hair styles için
+const getExampleHairImagePath = () => {
+  return path.join(__dirname, "../../lib/example_hair.jpg");
+};
+
 // Replicate API üzerinden Gemini 2.5 Flash çağrısı yapan helper fonksiyon
 // Hata durumunda 3 kez tekrar dener
 async function callReplicateGeminiFlash(
