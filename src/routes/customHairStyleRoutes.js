@@ -5,19 +5,113 @@ const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-// Nano Banana API endpoint
-const NANO_BANANA_API_URL =
-  "https://api.replicate.com/v1/models/google/nano-banana/predictions";
+// Replicate API üzerinden Gemini 2.5 Flash çağrısı yapan helper fonksiyon
+// Hata durumunda 3 kez tekrar dener
+async function callReplicateGeminiFlash(
+  prompt,
+  imageUrls = [],
+  maxRetries = 3
+) {
+  const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 
-// Example image paths - hair styles için
-const getExampleHairImagePath = () => {
-  return path.join(__dirname, "../../lib/example_hair.jpg");
-};
+  if (!REPLICATE_API_TOKEN) {
+    throw new Error("REPLICATE_API_TOKEN environment variable is not set");
+  }
 
-// Gemini API için istemci oluştur
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(
+        `🤖 [REPLICATE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`
+      );
+
+      // Debug: Request bilgilerini logla
+      console.log(`🔍 [REPLICATE-GEMINI] Images count: ${imageUrls.length}`);
+      console.log(
+        `🔍 [REPLICATE-GEMINI] Prompt length: ${prompt.length} chars`
+      );
+
+      const requestBody = {
+        input: {
+          top_p: 0.95,
+          images: imageUrls, // Direkt URL string array olarak gönder
+          prompt: prompt,
+          videos: [],
+          temperature: 1,
+          dynamic_thinking: false,
+          max_output_tokens: 65535,
+        },
+      };
+
+      const response = await axios.post(
+        "https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions",
+        requestBody,
+        {
+          headers: {
+            Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
+            "Content-Type": "application/json",
+            Prefer: "wait",
+          },
+          timeout: 120000, // 2 dakika timeout
+        },
+      );
+
+      const data = response.data;
+
+      // Hata kontrolü
+      if (data.error) {
+        console.error(`❌ [REPLICATE-GEMINI] API error:`, data.error);
+        throw new Error(data.error);
+      }
+
+      // Status kontrolü
+      if (data.status !== "succeeded") {
+        console.error(
+          `❌ [REPLICATE-GEMINI] Prediction failed with status:`,
+          data.status
+        );
+        throw new Error(`Prediction failed with status: ${data.status}`);
+      }
+
+      // Output'u birleştir (array olarak geliyor)
+      let outputText = "";
+      if (Array.isArray(data.output)) {
+        outputText = data.output.join("");
+      } else if (typeof data.output === "string") {
+        outputText = data.output;
+      }
+
+      if (!outputText || outputText.trim() === "") {
+        console.error(`❌ [REPLICATE-GEMINI] Empty response`);
+        throw new Error("Replicate Gemini response is empty");
+      }
+
+      console.log(
+        `✅ [REPLICATE-GEMINI] Başarılı response alındı (attempt ${attempt})`
+      );
+      console.log(`📊 [REPLICATE-GEMINI] Metrics:`, data.metrics);
+
+      return outputText.trim();
+    } catch (error) {
+      console.error(
+        `❌ [REPLICATE-GEMINI] Attempt ${attempt} failed:`,
+        error.message
+      );
+
+      if (attempt === maxRetries) {
+        console.error(
+          `❌ [REPLICATE-GEMINI] All ${maxRetries} attempts failed`
+        );
+        throw error;
+      }
+
+      // Retry öncesi kısa bekleme (exponential backoff)
+      const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      console.log(`⏳ [REPLICATE-GEMINI] ${waitTime}ms bekleniyor...`);
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+    }
+  }
+}
 
 // Supabase resim URL'lerini optimize eden yardımcı fonksiyon (düşük boyut için)
 const optimizeImageUrl = (imageUrl) => {
@@ -70,8 +164,7 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
 
       const result = response.data;
       console.log(
-        `🔍 [NANO BANANA HAIR] Polling attempt ${attempt + 1}: status = ${
-          result.status
+        `🔍 [NANO BANANA HAIR] Polling attempt ${attempt + 1}: status = ${result.status
         }`
       );
 
@@ -215,8 +308,7 @@ async function callNanoBananaForHair(prompt, gender) {
           errorText.includes("E004")
         ) {
           console.log(
-            `⚠️ [NANO BANANA HAIR] Service unavailable hatası, ${
-              retry < maxRetries ? "retry yapılıyor..." : "son deneme başarısız"
+            `⚠️ [NANO BANANA HAIR] Service unavailable hatası, ${retry < maxRetries ? "retry yapılıyor..." : "son deneme başarısız"
             }`
           );
           lastError = error;
@@ -321,8 +413,6 @@ async function generateHairStyleTitleWithGemini(hairStyleDescription, gender) {
       hairStyleDescription.substring(0, 50) + "..."
     );
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
     const titlePrompt = `
 Create a short, catchy title for this hair style description:
 
@@ -346,14 +436,11 @@ EXAMPLES:
 Generate ONLY the title, nothing else.
     `;
 
-    const result = await model.generateContent({
-      contents: [{ parts: [{ text: titlePrompt }] }],
-    });
+    const generatedTitle = await callReplicateGeminiFlash(titlePrompt);
+    const cleanedTitle = generatedTitle.trim().replace(/['"]/g, "");
 
-    const generatedTitle = result.response.text().trim().replace(/['"]/g, "");
-
-    console.log("✅ [GEMINI HAIR] Generated title:", generatedTitle);
-    return generatedTitle;
+    console.log("✅ [GEMINI HAIR] Generated title:", cleanedTitle);
+    return cleanedTitle;
   } catch (error) {
     console.error("❌ [GEMINI HAIR] Title generation hatası:", error);
     // Fallback: basit başlık
@@ -370,8 +457,6 @@ async function enhanceHairStyleDescriptionWithGemini(
     console.log("🤖 [GEMINI HAIR] Hair style açıklaması enhance ediliyor...");
     console.log("🤖 [GEMINI HAIR] Original description:", originalDescription);
     console.log("🤖 [GEMINI HAIR] Gender:", gender);
-
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const promptForGemini = `
 Translate and convert this hair style description to English with detailed professional description:
@@ -410,11 +495,7 @@ Examples:
 IMPORTANT: Return ONLY valid JSON, no extra text.
     `;
 
-    const result = await model.generateContent({
-      contents: [{ parts: [{ text: promptForGemini }] }],
-    });
-
-    const responseText = result.response.text().trim();
+    const responseText = await callReplicateGeminiFlash(promptForGemini);
     console.log("🔍 [GEMINI HAIR] Raw response:", responseText);
 
     // JSON'dan önce ve sonraki backtick'leri ve markdown formatını temizle
@@ -440,13 +521,10 @@ IMPORTANT: Return ONLY valid JSON, no extra text.
       // Daha basit prompt ile tekrar dene
       const simplePrompt = `Translate "${originalDescription}" to detailed English hair style description (minimum 40 words). Return JSON: {"enhancedPrompt": "A ${gender} mannequin with detailed ${originalDescription} hair style", "hairStyleDescription": "detailed professional hair style description with cut details, texture, and styling elements"}`;
 
-      const retryResult = await model.generateContent({
-        contents: [{ parts: [{ text: simplePrompt }] }],
-      });
+      const retryTextRaw = await callReplicateGeminiFlash(simplePrompt);
 
       try {
-        const retryText = retryResult.response
-          .text()
+        const retryText = retryTextRaw
           .trim()
           .replace(/```json/g, "")
           .replace(/```/g, "")
