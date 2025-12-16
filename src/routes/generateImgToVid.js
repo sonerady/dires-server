@@ -112,19 +112,44 @@ async function generateVideoPrompt(imageUrl, userPrompt) {
     console.log("Replicate Gemini ile video prompt oluşturma başlatılıyor");
 
     // Gemini'ye gönderilecek metin
-    const promptForGemini = `
-    Based on the user's input: "${userPrompt}" (which may be in any language) and the provided image, create a concise English prompt for image-to-video generation. 
 
-    Describe how the image should naturally animate and move in a short video sequence. Focus on:
-    - Smooth transitions and subtle movements
-    - Natural flow and realistic motion
-    - How objects, people, or elements in the image should move
-    - Camera movements if appropriate (zoom, pan, etc.)
-    - Lighting changes or environmental effects
+    const promptForGemini = `
+    Act as an expert AI Video Director. Your task is to convert the user's input into a high-end, professional technical prompt for the Kling AI Image-to-Video model.
+
+    User Input: "${userPrompt}" (The user input might be simple or in another language. Analyze the provided image to fill in missing details about the outfit/setting).
+
+    Desired Output Format & Style:
+    Create a structured, cinematic prompt in English that mimics the quality of a high-budget fashion film. Use the following sections:
+
+    1. Scene Description:
+       - Detailed description of the model, outfit (fabric, texture, style), and the environment.
     
-    Keep it under 50 words and provide only the prompt without any additional formatting or explanations.
-    
-    User's request: ${userPrompt}
+    2. Camera Movement & Shots:
+       - Use professional terms: "slow cinematic push-in", "subtle parallax", "gentle orbit", "low-angle", "pull-back".
+       - Focus on highlighting the product details.
+
+    3. Model Movement:
+       - Emphasize "natural", "minimal", "elegant" movements (e.g., slight weight shift, gentle breathing, relaxed hand movement). 
+       - Avoid exaggerated actions; keep it poised and confident.
+
+    4. Lighting & Mood:
+       - Describe the atmosphere (e.g., "golden hour", "soft studio lighting", "warm highlights", "luxury editorial mood").
+
+    5. Visual Style:
+       - Keywords: "Ultra-realistic fashion film", "shallow depth of field", "smooth motion", "cinematic softness", "8k", "high fidelity".
+
+    Constraints:
+    - Output ONLY the generated prompt text.
+    - Do not include conversational text or explanations.
+    - Ensure the English is fluent and descriptive.
+    - If the user request is very short (e.g. "make it move"), use your creative license to generate a standard "High Fashion" luxury look based on the image.
+
+    Target Output Structure Example:
+    "The scene features... [Description].
+    Camera movement: [Details].
+    Model movement: [Details].
+    Lighting & mood: [Details].
+    Visual style: [Details]."
     `;
 
     // Replicate Gemini Flash API için resim URL'sini hazırla
