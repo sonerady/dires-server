@@ -142,6 +142,7 @@ async function generateVideoPrompt(imageUrl, userPrompt) {
     - Output ONLY the generated prompt text.
     - Do not include conversational text or explanations.
     - Ensure the English is fluent and descriptive.
+    - Keep the total output length UNDER 2300 characters.
     - If the user request is very short (e.g. "make it move"), use your creative license to generate a standard "High Fashion" luxury look based on the image.
 
     Target Output Structure Example:
@@ -161,7 +162,14 @@ async function generateVideoPrompt(imageUrl, userPrompt) {
 
     // Replicate Gemini Flash API çağrısı
     try {
-      const enhancedPrompt = await callReplicateGeminiFlash(promptForGemini, imageUrls, 3);
+      let enhancedPrompt = await callReplicateGeminiFlash(promptForGemini, imageUrls, 3);
+
+      // Manual trim safeguard
+      if (enhancedPrompt.length > 2400) {
+        console.log(`⚠️ Prompt too long (${enhancedPrompt.length}), truncating to 2400 chars.`);
+        enhancedPrompt = enhancedPrompt.substring(0, 2400);
+      }
+
       console.log("🎬 Replicate Gemini'nin ürettiği video prompt:", enhancedPrompt);
       return enhancedPrompt;
     } catch (geminiError) {
@@ -434,7 +442,7 @@ router.post("/generateImgToVid", async (req, res) => {
         user_id: userId,
         product_id: productId,
         prediction_id: requestId, // fal.ai request_id
-        categories: categories,
+        categories: "videos",
         product_main_image: productMainUrlJSON,
       });
 

@@ -79,7 +79,20 @@ async function fetchPredictionDetails(predictionId) {
       };
 
     } catch (falError) {
-      console.log(`Fal.ai SDK fetch failed for ${predictionId}`, falError.message);
+      // Handle known errors for invalid/local IDs (404 Not Found, 422 Unprocessable Entity)
+      // These are likely fallback UUIDs created locally when API failed, so they don't exist in Fal.ai.
+      if (falError.status === 404 || falError.status === 422 || (falError.response && (falError.response.status === 404 || falError.response.status === 422)) || falError.message.includes("Unprocessable Entity")) {
+        // console.log(`Skipping invalid Fal.ai ID: ${predictionId}`); // Optional debug
+        return {
+          status: "failed",
+          output: null,
+          error: "Prediction not found or invalid ID",
+          logs: "",
+          input: { num_outputs: 0 }
+        };
+      }
+
+      console.error(`Fal.ai SDK fetch failed for ${predictionId}:`, falError.message);
       return null;
     }
   }
