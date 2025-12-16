@@ -3,8 +3,7 @@ const router = express.Router();
 const axios = require("axios");
 const { supabase } = require("../supabaseClient");
 
-const REPLICATE_ENDPOINT =
-  "https://api.replicate.com/v1/models/philz1337x/crystal-upscaler/predictions";
+const FAL_ENDPOINT = "https://fal.run/clarityai/crystal-upscaler";
 
 router.post("/", async (req, res) => {
   const CREDIT_COST = 5; // Image enhancement için kredi maliyeti
@@ -83,8 +82,7 @@ router.post("/", async (req, res) => {
 
         creditDeducted = true;
         console.log(
-          `✅ ${CREDIT_COST} kredi düşüldü. Kalan: ${
-            currentCredit - CREDIT_COST
+          `✅ ${CREDIT_COST} kredi düşüldü. Kalan: ${currentCredit - CREDIT_COST
           }`
         );
       } catch (creditManagementError) {
@@ -96,38 +94,59 @@ router.post("/", async (req, res) => {
       }
     }
 
-    console.log("2. Starting Replicate API call...");
-    const replicateResponse = await axios.post(
-      REPLICATE_ENDPOINT,
+    console.log("2. Starting Fal.ai API call (clarityai/crystal-upscaler)...");
+
+    // Fal.ai API çağrısı
+    const falResponse = await axios.post(
+      FAL_ENDPOINT,
       {
-        input: {
-          image: imageUrl,
-          scale_factor: Number(scale) || 2,
-        },
+        image_url: imageUrl,
+        upscaling_factor: Number(scale) || 2,
+        // Diğer parametreler model tarafından destekleniyorsa eklenebilir
       },
       {
         headers: {
-          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+          Authorization: `Key ${process.env.FAL_API_KEY}`,
           "Content-Type": "application/json",
-          Prefer: "wait",
         },
+        timeout: 180000, // 3 dakika timeout
       }
     );
-    console.log("3. Replicate API response:", replicateResponse.data);
 
-    const { status, output } = replicateResponse.data || {};
-    if (status !== "succeeded") {
-      throw new Error(
-        `Replicate enhancement failed with status: ${status || "unknown"}`
-      );
+    console.log("3. Fal.ai API response received");
+
+    // Fal.ai genellikle { image: { url: "..." } } veya { images: [...] } döner
+    // Crystal Upscaler: Genellikle { image: { url: ... } } veya direkt URL dönebilir, dokümana göre değişir.
+    // Standart Fal pattern: { image: { url: "...", ... } }
+
+    const output = falResponse.data;
+    console.log("Fal.ai raw output:", JSON.stringify(output, null, 2));
+
+    let resultImageUrl = null;
+
+    if (output.image && output.image.url) {
+      resultImageUrl = output.image.url;
+    } else if (output.images && Array.isArray(output.images) && output.images.length > 0) {
+      resultImageUrl = output.images[0].url;
+    } else if (typeof output === 'string' && output.startsWith('http')) {
+      resultImageUrl = output; // Nadir durum
+    } else {
+      // Fallback: Belki direkt { url: "..." } döner
+      resultImageUrl = output.url || null;
+    }
+
+    if (!resultImageUrl) {
+      console.error("❌ Fal.ai response'da resim URL'i bulunamadı:", output);
+      throw new Error("Fal.ai response did not contain a valid image URL");
     }
 
     const response = {
       success: true,
       input: imageUrl,
-      output,
-      enhancedImageUrl: Array.isArray(output) ? output[0] : output,
+      output: resultImageUrl, // Uyumluluk için
+      enhancedImageUrl: resultImageUrl,
     };
+
     console.log("4. Sending response to client:", response);
 
     res.json(response);

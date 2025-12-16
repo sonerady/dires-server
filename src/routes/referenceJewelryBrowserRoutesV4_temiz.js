@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-// Updated: Using Google Gemini API for prompt generation
 const { GoogleGenAI } = require("@google/genai");
 const mime = require("mime");
 const { createClient } = require("@supabase/supabase-js");
@@ -10,9 +9,6 @@ const fs = require("fs");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const { createCanvas, loadImage } = require("canvas");
-const {
-  sendGenerationCompletedNotification,
-} = require("../services/pushNotificationService");
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -31,101 +27,6 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
     persistSession: false,
   },
 });
-
-// Gemini API setup
-const genAI = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
-
-// Replicate API üzerinden Gemini 2.5 Flash çağrısı yapan helper fonksiyon
-// Hata durumunda 3 kez tekrar dener
-async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
-  const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
-
-  if (!REPLICATE_API_TOKEN) {
-    throw new Error("REPLICATE_API_TOKEN environment variable is not set");
-  }
-
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      console.log(`🤖 [REPLICATE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
-
-      // Debug: Request bilgilerini logla
-      console.log(`🔍 [REPLICATE-GEMINI] Images count: ${imageUrls.length}`);
-      console.log(`🔍 [REPLICATE-GEMINI] Prompt length: ${prompt.length} chars`);
-
-      const requestBody = {
-        input: {
-          top_p: 0.95,
-          images: imageUrls, // Direkt URL string array olarak gönder
-          prompt: prompt,
-          videos: [],
-          temperature: 1,
-          dynamic_thinking: false,
-          max_output_tokens: 65535
-        }
-      };
-
-      const response = await axios.post(
-        "https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions",
-        requestBody,
-        {
-          headers: {
-            "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
-            "Content-Type": "application/json",
-            "Prefer": "wait"
-          },
-          timeout: 120000 // 2 dakika timeout
-        }
-      );
-
-      const data = response.data;
-
-      // Hata kontrolü
-      if (data.error) {
-        console.error(`❌ [REPLICATE-GEMINI] API error:`, data.error);
-        throw new Error(data.error);
-      }
-
-      // Status kontrolü
-      if (data.status !== "succeeded") {
-        console.error(`❌ [REPLICATE-GEMINI] Prediction failed with status:`, data.status);
-        throw new Error(`Prediction failed with status: ${data.status}`);
-      }
-
-      // Output'u birleştir (array olarak geliyor)
-      let outputText = "";
-      if (Array.isArray(data.output)) {
-        outputText = data.output.join("");
-      } else if (typeof data.output === "string") {
-        outputText = data.output;
-      }
-
-      if (!outputText || outputText.trim() === "") {
-        console.error(`❌ [REPLICATE-GEMINI] Empty response`);
-        throw new Error("Replicate Gemini response is empty");
-      }
-
-      console.log(`✅ [REPLICATE-GEMINI] Başarılı response alındı (attempt ${attempt})`);
-      console.log(`📊 [REPLICATE-GEMINI] Metrics:`, data.metrics);
-
-      return outputText.trim();
-
-    } catch (error) {
-      console.error(`❌ [REPLICATE-GEMINI] Attempt ${attempt} failed:`, error.message);
-
-      if (attempt === maxRetries) {
-        console.error(`❌ [REPLICATE-GEMINI] All ${maxRetries} attempts failed`);
-        throw error;
-      }
-
-      // Retry öncesi kısa bekleme (exponential backoff)
-      const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-      console.log(`⏳ [REPLICATE-GEMINI] ${waitTime}ms bekleniyor...`);
-      await new Promise(resolve => setTimeout(resolve, waitTime));
-    }
-  }
-}
 
 // Görüntülerin geçici olarak saklanacağı klasörü oluştur
 const tempDir = path.join(__dirname, "../../temp");
@@ -489,7 +390,8 @@ async function createPendingGeneration(
   aspectRatio = "9:16",
   isMultipleImages = false,
   isMultipleProducts = false,
-  generationId = null
+  generationId = null,
+  qualityVersion = "v1" // Kalite versiyonu parametresi
 ) {
   try {
     // User ID yoksa veya UUID formatında değilse, UUID oluştur
@@ -540,6 +442,7 @@ async function createPendingGeneration(
           is_multiple_products: isMultipleProducts,
           generation_id: generationId,
           status: "pending", // Başlangıçta pending
+          quality_version: qualityVersion, // Kalite versiyonunu kaydet
           created_at: new Date().toISOString(),
         },
       ])
@@ -566,8 +469,6 @@ async function createPendingGeneration(
 // Başarılı completion'da kredi düşürme fonksiyonu
 async function deductCreditOnSuccess(generationId, userId) {
   try {
-    const CREDIT_COST = 10; // Her oluşturma 10 kredi
-
     console.log(
       `💳 [COMPLETION-CREDIT] Generation ${generationId} başarılı, kredi düşürülüyor...`
     );
@@ -613,7 +514,7 @@ async function deductCreditOnSuccess(generationId, userId) {
     // Generation bilgilerini al (totalGenerations için)
     const { data: generation, error: genError } = await supabase
       .from("reference_results")
-      .select("settings")
+      .select("settings, quality_version")
       .eq("generation_id", generationId)
       .eq("user_id", userId)
       .single();
@@ -626,10 +527,16 @@ async function deductCreditOnSuccess(generationId, userId) {
       return false;
     }
 
-    // Jenerasyon başına kredi düş (her tamamlanan için 20)
-    const totalCreditCost = CREDIT_COST; // 20
+    // Jenerasyon başına kredi düş (her tamamlanan için dinamik)
+    const qualityVersion =
+      generation.quality_version ||
+      generation.settings?.qualityVersion ||
+      "v1";
+    const CREDIT_COST = qualityVersion === "v2" ? 35 : 10;
+    const totalCreditCost = CREDIT_COST;
+
     console.log(
-      `💳 [COMPLETION-CREDIT] Bu generation için ${totalCreditCost} kredi düşürülecek`
+      `💳 [COMPLETION-CREDIT] Bu generation (${qualityVersion}) için ${totalCreditCost} kredi düşürülecek`
     );
 
     // Krediyi atomic olarak düş
@@ -825,22 +732,6 @@ async function updateGenerationStatus(
         console.log(`💳 [TRIGGER] Kredi düşürme kontrolü başlatılıyor...`);
         await deductCreditOnSuccess(generationId, userId);
       }
-
-      // 📱 Push notification gönder (sadece yeni completed ise)
-      if (!alreadyCompleted) {
-        console.log(
-          `📱 [NOTIFICATION] Generation completed - notification gönderiliyor: ${generationId}`
-        );
-        sendGenerationCompletedNotification(userId, generationId).catch(
-          (error) => {
-            console.error(
-              `❌ [NOTIFICATION] Notification gönderme hatası:`,
-              error
-            );
-            // Notification hatası generation'ı etkilemesin, sessizce devam et
-          }
-        );
-      }
     }
 
     return data[0];
@@ -850,7 +741,94 @@ async function updateGenerationStatus(
   }
 }
 
-// Replicate API kullanılacak - genAI client artık gerekli değil
+// Gemini API için istemci oluştur (yeni SDK)
+const genAI = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+});
+
+// Replicate API üzerinden Gemini 2.5 Flash çağrısı yapan helper fonksiyon
+// Hata durumunda 3 kez tekrar dener
+async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
+  const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+
+  if (!REPLICATE_API_TOKEN) {
+    throw new Error("REPLICATE_API_TOKEN environment variable is not set");
+  }
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🤖 [REPLICATE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
+
+      console.log(`🔍 [REPLICATE-GEMINI] Images count: ${imageUrls.length}`);
+      console.log(`🔍 [REPLICATE-GEMINI] Prompt length: ${prompt.length} chars`);
+
+      const requestBody = {
+        input: {
+          top_p: 0.95,
+          images: imageUrls,
+          prompt: prompt,
+          videos: [],
+          temperature: 1,
+          dynamic_thinking: false,
+          max_output_tokens: 65535
+        }
+      };
+
+      const response = await axios.post(
+        "https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions",
+        requestBody,
+        {
+          headers: {
+            "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
+            "Content-Type": "application/json",
+            "Prefer": "wait"
+          },
+          timeout: 120000
+        }
+      );
+
+      const data = response.data;
+
+      if (data.error) {
+        console.error(`❌ [REPLICATE-GEMINI] API error:`, data.error);
+        throw new Error(data.error);
+      }
+
+      if (data.status !== "succeeded") {
+        console.error(`❌ [REPLICATE-GEMINI] Prediction failed with status:`, data.status);
+        throw new Error(`Prediction failed with status: ${data.status}`);
+      }
+
+      let outputText = "";
+      if (Array.isArray(data.output)) {
+        outputText = data.output.join("");
+      } else if (typeof data.output === "string") {
+        outputText = data.output;
+      }
+
+      if (!outputText || outputText.trim() === "") {
+        console.error(`❌ [REPLICATE-GEMINI] Empty response`);
+        throw new Error("Replicate Gemini response is empty");
+      }
+
+      console.log(`✅ [REPLICATE-GEMINI] Başarılı response alındı (attempt ${attempt})`);
+
+      return outputText.trim();
+
+    } catch (error) {
+      console.error(`❌ [REPLICATE-GEMINI] Attempt ${attempt} failed:`, error.message);
+
+      if (attempt === maxRetries) {
+        console.error(`❌ [REPLICATE-GEMINI] All ${maxRetries} attempts failed`);
+        throw error;
+      }
+
+      const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      console.log(`⏳ [REPLICATE-GEMINI] ${waitTime}ms bekleniyor...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+}
 
 // Aspect ratio formatını düzelten yardımcı fonksiyon
 function formatAspectRatio(ratioStr) {
@@ -964,29 +942,24 @@ async function enhancePromptWithGemini(
   poseImage,
   hairStyleImage,
   isMultipleProducts = false,
-  isColorChange = false, // Renk değiştirme mi?
-  targetColor = null, // Hedef renk
   isPoseChange = false, // Poz değiştirme mi?
   customDetail = null, // Özel detay
-  isEditMode = false, // EditScreen modu mu?
-  editPrompt = null, // EditScreen'den gelen prompt
-  isRefinerMode = false, // RefinerScreen modu mu?
   isBackSideAnalysis = false, // Arka taraf analizi modu mu?
   referenceImages = null, // Back side analysis için 2 resim
   isMultipleImages = false // Çoklu resim modu mu?
 ) {
   try {
-    console.log("🤖 [GEMINI] Prompt iyileştirme başlatılıyor");
+    console.log(
+      "🤖 Gemini 2.5 Flash ile takı fotoğrafçılığı prompt iyileştirme başlatılıyor"
+    );
     console.log("🏞️ [GEMINI] Location image parametresi:", locationImage);
     console.log("🤸 [GEMINI] Pose image parametresi:", poseImage);
     console.log("💇 [GEMINI] Hair style image parametresi:", hairStyleImage);
-    console.log("🛍️ [GEMINI] Multiple products mode:", isMultipleProducts);
-    console.log("🎨 [GEMINI] Color change mode:", isColorChange);
-    console.log("🎨 [GEMINI] Target color:", targetColor);
-    console.log("✏️ [GEMINI] Edit mode:", isEditMode);
-    console.log("✏️ [GEMINI] Edit prompt:", editPrompt);
-    console.log("🔧 [GEMINI] Refiner mode:", isRefinerMode);
+    console.log("💎 [GEMINI] Multiple jewelry mode:", isMultipleProducts);
     console.log("🔄 [GEMINI] Back side analysis mode:", isBackSideAnalysis);
+
+    // Gemini 2.0 Flash modeli - Yeni SDK
+    const model = "gemini-flash-latest";
 
     // Settings'in var olup olmadığını kontrol et
     const hasValidSettings =
@@ -1008,42 +981,24 @@ async function enhancePromptWithGemini(
     const genderLower = gender.toLowerCase();
 
     // Yaş grupları tanımlaması
-    // 0     : newborn (yenidoğan)
-    // 1     : baby (infant)
+    // 0-1   : baby (infant)
     // 2-3   : toddler
     // 4-12  : child
     // 13-16 : teenage
     // 17+   : adult
 
-    // Newborn kontrolü - hem "newborn" string'i hem de 0 yaş kontrolü
-    const isNewborn =
-      age?.toLowerCase() === "newborn" ||
-      age?.toLowerCase() === "yenidoğan" ||
-      (!isNaN(parsedAgeInt) && parsedAgeInt === 0);
-
-    if (isNewborn) {
-      // NEWBORN (0 yaş) - Özel newborn fashion photography
-      const genderWord =
-        genderLower === "male" || genderLower === "man" ? "boy" : "girl";
-
-      modelGenderText = `newborn baby ${genderWord} (0 months old, infant)`;
-      baseModelText = `newborn baby ${genderWord}`;
-
-      console.log(
-        "👶 [GEMINI] NEWBORN MODE tespit edildi - Newborn fashion photography"
-      );
-    } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 3) {
-      // Baby/Toddler (1-3 yaş)
+    if (!isNaN(parsedAgeInt) && parsedAgeInt <= 3) {
+      // Baby/Toddler
       let ageGroupWord;
-      if (parsedAgeInt === 1) {
-        ageGroupWord = "baby"; // 1 yaş için baby
+      if (parsedAgeInt <= 1) {
+        ageGroupWord = "baby"; // 0-1 yaş için baby
       } else {
         ageGroupWord = "toddler"; // 2-3 yaş için toddler
       }
       const genderWord =
         genderLower === "male" || genderLower === "man" ? "boy" : "girl";
 
-      if (parsedAgeInt === 1) {
+      if (parsedAgeInt <= 1) {
         // Baby için daha spesifik tanım
         modelGenderText = `${parsedAgeInt}-year-old ${ageGroupWord} ${genderWord} (infant)`;
         baseModelText = `${ageGroupWord} ${genderWord} (infant)`;
@@ -1103,35 +1058,9 @@ async function enhancePromptWithGemini(
     // Yaş grupları için basit ve güvenli prompt yönlendirmesi
     let childPromptSection = "";
     const parsedAge = parseInt(age, 10);
-
-    if (isNewborn) {
-      // NEWBORN (0 yaş) - Özel newborn fashion photography direktifleri
-      childPromptSection = `
-NEWBORN FASHION PHOTOGRAPHY MODE:
-This is a professional newborn fashion photography session. The model is a newborn baby (0 months old, infant). 
-
-CRITICAL NEWBORN PHOTOGRAPHY REQUIREMENTS:
-- The newborn must be photographed in a safe, comfortable, and natural position suitable for newborn fashion photography
-- Use soft, gentle poses that are appropriate for newborns - lying down positions, swaddled poses, or supported sitting positions
-- Ensure the garment/product fits naturally on the newborn's small frame
-- Use soft, diffused lighting that is gentle on the newborn's eyes
-- Maintain a peaceful, serene atmosphere typical of newborn photography
-- The newborn should appear comfortable, content, and naturally positioned
-- Focus on showcasing the garment/product while ensuring the newborn's safety and comfort in the composition
-- Use professional newborn photography techniques: natural fabric draping, gentle positioning, and age-appropriate styling
-- The overall aesthetic should be gentle, tender, and suitable for newborn fashion photography campaigns
-
-CAMERA FRAMING REQUIREMENT FOR NEWBORN:
-- Use CLOSE-UP framing (tight crop) that focuses on the newborn and the garment/product
-- The composition should be intimate and detail-focused, capturing the newborn's delicate features and the product's details
-- Frame the shot to emphasize the newborn's face, hands, and the garment/product being showcased
-- Avoid wide shots - maintain a close-up perspective that creates an intimate, tender atmosphere
-- The camera should be positioned close to the subject, creating a warm, personal connection with the viewer
-
-IMPORTANT: This is newborn fashion photography - maintain professional standards while ensuring all poses and positions are safe and appropriate for a newborn infant.`;
-    } else if (!isNaN(parsedAge) && parsedAge <= 16) {
+    if (!isNaN(parsedAge) && parsedAge <= 16) {
       if (parsedAge <= 3) {
-        // Baby/Toddler (1-3 yaş) - çok basit
+        // Baby/Toddler - çok basit
         childPromptSection = `
 Age-appropriate modeling for young child (${parsedAge} years old). Natural, comfortable poses suitable for children's fashion photography.`;
       } else {
@@ -1469,23 +1398,9 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
       "big innocent eyes and tiny nose",
       "freckled cheeks and joyful expression",
     ];
-    const faceDescriptorsNewborn = [
-      "tiny delicate features with soft round cheeks",
-      "peaceful sleeping expression with closed eyes",
-      "gentle newborn face with small button nose",
-      "serene infant features with soft skin",
-      "tender newborn appearance with tiny lips",
-      "calm sleeping baby with peaceful expression",
-    ];
 
     let faceDescriptor;
-    if (isNewborn) {
-      // Newborn için özel yüz tanımları
-      faceDescriptor =
-        faceDescriptorsNewborn[
-        Math.floor(Math.random() * faceDescriptorsNewborn.length)
-        ];
-    } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
+    if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
       faceDescriptor =
         faceDescriptorsChild[
         Math.floor(Math.random() * faceDescriptorsChild.length)
@@ -1506,397 +1421,101 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     BRAND SAFETY: If the input image contains any brand names or logos (e.g., Nike, Adidas, Prada, Gucci, Louis Vuitton, Chanel, Balenciaga, Versace, Dior, Hermès), please refer to them generically (e.g., "brand label", "logo") without naming the specific brand.
     ACCESSORY PRESENTATION: When the hero item is footwear, a handbag, backpack, small leather good, hat, watch, jewelry, eyewear, belt, or any similar fashion accessory, explicitly require modern fashion campaign posing and camera angles that hero the accessory. Specify refined hand/foot/head placement, keep every design detail fully visible, and reference popular e-commerce hero perspectives (runway footwear angles, wrist-level watch close-ups, eye-line eyewear framing, handbag-on-hip hero shot, etc.) while maintaining premium fashion styling.`;
 
-    // Flux Max için genel garment transform talimatları (güvenli flag-safe versiyon)
-    const fluxMaxGarmentTransformationDirectives = `
-    GARMENT TRANSFORMATION REQUIREMENTS:
-    - Generate ONLY ONE SINGLE unified fashion photograph, not multiple images or split views
-    - Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance.
-    - Ensure realistic fabric physics with natural drape, weight, tension, compression, and subtle folds along shoulders, chest/bust, torso, and sleeves. Maintain a clean commercial presentation with minimal distracting wrinkles.
-    - Preserve all original garment details including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning the original garment.
-    - Integrate prints/patterns correctly over the 3D form ensuring patterns curve, stretch, and wrap naturally across body contours. Avoid flat, uniform, or unnaturally straight pattern lines.
-    - For structured details such as knots, pleats, darts, and seams, render functional tension, deep creases, and realistic shadows consistent with real fabric behavior.
-    - Maintain photorealistic integration with the model and scene including correct scale, perspective, lighting, cast shadows, and occlusions that match the camera angle and scene lighting.
-    - Focus on transforming the garment onto the existing model and seamlessly integrating it into the outfit. Avoid introducing new background elements unless a location reference is explicitly provided.
-    - OUTPUT: One single professional fashion photograph only`;
+    // Takı fotoğrafçılığı için özel direktifler
+    const jewelryPhotographyDirectives = `
+    JEWELRY PHOTOGRAPHY REQUIREMENTS:
+    - Generate ONLY ONE SINGLE unified professional jewelry photograph, not multiple images or split views
+    - Transform the flat-lay jewelry piece into a hyper-realistic, three-dimensional worn jewelry on the model while avoiding any 2D, sticker-like, or paper-like overlay appearance
+    - Preserve all original jewelry details including exact gemstones, metals, settings, engravings, textures, finishes, and construction elements. Avoid redesigning the original jewelry piece
+    - Ensure realistic jewelry physics: proper weight distribution, natural positioning on the body, accurate scale relative to the model, and authentic metal/gemstone reflections
+    - Maintain photorealistic integration with the model and scene including correct scale, perspective, lighting, cast shadows, and occlusions that match the camera angle and scene lighting
+    - Focus on showcasing the jewelry piece prominently while maintaining natural model presentation. The jewelry should be the hero element of the photograph
+    - OUTPUT: One single professional jewelry photography image only`;
 
-    // Gemini'ye gönderilecek metin - Edit mode vs Color change vs Normal replace
+    // Gemini'ye gönderilecek metin - Takı fotoğrafçılığı odaklı
     let promptForGemini;
 
-    if (isEditMode && editPrompt && editPrompt.trim()) {
-      // EDIT MODE - EditScreen'den gelen özel prompt
+    if (isPoseChange) {
+      // POSE CHANGE MODE - Takı fotoğrafçılığı için poz değiştirme
       promptForGemini = `
-      SIMPLE EDIT INSTRUCTION: Generate a very short, focused prompt (maximum 30 words) that:
-      
-      1. STARTS with "Replace"
-      2. Translates the user's request to English if needed  
-      3. Describes ONLY the specific modification requested
-      4. Does NOT mention garments, models, poses, backgrounds, or photography details
-      5. Keeps existing scene unchanged
- 
-
-Only one single professional fashion photograph must be generated — no collage, no split views, no duplicates, no extra flat product shots.
-
-The output must look like a high-end professional fashion photograph, suitable for luxury catalogs and editorial campaigns.
-
-Apply studio-grade fashion lighting blended naturally with ambient light so the model and garment are perfectly lit, with no flat or artificial look.
-
-Ensure crisp focus, maximum clarity, and editorial-level sharpness across the entire image; no blur, no washed-out textures.
-
-Maintain true-to-life colors and accurate material textures; avoid dull or overexposed tones.
-
-Integrate the model, garment, and background into one cohesive, seamless photo that feels like it was captured in a real professional photoshoot environment.
-
-Only one single final image must be generated — no collages, no split frames, no duplicates.
-
-Composition aligned with professional fashion standards (rule of thirds, balanced framing, depth of field).
-
-Output must always be a single, hyper-realistic, high-end fashion photograph; never a plain catalog image.
-
-Editorial-level fashion shoot aesthetic.
-
-Confident model poses.
-
-      USER REQUEST: "${editPrompt.trim()}"
-      
-      EXAMPLES:
-      - User: "modele dövme ekle" → "Replace the model's skin with elegant tattoos while maintaining photorealistic quality."
-      - User: "saçını kırmızı yap" → "Replace the hair color with vibrant red while keeping natural texture."
-      - User: "arka planı mavi yap" → "Replace the background with blue color while preserving lighting."
-      
-      Generate ONLY the focused edit prompt, nothing else.
-      ${isMultipleProducts
-          ? "11. MANDATORY: Ensure ALL garments/products in the ensemble remain visible and properly coordinated after the edit"
-          : ""
-        }
-
-      GEMINI TASK:
-      1. Understand what modification the user wants
-      2. ${isMultipleProducts
-          ? "Identify how this modification affects ALL products in the ensemble"
-          : "Create a professional English prompt that applies this modification"
-        }
-      3. Ensure the modification is technically possible and realistic${isMultipleProducts ? " for the complete multi-product outfit" : ""
-        }
-      4. Maintain the overall quality and style of the original image
-      5. Describe the change in detail while preserving other elements${isMultipleProducts ? " and ALL unaffected products" : ""
-        }
-
-      LANGUAGE REQUIREMENT: Always generate your prompt in English and START with "Replace, change...".
-
-      ${originalPrompt ? `Additional context: ${originalPrompt}.` : ""}
-      `;
-    } else if (isRefinerMode) {
-      // REFINER MODE - Teknik profesyonel e-ticaret fotoğraf geliştirme prompt'u
-      promptForGemini = `
-MANDATORY INSTRUCTION (READ CAREFULLY, FOLLOW EXACTLY):
-
-You are a prompt generator for e-commerce product photo transformation. Produce ONE single technical prompt that an image editor/AI will follow to convert a raw product photo into a professional, Amazon-compliant catalog image.
-
-STRICT STYLE & FORMAT:
-- The prompt you produce MUST start with: "Transform this amateur product photo into a professional high-end e-commerce product photo."
-- Use clear technical sections in THIS ORDER and with THESE HEADINGS exactly:
-  Background:
-  Presentation (Invisible Mannequin / Ghost Effect):
-  Symmetry & Alignment:
-  Material & Micro-Detail:
-  Lighting:
-  Color Accuracy:
-  Cleanup & Finishing:
-  Final Output Quality:
-- End the prompt with EXACTLY this line:
-  "The final result must look like a flawless product photo ready for e-commerce catalogs, fashion websites, or online marketplaces. Maintain a photorealistic, luxury presentation suitable for premium retail."
-- Length target: 200–300 words.
-
-BACKGROUND (ALWAYS):
-- Replace background with a pure seamless white studio background (#FFFFFF).
-
-ADAPTIVE PRODUCT LOGIC:
-- If CLOTHING → 
-  • Apply ghost mannequin effect (remove mannequin/hanger, keep inside visible).  
-  • Adjust garment to professional catalog stance, not amateur photo posture.  
-  • Shoulders straight, neckline centered, hemline balanced.  
-  • Wrinkle-free, freshly pressed look.  
-
-- If ACCESSORIES (bags, hats, wallets) → 
-  • Center product, arrange straps/chains elegantly.  
-  • Correct tilt or sag, present in luxury catalog stance.  
-
-- If JEWELRY → 
-  • Macro-level clarity for gemstones and metals.  
-  • No glare, natural brilliance, precise reflections.  
-
-- If WATCHES → 
-  • Dial upright, bezel and bracelet symmetrical.  
-  • Glass crystal-clear, no reflections.  
-  • Mechanism details sharp.  
-
-- If FOOTWEAR → 
-  • Remove legs/feet completely.  
-  • Present shoes in industry-standard e-commerce views:  
-    – Main image MUST be **side profile view** (outer side).  
-    – Secondary angle (if pair) in **45° angled view** to show depth.  
-  • Avoid top-down flat perspectives unless explicitly required.  
-  • Shoes must appear upright, stable, perfectly aligned.  
-  • Correct perspective so outsole is horizontal and silhouette natural.  
-  • Highlight stitching, mesh, sole patterns, and logo/branding clearly.  
-  • Remove dust, creases, scuffs; present as brand-new.  
-
-- If OTHER GOODS → 
-  • Correct geometry, straighten angles, remove packaging distortions.  
-
-CORRECTION & ENHANCEMENT RULES:
-- Correct tilt, rotation, or unnatural posture.  
-- Ensure product looks **more professional and ideal than the amateur photo**.  
-- Remove all imperfections: dust, lint, stickers, price tags, stains.  
-
-LIGHTING:
-- Bright, even, shadowless studio lighting.  
-- Prevent glare or blown highlights.  
-- Allow subtle, realistic depth to preserve 3D form.  
-
-COLOR ACCURACY:
-- Faithful, true-to-life reproduction.  
-- Neutral white balance, no oversaturation or dull tones.  
-
-OUTPUT:
-- Generate ONLY the final technical prompt using the exact headings above. Do not include these instructions, variables, or commentary.
-
-EXAMPLE (for format illustration only):
-"Transform this amateur product photo into a professional high-end e-commerce product photo. Remove the background and replace it with a pure seamless white studio background (#FFFFFF).
-
-Background: Pure seamless white studio background (#FFFFFF).
-Presentation (Invisible Mannequin / Ghost Effect): Since xxx is footwear, remove the legs and stage both shoes in catalog-standard angles: one shoe in clear side profile view, the other at 45° for depth. Ensure stable and natural stance.
-Symmetry & Alignment: Correct tilt and perspective so outsole is level and shoes are symmetrical.
-Material & Micro-Detail: Highlight stitching, mesh, sole patterns, and branding with sharp clarity. Remove creases and scuffs.
-Lighting: Apply bright, even, shadowless lighting. No glare or blown highlights.
-Color Accuracy: Ensure xxx colors are faithful, with neutral white balance.
-Cleanup & Finishing: Remove dust, marks, or imperfections. Keep edges crisp and pristine.
-Final Output Quality: Single flawless, photorealistic catalog photo ready for Amazon/e-commerce platforms."
-`;
-    } else if (isColorChange && targetColor && targetColor !== "original") {
-      // COLOR CHANGE MODE - Sadece renk değiştirme
-      promptForGemini = `
-      MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "change". Do not include any introduction, explanation, or commentary.
-
-      ${criticalDirectives}
-
-      ${isMultipleProducts
-          ? `
-      🛍️ MULTIPLE PRODUCTS COLOR CHANGE: You are receiving MULTIPLE SEPARATE REFERENCE IMAGES, each showing a different garment/product. When changing the color to ${targetColor}, you MUST analyze ALL reference images, specify which product(s) to change and ensure ALL products remain properly coordinated as an ensemble.
-
-      CRITICAL MULTIPLE PRODUCTS COLOR REQUIREMENTS:
-      - ANALYZE ALL the reference images provided - each image shows a different garment/product
-      - IDENTIFY ALL distinct garments/products across ALL reference images
-      - SPECIFY which product(s) should change to ${targetColor}
-      - ENSURE the color change maintains overall ensemble coordination
-      - PRESERVE the original colors and design of products not being changed
-      - MAINTAIN proper color harmony between all products in the outfit
-      - REMEMBER: Each reference image shows a separate item - consider them together as one outfit
-      `
-          : ""
-        }
-
-      Create a professional fashion photography prompt in English that STARTS with "change" for changing ONLY the color of ${isMultipleProducts
-          ? "the specified product(s)/garment(s)"
-          : "the product/garment"
-        } from the reference image to ${targetColor}.
-      
-      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
-
-      IMPORTANT: Please explicitly mention in your generated prompt that this is for "professional fashion photography" to ensure the AI image model understands the context and produces high-quality fashion photography results.
-
-      CRITICAL REQUIREMENTS FOR COLOR CHANGE:
-      1. The prompt MUST begin with "Replace the ${isMultipleProducts
-          ? "specified product(s)/garment(s)"
-          : "product/garment"
-        }..."
-      2. ONLY change the color to ${targetColor}${isMultipleProducts ? " for the specified product(s)" : ""
-        }
-      3. Keep EVERYTHING else exactly the same: design, shape, patterns, details, style, fit, texture
-      4. Do not modify ${isMultipleProducts ? "any garment" : "the garment"
-        } design, cut, or any other aspect except the color
-      5. The final image should be photorealistic, showing ${isMultipleProducts
-          ? "the complete ensemble with the specified color changes"
-          : `the same garment but in ${targetColor} color`
-        }
-      6. Use natural studio lighting with a clean background
-      7. Preserve ALL original details except color: patterns (but in new color), textures, hardware, stitching, logos, graphics, and construction elements
-      8. ${isMultipleProducts
-          ? `ALL garments/products must appear identical to the reference image, just with the specified color change to ${targetColor} and proper ensemble coordination`
-          : `The garment must appear identical to the reference image, just in ${targetColor} color instead of the original color`
-        }
-      9. MANDATORY: Include "professional fashion photography" phrase in your generated prompt
-      ${isMultipleProducts
-          ? `10. MANDATORY: Clearly specify which product(s) change color and which remain in their original colors`
-          : ""
-        }
-
-      LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "change".
-
-      ${originalPrompt
-          ? `Additional color change requirements: ${originalPrompt}.`
-          : ""
-        }
-      `;
-    } else if (isPoseChange) {
-      // POSE CHANGE MODE - Optimize edilmiş poz değiştirme prompt'u (100-150 token)
-      promptForGemini = `
-      FASHION POSE TRANSFORMATION: Generate a focused, detailed English prompt (100-150 words) that transforms the model's pose efficiently. Focus ONLY on altering the pose while keeping the existing model, outfit, lighting, and background exactly the same. You MUST explicitly describe the original background/environment details and state that they stay unchanged.
+      JEWELRY PHOTOGRAPHY POSE TRANSFORMATION: Generate a focused, detailed English prompt (100-150 words) that transforms the model's pose efficiently for jewelry photography. Focus ONLY on altering the pose while keeping the existing model, jewelry piece, lighting, and background exactly the same. You MUST explicitly describe the original background/environment details and state that they stay unchanged.
 
       USER POSE REQUEST: ${settings?.pose && settings.pose.trim()
           ? `Transform the model to: ${settings.pose.trim()}`
           : customDetail && customDetail.trim()
             ? `Transform the model to: ${customDetail.trim()}`
-            : "Transform to a completely different iconic professional fashion modeling pose that contrasts dramatically with the current pose"
+            : "Transform to a professional jewelry modeling pose that showcases the jewelry piece beautifully"
         }
 
-      COMPREHENSIVE POSE TRANSFORMATION REQUIREMENTS:
-
+      JEWELRY-SPECIFIC POSE REQUIREMENTS:
       1. POSE ANALYSIS & TRANSFORMATION:
       - Analyze the current pose in the image thoroughly
-      - Select a DRAMATICALLY CONTRASTING pose that showcases the garment beautifully
-      - Describe the new pose in elaborate detail: body positioning, limb placement, weight distribution, head angle, eye direction
-      - Include subtle pose nuances: shoulder positioning, hip angle, foot placement, hand gestures
-      - Ensure the pose enhances the garment's silhouette and flow
+      - Select a pose that showcases the jewelry piece prominently (neck, wrist, ear, finger, etc.)
+      - Describe the new pose in detail: body positioning, hand/arm placement, head angle, eye direction
+      - Ensure the pose highlights the jewelry piece without obscuring it
+      - Position hands and body to frame the jewelry naturally
 
-      2. BODY LANGUAGE & EXPRESSION:
-      - Describe confident, editorial-worthy body language
-      - Include facial expression that matches the pose energy
-      - Specify eye contact direction and intensity
-      - Detail posture that conveys fashion-forward attitude
+      2. JEWELRY VISIBILITY:
+      - Ensure the jewelry piece remains fully visible and unobstructed
+      - Position the model so the jewelry catches optimal lighting
+      - Avoid poses that hide or shadow the jewelry
+      - Create natural body positioning that complements the jewelry placement
 
-      3. POSE-SPECIFIC DETAILS:
-      - If sitting pose: describe chair interaction, leg positioning, back posture
-      - If standing pose: weight distribution, stance width, hip positioning
-      - If leaning pose: support points, angle, natural flow
-      - If walking pose: stride, arm movement, head position
-      - If editorial pose: dramatic angles, fashion-forward positioning
+      3. PROFESSIONAL JEWELRY PHOTOGRAPHY ELEMENTS:
+      - Studio-grade lighting that enhances the jewelry's brilliance and metal reflections
+      - Camera angle that best captures the jewelry piece and model together
+      - Depth of field that focuses on the jewelry while keeping the model in sharp focus
+      - Professional composition that frames the jewelry as the hero element
 
-      4. GARMENT INTERACTION:
-      - Describe how the pose allows the garment to drape naturally
-      - Ensure pose doesn't create unflattering fabric bunching
-      - Show garment details and construction through pose
-      - Allow fabric to flow and move naturally with the pose
-
-      5. PROFESSIONAL PHOTOGRAPHY ELEMENTS:
-      - Studio-grade lighting that enhances the pose
-      - Camera angle that best captures the pose and garment
-      - Depth of field that focuses on the model and pose
-      - Professional composition that frames the pose perfectly
-
-      6. BACKGROUND & IDENTITY PRESERVATION:
-      - Carefully observe and describe the current background/environment (location type, colors, props, textures, lighting)
-      - Explicitly instruct that the existing background remains exactly the same with zero alterations
-      - Emphasize keeping the same model identity, face, hairstyle, makeup, accessories, and outfit with no modifications
-      - Mention notable background elements (walls, furniture, decor, floor, lighting fixtures, scenery) and insist they stay identical
-      - If any pose references mention backgrounds (e.g., studio, backdrop, set, environment), explicitly override those directions: state that the original background from the provided image stays unchanged and must be described faithfully. Never introduce or suggest a new background.
+      4. BACKGROUND & IDENTITY PRESERVATION:
+      - Carefully observe and describe the current background/environment
+      - Explicitly instruct that the existing background remains exactly the same
+      - Emphasize keeping the same model identity, face, hairstyle, makeup, and jewelry piece with no modifications
+      - The jewelry piece must remain identical - only the pose changes
 
       CRITICAL FORMATTING REQUIREMENTS:
       - Your response MUST start with "Change"
       - Must be 100-150 words (concise but detailed)
       - Must be entirely in English
-      - Focus ONLY on pose transformation
-      - Do NOT include any generic fashion photography rules
-      - Do NOT mention garment replacement
-      - Do NOT propose background changes; instead, clearly state the background stays identical to the original photo
-      - The background and environment MUST remain completely unchanged and explicitly described as such
-      - Be specific but concise about the exact pose
+      - Focus ONLY on pose transformation for jewelry photography
+      - Do NOT mention jewelry replacement or modification
+      - Do NOT propose background changes
+      - The background and jewelry piece MUST remain completely unchanged
 
-      Generate a focused, efficient pose transformation prompt that starts with "Change", clearly states the original background and model remain unchanged, overrides any conflicting background instructions from pose references, and gets straight to the point.
+      Generate a focused, efficient jewelry photography pose transformation prompt that starts with "Change", clearly states the original background and jewelry remain unchanged, and emphasizes showcasing the jewelry piece beautifully.
       `;
     } else if (isBackSideAnalysis) {
-      // BACK SIDE ANALYSIS MODE - Özel arka taraf analizi prompt'u
+      // BACK SIDE ANALYSIS MODE - Takı için arka taraf analizi (genellikle kullanılmaz ama yine de destekleniyor)
       promptForGemini = `
       MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
 
-      🔄 CRITICAL BACK DESIGN SHOWCASE MODE:
+      💎 JEWELRY BACK VIEW PHOTOGRAPHY:
       
-      ANALYSIS REQUIREMENT: You are looking at TWO distinct views of the SAME garment:
-      1. TOP IMAGE: Shows the garment worn on a model from the FRONT
-      2. BOTTOM IMAGE (labeled "ARKA ÜRÜN"): Shows the BACK design of the same garment
+      ANALYSIS REQUIREMENT: You are looking at TWO distinct views of the SAME jewelry piece:
+      1. TOP IMAGE: Shows the jewelry worn on a model from the FRONT
+      2. BOTTOM IMAGE: Shows the BACK design/details of the same jewelry piece
       
       YOUR MISSION: Transform the TOP image so the model displays the BACK design from the BOTTOM image.
       
-      🚫 DO NOT CREATE: Generic walking poses, editorial strides, front-facing poses, or standard fashion poses
-      
       ✅ MANDATORY REQUIREMENTS:
-      1. **BODY POSITIONING**: Model MUST be turned completely around (180 degrees) to show their BACK to the camera
-      2. **BACK DESIGN FOCUS**: The exact back graphic/pattern/design from the "ARKA ÜRÜN" image must be clearly visible on the model's back
-      3. **CAMERA ANGLE**: Shoot from behind the model to capture the back design prominently
-      4. **HEAD POSITION**: Model can either face completely away OR look back over shoulder (choose based on garment style)
-      
-      SPECIFIC BACK POSE EXECUTION:
-      - **Primary View**: Full back view showing the complete back design
-      - **Model Stance**: Natural standing pose with back to camera, may include subtle over-shoulder glance
-      - **Design Visibility**: Ensure the back graphic/pattern from "ARKA ÜRÜN" image is the main focal point
-      - **Garment Fit**: Show how the back design sits on the model's back naturally
+      1. **BODY POSITIONING**: Model MUST be positioned to show the BACK of the jewelry piece clearly
+      2. **JEWELRY BACK FOCUS**: The exact back design/details from the BOTTOM image must be clearly visible
+      3. **CAMERA ANGLE**: Shoot from an angle that captures the back design prominently
+      4. **JEWELRY VISIBILITY**: Ensure the back details (clasps, settings, engravings, etc.) are the main focal point
       
       TECHNICAL REQUIREMENTS:
-      - Camera positioned BEHIND the model
-      - Back design from "ARKA ÜRÜN" clearly showcased
-      - Professional fashion photography lighting
-      - Sharp focus on back design details
-      - Model wearing the exact same garment as shown in both reference images
+      - Camera positioned to showcase the jewelry's back design
+      - Back details from BOTTOM image clearly visible
+      - Professional jewelry photography lighting
+      - Sharp focus on jewelry back details
+      - Model wearing the exact same jewelry piece as shown in both reference images
       
-      EXAMPLE STRUCTURE: "Replace the front-facing model with a back-facing pose, showing the model turned away from camera to display the [describe specific back design elements you see in ARKA ÜRÜN image] prominently across their back, captured with professional photography lighting..."
-      
-      🎯 FINAL GOAL: Create a back view that matches the "ARKA ÜRÜN" reference but worn on the model from the top image.
-
-      ${criticalDirectives}
-
-      ${isMultipleProducts
-          ? `
-      🛍️ MULTIPLE PRODUCTS BACK SIDE MODE: You are receiving MULTIPLE SEPARATE REFERENCE IMAGES showing different garments/products with both front and back views. You MUST analyze and describe ALL products visible across all reference images from both angles and coordinate them properly as an ensemble.
-
-      CRITICAL MULTIPLE PRODUCTS BACK SIDE REQUIREMENTS:
-      - ANALYZE ALL the reference images provided - each may show different garments/products
-      - ANALYZE each product from both front AND back angles across all reference images
-      - DESCRIBE how all products coordinate together from all viewing angles
-      - ENSURE proper layering and fit from both front and back perspectives
-      - REMEMBER: Each reference image shows separate items - combine them intelligently
-      `
-          : ""
-        }
-
-      Create a professional fashion photography prompt in English that shows the model from the BACK VIEW wearing the garment, specifically displaying the back design elements visible in the "ARKA ÜRÜN" image.
-      
-      🚨 CRITICAL SINGLE OUTPUT REQUIREMENT:
-      - GENERATE ONLY ONE SINGLE RESULT IMAGE showing the back view
-      - DO NOT create multiple separate images, split views, or collages
-      - DO NOT generate both front and back images
-      - DO NOT create flat product photos or extra product shots
-      - FOCUS ONLY on the back view transformation - one unified fashion photograph
-      - RESULT MUST BE: Professional back-view fashion model shot ONLY
-      
-      CRITICAL PROMPT ELEMENTS TO INCLUDE:
-      - "model turned away from camera"
-      - "back view" or "rear view"  
-      - "showing the back of the garment"
-      - "single fashion photograph"
-      - "one unified image"
-      - Description of the specific back design (graphic, pattern, text, etc.) you see in the "ARKA ÜRÜN" image
-      - "professional fashion photography"
-      - "back design prominently displayed"
-      
-      IMPORTANT: Your generated prompt MUST result in a BACK VIEW of the model, not a front view or side view. The model should be facing AWAY from the camera to show the back design. Output ONLY ONE single image.
-
-      ${fluxMaxGarmentTransformationDirectives}
-
-      MANDATORY BACK SIDE PROMPT SUFFIX:
-      After generating your main prompt, ALWAYS append this exact text to the end:
-      
-      "The garment must appear realistic with natural drape, folds along the shoulders, and accurate fabric texture. The print must wrap seamlessly on the fabric, following the model's back curvature. The lighting, background, and perspective must match the original scene, resulting in one cohesive and photorealistic image."
-
       LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace".
 
-      ${originalPrompt
-          ? `USER CONTEXT: The user has provided these specific requirements: ${originalPrompt}. Please integrate these requirements naturally into your back side analysis prompt while maintaining professional structure.`
-          : ""
-        }
+      ${originalPrompt ? `USER CONTEXT: ${originalPrompt}.` : ""}
       
       ${ageSection}
       ${childPromptSection}
-      ${bodyShapeMeasurementsSection}
       ${settingsPromptSection}
       ${posePromptSection}
       ${perspectivePromptSection}
@@ -1905,165 +1524,150 @@ Final Output Quality: Single flawless, photorealistic catalog photo ready for Am
       ${locationPromptSection}
       ${faceDescriptionSection}
       
-      Generate a concise prompt focused on showcasing both front and back garment details while maintaining all original design elements. REMEMBER: Your response must START with "Replace" and emphasize back design features.
+      Generate a concise prompt focused on showcasing the jewelry's back design while maintaining all original jewelry details. REMEMBER: Your response must START with "Replace".
       `;
     } else {
-      // NORMAL MODE - Standart garment replace
+      // NORMAL MODE - Takı fotoğrafçılığı odaklı
       promptForGemini = `
       MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
          
-      DEFAULT POSE INSTRUCTION: If no specific pose is provided by the user, you must randomly select an editorial-style fashion pose that best showcases the garment’s unique details, fit, and silhouette. The pose should be confident and photogenic, with body language that emphasizes fabric drape, construction, and design elements, while remaining natural and commercially appealing. Always ensure the garment’s critical features (neckline, sleeves, logos, seams, textures) are clearly visible from the chosen pose.
+      DEFAULT POSE INSTRUCTION: If no specific pose is provided by the user, you must select a professional jewelry modeling pose that best showcases the jewelry piece's unique details, design, and craftsmanship. The pose should be elegant and refined, with body language that emphasizes the jewelry's placement (neck, wrist, ear, finger, etc.) while remaining natural and commercially appealing. Always ensure the jewelry piece's critical features (gemstones, metal finish, settings, engravings, clasps) are clearly visible from the chosen pose.
 
-      After constructing the garment, model, and background descriptions, you must also generate an additional block of at least 200 words that describes a professional editorial fashion photography effect. This effect must always adapt naturally to the specific garment, fabric type, color palette, lighting conditions, and background environment described earlier. Do not use a fixed style for every prompt. Instead, analyze the context and propose an effect that enhances the scene cohesively. Examples might include glossy highlights and refined softness for silk in a studio setting, or natural tones, airy realism, and depth of field for cotton in outdoor daylight. These are only examples, not strict rules — you should always generate an effect description that best matches the unique scene. Your effect description must cover color grading, lighting treatment, texture and fabric physics, background integration, focus and depth of field, and overall editorial polish. Always ensure the tone is professional, realistic, and aligned with the visual language of high-end fashion magazines. The effect description must make the final result feel like a hyper-realistic editorial-quality fashion photograph, seamlessly blending garment, model, and environment into a single cohesive campaign-ready image.
+      When generating jewelry photography prompts, you must always structure the text into four separate paragraphs using \n\n line breaks. Do not output one long block of text.
 
-
-      When generating fashion photography prompts, you must always structure the text into four separate paragraphs using \n\n line breaks. Do not output one long block of text.
-
-Paragraph 1 → Model Description & Pose
+Paragraph 1 → Model Description & Pose for Jewelry
 
 Introduce the model (age, gender, editorial features).
 
-Describe the pose with confident, fashion-forward language.
+Describe the pose with elegant, refined language that positions the model to showcase the jewelry piece prominently. Specify hand placement, head angle, and body positioning that naturally frames the jewelry.
 
-Paragraph 2 → Garment & Fabric Physics
+Paragraph 2 → Jewelry Piece & Craftsmanship Details
 
-Use fashion and textile jargon.
+Use jewelry industry terminology (prong settings, bezel, pavé, filigree, milgrain, patina, luster, brilliance, fire, clarity, cut, carat, etc.).
 
-Describe fabric drape, weight, tension, folds, stitching.
+Describe the jewelry piece in detail: gemstone types and characteristics, metal type and finish, setting style, design elements, engravings, textures, and construction details.
 
-Keep all design, color, patterns, trims, logos exactly the same as the reference.
+Keep all design, gemstones, metals, settings, engravings, textures exactly the same as the reference.
 
 Paragraph 3 → Environment & Ambiance
 
-Describe the setting in editorial tone (minimalist, refined, photogenic).
+Describe the setting in editorial tone (luxurious, refined, sophisticated, elegant backdrop).
 
-Mention architecture, light play, textures.
+Mention lighting conditions, textures, and atmosphere that complement the jewelry without distraction.
 
-Keep it supportive, not distracting.
+Keep it supportive and elegant, allowing the jewelry to be the hero element.
 
 Paragraph 4 → Lighting, Composition & Final Output
 
-Always describe lighting as “natural daylight blended with studio-grade softness”.
+Always describe lighting as "professional jewelry photography lighting with soft, diffused illumination that enhances gemstone brilliance and metal reflections, avoiding harsh shadows or glare".
 
+Mention macro-level clarity, precise focus on jewelry details, and depth of field that keeps both jewelry and model sharp.
 
-Conclude with: “The final result must be a single, hyper-realistic, editorial-quality fashion photograph, seamlessly integrating model, garment, and environment at campaign-ready standards
+Conclude with: "The final result must be a single, hyper-realistic, editorial-quality jewelry photograph, seamlessly integrating model and jewelry piece at luxury campaign-ready standards."
 
-      
+CRITICAL JEWELRY PHOTOGRAPHY RULES:
 
-CRITICAL RULES:
+Always construct prompts in the language and style of professional jewelry photography. Use precise jewelry industry jargon rather than plain product description.
 
-Always construct prompts in the language and style of editorial fashion photography. Use precise fashion industry jargon rather than plain product description.
+Describe the jewelry using gemological and jewelry terminology (prong settings, bezel, pavé, filigree, milgrain, patina, luster, brilliance, fire, clarity, cut, carat, karat, hallmarks, etc.).
 
-Describe the garment using textile and tailoring terminology (drape, silhouette, cut, ribbed, pleated, piqué knit, melange, structured detailing, trims, seams, stitchwork, etc.).
+Define the model's appearance with editorial tone (elegant features, refined expression, poised stance) that complements luxury jewelry.
 
-Define the model’s appearance with editorial tone (sculpted jawline, refined cheekbones, luminous gaze, poised stance).
+Lighting must be described in professional jewelry photography terms (soft diffused lighting, gemstone brilliance enhancement, metal reflection control, shadow management, macro clarity).
 
-Lighting must be described in studio-grade fashion terms (diffused daylight, editorial softness, balanced exposure, flattering shadow play, high-definition clarity).
+Composition should reference jewelry photography language (rule of thirds, depth of field, macro focus, jewelry-centered framing, luxury aesthetic).
 
-Composition should reference fashion photography language (rule of thirds, depth of field, eye-level perspective, polished framing, editorial atmosphere).
+Environment must remain elegant and refined, complementing the jewelry without distraction. Use words like "sophisticated", "luxurious", "refined", "elegant backdrop", "premium setting".
 
-Environment must remain minimalist and photogenic, complementing the garment without distraction. Use words like “sophisticated”, “refined”, “contemporary”, “elevated backdrop”.
+Always conclude that the result is a single, high-end professional jewelry photograph, polished to editorial standards, suitable for luxury jewelry catalogs and campaigns.
 
-Always conclude that the result is a single, high-end professional fashion photograph, polished to editorial standards, suitable for premium catalogs and campaigns.
+Do not use plain catalog language. Do not produce technical listing-style descriptions. The tone must always reflect editorial-level luxury jewelry photography aesthetic.
 
-Do not use plain catalog language. Do not produce technical listing-style descriptions. The tone must always reflect editorial-level fashion shoot aesthetic
-
-Exclude all original flat-lay elements (hanger, frame, shadows, textures, painting, or any other artifacts). Only the garment itself must be transferred.
+Exclude all original flat-lay elements (display stand, background, shadows, textures, or any other artifacts). Only the jewelry piece itself must be transferred.
 
 The original background must be completely replaced with the newly described background. Do not keep or reuse any part of the input photo background.
 
-The output must be hyper-realistic, high-end professional fashion editorial quality, suitable for commercial catalog presentation.
+The output must be hyper-realistic, high-end professional jewelry editorial quality, suitable for commercial luxury jewelry catalog presentation.
 
       ${criticalDirectives}
 
       ${isMultipleProducts
           ? `
-      🛍️ MULTIPLE PRODUCTS MODE: You are receiving MULTIPLE SEPARATE REFERENCE IMAGES, each showing a different garment/product that together form a complete outfit/ensemble. You MUST analyze ALL the reference images provided and describe every single product visible across all images. Each product is equally important and must be properly described and fitted onto the ${modelGenderText}.
+      💎 MULTIPLE JEWELRY PIECES MODE: You are receiving MULTIPLE SEPARATE REFERENCE IMAGES, each showing a different jewelry piece that together form a complete jewelry set/ensemble. You MUST analyze ALL the reference images provided and describe every single jewelry piece visible across all images. Each piece is equally important and must be properly described and positioned on the ${modelGenderText}.
 
-      CRITICAL MULTIPLE PRODUCTS REQUIREMENTS:
-      - ANALYZE ALL the reference images provided - each image shows a different garment/product
-      - COUNT how many distinct garments/products are present across ALL reference images
-      - DESCRIBE each product individually with its specific design details, colors, patterns, and construction elements from their respective reference images
-      - ENSURE that ALL products from ALL reference images are mentioned in your prompt - do not skip any product
-      - COORDINATE how all products work together as a complete ensemble when worn together
-      - SPECIFY the proper layering, positioning, and interaction between products
-      - MAINTAIN the original design of each individual product while showing them as a coordinated outfit
-      - REMEMBER: Each reference image shows a separate item - combine them intelligently into one cohesive outfit
+      CRITICAL MULTIPLE JEWELRY REQUIREMENTS:
+      - ANALYZE ALL the reference images provided - each image shows a different jewelry piece
+      - COUNT how many distinct jewelry pieces are present across ALL reference images
+      - DESCRIBE each jewelry piece individually with its specific design details, gemstones, metals, settings, and construction elements from their respective reference images
+      - ENSURE that ALL jewelry pieces from ALL reference images are mentioned in your prompt - do not skip any piece
+      - COORDINATE how all jewelry pieces work together as a complete jewelry set when worn together
+      - SPECIFY the proper positioning and placement of each jewelry piece on the model (neck, wrist, ear, finger, etc.)
+      - MAINTAIN the original design of each individual jewelry piece while showing them as a coordinated jewelry ensemble
+      - REMEMBER: Each reference image shows a separate jewelry piece - combine them intelligently into one cohesive jewelry set
       `
           : ""
         }
 
-      Create a professional fashion photography prompt in English that STARTS with "Replace" for replacing ${isMultipleProducts
-          ? "ALL the garments/products from the reference image"
-          : "the garment from the reference image"
+      Create a professional jewelry photography prompt in English that STARTS with "Replace" for replacing ${isMultipleProducts
+          ? "ALL the jewelry pieces from the reference images"
+          : "the jewelry piece from the reference image"
         } onto a ${modelGenderText}.
       
-      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for ${isNewborn
-          ? "professional newborn fashion photography"
-          : "professional fashion photography"
-        } and commercial garment presentation. Ensure the output is suitable for ${isNewborn
-          ? "high-end newborn fashion photography shoots, newborn editorial styling, and newborn commercial product photography"
-          : "high-end fashion shoots, editorial styling, and commercial product photography"
-        }.
+      JEWELRY PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional jewelry photography and commercial jewelry presentation. Ensure the output is suitable for high-end jewelry shoots, editorial styling, and commercial jewelry photography.
 
-      IMPORTANT: Please explicitly mention in your generated prompt that this is for "${isNewborn
-          ? "professional newborn fashion photography"
-          : "professional fashion photography"
-        }" to ensure the AI image model understands the context and produces high-quality ${isNewborn ? "newborn " : ""
-        }fashion photography results.
+      IMPORTANT: Please explicitly mention in your generated prompt that this is for "professional jewelry photography" to ensure the AI image model understands the context and produces high-quality jewelry photography results.
 
       CRITICAL REQUIREMENTS:
       1. The prompt MUST begin with "Replace the ${isMultipleProducts
-          ? "multiple flat-lay garments/products"
-          : "flat-lay garment"
+          ? "multiple flat-lay jewelry pieces"
+          : "flat-lay jewelry piece"
         }..."
       2. Keep ${isMultipleProducts
-          ? "ALL original garments/products"
-          : "the original garment"
-        } exactly the same without changing any design, shape, colors, patterns, or details
-      3. Do not modify or redesign ${isMultipleProducts ? "any of the garments/products" : "the garment"
+          ? "ALL original jewelry pieces"
+          : "the original jewelry piece"
+        } exactly the same without changing any design, gemstones, metals, settings, engravings, textures, or details
+      3. Do not modify or redesign ${isMultipleProducts ? "any of the jewelry pieces" : "the jewelry piece"
         } in any way
       4. The final image should be photorealistic, showing ${isMultipleProducts
-          ? "ALL garments/products perfectly fitted and coordinated"
-          : "the same garment perfectly fitted"
+          ? "ALL jewelry pieces perfectly positioned and coordinated"
+          : "the same jewelry piece perfectly positioned"
         } on the ${baseModelText}
-      5. Use natural studio lighting with a clean background
-      6. Preserve ALL original details of ${isMultipleProducts ? "EACH garment/product" : "the garment"
-        }: colors, patterns, textures, hardware, stitching, logos, graphics, and construction elements
+      5. Use professional jewelry photography lighting that enhances gemstone brilliance and metal reflections
+      6. Preserve ALL original details of ${isMultipleProducts ? "EACH jewelry piece" : "the jewelry piece"
+        }: gemstones, metals, settings, engravings, textures, clasps, and construction elements
       7. ${isMultipleProducts
-          ? "ALL garments/products must appear identical to the reference image, just worn by the model as a complete coordinated outfit"
-          : "The garment must appear identical to the reference image, just worn by the model instead of being flat"
+          ? "ALL jewelry pieces must appear identical to the reference images, just worn by the model as a complete coordinated jewelry set"
+          : "The jewelry piece must appear identical to the reference image, just worn by the model instead of being flat"
         }
-      8. MANDATORY: Include "professional fashion photography" phrase in your generated prompt
+      8. MANDATORY: Include "professional jewelry photography" phrase in your generated prompt
       ${isMultipleProducts
-          ? "9. MANDATORY: Explicitly mention and describe EACH individual product/garment visible in the reference image - do not generalize or group them"
+          ? "9. MANDATORY: Explicitly mention and describe EACH individual jewelry piece visible in the reference images - do not generalize or group them"
           : ""
         }
 
       ${isMultipleProducts
           ? `
-      MULTIPLE PRODUCTS DETAIL COVERAGE (MANDATORY): 
-      - ANALYZE the reference image and identify EACH distinct garment/product (e.g., top, bottom, jacket, accessories, etc.)
-      - DESCRIBE each product's specific construction details, materials, colors, and design elements
-      - EXPLAIN how the products layer and coordinate together
-      - SPECIFY the proper fit and positioning of each product on the model
-      - ENSURE no product is overlooked or generically described
+      MULTIPLE JEWELRY PIECES DETAIL COVERAGE (MANDATORY): 
+      - ANALYZE the reference images and identify EACH distinct jewelry piece (e.g., necklace, bracelet, earrings, ring, etc.)
+      - DESCRIBE each jewelry piece's specific construction details, gemstones, metals, settings, and design elements
+      - EXPLAIN how the jewelry pieces coordinate together as a set
+      - SPECIFY the proper positioning and placement of each jewelry piece on the model
+      - ENSURE no jewelry piece is overlooked or generically described
       `
           : ""
         }
 
-      ${fluxMaxGarmentTransformationDirectives}
+      ${jewelryPhotographyDirectives}
 
       LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace".
 
       ${originalPrompt
-          ? `USER CONTEXT: The user has provided these specific requirements: ${originalPrompt}. Please integrate these requirements naturally into your garment replacement prompt while maintaining the professional structure and flow.`
+          ? `USER CONTEXT: The user has provided these specific requirements: ${originalPrompt}. Please integrate these requirements naturally into your jewelry replacement prompt while maintaining the professional structure and flow.`
           : ""
         }
       
       ${ageSection}
       ${childPromptSection}
-      ${bodyShapeMeasurementsSection}
       ${settingsPromptSection}
       ${posePromptSection}
       ${perspectivePromptSection}
@@ -2072,9 +1676,9 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
       ${locationPromptSection}
       ${faceDescriptionSection}
       
-      Generate a concise prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace". Apply all rules silently and do not include any rule text or headings in the output.
+      Generate a concise prompt focused on jewelry replacement while maintaining all original details. REMEMBER: Your response must START with "Replace". Apply all rules silently and do not include any rule text or headings in the output.
       
-      EXAMPLE FORMAT: "Replace the flat-lay garment from the input image directly onto a standing [model description] while keeping the original garment exactly the same..."
+      EXAMPLE FORMAT: "Replace the flat-lay jewelry piece from the input image directly onto a ${baseModelText} while keeping the original jewelry piece exactly the same..."
       `;
     }
 
@@ -2082,304 +1686,307 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
     if (!originalPrompt || !originalPrompt.includes("Model's pose")) {
       // Eğer poz seçilmemişse akıllı poz seçimi, seçilmişse belirtilen poz
       if (!settings?.pose && !poseImage) {
-        promptForGemini += `Since no specific pose was provided, use a natural pose that keeps the garment fully visible. The stance may be front-facing or slightly angled, but avoid hiding details. Do not put hands in pockets. Ensure garment features are clearly shown.`;
+        promptForGemini += `Since no specific pose was provided, use a natural pose that showcases the jewelry piece prominently. Position the model so the jewelry catches optimal lighting and remains fully visible. Ensure jewelry details are clearly shown without obstruction.`;
       }
     }
 
-    console.log("🤖 [GEMINI] Prompt oluşturuluyor:", promptForGemini);
-
-    // Google Gemini API için resimleri base64'e çevir
-    const parts = [{ text: promptForGemini }];
+    console.log(
+      "Gemini'ye gönderilen takı fotoğrafçılığı prompt'u:",
+      promptForGemini
+    );
 
     // Resim verilerini içerecek parts dizisini hazırla
-    try {
-      console.log("📤 [GEMINI] Resimler Gemini'ye gönderiliyor...");
+    const parts = [{ text: promptForGemini }];
 
-      let imageBuffer;
+    // Multi-mode resim gönderimi: Back side analysis, Multiple products, veya Normal mod
+    if (isBackSideAnalysis && referenceImages && referenceImages.length >= 2) {
+      console.log(
+        "🔄 [BACK_SIDE] Gemini'ye 2 resim gönderiliyor (ön + arka)..."
+      );
 
-      // Multi-mode resim gönderimi: Back side analysis, Multiple products, veya Normal mod
-      if (
-        isBackSideAnalysis &&
-        referenceImages &&
-        referenceImages.length >= 2
-      ) {
+      try {
+        // İlk resim (ön taraf)
         console.log(
-          "🔄 [BACK_SIDE] Gemini'ye 2 resim gönderiliyor (ön + arka)..."
+          `🔄 [BACK_SIDE] İlk resim (ön taraf) Gemini'ye gönderiliyor: ${referenceImages[0].uri || referenceImages[0]
+          }`
         );
 
-        const firstImageUrl = sanitizeImageUrl(
-          referenceImages[0].uri || referenceImages[0]
-        );
-        const secondImageUrl = sanitizeImageUrl(
-          referenceImages[1].uri || referenceImages[1]
-        );
+        const firstImageUrl = referenceImages[0].uri || referenceImages[0];
+        const firstImageResponse = await axios.get(firstImageUrl, {
+          responseType: "arraybuffer",
+          timeout: 15000,
+        });
+        const firstImageBuffer = firstImageResponse.data;
+        const base64FirstImage =
+          Buffer.from(firstImageBuffer).toString("base64");
 
-        // İlk resmi indir ve base64'e çevir
-        if (
-          firstImageUrl.startsWith("http://") ||
-          firstImageUrl.startsWith("https://")
-        ) {
-          const imageResponse = await axios.get(firstImageUrl, {
-            responseType: "arraybuffer",
-            timeout: 15000,
-          });
-          imageBuffer = Buffer.from(imageResponse.data);
-        } else {
-          throw new Error("Invalid image URL format");
-        }
-
-        const base64First = imageBuffer.toString("base64");
-        const mimeTypeFirst = mime.getType(firstImageUrl) || "image/jpeg";
         parts.push({
           inlineData: {
-            data: base64First,
-            mimeType: mimeTypeFirst,
+            mimeType: "image/jpeg",
+            data: base64FirstImage,
           },
         });
 
-        // İkinci resmi indir ve base64'e çevir
-        if (
-          secondImageUrl.startsWith("http://") ||
-          secondImageUrl.startsWith("https://")
-        ) {
-          const imageResponse2 = await axios.get(secondImageUrl, {
-            responseType: "arraybuffer",
-            timeout: 15000,
-          });
-          imageBuffer = Buffer.from(imageResponse2.data);
-        } else {
-          throw new Error("Invalid image URL format");
-        }
+        console.log(
+          "🔄 [BACK_SIDE] İlk resim (ön taraf) başarıyla Gemini'ye eklendi"
+        );
 
-        const base64Second = imageBuffer.toString("base64");
-        const mimeTypeSecond = mime.getType(secondImageUrl) || "image/jpeg";
+        // İkinci resim (arka taraf)
+        console.log(
+          `🔄 [BACK_SIDE] İkinci resim (arka taraf) Gemini'ye gönderiliyor: ${referenceImages[1].uri || referenceImages[1]
+          }`
+        );
+
+        const secondImageUrl = referenceImages[1].uri || referenceImages[1];
+        const secondImageResponse = await axios.get(secondImageUrl, {
+          responseType: "arraybuffer",
+          timeout: 15000,
+        });
+        const secondImageBuffer = secondImageResponse.data;
+        const base64SecondImage =
+          Buffer.from(secondImageBuffer).toString("base64");
+
         parts.push({
           inlineData: {
-            data: base64Second,
-            mimeType: mimeTypeSecond,
+            mimeType: "image/jpeg",
+            data: base64SecondImage,
           },
         });
 
-        console.log("🔄 [BACK_SIDE] Toplam 2 resim Gemini'ye eklendi");
-      } else if (
-        isMultipleProducts &&
-        referenceImages &&
-        referenceImages.length > 1
-      ) {
-        // Multi-product mode: Tüm referans resimleri gönder
         console.log(
-          `🛍️ [MULTI-PRODUCT] Gemini'ye ${referenceImages.length} adet referans resmi gönderiliyor...`
+          "🔄 [BACK_SIDE] İkinci resim (arka taraf) başarıyla Gemini'ye eklendi"
         );
+        console.log("🔄 [BACK_SIDE] Toplam 2 resim Gemini'ye gönderildi");
+      } catch (imageError) {
+        console.error(
+          `🔄 [BACK_SIDE] Resim yüklenirken hata: ${imageError.message}`
+        );
+      }
+    } else if (
+      isMultipleProducts &&
+      referenceImages &&
+      referenceImages.length > 1
+    ) {
+      // Multi-product mode: Tüm referans resimleri gönder
+      console.log(
+        `🛍️ [MULTI-PRODUCT] Gemini'ye ${referenceImages.length} adet referans resmi gönderiliyor...`
+      );
 
+      try {
         for (let i = 0; i < referenceImages.length; i++) {
-          const imageUrl = sanitizeImageUrl(
-            referenceImages[i].uri || referenceImages[i]
+          const referenceImage = referenceImages[i];
+          const imageUrl = referenceImage.uri || referenceImage;
+
+          console.log(
+            `🛍️ [MULTI-PRODUCT] ${i + 1
+            }. resim Gemini'ye gönderiliyor: ${imageUrl}`
           );
 
-          if (
-            imageUrl.startsWith("http://") ||
-            imageUrl.startsWith("https://")
-          ) {
-            const imageResponse = await axios.get(imageUrl, {
-              responseType: "arraybuffer",
-              timeout: 15000,
-            });
-            imageBuffer = Buffer.from(imageResponse.data);
-          } else {
-            throw new Error("Invalid image URL format");
-          }
+          const imageResponse = await axios.get(imageUrl, {
+            responseType: "arraybuffer",
+            timeout: 15000,
+          });
+          const imageBuffer = imageResponse.data;
+          const base64Image = Buffer.from(imageBuffer).toString("base64");
 
-          const base64 = imageBuffer.toString("base64");
-          const mimeType = mime.getType(imageUrl) || "image/jpeg";
           parts.push({
             inlineData: {
-              data: base64,
-              mimeType: mimeType,
+              mimeType: "image/jpeg",
+              data: base64Image,
             },
           });
+
+          console.log(
+            `🛍️ [MULTI-PRODUCT] ${i + 1}. resim başarıyla Gemini'ye eklendi`
+          );
         }
 
         console.log(
-          `🛍️ [MULTI-PRODUCT] Toplam ${referenceImages.length} adet referans resmi Gemini'ye eklendi`
+          `🛍️ [MULTI-PRODUCT] Toplam ${referenceImages.length} adet referans resmi Gemini'ye gönderildi`
         );
-      } else {
-        // Normal mod: Tek resim gönder
-        if (imageUrl) {
-          const cleanImageUrl = sanitizeImageUrl(imageUrl);
-
-          if (
-            cleanImageUrl.startsWith("http://") ||
-            cleanImageUrl.startsWith("https://")
-          ) {
-            const imageResponse = await axios.get(cleanImageUrl, {
-              responseType: "arraybuffer",
-              timeout: 15000,
-            });
-            imageBuffer = Buffer.from(imageResponse.data);
-          } else {
-            throw new Error("Invalid image URL format");
-          }
-
-          const base64 = imageBuffer.toString("base64");
-          const mimeType = mime.getType(cleanImageUrl) || "image/jpeg";
-          parts.push({
-            inlineData: {
-              data: base64,
-              mimeType: mimeType,
-            },
-          });
-
-          console.log("🖼️ Referans görsel Gemini'ye eklendi:", imageUrl);
-        }
+      } catch (imageError) {
+        console.error(
+          `🛍️ [MULTI-PRODUCT] Referans resimleri yüklenirken hata: ${imageError.message}`
+        );
       }
+    } else {
+      // Normal mod: Tek resim gönder
+      try {
+        console.log(`Referans görsel Gemini'ye gönderiliyor: ${imageUrl}`);
 
-      // Pose image'ını da ekle
-      if (poseImage) {
-        const cleanPoseImageUrl = sanitizeImageUrl(poseImage.split("?")[0]);
+        const imageResponse = await axios.get(imageUrl, {
+          responseType: "arraybuffer",
+          timeout: 15000, // 30s'den 15s'ye düşürüldü
+        });
+        const imageBuffer = imageResponse.data;
 
-        if (
-          cleanPoseImageUrl.startsWith("http://") ||
-          cleanPoseImageUrl.startsWith("https://")
-        ) {
-          const imageResponse = await axios.get(cleanPoseImageUrl, {
-            responseType: "arraybuffer",
-            timeout: 15000,
-          });
-          imageBuffer = Buffer.from(imageResponse.data);
-        } else {
-          throw new Error("Invalid pose image URL format");
-        }
+        // Base64'e çevir
+        const base64Image = Buffer.from(imageBuffer).toString("base64");
 
-        const base64 = imageBuffer.toString("base64");
-        const mimeType = mime.getType(cleanPoseImageUrl) || "image/jpeg";
         parts.push({
           inlineData: {
-            data: base64,
-            mimeType: mimeType,
+            mimeType: "image/jpeg",
+            data: base64Image,
           },
         });
 
-        console.log("🤸 Pose görsel Gemini'ye eklendi");
+        console.log("Referans görsel başarıyla Gemini'ye yüklendi");
+      } catch (imageError) {
+        console.error(`Görsel yüklenirken hata: ${imageError.message}`);
       }
-
-      // Hair style image'ını da ekle
-      if (hairStyleImage) {
-        const cleanHairStyleImageUrl = sanitizeImageUrl(
-          hairStyleImage.split("?")[0]
-        );
-
-        if (
-          cleanHairStyleImageUrl.startsWith("http://") ||
-          cleanHairStyleImageUrl.startsWith("https://")
-        ) {
-          const imageResponse = await axios.get(cleanHairStyleImageUrl, {
-            responseType: "arraybuffer",
-            timeout: 15000,
-          });
-          imageBuffer = Buffer.from(imageResponse.data);
-        } else {
-          throw new Error("Invalid hair style image URL format");
-        }
-
-        const base64 = imageBuffer.toString("base64");
-        const mimeType = mime.getType(cleanHairStyleImageUrl) || "image/jpeg";
-        parts.push({
-          inlineData: {
-            data: base64,
-            mimeType: mimeType,
-          },
-        });
-
-        console.log("💇 Hair style görsel Gemini'ye eklendi");
-      }
-
-      // Location image'ını da ekle
-      if (locationImage) {
-        const cleanLocationImageUrl = sanitizeImageUrl(
-          locationImage.split("?")[0]
-        );
-
-        if (
-          cleanLocationImageUrl.startsWith("http://") ||
-          cleanLocationImageUrl.startsWith("https://")
-        ) {
-          const imageResponse = await axios.get(cleanLocationImageUrl, {
-            responseType: "arraybuffer",
-            timeout: 15000,
-          });
-          imageBuffer = Buffer.from(imageResponse.data);
-        } else {
-          throw new Error("Invalid location image URL format");
-        }
-
-        const base64 = imageBuffer.toString("base64");
-        const mimeType = mime.getType(cleanLocationImageUrl) || "image/jpeg";
-        parts.push({
-          inlineData: {
-            data: base64,
-            mimeType: mimeType,
-          },
-        });
-
-        console.log("🏞️ Location görsel Gemini'ye eklendi");
-      }
-    } catch (imageError) {
-      console.error("❌ Resim indirme/çevirme hatası:", imageError);
-      throw new Error(`Image processing error: ${imageError.message}`);
     }
 
-    // Replicate Gemini Flash API çağrısı için image URL'lerini topla
-    const imageUrlsForReplicate = [];
+    // Location image handling kaldırıldı - artık kullanılmıyor
 
-    // Referans resimlerin URL'lerini ekle
-    if (isBackSideAnalysis && referenceImages && referenceImages.length >= 2) {
-      const firstImageUrl = sanitizeImageUrl(referenceImages[0].uri || referenceImages[0]);
-      const secondImageUrl = sanitizeImageUrl(referenceImages[1].uri || referenceImages[1]);
-      imageUrlsForReplicate.push(firstImageUrl, secondImageUrl);
+    // Pose image'ını da Gemini'ye gönder
+    if (poseImage) {
+      try {
+        // URL'den query parametrelerini temizle
+        const cleanPoseImageUrl = poseImage.split("?")[0];
+        console.log(
+          `🤸 Pose görsel base64'e çeviriliyor: ${cleanPoseImageUrl}`
+        );
+
+        const poseImageResponse = await axios.get(cleanPoseImageUrl, {
+          responseType: "arraybuffer",
+          timeout: 15000, // 30s'den 15s'ye düşürüldü
+        });
+        const poseImageBuffer = poseImageResponse.data;
+
+        // Base64'e çevir
+        const base64PoseImage = Buffer.from(poseImageBuffer).toString("base64");
+
+        parts.push({
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: base64PoseImage,
+          },
+        });
+
+        console.log("🤸 Pose görsel başarıyla Gemini'ye eklendi");
+      } catch (poseImageError) {
+        console.error(
+          `🤸 Pose görseli eklenirken hata: ${poseImageError.message}`
+        );
+      }
+    }
+
+    // Hair style image'ını da Gemini'ye gönder
+    if (hairStyleImage) {
+      try {
+        // URL'den query parametrelerini temizle
+        const cleanHairStyleImageUrl = hairStyleImage.split("?")[0];
+        console.log(
+          `💇 Hair style görsel base64'e çeviriliyor: ${cleanHairStyleImageUrl}`
+        );
+
+        const hairStyleImageResponse = await axios.get(cleanHairStyleImageUrl, {
+          responseType: "arraybuffer",
+          timeout: 15000, // 30s'den 15s'ye düşürüldü
+        });
+        const hairStyleImageBuffer = hairStyleImageResponse.data;
+
+        // Base64'e çevir
+        const base64HairStyleImage =
+          Buffer.from(hairStyleImageBuffer).toString("base64");
+
+        parts.push({
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: base64HairStyleImage,
+          },
+        });
+
+        console.log("💇 Hair style görsel başarıyla Gemini'ye eklendi");
+      } catch (hairStyleImageError) {
+        console.error(
+          `💇 Hair style görseli eklenirken hata: ${hairStyleImageError.message}`
+        );
+      }
+    }
+
+    // Location image'ını da Gemini'ye gönder
+    if (locationImage) {
+      try {
+        // URL'den query parametrelerini temizle
+        const cleanLocationImageUrl = locationImage.split("?")[0];
+        console.log(
+          `🏞️ Location görsel base64'e çeviriliyor: ${cleanLocationImageUrl}`
+        );
+
+        const locationImageResponse = await axios.get(cleanLocationImageUrl, {
+          responseType: "arraybuffer",
+          timeout: 15000,
+        });
+        const locationImageBuffer = locationImageResponse.data;
+
+        // Base64'e çevir
+        const base64LocationImage =
+          Buffer.from(locationImageBuffer).toString("base64");
+
+        parts.push({
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: base64LocationImage,
+          },
+        });
+
+        console.log("🏞️ Location görsel başarıyla Gemini'ye eklendi");
+      } catch (locationImageError) {
+        console.error(
+          `🏞️ Location görseli eklenirken hata: ${locationImageError.message}`
+        );
+      }
+    }
+
+    // Replicate Gemini Flash API için resim URL'lerini topla
+    const imageUrls = [];
+
+    // Mevcut resim URL'lerini topla (base64 yerine URL kullanıyoruz)
+    if (isBackSideAnalysis && firstImageUrl && secondImageUrl) {
+      imageUrls.push(firstImageUrl, secondImageUrl);
     } else if (isMultipleProducts && referenceImages && referenceImages.length > 1) {
       for (const refImg of referenceImages) {
-        const imgUrl = sanitizeImageUrl(refImg.uri || refImg);
-        if (imgUrl.startsWith("http://") || imgUrl.startsWith("https://")) {
-          imageUrlsForReplicate.push(imgUrl);
+        const imgUrl = refImg.uri || refImg;
+        if (imgUrl && imgUrl.startsWith("http")) {
+          imageUrls.push(imgUrl);
         }
       }
-    } else if (imageUrl) {
-      const cleanImageUrl = sanitizeImageUrl(imageUrl);
-      if (cleanImageUrl.startsWith("http://") || cleanImageUrl.startsWith("https://")) {
-        imageUrlsForReplicate.push(cleanImageUrl);
-      }
+    } else if (imageUrl && imageUrl.startsWith("http")) {
+      imageUrls.push(imageUrl);
     }
 
-    // Pose, hair style ve location resimlerini de ekle
-    if (poseImage) {
-      const cleanPoseImageUrl = sanitizeImageUrl(poseImage.split("?")[0]);
-      if (cleanPoseImageUrl.startsWith("http://") || cleanPoseImageUrl.startsWith("https://")) {
-        imageUrlsForReplicate.push(cleanPoseImageUrl);
-      }
+    // Pose, hair style ve location image URL'lerini ekle
+    if (poseImage && poseImage.startsWith("http")) {
+      const cleanPoseUrl = poseImage.split("?")[0];
+      imageUrls.push(cleanPoseUrl);
     }
-    if (hairStyleImage) {
-      const cleanHairStyleImageUrl = sanitizeImageUrl(hairStyleImage.split("?")[0]);
-      if (cleanHairStyleImageUrl.startsWith("http://") || cleanHairStyleImageUrl.startsWith("https://")) {
-        imageUrlsForReplicate.push(cleanHairStyleImageUrl);
-      }
+    if (hairStyleImage && hairStyleImage.startsWith("http")) {
+      const cleanHairUrl = hairStyleImage.split("?")[0];
+      imageUrls.push(cleanHairUrl);
     }
-    if (locationImage) {
-      const cleanLocationImageUrl = sanitizeImageUrl(locationImage.split("?")[0]);
-      if (cleanLocationImageUrl.startsWith("http://") || cleanLocationImageUrl.startsWith("https://")) {
-        imageUrlsForReplicate.push(cleanLocationImageUrl);
-      }
+    if (locationImage && locationImage.startsWith("http")) {
+      const cleanLocUrl = locationImage.split("?")[0];
+      imageUrls.push(cleanLocUrl);
     }
 
-    console.log(`🤖 [REPLICATE-GEMINI] Toplam ${imageUrlsForReplicate.length} resim URL'si hazırlandı`);
+    console.log(`🖼️ [REPLICATE-GEMINI] Toplam ${imageUrls.length} resim URL'si toplanacak`);
 
-    // Replicate Gemini Flash API çağrısı (3 retry ile)
+    // Replicate Gemini Flash API çağrısı
     let enhancedPrompt;
 
     try {
-      // parts array'indeki text prompt'u al
-      const textPrompt = parts.find(p => p.text)?.text || promptForGemini;
+      console.log("🤖 [REPLICATE-GEMINI] API çağrısı başlatılıyor...");
 
-      const geminiResponse = await callReplicateGeminiFlash(textPrompt, imageUrlsForReplicate, 3);
+      // parts[0].text prompt'u içeriyor
+      const promptText = parts[0].text;
+      const geminiGeneratedPrompt = await callReplicateGeminiFlash(promptText, imageUrls, 3);
+
+      // Gemini response kontrolü
+      if (!geminiGeneratedPrompt) {
+        console.error("❌ Replicate Gemini API response boş");
+        throw new Error("Replicate Gemini API response is empty or invalid");
+      }
 
       // Statik kuralları sadece normal mode'da ekle (backside ve pose change'de ekleme)
       let staticRules = "";
@@ -2421,19 +2028,21 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
         Atmosphere: Scene must feel like a real, live professional photoshoot. Lighting, environment, and styling should combine into a polished, high-fashion aesthetic.`;
       }
 
-      enhancedPrompt = geminiResponse + staticRules;
+      enhancedPrompt = geminiGeneratedPrompt + staticRules;
       console.log(
-        "🤖 [REPLICATE-GEMINI] Gemini'nin ürettiği prompt:",
-        geminiResponse.substring(0, 200) + "..."
+        "🤖 [REPLICATE-GEMINI] Replicate Gemini'nin ürettiği prompt:",
+        geminiGeneratedPrompt
       );
       console.log(
-        "✨ [REPLICATE-GEMINI] Final enhanced prompt (statik kurallarla) hazırlandı"
+        "✨ [REPLICATE-GEMINI] Final enhanced prompt (statik kurallarla):",
+        enhancedPrompt
       );
     } catch (geminiError) {
       console.error(
-        "❌ [REPLICATE-GEMINI] All attempts failed:",
+        "❌ [REPLICATE-GEMINI] API failed:",
         geminiError.message
       );
+
       // Fallback durumunda da statik kuralları ekle
       const staticRules = `
 
@@ -2480,12 +2089,6 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
       const genderLower = gender ? gender.toLowerCase() : "female";
       let parsedAgeInt = null;
 
-      // Newborn kontrolü - fallback prompt için
-      const isNewbornFallback =
-        age?.toLowerCase() === "newborn" ||
-        age?.toLowerCase() === "yenidoğan" ||
-        age === "0";
-
       // Yaş sayısını çıkar
       if (age) {
         if (age.includes("years old")) {
@@ -2493,8 +2096,6 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
           if (ageMatch) {
             parsedAgeInt = parseInt(ageMatch[1]);
           }
-        } else if (isNewbornFallback || age === "0") {
-          parsedAgeInt = 0; // Newborn
         } else if (age.includes("baby") || age.includes("bebek")) {
           parsedAgeInt = 1;
         } else if (age.includes("child") || age.includes("çocuk")) {
@@ -2503,22 +2104,11 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
           parsedAgeInt = 22;
         } else if (age.includes("adult") || age.includes("yetişkin")) {
           parsedAgeInt = 45;
-        } else {
-          // Direkt sayı olarak parse et
-          const numericAge = parseInt(age, 10);
-          if (!isNaN(numericAge)) {
-            parsedAgeInt = numericAge;
-          }
         }
       }
 
       // Yaş grupları - güvenli flag-safe tanımlar
-      if (isNewbornFallback || (!isNaN(parsedAgeInt) && parsedAgeInt === 0)) {
-        // NEWBORN (0 yaş) - Fallback prompt için
-        const genderWord =
-          genderLower === "male" || genderLower === "man" ? "boy" : "girl";
-        modelDescription = `newborn baby ${genderWord} (0 months old, infant)`;
-      } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
+      if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
         // Çocuk/genç yaş grupları için güvenli tanımlar
         if (parsedAgeInt <= 12) {
           modelDescription =
@@ -2645,11 +2235,6 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
       fallbackPrompt += `Integrate prints/patterns correctly over the 3D form for ${isMultipleProducts ? "ALL products" : "the garment"
         }: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
 
-      // Newborn fashion photography direktifleri (fallback prompt için)
-      if (isNewbornFallback || (!isNaN(parsedAgeInt) && parsedAgeInt === 0)) {
-        fallbackPrompt += `NEWBORN FASHION PHOTOGRAPHY MODE: This is professional newborn fashion photography. The model is a newborn baby (0 months old, infant). Use safe, gentle poses appropriate for newborns - lying down positions, swaddled poses, or supported sitting positions. Ensure soft, diffused lighting gentle on the newborn's eyes. Maintain a peaceful, serene atmosphere. The newborn should appear comfortable, content, and naturally positioned. Focus on showcasing the garment/product while ensuring the newborn's safety and comfort. Use professional newborn photography techniques with natural fabric draping and age-appropriate styling. The overall aesthetic should be gentle, tender, and suitable for newborn fashion photography campaigns. CAMERA FRAMING: Use CLOSE-UP framing (tight crop) that focuses on the newborn and the garment/product. The composition should be intimate and detail-focused, capturing the newborn's delicate features and the product's details. Frame the shot to emphasize the newborn's face, hands, and the garment/product being showcased. Avoid wide shots - maintain a close-up perspective that creates an intimate, tender atmosphere. The camera should be positioned close to the subject, creating a warm, personal connection with the viewer. `;
-      }
-
       // Final kalite - Fashion photography standartları
       fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
 
@@ -2718,12 +2303,6 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
     const genderLower = gender ? gender.toLowerCase() : "female";
     let parsedAgeInt = null;
 
-    // Newborn kontrolü - ikinci fallback prompt için
-    const isNewbornFallbackError =
-      age?.toLowerCase() === "newborn" ||
-      age?.toLowerCase() === "yenidoğan" ||
-      age === "0";
-
     // Yaş sayısını çıkar
     if (age) {
       if (age.includes("years old")) {
@@ -2731,8 +2310,6 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
         if (ageMatch) {
           parsedAgeInt = parseInt(ageMatch[1]);
         }
-      } else if (isNewbornFallbackError || age === "0") {
-        parsedAgeInt = 0; // Newborn
       } else if (age.includes("baby") || age.includes("bebek")) {
         parsedAgeInt = 1;
       } else if (age.includes("child") || age.includes("çocuk")) {
@@ -2741,25 +2318,11 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
         parsedAgeInt = 22;
       } else if (age.includes("adult") || age.includes("yetişkin")) {
         parsedAgeInt = 45;
-      } else {
-        // Direkt sayı olarak parse et
-        const numericAge = parseInt(age, 10);
-        if (!isNaN(numericAge)) {
-          parsedAgeInt = numericAge;
-        }
       }
     }
 
     // Yaş grupları - güvenli flag-safe tanımlar (ikinci fallback)
-    if (
-      isNewbornFallbackError ||
-      (!isNaN(parsedAgeInt) && parsedAgeInt === 0)
-    ) {
-      // NEWBORN (0 yaş) - İkinci fallback prompt için
-      const genderWord =
-        genderLower === "male" || genderLower === "man" ? "boy" : "girl";
-      modelDescription = `newborn baby ${genderWord} (0 months old, infant)`;
-    } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
+    if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
       // Çocuk/genç yaş grupları için güvenli tanımlar
       if (parsedAgeInt <= 12) {
         modelDescription =
@@ -2886,14 +2449,6 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
     fallbackPrompt += `Integrate prints/patterns correctly over the 3D form for ${isMultipleProducts ? "ALL products" : "the garment"
       }: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
 
-    // Newborn fashion photography direktifleri (ikinci fallback prompt için)
-    if (
-      isNewbornFallbackError ||
-      (!isNaN(parsedAgeInt) && parsedAgeInt === 0)
-    ) {
-      fallbackPrompt += `NEWBORN FASHION PHOTOGRAPHY MODE: This is professional newborn fashion photography. The model is a newborn baby (0 months old, infant). Use safe, gentle poses appropriate for newborns - lying down positions, swaddled poses, or supported sitting positions. Ensure soft, diffused lighting gentle on the newborn's eyes. Maintain a peaceful, serene atmosphere. The newborn should appear comfortable, content, and naturally positioned. Focus on showcasing the garment/product while ensuring the newborn's safety and comfort. Use professional newborn photography techniques with natural fabric draping and age-appropriate styling. The overall aesthetic should be gentle, tender, and suitable for newborn fashion photography campaigns. CAMERA FRAMING: Use CLOSE-UP framing (tight crop) that focuses on the newborn and the garment/product. The composition should be intimate and detail-focused, capturing the newborn's delicate features and the product's details. Frame the shot to emphasize the newborn's face, hands, and the garment/product being showcased. Avoid wide shots - maintain a close-up perspective that creates an intimate, tender atmosphere. The camera should be positioned close to the subject, creating a warm, personal connection with the viewer. `;
-    }
-
     // Final kalite - Fashion photography standartları
     fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
 
@@ -2921,7 +2476,203 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
 
 // Arkaplan silme fonksiyonu kaldırıldı - artık kullanılmıyor
 
+async function pollReplicateResult(predictionId, maxAttempts = 60) {
+  console.log(`Replicate prediction polling başlatılıyor: ${predictionId}`);
 
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const response = await axios.get(
+        `https://api.replicate.com/v1/predictions/${predictionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+          responseType: "json",
+          timeout: 15000, // 30s'den 15s'ye düşürüldü polling için
+        }
+      );
+
+      const result = response.data;
+      console.log(`Polling attempt ${attempt + 1}: status = ${result.status}`);
+
+      if (result.status === "succeeded") {
+        console.log("Replicate işlemi başarıyla tamamlandı");
+        return result;
+      } else if (result.status === "failed") {
+        console.error("Replicate işlemi başarısız:", result.error);
+
+        // PA (Prediction interrupted) hatası kontrolü - DERHAL DURDUR
+        if (
+          result.error &&
+          typeof result.error === "string" &&
+          (result.error.includes("Prediction interrupted") ||
+            result.error.includes("code: PA") ||
+            result.error.includes("please retry (code: PA)"))
+        ) {
+          console.error(
+            "❌ PA hatası tespit edildi, polling DERHAL durduruluyor:",
+            result.error
+          );
+          throw new Error(
+            "PREDICTION_INTERRUPTED: Replicate sunucusunda kesinti oluştu. Lütfen tekrar deneyin."
+          );
+        }
+
+        // Content moderation ve model hatalarını kontrol et
+        if (
+          result.error &&
+          typeof result.error === "string" &&
+          (result.error.includes("flagged as sensitive") ||
+            result.error.includes("E005") ||
+            result.error.includes("sensitive content") ||
+            result.error.includes("Content moderated") ||
+            result.error.includes("ModelError") ||
+            result.error.includes("retrying once"))
+        ) {
+          console.error(
+            "❌ Content moderation/model hatası tespit edildi, Gemini 2.5 Flash Image Preview'e geçiş yapılacak:",
+            result.error
+          );
+          throw new Error("SENSITIVE_CONTENT_FLUX_FALLBACK");
+        }
+
+        // E9243, E004 ve benzeri geçici hatalar için retry'a uygun hata fırlat
+        if (
+          result.error &&
+          typeof result.error === "string" &&
+          (result.error.includes("E9243") ||
+            result.error.includes("E004") ||
+            result.error.includes("unexpected error handling prediction") ||
+            result.error.includes("Director: unexpected error") ||
+            result.error.includes("Service is temporarily unavailable") ||
+            result.error.includes("Please try again later") ||
+            result.error.includes("Prediction failed.") ||
+            result.error.includes(
+              "Prediction interrupted; please retry (code: PA)"
+            ))
+        ) {
+          console.log(
+            "🔄 Geçici nano-banana hatası tespit edildi, retry'a uygun:",
+            result.error
+          );
+          throw new Error(`RETRYABLE_ERROR: ${result.error}`);
+        }
+
+        throw new Error(result.error || "Replicate processing failed");
+      } else if (result.status === "canceled") {
+        console.error("Replicate işlemi iptal edildi");
+        throw new Error("Replicate processing was canceled");
+      }
+
+      // Processing veya starting durumundaysa bekle
+      if (result.status === "processing" || result.status === "starting") {
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // 2 saniye bekle
+        continue;
+      }
+    } catch (error) {
+      console.error(`Polling attempt ${attempt + 1} hatası:`, error.message);
+
+      // Sensitive content hatasını özel olarak handle et
+      if (error.message === "SENSITIVE_CONTENT_FLUX_FALLBACK") {
+        console.error(
+          "❌ Sensitive content hatası, Gemini 2.5 Flash Image Preview'e geçiş için polling durduruluyor"
+        );
+        throw error; // Hata mesajını olduğu gibi fırlat
+      }
+
+      // PA (Prediction interrupted) hatası için özel retry mantığı - KESIN DURDUR
+      if (
+        error.message.includes("Prediction interrupted") ||
+        error.message.includes("code: PA") ||
+        error.message.includes("PREDICTION_INTERRUPTED")
+      ) {
+        console.error(
+          `❌ PA hatası tespit edildi, polling KESIN DURDURULUYOR: ${error.message}`
+        );
+        console.log("🛑 PA hatası - Polling döngüsü derhal sonlandırılıyor");
+        throw error; // Orijinal hatayı fırlat ki üst seviyede yakalanabilsin
+      }
+
+      // Eğer hata "failed" status'dan kaynaklanıyorsa derhal durdur
+      if (
+        error.message.includes("Replicate processing failed") ||
+        error.message.includes("processing was canceled")
+      ) {
+        console.error(
+          "❌ Replicate işlemi başarısız/iptal, polling durduruluyor"
+        );
+        throw error; // Hata mesajını olduğu gibi fırlat
+      }
+
+      // Sadece network/connection hatalarında retry yap
+      if (attempt === maxAttempts - 1) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+  }
+
+  throw new Error("Replicate işlemi zaman aşımına uğradı");
+}
+
+// Retry mekanizmalı polling fonksiyonu
+async function pollReplicateResultWithRetry(predictionId, maxRetries = 3) {
+  console.log(
+    `🔄 Retry'li polling başlatılıyor: ${predictionId} (maxRetries: ${maxRetries})`
+  );
+
+  for (let retryAttempt = 1; retryAttempt <= maxRetries; retryAttempt++) {
+    try {
+      console.log(`🔄 Polling retry attempt ${retryAttempt}/${maxRetries}`);
+
+      // Normal polling fonksiyonunu çağır
+      const result = await pollReplicateResult(predictionId);
+
+      // Başarılı ise sonucu döndür
+      console.log(`✅ Polling retry ${retryAttempt} başarılı!`);
+      return result;
+    } catch (pollingError) {
+      console.error(
+        `❌ Polling retry ${retryAttempt} hatası:`,
+        pollingError.message
+      );
+
+      // Bu hatalar için retry yapma - direkt fırlat
+      if (
+        pollingError.message.includes("PREDICTION_INTERRUPTED") ||
+        pollingError.message.includes("SENSITIVE_CONTENT_FLUX_FALLBACK") ||
+        pollingError.message.includes("processing was canceled")
+      ) {
+        console.error(
+          `❌ Retry yapılmayacak hata türü: ${pollingError.message}`
+        );
+        throw pollingError;
+      }
+
+      // Geçici hatalar için retry yap (E9243 gibi)
+      if (pollingError.message.includes("RETRYABLE_ERROR")) {
+        console.log(`🔄 Geçici hata retry edilecek: ${pollingError.message}`);
+        // Retry döngüsü devam edecek
+      }
+
+      // Son deneme ise hata fırlat
+      if (retryAttempt === maxRetries) {
+        console.error(
+          `❌ Tüm polling retry attemptları başarısız: ${pollingError.message}`
+        );
+        throw pollingError;
+      }
+
+      // Bir sonraki deneme için bekle
+      const waitTime = retryAttempt * 3000; // 3s, 6s, 9s
+      console.log(
+        `⏳ Polling retry ${retryAttempt} için ${waitTime}ms bekleniyor...`
+      );
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+    }
+  }
+}
 
 router.post("/generate", async (req, res) => {
   // Kredi kontrolü ve düşme
@@ -2946,17 +2697,9 @@ router.post("/generate", async (req, res) => {
       isMultipleProducts: originalIsMultipleProducts,
       generationId, // Yeni parametre
       totalGenerations = 1, // Toplam generation sayısı (varsayılan 1)
-      // Color change specific parameters
-      isColorChange = false, // Bu bir renk değiştirme işlemi mi?
-      targetColor = null, // Hedef renk bilgisi
       // Pose change specific parameters
       isPoseChange = false, // Bu bir poz değiştirme işlemi mi?
       customDetail = null, // Özel detay bilgisi
-      // Edit mode specific parameters (EditScreen)
-      isEditMode = false, // Bu EditScreen'den gelen bir edit işlemi mi?
-      editPrompt = null, // EditScreen'den gelen özel prompt
-      // Refiner mode specific parameters (RefinerScreen)
-      isRefinerMode = false, // Bu RefinerScreen'den gelen refiner işlemi mi?
       // Session deduplication
       sessionId = null, // Aynı batch request'leri tanımlıyor
       modelPhoto = null,
@@ -3048,13 +2791,8 @@ router.post("/generate", async (req, res) => {
 
     console.log("🖼️ [BACKEND] isMultipleImages:", isMultipleImages);
     console.log("🛍️ [BACKEND] isMultipleProducts:", isMultipleProducts);
-    console.log("🎨 [BACKEND] isColorChange:", isColorChange);
-    console.log("🎨 [BACKEND] targetColor:", targetColor);
     console.log("🕺 [BACKEND] isPoseChange:", isPoseChange);
     console.log("🕺 [BACKEND] customDetail:", customDetail);
-    console.log("✏️ [BACKEND] isEditMode:", isEditMode);
-    console.log("✏️ [BACKEND] editPrompt:", editPrompt);
-    console.log("🔧 [BACKEND] isRefinerMode:", isRefinerMode);
     const incomingReferenceCount = referenceImages?.length || 0;
     const totalReferenceCount =
       incomingReferenceCount + (modelReferenceImage ? 1 : 0);
@@ -3069,18 +2807,11 @@ router.post("/generate", async (req, res) => {
       totalReferenceCount
     );
 
-    // EditScreen modunda promptText boş olabilir (editPrompt kullanılacak)
-    const hasValidPrompt =
-      promptText || (isEditMode && editPrompt && editPrompt.trim());
+    const hasValidPrompt = promptText && promptText.trim();
 
     console.log(
       "🔍 [VALIDATION] promptText:",
       promptText ? "✅ Var" : "❌ Yok"
-    );
-    console.log("🔍 [VALIDATION] isEditMode:", isEditMode);
-    console.log(
-      "🔍 [VALIDATION] editPrompt:",
-      editPrompt ? "✅ Var" : "❌ Yok"
     );
     console.log("🔍 [VALIDATION] hasValidPrompt:", hasValidPrompt);
 
@@ -3089,7 +2820,7 @@ router.post("/generate", async (req, res) => {
         success: false,
         result: {
           message:
-            "Geçerli bir prompt (promptText veya editPrompt) ve en az 1 referenceImage sağlanmalıdır.",
+            "Geçerli bir prompt (promptText) ve en az 1 referenceImage sağlanmalıdır.",
         },
       });
     }
@@ -3168,6 +2899,13 @@ router.post("/generate", async (req, res) => {
         console.log(`💳 [TIME-DEDUP] İlk generation, kredi düşürülecek`);
       }
     }
+
+    // Kalite versiyonunu al (frontend'den settings içinde veya direkt root'ta gelebilir)
+    const qualityVersion =
+      req.body.settings?.qualityVersion || req.body.qualityVersion || "v1";
+    console.log(`🔍 [QUALITY] Talep edilen kalite versiyonu: ${qualityVersion}`);
+
+    const CREDIT_COST = qualityVersion === "v2" ? 35 : 10;
 
     console.log(`💳 [CREDIT DEBUG] generationId: ${generationId}`);
     console.log(`💳 [CREDIT DEBUG] totalGenerations: ${totalGenerations}`);
@@ -3278,6 +3016,7 @@ router.post("/generate", async (req, res) => {
     const settingsWithSession = {
       ...settings,
       totalGenerations: totalGenerations, // Pay-on-success için gerekli
+      qualityVersion: qualityVersion, // Kalite versiyonunu settings'e ekle
       ...(sessionId && { sessionId: sessionId }),
     };
 
@@ -3292,7 +3031,8 @@ router.post("/generate", async (req, res) => {
       ratio,
       isMultipleImages,
       isMultipleProducts,
-      finalGenerationId
+      finalGenerationId,
+      qualityVersion // Kalite versiyonunu parametre olarak geçir
     );
 
     if (!pendingGeneration) {
@@ -3493,129 +3233,69 @@ router.post("/generate", async (req, res) => {
 
     let enhancedPrompt, backgroundRemovedImage;
 
-    if (isColorChange || isPoseChange || isRefinerMode) {
-      // 🎨 COLOR CHANGE MODE, 🕺 POSE CHANGE MODE veya 🔧 REFINER MODE - Özel prompt'lar
-      if (isColorChange) {
-        console.log(
-          "🎨 Color change mode: Basit renk değiştirme prompt'u oluşturuluyor"
-        );
-        enhancedPrompt = `Change the main color of the product/item in this image to ${targetColor}. Keep all design details, patterns, textures, and shapes exactly the same. Only change the primary color to ${targetColor}. The result should be photorealistic with natural lighting.`;
-      } else if (isRefinerMode) {
-        console.log(
-          "🔧 Refiner mode: Profesyonel e-ticaret fotoğraf refiner prompt'u oluşturuluyor"
-        );
-
-        // Refiner modu için Gemini ile gelişmiş prompt oluştur
-        console.log(
-          "🤖 [GEMINI CALL - REFINER] enhancePromptWithGemini parametreleri:"
-        );
-        console.log("🤖 [GEMINI CALL - REFINER] - finalImage URL:", finalImage);
-        console.log(
-          "🤖 [GEMINI CALL - REFINER] - isMultipleProducts:",
-          isMultipleProducts
-        );
-
-        enhancedPrompt = await enhancePromptWithGemini(
-          promptText ||
-          "Transform this amateur product photo into a professional high-end e-commerce product photo with invisible mannequin effect, perfect lighting, white background, and luxury presentation quality",
-          finalImage,
-          settings || {},
-          locationImage,
-          poseImage,
-          hairStyleImage,
-          isMultipleProducts,
-          false, // isColorChange
-          null, // targetColor
-          false, // isPoseChange
-          null, // customDetail
-          false, // isEditMode
-          null, // editPrompt
-          isRefinerMode, // isRefinerMode - yeni parametre
-          req.body.isBackSideAnalysis || false, // Arka taraf analizi modu mu?
-          referenceImages // Multi-product için tüm referans resimler
-        );
-      } else if (isPoseChange) {
-        console.log(
-          "🕺 Pose change mode: Gemini ile poz değiştirme prompt'u oluşturuluyor"
-        );
-
-        // Poz değiştirme modunda Gemini ile prompt oluştur
-        console.log(
-          "🤖 [GEMINI CALL - POSE] enhancePromptWithGemini parametreleri:"
-        );
-        console.log("🤖 [GEMINI CALL - POSE] - finalImage URL:", finalImage);
-        console.log(
-          "🤖 [GEMINI CALL - POSE] - isMultipleProducts:",
-          isMultipleProducts
-        );
-        console.log(
-          "🤖 [GEMINI CALL - POSE] - referenceImages sayısı:",
-          referenceImages?.length || 0
-        );
-
-        // EditScreen modunda editPrompt'u, normal modda promptText'i kullan
-        const promptToUse =
-          isEditMode && editPrompt && editPrompt.trim()
-            ? editPrompt.trim()
-            : promptText;
-
-        console.log(
-          "📝 [GEMINI CALL - POSE] Kullanılacak prompt:",
-          isEditMode ? "editPrompt" : "promptText"
-        );
-        console.log("📝 [GEMINI CALL - POSE] Prompt içeriği:", promptToUse);
-
-        // Pose change için sadece model fotoğrafını Gemini'ye gönder
-        let modelImageForGemini;
-        if (
-          modelReferenceImage &&
-          (modelReferenceImage.uri || modelReferenceImage.url)
-        ) {
-          modelImageForGemini = sanitizeImageUrl(
-            modelReferenceImage.uri || modelReferenceImage.url
-          );
-        } else if (referenceImages && referenceImages.length > 0) {
-          const firstReference = referenceImages[0];
-          modelImageForGemini = sanitizeImageUrl(
-            firstReference && (firstReference.uri || firstReference.url)
-              ? firstReference.uri || firstReference.url
-              : firstReference
-          );
-        } else {
-          modelImageForGemini = finalImage;
-        }
-
-        console.log(
-          "🤖 [GEMINI CALL - POSE] Sadece model fotoğrafı gönderiliyor:",
-          modelImageForGemini
-        );
-
-        enhancedPrompt = await enhancePromptWithGemini(
-          promptToUse, // EditScreen'de editPrompt, normal modda promptText
-          modelImageForGemini, // Sadece model fotoğrafı (ilk resim)
-          settings || {},
-          locationImage,
-          poseImage,
-          hairStyleImage,
-          false, // isMultipleProducts - pose change'de product yok
-          false, // isColorChange
-          null, // targetColor
-          isPoseChange, // isPoseChange
-          customDetail, // customDetail
-          isEditMode, // isEditMode
-          editPrompt, // editPrompt
-          false, // isRefinerMode
-          false, // isBackSideAnalysis - pose change'de arka analizi yok
-          null, // referenceImages - Gemini'ye product photolar gönderilmez
-          false // isMultipleImages - Gemini'ye tek resim gönderiliyor
-        );
-      }
-      backgroundRemovedImage = finalImage; // Orijinal image'ı kullan, arkaplan silme yok
+    if (isPoseChange) {
       console.log(
-        isColorChange ? "🎨 Color change prompt:" : "🕺 Pose change prompt:",
-        enhancedPrompt
+        "🕺 Pose change mode: Gemini ile poz değiştirme prompt'u oluşturuluyor"
       );
-    } else if (!isPoseChange) {
+
+      // Poz değiştirme modunda Gemini ile prompt oluştur
+      console.log(
+        "🤖 [GEMINI CALL - POSE] enhancePromptWithGemini parametreleri:"
+      );
+      console.log("🤖 [GEMINI CALL - POSE] - finalImage URL:", finalImage);
+      console.log(
+        "🤖 [GEMINI CALL - POSE] - isMultipleProducts:",
+        isMultipleProducts
+      );
+      console.log(
+        "🤖 [GEMINI CALL - POSE] - referenceImages sayısı:",
+        referenceImages?.length || 0
+      );
+
+      console.log("📝 [GEMINI CALL - POSE] Prompt içeriği:", promptText);
+
+      // Pose change için sadece model fotoğrafını Gemini'ye gönder
+      let modelImageForGemini;
+      if (
+        modelReferenceImage &&
+        (modelReferenceImage.uri || modelReferenceImage.url)
+      ) {
+        modelImageForGemini = sanitizeImageUrl(
+          modelReferenceImage.uri || modelReferenceImage.url
+        );
+      } else if (referenceImages && referenceImages.length > 0) {
+        const firstReference = referenceImages[0];
+        modelImageForGemini = sanitizeImageUrl(
+          firstReference && (firstReference.uri || firstReference.url)
+            ? firstReference.uri || firstReference.url
+            : firstReference
+        );
+      } else {
+        modelImageForGemini = finalImage;
+      }
+
+      console.log(
+        "🤖 [GEMINI CALL - POSE] Sadece model fotoğrafı gönderiliyor:",
+        modelImageForGemini
+      );
+
+      enhancedPrompt = await enhancePromptWithGemini(
+        promptText,
+        modelImageForGemini, // Sadece model fotoğrafı (ilk resim)
+        settings || {},
+        locationImage,
+        poseImage,
+        hairStyleImage,
+        false, // isMultipleProducts - pose change'de product yok
+        isPoseChange, // isPoseChange
+        customDetail, // customDetail
+        false, // isBackSideAnalysis - pose change'de arka analizi yok
+        null, // referenceImages - Gemini'ye product photolar gönderilmez
+        false // isMultipleImages - Gemini'ye tek resim gönderiliyor
+      );
+      backgroundRemovedImage = finalImage; // Orijinal image'ı kullan, arkaplan silme yok
+      console.log("🕺 Pose change prompt:", enhancedPrompt);
+    } else {
       // 🖼️ NORMAL MODE - Arkaplan silme işlemi (paralel)
       // Gemini prompt üretimini paralelde başlat
       console.log("🤖 [GEMINI CALL] enhancePromptWithGemini parametreleri:");
@@ -3626,33 +3306,18 @@ router.post("/generate", async (req, res) => {
         referenceImages?.length || 0
       );
 
-      // EditScreen modunda editPrompt'u, normal modda promptText'i kullan
-      const promptToUse =
-        isEditMode && editPrompt && editPrompt.trim()
-          ? editPrompt.trim()
-          : promptText;
-
-      console.log(
-        "📝 [GEMINI CALL] Kullanılacak prompt:",
-        isEditMode ? "editPrompt" : "promptText"
-      );
-      console.log("📝 [GEMINI CALL] Prompt içeriği:", promptToUse);
+      console.log("📝 [GEMINI CALL] Prompt içeriği:", promptText);
 
       const geminiPromise = enhancePromptWithGemini(
-        promptToUse, // EditScreen'de editPrompt, normal modda promptText
+        promptText,
         finalImage, // Ham orijinal resim (kombin modunda birleştirilmiş grid)
         settings || {},
         locationImage,
         poseImage,
         hairStyleImage,
         isMultipleProducts, // Kombin modunda true olmalı
-        isColorChange, // Renk değiştirme işlemi mi?
-        targetColor, // Hedef renk bilgisi
         isPoseChange, // Poz değiştirme işlemi mi?
         customDetail, // Özel detay bilgisi
-        isEditMode, // EditScreen modu mu?
-        editPrompt, // EditScreen'den gelen prompt
-        isRefinerMode, // RefinerScreen modu mu?
         req.body.isBackSideAnalysis || false, // Arka taraf analizi modu mu?
         referenceImages // Multi-product için tüm referans resimler
       );
@@ -3743,33 +3408,21 @@ router.post("/generate", async (req, res) => {
     console.log("📝 [BACKEND MAIN] Original prompt:", promptText);
     console.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
 
-    // Fal.ai entegrasyonu (V5 ve Back routes ile uyumlu)
+    // Replicate google/nano-banana modeli ile istek gönder
     let replicateResponse;
     const maxRetries = 3;
     let totalRetryAttempts = 0;
-    const retryReasons = [];
-
-    // V2 model seçimi (Pro model)
-    const isV2 = req.body.quality === "v2";
-    const falModel = isV2 // req.body'de quality varsa v2 kontrolü yap
-      ? "fal-ai/nano-banana-pro/edit"
-      : "fal-ai/nano-banana/edit";
-
-    console.log(
-      `🤖 Fal.ai Modeli Seçildi: ${falModel} ${isV2 ? "(PRO)" : "(Standard)"}`
-    );
-
-    const startTime = Date.now(); // Define startTime here for overall processing time
+    let retryReasons = [];
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         console.log(
-          `🔄 Fal.ai nano-banana API attempt ${attempt}/${maxRetries}`
+          `🔄 Replicate google/nano-banana API attempt ${attempt}/${maxRetries}`
         );
 
-        console.log("🚀 Fal.ai API çağrısı yapılıyor...");
+        console.log("🚀 Replicate google/nano-banana API çağrısı yapılıyor...");
 
-        // Fal.ai için image_urls array'ini hazırla (Replicate logic ile aynı)
+        // Replicate API için request body hazırla
         let imageInputArray;
 
         // Back side analysis: 2 ayrı resim gönder
@@ -3779,7 +3432,7 @@ router.post("/generate", async (req, res) => {
           referenceImages.length >= 2
         ) {
           console.log(
-            "🔄 [BACK_SIDE] 2 ayrı resim Fal.ai'ye gönderiliyor..."
+            "🔄 [BACK_SIDE] 2 ayrı resim Nano Banana'ya gönderiliyor..."
           );
           imageInputArray = [
             referenceImages[0].uri || referenceImages[0], // Ön resim - direkt string
@@ -3794,7 +3447,7 @@ router.post("/generate", async (req, res) => {
           const totalRefs =
             referenceImages.length + (modelReferenceImage ? 1 : 0);
           console.log(
-            `🖼️ [MULTIPLE] ${totalRefs} adet referans resmi Fal.ai'ye gönderiliyor...`
+            `🖼️ [MULTIPLE] ${totalRefs} adet referans resmi Nano Banana'ya gönderiliyor...`
           );
 
           const sortedImages = [];
@@ -3843,128 +3496,202 @@ router.post("/generate", async (req, res) => {
           imageInputArray = [combinedImageForReplicate];
         }
 
+        let requestBody;
         const aspectRatioForRequest = formattedRatio || "9:16";
 
-        // Fal.ai Request Body
-        const requestBody = {
-          prompt: enhancedPrompt,
-          image_urls: imageInputArray,
-          num_images: 1,
-          output_format: "png",
-          aspect_ratio: aspectRatioForRequest,
-          // İsteğe bağlı parametreler (hız için V5'tekine benzer yapılabilir)
-          // guidance_scale, num_inference_steps vs. Fal.ai defaults usually work well
-        };
-
-        // Pose change parametreleri
         if (isPoseChange) {
-          requestBody.guidance_scale = 7.5;
-          requestBody.num_inference_steps = 20;
-          console.log("🕺 [POSE_CHANGE] Fal.ai parametreleri eklendi");
+          // POSE CHANGE MODE - Farklı input parametreleri
+          requestBody = {
+            input: {
+              prompt: enhancedPrompt, // Gemini'den gelen pose change prompt'u
+              image_input: imageInputArray,
+              output_format: "png",
+              aspect_ratio: aspectRatioForRequest,
+              // Pose change için optimize edilmiş parametreler (hız için)
+              guidance_scale: 7.5, // Normal ile aynı (hız için)
+              num_inference_steps: 20, // Normal ile aynı (hız için)
+            },
+          };
+          console.log("🕺 [POSE_CHANGE] Nano Banana request body hazırlandı");
+          console.log(
+            "🕺 [POSE_CHANGE] Prompt:",
+            enhancedPrompt.substring(0, 200) + "..."
+          );
+        } else {
+          // NORMAL MODE - Orijinal parametreler
+          requestBody = {
+            input: {
+              prompt: enhancedPrompt,
+              image_input: imageInputArray,
+              output_format: "png",
+              aspect_ratio: aspectRatioForRequest,
+            },
+          };
         }
 
-        console.log("📋 Fal.ai Request Body:", {
+        // Kalite versiyonuna göre model URL ve parametreleri güncelle
+        let modelUrl =
+          "https://api.replicate.com/v1/models/google/nano-banana/predictions"; // Default v1
+
+        if (qualityVersion === "v2") {
+          console.log(
+            "🚀 [QUALITY] V2 seçili - Nano Banana Pro parametreleri ekleniyor"
+          );
+          modelUrl =
+            "https://api.replicate.com/v1/models/google/nano-banana-pro/predictions";
+          requestBody.input.resolution = "2K";
+          requestBody.input.safety_filter_level = "block_only_high";
+        } else {
+          console.log(
+            "🚀 [QUALITY] V1 seçili - Nano Banana parametreleri (varsayılan)"
+          );
+        }
+
+        console.log("📋 Replicate Request Body:", {
           prompt: enhancedPrompt.substring(0, 100) + "...",
-          imageInputCount: imageInputArray.length,
-          outputFormat: "png",
+          imageInput: req.body.isBackSideAnalysis
+            ? "2 separate images"
+            : isMultipleImages && referenceImages.length > 1
+              ? `${referenceImages.length} separate images`
+              : "single combined image",
+          imageInputArray: imageInputArray,
+          outputFormat: "jpg",
           aspectRatio: aspectRatioForRequest,
-          model: falModel,
+          qualityVersion: qualityVersion,
+          modelUrl: modelUrl,
         });
 
-        // Fal.ai API çağrısı
+        // Replicate API çağrısı - Prefer: wait header ile
         const response = await axios.post(
-          `https://fal.run/${falModel}`,
+          modelUrl,
           requestBody,
           {
             headers: {
-              Authorization: `Key ${process.env.FAL_API_KEY}`,
+              Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
               "Content-Type": "application/json",
+              Prefer: "wait", // Synchronous response için
             },
-            timeout: 300000, // 5 dakika timeout
+            timeout: 120000, // 2 dakika timeout
           }
         );
 
-        console.log("📋 Fal.ai API Response Status:", response.status);
-        console.log("📋 Fal.ai API Response Data:", {
-          request_id: response.data.request_id,
-          hasImages: !!response.data.images,
-          imagesCount: response.data.images?.length || 0,
+        console.log("📋 Replicate API Response Status:", response.status);
+        console.log("📋 Replicate API Response Data:", {
+          id: response.data.id,
+          status: response.data.status,
+          hasOutput: !!response.data.output,
+          error: response.data.error,
         });
 
-        // Fal.ai Response kontrolü
-        if (response.data.images && response.data.images.length > 0) {
+        // Response kontrolü
+        if (response.data.status === "succeeded" && response.data.output) {
           console.log(
-            "✅ Fal.ai API başarılı, images alındı:",
-            response.data.images.map((img) => img.url)
+            "✅ Replicate API başarılı, output alındı:",
+            response.data.output
           );
 
-          // Fal.ai response'u Replicate formatına dönüştür (mevcut kod ile uyumluluk için)
-          const outputUrls = response.data.images.map((img) => img.url);
+          // Replicate response'u formatla
           replicateResponse = {
             data: {
-              id: response.data.request_id || `fal-${uuidv4()}`,
+              id: response.data.id,
               status: "succeeded",
-              output: outputUrls,
+              output: response.data.output,
               urls: {
-                get: null,
+                get: response.data.urls?.get || null,
               },
             },
           };
 
           console.log(
-            `✅ Fal.ai nano-banana API başarılı (attempt ${attempt})`
+            `✅ Replicate google/nano-banana API başarılı (attempt ${attempt})`
           );
           break; // Başarılı olursa loop'tan çık
-        } else if (response.data.detail || response.data.error) {
-          // Fal.ai error response
-          const errorMsg = response.data.detail || response.data.error;
-          console.error("❌ Fal.ai API failed:", errorMsg);
+        } else if (
+          response.data.status === "processing" ||
+          response.data.status === "starting"
+        ) {
+          console.log(
+            "⏳ Replicate API hala işlem yapıyor, polling başlatılacak:",
+            response.data.status
+          );
 
-          // Geçici hatalar için retry yap
+          // Processing durumunda response'u formatla ve polling'e geç
+          replicateResponse = {
+            data: {
+              id: response.data.id,
+              status: response.data.status,
+              output: response.data.output,
+              urls: {
+                get: response.data.urls?.get || null,
+              },
+            },
+          };
+
+          console.log(
+            `⏳ Replicate google/nano-banana API processing (attempt ${attempt}) - polling gerekecek`
+          );
+          break; // Processing durumunda da loop'tan çık ve polling'e geç
+        } else if (response.data.status === "failed") {
+          console.error("❌ Replicate API failed:", response.data.error);
+
+          // E9243, E004 ve benzeri geçici hatalar için retry yap
           if (
-            typeof errorMsg === "string" &&
-            (errorMsg.includes("temporarily unavailable") ||
-              errorMsg.includes("try again later") ||
-              errorMsg.includes("rate limit") ||
-              errorMsg.includes("timeout"))
+            response.data.error &&
+            typeof response.data.error === "string" &&
+            (response.data.error.includes("E9243") ||
+              response.data.error.includes("E004") ||
+              response.data.error.includes(
+                "unexpected error handling prediction"
+              ) ||
+              response.data.error.includes("Director: unexpected error") ||
+              response.data.error.includes(
+                "Service is temporarily unavailable"
+              ) ||
+              response.data.error.includes("Please try again later") ||
+              response.data.error.includes("Prediction failed.") ||
+              response.data.error.includes(
+                "Prediction interrupted; please retry (code: PA)"
+              ))
           ) {
             console.log(
-              `🔄 Geçici fal.ai hatası tespit edildi (attempt ${attempt}), retry yapılacak:`,
-              errorMsg
+              `🔄 Geçici nano-banana hatası tespit edildi (attempt ${attempt}), retry yapılacak:`,
+              response.data.error
             );
-            retryReasons.push(`Attempt ${attempt}: ${errorMsg}`);
-            throw new Error(`RETRYABLE_NANO_BANANA_ERROR: ${errorMsg}`);
+            retryReasons.push(`Attempt ${attempt}: ${response.data.error}`);
+            throw new Error(
+              `RETRYABLE_NANO_BANANA_ERROR: ${response.data.error}`
+            );
           }
 
-          throw new Error(`Fal.ai API failed: ${errorMsg || "Unknown error"}`);
-        } else {
-          // No images returned - unexpected
-          console.error(
-            "❌ Fal.ai API unexpected response - no images:",
-            response.data
+          throw new Error(
+            `Replicate API failed: ${response.data.error || "Unknown error"}`
           );
-          throw new Error(`Fal.ai API returned no images`);
+        } else {
+          console.error(
+            "❌ Replicate API unexpected status:",
+            response.data.status
+          );
+          throw new Error(`Unexpected status: ${response.data.status}`);
         }
-
       } catch (apiError) {
         console.error(
-          `❌ Fal.ai nano-banana API attempt ${attempt} failed:`,
+          `❌ Replicate google/nano-banana API attempt ${attempt} failed:`,
           apiError.message
         );
 
-        // 5dk timeout hatası ise direkt failed yap ve retry yapma
+        // 120 saniye timeout hatası ise direkt failed yap ve retry yapma
         if (
           apiError.message.includes("timeout") ||
           apiError.code === "ETIMEDOUT" ||
           apiError.code === "ECONNABORTED"
         ) {
           console.error(
-            `❌ 5 dakika timeout hatası, generation failed yapılıyor: ${apiError.message}`
+            `❌ 120 saniye timeout hatası, generation failed yapılıyor: ${apiError.message}`
           );
 
           // Generation status'unu direkt failed yap
           await updateGenerationStatus(finalGenerationId, userId, "failed", {
-            processing_time_seconds: 300,
+            processing_time_seconds: 120,
           });
 
           throw apiError; // Timeout hatası için retry yok
@@ -4003,14 +3730,10 @@ router.post("/generate", async (req, res) => {
     }
 
     const initialResult = replicateResponse.data;
-    console.log("Fal.ai API final yanıtı (Replicate formatında):", initialResult);
-
-    // Compatibility definitions for downstream logic
-    const finalResult = initialResult;
-    const processingTime = Math.round((Date.now() - startTime) / 1000); // Calculate actual processing time
+    console.log("Replicate API başlangıç yanıtı:", initialResult);
 
     if (!initialResult.id) {
-      console.error("Fal.ai prediction ID alınamadı:", initialResult);
+      console.error("Replicate prediction ID alınamadı:", initialResult);
 
       // 🗑️ Prediction ID hatası durumunda geçici dosyaları temizle
       console.log(
@@ -4046,15 +3769,251 @@ router.post("/generate", async (req, res) => {
       return res.status(500).json({
         success: false,
         result: {
-          message: "Prediction başlatılamadı",
+          message: "Replicate prediction başlatılamadı",
           error: initialResult.error || "Prediction ID missing",
         },
       });
     }
 
-    // Since Fal.ai is synchronous, if we reached here, the call was successful.
-    // No polling logic is needed.
-    // The `finalResult` is already `initialResult` and `processingTime` is calculated.
+    // Replicate google/nano-banana API - Status kontrolü ve polling (retry mekanizmalı)
+    const startTime = Date.now();
+    let finalResult;
+    let processingTime;
+    const maxPollingRetries = 3; // Failed status'u için maksimum 3 retry
+
+    // Status kontrolü
+    if (initialResult.status === "succeeded") {
+      // Direkt başarılı sonuç
+      console.log(
+        "🎯 Replicate google/nano-banana - başarılı sonuç, polling atlanıyor"
+      );
+      finalResult = initialResult;
+      processingTime = Math.round((Date.now() - startTime) / 1000);
+    } else if (
+      initialResult.status === "processing" ||
+      initialResult.status === "starting"
+    ) {
+      // Processing durumunda polling yap
+      console.log(
+        "⏳ Replicate google/nano-banana - processing status, polling başlatılıyor"
+      );
+
+      try {
+        finalResult = await pollReplicateResultWithRetry(
+          initialResult.id,
+          maxPollingRetries
+        );
+        processingTime = Math.round((Date.now() - startTime) / 1000);
+      } catch (pollingError) {
+        console.error("❌ Polling hatası:", pollingError.message);
+
+        // Polling hatası durumunda status'u failed'e güncelle
+        await updateGenerationStatus(finalGenerationId, userId, "failed", {
+          processing_time_seconds: Math.round((Date.now() - startTime) / 1000),
+        });
+
+        // 🗑️ Polling hatası durumunda geçici dosyaları temizle
+        console.log(
+          "🧹 Polling hatası sonrası geçici dosyalar temizleniyor..."
+        );
+        await cleanupTemporaryFiles(temporaryFiles);
+
+        // Error response'a generationId ekle ki client hangi generation'ın başarısız olduğunu bilsin
+        return res.status(500).json({
+          success: false,
+          result: {
+            message: "Görsel işleme işlemi başarısız oldu",
+            error: pollingError.message.includes("PREDICTION_INTERRUPTED")
+              ? "Sunucu kesintisi oluştu. Lütfen tekrar deneyin."
+              : "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
+            generationId: finalGenerationId, // Client için generation ID ekle
+            status: "failed",
+          },
+        });
+      }
+    } else {
+      // Diğer durumlar (failed, vs) - retry mekanizmasıyla
+      console.log(
+        "🎯 Replicate google/nano-banana - failed status, retry mekanizması başlatılıyor"
+      );
+
+      // Failed status için retry logic
+      let retrySuccessful = false;
+      for (
+        let retryAttempt = 1;
+        retryAttempt <= maxPollingRetries;
+        retryAttempt++
+      ) {
+        console.log(
+          `🔄 Failed status retry attempt ${retryAttempt}/${maxPollingRetries}`
+        );
+
+        try {
+          // 2 saniye bekle, sonra yeni prediction başlat
+          await new Promise((resolve) =>
+            setTimeout(resolve, 2000 * retryAttempt)
+          );
+
+          // Aynı parametrelerle yeni prediction oluştur
+          let retryImageInputArray;
+
+          // Back side analysis: 2 ayrı resim gönder
+          if (
+            req.body.isBackSideAnalysis &&
+            referenceImages &&
+            referenceImages.length >= 2
+          ) {
+            console.log(
+              "🔄 [RETRY BACK_SIDE] 2 ayrı resim Nano Banana'ya gönderiliyor..."
+            );
+            retryImageInputArray = [
+              referenceImages[0].uri || referenceImages[0], // Ön resim - direkt string
+              referenceImages[1].uri || referenceImages[1], // Arka resim - direkt string
+            ];
+          } else if (
+            (isMultipleImages && referenceImages.length > 1) ||
+            (modelReferenceImage &&
+              (referenceImages.length > 0 || combinedImageForReplicate))
+          ) {
+            const totalRefs =
+              referenceImages.length + (modelReferenceImage ? 1 : 0);
+            console.log(
+              `🔄 [RETRY MULTIPLE] ${totalRefs} ayrı resim Nano Banana'ya gönderiliyor...`
+            );
+
+            const sortedImages = [];
+
+            if (modelReferenceImage) {
+              sortedImages.push(
+                sanitizeImageUrl(modelReferenceImage.uri || modelReferenceImage)
+              );
+            }
+
+            if (isMultipleImages && referenceImages.length > 1) {
+              referenceImages.forEach((img) =>
+                sortedImages.push(sanitizeImageUrl(img.uri || img))
+              );
+            } else {
+              const productSource =
+                typeof combinedImageForReplicate === "string" &&
+                  combinedImageForReplicate
+                  ? combinedImageForReplicate
+                  : referenceImages[0]?.uri || referenceImages[0];
+
+              if (productSource) {
+                sortedImages.push(sanitizeImageUrl(productSource));
+              }
+            }
+
+            retryImageInputArray = sortedImages;
+          } else {
+            // Tek resim modu: Birleştirilmiş tek resim
+            retryImageInputArray = [combinedImageForReplicate];
+          }
+
+          const retryRequestBody = {
+            input: {
+              prompt: enhancedPrompt,
+              image_input: retryImageInputArray,
+              output_format: "jpg",
+            },
+          };
+
+          // Kalite versiyonuna göre model URL ve parametreleri güncelle
+          let retryModelUrl =
+            "https://api.replicate.com/v1/models/google/nano-banana/predictions";
+
+          if (qualityVersion === "v2") {
+            retryModelUrl =
+              "https://api.replicate.com/v1/models/google/nano-banana-pro/predictions";
+            retryRequestBody.input.resolution = "2K";
+            retryRequestBody.input.safety_filter_level = "block_only_high";
+          }
+
+          console.log(
+            `🔄 Retry ${retryAttempt}: Yeni prediction oluşturuluyor... Model: ${qualityVersion === "v2" ? "Nano Banana Pro" : "Nano Banana"
+            }`
+          );
+
+          const retryResponse = await axios.post(
+            retryModelUrl,
+            retryRequestBody,
+            {
+              headers: {
+                Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+                "Content-Type": "application/json",
+                Prefer: "wait",
+              },
+              timeout: 120000,
+            }
+          );
+
+          console.log(`🔄 Retry ${retryAttempt} Response:`, {
+            id: retryResponse.data.id,
+            status: retryResponse.data.status,
+            hasOutput: !!retryResponse.data.output,
+            error: retryResponse.data.error,
+          });
+
+          // Retry response kontrolü
+          if (
+            retryResponse.data.status === "succeeded" &&
+            retryResponse.data.output
+          ) {
+            console.log(
+              `✅ Retry ${retryAttempt} başarılı! Output alındı:`,
+              retryResponse.data.output
+            );
+            finalResult = retryResponse.data;
+            retrySuccessful = true;
+            break;
+          } else if (
+            retryResponse.data.status === "processing" ||
+            retryResponse.data.status === "starting"
+          ) {
+            console.log(
+              `⏳ Retry ${retryAttempt} processing durumunda, polling başlatılıyor...`
+            );
+
+            try {
+              finalResult = await pollReplicateResult(retryResponse.data.id);
+              console.log(`✅ Retry ${retryAttempt} polling başarılı!`);
+              retrySuccessful = true;
+              break;
+            } catch (retryPollingError) {
+              console.error(
+                `❌ Retry ${retryAttempt} polling hatası:`,
+                retryPollingError.message
+              );
+              // Bu retry attempt başarısız, bir sonraki deneme yapılacak
+            }
+          } else {
+            console.error(
+              `❌ Retry ${retryAttempt} başarısız:`,
+              retryResponse.data.error
+            );
+            // Bu retry attempt başarısız, bir sonraki deneme yapılacak
+          }
+        } catch (retryError) {
+          console.error(
+            `❌ Retry ${retryAttempt} exception:`,
+            retryError.message
+          );
+          // Bu retry attempt başarısız, bir sonraki deneme yapılacak
+        }
+      }
+
+      if (!retrySuccessful) {
+        console.error(
+          `❌ Tüm retry attemptları başarısız oldu. Orijinal failed result kullanılıyor.`
+        );
+        finalResult = initialResult;
+      }
+
+      processingTime = Math.round((Date.now() - startTime) / 1000);
+    }
+
+    console.log("Replicate final result:", finalResult);
 
     // Flux-kontext-dev API'den gelen sonuç farklı format olabilir (Prefer: wait nedeniyle)
     const isFluxKontextDevResult =
@@ -4077,14 +4036,9 @@ router.post("/generate", async (req, res) => {
       }
 
       // ✅ Status'u completed'e güncelle
-      // fal.ai returns output as array, always use the first image
-      const resultImageUrl = Array.isArray(finalResult.output)
-        ? finalResult.output[0]
-        : finalResult.output;
-
       await updateGenerationStatus(finalGenerationId, userId, "completed", {
         enhanced_prompt: enhancedPrompt,
-        result_image_url: resultImageUrl,
+        result_image_url: finalResult.output,
         replicate_prediction_id: initialResult.id,
         processing_time_seconds: processingTime,
       });
@@ -4116,7 +4070,7 @@ router.post("/generate", async (req, res) => {
       const responseData = {
         success: true,
         result: {
-          imageUrl: resultImageUrl,
+          imageUrl: finalResult.output,
           originalPrompt: promptText,
           enhancedPrompt: enhancedPrompt,
           replicateData: finalResult,
@@ -4482,10 +4436,13 @@ async function generatePoseDescriptionWithGemini(
   garmentType = "clothing"
 ) {
   try {
-    console.log("🤸 [GEMINI] Pose açıklaması oluşturuluyor...");
-    console.log("🤸 [GEMINI] Pose title:", poseTitle);
-    console.log("🤸 [GEMINI] Gender:", gender);
-    console.log("🤸 [GEMINI] Garment type:", garmentType);
+    console.log("🤸 Gemini ile pose açıklaması oluşturuluyor...");
+    console.log("🤸 Pose title:", poseTitle);
+    console.log("🤸 Gender:", gender);
+    console.log("🤸 Garment type:", garmentType);
+
+    // Gemini 2.0 Flash modeli - Yeni SDK
+    const model = "gemini-flash-latest";
 
     // Gender mapping
     const modelGenderText =
@@ -4519,40 +4476,24 @@ async function generatePoseDescriptionWithGemini(
     Generate a similar detailed pose instruction for the given pose title "${poseTitle}" for a ${modelGenderText}.
     `;
 
-    console.log("🤸 [GEMINI] Pose prompt hazırlandı:", posePrompt);
+    console.log("🤸 Gemini'ye gönderilen pose prompt:", posePrompt);
 
-    // Replicate Gemini Flash API için resim URL'lerini hazırla
-    const imageUrlsForPose = [];
+    // Resim verilerini içerecek parts dizisini hazırla
+    const parts = [{ text: posePrompt }];
 
-    // Pose image'ını URL olarak ekle (eğer varsa)
-    if (poseImage) {
-      try {
-        const cleanPoseImageUrl = sanitizeImageUrl(poseImage.split("?")[0]);
+    // Replicate Gemini için resim URL'lerini hazırla
+    const imageUrls = [];
 
-        if (
-          cleanPoseImageUrl.startsWith("http://") ||
-          cleanPoseImageUrl.startsWith("https://")
-        ) {
-          imageUrlsForPose.push(cleanPoseImageUrl);
-          console.log("🤸 [REPLICATE-GEMINI] Pose görseli eklendi");
-        }
-      } catch (imageError) {
-        console.error("❌ Pose görseli işleme hatası:", imageError);
-      }
+    // Pose image'ını URL olarak ekle (base64 yerine)
+    if (poseImage && poseImage.startsWith("http")) {
+      const cleanPoseImageUrl = poseImage.split("?")[0];
+      imageUrls.push(cleanPoseImageUrl);
+      console.log("🤸 Pose görseli Replicate Gemini'ye eklenecek:", cleanPoseImageUrl);
     }
 
-    // Replicate Gemini Flash API çağrısı (3 retry ile)
-    const poseDescription = await callReplicateGeminiFlash(posePrompt, imageUrlsForPose, 3);
-
-    if (!poseDescription) {
-      console.error("❌ Replicate Gemini API response boş");
-      throw new Error("Replicate Gemini API response is empty or invalid");
-    }
-
-    console.log(
-      "🤸 [REPLICATE-GEMINI] Pose açıklaması alındı:",
-      poseDescription.substring(0, 100) + "..."
-    );
+    // Replicate Gemini Flash API çağrısı
+    const poseDescription = await callReplicateGeminiFlash(posePrompt, imageUrls, 3);
+    console.log("🤸 Replicate Gemini'nin ürettiği pose açıklaması:", poseDescription);
 
     const sanitizedDescription = sanitizePoseText(poseDescription);
     if (sanitizedDescription !== poseDescription) {
@@ -4561,7 +4502,7 @@ async function generatePoseDescriptionWithGemini(
 
     return sanitizedDescription;
   } catch (error) {
-    console.error("🤸 [REPLICATE-GEMINI] Pose açıklaması hatası:", error);
+    console.error("🤸 Replicate Gemini pose açıklaması hatası:", error);
     // Fallback: Basit pose açıklaması
     return sanitizePoseText(
       `Professional ${gender.toLowerCase()} model pose: ${poseTitle}. Stand naturally with good posture, position body to showcase the garment effectively.`
@@ -4800,6 +4741,11 @@ router.get("/generation-status/:generationId", async (req, res) => {
         processingTimeSeconds: generation.processing_time_seconds,
         createdAt: generation.created_at,
         updatedAt: generation.updated_at,
+        qualityVersion:
+          generation.quality_version ||
+          generation.settings?.qualityVersion ||
+          "v1",
+        settings: generation.settings,
       },
     });
   } catch (error) {
@@ -5023,6 +4969,8 @@ router.get("/user-generations/:userId", async (req, res) => {
             errorMessage: null, // error_message kolonu yok
             createdAt: gen.created_at,
             updatedAt: gen.updated_at,
+            qualityVersion:
+              gen.quality_version || gen.settings?.qualityVersion || "v1",
           })) || [],
         totalCount: generations?.length || 0,
       },

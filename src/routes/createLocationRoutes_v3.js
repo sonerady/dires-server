@@ -158,46 +158,54 @@ async function uploadImageToSupabaseStorage(imageUrl, userId, replicateId) {
 }
 
 // Google Imagen-4-fast ile location image generate et
+// Google Imagen-4-fast ile location image generate et - Migrated to Fal.ai
 async function generateLocationWithImagen4Fast(prompt, userId) {
   try {
     console.log(
-      "📸 Google Imagen-4-fast ile location generation başlatılıyor..."
+      "📸 Fal.ai Imagen-4-fast ile location generation başlatılıyor..."
     );
     console.log("Prompt:", prompt);
 
     const response = await fetch(
-      "https://api.replicate.com/v1/models/google/imagen-4-ultra/predictions",
+      "https://fal.run/fal-ai/imagen4/preview/ultra",
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+          Authorization: `Key ${process.env.FAL_API_KEY}`,
           "Content-Type": "application/json",
-          Prefer: "wait",
         },
         body: JSON.stringify({
-          input: {
-            prompt: `${prompt} The image should have vibrant colors, high contrast, excellent lighting, and sharp visual quality. No people, no humans, no figures, no mannequins, no characters, empty location, vacant space.`,
-            aspect_ratio: "1:1",
-            output_format: "jpg",
-            safety_filter_level: "block_only_high",
-          },
+          prompt: `${prompt} The image should have vibrant colors, high contrast, excellent lighting, and sharp visual quality. No people, no humans, no figures, no mannequins, no characters, empty location, vacant space.`,
+          aspect_ratio: "1:1",
+          output_format: "jpeg",
+          safety_filter_level: "block_only_high",
         }),
       }
     );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Google Imagen-4-fast API Error:", errorText);
-      throw new Error(`Google Imagen-4-fast API Error: ${response.status}`);
+      console.error("Fal.ai Imagen-4-fast API Error:", errorText);
+      throw new Error(`Fal.ai Imagen-4-fast API Error: ${response.status}`);
     }
 
     const result = await response.json();
-    console.log("✅ Google Imagen-4-fast generation tamamlandı");
+    console.log("✅ Fal.ai Imagen-4-fast generation tamamlandı");
     console.log("Imagen result:", result);
 
-    // Output string veya array olabilir
+    // Fal.ai output: { images: [{ url: "..." }] }
     let imageUrl = null;
-    if (result.output) {
+    let replicateId = result.request_id || `fal-${Date.now()}`;
+
+    if (result.images && result.images.length > 0 && result.images[0].url) {
+      imageUrl = result.images[0].url;
+      // Array check for safety
+      if (Array.isArray(imageUrl)) {
+        imageUrl = imageUrl[0];
+      }
+    }
+    // Fallback logic
+    else if (result.output) {
       if (Array.isArray(result.output) && result.output.length > 0) {
         imageUrl = result.output[0];
       } else if (typeof result.output === "string") {
@@ -210,19 +218,19 @@ async function generateLocationWithImagen4Fast(prompt, userId) {
       const storageResult = await uploadImageToSupabaseStorage(
         imageUrl,
         userId,
-        result.id
+        replicateId
       );
 
       return {
         imageUrl: storageResult.publicUrl, // Supabase storage'dan gelen public URL
         storagePath: storageResult.storagePath, // Storage path'i de döndür
-        replicateId: result.id,
+        replicateId: replicateId,
       };
     } else {
-      throw new Error("Google Imagen-4-fast'dan görsel çıkışı alınamadı");
+      throw new Error("Fal.ai Imagen-4-fast'dan görsel çıkışı alınamadı");
     }
   } catch (error) {
-    console.error("Google Imagen-4-fast generation hatası:", error);
+    console.error("Fal.ai Imagen-4-fast generation hatası:", error);
     throw error;
   }
 }

@@ -136,14 +136,22 @@ const startScheduler = () => {
                 return;
             }
 
-            console.log(`📢 [SCHEDULER] ${users.length} kullanıcıya bildirim gönderilecek.`);
+            console.log(`📢 [SCHEDULER] ${users.length} potansiyel kullanıcı bulundu. Token kontrolü yapılıyor...`);
 
             const notifications = [];
+            const seenTokens = new Set(); // Tekrarlanan tokenları önlemek için
 
             for (const user of users) {
                 if (!Expo.isExpoPushToken(user.push_token)) {
                     continue;
                 }
+
+                // Eğer bu token daha önce eklendiyse atla (Duplicate önleme)
+                if (seenTokens.has(user.push_token)) {
+                    continue;
+                }
+
+                seenTokens.add(user.push_token);
 
                 // Kullanıcının dilini belirle (varsayılan: en)
                 let rawLang = user.preferred_language || "en";
@@ -165,6 +173,8 @@ const startScheduler = () => {
                 });
             }
 
+            console.log(`📢 [SCHEDULER] ${notifications.length} unique kullanıcıya bildirim gönderilecek. (Toplam bulunan: ${users.length})`);
+
             // Bildirimleri chunk'lar halinde gönder
             const chunks = expo.chunkPushNotifications(notifications);
             let successCount = 0;
@@ -185,6 +195,8 @@ const startScheduler = () => {
         } catch (error) {
             console.error("❌ [SCHEDULER] Genel hata:", error);
         }
+    }, {
+        timezone: "UTC"
     });
 };
 

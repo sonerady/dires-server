@@ -7,6 +7,8 @@ const axios = require("axios");
 // Gemini API için istemci oluştur
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+const NANO_BANANA_API_URL = "https://fal.run/fal-ai/nano-banana/edit";
+
 // Replicate API üzerinden Gemini 2.5 Flash çağrısı yapan helper fonksiyon
 // Hata durumunda 3 kez tekrar dener
 async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
@@ -567,10 +569,13 @@ Create a professional ID photo prompt incorporating these details: "${originalPr
   }
 }
 
-// Google nano-banana ile model generate et (text-to-image)
+// Google Imagen 4 API URL
+const IMAGEN_4_API_URL = "https://fal.run/fal-ai/imagen4/preview/ultra";
+
+// Google nano-banana ile model generate et (text-to-image) - Migrated to Fal.ai Imagen 4
 async function generateModelWithNanoBanana(prompt, gender, age, userId) {
   try {
-    console.log("👤 Google nano-banana ile model generation başlatılıyor...");
+    console.log("👤 [FAL.AI] Imagen 4 ile model generation başlatılıyor...");
     console.log("Original prompt:", prompt);
     console.log("Gender:", gender);
     console.log("Age:", age);
@@ -584,42 +589,40 @@ async function generateModelWithNanoBanana(prompt, gender, age, userId) {
 
     console.log("Enhanced prompt:", enhancedPrompt);
 
-    const response = await fetch(
-      "https://api.replicate.com/v1/models/google/nano-banana/predictions",
+    // Imagen 4 için request body - Text-to-Image
+    const requestBody = {
+      prompt: enhancedPrompt,
+      aspect_ratio: "3:4", // ID photo / portrait için dikey format
+      output_format: "jpeg",
+      safety_filter_level: "block_only_high",
+    };
+
+    console.log("📦 [FAL.AI] Request body:", requestBody);
+
+    const response = await axios.post(
+      IMAGEN_4_API_URL,
+      requestBody,
       {
-        method: "POST",
         headers: {
-          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+          Authorization: `Key ${process.env.FAL_API_KEY}`,
           "Content-Type": "application/json",
-          Prefer: "wait",
         },
-        body: JSON.stringify({
-          input: {
-            prompt: enhancedPrompt,
-            image_input: [],
-            output_format: "jpg",
-          },
-        }),
+        timeout: 300000, // 5 dakika timeout
       }
     );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Google nano-banana API Error:", errorText);
-      throw new Error(`Google nano-banana API Error: ${response.status}`);
-    }
+    console.log("📄 [FAL.AI] Yanıt alındı, Status:", response.status);
 
-    const result = await response.json();
-    console.log("✅ Google nano-banana model generation tamamlandı");
-    console.log("nano-banana result:", result);
+    // Fal.ai response: { images: [{ url: "..." }] }
+    const result = response.data;
+    console.log("✅ [FAL.AI] Result:", result);
 
-    // Output string veya array olabilir
     let imageUrl = null;
-    if (result.output) {
-      if (Array.isArray(result.output) && result.output.length > 0) {
-        imageUrl = result.output[0];
-      } else if (typeof result.output === "string") {
-        imageUrl = result.output;
+    if (result.images && result.images.length > 0 && result.images[0].url) {
+      imageUrl = result.images[0].url;
+      // Fix: Ensure imageUrl is a string if it's an array (extra safety)
+      if (Array.isArray(imageUrl)) {
+        imageUrl = imageUrl[0];
       }
     }
 
@@ -628,28 +631,31 @@ async function generateModelWithNanoBanana(prompt, gender, age, userId) {
       const storageResult = await uploadModelImageToSupabaseStorage(
         imageUrl,
         userId,
-        result.id
+        result.request_id || `fal-${Date.now()}`
       );
 
       return {
         imageUrl: storageResult.publicUrl, // Supabase storage'dan gelen public URL
         storagePath: storageResult.storagePath, // Storage path'i de döndür
-        replicateId: result.id,
+        replicateId: result.request_id || `fal-${Date.now()}`,
       };
     } else {
-      throw new Error("Google nano-banana'dan model görsel çıkışı alınamadı");
+      throw new Error("Fal.ai Nano Banana'dan model görsel çıkışı alınamadı");
     }
   } catch (error) {
-    console.error("Google nano-banana model generation hatası:", error);
+    console.error("Fal.ai Nano Banana model generation hatası:", error.message);
+    if (error.response && error.response.data) {
+      console.error("Fal.ai Details:", error.response.data);
+    }
     throw error;
   }
 }
 
-// Google nano-banana ile uploaded image'i ID photo'ya transform et
+// Google nano-banana ile uploaded image'i ID photo'ya transform et - Migrated to Fal.ai
 async function transformImageToIDPhoto(imageUrl, userId) {
   try {
     console.log(
-      "🔄 Google nano-banana ile image-to-ID-photo transformation başlatılıyor..."
+      "🔄 [FAL.AI] Nano Banana ile image-to-ID-photo transformation başlatılıyor..."
     );
     console.log("Input image URL:", imageUrl);
 
@@ -676,61 +682,49 @@ Clean composition with proper ID photo proportions. NO borders, NO frames, NO te
         timeout: 10000,
       });
       console.log("✅ Image URL erişilebilir, status:", testResponse.status);
-      console.log("📏 Content-Type:", testResponse.headers.get("content-type"));
-      console.log(
-        "📏 Content-Length:",
-        testResponse.headers.get("content-length")
-      );
     } catch (testError) {
       console.error("❌ Image URL erişilemez:", testError.message);
       throw new Error(`Image URL erişilemez: ${testError.message}`);
     }
 
-    // referenceBrowserRoutes.js formatında axios kullan
     const requestBody = {
-      input: {
-        prompt: transformPrompt,
-        image_input: [imageUrl], // String array formatında (referenceBrowserRoutes.js gibi)
-        output_format: "jpg",
-      },
+      prompt: transformPrompt,
+      image_urls: [imageUrl],
+      output_format: "jpeg",
+      num_images: 1,
     };
 
-    console.log("📋 nano-banana Transform Request Body:", requestBody);
+    console.log("📦 [FAL.AI] Transform Request Body:", requestBody);
 
     const response = await axios.post(
-      "https://api.replicate.com/v1/models/google/nano-banana/predictions",
+      NANO_BANANA_API_URL,
       requestBody,
       {
         headers: {
-          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+          Authorization: `Key ${process.env.FAL_API_KEY}`,
           "Content-Type": "application/json",
-          Prefer: "wait", // Synchronous response için
         },
-        timeout: 120000, // 2 dakika timeout (referenceBrowserRoutes.js gibi)
+        timeout: 300000, // 5 dakika timeout
       }
     );
 
-    console.log("📋 Transform API Response Status:", response.status);
+    console.log("📄 [FAL.AI] Transformation Response Status:", response.status);
     const result = response.data;
-    console.log("✅ Google nano-banana image transformation tamamlandı");
-    console.log("Transform result:", result);
+    console.log("✅ [FAL.AI] Transform result:", result);
 
     // Eğer API hatası varsa
-    if (result.error || result.status === "failed") {
-      console.error("❌ nano-banana API Error:", result.error);
-      console.error("❌ nano-banana Logs:", result.logs);
-      throw new Error(
-        `nano-banana API Error: ${result.error || "Unknown error"}`
-      );
+    if (result.detail || result.error) {
+      const errorMsg = result.detail || result.error;
+      console.error("❌ Fal.ai API Error:", errorMsg);
+      throw new Error(`Fal.ai API Error: ${errorMsg}`);
     }
 
-    // Output string veya array olabilir
     let transformedImageUrl = null;
-    if (result.output) {
-      if (Array.isArray(result.output) && result.output.length > 0) {
-        transformedImageUrl = result.output[0];
-      } else if (typeof result.output === "string") {
-        transformedImageUrl = result.output;
+    if (result.images && result.images.length > 0 && result.images[0].url) {
+      transformedImageUrl = result.images[0].url;
+      // Fix: Ensure transformedImageUrl is a string if it's an array (extra safety)
+      if (Array.isArray(transformedImageUrl)) {
+        transformedImageUrl = transformedImageUrl[0];
       }
     }
 
@@ -739,21 +733,24 @@ Clean composition with proper ID photo proportions. NO borders, NO frames, NO te
       const storageResult = await uploadModelImageToSupabaseStorage(
         transformedImageUrl,
         userId,
-        result.id
+        result.request_id || `fal-${Date.now()}`
       );
 
       return {
         imageUrl: storageResult.publicUrl, // Supabase storage'dan gelen public URL
         storagePath: storageResult.storagePath, // Storage path'i de döndür
-        replicateId: result.id,
+        replicateId: result.request_id || `fal-${Date.now()}`,
       };
     } else {
       throw new Error(
-        "Google nano-banana'dan transformed görsel çıkışı alınamadı"
+        "Fal.ai Nano Banana'dan transformed görsel çıkışı alınamadı"
       );
     }
   } catch (error) {
-    console.error("Google nano-banana image transformation hatası:", error);
+    console.error("Fal.ai Nano Banana image transformation hatası:", error.message);
+    if (error.response && error.response.data) {
+      console.error("Fal.ai Error Details:", error.response.data);
+    }
     throw error;
   }
 }

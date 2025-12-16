@@ -6,9 +6,7 @@ const fs = require("fs");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 
-// Nano Banana API endpoint
-const NANO_BANANA_API_URL =
-  "https://api.replicate.com/v1/models/google/nano-banana/predictions";
+const NANO_BANANA_API_URL = "https://fal.run/fal-ai/nano-banana/edit";
 
 // Example image paths - hair styles için
 const getExampleHairImagePath = () => {
@@ -151,100 +149,9 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// Prediction durumunu kontrol et
-async function pollReplicateResult(predictionId, maxAttempts = 60) {
-  console.log(
-    `🔄 [NANO BANANA HAIR] Prediction polling başlatılıyor: ${predictionId}`
-  );
+// Polling function removed as Fal.ai handles requests synchronously
 
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    try {
-      const response = await axios.get(
-        `https://api.replicate.com/v1/predictions/${predictionId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-            "Content-Type": "application/json",
-          },
-          responseType: "json",
-          timeout: 15000,
-        }
-      );
-
-      const result = response.data;
-      console.log(
-        `🔍 [NANO BANANA HAIR] Polling attempt ${attempt + 1}: status = ${result.status
-        }`
-      );
-
-      if (result.status === "succeeded") {
-        console.log("✅ [NANO BANANA HAIR] İşlem başarıyla tamamlandı");
-        return result;
-      } else if (result.status === "failed") {
-        console.error("❌ [NANO BANANA HAIR] İşlem başarısız:", result.error);
-
-        // E005 (sensitive content) ve diğer kalıcı hatalar için hata fırlat
-        if (
-          result.error &&
-          typeof result.error === "string" &&
-          (result.error.includes("E005") ||
-            result.error.includes("flagged as sensitive") ||
-            result.error.includes("sensitive content") ||
-            result.error.includes("Content moderated"))
-        ) {
-          console.log(
-            "⚠️ [NANO BANANA HAIR] Sensitive content hatası:",
-            result.error
-          );
-          throw new Error(`Sensitive content error: ${result.error}`);
-        }
-
-        // E004 ve benzeri geçici hatalar için retry'a uygun hata fırlat
-        if (
-          result.error &&
-          typeof result.error === "string" &&
-          (result.error.includes("E004") ||
-            result.error.includes("Service is temporarily unavailable") ||
-            result.error.includes("Please try again later"))
-        ) {
-          console.log(
-            "🔄 [NANO BANANA HAIR] Geçici hata tespit edildi:",
-            result.error
-          );
-          throw new Error(`Service temporarily unavailable: ${result.error}`);
-        }
-
-        throw new Error(result.error || "Nano Banana hair processing failed");
-      } else if (result.status === "canceled") {
-        console.error("❌ [NANO BANANA HAIR] İşlem iptal edildi");
-        throw new Error("Nano Banana hair processing was canceled");
-      }
-
-      // Processing veya starting durumundaysa bekle
-      if (result.status === "processing" || result.status === "starting") {
-        await delay(2000); // 2 saniye bekle
-        continue;
-      }
-    } catch (error) {
-      console.error(
-        `❌ [NANO BANANA HAIR] Polling attempt ${attempt + 1} hatası:`,
-        error.message
-      );
-
-      // Son deneme değilse devam et
-      if (attempt < maxAttempts - 1) {
-        await delay(2000);
-        continue;
-      }
-
-      throw error;
-    }
-  }
-
-  throw new Error("Polling timeout - maksimum deneme sayısına ulaşıldı");
-}
-
-// Nano Banana API'ye hair style isteği gönder (retry ile)
+// Nano Banana API'ye hair style isteği gönder (retry ile) - Fal.ai Implementation
 async function callNanoBananaForHair(prompt, gender) {
   const maxRetries = 3;
   let lastError = null;
@@ -252,24 +159,11 @@ async function callNanoBananaForHair(prompt, gender) {
   for (let retry = 1; retry <= maxRetries; retry++) {
     try {
       console.log(
-        `🎨 [NANO BANANA HAIR] ${gender} hair style için API'ye istek gönderiliyor... (Deneme ${retry}/${maxRetries})`
-      );
-      console.log("🚻 [NANO BANANA HAIR] Gender debug:", {
-        receivedGender: gender,
-        genderType: typeof gender,
-        isEqualToFemale: gender === "female",
-        isEqualToMale: gender === "male",
-      });
-      console.log(
-        `📝 [NANO BANANA HAIR] Prompt: ${prompt.substring(0, 200)}...`
+        `🎨 [FAL.AI NANO BANANA HAIR] ${gender} hair style için API'ye istek gönderiliyor... (Deneme ${retry}/${maxRetries})`
       );
 
       // Hair style için example resmi kullan
       const exampleImagePath = getExampleHairImagePath();
-      console.log("🖼️ [NANO BANANA HAIR] Kullanılan example image:", {
-        imagePath: exampleImagePath,
-        fileExists: fs.existsSync(exampleImagePath),
-      });
 
       if (!fs.existsSync(exampleImagePath)) {
         throw new Error(`Example hair image bulunamadı: ${exampleImagePath}`);
@@ -280,122 +174,90 @@ async function callNanoBananaForHair(prompt, gender) {
       const dataUrl = `data:image/jpeg;base64,${base64Image}`;
 
       const requestBody = {
-        input: {
-          prompt: prompt,
-          image_input: [dataUrl],
-          output_format: "png",
-        },
+        prompt: prompt,
+        image_urls: [dataUrl],
+        output_format: "png",
+        num_images: 1,
       };
 
-      console.log("📡 [NANO BANANA HAIR] API isteği gönderiliyor...");
-      console.log("📦 [NANO BANANA HAIR] Request body:", {
-        prompt: prompt.substring(0, 150),
+      console.log("📡 [FAL.AI] API isteği gönderiliyor...");
+      console.log("📦 [FAL.AI] Request body:", {
+        prompt: prompt.substring(0, 100) + "...",
         imageInputSize: dataUrl.length,
-        imageFormat: dataUrl.substring(0, 30) + "...",
         gender: gender,
-        exampleImageUsed: exampleImagePath,
       });
 
-      const response = await fetch(NANO_BANANA_API_URL, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        const error = new Error(
-          `API hatası: ${response.status} - ${errorText}`
-        );
-
-        // Service unavailable hatası ise retry yap
-        if (
-          errorText.includes("Service is temporarily unavailable") ||
-          errorText.includes("E004")
-        ) {
-          console.log(
-            `⚠️ [NANO BANANA HAIR] Service unavailable hatası, ${retry < maxRetries ? "retry yapılıyor..." : "son deneme başarısız"
-            }`
-          );
-          lastError = error;
-          if (retry < maxRetries) {
-            await delay(5000 * retry); // Exponential backoff
-            continue;
-          }
+      const response = await axios.post(
+        NANO_BANANA_API_URL,
+        requestBody,
+        {
+          headers: {
+            Authorization: `Key ${process.env.FAL_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          timeout: 300000, // 5 dakika timeout
         }
-        throw error;
-      }
-
-      const result = await response.json();
-      console.log(
-        "📄 [NANO BANANA HAIR] İlk yanıt alındı, prediction ID:",
-        result.id
       );
-      console.log("⏳ [NANO BANANA HAIR] Durum:", result.status);
 
-      // Polling ile sonucu bekle
-      const prediction = await pollReplicateResult(result.id);
+      console.log("📄 [FAL.AI] Yanıt alındı, Status:", response.status);
 
-      if (prediction.status === "succeeded" && prediction.output) {
-        console.log(
-          "✅ [NANO BANANA HAIR] Hair style resmi başarıyla oluşturuldu!"
-        );
+      // Fal.ai response handling: { images: [{ url: "..." }] }
+      const output = response.data;
 
-        // Output'u kontrol et - string veya array olabilir
-        let imageUrl;
-        if (typeof prediction.output === "string") {
-          imageUrl = prediction.output;
-        } else if (
-          Array.isArray(prediction.output) &&
-          prediction.output.length > 0
-        ) {
-          imageUrl = prediction.output[0];
-        } else {
-          throw new Error(
-            `Geçersiz output formatı: ${JSON.stringify(prediction.output)}`
-          );
+      if (output.images && output.images.length > 0 && output.images[0].url) {
+        let imageUrl = output.images[0].url;
+        // Fix: Ensure imageUrl is a string if it's an array (extra safety)
+        if (Array.isArray(imageUrl)) {
+          imageUrl = imageUrl[0];
         }
-
-        console.log("🔗 [NANO BANANA HAIR] Generated URL:", imageUrl);
-
-        // URL kontrolü
-        if (!imageUrl || typeof imageUrl !== "string" || imageUrl.length < 10) {
-          throw new Error(`Geçersiz URL alındı: ${imageUrl}`);
-        }
+        console.log("✅ [FAL.AI] Hair style resmi başarıyla oluşturuldu:", imageUrl);
 
         return {
           imageUrl: imageUrl,
-          predictionId: result.id,
+          predictionId: response.data.request_id || `fal-${uuidv4()}`,
         };
+      } else if (response.data.detail || response.data.error) {
+        throw new Error(response.data.detail || response.data.error || "Fal.ai unknown error");
       } else {
-        throw new Error(`Beklenmeyen durum: ${prediction.status}`);
+        throw new Error("Fal.ai returned no images");
       }
+
     } catch (error) {
       console.error(
-        `❌ [NANO BANANA HAIR] API hatası (Deneme ${retry}/${maxRetries}):`,
+        `❌ [FAL.AI] API hatası (Deneme ${retry}/${maxRetries}):`,
         error.message
       );
       lastError = error;
 
-      // Service temporarily unavailable hatası ise retry yap
-      if (error.message.includes("Service temporarily unavailable")) {
-        if (retry < maxRetries) {
-          console.log(
-            `🔄 [NANO BANANA HAIR] Service hata, retry yapılıyor... (${retry}/${maxRetries})`
-          );
-          await delay(5000 * retry); // Exponential backoff
-          continue;
-        }
+      // Hata tipine göre retry kararı
+      const isRetryable =
+        error.code === 'ECONNRESET' ||
+        error.code === 'ETIMEDOUT' ||
+        (error.response && error.response.status >= 500) ||
+        (error.message && (
+          error.message.includes("temporarily unavailable") ||
+          error.message.includes("rate limit")
+        ));
+
+      if (isRetryable && retry < maxRetries) {
+        console.log(
+          `🔄 [FAL.AI] Geçici hata, retry yapılıyor... (${retry}/${maxRetries})`
+        );
+        await delay(5000 * retry); // Exponential backoff
+        continue;
+      }
+
+      // Timeout hatası özel işlemi (retry yapma)
+      if (
+        error.code === 'ECONNABORTED' ||
+        (error.message && error.message.includes("timeout"))
+      ) {
+        console.error("❌ [FAL.AI] Timeout hatası, retry yapılmıyor.");
+        throw error;
       }
 
       // Diğer hatalar için retry yapma
       if (retry < maxRetries) {
-        console.log(
-          `🔄 [NANO BANANA HAIR] Diğer hata, retry yapılıyor... (${retry}/${maxRetries})`
-        );
         await delay(3000 * retry);
         continue;
       }
@@ -649,13 +511,13 @@ router.post("/create", async (req, res) => {
         });
         const imageBuffer = Buffer.from(imageResponse.data);
 
-        // Supabase storage path: custom-hair-styles/userId/hairStyleId.png
+        // Supabase storage path: custom_hairs/userId/hairStyleId.png
         const storagePath = `${userId}/${hairStyleId}.png`;
         supabaseImagePath = storagePath;
 
         // Supabase'e yükle
         const { data: uploadData, error: uploadError } = await supabase.storage
-          .from("custom-hair-styles")
+          .from("custom_hairs")
           .upload(storagePath, imageBuffer, {
             contentType: "image/png",
             upsert: true,
@@ -671,7 +533,7 @@ router.post("/create", async (req, res) => {
         } else {
           // Supabase public URL al
           const { data: publicUrlData } = supabase.storage
-            .from("custom-hair-styles")
+            .from("custom_hairs")
             .getPublicUrl(storagePath);
 
           imageUrl = publicUrlData.publicUrl;

@@ -111,9 +111,8 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
     // Dosya adı oluştur (otomatik temizleme için timestamp prefix)
     const timestamp = Date.now();
     const randomId = uuidv4().substring(0, 8);
-    const fileName = `temp_${timestamp}_reference_${
-      userId || "anonymous"
-    }_${randomId}.jpg`;
+    const fileName = `temp_${timestamp}_reference_${userId || "anonymous"
+      }_${randomId}.jpg`;
 
     console.log("Supabase'e yüklenecek dosya adı:", fileName);
 
@@ -477,8 +476,7 @@ async function deductCreditOnSuccess(generationId, userId) {
     }
 
     console.log(
-      `✅ ${totalCreditCost} kredi başarıyla düşüldü. Yeni bakiye: ${
-        currentCredit - totalCreditCost
+      `✅ ${totalCreditCost} kredi başarıyla düşüldü. Yeni bakiye: ${currentCredit - totalCreditCost
       }`
     );
 
@@ -803,9 +801,8 @@ BABY PHYSICAL CHARACTERISTICS (MANDATORY):
 - NO mature or adult-like features whatsoever
 
 BABY DESCRIPTION FORMAT (MANDATORY):
-Start the description like this: "A ${parsedAge}-year-old baby ${
-          genderLower === "male" || genderLower === "man" ? "boy" : "girl"
-        } (infant) is wearing..."
+Start the description like this: "A ${parsedAge}-year-old baby ${genderLower === "male" || genderLower === "man" ? "boy" : "girl"
+          } (infant) is wearing..."
 Then add: "Make sure he/she is clearly a baby: chubby cheeks, small body proportions, baby hands and feet."
 
 BABY POSE REQUIREMENTS:
@@ -898,19 +895,19 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
     
     SETTINGS DETAIL FOR BETTER PROMPT CREATION:
     ${Object.entries(settings)
-      .filter(
-        ([key, value]) =>
-          value !== null &&
-          value !== undefined &&
-          value !== "" &&
-          key !== "measurements" &&
-          key !== "type" // Body measurements'ları hariç tut
-      )
-      .map(
-        ([key, value]) =>
-          `- ${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
-      )
-      .join("\n    ")}
+          .filter(
+            ([key, value]) =>
+              value !== null &&
+              value !== undefined &&
+              value !== "" &&
+              key !== "measurements" &&
+              key !== "type" // Body measurements'ları hariç tut
+          )
+          .map(
+            ([key, value]) =>
+              `- ${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
+          )
+          .join("\n    ")}
     
     IMPORTANT: Please incorporate ALL user settings above into your description when appropriate.`;
     }
@@ -927,56 +924,47 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       posePromptSection = `
     
     INTELLIGENT POSE SELECTION: Since no specific pose was selected by the user, please analyze the ${garmentText} in the reference image and intelligently select the MOST APPROPRIATE pose for the ${baseModelText} that will:
-    - Best showcase ${
-      isMultipleProducts
-        ? "all products in the ensemble and their coordination"
-        : "the garment's design, cut, and construction details"
-    }
-    - Highlight ${
-      isMultipleProducts
-        ? "how the products work together and each product's unique selling points"
-        : "the product's unique features and selling points"
-    }
-    - Demonstrate how ${
-      isMultipleProducts
-        ? "the fabrics of different products drape and interact naturally"
-        : "the fabric drapes and moves naturally"
-    }
-    - Show ${
-      isMultipleProducts
-        ? "how all products fit together and create an appealing silhouette"
-        : "the garment's fit and silhouette most effectively"
-    }
-    - Match the style and aesthetic of ${
-      isMultipleProducts
-        ? "the coordinated ensemble (formal, casual, sporty, elegant, etc.)"
-        : "the garment (formal, casual, sporty, elegant, etc.)"
-    }
-    - Allow clear visibility of important design elements ${
-      isMultipleProducts
-        ? "across all products"
-        : "like necklines, sleeves, hems, and patterns"
-    }
+    - Best showcase ${isMultipleProducts
+          ? "all products in the ensemble and their coordination"
+          : "the garment's design, cut, and construction details"
+        }
+    - Highlight ${isMultipleProducts
+          ? "how the products work together and each product's unique selling points"
+          : "the product's unique features and selling points"
+        }
+    - Demonstrate how ${isMultipleProducts
+          ? "the fabrics of different products drape and interact naturally"
+          : "the fabric drapes and moves naturally"
+        }
+    - Show ${isMultipleProducts
+          ? "how all products fit together and create an appealing silhouette"
+          : "the garment's fit and silhouette most effectively"
+        }
+    - Match the style and aesthetic of ${isMultipleProducts
+          ? "the coordinated ensemble (formal, casual, sporty, elegant, etc.)"
+          : "the garment (formal, casual, sporty, elegant, etc.)"
+        }
+    - Allow clear visibility of important design elements ${isMultipleProducts
+          ? "across all products"
+          : "like necklines, sleeves, hems, and patterns"
+        }
     - Create an appealing and natural presentation that would be suitable for commercial photography
-    ${
-      isMultipleProducts
-        ? "- Ensure each product in the ensemble is visible and well-positioned\n    - Demonstrate the styling versatility of combining these products"
-        : ""
-    }`;
+    ${isMultipleProducts
+          ? "- Ensure each product in the ensemble is visible and well-positioned\n    - Demonstrate the styling versatility of combining these products"
+          : ""
+        }`;
 
       console.log(
-        `🤸 [GEMINI] Akıllı poz seçimi aktif - ${
-          isMultipleProducts ? "çoklu ürün ensembline" : "kıyafete"
+        `🤸 [GEMINI] Akıllı poz seçimi aktif - ${isMultipleProducts ? "çoklu ürün ensembline" : "kıyafete"
         } uygun poz önerilecek`
       );
     } else if (poseImage) {
       posePromptSection = `
     
-    POSE REFERENCE: A pose reference image has been provided to show the desired body position and posture for the ${baseModelText}. Please analyze this pose image carefully and incorporate the exact body positioning, hand placement, stance, facial expression, and overall posture into your enhanced prompt. The ${baseModelText} should adopt this specific pose naturally and convincingly${
-        isMultipleProducts
+    POSE REFERENCE: A pose reference image has been provided to show the desired body position and posture for the ${baseModelText}. Please analyze this pose image carefully and incorporate the exact body positioning, hand placement, stance, facial expression, and overall posture into your enhanced prompt. The ${baseModelText} should adopt this specific pose naturally and convincingly${isMultipleProducts
           ? ", ensuring all products in the ensemble remain clearly visible and well-positioned"
           : ""
-      }.`;
+        }.`;
 
       console.log("🤸 [GEMINI] Pose prompt section eklendi");
     } else if (settings?.pose) {
@@ -1006,30 +994,26 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       if (detailedPoseDescription) {
         posePromptSection = `
     
-    DETAILED POSE INSTRUCTION: The user has selected the pose "${
-      settings.pose
-    }". Use this detailed pose instruction for the ${baseModelText}:
+    DETAILED POSE INSTRUCTION: The user has selected the pose "${settings.pose
+          }". Use this detailed pose instruction for the ${baseModelText}:
     
     "${detailedPoseDescription}"
     
-    Ensure the ${baseModelText} follows this pose instruction precisely while maintaining natural movement and ensuring the pose complements ${
-          isMultipleProducts
+    Ensure the ${baseModelText} follows this pose instruction precisely while maintaining natural movement and ensuring the pose complements ${isMultipleProducts
             ? "all products in the ensemble being showcased"
             : "the garment being showcased"
-        }. The pose should enhance the presentation of the clothing and create an appealing commercial photography composition.`;
+          }. The pose should enhance the presentation of the clothing and create an appealing commercial photography composition.`;
 
         console.log("🤸 [GEMINI] Detaylı pose açıklaması kullanılıyor");
       } else {
         // Fallback to simple pose mention
         posePromptSection = `
     
-    SPECIFIC POSE REQUIREMENT: The user has selected a specific pose: "${
-      settings.pose
-    }". Please ensure the ${baseModelText} adopts this pose while maintaining natural movement and ensuring the pose complements ${
-          isMultipleProducts
+    SPECIFIC POSE REQUIREMENT: The user has selected a specific pose: "${settings.pose
+          }". Please ensure the ${baseModelText} adopts this pose while maintaining natural movement and ensuring the pose complements ${isMultipleProducts
             ? "all products in the ensemble being showcased"
             : "the garment being showcased"
-        }.`;
+          }.`;
 
         console.log(
           "🤸 [GEMINI] Basit pose açıklaması kullanılıyor (fallback)"
@@ -1050,48 +1034,39 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       perspectivePromptSection = `
     
     INTELLIGENT CAMERA PERSPECTIVE SELECTION: Since no specific camera perspective was selected by the user, please analyze the ${garmentText} and intelligently choose the MOST APPROPRIATE camera angle and perspective that will:
-    - Best capture ${
-      isMultipleProducts
-        ? "all products' most important design features and their coordination"
-        : "the garment's most important design features"
-    }
-    - Show ${
-      isMultipleProducts
-        ? "the construction quality and craftsmanship details of each product"
-        : "the product's construction quality and craftsmanship details"
-    }
-    - Highlight ${
-      isMultipleProducts
-        ? "how all products fit together and the overall ensemble silhouette"
-        : "the fit and silhouette most effectively"
-    }
-    - Create the most appealing and commercial-quality presentation ${
-      isMultipleProducts ? "for the multi-product styling" : ""
-    }
-    - Match ${
-      isMultipleProducts
-        ? "the ensemble's style and intended market positioning"
-        : "the garment's style and intended market positioning"
-    }
-    ${
-      isMultipleProducts
-        ? "- Ensure all products are visible and well-framed within the composition"
-        : ""
-    }`;
+    - Best capture ${isMultipleProducts
+          ? "all products' most important design features and their coordination"
+          : "the garment's most important design features"
+        }
+    - Show ${isMultipleProducts
+          ? "the construction quality and craftsmanship details of each product"
+          : "the product's construction quality and craftsmanship details"
+        }
+    - Highlight ${isMultipleProducts
+          ? "how all products fit together and the overall ensemble silhouette"
+          : "the fit and silhouette most effectively"
+        }
+    - Create the most appealing and commercial-quality presentation ${isMultipleProducts ? "for the multi-product styling" : ""
+        }
+    - Match ${isMultipleProducts
+          ? "the ensemble's style and intended market positioning"
+          : "the garment's style and intended market positioning"
+        }
+    ${isMultipleProducts
+          ? "- Ensure all products are visible and well-framed within the composition"
+          : ""
+        }`;
 
       console.log(
-        `📸 [GEMINI] Akıllı perspektif seçimi aktif - ${
-          isMultipleProducts ? "çoklu ürün ensembline" : "kıyafete"
+        `📸 [GEMINI] Akıllı perspektif seçimi aktif - ${isMultipleProducts ? "çoklu ürün ensembline" : "kıyafete"
         } uygun kamera açısı önerilecek`
       );
     } else {
       perspectivePromptSection = `
     
-    SPECIFIC CAMERA PERSPECTIVE: The user has selected a specific camera perspective: "${
-      settings.perspective
-    }". Please ensure the photography follows this perspective while maintaining professional composition and optimal ${
-        isMultipleProducts ? "multi-product ensemble" : "garment"
-      } presentation.`;
+    SPECIFIC CAMERA PERSPECTIVE: The user has selected a specific camera perspective: "${settings.perspective
+        }". Please ensure the photography follows this perspective while maintaining professional composition and optimal ${isMultipleProducts ? "multi-product ensemble" : "garment"
+        } presentation.`;
 
       console.log(
         "📸 [GEMINI] Kullanıcı tarafından seçilen perspektif:",
@@ -1106,9 +1081,8 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
     if (hairStyleImage) {
       hairStylePromptSection = `
     
-    HAIR STYLE REFERENCE: A hair style reference image has been provided to show the desired hairstyle for the ${baseModelText}. Please analyze this hair style image carefully and incorporate the exact hair length, texture, cut, styling, and overall hair appearance into your enhanced prompt. The ${baseModelText} should have this specific hairstyle that complements ${
-        isMultipleProducts ? "the multi-product ensemble" : "the garment"
-      } and overall aesthetic.`;
+    HAIR STYLE REFERENCE: A hair style reference image has been provided to show the desired hairstyle for the ${baseModelText}. Please analyze this hair style image carefully and incorporate the exact hair length, texture, cut, styling, and overall hair appearance into your enhanced prompt. The ${baseModelText} should have this specific hairstyle that complements ${isMultipleProducts ? "the multi-product ensemble" : "the garment"
+        } and overall aesthetic.`;
 
       console.log("💇 [GEMINI] Hair style prompt section eklendi");
     }
@@ -1147,12 +1121,12 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
     if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
       faceDescriptor =
         faceDescriptorsChild[
-          Math.floor(Math.random() * faceDescriptorsChild.length)
+        Math.floor(Math.random() * faceDescriptorsChild.length)
         ];
     } else {
       faceDescriptor =
         faceDescriptorsAdult[
-          Math.floor(Math.random() * faceDescriptorsAdult.length)
+        Math.floor(Math.random() * faceDescriptorsAdult.length)
         ];
     }
 
@@ -1243,11 +1217,10 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
       LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "change".
 
-      ${
-        originalPrompt
+      ${originalPrompt
           ? `Additional color change requirements: ${originalPrompt}.`
           : ""
-      }
+        }
       `;
     } else if (isPoseChange) {
       // POSE CHANGE MODE - Sadece poz değiştirme
@@ -1269,11 +1242,10 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       6. Preserve ALL original elements except the pose: same person, same outfit, same background, same lighting style
       7. The model must appear identical to the reference image, just in a different pose/position
 
-      ${
-        customDetail && customDetail.trim()
+      ${customDetail && customDetail.trim()
           ? `USER SPECIFIC POSE: The user wants the pose to be: ${customDetail.trim()}.`
           : `AUTOMATIC POSE SELECTION: You MUST choose ONE specific pose for the model.`
-      }
+        }
 
       GEMINI TASK - ANALYZE AND CREATE POSE:
       1. ANALYZE the model in the input image (their current pose, body position, clothing style)
@@ -1337,11 +1309,10 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
       LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace".
 
-      ${
-        originalPrompt
+      ${originalPrompt
           ? `USER CONTEXT: The user has provided these specific requirements: ${originalPrompt}. Please integrate these requirements naturally into your garment replacement prompt while maintaining the professional structure and flow.`
           : ""
-      }
+        }
       
       ${ageSection}
       ${childPromptSection}
@@ -1921,9 +1892,8 @@ async function uploadProcessedImageToSupabase(imageUrl, userId, processType) {
     // Dosya adı oluştur (otomatik temizleme için timestamp prefix)
     const timestamp = Date.now();
     const randomId = uuidv4().substring(0, 8);
-    const fileName = `temp_${timestamp}_${processType}_${
-      userId || "anonymous"
-    }_${randomId}.png`;
+    const fileName = `temp_${timestamp}_${processType}_${userId || "anonymous"
+      }_${randomId}.png`;
 
     console.log(`📤 Supabase'e yüklenecek ${processType} dosya adı:`, fileName);
 
@@ -1976,9 +1946,8 @@ async function uploadProcessedImageBufferToSupabase(
     // Dosya adı oluştur (otomatik temizleme için timestamp prefix)
     const timestamp = Date.now();
     const randomId = uuidv4().substring(0, 8);
-    const fileName = `temp_${timestamp}_${processType}_corrected_${
-      userId || "anonymous"
-    }_${randomId}.png`;
+    const fileName = `temp_${timestamp}_${processType}_corrected_${userId || "anonymous"
+      }_${randomId}.png`;
 
     console.log(`📤 Supabase'e yüklenecek ${processType} dosya adı:`, fileName);
 
@@ -2085,8 +2054,7 @@ async function callReplicateNanoBananaFallback(
     } else if (response.data.status === "failed") {
       console.error("❌ Fallback Replicate API failed:", response.data.error);
       throw new Error(
-        `Fallback Replicate API failed: ${
-          response.data.error || "Unknown error"
+        `Fallback Replicate API failed: ${response.data.error || "Unknown error"
         }`
       );
     } else {
@@ -2105,122 +2073,7 @@ async function callReplicateNanoBananaFallback(
   }
 }
 
-async function pollReplicateResult(predictionId, maxAttempts = 60) {
-  console.log(`Replicate prediction polling başlatılıyor: ${predictionId}`);
 
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    try {
-      const response = await axios.get(
-        `https://api.replicate.com/v1/predictions/${predictionId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-            "Content-Type": "application/json",
-          },
-          responseType: "json",
-          timeout: 15000, // 30s'den 15s'ye düşürüldü polling için
-        }
-      );
-
-      const result = response.data;
-      console.log(`Polling attempt ${attempt + 1}: status = ${result.status}`);
-
-      if (result.status === "succeeded") {
-        console.log("Replicate işlemi başarıyla tamamlandı");
-        return result;
-      } else if (result.status === "failed") {
-        console.error("Replicate işlemi başarısız:", result.error);
-
-        // PA (Prediction interrupted) hatası kontrolü - DERHAL DURDUR
-        if (
-          result.error &&
-          typeof result.error === "string" &&
-          (result.error.includes("Prediction interrupted") ||
-            result.error.includes("code: PA"))
-        ) {
-          console.error(
-            "❌ PA hatası tespit edildi, polling DERHAL durduruluyor:",
-            result.error
-          );
-          throw new Error(
-            "PREDICTION_INTERRUPTED: Replicate sunucusunda kesinti oluştu. Lütfen tekrar deneyin."
-          );
-        }
-
-        // Content moderation ve model hatalarını kontrol et
-        if (
-          result.error &&
-          typeof result.error === "string" &&
-          (result.error.includes("flagged as sensitive") ||
-            result.error.includes("E005") ||
-            result.error.includes("sensitive content") ||
-            result.error.includes("Content moderated") ||
-            result.error.includes("ModelError") ||
-            result.error.includes("retrying once"))
-        ) {
-          console.error(
-            "❌ Content moderation/model hatası tespit edildi, Gemini 2.5 Flash Image Preview'e geçiş yapılacak:",
-            result.error
-          );
-          throw new Error("SENSITIVE_CONTENT_FLUX_FALLBACK");
-        }
-
-        throw new Error(result.error || "Replicate processing failed");
-      } else if (result.status === "canceled") {
-        console.error("Replicate işlemi iptal edildi");
-        throw new Error("Replicate processing was canceled");
-      }
-
-      // Processing veya starting durumundaysa bekle
-      if (result.status === "processing" || result.status === "starting") {
-        await new Promise((resolve) => setTimeout(resolve, 2000)); // 2 saniye bekle
-        continue;
-      }
-    } catch (error) {
-      console.error(`Polling attempt ${attempt + 1} hatası:`, error.message);
-
-      // Sensitive content hatasını özel olarak handle et
-      if (error.message === "SENSITIVE_CONTENT_FLUX_FALLBACK") {
-        console.error(
-          "❌ Sensitive content hatası, Gemini 2.5 Flash Image Preview'e geçiş için polling durduruluyor"
-        );
-        throw error; // Hata mesajını olduğu gibi fırlat
-      }
-
-      // PA (Prediction interrupted) hatası için özel retry mantığı - KESIN DURDUR
-      if (
-        error.message.includes("Prediction interrupted") ||
-        error.message.includes("code: PA") ||
-        error.message.includes("PREDICTION_INTERRUPTED")
-      ) {
-        console.error(
-          `❌ PA hatası tespit edildi, polling KESIN DURDURULUYOR: ${error.message}`
-        );
-        console.log("🛑 PA hatası - Polling döngüsü derhal sonlandırılıyor");
-        throw error; // Orijinal hatayı fırlat ki üst seviyede yakalanabilsin
-      }
-
-      // Eğer hata "failed" status'dan kaynaklanıyorsa derhal durdur
-      if (
-        error.message.includes("Replicate processing failed") ||
-        error.message.includes("processing was canceled")
-      ) {
-        console.error(
-          "❌ Replicate işlemi başarısız/iptal, polling durduruluyor"
-        );
-        throw error; // Hata mesajını olduğu gibi fırlat
-      }
-
-      // Sadece network/connection hatalarında retry yap
-      if (attempt === maxAttempts - 1) {
-        throw error;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    }
-  }
-
-  throw new Error("Replicate işlemi zaman aşımına uğradı");
-}
 
 // Çoklu resimleri canvas ile birleştiren fonksiyon
 async function combineImagesOnCanvas(
@@ -2354,8 +2207,7 @@ async function combineImagesOnCanvas(
 
         // Sharp ile resmi önce işle (yüksek kalite korunarak)
         console.log(
-          `🔄 Resim ${
-            i + 1
+          `🔄 Resim ${i + 1
           }: Sharp ile yüksek kalite preprocessing yapılıyor...`
         );
 
@@ -2388,8 +2240,7 @@ async function combineImagesOnCanvas(
                 .png({ quality: 95 })
                 .toBuffer();
               console.log(
-                `✅ Resim ${
-                  i + 1
+                `✅ Resim ${i + 1
                 } PNG olarak başarıyla işlendi (EXIF rotation uygulandı)`
               );
             } catch (pngError) {
@@ -2407,8 +2258,7 @@ async function combineImagesOnCanvas(
         // Metadata'yı al (rotation uygulandıktan sonra)
         const metadata = await sharp(processedBuffer).metadata();
         console.log(
-          `📐 Resim ${i + 1}: ${metadata.width}x${metadata.height} (${
-            metadata.format
+          `📐 Resim ${i + 1}: ${metadata.width}x${metadata.height} (${metadata.format
           })`
         );
 
@@ -2502,8 +2352,7 @@ async function combineImagesOnCanvas(
         const cellY = row * cellSize;
 
         console.log(
-          `🛍️ [GRID] Ürün ${
-            i + 1
+          `🛍️ [GRID] Ürün ${i + 1
           }: Grid pozisyon (${col}, ${row}) - Canvas pozisyon (${cellX}, ${cellY})`
         );
 
@@ -2689,9 +2538,8 @@ async function combineImagesOnCanvas(
     // Supabase'e yükle (otomatik temizleme için timestamp prefix)
     const timestamp = Date.now();
     const randomId = uuidv4().substring(0, 8);
-    const fileName = `temp_${timestamp}_combined_${
-      isMultipleProducts ? "products" : "images"
-    }_${userId || "anonymous"}_${randomId}.jpg`;
+    const fileName = `temp_${timestamp}_combined_${isMultipleProducts ? "products" : "images"
+      }_${userId || "anonymous"}_${randomId}.jpg`;
 
     const { data, error } = await supabase.storage
       .from("reference")
@@ -2820,10 +2668,8 @@ router.post("/generate", async (req, res) => {
         }) || [];
 
       console.log(
-        `💳 [SESSION-DEDUP] SessionId ${sessionId} ile ${
-          sessionGenerations.length
-        } generation bulundu (${
-          recentGenerations?.length || 0
+        `💳 [SESSION-DEDUP] SessionId ${sessionId} ile ${sessionGenerations.length
+        } generation bulundu (${recentGenerations?.length || 0
         } recent'tan filtrelendi)`
       );
 
@@ -2853,8 +2699,7 @@ router.post("/generate", async (req, res) => {
         .order("created_at", { ascending: false });
 
       console.log(
-        `💳 [TIME-DEDUP] Son 30 saniyede ${
-          recentGenerations?.length || 0
+        `💳 [TIME-DEDUP] Son 30 saniyede ${recentGenerations?.length || 0
         } generation bulundu`
       );
 
@@ -2938,8 +2783,7 @@ router.post("/generate", async (req, res) => {
 
         creditDeducted = true;
         console.log(
-          `✅ ${totalCreditCost} kredi başarıyla düşüldü (${totalGenerations} generation). Yeni bakiye: ${
-            currentCreditCheck - totalCreditCost
+          `✅ ${totalCreditCost} kredi başarıyla düşüldü (${totalGenerations} generation). Yeni bakiye: ${currentCreditCheck - totalCreditCost
           }`
         );
 
@@ -3299,262 +3143,191 @@ router.post("/generate", async (req, res) => {
     console.log("📝 [BACKEND MAIN] Original prompt:", promptText);
     console.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
 
-    // Replicate google/nano-banana modeli ile istek gönder
+    const startTime = Date.now();
+    // Fal.ai entegrasyonu (V5 ile uyumlu)
     let replicateResponse;
     const maxRetries = 3;
+    const retryReasons = [];
+    let totalRetryAttempts = 0;
+
+    // V2 model seçimi (Pro model)
+    const isV2 = req.body.quality === "v2";
+    const falModel = isV2 // req.body'de quality varsa v2 kontrolü yap
+      ? "fal-ai/nano-banana-pro/edit"
+      : "fal-ai/nano-banana/edit";
+
+    console.log(
+      `🤖 Fal.ai Modeli Seçildi: ${falModel} ${isV2 ? "(PRO)" : "(Standard)"}`
+    );
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         console.log(
-          `🔄 Replicate google/nano-banana API attempt ${attempt}/${maxRetries}`
+          `🔄 Fal.ai nano-banana API attempt ${attempt}/${maxRetries}`
         );
 
-        console.log("🚀 Replicate google/nano-banana API çağrısı yapılıyor...");
+        console.log("🚀 Fal.ai API çağrısı yapılıyor...");
 
-        // Replicate API için request body hazırla
+        // Fal.ai API için request body hazırla
+        // Fal.ai expects: { image_urls: [...], prompt: "..." }
+        // Aspect ratio handling (V5'teki gibi)
+        let aspectRatioForRequest = "9:16"; // Varsayılan
+        if (ratio) {
+          aspectRatioForRequest = formatAspectRatio(ratio);
+        }
+
         const requestBody = {
-          input: {
-            prompt: enhancedPrompt,
-            image_input: [combinedImageForReplicate],
-            output_format: "jpg",
-          },
+          prompt: enhancedPrompt,
+          image_urls: [combinedImageForReplicate],
+          num_images: 1,
+          output_format: "png",
+          aspect_ratio: aspectRatioForRequest,
         };
 
-        console.log("📋 Replicate Request Body:", {
+        console.log("📋 Fal.ai Request Body:", {
           prompt: enhancedPrompt.substring(0, 100) + "...",
           imageInput: combinedImageForReplicate,
-          outputFormat: "jpg",
+          outputFormat: "png",
+          aspectRatio: aspectRatioForRequest,
+          model: falModel,
         });
 
-        // Replicate API çağrısı - Prefer: wait header ile
+        // Fal.ai API çağrısı
         const response = await axios.post(
-          "https://api.replicate.com/v1/models/google/nano-banana/predictions",
+          `https://fal.run/${falModel}`,
           requestBody,
           {
             headers: {
-              Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+              Authorization: `Key ${process.env.FAL_API_KEY}`,
               "Content-Type": "application/json",
-              Prefer: "wait", // Synchronous response için
             },
-            timeout: 120000, // 2 dakika timeout
+            timeout: 300000, // 5 dakika timeout
           }
         );
 
-        console.log("📋 Replicate API Response Status:", response.status);
-        console.log("📋 Replicate API Response Data:", {
-          id: response.data.id,
-          status: response.data.status,
-          hasOutput: !!response.data.output,
-          error: response.data.error,
+        console.log("📋 Fal.ai API Response Status:", response.status);
+        console.log("📋 Fal.ai API Response Data:", {
+          request_id: response.data.request_id,
+          hasImages: !!response.data.images,
+          imagesCount: response.data.images?.length || 0,
         });
 
-        // Response kontrolü
-        if (response.data.status === "succeeded" && response.data.output) {
+        // Fal.ai Response kontrolü
+        if (response.data.images && response.data.images.length > 0) {
           console.log(
-            "✅ Replicate API başarılı, output alındı:",
-            response.data.output
+            "✅ Fal.ai API başarılı, images alındı:",
+            response.data.images.map((img) => img.url)
           );
 
-          // Replicate response'u formatla
+          // Fal.ai response'u Replicate formatına dönüştür (mevcut kod ile uyumluluk için)
+          const outputUrls = response.data.images.map((img) => img.url);
           replicateResponse = {
             data: {
-              id: response.data.id,
+              id: response.data.request_id || `fal-${uuidv4()}`,
               status: "succeeded",
-              output: response.data.output,
+              output: outputUrls,
               urls: {
-                get: response.data.urls?.get || null,
+                get: null,
               },
             },
           };
 
           console.log(
-            `✅ Replicate google/nano-banana API başarılı (attempt ${attempt})`
+            `✅ Fal.ai nano-banana API başarılı (attempt ${attempt})`
           );
           break; // Başarılı olursa loop'tan çık
-        } else if (
-          response.data.status === "processing" ||
-          response.data.status === "starting"
-        ) {
-          console.log(
-            "⏳ Replicate API hala işlem yapıyor, polling başlatılacak:",
-            response.data.status
-          );
+        } else if (response.data.detail || response.data.error) {
+          // Fal.ai error response
+          const errorMsg = response.data.detail || response.data.error;
+          console.error("❌ Fal.ai API failed:", errorMsg);
 
-          // Processing durumunda response'u formatla ve polling'e geç
-          replicateResponse = {
-            data: {
-              id: response.data.id,
-              status: response.data.status,
-              output: response.data.output,
-              urls: {
-                get: response.data.urls?.get || null,
-              },
-            },
-          };
+          // Geçici hatalar için retry yap
+          if (
+            typeof errorMsg === "string" &&
+            (errorMsg.includes("temporarily unavailable") ||
+              errorMsg.includes("try again later") ||
+              errorMsg.includes("rate limit") ||
+              errorMsg.includes("timeout"))
+          ) {
+            console.log(
+              `🔄 Geçici fal.ai hatası tespit edildi (attempt ${attempt}), retry yapılacak:`,
+              errorMsg
+            );
+            retryReasons.push(`Attempt ${attempt}: ${errorMsg}`);
+            throw new Error(`RETRYABLE_NANO_BANANA_ERROR: ${errorMsg}`);
+          }
 
-          console.log(
-            `⏳ Replicate google/nano-banana API processing (attempt ${attempt}) - polling gerekecek`
-          );
-          break; // Processing durumunda da loop'tan çık ve polling'e geç
-        } else if (response.data.status === "failed") {
-          console.error("❌ Replicate API failed:", response.data.error);
-          throw new Error(
-            `Replicate API failed: ${response.data.error || "Unknown error"}`
-          );
+          throw new Error(`Fal.ai API failed: ${errorMsg || "Unknown error"}`);
         } else {
+          // No images returned - unexpected
           console.error(
-            "❌ Replicate API unexpected status:",
-            response.data.status
+            "❌ Fal.ai API unexpected response - no images:",
+            response.data
           );
-          throw new Error(`Unexpected status: ${response.data.status}`);
+          throw new Error(`Fal.ai API returned no images`);
         }
       } catch (apiError) {
         console.error(
-          `❌ Replicate google/nano-banana API attempt ${attempt} failed:`,
+          `❌ Fal.ai nano-banana API attempt ${attempt} failed:`,
           apiError.message
         );
 
-        // 120 saniye timeout hatası ise direkt failed yap ve retry yapma
+        // 5dk timeout hatası ise direkt failed yap ve retry yapma
         if (
           apiError.message.includes("timeout") ||
           apiError.code === "ETIMEDOUT" ||
           apiError.code === "ECONNABORTED"
         ) {
           console.error(
-            `❌ 120 saniye timeout hatası, generation failed yapılıyor: ${apiError.message}`
+            `❌ 5 dakika timeout hatası, generation failed yapılıyor: ${apiError.message}`
           );
 
           // Generation status'unu direkt failed yap
           await updateGenerationStatus(finalGenerationId, userId, "failed", {
-            processing_time_seconds: 120,
+            processing_time_seconds: 300,
           });
 
           throw apiError; // Timeout hatası için retry yok
         }
 
-        // Son deneme değilse ve network hataları ise tekrar dene
+        // Son deneme değilse ve network hataları veya geçici hatalar ise tekrar dene
         if (
           attempt < maxRetries &&
           (apiError.code === "ECONNRESET" ||
             apiError.code === "ENOTFOUND" ||
-            apiError.response?.status >= 500)
+            apiError.response?.status >= 500 ||
+            apiError.message.includes("RETRYABLE_NANO_BANANA_ERROR"))
         ) {
+          totalRetryAttempts++;
           const waitTime = attempt * 2000; // 2s, 4s, 6s bekle
-          console.log(`⏳ ${waitTime}ms bekleniyor, sonra tekrar denenecek...`);
+          console.log(
+            `⏳ ${waitTime}ms bekleniyor, sonra tekrar denenecek... (${attempt}/${maxRetries})`
+          );
           await new Promise((resolve) => setTimeout(resolve, waitTime));
           continue;
         }
+
+        // Retry yapılamayan hatalar için log
+        console.error(
+          `❌ Retry yapılamayan hata türü (attempt ${attempt}/${maxRetries}):`,
+          {
+            code: apiError.code,
+            message: apiError.message?.substring(0, 100),
+            status: apiError.response?.status,
+          }
+        );
 
         // Son deneme veya farklı hata türü ise fırlat
         throw apiError;
       }
     }
 
-    const initialResult = replicateResponse.data;
-    console.log("Replicate API başlangıç yanıtı:", initialResult);
+    const finalResult = replicateResponse.data;
+    console.log("Fal.ai API final yanıtı (Replicate formatında):", finalResult);
 
-    if (!initialResult.id) {
-      console.error("Replicate prediction ID alınamadı:", initialResult);
-
-      // 🗑️ Prediction ID hatası durumunda geçici dosyaları temizle
-      console.log(
-        "🧹 Prediction ID hatası sonrası geçici dosyalar temizleniyor..."
-      );
-      await cleanupTemporaryFiles(temporaryFiles);
-
-      // Kredi iade et
-      if (creditDeducted && userId && userId !== "anonymous_user") {
-        try {
-          const { data: currentUserCredit } = await supabase
-            .from("users")
-            .select("credit_balance")
-            .eq("id", userId)
-            .single();
-
-          await supabase
-            .from("users")
-            .update({
-              credit_balance:
-                (currentUserCredit?.credit_balance || 0) + actualCreditDeducted,
-            })
-            .eq("id", userId);
-
-          console.log(
-            `💰 ${actualCreditDeducted} kredi iade edildi (Prediction ID hatası)`
-          );
-        } catch (refundError) {
-          console.error("❌ Kredi iade hatası:", refundError);
-        }
-      }
-
-      return res.status(500).json({
-        success: false,
-        result: {
-          message: "Replicate prediction başlatılamadı",
-          error: initialResult.error || "Prediction ID missing",
-        },
-      });
-    }
-
-    // Replicate google/nano-banana API - Status kontrolü ve polling
-    const startTime = Date.now();
-    let finalResult;
-    let processingTime;
-
-    // Status kontrolü
-    if (initialResult.status === "succeeded") {
-      // Direkt başarılı sonuç
-      console.log(
-        "🎯 Replicate google/nano-banana - başarılı sonuç, polling atlanıyor"
-      );
-      finalResult = initialResult;
-      processingTime = Math.round((Date.now() - startTime) / 1000);
-    } else if (
-      initialResult.status === "processing" ||
-      initialResult.status === "starting"
-    ) {
-      // Processing durumunda polling yap
-      console.log(
-        "⏳ Replicate google/nano-banana - processing status, polling başlatılıyor"
-      );
-
-      try {
-        finalResult = await pollReplicateResult(initialResult.id);
-        processingTime = Math.round((Date.now() - startTime) / 1000);
-      } catch (pollingError) {
-        console.error("❌ Polling hatası:", pollingError.message);
-
-        // Polling hatası durumunda status'u failed'e güncelle
-        await updateGenerationStatus(finalGenerationId, userId, "failed", {
-          processing_time_seconds: 0,
-        });
-
-        // 🗑️ Polling hatası durumunda geçici dosyaları temizle
-        console.log(
-          "🧹 Polling hatası sonrası geçici dosyalar temizleniyor..."
-        );
-        await cleanupTemporaryFiles(temporaryFiles);
-
-        return res.status(500).json({
-          success: false,
-          result: {
-            message: "Görsel işleme işlemi başarısız oldu",
-            error: pollingError.message.includes("PREDICTION_INTERRUPTED")
-              ? "Sunucu kesintisi oluştu. Lütfen tekrar deneyin."
-              : "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
-          },
-        });
-      }
-    } else {
-      // Diğer durumlar (failed, vs)
-      console.log(
-        "🎯 Replicate google/nano-banana - diğer status, direkt kullanılıyor"
-      );
-      finalResult = initialResult;
-      processingTime = Math.round((Date.now() - startTime) / 1000);
-    }
-
-    console.log("Replicate final result:", finalResult);
+    // Compatibility fixes
+    const initialResult = finalResult;
+    const processingTime = Math.round((Date.now() - startTime) / 1000);
 
     // Flux-kontext-dev API'den gelen sonuç farklı format olabilir (Prefer: wait nedeniyle)
     const isFluxKontextDevResult =
@@ -4172,8 +3945,7 @@ router.get("/generation-status/:generationId", async (req, res) => {
 
       if (userGenerations && userGenerations.length > 0) {
         console.log(
-          `🔍 User ${userId.slice(0, 8)} has ${
-            userGenerations.length
+          `🔍 User ${userId.slice(0, 8)} has ${userGenerations.length
           } active generations:`,
           userGenerations
             .map((g) => `${g.generation_id.slice(0, 8)}(${g.status})`)
@@ -4188,8 +3960,7 @@ router.get("/generation-status/:generationId", async (req, res) => {
 
         if (expiredGenerations.length > 0) {
           console.log(
-            `🧹 Cleaning ${
-              expiredGenerations.length
+            `🧹 Cleaning ${expiredGenerations.length
             } expired generations for user ${userId.slice(0, 8)}`
           );
 
@@ -4279,8 +4050,7 @@ router.get("/generation-status/:generationId", async (req, res) => {
     }
 
     console.log(
-      `✅ Generation durumu: ${finalStatus}${
-        shouldUpdateStatus ? " (timeout nedeniyle güncellendi)" : ""
+      `✅ Generation durumu: ${finalStatus}${shouldUpdateStatus ? " (timeout nedeniyle güncellendi)" : ""
       }`
     );
 
@@ -4438,8 +4208,7 @@ router.get("/user-generations/:userId", async (req, res) => {
     }
 
     console.log(
-      `🔍 User generations sorgusu: ${userId}${
-        status ? ` (status: ${status})` : ""
+      `🔍 User generations sorgusu: ${userId}${status ? ` (status: ${status})` : ""
       }`
     );
 
@@ -4472,8 +4241,7 @@ router.get("/user-generations/:userId", async (req, res) => {
     }
 
     console.log(
-      `✅ ${generations?.length || 0} generation bulundu (${
-        status || "all statuses"
+      `✅ ${generations?.length || 0} generation bulundu (${status || "all statuses"
       })`
     );
 

@@ -3,8 +3,7 @@ const router = express.Router();
 const axios = require("axios");
 const { supabase } = require("../supabaseClient");
 
-const REPLICATE_ENDPOINT =
-  "https://api.replicate.com/v1/models/philz1337x/crystal-upscaler/predictions";
+const FAL_ENDPOINT = "https://fal.run/clarityai/crystal-upscaler";
 
 router.post("/", async (req, res) => {
   const CREDIT_COST = 5; // Image enhancement için kredi maliyeti
@@ -55,8 +54,7 @@ router.post("/", async (req, res) => {
 
         const currentCredit = userCredit?.credit_balance || 0;
         console.log(
-          `💳 [BACKEND] Mevcut kredi: ${currentCredit}, gerekli: ${CREDIT_COST}, Yeterli mi? ${
-            currentCredit >= CREDIT_COST ? "EVET ✅" : "HAYIR ❌"
+          `💳 [BACKEND] Mevcut kredi: ${currentCredit}, gerekli: ${CREDIT_COST}, Yeterli mi? ${currentCredit >= CREDIT_COST ? "EVET ✅" : "HAYIR ❌"
           }`
         );
 
@@ -92,8 +90,7 @@ router.post("/", async (req, res) => {
 
         creditDeducted = true;
         console.log(
-          `✅ ${CREDIT_COST} kredi düşüldü. Kalan: ${
-            currentCredit - CREDIT_COST
+          `✅ ${CREDIT_COST} kredi düşüldü. Kalan: ${currentCredit - CREDIT_COST
           }`
         );
       } catch (creditManagementError) {
@@ -105,86 +102,51 @@ router.post("/", async (req, res) => {
       }
     }
 
-    console.log("2. Starting Replicate API call...");
-    const replicateResponse = await axios.post(
-      REPLICATE_ENDPOINT,
+    console.log("2. Starting Fal.ai API call (clarityai/crystal-upscaler)...");
+
+    // Fal.ai API çağrısı
+    const falResponse = await axios.post(
+      FAL_ENDPOINT,
       {
-        input: {
-          image: imageUrl,
-          scale_factor: Number(scale) || 2,
-        },
+        image_url: imageUrl,
+        upscaling_factor: Number(scale) || 2,
       },
       {
         headers: {
-          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+          Authorization: `Key ${process.env.FAL_API_KEY}`,
           "Content-Type": "application/json",
-          Prefer: "wait",
         },
+        timeout: 180000,
       }
     );
-    console.log("3. Replicate API response:", replicateResponse.data);
+    console.log("3. Fal.ai API response received");
 
-    let { status, output, urls } = replicateResponse.data || {};
+    const output = falResponse.data;
+    console.log("Fal.ai raw output:", JSON.stringify(output, null, 2));
 
-    // Replicate bazen "Prefer: wait" header'ına rağmen işlemi async başlatabiliyor.
-    // Bu durumda status "starting" veya "processing" olarak gelebilir.
-    if (
-      urls?.get &&
-      status &&
-      ["starting", "processing"].includes(status.toLowerCase())
-    ) {
-      console.log(
-        `⚙️ Replicate prediction ${status}, polling until completion...`
-      );
+    let resultImageUrl = null;
 
-      const maxAttempts = 30; // ~60 saniye (30 x 2s)
-      const pollInterval = 2000;
-
-      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        await new Promise((resolve) => setTimeout(resolve, pollInterval));
-
-        const pollResponse = await axios.get(urls.get, {
-          headers: {
-            Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        status = pollResponse.data?.status || status;
-        output = pollResponse.data?.output || output;
-
-        console.log(
-          `🔄 Poll attempt ${attempt}: status=${status}, hasOutput=${
-            pollResponse.data?.output ? "yes" : "no"
-          }`
-        );
-
-        if (status === "succeeded") {
-          break;
-        }
-
-        if (["failed", "canceled"].includes(status)) {
-          throw new Error(
-            `Replicate enhancement failed with status: ${status}`
-          );
-        }
-      }
+    // Fal.ai çıktısını parse et
+    if (output.image && output.image.url) {
+      resultImageUrl = output.image.url;
+    } else if (output.images && Array.isArray(output.images) && output.images.length > 0) {
+      resultImageUrl = output.images[0].url;
+    } else if (typeof output === 'string' && output.startsWith('http')) {
+      resultImageUrl = output;
+    } else {
+      resultImageUrl = output.url || null;
     }
 
-    if (status !== "succeeded") {
-      throw new Error(
-        `Replicate enhancement failed with status: ${status || "unknown"}`
-      );
+    if (!resultImageUrl) {
+      throw new Error("Fal.ai response did not contain a valid image URL");
     }
-
-    const normalizedOutput = Array.isArray(output) ? output[0] : output;
 
     const response = {
       success: true,
       input: imageUrl,
-      output: normalizedOutput,
+      output: resultImageUrl,
       rawOutput: output,
-      enhancedImageUrl: normalizedOutput,
+      enhancedImageUrl: resultImageUrl,
     };
     console.log("4. Sending response to client:", response);
 

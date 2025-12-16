@@ -1989,44 +1989,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
       }
 
       // Statik kuralları sadece normal mode'da ekle (backside ve pose change'de ekleme)
-      let staticRules = "";
-
-      if (!isPoseChange && !isBackSideAnalysis) {
-        // Sadece normal mode'da statik kuralları ekle (backside ve pose change'de değil)
-        staticRules = `
-
-        CRITICAL RULES (English)
-        
-        The output must be a single, high-end professional fashion photograph only — no collages, duplicates, or extra frames.
-        
-        Apply studio-grade fashion lighting blended naturally with daylight, ensuring flawless exposure, vibrant textures, and sharp focus.
-        
-        Guarantee editorial-level clarity and detail, with no blur, dull tones, or artificial look.
-        
-        Model, garment, and environment must integrate into one cohesive, seamless professional photo suitable for commercial catalogs and editorial campaigns.
-        
-        Additional Professional Fashion Photography Rules:
-        
-        Composition & Framing: Follow professional composition guidelines (rule of thirds, balanced framing). The model and garment must be the primary focus, with the background supporting but never distracting.
-        
-        Camera Perspective: Use appropriate fashion shot perspectives (full body, or mid-shot) depending on garment type. Avoid extreme or distorted angles unless explicitly requested.
-        
-        Garment Presentation: Ensure the garment is perfectly centered, wrinkle-minimized, and fully visible. Critical details like logos, embroidery, seams, and textures must be sharp and unobstructed.
-        
-        Color Accuracy: Colors must remain faithful to the original garment. Avoid oversaturation or washed-out tones. White balance must be neutral and realistic.
-        
-        Fabric Physics: Knit, silk, denim, leather, or any other fabric must exhibit accurate surface qualities — sheen, matte, weight, drape — under the chosen lighting.
-        
-        Background Control: Background must complement the garment. It should add atmosphere but never overpower the fashion subject. Keep it clean, realistic, and photogenic.
-        
-        Depth & Realism: Maintain natural shadows, reflections, and occlusion to create depth. No flat overlays or unrealistic detachment between model and environment.
-        
-        Posture & Pose: Model poses must enhance garment flow and silhouette. Avoid awkward or unnatural positions that distort the clothing.
-        
-        Focus & Sharpness: The garment must always be in sharp focus, especially at neckline, chest, and detailing areas. Background can be slightly softened (natural depth of field) to highlight the subject.
-        
-        Atmosphere: Scene must feel like a real, live professional photoshoot. Lighting, environment, and styling should combine into a polished, high-fashion aesthetic.`;
-      }
+      const staticRules = "";
 
       enhancedPrompt = geminiGeneratedPrompt + staticRules;
       console.log(
@@ -2044,17 +2007,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
       );
 
       // Fallback durumunda da statik kuralları ekle
-      const staticRules = `
-
-CRITICAL RULES:
-
-The output must be a single, high-end professional fashion photograph only — no collages, duplicates, or extra frames.
-
-Apply studio-grade fashion lighting blended naturally with daylight, ensuring flawless exposure, vibrant textures, and sharp focus.
-
-Guarantee editorial-level clarity and detail, with no blur, dull tones, or artificial look.
-
-Model, garment, and environment must integrate into one cohesive, seamless professional photo suitable for commercial catalogs and editorial campaigns.`;
+      const staticRules = "";
 
       enhancedPrompt = originalPrompt + staticRules;
     }
@@ -2267,17 +2220,7 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
     );
 
     // Statik kuralları fallback prompt'un sonuna da ekle
-    const fallbackStaticRules = `
-
-CRITICAL RULES:
-
-The output must be a single, high-end professional fashion photograph only — no collages, duplicates, or extra frames.
-
-Apply studio-grade fashion lighting blended naturally with daylight, ensuring flawless exposure, vibrant textures, and sharp focus.
-
-Guarantee editorial-level clarity and detail, with no blur, dull tones, or artificial look.
-
-Model, garment, and environment must integrate into one cohesive, seamless professional photo suitable for commercial catalogs and editorial campaigns.`;
+    const fallbackStaticRules = "";
 
     // Settings'ten bilgileri çıkar
     const location = settings?.location;
@@ -2458,17 +2401,7 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
     );
 
     // Son fallback durumunda da statik kuralları ekle
-    const finalStaticRules = `
-
-CRITICAL RULES:
-
-The output must be a single, high-end professional fashion photograph only — no collages, duplicates, or extra frames.
-
-Apply studio-grade fashion lighting blended naturally with daylight, ensuring flawless exposure, vibrant textures, and sharp focus.
-
-Guarantee editorial-level clarity and detail, with no blur, dull tones, or artificial look.
-
-Model, garment, and environment must integrate into one cohesive, seamless professional photo suitable for commercial catalogs and editorial campaigns.`;
+    const finalStaticRules = "";
 
     return fallbackPrompt + finalStaticRules;
   }
@@ -3530,152 +3463,136 @@ router.post("/generate", async (req, res) => {
         }
 
         // Kalite versiyonuna göre model URL ve parametreleri güncelle
-        let modelUrl =
-          "https://api.replicate.com/v1/models/google/nano-banana/predictions"; // Default v1
+        // Fal.ai model seçimi
+        let falModel = "fal-ai/nano-banana/edit"; // Model ID for Fal.ai
 
         if (qualityVersion === "v2") {
           console.log(
-            "🚀 [QUALITY] V2 seçili - Nano Banana Pro parametreleri ekleniyor"
+            "🚀 [QUALITY] V2 seçili - Fal.ai Nano Banana PRO parametreleri kullanılacak"
           );
-          modelUrl =
-            "https://api.replicate.com/v1/models/google/nano-banana-pro/predictions";
-          requestBody.input.resolution = "2K";
-          requestBody.input.safety_filter_level = "block_only_high";
+          falModel = "fal-ai/nano-banana-pro/edit"; // Pro model
         } else {
           console.log(
-            "🚀 [QUALITY] V1 seçili - Nano Banana parametreleri (varsayılan)"
+            "🚀 [QUALITY] V1 seçili - Fal.ai Nano Banana parametreleri (varsayılan)"
           );
         }
 
-        console.log("📋 Replicate Request Body:", {
-          prompt: enhancedPrompt.substring(0, 100) + "...",
+        const falUrl = `https://fal.run/${falModel}`;
+
+        // Fal.ai request body
+        // Prompt truncation (Fal.ai 5000 char limit)
+        let finalPrompt = enhancedPrompt;
+        if (finalPrompt.length > 4900) {
+          console.log(
+            `⚠️ Prompt length (${finalPrompt.length}) exceeds safety limit, truncating to 4900...`
+          );
+          finalPrompt = finalPrompt.substring(0, 4900);
+        }
+
+        requestBody = {
+          prompt: finalPrompt,
+          image_urls: imageInputArray,
+          output_format: "png",
+          aspect_ratio: aspectRatioForRequest,
+          num_images: 1, // İzin ver
+        };
+
+        // V2 için ek parametreler
+        if (qualityVersion === "v2") {
+          // Pro model parametreleri buraya eklenebilir
+        }
+
+        console.log("📋 Fal.ai Request Body:", {
+          prompt: finalPrompt.substring(0, 100) + "...",
           imageInput: req.body.isBackSideAnalysis
             ? "2 separate images"
             : isMultipleImages && referenceImages.length > 1
               ? `${referenceImages.length} separate images`
               : "single combined image",
           imageInputArray: imageInputArray,
-          outputFormat: "jpg",
+          outputFormat: "png",
           aspectRatio: aspectRatioForRequest,
           qualityVersion: qualityVersion,
-          modelUrl: modelUrl,
+          modelUrl: falUrl,
         });
 
-        // Replicate API çağrısı - Prefer: wait header ile
+        // Fal.ai API çağrısı - Synchronous (fal.run)
         const response = await axios.post(
-          modelUrl,
+          falUrl,
           requestBody,
           {
             headers: {
-              Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+              Authorization: `Key ${process.env.FAL_API_KEY}`,
               "Content-Type": "application/json",
-              Prefer: "wait", // Synchronous response için
             },
-            timeout: 120000, // 2 dakika timeout
+            timeout: 300000, // 5 dakika timeout
           }
         );
 
-        console.log("📋 Replicate API Response Status:", response.status);
-        console.log("📋 Replicate API Response Data:", {
-          id: response.data.id,
-          status: response.data.status,
-          hasOutput: !!response.data.output,
-          error: response.data.error,
-        });
+        console.log("📋 Fal.ai API Response Status:", response.status);
 
-        // Response kontrolü
-        if (response.data.status === "succeeded" && response.data.output) {
+        // Fal.ai response handling
+        // Fal.ai returns: { images: [ { url: "...", ... } ], seed: ..., ... }
+        if (response.data.images && response.data.images.length > 0) {
+          const outputUrls = response.data.images.map(img => img.url);
           console.log(
-            "✅ Replicate API başarılı, output alındı:",
-            response.data.output
+            "✅ Fal.ai API başarılı, images alındı:",
+            outputUrls
           );
 
-          // Replicate response'u formatla
+          // Replicate response formatını taklit et (mevcut kodun geri kalanı bozulmasın diye)
           replicateResponse = {
             data: {
-              id: response.data.id,
+              id: response.data.request_id || `fal-${uuidv4()}`,
               status: "succeeded",
-              output: response.data.output,
+              output: outputUrls, // Array of URLs
               urls: {
-                get: response.data.urls?.get || null,
+                get: null,
               },
             },
           };
 
           console.log(
-            `✅ Replicate google/nano-banana API başarılı (attempt ${attempt})`
+            `✅ Fal.ai ${falModel} API başarılı (attempt ${attempt})`
           );
           break; // Başarılı olursa loop'tan çık
-        } else if (
-          response.data.status === "processing" ||
-          response.data.status === "starting"
-        ) {
-          console.log(
-            "⏳ Replicate API hala işlem yapıyor, polling başlatılacak:",
-            response.data.status
-          );
+        } else if (response.data.detail || response.data.error) {
+          // Fal.ai error response
+          const errorMsg = response.data.detail || response.data.error;
+          console.error("❌ Fal.ai API failed:", errorMsg);
 
-          // Processing durumunda response'u formatla ve polling'e geç
-          replicateResponse = {
-            data: {
-              id: response.data.id,
-              status: response.data.status,
-              output: response.data.output,
-              urls: {
-                get: response.data.urls?.get || null,
-              },
-            },
-          };
-
-          console.log(
-            `⏳ Replicate google/nano-banana API processing (attempt ${attempt}) - polling gerekecek`
-          );
-          break; // Processing durumunda da loop'tan çık ve polling'e geç
-        } else if (response.data.status === "failed") {
-          console.error("❌ Replicate API failed:", response.data.error);
-
-          // E9243, E004 ve benzeri geçici hatalar için retry yap
+          // Geçici hatalar için retry yap
           if (
-            response.data.error &&
-            typeof response.data.error === "string" &&
-            (response.data.error.includes("E9243") ||
-              response.data.error.includes("E004") ||
-              response.data.error.includes(
-                "unexpected error handling prediction"
-              ) ||
-              response.data.error.includes("Director: unexpected error") ||
-              response.data.error.includes(
-                "Service is temporarily unavailable"
-              ) ||
-              response.data.error.includes("Please try again later") ||
-              response.data.error.includes("Prediction failed.") ||
-              response.data.error.includes(
-                "Prediction interrupted; please retry (code: PA)"
-              ))
+            typeof errorMsg === "string" &&
+            (errorMsg.includes("temporarily unavailable") ||
+              errorMsg.includes("try again later") ||
+              errorMsg.includes("rate limit") ||
+              errorMsg.includes("timeout"))
           ) {
             console.log(
-              `🔄 Geçici nano-banana hatası tespit edildi (attempt ${attempt}), retry yapılacak:`,
-              response.data.error
+              `🔄 Geçici fal.ai hatası tespit edildi (attempt ${attempt}), retry yapılacak:`,
+              errorMsg
             );
-            retryReasons.push(`Attempt ${attempt}: ${response.data.error}`);
+            retryReasons.push(`Attempt ${attempt}: ${errorMsg}`);
             throw new Error(
-              `RETRYABLE_NANO_BANANA_ERROR: ${response.data.error}`
+              `RETRYABLE_NANO_BANANA_ERROR: ${errorMsg}`
             );
           }
 
           throw new Error(
-            `Replicate API failed: ${response.data.error || "Unknown error"}`
+            `Fal.ai API failed: ${errorMsg || "Unknown error"}`
           );
         } else {
+          // No images returned - unexpected
           console.error(
-            "❌ Replicate API unexpected status:",
-            response.data.status
+            "❌ Fal.ai API unexpected response - no images:",
+            response.data
           );
-          throw new Error(`Unexpected status: ${response.data.status}`);
+          throw new Error(`Fal.ai API returned no images`);
         }
       } catch (apiError) {
         console.error(
-          `❌ Replicate google/nano-banana API attempt ${attempt} failed:`,
+          `❌ Fal.ai nano-banana API attempt ${attempt} failed:`,
           apiError.message
         );
 
@@ -3775,245 +3692,11 @@ router.post("/generate", async (req, res) => {
       });
     }
 
-    // Replicate google/nano-banana API - Status kontrolü ve polling (retry mekanizmalı)
-    const startTime = Date.now();
-    let finalResult;
-    let processingTime;
-    const maxPollingRetries = 3; // Failed status'u için maksimum 3 retry
+    // Fal.ai changes: result is always succeeded if we get here because errors throw in the loop
+    const finalResult = initialResult;
+    const processingTime = Math.round((Date.now() - Date.now()) / 1000); // Approx 0 as it's sync
 
-    // Status kontrolü
-    if (initialResult.status === "succeeded") {
-      // Direkt başarılı sonuç
-      console.log(
-        "🎯 Replicate google/nano-banana - başarılı sonuç, polling atlanıyor"
-      );
-      finalResult = initialResult;
-      processingTime = Math.round((Date.now() - startTime) / 1000);
-    } else if (
-      initialResult.status === "processing" ||
-      initialResult.status === "starting"
-    ) {
-      // Processing durumunda polling yap
-      console.log(
-        "⏳ Replicate google/nano-banana - processing status, polling başlatılıyor"
-      );
-
-      try {
-        finalResult = await pollReplicateResultWithRetry(
-          initialResult.id,
-          maxPollingRetries
-        );
-        processingTime = Math.round((Date.now() - startTime) / 1000);
-      } catch (pollingError) {
-        console.error("❌ Polling hatası:", pollingError.message);
-
-        // Polling hatası durumunda status'u failed'e güncelle
-        await updateGenerationStatus(finalGenerationId, userId, "failed", {
-          processing_time_seconds: Math.round((Date.now() - startTime) / 1000),
-        });
-
-        // 🗑️ Polling hatası durumunda geçici dosyaları temizle
-        console.log(
-          "🧹 Polling hatası sonrası geçici dosyalar temizleniyor..."
-        );
-        await cleanupTemporaryFiles(temporaryFiles);
-
-        // Error response'a generationId ekle ki client hangi generation'ın başarısız olduğunu bilsin
-        return res.status(500).json({
-          success: false,
-          result: {
-            message: "Görsel işleme işlemi başarısız oldu",
-            error: pollingError.message.includes("PREDICTION_INTERRUPTED")
-              ? "Sunucu kesintisi oluştu. Lütfen tekrar deneyin."
-              : "İşlem sırasında teknik bir sorun oluştu. Lütfen tekrar deneyin.",
-            generationId: finalGenerationId, // Client için generation ID ekle
-            status: "failed",
-          },
-        });
-      }
-    } else {
-      // Diğer durumlar (failed, vs) - retry mekanizmasıyla
-      console.log(
-        "🎯 Replicate google/nano-banana - failed status, retry mekanizması başlatılıyor"
-      );
-
-      // Failed status için retry logic
-      let retrySuccessful = false;
-      for (
-        let retryAttempt = 1;
-        retryAttempt <= maxPollingRetries;
-        retryAttempt++
-      ) {
-        console.log(
-          `🔄 Failed status retry attempt ${retryAttempt}/${maxPollingRetries}`
-        );
-
-        try {
-          // 2 saniye bekle, sonra yeni prediction başlat
-          await new Promise((resolve) =>
-            setTimeout(resolve, 2000 * retryAttempt)
-          );
-
-          // Aynı parametrelerle yeni prediction oluştur
-          let retryImageInputArray;
-
-          // Back side analysis: 2 ayrı resim gönder
-          if (
-            req.body.isBackSideAnalysis &&
-            referenceImages &&
-            referenceImages.length >= 2
-          ) {
-            console.log(
-              "🔄 [RETRY BACK_SIDE] 2 ayrı resim Nano Banana'ya gönderiliyor..."
-            );
-            retryImageInputArray = [
-              referenceImages[0].uri || referenceImages[0], // Ön resim - direkt string
-              referenceImages[1].uri || referenceImages[1], // Arka resim - direkt string
-            ];
-          } else if (
-            (isMultipleImages && referenceImages.length > 1) ||
-            (modelReferenceImage &&
-              (referenceImages.length > 0 || combinedImageForReplicate))
-          ) {
-            const totalRefs =
-              referenceImages.length + (modelReferenceImage ? 1 : 0);
-            console.log(
-              `🔄 [RETRY MULTIPLE] ${totalRefs} ayrı resim Nano Banana'ya gönderiliyor...`
-            );
-
-            const sortedImages = [];
-
-            if (modelReferenceImage) {
-              sortedImages.push(
-                sanitizeImageUrl(modelReferenceImage.uri || modelReferenceImage)
-              );
-            }
-
-            if (isMultipleImages && referenceImages.length > 1) {
-              referenceImages.forEach((img) =>
-                sortedImages.push(sanitizeImageUrl(img.uri || img))
-              );
-            } else {
-              const productSource =
-                typeof combinedImageForReplicate === "string" &&
-                  combinedImageForReplicate
-                  ? combinedImageForReplicate
-                  : referenceImages[0]?.uri || referenceImages[0];
-
-              if (productSource) {
-                sortedImages.push(sanitizeImageUrl(productSource));
-              }
-            }
-
-            retryImageInputArray = sortedImages;
-          } else {
-            // Tek resim modu: Birleştirilmiş tek resim
-            retryImageInputArray = [combinedImageForReplicate];
-          }
-
-          const retryRequestBody = {
-            input: {
-              prompt: enhancedPrompt,
-              image_input: retryImageInputArray,
-              output_format: "jpg",
-            },
-          };
-
-          // Kalite versiyonuna göre model URL ve parametreleri güncelle
-          let retryModelUrl =
-            "https://api.replicate.com/v1/models/google/nano-banana/predictions";
-
-          if (qualityVersion === "v2") {
-            retryModelUrl =
-              "https://api.replicate.com/v1/models/google/nano-banana-pro/predictions";
-            retryRequestBody.input.resolution = "2K";
-            retryRequestBody.input.safety_filter_level = "block_only_high";
-          }
-
-          console.log(
-            `🔄 Retry ${retryAttempt}: Yeni prediction oluşturuluyor... Model: ${qualityVersion === "v2" ? "Nano Banana Pro" : "Nano Banana"
-            }`
-          );
-
-          const retryResponse = await axios.post(
-            retryModelUrl,
-            retryRequestBody,
-            {
-              headers: {
-                Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-                "Content-Type": "application/json",
-                Prefer: "wait",
-              },
-              timeout: 120000,
-            }
-          );
-
-          console.log(`🔄 Retry ${retryAttempt} Response:`, {
-            id: retryResponse.data.id,
-            status: retryResponse.data.status,
-            hasOutput: !!retryResponse.data.output,
-            error: retryResponse.data.error,
-          });
-
-          // Retry response kontrolü
-          if (
-            retryResponse.data.status === "succeeded" &&
-            retryResponse.data.output
-          ) {
-            console.log(
-              `✅ Retry ${retryAttempt} başarılı! Output alındı:`,
-              retryResponse.data.output
-            );
-            finalResult = retryResponse.data;
-            retrySuccessful = true;
-            break;
-          } else if (
-            retryResponse.data.status === "processing" ||
-            retryResponse.data.status === "starting"
-          ) {
-            console.log(
-              `⏳ Retry ${retryAttempt} processing durumunda, polling başlatılıyor...`
-            );
-
-            try {
-              finalResult = await pollReplicateResult(retryResponse.data.id);
-              console.log(`✅ Retry ${retryAttempt} polling başarılı!`);
-              retrySuccessful = true;
-              break;
-            } catch (retryPollingError) {
-              console.error(
-                `❌ Retry ${retryAttempt} polling hatası:`,
-                retryPollingError.message
-              );
-              // Bu retry attempt başarısız, bir sonraki deneme yapılacak
-            }
-          } else {
-            console.error(
-              `❌ Retry ${retryAttempt} başarısız:`,
-              retryResponse.data.error
-            );
-            // Bu retry attempt başarısız, bir sonraki deneme yapılacak
-          }
-        } catch (retryError) {
-          console.error(
-            `❌ Retry ${retryAttempt} exception:`,
-            retryError.message
-          );
-          // Bu retry attempt başarısız, bir sonraki deneme yapılacak
-        }
-      }
-
-      if (!retrySuccessful) {
-        console.error(
-          `❌ Tüm retry attemptları başarısız oldu. Orijinal failed result kullanılıyor.`
-        );
-        finalResult = initialResult;
-      }
-
-      processingTime = Math.round((Date.now() - startTime) / 1000);
-    }
-
-    console.log("Replicate final result:", finalResult);
+    console.log("Fal.ai final result:", finalResult);
 
     // Flux-kontext-dev API'den gelen sonuç farklı format olabilir (Prefer: wait nedeniyle)
     const isFluxKontextDevResult =
@@ -4038,7 +3721,7 @@ router.post("/generate", async (req, res) => {
       // ✅ Status'u completed'e güncelle
       await updateGenerationStatus(finalGenerationId, userId, "completed", {
         enhanced_prompt: enhancedPrompt,
-        result_image_url: finalResult.output,
+        result_image_url: Array.isArray(finalResult.output) ? finalResult.output[0] : finalResult.output,
         replicate_prediction_id: initialResult.id,
         processing_time_seconds: processingTime,
       });
@@ -4070,7 +3753,7 @@ router.post("/generate", async (req, res) => {
       const responseData = {
         success: true,
         result: {
-          imageUrl: finalResult.output,
+          imageUrl: Array.isArray(finalResult.output) ? finalResult.output[0] : finalResult.output,
           originalPrompt: promptText,
           enhancedPrompt: enhancedPrompt,
           replicateData: finalResult,
@@ -4223,7 +3906,7 @@ router.post("/generate", async (req, res) => {
           message:
             "İşlem 2 dakika zaman aşımına uğradı. Lütfen daha küçük bir resim deneyiniz veya tekrar deneyin.",
           error_type: "timeout",
-          user_friendly: true,
+          user_friendly: false,
           retry_after: 30, // 30 saniye sonra tekrar dene
         },
       });

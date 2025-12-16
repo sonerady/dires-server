@@ -64,48 +64,54 @@ async function uploadImageToSupabaseStorage(imageUrl, userId, replicateId) {
 }
 
 // Flux 1.1 Pro Ultra ile location image generate et
-async function generateLocationWithFlux11ProUltra(prompt, userId) {
+// Google Imagen-4-fast ile location image generate et - Migrated to Fal.ai
+async function generateLocationWithImagen4(prompt, userId) {
   try {
     console.log(
-      "📸 Flux 1.1 Pro Ultra ile location generation başlatılıyor..."
+      "📸 Fal.ai Imagen-4 ile location generation başlatılıyor..."
     );
     console.log("Prompt:", prompt);
 
     const response = await fetch(
-      "https://api.replicate.com/v1/models/black-forest-labs/flux-1.1-pro-ultra/predictions",
+      "https://fal.run/fal-ai/imagen4/preview/ultra",
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
+          Authorization: `Key ${process.env.FAL_API_KEY}`,
           "Content-Type": "application/json",
-          Prefer: "wait",
         },
         body: JSON.stringify({
-          input: {
-            raw: false,
-            prompt: `${prompt} The scene must be rendered strictly from the perspective of a standing fashion model, while keeping the model completely hidden and not visible in the final image.`,
-            aspect_ratio: "1:1",
-            output_format: "jpg",
-            safety_tolerance: 2,
-            image_prompt_strength: 0.1,
-          },
+          prompt: `${prompt} The scene must be rendered strictly from the perspective of a standing fashion model, while keeping the model completely hidden and not visible in the final image.`,
+          aspect_ratio: "1:1",
+          output_format: "jpeg",
+          safety_filter_level: "block_only_high",
         }),
       }
     );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Flux 1.1 Pro Ultra API Error:", errorText);
-      throw new Error(`Flux 1.1 Pro Ultra API Error: ${response.status}`);
+      console.error("Fal.ai Imagen-4 API Error:", errorText);
+      throw new Error(`Fal.ai Imagen-4 API Error: ${response.status}`);
     }
 
     const result = await response.json();
-    console.log("✅ Flux 1.1 Pro Ultra generation tamamlandı");
-    console.log("Flux result:", result);
+    console.log("✅ Fal.ai Imagen-4 generation tamamlandı");
+    console.log("Imagen result:", result);
 
-    // Output string veya array olabilir
+    // Fal.ai output: { images: [{ url: "..." }] }
     let imageUrl = null;
-    if (result.output) {
+    let replicateId = result.request_id || `fal-${Date.now()}`;
+
+    if (result.images && result.images.length > 0 && result.images[0].url) {
+      imageUrl = result.images[0].url;
+      // Array check for safety
+      if (Array.isArray(imageUrl)) {
+        imageUrl = imageUrl[0];
+      }
+    }
+    // Fallback logic
+    else if (result.output) {
       if (Array.isArray(result.output) && result.output.length > 0) {
         imageUrl = result.output[0];
       } else if (typeof result.output === "string") {
@@ -118,19 +124,19 @@ async function generateLocationWithFlux11ProUltra(prompt, userId) {
       const storageResult = await uploadImageToSupabaseStorage(
         imageUrl,
         userId,
-        result.id
+        replicateId
       );
 
       return {
         imageUrl: storageResult.publicUrl, // Supabase storage'dan gelen public URL
         storagePath: storageResult.storagePath, // Storage path'i de döndür
-        replicateId: result.id,
+        replicateId: replicateId,
       };
     } else {
-      throw new Error("Flux 1.1 Pro Ultra'dan görsel çıkışı alınamadı");
+      throw new Error("Fal.ai Imagen-4'dan görsel çıkışı alınamadı");
     }
   } catch (error) {
-    console.error("Flux 1.1 Pro Ultra generation hatası:", error);
+    console.error("Fal.ai Imagen-4 generation hatası:", error);
     throw error;
   }
 }
@@ -523,8 +529,8 @@ router.post("/create-location", async (req, res) => {
     const enhancedPrompt = gptResult.prompt;
     const generatedTitle = gptResult.title;
 
-    // 2. Flux 1.1 Pro Ultra ile görsel generate et
-    const fluxResult = await generateLocationWithFlux11ProUltra(
+    // 2. Fal.ai Imagen-4 ile görsel generate et
+    const imagenResult = await generateLocationWithImagen4(
       enhancedPrompt,
       actualUserId
     );
@@ -550,8 +556,8 @@ router.post("/create-location", async (req, res) => {
         generatedTitle.trim(), // Gemini'den gelen kısa title (5-10 kelime)
         prompt.trim(),
         enhancedPrompt,
-        fluxResult.imageUrl, // Supabase storage'dan gelen public URL
-        fluxResult.replicateId,
+        imagenResult.imageUrl, // Supabase storage'dan gelen public URL
+        imagenResult.replicateId,
         category,
         actualUserId,
         isPublic,
@@ -560,7 +566,7 @@ router.post("/create-location", async (req, res) => {
       );
 
       console.log(
-        "✅ Create location işlemi tamamlandı (Flux 1.1 Pro Ultra ile veritabanına kaydedildi)"
+        "✅ Create location işlemi tamamlandı (Fal.ai Imagen-4 ile veritabanına kaydedildi)"
       );
 
       res.json({
@@ -591,10 +597,10 @@ router.post("/create-location", async (req, res) => {
         data: {
           title: title.trim(),
           generatedTitle: generatedTitle,
-          imageUrl: fluxResult.imageUrl,
+          imageUrl: imagenResult.imageUrl,
           originalPrompt: prompt.trim(),
           enhancedPrompt: enhancedPrompt,
-          replicateId: fluxResult.replicateId,
+          replicateId: imagenResult.replicateId,
           category: category,
           userId: actualUserId,
         },

@@ -139,13 +139,13 @@ CRITICAL REQUIREMENTS:
 7. Output format: Return ONLY a JSON array with exactly 5 location prompt strings, nothing else
 8. LANGUAGE REQUIREMENT: All suggestions MUST be written in ${language} language
 
-CATEGORY-SPECIFIC GUIDELINES:
-- If it's a BABY/NEWBORN product: Suggest locations like nursery, crib, baby room, soft play area, family home setting, etc.
-- If it's a CHILD product: Suggest locations like playground, children's room, school, park, fun and playful environments, etc.
-- If it's WOMEN'S fashion: Suggest locations like elegant spaces, modern studios, luxury settings, fashion-forward environments, etc.
-- If it's MEN'S fashion: Suggest locations like modern offices, urban settings, sophisticated spaces, etc.
-- If it's JEWELRY: Suggest locations like elegant displays, luxury settings, sophisticated backgrounds, etc.
-- If it's ACCESSORIES (bags, shoes, etc.): Suggest locations that complement the accessory style
+DIVERSITY GUIDELINES:
+- Suggestions detailed, vivid, and highly descriptive
+- Avoid generic or cliché locations (e.g., standard parks, plain white rooms) unless specifically suitable
+- Aim for UNIQUE, CREATIVE, and AESTHETICALLY PLEASING environments
+- Consider the mood, lighting, and texture of the location
+- Ensure diversity in indoor vs outdoor settings (unless category strictly dictates one)
+- For fashion items, consider editorial and lifestyle contexts
 
 IMPORTANT: 
 - Do NOT mention the garment/product in your suggestions
@@ -153,6 +153,8 @@ IMPORTANT:
 - Make suggestions suitable for high-end professional photography
 - Return ONLY valid JSON array, no additional text or explanations
 - ALL suggestions MUST be in ${language} language
+
+
 
 Analyze the image, identify the category and product type, then generate 5 location suggestions as a JSON array in ${language} language.`;
 
