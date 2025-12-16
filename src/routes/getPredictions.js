@@ -1,6 +1,12 @@
 const express = require("express");
 const { supabase } = require("../supabaseClient");
 const axios = require("axios");
+const { fal } = require("@fal-ai/client");
+
+// Fal.ai Config
+fal.config({
+  credentials: process.env.FAL_API_KEY,
+});
 
 const router = express.Router();
 
@@ -21,8 +27,64 @@ function extractProgressFromLogs(logs) {
   return 0;
 }
 
-// Belirli bir prediction_id için Replicate API'sinden detayları alan fonksiyon
+// Belirli bir prediction_id için Replicate veya Fal.ai API'sinden detayları alan fonksiyon
 async function fetchPredictionDetails(predictionId) {
+  // Fal.ai ID check (UUID format for Queue API calls)
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(predictionId);
+
+  if (isUuid) {
+    // Try Fal.ai Queue API via SDK
+    try {
+      // queue.status ile durumu kontrol et
+      const result = await fal.queue.status("fal-ai/kling-video/v2.1/pro/image-to-video", {
+        requestId: predictionId,
+        logs: true
+      });
+
+      let status = "processing";
+      if (result.status === "IN_QUEUE") status = "starting";
+      else if (result.status === "IN_PROGRESS") status = "processing";
+      else if (result.status === "COMPLETED") status = "succeeded";
+      else if (result.status === "FAILED") status = "failed";
+
+      let output = null;
+      let logs = "";
+
+      // Logs varsa al
+      if (result.logs && Array.isArray(result.logs)) {
+        logs = result.logs.map(l => l.message).join("\n");
+      }
+
+      // Eğer tamamlandıysa result output'u çekmemiz gerekebilir
+      if (status === "succeeded") {
+        // Status sonucunda video varsa direkt kullan, yoksa result çağır
+        // Not: SDK bazen completed statüsünde data dönüyor olabilir ama queue.result garantidir.
+        const finalData = await fal.queue.result("fal-ai/kling-video/v2.1/pro/image-to-video", {
+          requestId: predictionId
+        });
+
+        if (finalData.data && finalData.data.video && finalData.data.video.url) {
+          output = [finalData.data.video.url];
+        } else if (finalData.data && finalData.data.images && finalData.data.images[0]) {
+          output = [finalData.data.images[0].url];
+        }
+      }
+
+      return {
+        status: status,
+        output: output,
+        error: null, // Error detayını SDK'dan çekmek lazım ama basitçe null
+        logs: logs,
+        input: { num_outputs: 1 }
+      };
+
+    } catch (falError) {
+      console.log(`Fal.ai SDK fetch failed for ${predictionId}`, falError.message);
+      return null;
+    }
+  }
+
+  // Fallback to Replicate for non-UUID IDs (or if logic above allows fallback)
   try {
     const response = await axios.get(
       `https://api.replicate.com/v1/predictions/${predictionId}`,
@@ -34,6 +96,8 @@ async function fetchPredictionDetails(predictionId) {
     );
     return response.data;
   } catch (error) {
+    // Only log error if we are sure it should have existed
+    // console.error(...) - reducing noise for expected failures during transition
     console.error(
       `Error fetching prediction ${predictionId} from Replicate:`,
       error.response ? error.response.data : error.message

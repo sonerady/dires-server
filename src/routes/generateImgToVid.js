@@ -9,12 +9,15 @@ const axios = require("axios");
 // Supabase client
 const { supabase } = require("../supabaseClient");
 
-// Replicate
-const Replicate = require("replicate");
-const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN,
+// Replicate import kaldırıldı (Fal.ai'ye geçildi)
+// @fal-ai/client import
+const { fal } = require("@fal-ai/client");
+fal.config({
+  credentials: process.env.FAL_API_KEY, // Env'deki key: FAL_API_KEY
 });
-const predictions = replicate.predictions;
+
+// Not: callReplicateGeminiFlash fonksiyonu hala Replicate API'sini axios ile kullanıyor,
+// bu yüzden REPLICATE_API_TOKEN env variable'ı gerekli.
 
 // Gemini imports (OpenAI yerine)
 const { GoogleGenerativeAI } = require("@google/generative-ai");
@@ -368,18 +371,35 @@ router.post("/generateImgToVid", async (req, res) => {
       "Model highlights special details of the outfit, smiling while gently turning left and right to showcase product details from both sides. While turning left and right, model maintains a smile and strikes various poses";
     const finalPrompt = await generateVideoPrompt(firstFrameUrl, userPrompt);
 
-    // 4) Replicate'e asenkron istek (Minimax)
-    const prediction = await predictions.create({
-      model: "kwaivgi/kling-v1.6-pro",
-      input: {
-        prompt: finalPrompt,
-        duration: duration, // Kullanıcının seçtiği süre
-        cfg_scale: 0.5,
-        start_image: firstFrameUrl,
-        aspect_ratio: aspect_ratio,
-        negative_prompt: "",
-      },
-    });
+    // 4) Fal.ai Queue API'ye istek at (Kling 2.1 Pro) - SDK ile
+    const requestBody = {
+      prompt: finalPrompt,
+      image_url: firstFrameUrl,
+      duration: duration.toString(), // "5" veya "10"
+      aspect_ratio: aspect_ratio,
+      cfg_scale: 0.5
+    };
+
+    console.log("🎬 Fal.ai Video Request gönderiliyor (SDK):", JSON.stringify(requestBody, null, 2));
+
+    let requestId;
+    // fal.queue.submit ile isteği gönderiyoruz
+    try {
+      const { request_id } = await fal.queue.submit("fal-ai/kling-video/v2.1/pro/image-to-video", {
+        input: requestBody,
+        webhookUrl: null // Opsiyonel
+      });
+      requestId = request_id;
+    } catch (falError) {
+      console.error("❌ Fal.ai SDK submit error:", falError);
+      throw new Error(`Fal.ai submission failed: ${falError.message}`);
+    }
+
+    if (!requestId) {
+      throw new Error("Fal.ai did not return a request_id via SDK");
+    }
+
+    console.log("✅ Fal.ai Request ID alındı:", requestId);
 
     // 5) DB'ye kaydet => product_main_image: productMainUrlJSON
     const { data: insertData, error: initialInsertError } = await supabase
@@ -388,7 +408,7 @@ router.post("/generateImgToVid", async (req, res) => {
         id: uuidv4(),
         user_id: userId,
         product_id: productId,
-        prediction_id: prediction.id, // replicate'ten gelen id
+        prediction_id: requestId, // fal.ai request_id
         categories: categories,
         product_main_image: productMainUrlJSON,
       });
@@ -400,12 +420,20 @@ router.post("/generateImgToVid", async (req, res) => {
 
     return res.status(202).json({
       success: true,
-      message: "Prediction started. Poll with /api/predictionStatus/:id",
-      predictionId: prediction.id,
-      replicatePrediction: prediction,
+      message: "Prediction started (Fal.ai SDK). Poll with /api/predictionStatus/:id",
+      predictionId: requestId,
+      replicatePrediction: {
+        id: requestId,
+        status: "starting",
+        urls: {
+          // SDK status check URL is implicit via fal.queue.status, 
+          // but frontend might not need this precise URL if it calls our GET endpoint.
+          get: `https://queue.fal.run/fal-ai/kling-video/v2.1/pro/image-to-video/requests/${requestId}/status`
+        }
+      }
     });
   } catch (error) {
-    console.error("Video generation error:", error);
+    console.error("Video generation error:", error.message);
     return res.status(500).json({
       success: false,
       message: "Video generation failed",
@@ -427,9 +455,7 @@ router.get("/predictionStatus/:predictionId", async (req, res) => {
   try {
     const { predictionId } = req.params;
     if (!predictionId) {
-      return res
-        .status(400)
-        .json({ success: false, message: "No ID provided" });
+      return res.status(400).json({ success: false, message: "No ID provided" });
     }
 
     // DB'den kaydı al
@@ -441,65 +467,78 @@ router.get("/predictionStatus/:predictionId", async (req, res) => {
 
     if (error) {
       console.error("DB select error:", error);
-      return res.status(500).json({
-        success: false,
-        message: "Database error",
-        error: error.message,
-      });
+      return res.status(500).json({ success: false, message: "DB error", error: error.message });
     }
 
     if (!rows || rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Prediction record not found",
-      });
+      return res.status(404).json({ success: false, message: "Prediction record not found" });
     }
 
-    const predictionRow = rows[0];
+    // Fal.ai Queue Status Polling via SDK
+    console.log(`🔎 Polling Fal.ai Status (SDK): ${predictionId}`);
 
-    // replicate üzerinden güncel durumu sorgula
-    const replicatePrediction = await predictions.get(predictionId);
+    let replicateStatus = "processing";
+    let replicateOutput = null;
 
-    // Artık status'u güncellemiyoruz, sadece outputu güncelliyoruz:
+    try {
+      const result = await fal.queue.status("fal-ai/kling-video/v2.1/pro/image-to-video", {
+        requestId: predictionId,
+        logs: true // logları da alabiliriz
+      });
+
+      // result = { status: 'IN_QUEUE' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED', logs: [...], metrics: {...} }
+      // Eğer COMPLETED ise data: { ...output } içinde olabilir, 
+      // fal-client versiyonuna göre bazen result.data.video.url olabiliyor
+      // Status mapping: Fal -> Replicate
+      if (result.status === "IN_QUEUE") replicateStatus = "starting";
+      else if (result.status === "IN_PROGRESS") replicateStatus = "processing";
+      else if (result.status === "COMPLETED") {
+        replicateStatus = "succeeded";
+        // Output parsing: Kling usually returns { video: { url: "..." } }
+        // fal.queue.result might fetch the final output payload
+
+        // Note: queue.status returns high level status. 
+        // To get output we might need fal.queue.result(requestId) OR 
+        // if queue.status returns it on completion (some versions do).
+        // Let's rely on fal.queue.result to get the output payload confidently.
+        const finalData = await fal.queue.result("fal-ai/kling-video/v2.1/pro/image-to-video", {
+          requestId: predictionId
+        });
+
+        if (finalData.data && finalData.data.video && finalData.data.video.url) {
+          replicateOutput = finalData.data.video.url;
+        } else if (finalData.data && finalData.data.images && finalData.data.images[0]) {
+          replicateOutput = finalData.data.images[0].url;
+        }
+      }
+      else if (result.status === "FAILED") replicateStatus = "failed";
+
+    } catch (pollError) {
+      console.error("Fal.ai SDK polling error:", pollError);
+      // Check if 404 manually if SDK throws specific error for not found?
+      // Generally SDK throws error on fail.
+    }
+
+    // Update DB logic remains the same
     const updateData = {};
-
-    if (replicatePrediction.status === "succeeded") {
-      // Bazen replicatePrediction.output bir dizi link olabilir:
-      // Tek string ise => "https://..."
-      // Array ise => ["https://...", "https://..."]
-      updateData.product_main_image = replicatePrediction.output
-        ? JSON.stringify(replicatePrediction.output)
-        : null;
-    } else if (replicatePrediction.status === "failed") {
-      // Başarısızsa null çekiyoruz
+    if (replicateStatus === "succeeded") {
+      updateData.product_main_image = replicateOutput ? JSON.stringify([replicateOutput]) : null;
+    } else if (replicateStatus === "failed") {
       updateData.product_main_image = null;
     }
 
-    // DB'de product_main_image kolonunu güncelle
-    // (status kolonu olmadığı için artık ekleme yapmıyoruz)
-    const { error: updateError } = await supabase
-      .from("predictions")
-      .update(updateData)
-      .eq("prediction_id", predictionId);
-
-    if (updateError) {
-      console.error("Update error:", updateError);
-      // hata olsa bile, yine de replicatePrediction ile cevabı dönüyoruz
-    }
+    const { error: updateError } = await supabase.from("predictions").update(updateData).eq("prediction_id", predictionId);
 
     return res.status(200).json({
       success: true,
-      // status bilgisini tabloya kaydetmiyoruz ama yine de FE'ye gönderebiliriz
-      status: replicatePrediction.status,
-      output: replicatePrediction.output || null,
+      status: replicateStatus,
+      output: replicateOutput,
     });
+
   } catch (error) {
+    // ... error handling
     console.error("Prediction status error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Error retrieving prediction status",
-      error: error.message,
-    });
+    return res.status(500).json({ success: false, error: error.message });
   }
 });
 
