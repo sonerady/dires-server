@@ -112,6 +112,8 @@ startScheduler();
 
 // Auth routes import
 const authRoutes = require("./routes/authRoutes");
+// Generate Product Kit routes import
+const generateProductKitRoutes = require("./routes/generateProductKitRoutes");
 // Generation Status routes import
 
 const app = express();
@@ -292,6 +294,9 @@ app.use(modalContentsRoutes);
 
 // Model Poses routes ekle (artık /api/posesNew altında olacak)
 app.use("/api", modelPosesRoutes); // Yeni eklenen route'u /api/posesNew olarak ayarla
+
+// Generate Product Kit routes
+app.use("/api", generateProductKitRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, "0.0.0.0", () => {

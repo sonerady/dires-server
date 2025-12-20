@@ -128,9 +128,9 @@ router.get("/user/:userId", async (req, res) => {
       .eq("user_id", userId)
       .in("status", ["completed", "failed"])
       .eq("visibility", true);
-    
+
     let { count: totalCount, error: countError } = await countQuery;
-    
+
     // Eğer visibility kolonu yoksa (hata alırsak), visibility filtresiz tekrar dene
     if (countError && (countError.message?.includes("visibility") || countError.code === "PGRST116")) {
       console.log("⚠️ [HISTORY] Visibility column not found, retrying without visibility filter");
@@ -170,7 +170,8 @@ router.get("/user/:userId", async (req, res) => {
         credits_deducted,
         credits_after_generation,
         settings,
-        quality_version
+        quality_version,
+        kits
       `
       )
       .eq("user_id", userId)
@@ -178,9 +179,9 @@ router.get("/user/:userId", async (req, res) => {
       .eq("visibility", true)
       .order("created_at", { ascending: false })
       .range(offset, offset + parsedLimit - 1);
-    
+
     let { data: historyData, error: historyError } = await historyQuery;
-    
+
     // Eğer visibility kolonu yoksa (hata alırsak), visibility filtresiz tekrar dene
     if (historyError && (historyError.message?.includes("visibility") || historyError.code === "PGRST116")) {
       console.log("⚠️ [HISTORY] Visibility column not found, retrying without visibility filter");
@@ -201,7 +202,8 @@ router.get("/user/:userId", async (req, res) => {
           credits_deducted,
           credits_after_generation,
           settings,
-          quality_version
+          quality_version,
+          kits
         `
         )
         .eq("user_id", userId)
@@ -268,9 +270,9 @@ router.get("/stats/:userId", async (req, res) => {
       .select("status, credits_deducted")
       .eq("user_id", userId)
       .eq("visibility", true);
-    
+
     let { data: statsData, error: statsError } = await statsQuery;
-    
+
     // Eğer visibility kolonu yoksa (hata alırsak), visibility filtresiz tekrar dene
     if (statsError && (statsError.message?.includes("visibility") || statsError.code === "PGRST116")) {
       console.log("⚠️ [HISTORY_STATS] Visibility column not found, retrying without visibility filter");
@@ -376,6 +378,77 @@ router.delete("/delete/:generationId", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ [HISTORY] Unexpected error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+});
+
+/**
+ * GET /api/history/kits/:generationId
+ * Get kits array for a specific generation
+ */
+router.get("/kits/:generationId", async (req, res) => {
+  try {
+    const { generationId } = req.params;
+
+    console.log(`📦 [HISTORY_KITS] Fetching kits for generation: ${generationId}`);
+
+    // Input validation
+    if (!generationId) {
+      return res.status(400).json({
+        success: false,
+        message: "Generation ID required",
+      });
+    }
+
+    // Kits verilerini getir
+    const { data: generationData, error: fetchError } = await supabase
+      .from("reference_results")
+      .select("kits")
+      .eq("generation_id", generationId)
+      .single();
+
+    if (fetchError) {
+      console.error("❌ [HISTORY_KITS] Query error:", fetchError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch kits data",
+      });
+    }
+
+    if (!generationData) {
+      return res.status(404).json({
+        success: false,
+        message: "Generation not found",
+      });
+    }
+
+    // Kits array'ini parse et
+    let kitsArray = [];
+    if (generationData.kits) {
+      try {
+        kitsArray = Array.isArray(generationData.kits)
+          ? generationData.kits
+          : JSON.parse(generationData.kits || "[]");
+      } catch (e) {
+        console.warn("Kits parse error:", e);
+        kitsArray = [];
+      }
+    }
+
+    console.log(`✅ [HISTORY_KITS] Retrieved ${kitsArray.length} kits for generation: ${generationId}`);
+
+    return res.json({
+      success: true,
+      data: {
+        kits: kitsArray,
+        count: kitsArray.length,
+      },
+    });
+  } catch (error) {
+    console.error("❌ [HISTORY_KITS] Unexpected error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
