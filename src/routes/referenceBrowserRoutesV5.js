@@ -127,6 +127,84 @@ async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) 
   }
 }
 
+// @fal-ai/client import for GPT Image 1.5
+const { fal } = require("@fal-ai/client");
+fal.config({
+  credentials: process.env.FAL_API_KEY,
+});
+
+// Fal.ai GPT Image 1.5 Edit API call using SDK (for Refiner mode - Ghost Mannequin style)
+async function callFalAiGptImageEditForRefiner(prompt, imageUrl, maxRetries = 3) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🎨 [FAL_AI_GPT_REFINER] Image generation attempt ${attempt}/${maxRetries}`);
+      console.log(`🎨 [FAL_AI_GPT_REFINER] Prompt: ${prompt.substring(0, 100)}...`);
+
+      // fal.queue.submit ile GPT Image 1.5'e istek gönder
+      const { request_id } = await fal.queue.submit("fal-ai/gpt-image-1.5/edit", {
+        input: {
+          prompt: prompt,
+          image_urls: [imageUrl], // Single image for refiner
+          image_size: "1024x1536", // Portrait size for e-commerce - ALWAYS fixed regardless of user ratio
+          quality: "high", // high for best e-commerce quality
+          input_fidelity: "high", // preserve product details
+          num_images: 1,
+          output_format: "jpeg"
+        }
+      });
+
+      if (!request_id) {
+        throw new Error("Fal.ai did not return a request_id");
+      }
+
+      console.log(`⏳ [FAL_AI_GPT_REFINER] Request submitted, request_id: ${request_id}`);
+
+      // Poll for completion
+      let maxPolls = 60;
+      for (let poll = 0; poll < maxPolls; poll++) {
+        const statusResult = await fal.queue.status("fal-ai/gpt-image-1.5/edit", {
+          requestId: request_id,
+          logs: false
+        });
+
+        console.log(`⏳ [FAL_AI_GPT_REFINER] Poll ${poll + 1}/${maxPolls}, status: ${statusResult.status}`);
+
+        if (statusResult.status === "COMPLETED") {
+          // Get the final result
+          const finalResult = await fal.queue.result("fal-ai/gpt-image-1.5/edit", {
+            requestId: request_id
+          });
+
+          if (finalResult.data && finalResult.data.images && finalResult.data.images.length > 0) {
+            console.log(`✅ [FAL_AI_GPT_REFINER] Image generated successfully`);
+            return finalResult.data.images[0].url;
+          }
+          throw new Error("No images in completed result");
+        }
+
+        if (statusResult.status === "FAILED") {
+          throw new Error("Fal.ai GPT Image generation failed");
+        }
+
+        // Wait before next poll
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+
+      throw new Error("Fal.ai GPT Image polling timeout");
+
+    } catch (error) {
+      console.error(`❌ [FAL_AI_GPT_REFINER] Attempt ${attempt} failed:`, error.message);
+
+      if (attempt === maxRetries) {
+        throw error;
+      }
+
+      const waitTime = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+}
+
 // Görüntülerin geçici olarak saklanacağı klasörü oluştur
 const tempDir = path.join(__dirname, "../../temp");
 if (!fs.existsSync(tempDir)) {
@@ -3816,7 +3894,82 @@ router.post("/generate", async (req, res) => {
     console.log("📝 [BACKEND MAIN] Original prompt:", promptText);
     console.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
 
-    // Fal.ai nano-banana modeli ile istek gönder
+    // 🔧 REFINER MODE: Use GPT Image 1.5 instead of nano-banana
+    if (isRefinerMode) {
+      console.log("🔧 [REFINER MODE] GPT Image 1.5 API kullanılacak...");
+      console.log("🔧 [REFINER MODE] Final Image URL:", finalImage);
+
+      try {
+        // GPT Image 1.5 ile görsel oluştur
+        const gptImageResult = await callFalAiGptImageEditForRefiner(
+          enhancedPrompt,
+          finalImage
+        );
+
+        console.log("✅ [REFINER MODE] GPT Image 1.5 başarılı:", gptImageResult);
+
+        // Generation'ı completed olarak güncelle (result_image_url ile - updateGenerationStatus içinde Supabase'e kaydediliyor)
+        await updateGenerationStatus(finalGenerationId, userId, "completed", {
+          result_image_url: gptImageResult,
+          enhanced_prompt: enhancedPrompt,
+        });
+
+        console.log("✅ [REFINER MODE] Generation completed olarak güncellendi");
+
+        // Response döndür (imageUrl eklendi - RefinerScreen için)
+        return res.json({
+          success: true,
+          result: {
+            imageUrl: gptImageResult, // RefinerScreen bu format'ı bekliyor
+            output: [gptImageResult], // Diğer client'lar için
+            prompt: enhancedPrompt,
+            generationId: finalGenerationId,
+            isRefinerMode: true,
+            apiUsed: "gpt-image-1.5"
+          },
+        });
+      } catch (refinerError) {
+        console.error("❌ [REFINER MODE] GPT Image 1.5 hatası:", refinerError.message);
+
+        // Generation'ı failed olarak güncelle
+        await updateGenerationStatus(finalGenerationId, userId, "failed");
+
+        // Kredi iade et
+        if (creditDeducted && userId && userId !== "anonymous_user") {
+          try {
+            const { data: currentUserCredit } = await supabase
+              .from("users")
+              .select("credit_balance")
+              .eq("id", userId)
+              .single();
+
+            await supabase
+              .from("users")
+              .update({
+                credit_balance:
+                  (currentUserCredit?.credit_balance || 0) + actualCreditDeducted,
+              })
+              .eq("id", userId);
+
+            console.log(
+              `💰 ${actualCreditDeducted} kredi iade edildi (Refiner mode hatası)`
+            );
+          } catch (refundError) {
+            console.error("❌ Kredi iade hatası:", refundError);
+          }
+        }
+
+        return res.status(500).json({
+          success: false,
+          result: {
+            message: "Refiner işlemi başarısız oldu",
+            error: refinerError.message,
+          },
+        });
+      }
+    }
+
+    // Fal.ai nano-banana modeli ile istek gönder (NORMAL MODE - non-refiner)
     let replicateResponse;
     const maxRetries = 3;
     let totalRetryAttempts = 0;
@@ -3829,6 +3982,7 @@ router.post("/generate", async (req, res) => {
         );
 
         console.log("🚀 Fal.ai nano-banana API çağrısı yapılıyor...");
+
 
         // Fal.ai API için request body hazırla
         let imageInputArray;
