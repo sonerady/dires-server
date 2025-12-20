@@ -146,7 +146,7 @@ async function callFalAiGptImageEditForRefiner(prompt, imageUrl, maxRetries = 3)
           prompt: prompt,
           image_urls: [imageUrl], // Single image for refiner
           image_size: "1024x1536", // Portrait size for e-commerce - ALWAYS fixed regardless of user ratio
-          quality: "high", // high for best e-commerce quality
+          quality: "medium", // medium for balanced quality/speed
           input_fidelity: "high", // preserve product details
           num_images: 1,
           output_format: "jpeg"
