@@ -461,6 +461,57 @@ async function updateKitsForRecord(recordId, kitImages) {
     }
 }
 
+// Save product kit to database (new product_kits table)
+async function saveProductKitToDatabase({
+    userId,
+    generationId,
+    originalPhotos,
+    kitImages,
+    processingTimeSeconds,
+    creditsUsed,
+    isFreeTier
+}) {
+    try {
+        console.log("💾 [SAVE_KIT] Saving product kit to database...");
+        console.log("💾 [SAVE_KIT] User ID:", userId);
+        console.log("💾 [SAVE_KIT] Generation ID:", generationId);
+        console.log("💾 [SAVE_KIT] Original Photos:", originalPhotos?.length);
+        console.log("💾 [SAVE_KIT] Kit Images:", kitImages?.length);
+
+        if (!userId || !generationId) {
+            console.log("⚠️ [SAVE_KIT] Missing userId or generationId, skipping save");
+            return null;
+        }
+
+        const { data, error } = await supabase
+            .from("product_kits")
+            .insert({
+                user_id: userId,
+                generation_id: generationId,
+                original_photos: originalPhotos || [],
+                kit_images: kitImages || [],
+                processing_time_seconds: processingTimeSeconds,
+                total_images_generated: kitImages?.length || 0,
+                credits_used: creditsUsed,
+                is_free_tier: isFreeTier
+            })
+            .select()
+            .single();
+
+        if (error) {
+            console.error("❌ [SAVE_KIT] Database insert error:", error);
+            return null;
+        }
+
+        console.log("✅ [SAVE_KIT] Product kit saved successfully, ID:", data.id);
+        return data;
+
+    } catch (error) {
+        console.error("❌ [SAVE_KIT] Unexpected error:", error.message);
+        return null;
+    }
+}
+
 // Increment E-commerce Kit count in user_ecommerce_stats
 async function incrementEcommerceKitCount(userId) {
     if (!userId) return;
@@ -792,6 +843,36 @@ Ghost_Mannequin_Prompt: [your generated prompt]
         if (generatedImages.length > 0 && recordId) {
             console.log("📦 [PRODUCT_KIT] Step 4: Saving to database...");
             await updateKitsForRecord(recordId, generatedImages);
+        }
+
+        // Step 4.5: Save to product_kits table (new detailed record)
+        if (generatedImages.length > 0 && userId && userId !== "anonymous_user") {
+            console.log("💾 [PRODUCT_KIT] Step 4.5: Saving to product_kits table...");
+
+            // Prepare original photos array (sonuç resmi + referans resim)
+            const originalPhotos = [imageUrl];
+            if (referenceImageUrl && referenceImageUrl !== imageUrl) {
+                originalPhotos.push(referenceImageUrl);
+            }
+
+            // Prepare detailed kit images array with type, url, and prompt
+            const kitImagesData = results
+                .filter(r => r.url)
+                .map(r => ({
+                    type: r.type,
+                    url: r.url,
+                    prompt: r.prompt || null
+                }));
+
+            await saveProductKitToDatabase({
+                userId: userId,
+                generationId: recordId,
+                originalPhotos: originalPhotos,
+                kitImages: kitImagesData,
+                processingTimeSeconds: processingTime,
+                creditsUsed: isFree ? 0 : KIT_GENERATION_COST,
+                isFreeTier: isFree
+            });
         }
 
         // Step 5: Increment stats if successful
