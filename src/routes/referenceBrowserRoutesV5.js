@@ -1665,89 +1665,108 @@ Confident model poses.
       promptForGemini = `
 MANDATORY INSTRUCTION (READ CAREFULLY, FOLLOW EXACTLY):
 
-You are a prompt generator for e-commerce product photo transformation. Produce ONE single technical prompt that an image editor/AI will follow to convert a raw product photo into a professional, Amazon-compliant catalog image.
+You are an expert AI prompt generator for professional e-commerce product photo transformation. Your task is to analyze the product image and generate ONE highly detailed technical prompt that will transform an amateur/low-quality product photo into a professional, premium catalog-ready image.
 
-STRICT STYLE & FORMAT:
-- The prompt you produce MUST start with: "Transform this amateur product photo into a professional high-end e-commerce product photo."
-- Use clear technical sections in THIS ORDER and with THESE HEADINGS exactly:
-  Background:
-  Presentation (Invisible Mannequin / Ghost Effect):
-  Symmetry & Alignment:
-  Material & Micro-Detail:
-  Lighting:
-  Color Accuracy:
-  Cleanup & Finishing:
-  Final Output Quality:
-- End the prompt with EXACTLY this line:
-  "The final result must look like a flawless product photo ready for e-commerce catalogs, fashion websites, or online marketplaces. Maintain a photorealistic, luxury presentation suitable for premium retail."
-- Length target: 200–300 words.
+=== STEP 1: PRODUCT IDENTIFICATION (CRITICAL) ===
+First, carefully analyze the image and identify the product category:
+- CLOTHING (shirts, dresses, jackets, pants, coats, etc.)
+- JEWELRY (rings, necklaces, bracelets, earrings, watches)
+- FOOTWEAR (shoes, sneakers, boots, sandals, heels)
+- EYEWEAR (sunglasses, prescription glasses)
+- BAGS & ACCESSORIES (handbags, wallets, belts, hats, scarves)
+- OTHER PRODUCTS (electronics, home goods, etc.)
 
-BACKGROUND (ALWAYS):
-- Replace background with a pure seamless white studio background (#FFFFFF).
+Based on the identified product type, generate a SPECIALIZED transformation prompt following the rules below.
 
-ADAPTIVE PRODUCT LOGIC:
-- If CLOTHING → 
-  • Apply ghost mannequin effect (remove mannequin/hanger, keep inside visible).  
-  • Adjust garment to professional catalog stance, not amateur photo posture.  
-  • Shoulders straight, neckline centered, hemline balanced.  
-  • Wrinkle-free, freshly pressed look.  
+=== STEP 2: GENERATE TRANSFORMATION PROMPT ===
 
-- If ACCESSORIES (bags, hats, wallets) → 
-  • Center product, arrange straps/chains elegantly.  
-  • Correct tilt or sag, present in luxury catalog stance.  
+STRICT FORMAT REQUIREMENTS:
+- Start with: "Transform this amateur product photo into a professional high-end e-commerce catalog photo."
+- Include ALL relevant sections based on product type
+- End with: "The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail."
+- Length: 250-350 words
 
-- If JEWELRY → 
-  • Macro-level clarity for gemstones and metals.  
-  • No glare, natural brilliance, precise reflections.  
+=== PRODUCT-SPECIFIC TRANSFORMATION RULES ===
 
-- If WATCHES → 
-  • Dial upright, bezel and bracelet symmetrical.  
-  • Glass crystal-clear, no reflections.  
-  • Mechanism details sharp.  
+▶ FOR CLOTHING (Most Important - Ghost Mannequin Style):
+Background: Pure seamless white studio background (#FFFFFF), absolutely NO shadows, NO gradients.
+Ghost Mannequin Effect (CRITICAL): 
+  - COMPLETELY remove any visible mannequin, hanger, or human body parts
+  - Create professional "invisible mannequin" effect showing the garment's internal 3D structure
+  - Clean hollow neckline with visible interior depth and collar interior
+  - Realistic garment form as if worn by invisible body - natural shoulder width, chest volume, waist definition
+  - Sleeves positioned naturally with slight bend showing arm cavity depth
+  - Preserve ALL garment construction details: stitching, seams, buttons, zippers, trims, labels
+Fabric Enhancement:
+  - Remove ALL wrinkles, creases, dust, lint, loose threads, stains
+  - Enhance fabric texture visibility (weave patterns, knit textures, leather grain)
+  - Present as freshly pressed, brand-new, straight from boutique
+Positioning: Perfectly centered, shoulders level, hemline balanced, symmetrical presentation
+Lighting: Even, bright, professional studio lighting - no harsh shadows, no blown highlights
 
-- If FOOTWEAR → 
-  • Remove legs/feet completely.  
-  • Present shoes in industry-standard e-commerce views:  
-    – Main image MUST be **side profile view** (outer side).  
-    – Secondary angle (if pair) in **45° angled view** to show depth.  
-  • Avoid top-down flat perspectives unless explicitly required.  
-  • Shoes must appear upright, stable, perfectly aligned.  
-  • Correct perspective so outsole is horizontal and silhouette natural.  
-  • Highlight stitching, mesh, sole patterns, and logo/branding clearly.  
-  • Remove dust, creases, scuffs; present as brand-new.  
+▶ FOR JEWELRY (Rings, Necklaces, Bracelets, Earrings):
+Background: Pure white (#FFFFFF) OR elegant subtle gradient with SOFT REALISTIC SHADOW underneath for depth
+Gemstone Enhancement (CRITICAL):
+  - Maximum clarity and sparkle for all gemstones (diamonds, rubies, emeralds, etc.)
+  - Natural brilliance with precise light reflections - gems must SHINE and SPARKLE
+  - Remove any dust, fingerprints, smudges from stones and metal surfaces
+Metal Polish:
+  - Gold must appear rich, warm, and gleaming without overexposure
+  - Silver/platinum must be bright, clean, with subtle reflections
+  - Remove tarnish, scratches, dull spots
+Shadow: ADD subtle, soft, natural shadow beneath jewelry for dimension and luxury feel
+Detail: Macro-level clarity showing every facet, clasp mechanism, chain links
+Positioning: Arranged elegantly, chains untangled, clasps hidden or styled
 
-- If OTHER GOODS → 
-  • Correct geometry, straighten angles, remove packaging distortions.  
+▶ FOR FOOTWEAR (Shoes, Sneakers, Boots):
+Background: Pure white studio background (#FFFFFF)
+Positioning: 
+  - Side profile view (outer side) as primary angle - industry standard
+  - If pair: one shoe side profile, second at 45° angled view for depth
+  - Upright, stable stance - NOT flat lay
+  - Remove any visible legs, feet, mannequin parts
+Cleaning:
+  - Remove ALL dust, scuffs, creases, dirt marks, sticker residue
+  - Present as brand-new, unworn condition
+Detail Enhancement:
+  - Sharpen stitching, mesh textures, sole patterns
+  - Highlight logo/branding clearly
+  - Show material quality (leather grain, fabric weave, rubber texture)
 
-CORRECTION & ENHANCEMENT RULES:
-- Correct tilt, rotation, or unnatural posture.  
-- Ensure product looks **more professional and ideal than the amateur photo**.  
-- Remove all imperfections: dust, lint, stickers, price tags, stains.  
+▶ FOR EYEWEAR (Sunglasses, Glasses):
+Background: Pure white with subtle shadow for depth
+Positioning: Front-facing or slight 3/4 angle showing frame shape
+Lens: Crystal clear, no smudges, no fingerprints, proper reflections showing lens quality
+Frame: Highlight material quality, hinge details, temple arm construction
+Shadow: Soft natural shadow underneath for premium catalog look
 
-LIGHTING:
-- Bright, even, shadowless studio lighting.  
-- Prevent glare or blown highlights.  
-- Allow subtle, realistic depth to preserve 3D form.  
+▶ FOR BAGS & ACCESSORIES:
+Background: Pure white studio background
+Positioning: Standing upright naturally, straps/handles arranged elegantly
+Structure: Correct any sagging, maintain proper shape as if stuffed/structured
+Hardware: Metal parts polished, zippers/clasps highlighted
+Cleaning: Remove dust, scratches, marks - present as brand new
 
-COLOR ACCURACY:
-- Faithful, true-to-life reproduction.  
-- Neutral white balance, no oversaturation or dull tones.  
+=== UNIVERSAL ENHANCEMENT RULES (Apply to ALL products) ===
 
-OUTPUT:
-- Generate ONLY the final technical prompt using the exact headings above. Do not include these instructions, variables, or commentary.
+AMATEUR PHOTO FIXES (CRITICAL):
+- CORRECT bad/amateur lighting - transform harsh shadows, uneven lighting, yellow/warm tints into professional studio lighting
+- REMOVE all imperfections: dust particles, lint, fingerprints, smudges, scratches, stains, price tags, stickers
+- FIX color accuracy - ensure true-to-life colors, proper white balance, no color casts
+- SHARPEN details - remove any blur or softness from amateur photography
+- CORRECT perspective/distortion from poor camera angles
 
-EXAMPLE (for format illustration only):
-"Transform this amateur product photo into a professional high-end e-commerce product photo. Remove the background and replace it with a pure seamless white studio background (#FFFFFF).
+FINAL QUALITY STANDARDS:
+- Professional catalog-ready composition
+- Maximum detail clarity and sharpness
+- True-to-life color reproduction
+- Clean, pristine product presentation
+- Luxury e-commerce marketplace standard (Amazon, ASOS, NET-A-PORTER quality)
 
-Background: Pure seamless white studio background (#FFFFFF).
-Presentation (Invisible Mannequin / Ghost Effect): Since xxx is footwear, remove the legs and stage both shoes in catalog-standard angles: one shoe in clear side profile view, the other at 45° for depth. Ensure stable and natural stance.
-Symmetry & Alignment: Correct tilt and perspective so outsole is level and shoes are symmetrical.
-Material & Micro-Detail: Highlight stitching, mesh, sole patterns, and branding with sharp clarity. Remove creases and scuffs.
-Lighting: Apply bright, even, shadowless lighting. No glare or blown highlights.
-Color Accuracy: Ensure xxx colors are faithful, with neutral white balance.
-Cleanup & Finishing: Remove dust, marks, or imperfections. Keep edges crisp and pristine.
-Final Output Quality: Single flawless, photorealistic catalog photo ready for Amazon/e-commerce platforms."
+=== OUTPUT ===
+Generate ONLY the final transformation prompt. Do NOT include these instructions, category labels, or commentary. Just the prompt text.
 `;
+
     } else if (isColorChange && targetColor && targetColor !== "original") {
       // COLOR CHANGE MODE - Sadece renk değiştirme
       promptForGemini = `
