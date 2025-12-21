@@ -187,6 +187,14 @@ app.use("/api", removeBgRouter);
 app.use("/api", generatePredictionsRouter);
 app.use("/api", getPredictionsRouter);
 app.use("/api", getBalance);
+const refinerDownloadRoutes = require("./routes/refinerDownloadRoutes");
+// Debug middleware for refiner-download
+app.use("/api/refiner-download", (req, res, next) => {
+  console.log("🔍 [DEBUG] Refiner-download request received:", req.method, req.url);
+  next();
+});
+app.use("/api/refiner-download", refinerDownloadRoutes);
+
 app.use("/api", registerAnonymousUserRouter);
 app.use("/api/v2", registerAnonymousUserRouterV2);
 app.use("/api/v3", registerAnonymousUserRouterV3);
@@ -301,6 +309,7 @@ app.use("/api", generateProductKitRoutes);
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log("🔄 Server reloaded with Refiner Download routes!");
   console.log(`Server is accessible at http://localhost:${PORT}`);
   console.log(
     `For mobile devices use your machine's IP address: http://192.168.1.100:${PORT}`

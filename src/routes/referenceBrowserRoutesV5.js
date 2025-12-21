@@ -1664,7 +1664,7 @@ Confident model poses.
       // REFINER MODE - Teknik profesyonel e-ticaret fotoğraf geliştirme prompt'u
 
       // Extract creation settings from settings object
-      const addShadow = settings?.addShadow ?? true;
+      const addShadow = settings?.addShadow ?? false;
       const addReflection = settings?.addReflection ?? false;
       const backgroundColor = settings?.backgroundColor || "White";
       const colorInputMode = settings?.colorInputMode || "text";
