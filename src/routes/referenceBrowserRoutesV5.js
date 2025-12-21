@@ -1662,10 +1662,71 @@ Confident model poses.
       `;
     } else if (isRefinerMode) {
       // REFINER MODE - Teknik profesyonel e-ticaret fotoğraf geliştirme prompt'u
+
+      // Extract creation settings from settings object
+      const addShadow = settings?.addShadow ?? true;
+      const addReflection = settings?.addReflection ?? false;
+      const backgroundColor = settings?.backgroundColor || "White";
+      const colorInputMode = settings?.colorInputMode || "text";
+
+      console.log("🔧 [REFINER GEMINI] Creation settings:", { addShadow, addReflection, backgroundColor, colorInputMode });
+
+      // Build dynamic settings instruction for Gemini
+      let creationSettingsInstruction = `
+=== USER-SELECTED CREATION SETTINGS (APPLY THESE EXACTLY) ===
+
+The user has selected the following settings for this product photo transformation. You MUST incorporate these settings into your generated prompt:
+
+▶ BACKGROUND COLOR SETTING:
+`;
+
+      // Handle background color - translate to English if needed
+      if (colorInputMode === "hex") {
+        creationSettingsInstruction += `- Background color: HEX code ${backgroundColor} (use this exact color code for the background)
+`;
+      } else {
+        // Text color mode - instruct Gemini to use English translation
+        creationSettingsInstruction += `- Background color: "${backgroundColor}" 
+  IMPORTANT: If this color name is NOT in English (e.g., "Beyaz", "Weiß", "Blanc", "Bianco", "白", etc.), you MUST translate it to English in your output prompt. For example:
+    - "Beyaz" → "White"
+    - "Siyah" → "Black"
+    - "Kırmızı" → "Red"
+    - "Mavi" → "Blue"
+    - "Pembe" → "Pink"
+    - "Gri" → "Gray"
+    - "Bej" → "Beige"
+    - "Krem" → "Cream"
+  Use the ENGLISH color name in your generated prompt.
+`;
+      }
+
+      creationSettingsInstruction += `
+▶ EFFECT SETTINGS (CRITICAL - MUST FOLLOW EXACTLY):
+- Add Shadow Underneath Product: ${addShadow ? "YES - Add a soft, natural shadow beneath/underneath the product for depth and professional look" : "ABSOLUTELY NO - Do NOT add ANY shadow underneath the product. The product MUST appear to be floating on a completely flat, shadowless background. There should be ZERO drop shadow, ZERO soft shadow, ZERO cast shadow beneath the product. The background must be completely uniform and clean with no darkness or shading underneath the product whatsoever."}
+- Add Reflection Underneath Product: ${addReflection ? "YES - Add a subtle reflection/mirror effect beneath the product for luxury catalog look" : "ABSOLUTELY NO - Do NOT add ANY reflection or mirror effect underneath the product. There should be ZERO floor reflection, ZERO glossy surface reflection, ZERO mirror effect beneath the product. The product should NOT appear to be sitting on a reflective surface."}
+
+${!addShadow && !addReflection ? `
+⚠️ EXTREMELY IMPORTANT - NO SHADOW AND NO REFLECTION:
+Since BOTH shadow and reflection are DISABLED, the product MUST appear on a completely flat, uniform background with:
+- NO shadow of any kind underneath (no drop shadow, no soft shadow, no cast shadow)
+- NO reflection of any kind underneath (no floor reflection, no mirror effect)
+- The product should appear to be "floating" on a perfectly clean, uniform colored background
+- The background color should be completely consistent and even - no variations, no darkness under the product
+` : ""}
+
+CRITICAL: These settings OVERRIDE the default background rules in the product-specific sections below. Make sure your generated prompt explicitly mentions:
+1. The exact background color requested (in English)
+2. ${addShadow ? "Include soft natural shadow underneath for depth" : "EXPLICITLY STATE: 'No shadow underneath the product' or 'Shadowless background'"}
+3. ${addReflection ? "Include subtle reflection for luxury look" : "EXPLICITLY STATE: 'No reflection underneath' or 'Non-reflective background'"}
+
+`;
+
       promptForGemini = `
 MANDATORY INSTRUCTION (READ CAREFULLY, FOLLOW EXACTLY):
 
 You are an expert AI prompt generator for professional e-commerce product photo transformation. Your task is to analyze the product image and generate ONE highly detailed technical prompt that will transform an amateur/low-quality product photo into a professional, premium catalog-ready image.
+
+${creationSettingsInstruction}
 
 === STEP 1: PRODUCT IDENTIFICATION (CRITICAL) ===
 First, carefully analyze the image and identify the product category:
@@ -1682,6 +1743,8 @@ Based on the identified product type, generate a SPECIALIZED transformation prom
 
 STRICT FORMAT REQUIREMENTS:
 - Start with: "Transform this amateur product photo into a professional high-end e-commerce catalog photo."
+- AFTER the opening statement, IMMEDIATELY specify the user-selected settings:
+  * "Background: [ENGLISH color name] ${addShadow ? "with soft natural shadow for depth" : "with no shadow - completely flat and clean"} ${addReflection ? "and subtle reflection effect for luxury look" : ""}"
 - Include ALL relevant sections based on product type
 - End with: "The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail."
 - Length: 250-350 words
@@ -1689,7 +1752,7 @@ STRICT FORMAT REQUIREMENTS:
 === PRODUCT-SPECIFIC TRANSFORMATION RULES ===
 
 ▶ FOR CLOTHING (Most Important - Ghost Mannequin Style):
-Background: Pure seamless white studio background (#FFFFFF), absolutely NO shadows, NO gradients.
+Background: Pure flat ${colorInputMode === "hex" ? backgroundColor : backgroundColor} background (solid, uniform color - NOT a studio environment), ${addShadow ? "with soft natural shadow underneath for depth" : "absolutely NO shadows, NO gradients - completely flat and uniform"}${addReflection ? ", with subtle floor reflection for premium catalog look" : ""}.
 Ghost Mannequin Effect (CRITICAL): 
   - COMPLETELY remove any visible mannequin, hanger, or human body parts
   - Create professional "invisible mannequin" effect showing the garment's internal 3D structure
@@ -1705,7 +1768,15 @@ Positioning: Perfectly centered, shoulders level, hemline balanced, symmetrical 
 Lighting: Even, bright, professional studio lighting - no harsh shadows, no blown highlights
 
 ▶ FOR JEWELRY (Rings, Necklaces, Bracelets, Earrings):
-Background: Pure white (#FFFFFF) OR elegant subtle gradient with SOFT REALISTIC SHADOW underneath for depth
+Background: Pure flat ${colorInputMode === "hex" ? backgroundColor : backgroundColor} background (solid, uniform color) ${addShadow ? "with SOFT REALISTIC SHADOW underneath for depth" : "with absolutely NO shadow underneath"} ${addReflection ? "and elegant reflection for luxury feel" : "and NO reflection"}
+EARRING PAIRING RULE (CRITICAL):
+  - If the product is an EARRING and only ONE earring is visible in the image (no pair shown):
+    * You MUST create/generate the matching pair earring
+    * Display BOTH earrings SIDE BY SIDE in the final image
+    * The pair should be a perfect mirror/match of the original earring
+    * Position them symmetrically, slightly angled towards each other for elegant presentation
+    * Both earrings should have identical styling, lighting, and quality
+  - If both earrings of a pair are already visible, keep them as they are
 Gemstone Enhancement (CRITICAL):
   - Maximum clarity and sparkle for all gemstones (diamonds, rubies, emeralds, etc.)
   - Natural brilliance with precise light reflections - gems must SHINE and SPARKLE
@@ -1714,12 +1785,11 @@ Metal Polish:
   - Gold must appear rich, warm, and gleaming without overexposure
   - Silver/platinum must be bright, clean, with subtle reflections
   - Remove tarnish, scratches, dull spots
-Shadow: ADD subtle, soft, natural shadow beneath jewelry for dimension and luxury feel
 Detail: Macro-level clarity showing every facet, clasp mechanism, chain links
 Positioning: Arranged elegantly, chains untangled, clasps hidden or styled
 
 ▶ FOR FOOTWEAR (Shoes, Sneakers, Boots):
-Background: Pure white studio background (#FFFFFF)
+Background: Pure flat ${colorInputMode === "hex" ? backgroundColor : backgroundColor} background (solid, uniform color) ${addShadow ? "with natural shadow under sole" : "with absolutely NO shadow underneath"} ${addReflection ? "and subtle floor reflection" : "and NO reflection"}
 Positioning: 
   - Side profile view (outer side) as primary angle - industry standard
   - If pair: one shoe side profile, second at 45° angled view for depth
@@ -1734,14 +1804,13 @@ Detail Enhancement:
   - Show material quality (leather grain, fabric weave, rubber texture)
 
 ▶ FOR EYEWEAR (Sunglasses, Glasses):
-Background: Pure white with subtle shadow for depth
+Background: Pure flat ${backgroundColor} background (solid, uniform color) ${addShadow ? "with subtle shadow underneath for depth" : "with absolutely NO shadow underneath"} ${addReflection ? "and reflection below for premium look" : "and NO reflection"}
 Positioning: Front-facing or slight 3/4 angle showing frame shape
 Lens: Crystal clear, no smudges, no fingerprints, proper reflections showing lens quality
 Frame: Highlight material quality, hinge details, temple arm construction
-Shadow: Soft natural shadow underneath for premium catalog look
 
 ▶ FOR BAGS & ACCESSORIES:
-Background: Pure white studio background
+Background: Pure flat ${colorInputMode === "hex" ? backgroundColor : backgroundColor} background (solid, uniform color) ${addShadow ? "with natural shadow underneath" : "with absolutely NO shadow underneath"} ${addReflection ? "and subtle reflection" : "and NO reflection"}
 Positioning: Standing upright naturally, straps/handles arranged elegantly
 Structure: Correct any sagging, maintain proper shape as if stuffed/structured
 Hardware: Metal parts polished, zippers/clasps highlighted
@@ -1765,6 +1834,7 @@ FINAL QUALITY STANDARDS:
 
 === OUTPUT ===
 Generate ONLY the final transformation prompt. Do NOT include these instructions, category labels, or commentary. Just the prompt text.
+REMEMBER: Use ENGLISH for all color names in your output, even if the user provided them in another language.
 `;
 
     } else if (isColorChange && targetColor && targetColor !== "original") {
