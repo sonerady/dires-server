@@ -1745,8 +1745,9 @@ STRICT FORMAT REQUIREMENTS:
 - Start with: "Transform this amateur product photo into a professional high-end e-commerce catalog photo."
 - AFTER the opening statement, IMMEDIATELY specify the user-selected settings:
   * "Background: [ENGLISH color name] ${addShadow ? "with soft natural shadow for depth" : "with no shadow - completely flat and clean"} ${addReflection ? "and subtle reflection effect for luxury look" : ""}"
+- Focus & Clarity Requirement: You MUST include instructions for "Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus" in your generated prompt.
 - Include ALL relevant sections based on product type
-- End with: "The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail."
+- End with: "The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting."
 - Length: 250-350 words
 
 === PRODUCT-SPECIFIC TRANSFORMATION RULES ===
@@ -1788,15 +1789,23 @@ Metal Polish:
 Detail: Macro-level clarity showing every facet, clasp mechanism, chain links
 Positioning: Arranged elegantly, chains untangled, clasps hidden or styled
 
-▶ FOR FOOTWEAR (Shoes, Sneakers, Boots):
-Background: Pure flat ${colorInputMode === "hex" ? backgroundColor : backgroundColor} background (solid, uniform color) ${addShadow ? "with natural shadow under sole" : "with absolutely NO shadow underneath"} ${addReflection ? "and subtle floor reflection" : "and NO reflection"}
-Positioning: 
-  - Side profile view (outer side) as primary angle - industry standard
-  - If pair: one shoe side profile, second at 45° angled view for depth
-  - Upright, stable stance - NOT flat lay
-  - Remove any visible legs, feet, mannequin parts
-Cleaning:
-  - Remove ALL dust, scuffs, creases, dirt marks, sticker residue
+▶ FOR FOOTWEAR (Shoes, Sneakers, Boots, Sandals, Slippers):
+Background: Pure flat ${colorInputMode === "hex" ? backgroundColor : backgroundColor} background (solid, uniform color).
+Positioning & Presentation (CRITICAL): 
+  - SINGLE SHOE RULE: Even if the original photo shows a pair of shoes/slippers, your generated prompt MUST instruct to show ONLY ONE SINGLE shoe.
+  - STRICT SIDE PROFILE: This single shoe MUST be presented in a direct, technical side profile view (outer side) as the primary angle. This is the absolute industry standard for professional clean e-commerce product photography.
+  - The shoe must appear upright and stable, as if sitting on an invisible floor - NOT a flat lay or tilted angle.
+  - COMPLETELY remove any visible legs, feet, socks, or mannequin parts from the original photo.
+  - Ensure the shoe is perfectly centered in the frame.
+Shadow & Reflection (CRITICAL):
+  - Shadow: ${addShadow ? "Add a subtle, FLAT soft shadow directly beneath the sole contact points on the ground to ground the shoe realistically. The shadow must be clean and not spill outwards too far." : "Absolutely NO shadow - the shoe must appear on a completely clean, shadowless background."}
+  - Reflection: ${addReflection ? "Add a very subtle floor reflection beneath the shoe for a premium luxury catalog look." : "Absolutely NO reflection underneath."}
+Cleaning & Quality:
+  - High Clarity: The shoe's texture (leather, mesh, suede, rubber) must be sharp and clear with high detail resolution.
+  - Flawless Condition: Remove ALL dust, scuffs, creases (especially on the toe box), dirt marks, or sticker residue. Laces should appear neatly styled and clean.
+  - Edges: The silhouette must be perfectly sharp and cut out cleanly against the background.
+  - Lighting: Bright, even studio lighting that highlights the shoe's shape and materials without overexposure.
+  - NO BLUR: Ensure the entire shoe is in sharp focus from toe to heel. No background blur or depth-of-field.
   - Present as brand-new, unworn condition
 Detail Enhancement:
   - Sharpen stitching, mesh textures, sole patterns
@@ -3183,9 +3192,10 @@ router.post("/generate", async (req, res) => {
       modelPhoto = null,
     } = req.body;
 
-    // Kalite versiyonu kontrolü (settings'ten al)
-    const qualityVersion =
-      settings?.qualityVersion || settings?.quality_version || "v1";
+    // Kalite versiyonu kontrolü (settings'ten al) - Refiner modunda v1'e zorla
+    const qualityVersion = isRefinerMode
+      ? "v1"
+      : settings?.qualityVersion || settings?.quality_version || "v1";
     const CREDIT_COST = qualityVersion === "v2" ? 35 : 10; // v2 için 35, v1 için 10 kredi
     actualCreditDeducted = CREDIT_COST;
 
@@ -3517,8 +3527,9 @@ router.post("/generate", async (req, res) => {
     };
 
     // Kalite versiyonunu ayrı bir değişken olarak al
-    const qualityVersionForDB =
-      settings?.qualityVersion || settings?.quality_version || "v1";
+    const qualityVersionForDB = isRefinerMode
+      ? "v1"
+      : settings?.qualityVersion || settings?.quality_version || "v1";
 
     const pendingGeneration = await createPendingGeneration(
       userId,
@@ -4148,8 +4159,9 @@ router.post("/generate", async (req, res) => {
         }
 
         // Kalite versiyonu kontrolü (settings'ten al)
-        const qualityVersion =
-          settings?.qualityVersion || settings?.quality_version || "v1";
+        const qualityVersion = isRefinerMode
+          ? "v1"
+          : settings?.qualityVersion || settings?.quality_version || "v1";
         const isV2 = qualityVersion === "v2";
         // For fal.ai, we use nano-banana/edit for v1 and nano-banana-pro/edit for v2
         const falModel = isV2 ? "fal-ai/nano-banana-pro/edit" : "fal-ai/nano-banana/edit";

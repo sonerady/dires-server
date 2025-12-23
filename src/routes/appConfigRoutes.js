@@ -93,7 +93,7 @@ router.get("/app-config/version", async (req, res) => {
         minVersion: null,
         latestVersion: null,
         forceUpdate: false,
-        updateUrl: platform === "ios" 
+        updateUrl: platform === "ios"
           ? "https://apps.apple.com/app/id6738030797"
           : "https://play.google.com/store/apps/details?id=com.monalisa.diress.app",
         changelogUrl: null,
@@ -114,6 +114,7 @@ router.get("/app-config/version", async (req, res) => {
       changelogUrl: data.changelog_url || null,
       message: resolveMessage(data, lang),
       metadata: data.metadata || null,
+      websiteOpen: data.website_open || false,
       lang,
       fetchedAt: new Date().toISOString(),
     };

@@ -37,6 +37,7 @@ const getRequests = require("./routes/getRequests");
 const getBalance = require("./routes/getBalance");
 const generatePredictionsRouter = require("./routes/generatePredictions");
 const generateImgToVidRouter = require("./routes/generateImgToVid");
+const generateImgToVidv2Router = require("./routes/generateImgToVidv2"); // Kling 2.6
 const getPredictionsRouter = require("./routes/getPredictions");
 const registerAnonymousUserRouter = require("./routes/registerAnonymousUser");
 const registerAnonymousUserRouterV2 = require("./routes/registerAnonymousUserV2");
@@ -199,6 +200,7 @@ app.use("/api", registerAnonymousUserRouter);
 app.use("/api/v2", registerAnonymousUserRouterV2);
 app.use("/api/v3", registerAnonymousUserRouterV3);
 app.use("/api", generateImgToVidRouter);
+app.use("/api", generateImgToVidv2Router); // Kling 2.6
 app.use("/api", posesRouter);
 app.use("/api", generateImagesJsonRouter);
 app.use("/api", locationRoutes);

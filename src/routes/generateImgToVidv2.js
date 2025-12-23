@@ -1,4 +1,4 @@
-// routes/generateImgToVid.js
+// routes/generateImgToVidv2.js - Kling 2.6 version
 const express = require("express");
 const router = express.Router();
 const { v4: uuidv4 } = require("uuid");
@@ -271,7 +271,7 @@ async function uploadToSupabaseAsArray(base64String, prefix = "product_main_") {
  * - Supabase'e prediction kaydı ekler (prediction_id, user_id, vb.).
  * - 202 Accepted döner, statüyü /api/predictionStatus/:id ile sorgulayabilirsin.
  */
-router.post("/generateImgToVid", async (req, res) => {
+router.post("/generateImgToVidv2", async (req, res) => {
   try {
     const {
       userId,
@@ -415,7 +415,7 @@ router.post("/generateImgToVid", async (req, res) => {
       "Model highlights special details of the outfit, smiling while gently turning left and right to showcase product details from both sides. While turning left and right, model maintains a smile and strikes various poses";
     const finalPrompt = await generateVideoPrompt(firstFrameUrl, userPrompt);
 
-    // 4) Fal.ai Queue API'ye istek at (Kling 2.1 Pro) - SDK ile
+    // 4) Fal.ai Queue API'ye istek at (Kling 2.6 Pro) - SDK ile
     const requestBody = {
       prompt: finalPrompt,
       image_url: firstFrameUrl,
@@ -429,7 +429,7 @@ router.post("/generateImgToVid", async (req, res) => {
     let requestId;
     // fal.queue.submit ile isteği gönderiyoruz
     try {
-      const { request_id } = await fal.queue.submit("fal-ai/kling-video/v2.1/pro/image-to-video", {
+      const { request_id } = await fal.queue.submit("fal-ai/kling-video/v2.6/pro/image-to-video", {
         input: requestBody,
         webhookUrl: null // Opsiyonel
       });
@@ -472,7 +472,7 @@ router.post("/generateImgToVid", async (req, res) => {
         urls: {
           // SDK status check URL is implicit via fal.queue.status, 
           // but frontend might not need this precise URL if it calls our GET endpoint.
-          get: `https://queue.fal.run/fal-ai/kling-video/v2.1/pro/image-to-video/requests/${requestId}/status`
+          get: `https://queue.fal.run/fal-ai/kling-video/v2.6/pro/image-to-video/requests/${requestId}/status`
         }
       }
     });
@@ -525,7 +525,7 @@ router.get("/predictionStatus/:predictionId", async (req, res) => {
     let replicateOutput = null;
 
     try {
-      const result = await fal.queue.status("fal-ai/kling-video/v2.1/pro/image-to-video", {
+      const result = await fal.queue.status("fal-ai/kling-video/v2.6/pro/image-to-video", {
         requestId: predictionId,
         logs: true // logları da alabiliriz
       });
@@ -545,7 +545,7 @@ router.get("/predictionStatus/:predictionId", async (req, res) => {
         // To get output we might need fal.queue.result(requestId) OR 
         // if queue.status returns it on completion (some versions do).
         // Let's rely on fal.queue.result to get the output payload confidently.
-        const finalData = await fal.queue.result("fal-ai/kling-video/v2.1/pro/image-to-video", {
+        const finalData = await fal.queue.result("fal-ai/kling-video/v2.6/pro/image-to-video", {
           requestId: predictionId
         });
 

@@ -936,4 +936,36 @@ router.get("/ecommerce-stats/:userId", async (req, res) => {
     }
 });
 
+// NEW: Fetch user's product kits list
+router.get("/user-kits/:userId", async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const limit = parseInt(req.query.limit) || 20;
+        const offset = parseInt(req.query.offset) || 0;
+
+        console.log(`📦 [USER_KITS] Fetching kits for user: ${userId}, limit: ${limit}, offset: ${offset}`);
+
+        const { data, error, count } = await supabase
+            .from("product_kits")
+            .select("*", { count: "exact" })
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .range(offset, offset + limit - 1);
+
+        if (error) throw error;
+
+        console.log(`✅ [USER_KITS] Found ${data?.length || 0} kits for user`);
+
+        res.json({
+            success: true,
+            kits: data || [],
+            totalCount: count || 0,
+            hasMore: (offset + limit) < (count || 0)
+        });
+    } catch (error) {
+        console.error("❌ [USER_KITS] Error:", error.message);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 module.exports = router;
