@@ -1075,7 +1075,26 @@ async function enhancePromptWithGemini(
     // Cinsiyet belirleme - varsayılan olarak kadın
     const gender = settings?.gender || "female";
     const age = settings?.age || "";
-    const parsedAgeInt = parseInt(age, 10);
+    let parsedAgeInt = parseInt(age, 10);
+
+    // If age is a string (like "baby", "bebek", etc.), parse it into a numeric value
+    if (isNaN(parsedAgeInt) && age) {
+      const ageLower = age.toLowerCase();
+      if (ageLower.includes("baby") || ageLower.includes("bebek")) {
+        parsedAgeInt = 1;
+      } else if (ageLower.includes("child") || ageLower.includes("çocuk")) {
+        parsedAgeInt = 5;
+      } else if (ageLower.includes("young") || ageLower.includes("genç")) {
+        parsedAgeInt = 22;
+      } else if (ageLower.includes("adult") || ageLower.includes("yetişkin")) {
+        parsedAgeInt = 45;
+      } else if (
+        ageLower.includes("newborn") ||
+        ageLower.includes("yenidoğan")
+      ) {
+        parsedAgeInt = 0;
+      }
+    }
 
     // Gender mapping'ini düzelt - hem man/woman hem de male/female değerlerini handle et
     let modelGenderText;
