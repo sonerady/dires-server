@@ -3495,6 +3495,7 @@ router.post("/generate", async (req, res) => {
           output_format: "png",
           aspect_ratio: aspectRatioForRequest,
           num_images: 1, // İzin ver
+          resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
         };
 
         // V2 için ek parametreler

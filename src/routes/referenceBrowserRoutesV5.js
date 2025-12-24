@@ -4208,6 +4208,7 @@ router.post("/generate", async (req, res) => {
             output_format: "png",
             aspect_ratio: aspectRatioForRequest,
             num_images: 1,
+            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
           };
           console.log(
             `🕺 [POSE_CHANGE] fal.ai ${falModel} request body hazırlandı`
@@ -4224,6 +4225,7 @@ router.post("/generate", async (req, res) => {
             output_format: "png",
             aspect_ratio: aspectRatioForRequest,
             num_images: 1,
+            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
           };
         }
 
@@ -4561,6 +4563,7 @@ router.post("/generate", async (req, res) => {
             output_format: "png",
             aspect_ratio: formattedRatio || "9:16",
             num_images: 1,
+            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
           };
 
           console.log(
