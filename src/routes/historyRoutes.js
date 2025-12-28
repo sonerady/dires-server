@@ -404,17 +404,21 @@ router.get("/kits/:generationId", async (req, res) => {
     }
 
     // Kits verilerini getir
+    // NOTE: generation_id may not be unique if previous attempts failed/retried, so use maybeSingle()
     const { data: generationData, error: fetchError } = await supabase
       .from("reference_results")
       .select("kits")
       .eq("generation_id", generationId)
-      .single();
+      .order("created_at", { ascending: false }) // En son üretileni al
+      .limit(1)
+      .maybeSingle();
 
     if (fetchError) {
       console.error("❌ [HISTORY_KITS] Query error:", fetchError);
       return res.status(500).json({
         success: false,
         message: "Failed to fetch kits data",
+        error: fetchError.message
       });
     }
 
