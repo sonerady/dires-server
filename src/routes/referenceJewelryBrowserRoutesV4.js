@@ -830,6 +830,132 @@ async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) 
   }
 }
 
+// Gemini'ye gönderilecek resimleri 3MB altına compress eden fonksiyon
+// URL'den resmi indirir, 3MB'dan büyükse compress eder ve Supabase'e yükler
+async function compressImageForGemini(imageUrl, userId) {
+  const MAX_SIZE_BYTES = 3 * 1024 * 1024; // 3MB
+
+  try {
+    console.log(`📏 [COMPRESS-GEMINI] Resim kontrol ediliyor: ${imageUrl.substring(0, 80)}...`);
+
+    // Resmi indir
+    const imageResponse = await axios.get(imageUrl, {
+      responseType: "arraybuffer",
+      timeout: 30000,
+    });
+    const imageBuffer = Buffer.from(imageResponse.data);
+    const originalSize = imageBuffer.length;
+
+    console.log(`📏 [COMPRESS-GEMINI] Orijinal boyut: ${(originalSize / 1024 / 1024).toFixed(2)} MB`);
+
+    // Eğer 3MB'dan küçükse, orijinal URL'yi döndür
+    if (originalSize <= MAX_SIZE_BYTES) {
+      console.log(`✅ [COMPRESS-GEMINI] Resim zaten 3MB altında, orijinal URL kullanılıyor`);
+      return imageUrl;
+    }
+
+    console.log(`🔄 [COMPRESS-GEMINI] Resim 3MB'dan büyük, compress ediliyor...`);
+
+    // Resim metadata'sını al
+    const metadata = await sharp(imageBuffer).metadata();
+    console.log(`📐 [COMPRESS-GEMINI] Resim boyutları: ${metadata.width}x${metadata.height}`);
+
+    let quality = 85;
+    let compressedBuffer;
+    let compressedSize;
+    let resizeWidth = metadata.width;
+    let resizeHeight = metadata.height;
+
+    // İlk deneme - sadece quality düşürerek
+    compressedBuffer = await sharp(imageBuffer)
+      .rotate() // EXIF rotation uygula
+      .jpeg({ quality: quality })
+      .toBuffer();
+    compressedSize = compressedBuffer.length;
+    console.log(`📏 [COMPRESS-GEMINI] Quality ${quality} ile boyut: ${(compressedSize / 1024 / 1024).toFixed(2)} MB`);
+
+    // Eğer hala büyükse, adım adım quality düşür ve resize uygula
+    while (compressedSize > MAX_SIZE_BYTES && quality >= 30) {
+      quality -= 10;
+
+      // Eğer quality çok düştüyse boyutları da küçült (orantılı)
+      if (quality <= 60 && Math.max(resizeWidth, resizeHeight) > 2000) {
+        const scaleFactor = 0.8;
+        resizeWidth = Math.round(resizeWidth * scaleFactor);
+        resizeHeight = Math.round(resizeHeight * scaleFactor);
+        console.log(`📐 [COMPRESS-GEMINI] Orantılı resize: ${resizeWidth}x${resizeHeight}`);
+      }
+
+      compressedBuffer = await sharp(imageBuffer)
+        .rotate()
+        .resize(resizeWidth, resizeHeight, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: quality })
+        .toBuffer();
+
+      compressedSize = compressedBuffer.length;
+      console.log(`📏 [COMPRESS-GEMINI] Quality ${quality}, Size ${resizeWidth}x${resizeHeight} ile boyut: ${(compressedSize / 1024 / 1024).toFixed(2)} MB`);
+    }
+
+    // Son çare - agresif compress (oran korunur)
+    if (compressedSize > MAX_SIZE_BYTES) {
+      console.log(`⚠️ [COMPRESS-GEMINI] Hala 3MB üzerinde, agresif compress uygulanıyor`);
+
+      const MAX_DIMENSION = 2000;
+      const longestEdge = Math.max(resizeWidth, resizeHeight);
+
+      if (longestEdge > MAX_DIMENSION) {
+        const scaleFactor = MAX_DIMENSION / longestEdge;
+        resizeWidth = Math.round(resizeWidth * scaleFactor);
+        resizeHeight = Math.round(resizeHeight * scaleFactor);
+        console.log(`📐 [COMPRESS-GEMINI] Orantılı resize: ${resizeWidth}x${resizeHeight} (oran korundu)`);
+      }
+
+      quality = 25;
+
+      compressedBuffer = await sharp(imageBuffer)
+        .rotate()
+        .resize(resizeWidth, resizeHeight, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: quality })
+        .toBuffer();
+
+      compressedSize = compressedBuffer.length;
+      console.log(`📏 [COMPRESS-GEMINI] Agresif compress sonrası boyut: ${(compressedSize / 1024 / 1024).toFixed(2)} MB`);
+    }
+
+    console.log(`✅ [COMPRESS-GEMINI] Final boyut: ${(compressedSize / 1024 / 1024).toFixed(2)} MB (${((1 - compressedSize / originalSize) * 100).toFixed(1)}% küçültüldü)`);
+
+    // Compress edilmiş resmi Supabase'e yükle
+    const timestamp = Date.now();
+    const randomId = uuidv4().substring(0, 8);
+    const fileName = `gemini_compressed_${timestamp}_${userId || "anonymous"}_${randomId}.jpg`;
+
+    const { data, error } = await supabase.storage
+      .from("reference")
+      .upload(fileName, compressedBuffer, {
+        contentType: "image/jpeg",
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (error) {
+      console.error(`❌ [COMPRESS-GEMINI] Supabase upload hatası:`, error);
+      return imageUrl; // Hata durumunda orijinal URL'yi döndür
+    }
+
+    // Public URL al
+    const { data: urlData } = supabase.storage
+      .from("reference")
+      .getPublicUrl(fileName);
+
+    console.log(`✅ [COMPRESS-GEMINI] Compress edilmiş resim yüklendi: ${urlData.publicUrl}`);
+    return urlData.publicUrl;
+
+  } catch (error) {
+    console.error(`❌ [COMPRESS-GEMINI] Resim compress hatası:`, error.message);
+    return imageUrl; // Hata durumunda orijinal URL'yi döndür
+  }
+}
+
 // Aspect ratio formatını düzelten yardımcı fonksiyon
 function formatAspectRatio(ratioStr) {
   const validRatios = ["1:1", "4:3", "3:4", "16:9", "9:16", "21:9"];
@@ -1763,13 +1889,13 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
         );
       }
     } else if (
-      isMultipleProducts &&
+      (isMultipleProducts || isMultipleImages) &&
       referenceImages &&
-      referenceImages.length > 1
+      referenceImages.length > 0
     ) {
-      // Multi-product mode: Tüm referans resimleri gönder
+      // Multi-product veya Multi-images mode: Tüm referans resimleri gönder
       console.log(
-        `🛍️ [MULTI-PRODUCT] Gemini'ye ${referenceImages.length} adet referans resmi gönderiliyor...`
+        `🛍️ [MULTI-MODE] Gemini'ye ${referenceImages.length} adet referans resmi gönderiliyor...`
       );
 
       try {
@@ -1945,7 +2071,8 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
     // Mevcut resim URL'lerini topla (base64 yerine URL kullanıyoruz)
     if (isBackSideAnalysis && firstImageUrl && secondImageUrl) {
       imageUrls.push(firstImageUrl, secondImageUrl);
-    } else if (isMultipleProducts && referenceImages && referenceImages.length > 1) {
+    } else if ((isMultipleProducts || isMultipleImages) && referenceImages && referenceImages.length > 0) {
+      // isMultipleImages veya isMultipleProducts durumunda referenceImages'ı kullan
       for (const refImg of referenceImages) {
         const imgUrl = refImg.uri || refImg;
         if (imgUrl && imgUrl.startsWith("http")) {
@@ -1972,6 +2099,19 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
 
     console.log(`🖼️ [REPLICATE-GEMINI] Toplam ${imageUrls.length} resim URL'si toplanacak`);
 
+    // 🔄 Resimleri Gemini'ye göndermeden önce 3MB altına compress et
+    const compressedImageUrls = [];
+    for (const imgUrl of imageUrls) {
+      try {
+        const compressedUrl = await compressImageForGemini(imgUrl, userId);
+        compressedImageUrls.push(compressedUrl);
+      } catch (compressError) {
+        console.error(`❌ [COMPRESS-GEMINI] Resim compress hatası:`, compressError.message);
+        compressedImageUrls.push(imgUrl); // Hata durumunda orijinal URL'yi kullan
+      }
+    }
+    console.log(`✅ [COMPRESS-GEMINI] ${compressedImageUrls.length} resim compress kontrolü tamamlandı`);
+
     // Replicate Gemini Flash API çağrısı
     let enhancedPrompt;
 
@@ -1980,7 +2120,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
 
       // parts[0].text prompt'u içeriyor
       const promptText = parts[0].text;
-      const geminiGeneratedPrompt = await callReplicateGeminiFlash(promptText, imageUrls, 3);
+      const geminiGeneratedPrompt = await callReplicateGeminiFlash(promptText, compressedImageUrls, 3);
 
       // Gemini response kontrolü
       if (!geminiGeneratedPrompt) {
@@ -3252,7 +3392,8 @@ router.post("/generate", async (req, res) => {
         isPoseChange, // Poz değiştirme işlemi mi?
         customDetail, // Özel detay bilgisi
         req.body.isBackSideAnalysis || false, // Arka taraf analizi modu mu?
-        referenceImages // Multi-product için tüm referans resimler
+        referenceImages, // Multi-product için tüm referans resimler
+        isMultipleImages // Çoklu resim modu mu? (BU PARAMETRE EKSİKTİ!)
       );
 
       // ⏳ Sadece Gemini prompt iyileştirme bekle
