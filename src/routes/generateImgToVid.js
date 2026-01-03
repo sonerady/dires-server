@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require("uuid");
 const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
+const sharp = require("sharp");
 
 // Supabase client
 const { supabase } = require("../supabaseClient");
@@ -183,6 +184,79 @@ async function generateVideoPrompt(imageUrl, userPrompt) {
 }
 
 // Yardımcı fonksiyonlar
+
+/**
+ * Resmi Fal.ai'nin 10MB limitine uygun şekilde sıkıştırır
+ * @param {Buffer} buffer - Orijinal resim buffer'ı
+ * @param {number} maxSizeBytes - Maksimum dosya boyutu (default: 9MB - güvenlik marjı ile)
+ * @returns {Promise<Buffer>} - Sıkıştırılmış resim buffer'ı
+ */
+async function compressImageForFalAi(buffer, maxSizeBytes = 9 * 1024 * 1024) {
+  let quality = 90;
+  let compressedBuffer = buffer;
+
+  // Orijinal boyut kontrolü
+  if (buffer.length <= maxSizeBytes) {
+    console.log(`✅ Resim zaten uygun boyutta: ${(buffer.length / 1024 / 1024).toFixed(2)}MB`);
+    return buffer;
+  }
+
+  console.log(`⚠️ Resim çok büyük: ${(buffer.length / 1024 / 1024).toFixed(2)}MB, sıkıştırılıyor...`);
+
+  // Sharp ile metadata al
+  const metadata = await sharp(buffer).metadata();
+
+  // Maksimum boyutları belirle (çok büyük resimler için boyut küçült)
+  let targetWidth = metadata.width;
+  let targetHeight = metadata.height;
+  const maxDimension = 2048; // Fal.ai için makul bir boyut
+
+  if (targetWidth > maxDimension || targetHeight > maxDimension) {
+    if (targetWidth > targetHeight) {
+      targetHeight = Math.round((maxDimension / targetWidth) * targetHeight);
+      targetWidth = maxDimension;
+    } else {
+      targetWidth = Math.round((maxDimension / targetHeight) * targetWidth);
+      targetHeight = maxDimension;
+    }
+    console.log(`📐 Resim boyutu küçültülüyor: ${metadata.width}x${metadata.height} -> ${targetWidth}x${targetHeight}`);
+  }
+
+  // İlk sıkıştırma denemesi - boyut küçültme ile
+  compressedBuffer = await sharp(buffer)
+    .resize(targetWidth, targetHeight, { fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: quality, mozjpeg: true })
+    .toBuffer();
+
+  // Hala çok büyükse kaliteyi düşür
+  while (compressedBuffer.length > maxSizeBytes && quality > 30) {
+    quality -= 10;
+    console.log(`🔄 Kalite düşürülüyor: ${quality}%, mevcut boyut: ${(compressedBuffer.length / 1024 / 1024).toFixed(2)}MB`);
+
+    compressedBuffer = await sharp(buffer)
+      .resize(targetWidth, targetHeight, { fit: 'inside', withoutEnlargement: true })
+      .jpeg({ quality: quality, mozjpeg: true })
+      .toBuffer();
+  }
+
+  // Hala çok büyükse boyutu daha da küçült
+  if (compressedBuffer.length > maxSizeBytes) {
+    const scaleFactor = 0.7;
+    targetWidth = Math.round(targetWidth * scaleFactor);
+    targetHeight = Math.round(targetHeight * scaleFactor);
+
+    console.log(`📐 Resim daha da küçültülüyor: ${targetWidth}x${targetHeight}`);
+
+    compressedBuffer = await sharp(buffer)
+      .resize(targetWidth, targetHeight, { fit: 'inside', withoutEnlargement: true })
+      .jpeg({ quality: 70, mozjpeg: true })
+      .toBuffer();
+  }
+
+  console.log(`✅ Sıkıştırma tamamlandı: ${(compressedBuffer.length / 1024 / 1024).toFixed(2)}MB (kalite: ${quality}%)`);
+  return compressedBuffer;
+}
+
 async function downloadImage(url, filepath) {
   const writer = fs.createWriteStream(filepath);
   const response = await axios({
@@ -210,6 +284,7 @@ async function uploadToGemini(filePath, mimeType) {
 /**
  * Bu fonksiyon: Tek bir base64 string'i (veya istersen bir array'i) Supabase'e yükler ve
  * elde ettiği public URL'leri bir dizi olarak döndürür.
+ * Fal.ai'nin 10MB limitine uyum için resimler önce sıkıştırılır.
  */
 async function uploadToSupabaseAsArray(base64String, prefix = "product_main_") {
   const urlsArray = [];
@@ -227,13 +302,19 @@ async function uploadToSupabaseAsArray(base64String, prefix = "product_main_") {
     }
 
     const base64Data = item.replace(/^data:image\/\w+;base64,/, "");
-    const buffer = Buffer.from(base64Data, "base64");
-    const fileName = `${prefix}${uuidv4()}.png`;
+    let buffer = Buffer.from(base64Data, "base64");
+
+    // Fal.ai 10MB limitine uyum için resmi sıkıştır
+    console.log(`📷 Orijinal resim boyutu: ${(buffer.length / 1024 / 1024).toFixed(2)}MB`);
+    buffer = await compressImageForFalAi(buffer);
+
+    // Sıkıştırılmış resim JPEG formatında, dosya adını da güncelleyelim
+    const fileName = `${prefix}${uuidv4()}.jpg`;
 
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from("images")
       .upload(`generated/${fileName}`, buffer, {
-        contentType: "image/png",
+        contentType: "image/jpeg",
       });
 
     if (uploadError) {
