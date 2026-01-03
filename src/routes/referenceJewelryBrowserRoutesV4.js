@@ -1072,7 +1072,8 @@ async function enhancePromptWithGemini(
   customDetail = null, // Özel detay
   isBackSideAnalysis = false, // Arka taraf analizi modu mu?
   referenceImages = null, // Back side analysis için 2 resim
-  isMultipleImages = false // Çoklu resim modu mu?
+  isMultipleImages = false, // Çoklu resim modu mu?
+  userId = null // Compress için userId
 ) {
   try {
     console.log(
@@ -3364,7 +3365,8 @@ router.post("/generate", async (req, res) => {
         customDetail, // customDetail
         false, // isBackSideAnalysis - pose change'de arka analizi yok
         null, // referenceImages - Gemini'ye product photolar gönderilmez
-        false // isMultipleImages - Gemini'ye tek resim gönderiliyor
+        false, // isMultipleImages - Gemini'ye tek resim gönderiliyor
+        userId // Compress için userId
       );
       backgroundRemovedImage = finalImage; // Orijinal image'ı kullan, arkaplan silme yok
       console.log("🕺 Pose change prompt:", enhancedPrompt);
@@ -3393,7 +3395,8 @@ router.post("/generate", async (req, res) => {
         customDetail, // Özel detay bilgisi
         req.body.isBackSideAnalysis || false, // Arka taraf analizi modu mu?
         referenceImages, // Multi-product için tüm referans resimler
-        isMultipleImages // Çoklu resim modu mu? (BU PARAMETRE EKSİKTİ!)
+        isMultipleImages, // Çoklu resim modu mu?
+        userId // Compress için userId
       );
 
       // ⏳ Sadece Gemini prompt iyileştirme bekle

@@ -193,15 +193,9 @@ async function generateVideoPrompt(imageUrl, userPrompt) {
  */
 async function compressImageForFalAi(buffer, maxSizeBytes = 9 * 1024 * 1024) {
   let quality = 90;
-  let compressedBuffer = buffer;
+  let compressedBuffer;
 
-  // Orijinal boyut kontrolü
-  if (buffer.length <= maxSizeBytes) {
-    console.log(`✅ Resim zaten uygun boyutta: ${(buffer.length / 1024 / 1024).toFixed(2)}MB`);
-    return buffer;
-  }
-
-  console.log(`⚠️ Resim çok büyük: ${(buffer.length / 1024 / 1024).toFixed(2)}MB, sıkıştırılıyor...`);
+  console.log(`📷 Orijinal buffer boyutu: ${(buffer.length / 1024 / 1024).toFixed(2)}MB`);
 
   // Sharp ile metadata al
   const metadata = await sharp(buffer).metadata();
@@ -222,7 +216,7 @@ async function compressImageForFalAi(buffer, maxSizeBytes = 9 * 1024 * 1024) {
     console.log(`📐 Resim boyutu küçültülüyor: ${metadata.width}x${metadata.height} -> ${targetWidth}x${targetHeight}`);
   }
 
-  // İlk sıkıştırma denemesi - boyut küçültme ile
+  // Her zaman JPEG'e dönüştür ve optimize et
   compressedBuffer = await sharp(buffer)
     .resize(targetWidth, targetHeight, { fit: 'inside', withoutEnlargement: true })
     .jpeg({ quality: quality, mozjpeg: true })
@@ -253,7 +247,7 @@ async function compressImageForFalAi(buffer, maxSizeBytes = 9 * 1024 * 1024) {
       .toBuffer();
   }
 
-  console.log(`✅ Sıkıştırma tamamlandı: ${(compressedBuffer.length / 1024 / 1024).toFixed(2)}MB (kalite: ${quality}%)`);
+  console.log(`✅ İşlem tamamlandı: ${(compressedBuffer.length / 1024 / 1024).toFixed(2)}MB (kalite: ${quality}%)`);
   return compressedBuffer;
 }
 

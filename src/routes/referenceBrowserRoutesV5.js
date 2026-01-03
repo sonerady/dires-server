@@ -1250,7 +1250,8 @@ async function enhancePromptWithGemini(
   isRefinerMode = false, // RefinerScreen modu mu?
   isBackSideAnalysis = false, // Arka taraf analizi modu mu?
   referenceImages = null, // Back side analysis için 2 resim
-  isMultipleImages = false // Çoklu resim modu mu?
+  isMultipleImages = false, // Çoklu resim modu mu?
+  userId = null // Compress için userId
 ) {
   try {
     console.log(
@@ -4019,7 +4020,9 @@ router.post("/generate", async (req, res) => {
           null, // editPrompt
           isRefinerMode, // isRefinerMode - yeni parametre
           req.body.isBackSideAnalysis || false, // Arka taraf analizi modu mu?
-          referenceImages // Multi-product için tüm referans resimler
+          referenceImages, // Multi-product için tüm referans resimler
+          false, // isMultipleImages
+          userId // Compress için userId
         );
       } else if (isPoseChange) {
         console.log(
@@ -4094,7 +4097,8 @@ router.post("/generate", async (req, res) => {
           false, // isRefinerMode
           false, // isBackSideAnalysis - pose change'de arka analizi yok
           null, // referenceImages - Gemini'ye product photolar gönderilmez
-          false // isMultipleImages - Gemini'ye tek resim gönderiliyor
+          false, // isMultipleImages - Gemini'ye tek resim gönderiliyor
+          userId // Compress için userId
         );
       }
       backgroundRemovedImage = finalImage; // Orijinal image'ı kullan, arkaplan silme yok
@@ -4141,7 +4145,9 @@ router.post("/generate", async (req, res) => {
         editPrompt, // EditScreen'den gelen prompt
         isRefinerMode, // RefinerScreen modu mu?
         req.body.isBackSideAnalysis || false, // Arka taraf analizi modu mu?
-        referenceImages // Multi-product için tüm referans resimler
+        referenceImages, // Multi-product için tüm referans resimler
+        isMultipleImages, // Çoklu resim modu mu?
+        userId // Compress için userId
       );
 
       // ⏳ Sadece Gemini prompt iyileştirme bekle
