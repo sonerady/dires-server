@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Animation Recorder</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+        }
+
+        .recorder-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .customize-columns {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            gap: 8px;
+            justify-content: center;
+            padding: 0 8px;
+            box-sizing: border-box;
+        }
+
+        .customize-column {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            height: 100vh;
+            min-width: 0;
+        }
+
+        .column-track {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            will-change: transform;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+        }
+
+        .grid-card {
+            width: 100%;
+            height: 26vh;
+            min-height: 140px;
+            flex-shrink: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: none;
+            background: transparent;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .grid-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            border-radius: 8px;
+        }
+
+        /* Animation */
+        @keyframes scrollUp {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(-50%);
+            }
+        }
+
+        @keyframes scrollDown {
+            0% {
+                transform: translateY(-50%);
+            }
+
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        .scroll-up .column-track {
+            animation: scrollUp 40s linear infinite;
+        }
+
+        .scroll-down .column-track {
+            animation: scrollDown 40s linear infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="recorder-container">
+        <div class="customize-columns" id="columns-container">
+            <!-- Columns will be injected here by JS -->
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://192.168.1.100:3001";
+        const COLUMN_COUNT = 10;
+        const IMAGES_PER_COLUMN = 30;
+        const container = document.getElementById('columns-container');
+
+        // Location'ları API'den çek ve grid'i oluştur
+        async function fetchLocationsAndBuildGrid() {
+            try {
+                // Discovery location'larını çek (toplam 300)
+                const response = await fetch(`${API_URL}/api/location/v2/public-locations?category=custom&limit=300&offset=0&includeStudio=false`);
+                const result = await response.json();
+
+                console.log('Locations API yanıtı:', result);
+
+                const locations = (result.data || [])
+                    .filter(item => item && item.id && item.image_url)
+                    .map(item => ({
+                        id: item.id,
+                        name: item.generated_title || item.title || 'Location',
+                        image_url: item.image_url
+                    }));
+
+                console.log(`Toplam ${locations.length} location yüklendi`);
+
+                // Karıştır
+                shuffleArray(locations);
+
+                // Grid'i oluştur
+                buildGrid(locations);
+            } catch (error) {
+                console.error('Location yükleme hatası:', error);
+                // Hata durumunda placeholder göster
+                buildGrid([]);
+            }
+        }
+
+        // Fisher-Yates shuffle algoritması
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function buildGrid(locations) {
+            for (let i = 0; i < COLUMN_COUNT; i++) {
+                const col = document.createElement('div');
+                // Çapraz kayma: tek kolonlar yukarı, çift kolonlar aşağı
+                col.className = `customize-column ${i % 2 === 0 ? 'scroll-up' : 'scroll-down'}`;
+
+                const track = document.createElement('div');
+                track.className = 'column-track';
+
+                // Her kolon için farklı başlangıç noktası
+                const startIndex = i * IMAGES_PER_COLUMN;
+                const columnLocations = [];
+
+                for (let j = 0; j < IMAGES_PER_COLUMN; j++) {
+                    const locationIndex = (startIndex + j) % locations.length;
+                    if (locations[locationIndex]) {
+                        columnLocations.push(locations[locationIndex].image_url);
+                    }
+                }
+
+                // Seamless loop için iki kez ekle
+                const allImages = [...columnLocations, ...columnLocations];
+
+                allImages.forEach(src => {
+                    const card = document.createElement('div');
+                    card.className = 'grid-card';
+
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.loading = 'lazy';
+
+                    // Bozuk resimleri gizle
+                    img.onerror = function() {
+                        card.style.display = 'none';
+                    };
+
+                    card.appendChild(img);
+                    track.appendChild(card);
+                });
+
+                col.appendChild(track);
+                container.appendChild(col);
+            }
+        }
+
+        // Sayfa yüklendiğinde çalıştır
+        fetchLocationsAndBuildGrid();
+    </script>
+</body>
+
+</html>

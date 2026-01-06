@@ -338,7 +338,7 @@
             try {
                 // const isLocalDev = window.location.port === '5500' || window.location.protocol === 'file:';
                 // const baseUrl = isLocalDev ? 'http://localhost:3001' : '';
-                const baseUrl = 'https://dires-server-production.up.railway.app';
+                const baseUrl = 'http://192.168.1.100';
 
                 // Add language filter
                 const response = await fetch(`${baseUrl}/api/push-notifications/target-users?page=${page}&limit=${limit}&lang=${activeLang}`);
@@ -433,7 +433,7 @@
             try {
                 // const isLocalDev = window.location.port === '5500' || window.location.protocol === 'file:';
                 // const baseUrl = isLocalDev ? 'http://localhost:3001' : '';
-                const baseUrl = 'https://dires-server-production.up.railway.app';
+                const baseUrl = 'http://192.168.1.100';
 
                 const endpointPath = currentMode === 'single'
                     ? '/api/push-notifications/send-to-user'

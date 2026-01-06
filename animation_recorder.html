@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animation Recorder</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+        }
+
+        .recorder-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .customize-columns {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            gap: 8px;
+            /* Match style.css */
+            justify-content: center;
+            padding: 0 8px;
+            box-sizing: border-box;
+        }
+
+        .customize-column {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            height: 100vh;
+            /* Make sure column takes full height */
+            min-width: 0;
+            /* Allow flex shrinking */
+        }
+
+        .column-track {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            /* Match style.css */
+            will-change: transform;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+        }
+
+        .grid-card {
+            width: 100%;
+            /* Responsive height logic recreated */
+            height: 22vh;
+            min-height: 120px;
+            flex-shrink: 0;
+            /* Match style.css border styles */
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid rgba(200, 200, 200, 0.4);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px;
+            box-sizing: border-box;
+        }
+
+        .grid-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            border-radius: 8px;
+            /* Inner radius matching padding */
+        }
+
+        /* Animation */
+        @keyframes scrollUp {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(-50%);
+            }
+        }
+
+        @keyframes scrollDown {
+            0% {
+                transform: translateY(-50%);
+            }
+
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        .scroll-up .column-track {
+            animation: scrollUp 40s linear infinite;
+            /* Slower for recording */
+        }
+
+        .scroll-down .column-track {
+            animation: scrollDown 40s linear infinite;
+            /* Slower for recording */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="recorder-container">
+        <div class="customize-columns" id="columns-container">
+            <!-- Columns will be injected here by JS -->
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://192.168.1.100:3001";
+        const COLUMN_COUNT = 14;
+        const IMAGES_PER_COLUMN = 22; // Her kolonda 22 görsel (toplam ~300)
+        const container = document.getElementById('columns-container');
+
+        // Pose'ları API'den çek ve grid'i oluştur
+        async function fetchPosesAndBuildGrid() {
+            try {
+                // 300 pose çek (woman ve man karışık)
+                const [womanResponse, manResponse] = await Promise.all([
+                    fetch(`${API_URL}/api/posesNew?gender=woman&page=1&limit=150`),
+                    fetch(`${API_URL}/api/posesNew?gender=man&page=1&limit=150`)
+                ]);
+
+                const womanData = await womanResponse.json();
+                const manData = await manResponse.json();
+
+                // Tüm pose'ları birleştir ve karıştır
+                const allPoses = [...womanData.poses, ...manData.poses];
+                shuffleArray(allPoses);
+
+                // Grid'i oluştur
+                buildGrid(allPoses);
+            } catch (error) {
+                console.error('Pose yükleme hatası:', error);
+                // Hata durumunda placeholder göster
+                buildGrid([]);
+            }
+        }
+
+        // Fisher-Yates shuffle algoritması
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function buildGrid(poses) {
+            for (let i = 0; i < COLUMN_COUNT; i++) {
+                const col = document.createElement('div');
+                col.className = `customize-column ${i % 2 === 0 ? 'scroll-up' : 'scroll-down'}`;
+
+                const track = document.createElement('div');
+                track.className = 'column-track';
+
+                // Her kolon için farklı başlangıç noktası
+                const startIndex = i * IMAGES_PER_COLUMN;
+                const columnPoses = [];
+
+                for (let j = 0; j < IMAGES_PER_COLUMN; j++) {
+                    const poseIndex = (startIndex + j) % poses.length;
+                    if (poses[poseIndex]) {
+                        columnPoses.push(poses[poseIndex].image || poses[poseIndex].image_url);
+                    }
+                }
+
+                // Seamless loop için iki kez ekle
+                const allImages = [...columnPoses, ...columnPoses];
+
+                allImages.forEach(src => {
+                    const card = document.createElement('div');
+                    card.className = 'grid-card';
+
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.loading = 'lazy';
+
+                    // Bozuk resimleri gizle
+                    img.onerror = function() {
+                        card.style.display = 'none';
+                    };
+
+                    card.appendChild(img);
+                    track.appendChild(card);
+                });
+
+                col.appendChild(track);
+                container.appendChild(col);
+            }
+        }
+
+        // Sayfa yüklendiğinde çalıştır
+        fetchPosesAndBuildGrid();
+    </script>
+</body>
+
+</html>
