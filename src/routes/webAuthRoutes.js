@@ -124,12 +124,14 @@ router.post('/google', async (req, res) => {
 // Mobile app callback - Supabase'den gelen token'ları app'e yönlendir
 router.get('/callback', async (req, res) => {
     // URL hash fragment'ı server'a gelmez, o yüzden HTML ile client-side redirect yapalım
+    // Supabase bazen token'ları query param, bazen hash fragment olarak gönderir
     res.send(`
         <!DOCTYPE html>
         <html>
         <head>
             <title>Redirecting...</title>
             <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
             <style>
                 body {
                     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
@@ -140,7 +142,7 @@ router.get('/callback', async (req, res) => {
                     margin: 0;
                     background: #f5f5f5;
                 }
-                .container { text-align: center; }
+                .container { text-align: center; padding: 20px; }
                 .spinner {
                     width: 40px;
                     height: 40px;
@@ -151,46 +153,78 @@ router.get('/callback', async (req, res) => {
                     margin: 0 auto 20px;
                 }
                 @keyframes spin { to { transform: rotate(360deg); } }
+                .manual-link {
+                    display: none;
+                    margin-top: 20px;
+                    padding: 15px 30px;
+                    background: #007AFF;
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 10px;
+                    font-size: 16px;
+                }
+                .manual-link:hover { background: #0056b3; }
             </style>
         </head>
         <body>
             <div class="container">
                 <div class="spinner"></div>
-                <p>Uygulamaya yönlendiriliyorsunuz...</p>
+                <p id="status">Uygulamaya yönlendiriliyorsunuz...</p>
+                <a id="manualLink" class="manual-link" href="#">Uygulamayı Aç</a>
             </div>
             <script>
-                // URL'den hash fragment'ı al
-                const hash = window.location.hash.substring(1);
-                const params = new URLSearchParams(hash);
-                const accessToken = params.get('access_token');
-                const refreshToken = params.get('refresh_token');
+                console.log('Callback page loaded');
+                console.log('Full URL:', window.location.href);
+                console.log('Hash:', window.location.hash);
+                console.log('Search:', window.location.search);
 
-                // Query params'tan da kontrol et
+                // Hash fragment'tan token al
+                const hash = window.location.hash.substring(1);
+                const hashParams = new URLSearchParams(hash);
+
+                // Query params'tan token al
                 const queryParams = new URLSearchParams(window.location.search);
-                const error = queryParams.get('error') || params.get('error');
-                const errorDescription = queryParams.get('error_description') || params.get('error_description');
+
+                // Her iki kaynaktan da token'ları kontrol et
+                let accessToken = hashParams.get('access_token') || queryParams.get('access_token');
+                let refreshToken = hashParams.get('refresh_token') || queryParams.get('refresh_token');
+                const error = hashParams.get('error') || queryParams.get('error');
+                const errorDescription = hashParams.get('error_description') || queryParams.get('error_description');
+
+                console.log('Access Token found:', !!accessToken);
+                console.log('Refresh Token found:', !!refreshToken);
+                console.log('Error:', error);
+
+                let redirectUrl = null;
 
                 if (error) {
-                    // Hata varsa app'e yönlendir
-                    window.location.href = 'diress://auth/callback?error=' + encodeURIComponent(errorDescription || error);
+                    redirectUrl = 'diress://auth/callback?error=' + encodeURIComponent(errorDescription || error);
+                    document.getElementById('status').textContent = 'Hata: ' + (errorDescription || error);
                 } else if (accessToken) {
-                    // Başarılı - token'larla app'e yönlendir
-                    let redirectUrl = 'diress://auth/callback#access_token=' + accessToken;
+                    // Token'ları query param olarak gönder (hash yerine, daha güvenilir)
+                    redirectUrl = 'diress://auth/callback?access_token=' + encodeURIComponent(accessToken);
                     if (refreshToken) {
-                        redirectUrl += '&refresh_token=' + refreshToken;
+                        redirectUrl += '&refresh_token=' + encodeURIComponent(refreshToken);
                     }
-                    window.location.href = redirectUrl;
                 } else {
-                    // Token yok, belki henüz gelmedi
-                    document.querySelector('p').textContent = 'Giriş işlemi tamamlanamadı. Lütfen tekrar deneyin.';
+                    document.getElementById('status').textContent = 'Token bulunamadı. Lütfen tekrar deneyin.';
+                    console.log('No tokens found in URL');
                 }
 
-                // 5 saniye sonra hala buradaysak mesaj göster
-                setTimeout(function() {
-                    if (document.body) {
-                        document.querySelector('p').innerHTML = 'Uygulama açılmadıysa <a href="diress://">buraya tıklayın</a>';
-                    }
-                }, 5000);
+                if (redirectUrl) {
+                    console.log('Redirecting to:', redirectUrl);
+
+                    // Önce otomatik yönlendirme dene
+                    window.location.href = redirectUrl;
+
+                    // 2 saniye sonra manuel link göster
+                    setTimeout(function() {
+                        document.getElementById('status').textContent = 'Otomatik yönlendirme çalışmadıysa butona tıklayın';
+                        var link = document.getElementById('manualLink');
+                        link.href = redirectUrl;
+                        link.style.display = 'inline-block';
+                    }, 2000);
+                }
             </script>
         </body>
         </html>
