@@ -3929,7 +3929,8 @@ router.post("/generate", async (req, res) => {
         return res.status(400).json({
           success: false,
           result: {
-            message: "Referans görseli gereklidir.",
+            errorCode: "REFERENCE_IMAGE_REQUIRED",
+            message: "Reference image is required.",
           },
         });
       }
@@ -3952,7 +3953,8 @@ router.post("/generate", async (req, res) => {
         return res.status(400).json({
           success: false,
           result: {
-            message: "Yerel dosya için base64 data gönderilmelidir.",
+            errorCode: "LOCAL_FILE_BASE64_REQUIRED",
+            message: "Base64 data is required for local files.",
           },
         });
       }

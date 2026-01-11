@@ -121,25 +121,80 @@ router.post('/google', async (req, res) => {
     }
 });
 
-// Google Login için mobil app callback endpoint
-router.get('/google/callback', async (req, res) => {
-    const { access_token, refresh_token, error, error_description } = req.query;
+// Mobile app callback - Supabase'den gelen token'ları app'e yönlendir
+router.get('/callback', async (req, res) => {
+    // URL hash fragment'ı server'a gelmez, o yüzden HTML ile client-side redirect yapalım
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Redirecting...</title>
+            <meta charset="utf-8">
+            <style>
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                    margin: 0;
+                    background: #f5f5f5;
+                }
+                .container { text-align: center; }
+                .spinner {
+                    width: 40px;
+                    height: 40px;
+                    border: 3px solid #e5e5e5;
+                    border-top: 3px solid #333;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                    margin: 0 auto 20px;
+                }
+                @keyframes spin { to { transform: rotate(360deg); } }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="spinner"></div>
+                <p>Uygulamaya yönlendiriliyorsunuz...</p>
+            </div>
+            <script>
+                // URL'den hash fragment'ı al
+                const hash = window.location.hash.substring(1);
+                const params = new URLSearchParams(hash);
+                const accessToken = params.get('access_token');
+                const refreshToken = params.get('refresh_token');
 
-    if (error) {
-        // Hata varsa mobil app'e redirect et
-        return res.redirect(`diress://auth/callback?error=${encodeURIComponent(error_description || error)}`);
-    }
+                // Query params'tan da kontrol et
+                const queryParams = new URLSearchParams(window.location.search);
+                const error = queryParams.get('error') || params.get('error');
+                const errorDescription = queryParams.get('error_description') || params.get('error_description');
 
-    if (access_token) {
-        // Başarılı ise token'larla mobil app'e redirect et
-        let redirectUrl = `diress://auth/callback#access_token=${access_token}`;
-        if (refresh_token) {
-            redirectUrl += `&refresh_token=${refresh_token}`;
-        }
-        return res.redirect(redirectUrl);
-    }
+                if (error) {
+                    // Hata varsa app'e yönlendir
+                    window.location.href = 'diress://auth/callback?error=' + encodeURIComponent(errorDescription || error);
+                } else if (accessToken) {
+                    // Başarılı - token'larla app'e yönlendir
+                    let redirectUrl = 'diress://auth/callback#access_token=' + accessToken;
+                    if (refreshToken) {
+                        redirectUrl += '&refresh_token=' + refreshToken;
+                    }
+                    window.location.href = redirectUrl;
+                } else {
+                    // Token yok, belki henüz gelmedi
+                    document.querySelector('p').textContent = 'Giriş işlemi tamamlanamadı. Lütfen tekrar deneyin.';
+                }
 
-    res.status(400).json({ success: false, error: 'No tokens received' });
+                // 5 saniye sonra hala buradaysak mesaj göster
+                setTimeout(function() {
+                    if (document.body) {
+                        document.querySelector('p').innerHTML = 'Uygulama açılmadıysa <a href="diress://">buraya tıklayın</a>';
+                    }
+                }, 5000);
+            </script>
+        </body>
+        </html>
+    `);
 });
 
 module.exports = router;
