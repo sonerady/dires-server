@@ -97,19 +97,49 @@ router.post('/google', async (req, res) => {
     const { redirectTo } = req.body;
 
     try {
+        // Mobile app deep link için redirect URL
+        const finalRedirectTo = redirectTo || 'https://egpfenrpripkjpemjxtg.supabase.co/auth/v1/callback';
+
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: redirectTo || undefined,
+                redirectTo: finalRedirectTo,
+                queryParams: {
+                    access_type: 'offline',
+                    prompt: 'consent',
+                },
             },
         });
 
         if (error) throw error;
 
+        console.log('[Auth] Google OAuth URL generated, redirectTo:', finalRedirectTo);
         res.json({ success: true, url: data.url });
     } catch (error) {
+        console.error('[Auth] Google OAuth error:', error);
         res.status(400).json({ success: false, error: error.message });
     }
+});
+
+// Google Login için mobil app callback endpoint
+router.get('/google/callback', async (req, res) => {
+    const { access_token, refresh_token, error, error_description } = req.query;
+
+    if (error) {
+        // Hata varsa mobil app'e redirect et
+        return res.redirect(`diress://auth/callback?error=${encodeURIComponent(error_description || error)}`);
+    }
+
+    if (access_token) {
+        // Başarılı ise token'larla mobil app'e redirect et
+        let redirectUrl = `diress://auth/callback#access_token=${access_token}`;
+        if (refresh_token) {
+            redirectUrl += `&refresh_token=${refresh_token}`;
+        }
+        return res.redirect(redirectUrl);
+    }
+
+    res.status(400).json({ success: false, error: 'No tokens received' });
 });
 
 module.exports = router;
