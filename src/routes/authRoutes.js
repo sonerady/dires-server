@@ -104,7 +104,66 @@ router.post("/sync-user", async (req, res) => {
       });
     }
 
-    // 3. Supabase Auth kullanıcısı yok - Account Linking dene
+    // 2.5 EMAIL İLE ACCOUNT LINKING: Aynı email ile farklı provider'dan giriş
+    // Örn: Önce email/password ile kayıt, sonra Google ile giriş (aynı email)
+    if (email) {
+      const { data: existingEmailUser, error: emailFetchError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("email", email)
+        .single();
+
+      if (!emailFetchError && existingEmailUser) {
+        console.log(`🔗 [AUTH] Found existing user with same email, linking: ${existingEmailUser.id}`);
+        console.log(`   Old provider: ${existingEmailUser.auth_provider}, New provider: ${provider}`);
+        console.log(`   Old supabase_user_id: ${existingEmailUser.supabase_user_id}, New: ${supabaseUserId}`);
+
+        // Mevcut kullanıcıyı yeni Supabase Auth ID'sine bağla
+        const updateData = {
+          supabase_user_id: supabaseUserId,
+        };
+        if (fullName) updateData.full_name = fullName;
+        if (avatarUrl) updateData.avatar_url = avatarUrl;
+        // Provider'ı güncelle (artık multi-provider olabilir)
+        if (provider) updateData.auth_provider = provider;
+
+        const { data: linkedUser, error: linkError } = await supabase
+          .from("users")
+          .update(updateData)
+          .eq("id", existingEmailUser.id)
+          .select()
+          .single();
+
+        if (linkError) {
+          console.error("❌ [AUTH] Error linking user by email:", linkError);
+          return res.status(500).json({
+            success: false,
+            message: "Error linking user by email",
+            error: linkError.message,
+          });
+        }
+
+        console.log("✅ [AUTH] Account linked by email successfully:", linkedUser.id);
+
+        return res.status(200).json({
+          success: true,
+          message: "Account linked by email successfully",
+          user: {
+            id: linkedUser.id,
+            supabaseUserId: linkedUser.supabase_user_id,
+            email: linkedUser.email,
+            fullName: linkedUser.full_name,
+            creditBalance: linkedUser.credit_balance,
+            avatarUrl: linkedUser.avatar_url,
+          },
+          isNewUser: false,
+          isLinked: true,
+          wasEmailLinked: true,
+        });
+      }
+    }
+
+    // 3. Supabase Auth kullanıcısı yok ve email ile de bulunamadı - Account Linking dene
     if (existingUserId) {
       // Mevcut anonim kullanıcıyı bul
       const { data: anonymousUser, error: anonError } = await supabase
