@@ -118,6 +118,39 @@ router.post("/sync-user", async (req, res) => {
         console.log(`   Old provider: ${existingEmailUser.auth_provider}, New provider: ${provider}`);
         console.log(`   Old supabase_user_id: ${existingEmailUser.supabase_user_id}, New: ${supabaseUserId}`);
 
+        // 🔀 HESAP BİRLEŞTİRME: Email user VE anonymous user varsa kredileri birleştir
+        let mergedCredits = 0;
+        let wasMerged = false;
+
+        if (existingUserId && existingUserId !== existingEmailUser.id) {
+          // Anonymous user'ı kontrol et
+          const { data: anonymousUser, error: anonError } = await supabase
+            .from("users")
+            .select("*")
+            .eq("id", existingUserId)
+            .single();
+
+          if (!anonError && anonymousUser && !anonymousUser.merged_into_user_id) {
+            console.log(`🔀 [AUTH] MERGING accounts: anonymous=${existingUserId} → email=${existingEmailUser.id}`);
+            console.log(`   Anonymous credits: ${anonymousUser.credit_balance}`);
+            console.log(`   Email user credits: ${existingEmailUser.credit_balance}`);
+
+            mergedCredits = anonymousUser.credit_balance || 0;
+            wasMerged = true;
+
+            // Anonymous user'ı merged olarak işaretle
+            await supabase
+              .from("users")
+              .update({
+                merged_into_user_id: existingEmailUser.id,
+                merged_at: new Date().toISOString(),
+              })
+              .eq("id", existingUserId);
+
+            console.log(`✅ [AUTH] Anonymous user marked as merged`);
+          }
+        }
+
         // Mevcut kullanıcıyı yeni Supabase Auth ID'sine bağla
         const updateData = {
           supabase_user_id: supabaseUserId,
@@ -126,6 +159,12 @@ router.post("/sync-user", async (req, res) => {
         if (avatarUrl) updateData.avatar_url = avatarUrl;
         // Provider'ı güncelle (artık multi-provider olabilir)
         if (provider) updateData.auth_provider = provider;
+
+        // Kredileri birleştir
+        if (wasMerged && mergedCredits > 0) {
+          updateData.credit_balance = (existingEmailUser.credit_balance || 0) + mergedCredits;
+          console.log(`💰 [AUTH] Merged credits: ${existingEmailUser.credit_balance} + ${mergedCredits} = ${updateData.credit_balance}`);
+        }
 
         const { data: linkedUser, error: linkError } = await supabase
           .from("users")
@@ -147,7 +186,7 @@ router.post("/sync-user", async (req, res) => {
 
         return res.status(200).json({
           success: true,
-          message: "Account linked by email successfully",
+          message: wasMerged ? "Accounts merged successfully" : "Account linked by email successfully",
           user: {
             id: linkedUser.id,
             supabaseUserId: linkedUser.supabase_user_id,
@@ -155,10 +194,13 @@ router.post("/sync-user", async (req, res) => {
             fullName: linkedUser.full_name,
             creditBalance: linkedUser.credit_balance,
             avatarUrl: linkedUser.avatar_url,
+            isPro: linkedUser.is_pro,
           },
           isNewUser: false,
           isLinked: true,
           wasEmailLinked: true,
+          wasMerged,
+          mergedCredits: wasMerged ? mergedCredits : 0,
         });
       }
     }
@@ -933,7 +975,94 @@ async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, p
     };
   }
 
-  // 3. Account Linking dene
+  // 3. Email ile mevcut kullanıcı var mı kontrol et (farklı provider ile kayıtlı olabilir)
+  if (email) {
+    const { data: existingEmailUser, error: emailError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", email)
+      .single();
+
+    if (!emailError && existingEmailUser) {
+      console.log(`🔗 [HELPER] User found by email: ${email}, updating supabase_user_id`);
+
+      // 🔀 HESAP BİRLEŞTİRME: Email user VE anonymous user varsa kredileri birleştir
+      let mergedCredits = 0;
+      let wasMerged = false;
+
+      if (existingUserId && existingUserId !== existingEmailUser.id) {
+        // Anonymous user'ı kontrol et
+        const { data: anonymousUser, error: anonError } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", existingUserId)
+          .single();
+
+        if (!anonError && anonymousUser && !anonymousUser.merged_into_user_id) {
+          console.log(`🔀 [HELPER] MERGING accounts: anonymous=${existingUserId} → email=${existingEmailUser.id}`);
+          console.log(`   Anonymous credits: ${anonymousUser.credit_balance}`);
+          console.log(`   Email user credits: ${existingEmailUser.credit_balance}`);
+
+          mergedCredits = anonymousUser.credit_balance || 0;
+          wasMerged = true;
+
+          // Anonymous user'ı merged olarak işaretle
+          await supabase
+            .from("users")
+            .update({
+              merged_into_user_id: existingEmailUser.id,
+              merged_at: new Date().toISOString(),
+            })
+            .eq("id", existingUserId);
+
+          console.log(`✅ [HELPER] Anonymous user marked as merged`);
+        }
+      }
+
+      // Email user'ı güncelle
+      const updateData = { supabase_user_id: supabaseUserId };
+      if (fullName) updateData.full_name = fullName;
+      if (avatarUrl) updateData.avatar_url = avatarUrl;
+      if (provider) updateData.auth_provider = provider;
+
+      // Kredileri birleştir
+      if (wasMerged && mergedCredits > 0) {
+        updateData.credit_balance = (existingEmailUser.credit_balance || 0) + mergedCredits;
+        console.log(`💰 [HELPER] Merged credits: ${existingEmailUser.credit_balance} + ${mergedCredits} = ${updateData.credit_balance}`);
+      }
+
+      const { data: linkedUser, error: updateError } = await supabase
+        .from("users")
+        .update(updateData)
+        .eq("id", existingEmailUser.id)
+        .select()
+        .single();
+
+      if (updateError) {
+        throw new Error("Error linking user by email");
+      }
+
+      return {
+        user: {
+          id: linkedUser.id,
+          supabaseUserId: linkedUser.supabase_user_id,
+          email: linkedUser.email,
+          fullName: linkedUser.full_name,
+          creditBalance: linkedUser.credit_balance,
+          avatarUrl: linkedUser.avatar_url,
+          isPro: linkedUser.is_pro,
+        },
+        isNewUser: false,
+        isLinked: true,
+        wasAnonymous: false,
+        wasEmailLinked: true,
+        wasMerged: wasMerged,
+        mergedCredits: mergedCredits,
+      };
+    }
+  }
+
+  // 4. Anonymous user ile Account Linking dene (email yoksa veya email match olmadıysa)
   if (existingUserId) {
     const { data: anonymousUser, error: anonError } = await supabase
       .from("users")
@@ -978,7 +1107,7 @@ async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, p
     }
   }
 
-  // 4. Yeni kullanıcı oluştur
+  // 5. Yeni kullanıcı oluştur
   const newUserId = uuidv4();
   const insertData = {
     id: newUserId,
