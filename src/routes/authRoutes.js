@@ -98,6 +98,7 @@ router.post("/sync-user", async (req, res) => {
           fullName: updatedUser.full_name,
           creditBalance: updatedUser.credit_balance,
           avatarUrl: updatedUser.avatar_url,
+          isPro: updatedUser.is_pro,
         },
         isNewUser: false,
         isLinked: true,
@@ -259,6 +260,7 @@ router.post("/sync-user", async (req, res) => {
               fullName: linkedUser.full_name,
               creditBalance: linkedUser.credit_balance,
               avatarUrl: linkedUser.avatar_url,
+              isPro: linkedUser.is_pro,
             },
             isNewUser: false,
             isLinked: true,
@@ -314,6 +316,7 @@ router.post("/sync-user", async (req, res) => {
         fullName: newUser.full_name,
         creditBalance: newUser.credit_balance,
         avatarUrl: newUser.avatar_url,
+        isPro: newUser.is_pro,
       },
       isNewUser: true,
       isLinked: true,
@@ -365,6 +368,7 @@ router.get("/user/:supabaseUserId", async (req, res) => {
         creditBalance: user.credit_balance,
         avatarUrl: user.avatar_url,
         authProvider: user.auth_provider,
+        isPro: user.is_pro,
       },
     });
   } catch (error) {
