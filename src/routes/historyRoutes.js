@@ -13,6 +13,14 @@ const optimizeImageForThumbnail = (imageUrl) => {
 
   // Supabase storage URL'si ise thumbnail boyutu ekle
   if (imageUrl.includes("supabase.co")) {
+    // URL'de zaten query parametreleri varsa ekleme
+    if (imageUrl.includes("?")) {
+      // Sadece render URL'sine çevir, parametreleri koruyarak
+      return imageUrl.replace(
+        "/storage/v1/object/public/",
+        "/storage/v1/render/image/public/"
+      );
+    }
     return (
       imageUrl.replace(
         "/storage/v1/object/public/",
