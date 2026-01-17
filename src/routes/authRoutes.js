@@ -318,6 +318,106 @@ router.post("/sync-user", async (req, res) => {
 });
 
 /**
+ * Pro status transfer et (hesap değişikliğinde)
+ *
+ * Kullanıcı anonim hesaptan email hesabına geçtiğinde,
+ * eski hesaptaki Pro status yeni hesaba transfer edilir.
+ * RevenueCat restorePurchases() ile birlikte çalışır.
+ */
+router.post("/transfer-pro", async (req, res) => {
+  try {
+    const { fromUserId, toUserId } = req.body;
+
+    if (!fromUserId || !toUserId) {
+      return res.status(400).json({
+        success: false,
+        message: "fromUserId and toUserId are required",
+      });
+    }
+
+    console.log(`🔄 [AUTH] Transferring Pro status: ${fromUserId} → ${toUserId}`);
+
+    // 1. Eski hesabın Pro durumunu kontrol et
+    const { data: fromUser, error: fromError } = await supabase
+      .from("users")
+      .select("id, is_pro, email")
+      .eq("id", fromUserId)
+      .single();
+
+    if (fromError || !fromUser) {
+      console.warn("⚠️ [AUTH] Source user not found:", fromUserId);
+      return res.status(404).json({
+        success: false,
+        message: "Source user not found",
+      });
+    }
+
+    // 2. Eski hesap Pro değilse transfer gerekmiyor
+    if (!fromUser.is_pro) {
+      console.log("ℹ️ [AUTH] Source user is not Pro, no transfer needed");
+      return res.status(200).json({
+        success: true,
+        message: "No Pro status to transfer",
+        transferred: false,
+      });
+    }
+
+    // 3. Eski hesabı Pro'dan çıkar
+    const { error: updateFromError } = await supabase
+      .from("users")
+      .update({ is_pro: false })
+      .eq("id", fromUserId);
+
+    if (updateFromError) {
+      console.error("❌ [AUTH] Error updating source user:", updateFromError);
+      return res.status(500).json({
+        success: false,
+        message: "Error updating source user",
+        error: updateFromError.message,
+      });
+    }
+
+    // 4. Yeni hesabı Pro yap
+    const { error: updateToError } = await supabase
+      .from("users")
+      .update({ is_pro: true })
+      .eq("id", toUserId);
+
+    if (updateToError) {
+      console.error("❌ [AUTH] Error updating target user:", updateToError);
+      // Rollback: eski hesabı tekrar Pro yap
+      await supabase
+        .from("users")
+        .update({ is_pro: true })
+        .eq("id", fromUserId);
+
+      return res.status(500).json({
+        success: false,
+        message: "Error updating target user",
+        error: updateToError.message,
+      });
+    }
+
+    console.log(`✅ [AUTH] Pro status transferred: ${fromUserId} (false) → ${toUserId} (true)`);
+
+    return res.status(200).json({
+      success: true,
+      message: "Pro status transferred successfully",
+      transferred: true,
+      fromUserId,
+      toUserId,
+    });
+  } catch (error) {
+    console.error("❌ [AUTH] Transfer Pro error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+});
+
+/**
  * Supabase user ID ile kullanıcı bilgilerini al
  */
 router.get("/user/:supabaseUserId", async (req, res) => {
