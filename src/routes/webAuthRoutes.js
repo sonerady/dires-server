@@ -240,6 +240,30 @@ router.post('/google', async (req, res) => {
     }
 });
 
+// Apple Login (Get OAuth URL)
+router.post('/apple', async (req, res) => {
+    const { redirectTo } = req.body;
+
+    try {
+        const finalRedirectTo = redirectTo || 'https://egpfenrpripkjpemjxtg.supabase.co/auth/v1/callback';
+
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'apple',
+            options: {
+                redirectTo: finalRedirectTo,
+            },
+        });
+
+        if (error) throw error;
+
+        console.log('[Auth] Apple OAuth URL generated, redirectTo:', finalRedirectTo);
+        res.json({ success: true, url: data.url });
+    } catch (error) {
+        console.error('[Auth] Apple OAuth error:', error);
+        res.status(400).json({ success: false, error: error.message });
+    }
+});
+
 // Mobile app callback - Supabase'den gelen token'ları app'e yönlendir
 router.get('/callback', async (req, res) => {
     // URL hash fragment'ı server'a gelmez, o yüzden HTML ile client-side redirect yapalım
