@@ -964,6 +964,7 @@ router.get("/session/:userId", async (req, res) => {
         id: user.id,
         email: user.email,
         fullName: user.full_name,
+        companyName: user.company_name,
         creditBalance: user.credit_balance,
         avatarUrl: user.avatar_url,
         authProvider: user.auth_provider,
@@ -972,6 +973,76 @@ router.get("/session/:userId", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ [AUTH] Session check error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * Kullanıcı profil bilgilerini güncelle
+ * Company name, full name gibi alanları günceller
+ */
+router.post("/update-profile", async (req, res) => {
+  try {
+    const { userId, companyName, fullName } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "userId is required",
+      });
+    }
+
+    console.log("🔄 [AUTH] Updating user profile:", userId);
+
+    // Güncellenecek alanları belirle
+    const updateData = {};
+    if (companyName !== undefined) updateData.company_name = companyName;
+    if (fullName !== undefined) updateData.full_name = fullName;
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No fields to update",
+      });
+    }
+
+    // Users tablosunu güncelle
+    const { data: updatedUser, error: updateError } = await supabase
+      .from("users")
+      .update(updateData)
+      .eq("id", userId)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error("❌ [AUTH] Error updating user profile:", updateError);
+      return res.status(500).json({
+        success: false,
+        message: "Error updating user profile",
+        error: updateError.message,
+      });
+    }
+
+    console.log("✅ [AUTH] User profile updated:", updatedUser.id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        fullName: updatedUser.full_name,
+        companyName: updatedUser.company_name,
+        creditBalance: updatedUser.credit_balance,
+        isPro: updatedUser.is_pro,
+      },
+    });
+  } catch (error) {
+    console.error("❌ [AUTH] Update profile error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error",
