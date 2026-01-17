@@ -418,6 +418,69 @@ router.post("/transfer-pro", async (req, res) => {
 });
 
 /**
+ * RevenueCat'ten Pro durumunu senkronize et
+ * Login sırasında client RevenueCat'ten aktif abonelik kontrolü yapar
+ * ve bu endpoint ile backend'deki is_pro'yu günceller
+ */
+router.post("/sync-pro-status", async (req, res) => {
+  try {
+    const { userId, isPro, entitlements } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "userId is required",
+      });
+    }
+
+    console.log(`🔄 [AUTH] Syncing Pro status for user ${userId}:`, {
+      isPro,
+      entitlements,
+    });
+
+    // Users tablosunu güncelle
+    const { data: updatedUser, error: updateError } = await supabase
+      .from("users")
+      .update({
+        is_pro: isPro,
+        // Opsiyonel: subscription bilgisini de kaydedebiliriz
+        subscription_type: isPro && entitlements?.length > 0 ? entitlements[0] : null,
+      })
+      .eq("id", userId)
+      .select("id, is_pro, subscription_type")
+      .single();
+
+    if (updateError) {
+      console.error("❌ [AUTH] Error syncing Pro status:", updateError);
+      return res.status(500).json({
+        success: false,
+        message: "Error syncing Pro status",
+        error: updateError.message,
+      });
+    }
+
+    console.log(`✅ [AUTH] Pro status synced: ${userId} → is_pro: ${isPro}`);
+
+    return res.status(200).json({
+      success: true,
+      message: "Pro status synced successfully",
+      user: {
+        id: updatedUser.id,
+        isPro: updatedUser.is_pro,
+        subscriptionType: updatedUser.subscription_type,
+      },
+    });
+  } catch (error) {
+    console.error("❌ [AUTH] Sync Pro status error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+});
+
+/**
  * Supabase user ID ile kullanıcı bilgilerini al
  */
 router.get("/user/:supabaseUserId", async (req, res) => {
