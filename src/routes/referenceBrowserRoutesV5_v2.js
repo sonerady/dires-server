@@ -504,11 +504,7 @@ async function ensureRemoteReferenceImage(imageEntry, userId) {
         "Yerel dosya path'i desteklenmiyor. Base64 data gönderilmelidir."
       );
     }
-    return {
-      uri: sanitizeImageUrl(imageEntry),
-      base64: null,
-      alreadyUploaded: false,
-    };
+    return { uri: sanitizeImageUrl(imageEntry), base64: null, alreadyUploaded: false };
   }
 
   const result = { ...imageEntry };
@@ -883,22 +879,12 @@ async function uploadReferenceImagesToSupabase(referenceImages, userId) {
         // 🚀 OPTIMIZE: Eğer resim zaten ensureRemoteReferenceImage tarafından upload edildiyse
         // tekrar upload etme, sadece URL ve base64'ü kullan
         if (referenceImage.alreadyUploaded) {
-          console.log(
-            `🚀 [OPTIMIZE] Reference image ${
-              i + 1
-            }: Zaten upload edilmiş, tekrar upload atlanıyor`
-          );
+          console.log(`🚀 [OPTIMIZE] Reference image ${i + 1}: Zaten upload edilmiş, tekrar upload atlanıyor`);
           uploadedUrls.push(referenceImage.uri);
           base64ForGemini = referenceImage.base64 || null;
           base64DataArray.push(base64ForGemini);
           if (base64ForGemini) {
-            console.log(
-              `✅ Reference image ${
-                i + 1
-              }: Mevcut base64 kullanılıyor - boyut: ${Math.round(
-                base64ForGemini.length / 1024
-              )} KB`
-            );
+            console.log(`✅ Reference image ${i + 1}: Mevcut base64 kullanılıyor - boyut: ${Math.round(base64ForGemini.length / 1024)} KB`);
           }
           continue;
         }
@@ -909,42 +895,25 @@ async function uploadReferenceImagesToSupabase(referenceImages, userId) {
         if (referenceImage.base64) {
           imageSourceForUpload = `data:image/jpeg;base64,${referenceImage.base64}`;
           base64ForGemini = referenceImage.base64; // 🚀 Gemini için sakla
-          console.log(
-            `📤 Reference image ${i + 1}: Client base64 kullanılıyor`
-          );
+          console.log(`📤 Reference image ${i + 1}: Client base64 kullanılıyor`);
         } else if (
           referenceImage.uri &&
           (referenceImage.uri.startsWith("http://") ||
-            referenceImage.uri.startsWith("https://"))
+          referenceImage.uri.startsWith("https://"))
         ) {
           // 🚀 HTTP URL'yi indir ve base64'e çevir - hem upload hem Gemini için kullan
           try {
-            console.log(
-              `🔄 Reference image ${
-                i + 1
-              }: HTTP URL'den indiriliyor (tek sefer)...`
-            );
+            console.log(`🔄 Reference image ${i + 1}: HTTP URL'den indiriliyor (tek sefer)...`);
             const cleanUrl = sanitizeImageUrl(referenceImage.uri);
             const imageResponse = await axios.get(cleanUrl, {
               responseType: "arraybuffer",
               timeout: 30000,
             });
-            base64ForGemini = Buffer.from(imageResponse.data).toString(
-              "base64"
-            );
+            base64ForGemini = Buffer.from(imageResponse.data).toString("base64");
             imageSourceForUpload = `data:image/jpeg;base64,${base64ForGemini}`;
-            console.log(
-              `✅ Reference image ${
-                i + 1
-              }: URL'den base64'e çevrildi - boyut: ${Math.round(
-                base64ForGemini.length / 1024
-              )} KB`
-            );
+            console.log(`✅ Reference image ${i + 1}: URL'den base64'e çevrildi - boyut: ${Math.round(base64ForGemini.length / 1024)} KB`);
           } catch (downloadErr) {
-            console.error(
-              `❌ Reference image ${i + 1}: İndirme hatası:`,
-              downloadErr.message
-            );
+            console.error(`❌ Reference image ${i + 1}: İndirme hatası:`, downloadErr.message);
             imageSourceForUpload = referenceImage.uri; // Fallback: orijinal URL
           }
         } else {
@@ -2914,9 +2883,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
       // Normal mod: Tek resim gönder
       if (originalBase64Data) {
         // 🚀 Orijinal base64 varsa direkt kullan - URL'den indirme yapma
-        console.log(
-          "🚀 [GEMINI] Orijinal base64 kullanılıyor - URL indirmesi atlandı"
-        );
+        console.log("🚀 [GEMINI] Orijinal base64 kullanılıyor - URL indirmesi atlandı");
         imageBuffers.push(Buffer.from(originalBase64Data, "base64"));
         console.log("🖼️ Referans görsel (base64) Gemini'ye eklendi");
       } else if (imageUrl) {
@@ -3131,27 +3098,13 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
 
           let bgColorEnglishVal = backgroundColorVal;
           const colorTranslationsVal = {
-            beyaz: "White",
-            siyah: "Black",
-            kırmızı: "Red",
-            mavi: "Blue",
-            yeşil: "Green",
-            sarı: "Yellow",
-            turuncu: "Orange",
-            mor: "Purple",
-            pembe: "Pink",
-            gri: "Gray",
-            kahverengi: "Brown",
-            bej: "Beige",
-            krem: "Cream",
-            lacivert: "Navy Blue",
+            beyaz: "White", siyah: "Black", kırmızı: "Red", mavi: "Blue",
+            yeşil: "Green", sarı: "Yellow", turuncu: "Orange", mor: "Purple",
+            pembe: "Pink", gri: "Gray", kahverengi: "Brown", bej: "Beige",
+            krem: "Cream", lacivert: "Navy Blue"
           };
-          if (
-            colorInputModeVal !== "hex" &&
-            colorTranslationsVal[backgroundColorVal?.toLowerCase()]
-          ) {
-            bgColorEnglishVal =
-              colorTranslationsVal[backgroundColorVal.toLowerCase()];
+          if (colorInputModeVal !== "hex" && colorTranslationsVal[backgroundColorVal?.toLowerCase()]) {
+            bgColorEnglishVal = colorTranslationsVal[backgroundColorVal.toLowerCase()];
           }
 
           const shadowTextVal = addShadowVal
@@ -3161,15 +3114,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
             ? "Add subtle reflection underneath for luxury catalog look."
             : "No reflection underneath.";
 
-          enhancedPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishVal} ${shadowTextVal}; ${reflectionTextVal} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishVal}, completely flat${
-            addShadowVal ? "" : ", shadowless"
-          }${
-            addReflectionVal ? "" : ", and non-reflective"
-          }, making the product appear ${
-            addShadowVal || addReflectionVal
-              ? "professionally presented"
-              : "to float cleanly"
-          }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
+          enhancedPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishVal} ${shadowTextVal}; ${reflectionTextVal} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishVal}, completely flat${addShadowVal ? "" : ", shadowless"}${addReflectionVal ? "" : ", and non-reflective"}, making the product appear ${addShadowVal || addReflectionVal ? "professionally presented" : "to float cleanly"}. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
 
           console.log("🔧 [REFINER-VALIDATION] Fallback prompt uygulandı");
         } else {
@@ -4419,11 +4364,7 @@ router.post("/generate", async (req, res) => {
     );
     const referenceImageUrls = uploadResult.urls;
     const referenceBase64Array = uploadResult.base64Array; // 🚀 Gemini için base64'ler
-    console.log(
-      `🚀 [OPTIMIZE] ${
-        referenceBase64Array.filter((b) => b).length
-      } adet base64 Gemini için hazır`
-    );
+    console.log(`🚀 [OPTIMIZE] ${referenceBase64Array.filter(b => b).length} adet base64 Gemini için hazır`);
 
     // 🆔 Generation ID oluştur (eğer client'ten gelmediyse)
     finalGenerationId = generationId || uuidv4();
@@ -4517,15 +4458,9 @@ router.post("/generate", async (req, res) => {
     let originalBase64ForGemini = referenceBase64Array?.[0] || null;
 
     if (originalBase64ForGemini) {
-      console.log(
-        "🚀 [BACKEND] Gemini için base64 hazır (upload sırasında alındı) - boyut:",
-        Math.round(originalBase64ForGemini.length / 1024),
-        "KB"
-      );
+      console.log("🚀 [BACKEND] Gemini için base64 hazır (upload sırasında alındı) - boyut:", Math.round(originalBase64ForGemini.length / 1024), "KB");
     } else {
-      console.log(
-        "⚠️ [BACKEND] Base64 bulunamadı - Gemini URL'den indirecek (fallback)"
-      );
+      console.log("⚠️ [BACKEND] Base64 bulunamadı - Gemini URL'den indirecek (fallback)");
     }
 
     let finalImage;
@@ -4631,9 +4566,7 @@ router.post("/generate", async (req, res) => {
 
       // Zaten upload edilmiş URL'yi kullan - tekrar upload YOK!
       finalImage = sanitizeImageUrl(referenceImageUrls[0]);
-      console.log(
-        "🚀 [OPTIMIZE] Tek resim için önceden upload edilen URL kullanıldı (çift upload önlendi)"
-      );
+      console.log("🚀 [OPTIMIZE] Tek resim için önceden upload edilen URL kullanıldı (çift upload önlendi)");
     }
 
     console.log("Supabase'den alınan final resim URL'si:", finalImage);
@@ -4775,11 +4708,7 @@ router.post("/generate", async (req, res) => {
       }
       backgroundRemovedImage = finalImage; // Orijinal image'ı kullan, arkaplan silme yok
       console.log(
-        isColorChange
-          ? "🎨 Color change prompt:"
-          : isRefinerMode
-          ? "🔧 Refiner prompt:"
-          : "🕺 Pose change prompt:",
+        isColorChange ? "🎨 Color change prompt:" : isRefinerMode ? "🔧 Refiner prompt:" : "🕺 Pose change prompt:",
         enhancedPrompt
       );
     } else if (!isPoseChange) {

@@ -510,7 +510,12 @@ async function ensureRemoteReferenceImage(imageEntry, userId) {
   const result = { ...imageEntry };
   const currentUri = result.uri || result.url || null;
 
-  if (currentUri && currentUri.startsWith("file://")) {
+  // file:// veya blob: URL'leri için base64 upload gerekir
+  const needsUpload =
+    currentUri &&
+    (currentUri.startsWith("file://") || currentUri.startsWith("blob:"));
+
+  if (needsUpload) {
     if (result.base64) {
       const uploadSource = `data:image/jpeg;base64,${result.base64}`;
       const uploadedUrl = await uploadReferenceImageToSupabase(
@@ -519,9 +524,17 @@ async function ensureRemoteReferenceImage(imageEntry, userId) {
       );
       result.uri = uploadedUrl;
       delete result.base64;
+      console.log(
+        `📤 [UPLOAD] ${
+          currentUri.startsWith("blob:") ? "Blob" : "File"
+        } URL Supabase'e yüklendi:`,
+        uploadedUrl?.slice(0, 60)
+      );
     } else {
       throw new Error(
-        "Yerel dosya path'i tespit edildi ancak base64 verisi bulunamadı."
+        `${
+          currentUri.startsWith("blob:") ? "Blob" : "Yerel dosya"
+        } path'i tespit edildi ancak base64 verisi bulunamadı.`
       );
     }
   }
@@ -3009,6 +3022,79 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
         "🤖 [REPLICATE-GEMINI] Gemini'nin ürettiği prompt:",
         geminiGeneratedPrompt.substring(0, 200) + "..."
       );
+
+      // 🔧 REFINER MODE için Gemini yanıt validasyonu - yanlış format kontrolü
+      if (isRefinerMode) {
+        const lowerPrompt = geminiGeneratedPrompt.toLowerCase();
+        const hasWrongFormat =
+          lowerPrompt.includes("replace the flat-lay") ||
+          lowerPrompt.includes("replace the flatlay") ||
+          lowerPrompt.includes("onto a model") ||
+          lowerPrompt.includes("onto a child") ||
+          lowerPrompt.includes("onto a female") ||
+          lowerPrompt.includes("onto a male") ||
+          lowerPrompt.includes("garment replacement") ||
+          lowerPrompt.includes("worn by") ||
+          lowerPrompt.includes("wearing the garment");
+
+        if (hasWrongFormat) {
+          console.log(
+            "⚠️ [REFINER-VALIDATION] Gemini yanlış format üretmiş (model/garment replacement), fallback kullanılıyor"
+          );
+
+          const addShadowVal = settings?.addShadow ?? false;
+          const addReflectionVal = settings?.addReflection ?? false;
+          const backgroundColorVal = settings?.backgroundColor || "White";
+          const colorInputModeVal = settings?.colorInputMode || "text";
+
+          let bgColorEnglishVal = backgroundColorVal;
+          const colorTranslationsVal = {
+            beyaz: "White",
+            siyah: "Black",
+            kırmızı: "Red",
+            mavi: "Blue",
+            yeşil: "Green",
+            sarı: "Yellow",
+            turuncu: "Orange",
+            mor: "Purple",
+            pembe: "Pink",
+            gri: "Gray",
+            kahverengi: "Brown",
+            bej: "Beige",
+            krem: "Cream",
+            lacivert: "Navy Blue",
+          };
+          if (
+            colorInputModeVal !== "hex" &&
+            colorTranslationsVal[backgroundColorVal?.toLowerCase()]
+          ) {
+            bgColorEnglishVal =
+              colorTranslationsVal[backgroundColorVal.toLowerCase()];
+          }
+
+          const shadowTextVal = addShadowVal
+            ? "with soft natural shadow underneath for depth"
+            : "with no shadow - completely flat and clean";
+          const reflectionTextVal = addReflectionVal
+            ? "Add subtle reflection underneath for luxury catalog look."
+            : "No reflection underneath.";
+
+          enhancedPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishVal} ${shadowTextVal}; ${reflectionTextVal} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishVal}, completely flat${
+            addShadowVal ? "" : ", shadowless"
+          }${
+            addReflectionVal ? "" : ", and non-reflective"
+          }, making the product appear ${
+            addShadowVal || addReflectionVal
+              ? "professionally presented"
+              : "to float cleanly"
+          }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
+
+          console.log("🔧 [REFINER-VALIDATION] Fallback prompt uygulandı");
+        } else {
+          console.log("✅ [REFINER-VALIDATION] Gemini doğru format üretmiş");
+        }
+      }
+
       console.log(
         "✨ [REPLICATE-GEMINI] Final enhanced prompt (statik kurallarla) hazırlandı"
       );
@@ -3017,8 +3103,62 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
         "❌ [REPLICATE-GEMINI] All attempts failed:",
         geminiError.message
       );
-      // Fallback durumunda da statik kuralları ekle
-      const staticRules = `
+
+      // 🔧 REFINER MODE için özel catch fallback - Gemini tamamen başarısız olduğunda
+      if (isRefinerMode) {
+        console.log(
+          "🔧 [CATCH-REFINER] Gemini başarısız, refiner fallback prompt kullanılıyor"
+        );
+
+        const addShadowCatch = settings?.addShadow ?? false;
+        const addReflectionCatch = settings?.addReflection ?? false;
+        const backgroundColorCatch = settings?.backgroundColor || "White";
+        const colorInputModeCatch = settings?.colorInputMode || "text";
+
+        let bgColorEnglishCatch = backgroundColorCatch;
+        const colorTranslationsCatch = {
+          beyaz: "White",
+          siyah: "Black",
+          kırmızı: "Red",
+          mavi: "Blue",
+          yeşil: "Green",
+          sarı: "Yellow",
+          turuncu: "Orange",
+          mor: "Purple",
+          pembe: "Pink",
+          gri: "Gray",
+          kahverengi: "Brown",
+          bej: "Beige",
+          krem: "Cream",
+          lacivert: "Navy Blue",
+        };
+        if (
+          colorInputModeCatch !== "hex" &&
+          colorTranslationsCatch[backgroundColorCatch?.toLowerCase()]
+        ) {
+          bgColorEnglishCatch =
+            colorTranslationsCatch[backgroundColorCatch.toLowerCase()];
+        }
+
+        const shadowTextCatch = addShadowCatch
+          ? "with soft natural shadow underneath for depth"
+          : "with no shadow - completely flat and clean";
+        const reflectionTextCatch = addReflectionCatch
+          ? "Add subtle reflection underneath for luxury catalog look."
+          : "No reflection underneath.";
+
+        enhancedPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishCatch} ${shadowTextCatch}; ${reflectionTextCatch} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishCatch}, completely flat${
+          addShadowCatch ? "" : ", shadowless"
+        }${
+          addReflectionCatch ? "" : ", and non-reflective"
+        }, making the product appear ${
+          addShadowCatch || addReflectionCatch
+            ? "professionally presented"
+            : "to float cleanly"
+        }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
+      } else {
+        // Normal mode için fallback - statik kuralları ekle
+        const staticRules = `
 
 CRITICAL RULES:
 
@@ -3030,7 +3170,8 @@ Guarantee editorial-level clarity and detail, with no blur, dull tones, or artif
 
 Model, garment, and environment must integrate into one cohesive, seamless professional photo suitable for commercial catalogs and editorial campaigns.`;
 
-      enhancedPrompt = originalPrompt + staticRules;
+        enhancedPrompt = originalPrompt + staticRules;
+      }
     }
 
     // Eğer Gemini sonuç üretemediyse (enhancedPrompt orijinal prompt ile aynıysa) direkt fallback prompt kullan
@@ -3038,6 +3179,65 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
       console.log(
         "🔄 [FALLBACK] Gemini başarısız, detaylı fallback prompt kullanılıyor"
       );
+
+      // 🔧 REFINER MODE için özel fallback prompt - Model/garment replacement DEĞİL, ürün fotoğrafı iyileştirme
+      if (isRefinerMode) {
+        console.log(
+          "🔧 [FALLBACK-REFINER] Refiner mode fallback prompt kullanılıyor"
+        );
+
+        // Refiner settings'lerini al
+        const addShadow = settings?.addShadow ?? false;
+        const addReflection = settings?.addReflection ?? false;
+        const backgroundColor = settings?.backgroundColor || "White";
+        const colorInputMode = settings?.colorInputMode || "text";
+
+        // Background color için İngilizce çeviri (Türkçe renk isimleri için)
+        let bgColorEnglish = backgroundColor;
+        const colorTranslations = {
+          beyaz: "White",
+          siyah: "Black",
+          kırmızı: "Red",
+          mavi: "Blue",
+          yeşil: "Green",
+          sarı: "Yellow",
+          turuncu: "Orange",
+          mor: "Purple",
+          pembe: "Pink",
+          gri: "Gray",
+          kahverengi: "Brown",
+          bej: "Beige",
+          krem: "Cream",
+          lacivert: "Navy Blue",
+        };
+        if (
+          colorInputMode !== "hex" &&
+          colorTranslations[backgroundColor?.toLowerCase()]
+        ) {
+          bgColorEnglish = colorTranslations[backgroundColor.toLowerCase()];
+        }
+
+        // Shadow ve reflection açıklamaları
+        const shadowText = addShadow
+          ? "with soft natural shadow underneath for depth"
+          : "with no shadow - completely flat and clean";
+        const reflectionText = addReflection
+          ? "Add subtle reflection underneath for luxury catalog look."
+          : "No reflection underneath.";
+
+        const refinerFallbackPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglish} ${shadowText}; ${reflectionText} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglish}, completely flat${
+          addShadow ? "" : ", shadowless"
+        }${
+          addReflection ? "" : ", and non-reflective"
+        }, making the product appear ${
+          addShadow || addReflection
+            ? "professionally presented"
+            : "to float cleanly"
+        }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
+
+        console.log("🔧 [FALLBACK-REFINER] Generated refiner fallback prompt");
+        return refinerFallbackPrompt;
+      }
 
       // Settings'ten bilgileri çıkar
       const location = settings?.location;
@@ -3273,6 +3473,60 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
     console.log(
       "🔄 [FALLBACK] Enhanced prompt oluşturulamadı, detaylı fallback prompt kullanılıyor"
     );
+
+    // 🔧 REFINER MODE için özel catch fallback - Gemini hata verdiğinde
+    if (isRefinerMode) {
+      console.log(
+        "🔧 [CATCH-REFINER-ERROR] Gemini hatası, refiner fallback prompt kullanılıyor"
+      );
+
+      const addShadowCatchErr = settings?.addShadow ?? false;
+      const addReflectionCatchErr = settings?.addReflection ?? false;
+      const backgroundColorCatchErr = settings?.backgroundColor || "White";
+      const colorInputModeCatchErr = settings?.colorInputMode || "text";
+
+      let bgColorEnglishCatchErr = backgroundColorCatchErr;
+      const colorTranslationsCatchErr = {
+        beyaz: "White",
+        siyah: "Black",
+        kırmızı: "Red",
+        mavi: "Blue",
+        yeşil: "Green",
+        sarı: "Yellow",
+        turuncu: "Orange",
+        mor: "Purple",
+        pembe: "Pink",
+        gri: "Gray",
+        kahverengi: "Brown",
+        bej: "Beige",
+        krem: "Cream",
+        lacivert: "Navy Blue",
+      };
+      if (
+        colorInputModeCatchErr !== "hex" &&
+        colorTranslationsCatchErr[backgroundColorCatchErr?.toLowerCase()]
+      ) {
+        bgColorEnglishCatchErr =
+          colorTranslationsCatchErr[backgroundColorCatchErr.toLowerCase()];
+      }
+
+      const shadowTextCatchErr = addShadowCatchErr
+        ? "with soft natural shadow underneath for depth"
+        : "with no shadow - completely flat and clean";
+      const reflectionTextCatchErr = addReflectionCatchErr
+        ? "Add subtle reflection underneath for luxury catalog look."
+        : "No reflection underneath.";
+
+      return `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishCatchErr} ${shadowTextCatchErr}; ${reflectionTextCatchErr} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishCatchErr}, completely flat${
+        addShadowCatchErr ? "" : ", shadowless"
+      }${
+        addReflectionCatchErr ? "" : ", and non-reflective"
+      }, making the product appear ${
+        addShadowCatchErr || addReflectionCatchErr
+          ? "professionally presented"
+          : "to float cleanly"
+      }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
+    }
 
     // Statik kuralları fallback prompt'un sonuna da ekle
     const fallbackStaticRules = `
@@ -4440,7 +4694,11 @@ router.post("/generate", async (req, res) => {
       }
       backgroundRemovedImage = finalImage; // Orijinal image'ı kullan, arkaplan silme yok
       console.log(
-        isColorChange ? "🎨 Color change prompt:" : "🕺 Pose change prompt:",
+        isColorChange
+          ? "🎨 Color change prompt:"
+          : isRefinerMode
+          ? "🔧 Refiner prompt:"
+          : "🕺 Pose change prompt:",
         enhancedPrompt
       );
     } else if (!isPoseChange) {
