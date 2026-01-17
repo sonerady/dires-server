@@ -20,13 +20,20 @@ const appleJwksClient = jwksClient({
 
 /**
  * Supabase Auth ile giriş yapan kullanıcıyı backend users tablosuna senkronize et
- * Account Linking: Mevcut anonim hesabı Supabase Auth hesabına bağlar
  *
- * Akış:
- * 1. supabase_user_id ile mevcut kullanıcı var mı kontrol et
- * 2. Varsa → o kullanıcıyı döndür (zaten bağlı)
- * 3. Yoksa ve existingUserId geldiyse → anonim hesabı bağla (LINK)
- * 4. Yoksa ve existingUserId yoksa → yeni kullanıcı oluştur
+ * YENİ BASİTLEŞTİRİLMİŞ MANTIK (MERGE YOK):
+ *
+ * 1. Email ile users tablosunda kayıt var mı?
+ *    ├── VAR → O hesabı döndür (web'de veya başka cihazda oluşturulmuş)
+ *    └── YOK → Anonim hesaba email bağla (ilk kez kayıt)
+ *
+ * 2. Mobil'de logout yapılınca eski anonim hesaba geri dönülür (client tarafında)
+ *
+ * AVANTAJLAR:
+ * - Merge karmaşıklığı yok
+ * - Her hesap bağımsız kalır
+ * - RevenueCat ID'leri sabit kalır
+ * - Veri kaybı riski yok
  */
 router.post("/sync-user", async (req, res) => {
   try {
@@ -46,7 +53,7 @@ router.post("/sync-user", async (req, res) => {
       existingUserId: existingUserId || "none",
     });
 
-    // 1. Bu Supabase Auth kullanıcısı zaten var mı kontrol et
+    // 1. Bu Supabase Auth kullanıcısı zaten bağlı mı kontrol et
     const { data: existingAuthUser, error: fetchError } = await supabase
       .from("users")
       .select("*")
@@ -62,9 +69,9 @@ router.post("/sync-user", async (req, res) => {
       });
     }
 
-    // 2. Supabase Auth kullanıcısı zaten varsa → bilgileri güncelle ve döndür
+    // Supabase Auth kullanıcısı zaten varsa → bilgileri güncelle ve döndür
     if (existingAuthUser) {
-      console.log("✅ [AUTH] User already linked, updating:", existingAuthUser.id);
+      console.log("✅ [AUTH] User already linked, returning:", existingAuthUser.id);
 
       const updateData = {};
       if (email) updateData.email = email;
@@ -72,41 +79,56 @@ router.post("/sync-user", async (req, res) => {
       if (avatarUrl) updateData.avatar_url = avatarUrl;
       if (provider) updateData.auth_provider = provider;
 
-      const { data: updatedUser, error: updateError } = await supabase
-        .from("users")
-        .update(updateData)
-        .eq("supabase_user_id", supabaseUserId)
-        .select()
-        .single();
+      if (Object.keys(updateData).length > 0) {
+        const { data: updatedUser, error: updateError } = await supabase
+          .from("users")
+          .update(updateData)
+          .eq("supabase_user_id", supabaseUserId)
+          .select()
+          .single();
 
-      if (updateError) {
-        console.error("❌ [AUTH] Error updating user:", updateError);
-        return res.status(500).json({
-          success: false,
-          message: "Error updating user",
-          error: updateError.message,
-        });
+        if (updateError) {
+          console.error("❌ [AUTH] Error updating user:", updateError);
+        } else {
+          return res.status(200).json({
+            success: true,
+            message: "User updated successfully",
+            user: {
+              id: updatedUser.id,
+              supabaseUserId: updatedUser.supabase_user_id,
+              email: updatedUser.email,
+              fullName: updatedUser.full_name,
+              creditBalance: updatedUser.credit_balance,
+              avatarUrl: updatedUser.avatar_url,
+              isPro: updatedUser.is_pro,
+            },
+            isNewUser: false,
+            isLinked: true,
+            accountType: "existing_auth",
+          });
+        }
       }
 
       return res.status(200).json({
         success: true,
-        message: "User updated successfully",
+        message: "User found",
         user: {
-          id: updatedUser.id,
-          supabaseUserId: updatedUser.supabase_user_id,
-          email: updatedUser.email,
-          fullName: updatedUser.full_name,
-          creditBalance: updatedUser.credit_balance,
-          avatarUrl: updatedUser.avatar_url,
-          isPro: updatedUser.is_pro,
+          id: existingAuthUser.id,
+          supabaseUserId: existingAuthUser.supabase_user_id,
+          email: existingAuthUser.email,
+          fullName: existingAuthUser.full_name,
+          creditBalance: existingAuthUser.credit_balance,
+          avatarUrl: existingAuthUser.avatar_url,
+          isPro: existingAuthUser.is_pro,
         },
         isNewUser: false,
         isLinked: true,
+        accountType: "existing_auth",
       });
     }
 
-    // 2.5 EMAIL İLE ACCOUNT LINKING: Aynı email ile farklı provider'dan giriş
-    // Örn: Önce email/password ile kayıt, sonra Google ile giriş (aynı email)
+    // 2. EMAIL İLE HESAP KONTROLÜ
+    // Bu email ile daha önce kayıt yapılmış mı? (web'de veya başka cihazda)
     if (email) {
       const { data: existingEmailUser, error: emailFetchError } = await supabase
         .from("users")
@@ -115,57 +137,18 @@ router.post("/sync-user", async (req, res) => {
         .single();
 
       if (!emailFetchError && existingEmailUser) {
-        console.log(`🔗 [AUTH] Found existing user with same email, linking: ${existingEmailUser.id}`);
-        console.log(`   Old provider: ${existingEmailUser.auth_provider}, New provider: ${provider}`);
-        console.log(`   Old supabase_user_id: ${existingEmailUser.supabase_user_id}, New: ${supabaseUserId}`);
+        // ✅ Bu email ile hesap VAR → O hesabı aç (MERGE YOK)
+        console.log(`🔗 [AUTH] Found existing account with email: ${email}`);
+        console.log(`   Account ID: ${existingEmailUser.id}`);
+        console.log(`   Credits: ${existingEmailUser.credit_balance}`);
 
-        // 🔀 HESAP BİRLEŞTİRME: Email user VE anonymous user varsa kredileri birleştir
-        let mergedCredits = 0;
-        let wasMerged = false;
-
-        if (existingUserId && existingUserId !== existingEmailUser.id) {
-          // Anonymous user'ı kontrol et
-          const { data: anonymousUser, error: anonError } = await supabase
-            .from("users")
-            .select("*")
-            .eq("id", existingUserId)
-            .single();
-
-          if (!anonError && anonymousUser && !anonymousUser.merged_into_user_id) {
-            console.log(`🔀 [AUTH] MERGING accounts: anonymous=${existingUserId} → email=${existingEmailUser.id}`);
-            console.log(`   Anonymous credits: ${anonymousUser.credit_balance}`);
-            console.log(`   Email user credits: ${existingEmailUser.credit_balance}`);
-
-            mergedCredits = anonymousUser.credit_balance || 0;
-            wasMerged = true;
-
-            // Anonymous user'ı merged olarak işaretle
-            await supabase
-              .from("users")
-              .update({
-                merged_into_user_id: existingEmailUser.id,
-                merged_at: new Date().toISOString(),
-              })
-              .eq("id", existingUserId);
-
-            console.log(`✅ [AUTH] Anonymous user marked as merged`);
-          }
-        }
-
-        // Mevcut kullanıcıyı yeni Supabase Auth ID'sine bağla
+        // Supabase user ID'yi güncelle (farklı provider'dan giriş olabilir)
         const updateData = {
           supabase_user_id: supabaseUserId,
         };
-        if (fullName) updateData.full_name = fullName;
-        if (avatarUrl) updateData.avatar_url = avatarUrl;
-        // Provider'ı güncelle (artık multi-provider olabilir)
+        if (fullName && !existingEmailUser.full_name) updateData.full_name = fullName;
+        if (avatarUrl && !existingEmailUser.avatar_url) updateData.avatar_url = avatarUrl;
         if (provider) updateData.auth_provider = provider;
-
-        // Kredileri birleştir
-        if (wasMerged && mergedCredits > 0) {
-          updateData.credit_balance = (existingEmailUser.credit_balance || 0) + mergedCredits;
-          console.log(`💰 [AUTH] Merged credits: ${existingEmailUser.credit_balance} + ${mergedCredits} = ${updateData.credit_balance}`);
-        }
 
         const { data: linkedUser, error: linkError } = await supabase
           .from("users")
@@ -175,19 +158,19 @@ router.post("/sync-user", async (req, res) => {
           .single();
 
         if (linkError) {
-          console.error("❌ [AUTH] Error linking user by email:", linkError);
+          console.error("❌ [AUTH] Error linking user:", linkError);
           return res.status(500).json({
             success: false,
-            message: "Error linking user by email",
+            message: "Error linking user",
             error: linkError.message,
           });
         }
 
-        console.log("✅ [AUTH] Account linked by email successfully:", linkedUser.id);
+        console.log("✅ [AUTH] Existing email account opened:", linkedUser.id);
 
         return res.status(200).json({
           success: true,
-          message: wasMerged ? "Accounts merged successfully" : "Account linked by email successfully",
+          message: "Existing account opened successfully",
           user: {
             id: linkedUser.id,
             supabaseUserId: linkedUser.supabase_user_id,
@@ -199,16 +182,15 @@ router.post("/sync-user", async (req, res) => {
           },
           isNewUser: false,
           isLinked: true,
-          wasEmailLinked: true,
-          wasMerged,
-          mergedCredits: wasMerged ? mergedCredits : 0,
+          accountType: "existing_email",
+          // Mobil client'a anonim hesabı saklamasını söyle
+          preserveAnonymousAccount: existingUserId && existingUserId !== linkedUser.id,
         });
       }
     }
 
-    // 3. Supabase Auth kullanıcısı yok ve email ile de bulunamadı - Account Linking dene
+    // 3. Email ile hesap bulunamadı → Anonim hesaba email bağla (ilk kayıt)
     if (existingUserId) {
-      // Mevcut anonim kullanıcıyı bul
       const { data: anonymousUser, error: anonError } = await supabase
         .from("users")
         .select("*")
@@ -216,13 +198,13 @@ router.post("/sync-user", async (req, res) => {
         .single();
 
       if (!anonError && anonymousUser) {
-        // Anonim hesabın zaten başka bir Supabase hesabına bağlı olup olmadığını kontrol et
+        // Anonim hesap zaten başka bir Supabase Auth'a bağlıysa yeni hesap oluştur
         if (anonymousUser.supabase_user_id && anonymousUser.supabase_user_id !== supabaseUserId) {
-          console.log("⚠️ [AUTH] Anonymous user already linked to different Supabase account");
-          // Bu durumda yeni kullanıcı oluştur (aşağıda devam edecek)
+          console.log("⚠️ [AUTH] Anonymous user already linked to different account, creating new");
+          // Aşağıda yeni hesap oluşturulacak
         } else {
-          // 🔗 ACCOUNT LINKING: Anonim hesabı Supabase Auth'a bağla
-          console.log(`🔗 [AUTH] Linking anonymous user ${existingUserId} to Supabase Auth ${supabaseUserId}`);
+          // ✅ Anonim hesaba email bağla (İLK KAYIT)
+          console.log(`🔗 [AUTH] Linking email to anonymous account: ${existingUserId}`);
 
           const updateData = {
             supabase_user_id: supabaseUserId,
@@ -240,7 +222,7 @@ router.post("/sync-user", async (req, res) => {
             .single();
 
           if (linkError) {
-            console.error("❌ [AUTH] Error linking user:", linkError);
+            console.error("❌ [AUTH] Error linking anonymous user:", linkError);
             return res.status(500).json({
               success: false,
               message: "Error linking user",
@@ -248,11 +230,11 @@ router.post("/sync-user", async (req, res) => {
             });
           }
 
-          console.log("✅ [AUTH] Account linked successfully:", linkedUser.id);
+          console.log("✅ [AUTH] Email linked to anonymous account:", linkedUser.id);
 
           return res.status(200).json({
             success: true,
-            message: "Account linked successfully",
+            message: "Email linked to your account successfully",
             user: {
               id: linkedUser.id,
               supabaseUserId: linkedUser.supabase_user_id,
@@ -264,13 +246,15 @@ router.post("/sync-user", async (req, res) => {
             },
             isNewUser: false,
             isLinked: true,
-            wasAnonymous: true,
+            accountType: "anonymous_linked",
+            // Anonim hesap artık email'e bağlı, saklamaya gerek yok
+            preserveAnonymousAccount: false,
           });
         }
       }
     }
 
-    // 4. Yeni kullanıcı oluştur (linking yapılamadıysa veya existingUserId yoksa)
+    // 4. Yeni kullanıcı oluştur (web'den ilk kayıt veya anonim hesap bulunamadı)
     console.log("🆕 [AUTH] Creating new user");
 
     const newUserId = uuidv4();
@@ -320,6 +304,8 @@ router.post("/sync-user", async (req, res) => {
       },
       isNewUser: true,
       isLinked: true,
+      accountType: "new",
+      preserveAnonymousAccount: false,
     });
   } catch (error) {
     console.error("❌ [AUTH] Unexpected error:", error);
@@ -932,6 +918,17 @@ router.post("/logout", async (req, res) => {
 /**
  * Helper function: Kullanıcıyı backend users tablosuna senkronize et
  */
+/**
+ * Helper function: Kullanıcıyı backend'e senkronize et
+ *
+ * YENİ BASİTLEŞTİRİLMİŞ MANTIK (MERGE YOK):
+ *
+ * 1. Supabase Auth kullanıcısı zaten bağlı mı? → Güncelle ve döndür
+ * 2. Email ile users tablosunda kayıt var mı?
+ *    ├── VAR → O hesabı aç (MERGE YOK, anonim hesabı sakla)
+ *    └── YOK → Anonim hesaba email bağla (ilk kez kayıt)
+ * 3. Yeni kullanıcı oluştur (eğer hiçbir eşleşme yoksa)
+ */
 async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, provider, existingUserId }) {
   // 1. Bu Supabase Auth kullanıcısı zaten var mı kontrol et
   const { data: existingAuthUser, error: fetchError } = await supabase
@@ -944,42 +941,63 @@ async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, p
     throw new Error("Error checking user existence");
   }
 
-  // 2. Supabase Auth kullanıcısı zaten varsa → bilgileri güncelle ve döndür
+  // Supabase Auth kullanıcısı zaten varsa → bilgileri güncelle ve döndür
   if (existingAuthUser) {
+    console.log("✅ [HELPER] User already linked, returning:", existingAuthUser.id);
+
     const updateData = {};
     if (email) updateData.email = email;
     if (fullName) updateData.full_name = fullName;
     if (avatarUrl) updateData.avatar_url = avatarUrl;
     if (provider) updateData.auth_provider = provider;
 
-    const { data: updatedUser, error: updateError } = await supabase
-      .from("users")
-      .update(updateData)
-      .eq("supabase_user_id", supabaseUserId)
-      .select()
-      .single();
+    if (Object.keys(updateData).length > 0) {
+      const { data: updatedUser, error: updateError } = await supabase
+        .from("users")
+        .update(updateData)
+        .eq("supabase_user_id", supabaseUserId)
+        .select()
+        .single();
 
-    if (updateError) {
-      throw new Error("Error updating user");
+      if (updateError) {
+        throw new Error("Error updating user");
+      }
+
+      return {
+        user: {
+          id: updatedUser.id,
+          supabaseUserId: updatedUser.supabase_user_id,
+          email: updatedUser.email,
+          fullName: updatedUser.full_name,
+          creditBalance: updatedUser.credit_balance,
+          avatarUrl: updatedUser.avatar_url,
+          isPro: updatedUser.is_pro,
+        },
+        isNewUser: false,
+        isLinked: true,
+        wasAnonymous: false,
+        accountType: "existing_auth",
+      };
     }
 
     return {
       user: {
-        id: updatedUser.id,
-        supabaseUserId: updatedUser.supabase_user_id,
-        email: updatedUser.email,
-        fullName: updatedUser.full_name,
-        creditBalance: updatedUser.credit_balance,
-        avatarUrl: updatedUser.avatar_url,
-        isPro: updatedUser.is_pro,
+        id: existingAuthUser.id,
+        supabaseUserId: existingAuthUser.supabase_user_id,
+        email: existingAuthUser.email,
+        fullName: existingAuthUser.full_name,
+        creditBalance: existingAuthUser.credit_balance,
+        avatarUrl: existingAuthUser.avatar_url,
+        isPro: existingAuthUser.is_pro,
       },
       isNewUser: false,
       isLinked: true,
       wasAnonymous: false,
+      accountType: "existing_auth",
     };
   }
 
-  // 3. Email ile mevcut kullanıcı var mı kontrol et (farklı provider ile kayıtlı olabilir)
+  // 2. EMAIL İLE HESAP KONTROLÜ (NO MERGE - sadece o hesabı aç)
   if (email) {
     const { data: existingEmailUser, error: emailError } = await supabase
       .from("users")
@@ -988,63 +1006,31 @@ async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, p
       .single();
 
     if (!emailError && existingEmailUser) {
-      console.log(`🔗 [HELPER] User found by email: ${email}, updating supabase_user_id`);
+      // ✅ Bu email ile hesap VAR → O hesabı aç (MERGE YOK)
+      console.log(`🔗 [HELPER] Found existing account with email: ${email}`);
+      console.log(`   Account ID: ${existingEmailUser.id}`);
+      console.log(`   Credits: ${existingEmailUser.credit_balance}`);
 
-      // 🔀 HESAP BİRLEŞTİRME: Email user VE anonymous user varsa kredileri birleştir
-      let mergedCredits = 0;
-      let wasMerged = false;
-
-      if (existingUserId && existingUserId !== existingEmailUser.id) {
-        // Anonymous user'ı kontrol et
-        const { data: anonymousUser, error: anonError } = await supabase
-          .from("users")
-          .select("*")
-          .eq("id", existingUserId)
-          .single();
-
-        if (!anonError && anonymousUser && !anonymousUser.merged_into_user_id) {
-          console.log(`🔀 [HELPER] MERGING accounts: anonymous=${existingUserId} → email=${existingEmailUser.id}`);
-          console.log(`   Anonymous credits: ${anonymousUser.credit_balance}`);
-          console.log(`   Email user credits: ${existingEmailUser.credit_balance}`);
-
-          mergedCredits = anonymousUser.credit_balance || 0;
-          wasMerged = true;
-
-          // Anonymous user'ı merged olarak işaretle
-          await supabase
-            .from("users")
-            .update({
-              merged_into_user_id: existingEmailUser.id,
-              merged_at: new Date().toISOString(),
-            })
-            .eq("id", existingUserId);
-
-          console.log(`✅ [HELPER] Anonymous user marked as merged`);
-        }
-      }
-
-      // Email user'ı güncelle
-      const updateData = { supabase_user_id: supabaseUserId };
-      if (fullName) updateData.full_name = fullName;
-      if (avatarUrl) updateData.avatar_url = avatarUrl;
+      // Supabase user ID'yi güncelle
+      const updateData = {
+        supabase_user_id: supabaseUserId,
+      };
+      if (fullName && !existingEmailUser.full_name) updateData.full_name = fullName;
+      if (avatarUrl && !existingEmailUser.avatar_url) updateData.avatar_url = avatarUrl;
       if (provider) updateData.auth_provider = provider;
 
-      // Kredileri birleştir
-      if (wasMerged && mergedCredits > 0) {
-        updateData.credit_balance = (existingEmailUser.credit_balance || 0) + mergedCredits;
-        console.log(`💰 [HELPER] Merged credits: ${existingEmailUser.credit_balance} + ${mergedCredits} = ${updateData.credit_balance}`);
-      }
-
-      const { data: linkedUser, error: updateError } = await supabase
+      const { data: linkedUser, error: linkError } = await supabase
         .from("users")
         .update(updateData)
         .eq("id", existingEmailUser.id)
         .select()
         .single();
 
-      if (updateError) {
-        throw new Error("Error linking user by email");
+      if (linkError) {
+        throw new Error("Error linking user");
       }
+
+      console.log("✅ [HELPER] Existing email account opened:", linkedUser.id);
 
       return {
         user: {
@@ -1059,14 +1045,14 @@ async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, p
         isNewUser: false,
         isLinked: true,
         wasAnonymous: false,
-        wasEmailLinked: true,
-        wasMerged: wasMerged,
-        mergedCredits: mergedCredits,
+        accountType: "existing_email",
+        // Mobil client'a anonim hesabı saklamasını söyle (logout'ta geri dönmek için)
+        preserveAnonymousAccount: existingUserId && existingUserId !== linkedUser.id,
       };
     }
   }
 
-  // 4. Anonymous user ile Account Linking dene (email yoksa veya email match olmadıysa)
+  // 3. Email ile hesap bulunamadı → Anonim hesaba email bağla (ilk kayıt)
   if (existingUserId) {
     const { data: anonymousUser, error: anonError } = await supabase
       .from("users")
@@ -1075,8 +1061,17 @@ async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, p
       .single();
 
     if (!anonError && anonymousUser) {
-      if (!anonymousUser.supabase_user_id || anonymousUser.supabase_user_id === supabaseUserId) {
-        const updateData = { supabase_user_id: supabaseUserId };
+      // Anonim hesap zaten başka bir Supabase Auth'a bağlıysa yeni hesap oluştur
+      if (anonymousUser.supabase_user_id && anonymousUser.supabase_user_id !== supabaseUserId) {
+        console.log("⚠️ [HELPER] Anonymous user already linked to different account, creating new");
+        // Aşağıda yeni hesap oluşturulacak
+      } else {
+        // ✅ Anonim hesaba email bağla (İLK KAYIT)
+        console.log(`🔗 [HELPER] Linking email to anonymous account: ${existingUserId}`);
+
+        const updateData = {
+          supabase_user_id: supabaseUserId,
+        };
         if (email) updateData.email = email;
         if (fullName) updateData.full_name = fullName;
         if (avatarUrl) updateData.avatar_url = avatarUrl;
@@ -1093,6 +1088,8 @@ async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, p
           throw new Error("Error linking user");
         }
 
+        console.log("✅ [HELPER] Email linked to anonymous account:", linkedUser.id);
+
         return {
           user: {
             id: linkedUser.id,
@@ -1106,12 +1103,17 @@ async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, p
           isNewUser: false,
           isLinked: true,
           wasAnonymous: true,
+          accountType: "anonymous_linked",
+          // Anonim hesap artık email'e bağlı, saklamaya gerek yok
+          preserveAnonymousAccount: false,
         };
       }
     }
   }
 
-  // 5. Yeni kullanıcı oluştur
+  // 4. Yeni kullanıcı oluştur
+  console.log("🆕 [HELPER] Creating new user");
+
   const newUserId = uuidv4();
   const insertData = {
     id: newUserId,

@@ -1,8 +1,93 @@
 const express = require('express');
 const router = express.Router();
 const { supabase, supabaseAdmin } = require('../supabaseClient');
+const { v4: uuidv4 } = require("uuid");
 // const { Resend } = require('resend');
 // const resend = new Resend(process.env.RESEND_API_KEY);
+
+/**
+ * Helper: Supabase Auth kullanıcısını users tablosuna senkronize et
+ * Web login/signup sonrası çağrılır
+ */
+async function syncUserToUsersTable(supabaseUserId, email, fullName = null, provider = 'email') {
+    try {
+        console.log(`🔄 [WEB AUTH] Syncing user to users table: ${email}`);
+
+        // 1. Bu Supabase user ID ile kayıt var mı?
+        const { data: existingAuthUser, error: authError } = await supabase
+            .from("users")
+            .select("*")
+            .eq("supabase_user_id", supabaseUserId)
+            .single();
+
+        if (!authError && existingAuthUser) {
+            console.log(`✅ [WEB AUTH] User already exists in users table: ${existingAuthUser.id}`);
+            return { user: existingAuthUser, isNew: false };
+        }
+
+        // 2. Bu email ile kayıt var mı?
+        const { data: existingEmailUser, error: emailError } = await supabase
+            .from("users")
+            .select("*")
+            .eq("email", email)
+            .single();
+
+        if (!emailError && existingEmailUser) {
+            // Email ile kayıt var, supabase_user_id güncelle
+            console.log(`🔗 [WEB AUTH] Linking existing email user: ${existingEmailUser.id}`);
+
+            const { data: linkedUser, error: linkError } = await supabase
+                .from("users")
+                .update({
+                    supabase_user_id: supabaseUserId,
+                    auth_provider: provider,
+                })
+                .eq("id", existingEmailUser.id)
+                .select()
+                .single();
+
+            if (linkError) {
+                console.error(`❌ [WEB AUTH] Error linking user:`, linkError);
+                return { user: existingEmailUser, isNew: false };
+            }
+
+            return { user: linkedUser, isNew: false };
+        }
+
+        // 3. Yeni kullanıcı oluştur
+        console.log(`🆕 [WEB AUTH] Creating new user for: ${email}`);
+
+        const newUserId = uuidv4();
+        const { data: newUser, error: insertError } = await supabase
+            .from("users")
+            .insert([{
+                id: newUserId,
+                supabase_user_id: supabaseUserId,
+                email: email,
+                full_name: fullName,
+                auth_provider: provider,
+                credit_balance: 40, // Yeni kullanıcıya 40 kredi hediye
+                received_initial_credit: true,
+                initial_credit_date: new Date().toISOString(),
+                created_at: new Date().toISOString(),
+                owner: false,
+            }])
+            .select()
+            .single();
+
+        if (insertError) {
+            console.error(`❌ [WEB AUTH] Error creating user:`, insertError);
+            return { user: null, isNew: false, error: insertError };
+        }
+
+        console.log(`✅ [WEB AUTH] New user created: ${newUser.id}`);
+        return { user: newUser, isNew: true };
+
+    } catch (error) {
+        console.error(`❌ [WEB AUTH] Sync error:`, error);
+        return { user: null, isNew: false, error };
+    }
+}
 
 // Email/Password Login
 router.post('/login', async (req, res) => {
@@ -16,7 +101,23 @@ router.post('/login', async (req, res) => {
 
         if (error) throw error;
 
-        res.json({ success: true, data });
+        // Users tablosuna senkronize et
+        const { user: dbUser } = await syncUserToUsersTable(
+            data.user.id,
+            data.user.email,
+            data.user.user_metadata?.full_name,
+            'email'
+        );
+
+        res.json({
+            success: true,
+            data,
+            dbUser: dbUser ? {
+                id: dbUser.id,
+                creditBalance: dbUser.credit_balance,
+                isPro: dbUser.is_pro,
+            } : null
+        });
     } catch (error) {
         res.status(400).json({ success: false, error: error.message });
     }
@@ -63,7 +164,17 @@ router.post('/signup', async (req, res) => {
 
         console.log(`[Signup] User created and auto-confirmed. ID: ${createdUser.user.id}`);
 
-        // 2. Send Welcome Email via Resend (Optional, just for info)
+        // 2. Users tablosuna kayıt oluştur
+        const { user: dbUser, isNew } = await syncUserToUsersTable(
+            createdUser.user.id,
+            email,
+            options?.data?.company_name || options?.data?.full_name,
+            'email'
+        );
+
+        console.log(`[Signup] Users table sync: ${isNew ? 'created' : 'linked'}, ID: ${dbUser?.id}`);
+
+        // 3. Send Welcome Email via Resend (Optional, just for info)
         /*
         try {
             await resend.emails.send({
@@ -84,7 +195,15 @@ router.post('/signup', async (req, res) => {
         }
         */
 
-        res.json({ success: true, data: createdUser });
+        res.json({
+            success: true,
+            data: createdUser,
+            dbUser: dbUser ? {
+                id: dbUser.id,
+                creditBalance: dbUser.credit_balance,
+                isPro: dbUser.is_pro,
+            } : null
+        });
 
     } catch (error) {
         console.error("[Signup] Unexpected error:", error);
