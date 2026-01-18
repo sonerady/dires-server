@@ -8,7 +8,8 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const {
     getVerificationEmailTemplate,
     getMobileVerificationEmailTemplate,
-    getWelcomeEmailTemplate
+    getWelcomeEmailTemplate,
+    getPasswordResetTemplate
 } = require('../lib/emailTemplates');
 
 // Rate limiting için basit in-memory store
@@ -657,6 +658,200 @@ router.post('/resend-verification', async (req, res) => {
 
     } catch (error) {
         console.error("[Resend] Error:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Forgot Password - Send Reset Email
+router.post('/forgot-password', async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        if (!email || !email.includes('@')) {
+            return res.status(400).json({ success: false, error: "Please enter a valid email address." });
+        }
+
+        const trimmedEmail = email.trim();
+
+        // Rate limiting check (1 minute cooldown)
+        const rateLimitKey = `reset_${trimmedEmail}`;
+        const lastSent = rateLimitStore.get(rateLimitKey);
+        const now = Date.now();
+        const cooldownMs = 60 * 1000; // 60 seconds
+
+        if (lastSent && (now - lastSent) < cooldownMs) {
+            const waitSeconds = Math.ceil((cooldownMs - (now - lastSent)) / 1000);
+            return res.status(429).json({
+                success: false,
+                error: `Please wait ${waitSeconds} seconds before requesting another reset email`,
+                waitSeconds
+            });
+        }
+
+        console.log(`🔐 [Forgot Password] Request for: ${trimmedEmail}`);
+
+        // Find user by email
+        const { data: users } = await supabaseAdmin.auth.admin.listUsers();
+        const user = users?.users?.find(u => u.email === trimmedEmail);
+
+        if (!user) {
+            // Don't reveal if email exists or not for security
+            console.log(`[Forgot Password] User not found: ${trimmedEmail}`);
+            return res.json({
+                success: true,
+                message: "If an account exists with this email, you will receive a password reset link."
+            });
+        }
+
+        // Generate reset token
+        const resetToken = uuidv4();
+        const resetExpires = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
+
+        // Store reset token in user metadata
+        await supabaseAdmin.auth.admin.updateUserById(user.id, {
+            user_metadata: {
+                ...user.user_metadata,
+                reset_token: resetToken,
+                reset_expires: resetExpires,
+            }
+        });
+
+        // Send reset email
+        const resetUrl = `https://app.diress.ai/reset-password?token=${resetToken}&userId=${user.id}`;
+        const userName = user.user_metadata?.company_name || user.user_metadata?.full_name || trimmedEmail.split('@')[0];
+
+        await resend.emails.send({
+            from: 'Diress <noreply@diress.ai>',
+            to: [trimmedEmail],
+            subject: 'Reset your password - Diress',
+            html: getPasswordResetTemplate(resetUrl, userName)
+        });
+
+        // Update rate limit
+        rateLimitStore.set(rateLimitKey, now);
+
+        console.log(`✅ [Forgot Password] Reset email sent to: ${trimmedEmail}`);
+
+        res.json({
+            success: true,
+            message: "If an account exists with this email, you will receive a password reset link."
+        });
+
+    } catch (error) {
+        console.error("[Forgot Password] Error:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Reset Password - Verify token and set new password
+router.post('/reset-password', async (req, res) => {
+    const { token, userId, newPassword } = req.body;
+
+    try {
+        if (!token || !userId) {
+            return res.status(400).json({ success: false, error: "Invalid reset link." });
+        }
+
+        if (!newPassword || newPassword.length < 6) {
+            return res.status(400).json({ success: false, error: "Password must be at least 6 characters long." });
+        }
+
+        console.log(`🔐 [Reset Password] Attempt for user: ${userId}`);
+
+        // Get user
+        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
+
+        if (userError || !userData.user) {
+            return res.status(404).json({ success: false, error: "Invalid reset link." });
+        }
+
+        const user = userData.user;
+        const metadata = user.user_metadata || {};
+
+        // Verify token
+        if (metadata.reset_token !== token) {
+            return res.status(400).json({ success: false, error: "Invalid or expired reset link." });
+        }
+
+        // Check expiration
+        const expiresAt = new Date(metadata.reset_expires);
+        if (expiresAt < new Date()) {
+            return res.status(400).json({
+                success: false,
+                error: "Reset link has expired. Please request a new one.",
+                expired: true
+            });
+        }
+
+        // Update password
+        const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+            password: newPassword,
+            user_metadata: {
+                ...metadata,
+                reset_token: null,
+                reset_expires: null,
+            }
+        });
+
+        if (updateError) {
+            console.error("[Reset Password] Update error:", updateError);
+            return res.status(500).json({ success: false, error: "Failed to update password." });
+        }
+
+        console.log(`✅ [Reset Password] Password updated for: ${user.email}`);
+
+        res.json({
+            success: true,
+            message: "Password updated successfully. You can now sign in with your new password."
+        });
+
+    } catch (error) {
+        console.error("[Reset Password] Error:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Verify Reset Token (for checking if link is valid before showing form)
+router.post('/verify-reset-token', async (req, res) => {
+    const { token, userId } = req.body;
+
+    try {
+        if (!token || !userId) {
+            return res.status(400).json({ success: false, error: "Invalid reset link." });
+        }
+
+        // Get user
+        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
+
+        if (userError || !userData.user) {
+            return res.status(404).json({ success: false, error: "Invalid reset link." });
+        }
+
+        const user = userData.user;
+        const metadata = user.user_metadata || {};
+
+        // Verify token
+        if (metadata.reset_token !== token) {
+            return res.status(400).json({ success: false, error: "Invalid or expired reset link." });
+        }
+
+        // Check expiration
+        const expiresAt = new Date(metadata.reset_expires);
+        if (expiresAt < new Date()) {
+            return res.status(400).json({
+                success: false,
+                error: "Reset link has expired. Please request a new one.",
+                expired: true
+            });
+        }
+
+        res.json({
+            success: true,
+            email: user.email
+        });
+
+    } catch (error) {
+        console.error("[Verify Reset Token] Error:", error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
