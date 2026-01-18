@@ -7,8 +7,8 @@ const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
 const {
     getVerificationEmailTemplate,
-    getWelcomeEmailTemplate,
-    getPasswordResetTemplate
+    getMobileVerificationEmailTemplate,
+    getWelcomeEmailTemplate
 } = require('../lib/emailTemplates');
 
 // Rate limiting için basit in-memory store
@@ -134,8 +134,8 @@ router.post('/login', async (req, res) => {
 
 // Email/Password Sign Up (WITH EMAIL VERIFICATION)
 router.post('/signup', async (req, res) => {
-    let { email, password, options } = req.body;
-    console.log(`[Signup] Request received for email: ${email}`);
+    let { email, password, options, platform } = req.body;
+    console.log(`[Signup] Request received for email: ${email} (platform: ${platform || 'web'})`);
 
     email = email ? email.trim() : '';
 
@@ -199,11 +199,18 @@ router.post('/signup', async (req, res) => {
                             const verificationUrl = `https://app.diress.ai/verify?token=${verificationToken}&userId=${existingAuthUser.id}`;
                             const userName = existingAuthUser.user_metadata?.company_name || existingAuthUser.user_metadata?.full_name || email.split('@')[0];
 
+                            // Choose template based on platform
+                            const isMobile = platform === 'mobile';
+                            const emailSubject = isMobile ? 'Your verification code - Diress' : 'Confirm your account - Diress';
+                            const emailHtml = isMobile
+                                ? getMobileVerificationEmailTemplate(verificationCode, userName)
+                                : getVerificationEmailTemplate(verificationCode, verificationUrl, userName);
+
                             const { data: resendData, error: resendError } = await resend.emails.send({
                                 from: 'Diress <noreply@diress.ai>',
                                 to: [email],
-                                subject: 'Confirm your account - Diress',
-                                html: getVerificationEmailTemplate(verificationCode, verificationUrl, userName)
+                                subject: emailSubject,
+                                html: emailHtml
                             });
 
                             if (resendError) throw resendError;
@@ -258,11 +265,18 @@ router.post('/signup', async (req, res) => {
 
         try {
             console.log(`📧 [Signup] Sending verification email to: ${email}...`);
+            // Choose template based on platform
+            const isMobile = platform === 'mobile';
+            const emailSubject = isMobile ? 'Your verification code - Diress' : 'Confirm your account - Diress';
+            const emailHtml = isMobile
+                ? getMobileVerificationEmailTemplate(verificationCode, userName)
+                : getVerificationEmailTemplate(verificationCode, verificationUrl, userName);
+
             const { data: resendData, error: resendError } = await resend.emails.send({
                 from: 'Diress <noreply@diress.ai>',
                 to: [email],
-                subject: 'Confirm your account - Diress',
-                html: getVerificationEmailTemplate(verificationCode, verificationUrl, userName)
+                subject: emailSubject,
+                html: emailHtml
             });
 
             if (resendError) {
