@@ -1,4 +1,5 @@
 const express = require('express');
+require('dotenv').config();
 const router = express.Router();
 const { supabase, supabaseAdmin } = require('../supabaseClient');
 const { v4: uuidv4 } = require("uuid");
@@ -201,15 +202,22 @@ router.post('/signup', async (req, res) => {
         const userName = options?.data?.company_name || options?.data?.full_name || email.split('@')[0];
 
         try {
-            await resend.emails.send({
+            console.log(`📧 [Signup] Sending verification email to: ${email}...`);
+            const { data: resendData, error: resendError } = await resend.emails.send({
                 from: 'Diress <noreply@diress.ai>',
                 to: [email],
                 subject: 'Confirm your account - Diress',
                 html: getVerificationEmailTemplate(verificationCode, verificationUrl, userName)
             });
-            console.log(`[Signup] Verification email sent via Resend to: ${email}`);
+
+            if (resendError) {
+                console.error("❌ [Signup] Resend API Error:", resendError);
+                throw resendError;
+            }
+
+            console.log(`✅ [Signup] Verification email sent! Resend ID: ${resendData?.id}`);
         } catch (sendErr) {
-            console.error("[Signup] Resend error:", sendErr);
+            console.error("❌ [Signup] Resend Exception:", sendErr);
             // Kullanıcıyı sil çünkü email gönderilemedi
             await supabaseAdmin.auth.admin.deleteUser(createdUser.user.id);
             return res.status(500).json({
