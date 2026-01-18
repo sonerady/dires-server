@@ -297,7 +297,7 @@ app.use("/api/icon-generator", iconGeneratorRoutes);
 app.use("/api/app-links", appLinksRoutes);
 app.use("/api/auth", authRoutes);
 const webAuthRoutes = require("./routes/webAuthRoutes");
-app.use("/api/web/auth", webAuthRoutes);
+app.use("/api/web-auth", webAuthRoutes);
 
 // Modal Contents routes ekle
 app.use(modalContentsRoutes);
