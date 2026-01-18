@@ -32,9 +32,6 @@ function getVerificationEmailTemplate(verificationCode, verificationUrl, userNam
             <td align="left" style="padding-bottom: 32px;">
               <table cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="padding-right: 12px; vertical-align: middle;">
-                    <img src="https://www.diress.ai/assets/icon.png" alt="Diress" width="40" height="40" style="display: block; border-radius: 8px;">
-                  </td>
                   <td style="vertical-align: middle;">
                     <span style="font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.5px;">
                       Diress<span style="color: #ef4444;">.</span>

@@ -165,7 +165,62 @@ router.post('/signup', async (req, res) => {
         if (createError) {
             console.log(`[Signup] Create user error: "${createError.message}" Code: ${createError.status}`);
             const msg = createError.message.toLowerCase();
+
+            // EMAIL ALREADY REGISTERED? Check confirmation status
             if (msg.includes("registered") || msg.includes("invalid") || createError.status === 422 || createError.status === 400) {
+                try {
+                    // Find user in our database first to get Supabase ID
+                    const { data: dbUserCheck } = await supabase
+                        .from('users')
+                        .select('supabase_user_id')
+                        .eq('email', email)
+                        .single();
+
+                    if (dbUserCheck?.supabase_user_id) {
+                        const { data: { user: existingAuthUser } } = await supabaseAdmin.auth.admin.getUserById(dbUserCheck.supabase_user_id);
+
+                        // IF NOT CONFIRMED -> RESEND MAIL
+                        if (existingAuthUser && !existingAuthUser.email_confirmed_at) {
+                            console.log(`[Signup] Resilience: Found unconfirmed user ${existingAuthUser.id}. Resending verification...`);
+
+                            // Re-use logic for sending email
+                            const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+                            const verificationToken = uuidv4();
+
+                            await supabaseAdmin.auth.admin.updateUserById(existingAuthUser.id, {
+                                user_metadata: {
+                                    ...existingAuthUser.user_metadata,
+                                    verification_code: verificationCode,
+                                    verification_token: verificationToken,
+                                    verification_expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                                }
+                            });
+
+                            const verificationUrl = `https://app.diress.ai/verify?token=${verificationToken}&userId=${existingAuthUser.id}`;
+                            const userName = existingAuthUser.user_metadata?.company_name || existingAuthUser.user_metadata?.full_name || email.split('@')[0];
+
+                            const { data: resendData, error: resendError } = await resend.emails.send({
+                                from: 'Diress <noreply@diress.ai>',
+                                to: [email],
+                                subject: 'Confirm your account - Diress',
+                                html: getVerificationEmailTemplate(verificationCode, verificationUrl, userName)
+                            });
+
+                            if (resendError) throw resendError;
+
+                            return res.json({
+                                success: true,
+                                message: "Verification email resent. Please check your inbox.",
+                                requiresEmailVerification: true,
+                                email: email,
+                                userId: existingAuthUser.id
+                            });
+                        }
+                    }
+                } catch (resilienceErr) {
+                    console.error("[Signup] Resilience error:", resilienceErr);
+                }
+
                 return res.status(400).json({ success: false, error: "This email is already registered. Please sign in instead." });
             }
             throw createError;
