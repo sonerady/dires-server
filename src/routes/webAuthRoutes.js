@@ -2,8 +2,16 @@ const express = require('express');
 const router = express.Router();
 const { supabase, supabaseAdmin } = require('../supabaseClient');
 const { v4: uuidv4 } = require("uuid");
-// const { Resend } = require('resend');
-// const resend = new Resend(process.env.RESEND_API_KEY);
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
+const {
+    getVerificationEmailTemplate,
+    getWelcomeEmailTemplate,
+    getPasswordResetTemplate
+} = require('../lib/emailTemplates');
+
+// Rate limiting için basit in-memory store
+const rateLimitStore = new Map();
 
 /**
  * Helper: Supabase Auth kullanıcısını users tablosuna senkronize et
@@ -123,7 +131,7 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// Email/Password Sign Up
+// Email/Password Sign Up (WITH EMAIL VERIFICATION)
 router.post('/signup', async (req, res) => {
     let { email, password, options } = req.body;
     console.log(`[Signup] Request received for email: ${email}`);
@@ -145,11 +153,11 @@ router.post('/signup', async (req, res) => {
             return res.status(500).json({ success: false, error: "Server configuration error: Admin client missing." });
         }
 
-        // 1. Create User via Admin (Auto-Confirm enabled for testing)
+        // 1. Create User via Admin (Email verification REQUIRED)
         const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
             email: email,
             password: password,
-            email_confirm: true, // AUTO-CONFIRM ENABLED
+            email_confirm: false, // EMAIL VERIFICATION REQUIRED
             user_metadata: options ? options.data : {}
         });
 
@@ -174,30 +182,48 @@ router.post('/signup', async (req, res) => {
 
         console.log(`[Signup] Users table sync: ${isNew ? 'created' : 'linked'}, ID: ${dbUser?.id}`);
 
-        // 3. Send Welcome Email via Resend (Optional, just for info)
-        /*
+        // 3. Generate verification code (6 digits)
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const verificationToken = uuidv4();
+
+        // Store verification data in user metadata temporarily
+        await supabaseAdmin.auth.admin.updateUserById(createdUser.user.id, {
+            user_metadata: {
+                ...createdUser.user.user_metadata,
+                verification_code: verificationCode,
+                verification_token: verificationToken,
+                verification_expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
+            }
+        });
+
+        // 4. Send Verification Email via Resend
+        const verificationUrl = `https://app.diress.ai/verify?token=${verificationToken}&userId=${createdUser.user.id}`;
+        const userName = options?.data?.company_name || options?.data?.full_name || email.split('@')[0];
+
         try {
             await resend.emails.send({
-                from: 'Diress <onboarding@resend.dev>',
+                from: 'Diress <noreply@diress.ai>',
                 to: [email],
-                subject: 'Welcome to Diress!',
-                html: `
-                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-                        <h2>Welcome to Diress!</h2>
-                        <p>Your account has been created and automatically verified.</p>
-                        <p>You can now sign in to your account.</p>
-                    </div>
-                `
+                subject: 'Confirm your account - Diress',
+                html: getVerificationEmailTemplate(verificationCode, verificationUrl, userName)
             });
-            console.log(`[Signup] Welcome email sent via Resend.`);
+            console.log(`[Signup] Verification email sent via Resend to: ${email}`);
         } catch (sendErr) {
-            console.error("[Signup] Resend exception (ignored):", sendErr);
+            console.error("[Signup] Resend error:", sendErr);
+            // Kullanıcıyı sil çünkü email gönderilemedi
+            await supabaseAdmin.auth.admin.deleteUser(createdUser.user.id);
+            return res.status(500).json({
+                success: false,
+                error: "Failed to send verification email. Please try again."
+            });
         }
-        */
 
         res.json({
             success: true,
-            data: createdUser,
+            message: "Verification email sent. Please check your inbox.",
+            requiresEmailVerification: true,
+            email: email,
+            userId: createdUser.user.id,
             dbUser: dbUser ? {
                 id: dbUser.id,
                 creditBalance: dbUser.credit_balance,
@@ -372,6 +398,190 @@ router.get('/callback', async (req, res) => {
         </body>
         </html>
     `);
+});
+
+// Email Verification Endpoint
+router.post('/verify-email', async (req, res) => {
+    const { token, code, userId } = req.body;
+
+    try {
+        if (!userId) {
+            return res.status(400).json({ success: false, error: "User ID is required" });
+        }
+
+        // Get user from Supabase Auth
+        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
+
+        if (userError || !userData.user) {
+            return res.status(404).json({ success: false, error: "User not found" });
+        }
+
+        const user = userData.user;
+        const metadata = user.user_metadata || {};
+
+        // Check if already verified
+        if (user.email_confirmed_at) {
+            return res.status(400).json({
+                success: false,
+                error: "Email already verified",
+                alreadyVerified: true
+            });
+        }
+
+        // Check expiration
+        const expiresAt = new Date(metadata.verification_expires);
+        if (expiresAt < new Date()) {
+            return res.status(400).json({
+                success: false,
+                error: "Verification code expired. Please request a new one.",
+                expired: true
+            });
+        }
+
+        // Verify token OR code
+        let isValid = false;
+        if (token && metadata.verification_token === token) {
+            isValid = true;
+        } else if (code && metadata.verification_code === code) {
+            isValid = true;
+        }
+
+        if (!isValid) {
+            return res.status(400).json({
+                success: false,
+                error: "Invalid verification code"
+            });
+        }
+
+        // Mark user as verified
+        await supabaseAdmin.auth.admin.updateUserById(userId, {
+            email_confirm: true,
+            user_metadata: {
+                ...metadata,
+                verification_code: null,
+                verification_token: null,
+                verification_expires: null,
+            }
+        });
+
+        console.log(`✅ [Verify] Email verified for user: ${user.email}`);
+
+        // Send welcome email
+        try {
+            const userName = metadata.company_name || metadata.full_name || user.email.split('@')[0];
+            await resend.emails.send({
+                from: 'Diress <noreply@diress.ai>',
+                to: [user.email],
+                subject: 'Welcome to Diress',
+                html: getWelcomeEmailTemplate(userName, 40)
+            });
+            console.log(`[Verify] Welcome email sent to: ${user.email}`);
+        } catch (welcomeErr) {
+            console.error("[Verify] Welcome email error (ignored):", welcomeErr);
+        }
+
+        res.json({
+            success: true,
+            message: "Email verified successfully",
+            email: user.email
+        });
+
+    } catch (error) {
+        console.error("[Verify] Error:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Resend Verification Email
+router.post('/resend-verification', async (req, res) => {
+    const { userId, email } = req.body;
+
+    try {
+        if (!userId && !email) {
+            return res.status(400).json({ success: false, error: "User ID or email is required" });
+        }
+
+        // Rate limiting check (1 minute cooldown)
+        const rateLimitKey = userId || email;
+        const lastSent = rateLimitStore.get(rateLimitKey);
+        const now = Date.now();
+        const cooldownMs = 60 * 1000; // 60 seconds
+
+        if (lastSent && (now - lastSent) < cooldownMs) {
+            const waitSeconds = Math.ceil((cooldownMs - (now - lastSent)) / 1000);
+            return res.status(429).json({
+                success: false,
+                error: `Please wait ${waitSeconds} seconds before requesting another code`,
+                waitSeconds
+            });
+        }
+
+        // Get user
+        let user;
+        if (userId) {
+            const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
+            if (userError || !userData.user) {
+                return res.status(404).json({ success: false, error: "User not found" });
+            }
+            user = userData.user;
+        } else {
+            // Find by email
+            const { data: users } = await supabaseAdmin.auth.admin.listUsers();
+            user = users?.users?.find(u => u.email === email);
+            if (!user) {
+                return res.status(404).json({ success: false, error: "User not found" });
+            }
+        }
+
+        // Check if already verified
+        if (user.email_confirmed_at) {
+            return res.status(400).json({
+                success: false,
+                error: "Email already verified",
+                alreadyVerified: true
+            });
+        }
+
+        // Generate new verification code
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const verificationToken = uuidv4();
+        const metadata = user.user_metadata || {};
+
+        await supabaseAdmin.auth.admin.updateUserById(user.id, {
+            user_metadata: {
+                ...metadata,
+                verification_code: verificationCode,
+                verification_token: verificationToken,
+                verification_expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            }
+        });
+
+        // Send email
+        const verificationUrl = `https://app.diress.ai/verify?token=${verificationToken}&userId=${user.id}`;
+        const userName = metadata.company_name || metadata.full_name || user.email.split('@')[0];
+
+        await resend.emails.send({
+            from: 'Diress <noreply@diress.ai>',
+            to: [user.email],
+            subject: '🔐 Email Doğrulama - Diress',
+            html: getVerificationEmailTemplate(verificationCode, verificationUrl, userName)
+        });
+
+        // Update rate limit
+        rateLimitStore.set(rateLimitKey, now);
+
+        console.log(`[Resend] Verification email resent to: ${user.email}`);
+
+        res.json({
+            success: true,
+            message: "Verification email sent",
+            email: user.email
+        });
+
+    } catch (error) {
+        console.error("[Resend] Error:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
 
 module.exports = router;
