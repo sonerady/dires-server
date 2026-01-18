@@ -88,6 +88,91 @@ function getVerificationEmailTemplate(verificationCode, verificationUrl, userNam
 }
 
 /**
+ * Generate HTML email template for MOBILE verification (6-digit code)
+ * @param {string} verificationCode - 6-digit verification code
+ * @param {string} userName - User's name (optional)
+ * @returns {string} HTML email template
+ */
+function getMobileVerificationEmailTemplate(verificationCode, userName = '') {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirm Your Account</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background-color: #f5f5f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <!-- White Card Container -->
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; padding: 48px 40px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+          
+          <!-- Logo and Brand -->
+          <tr>
+            <td align="left" style="padding-bottom: 32px;">
+              <table cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="vertical-align: middle;">
+                    <span style="font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.5px;">
+                      Diress<span style="color: #ef4444;">.</span>
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Main Heading -->
+          <tr>
+            <td style="padding-bottom: 16px;">
+              <h1 style="font-family: 'Poppins', sans-serif; font-size: 32px; font-weight: 700; color: #1a1a1a; margin: 0; line-height: 1.2;">
+                Confirm your account
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Description -->
+          <tr>
+            <td style="padding-bottom: 24px;">
+              <p style="font-family: 'Poppins', sans-serif; font-size: 15px; color: #6b7280; line-height: 1.6; margin: 0;">
+                Enter this verification code in the Diress app to confirm your email address. This code is valid for 24 hours.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Verification Code Box -->
+          <tr>
+            <td align="center" style="padding-bottom: 32px;">
+              <div style="background-color: #f3f4f6; border-radius: 12px; padding: 24px 40px; display: inline-block;">
+                <span style="font-family: 'Poppins', monospace; font-size: 36px; font-weight: 700; color: #1a1a1a; letter-spacing: 8px;">
+                  ${verificationCode}
+                </span>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Security Notice -->
+          <tr>
+            <td style="padding-top: 24px; border-top: 1px solid #f3f4f6;">
+              <p style="font-family: 'Poppins', sans-serif; font-size: 13px; color: #9ca3af; line-height: 1.5; margin: 0;">
+                Didn't register on Diress? <a href="#" style="color: #1a1a1a; text-decoration: none; font-weight: 600;">Click here to let us know.</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+}
+
+/**
  * Get welcome email template (sent after successful verification)
  * @param {string} userName - User's name or email
  * @param {number} initialCredits - Initial credit amount
@@ -276,6 +361,7 @@ function getPasswordResetTemplate(resetUrl, userName = '') {
 
 module.exports = {
   getVerificationEmailTemplate,
+  getMobileVerificationEmailTemplate,
   getWelcomeEmailTemplate,
   getPasswordResetTemplate,
 };

@@ -658,16 +658,15 @@ router.post("/email/signup", async (req, res) => {
 
               const { Resend } = require('resend');
               const resend = new Resend(process.env.RESEND_API_KEY);
-              const { getVerificationEmailTemplate } = require('../lib/emailTemplates');
+              const { getMobileVerificationEmailTemplate } = require('../lib/emailTemplates');
 
-              const verificationUrl = `https://app.diress.ai/verify?token=${verificationToken}&userId=${existingAuthUser.id}`;
               const userName = existingAuthUser.user_metadata?.company_name || existingAuthUser.user_metadata?.full_name || email.split('@')[0];
 
               await resend.emails.send({
                 from: 'Diress <noreply@diress.ai>',
                 to: [email.trim()],
-                subject: 'Confirm your account - Diress',
-                html: getVerificationEmailTemplate(verificationCode, verificationUrl, userName)
+                subject: 'Your verification code - Diress',
+                html: getMobileVerificationEmailTemplate(verificationCode, userName)
               });
 
               return res.status(200).json({
@@ -699,6 +698,39 @@ router.post("/email/signup", async (req, res) => {
 
     console.log("✅ [AUTH] Email signup successful:", data.user.email);
 
+    // Generate verification code for mobile
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const verificationToken = uuidv4();
+
+    // Store verification data in user metadata
+    await supabaseAdmin.auth.admin.updateUserById(data.user.id, {
+      user_metadata: {
+        ...data.user.user_metadata,
+        verification_code: verificationCode,
+        verification_token: verificationToken,
+        verification_expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      }
+    });
+
+    // Send verification email with CODE (for mobile)
+    const { Resend } = require('resend');
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const { getMobileVerificationEmailTemplate } = require('../lib/emailTemplates');
+
+    const userName = companyName || data.user.email?.split("@")[0];
+
+    try {
+      await resend.emails.send({
+        from: 'Diress <noreply@diress.ai>',
+        to: [email.trim()],
+        subject: 'Your verification code - Diress',
+        html: getMobileVerificationEmailTemplate(verificationCode, userName)
+      });
+      console.log(`📧 [AUTH] Mobile verification email sent to: ${email.trim()}`);
+    } catch (emailErr) {
+      console.error("❌ [AUTH] Email sending failed:", emailErr);
+    }
+
     // Backend users tablosuna sync et
     const syncResult = await syncUserToBackend({
       supabaseUserId: data.user.id,
@@ -711,12 +743,14 @@ router.post("/email/signup", async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Signup successful",
+      message: "Verification email sent. Please check your inbox.",
       user: syncResult.user,
       isNewUser: syncResult.isNewUser,
       isLinked: syncResult.isLinked,
       wasAnonymous: syncResult.wasAnonymous,
-      requiresEmailVerification: false,
+      requiresEmailVerification: true,
+      email: email.trim(),
+      userId: data.user.id,
     });
   } catch (error) {
     console.error("❌ [AUTH] Email signup error:", error);
