@@ -7,6 +7,34 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// Retry helper function for Supabase queries
+const retryQuery = async (queryFn, maxRetries = 3, delay = 500) => {
+  let lastError = null;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const result = await queryFn();
+      // Check if result has error
+      if (result.error && result.error.message === '') {
+        // Empty error message indicates connection issue, retry
+        lastError = result.error;
+        console.log(`⚠️ [HISTORY] Empty error on attempt ${attempt}/${maxRetries}, retrying...`);
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, delay * attempt));
+          continue;
+        }
+      }
+      return result;
+    } catch (err) {
+      lastError = err;
+      console.log(`⚠️ [HISTORY] Exception on attempt ${attempt}/${maxRetries}:`, err.message);
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, delay * attempt));
+      }
+    }
+  }
+  return { data: null, count: null, error: lastError || { message: 'Max retries exceeded' } };
+};
+
 // Thumbnail için resim URL'sini optimize eden fonksiyon
 const optimizeImageForThumbnail = (imageUrl) => {
   if (!imageUrl) return imageUrl;
@@ -130,24 +158,26 @@ router.get("/user/:userId", async (req, res) => {
     );
 
     // Toplam sayıyı al (visibility kolonu varsa true olanları, yoksa tümünü)
-    let countQuery = supabase
-      .from("reference_results")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .in("status", ["completed", "failed"])
-      .eq("visibility", true);
-
-    let { count: totalCount, error: countError } = await countQuery;
+    // Using retry wrapper for connection stability
+    let { count: totalCount, error: countError } = await retryQuery(() =>
+      supabase
+        .from("reference_results")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .in("status", ["completed", "failed"])
+        .eq("visibility", true)
+    );
 
     // Eğer visibility kolonu yoksa (hata alırsak), visibility filtresiz tekrar dene
     if (countError && (countError.message?.includes("visibility") || countError.code === "PGRST116")) {
       console.log("⚠️ [HISTORY] Visibility column not found, retrying without visibility filter");
-      const fallbackQuery = supabase
-        .from("reference_results")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .in("status", ["completed", "failed"]);
-      const fallbackResult = await fallbackQuery;
+      const fallbackResult = await retryQuery(() =>
+        supabase
+          .from("reference_results")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .in("status", ["completed", "failed"])
+      );
       totalCount = fallbackResult.count;
       countError = fallbackResult.error;
     }
@@ -161,39 +191,9 @@ router.get("/user/:userId", async (req, res) => {
     }
 
     // History verilerini getir (visibility kolonu varsa true olanları, yoksa tümünü)
-    let historyQuery = supabase
-      .from("reference_results")
-      .select(
-        `
-        id,
-        user_id,
-        generation_id,
-        status,
-        result_image_url,
-        reference_images,
-        location_image,
-        aspect_ratio,
-        created_at,
-        credits_before_generation,
-        credits_deducted,
-        credits_after_generation,
-        settings,
-        quality_version,
-        kits
-      `
-      )
-      .eq("user_id", userId)
-      .in("status", ["completed", "failed"])
-      .eq("visibility", true)
-      .order("created_at", { ascending: false })
-      .range(offset, offset + parsedLimit - 1);
-
-    let { data: historyData, error: historyError } = await historyQuery;
-
-    // Eğer visibility kolonu yoksa (hata alırsak), visibility filtresiz tekrar dene
-    if (historyError && (historyError.message?.includes("visibility") || historyError.code === "PGRST116")) {
-      console.log("⚠️ [HISTORY] Visibility column not found, retrying without visibility filter");
-      const fallbackQuery = supabase
+    // Using retry wrapper for connection stability
+    let { data: historyData, error: historyError } = await retryQuery(() =>
+      supabase
         .from("reference_results")
         .select(
           `
@@ -216,9 +216,41 @@ router.get("/user/:userId", async (req, res) => {
         )
         .eq("user_id", userId)
         .in("status", ["completed", "failed"])
+        .eq("visibility", true)
         .order("created_at", { ascending: false })
-        .range(offset, offset + parsedLimit - 1);
-      const fallbackResult = await fallbackQuery;
+        .range(offset, offset + parsedLimit - 1)
+    );
+
+    // Eğer visibility kolonu yoksa (hata alırsak), visibility filtresiz tekrar dene
+    if (historyError && (historyError.message?.includes("visibility") || historyError.code === "PGRST116")) {
+      console.log("⚠️ [HISTORY] Visibility column not found, retrying without visibility filter");
+      const fallbackResult = await retryQuery(() =>
+        supabase
+          .from("reference_results")
+          .select(
+            `
+            id,
+            user_id,
+            generation_id,
+            status,
+            result_image_url,
+            reference_images,
+            location_image,
+            aspect_ratio,
+            created_at,
+            credits_before_generation,
+            credits_deducted,
+            credits_after_generation,
+            settings,
+            quality_version,
+            kits
+          `
+          )
+          .eq("user_id", userId)
+          .in("status", ["completed", "failed"])
+          .order("created_at", { ascending: false })
+          .range(offset, offset + parsedLimit - 1)
+      );
       historyData = fallbackResult.data;
       historyError = fallbackResult.error;
     }

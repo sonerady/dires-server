@@ -98,6 +98,7 @@ router.post("/sync-user", async (req, res) => {
               supabaseUserId: updatedUser.supabase_user_id,
               email: updatedUser.email,
               fullName: updatedUser.full_name,
+              companyName: updatedUser.company_name,
               creditBalance: updatedUser.credit_balance,
               avatarUrl: updatedUser.avatar_url,
               isPro: updatedUser.is_pro,
@@ -117,6 +118,7 @@ router.post("/sync-user", async (req, res) => {
           supabaseUserId: existingAuthUser.supabase_user_id,
           email: existingAuthUser.email,
           fullName: existingAuthUser.full_name,
+          companyName: existingAuthUser.company_name,
           creditBalance: existingAuthUser.credit_balance,
           avatarUrl: existingAuthUser.avatar_url,
           isPro: existingAuthUser.is_pro,
@@ -418,6 +420,44 @@ router.post("/transfer-pro", async (req, res) => {
 });
 
 /**
+ * Entitlement adından plan tipini çıkar (webhook ile uyumlu)
+ * @param {string[]} entitlements - RevenueCat entitlement adları
+ * @returns {string|null} - "standard", "plus", "premium" veya null
+ */
+const getPlanTypeFromEntitlements = (entitlements) => {
+  if (!entitlements || entitlements.length === 0) return null;
+
+  // Tüm entitlement'ları kontrol et
+  for (const entitlement of entitlements) {
+    const ent = entitlement.toLowerCase();
+
+    // Standard paketler
+    if (ent.includes("standard")) {
+      return "standard";
+    }
+    // Plus paketler
+    if (ent.includes("plus")) {
+      return "plus";
+    }
+    // Premium paketler
+    if (ent.includes("premium")) {
+      return "premium";
+    }
+    // Legacy paketler (pro_weekly, pro_monthly vb.) → standard olarak kabul et
+    if (ent.includes("pro_weekly") || ent.includes("pro_monthly") || ent === "pro") {
+      return "standard";
+    }
+    // Weekly/Monthly içeriyorsa ama plan tipi belirtilmemişse → standard
+    if (ent.includes("weekly") || ent.includes("monthly")) {
+      return "standard";
+    }
+  }
+
+  // Coin pack veya tanımlanamayan entitlement → null (plan tipi yok ama PRO olabilir)
+  return null;
+};
+
+/**
  * RevenueCat'ten Pro durumunu senkronize et
  * Login sırasında client RevenueCat'ten aktif abonelik kontrolü yapar
  * ve bu endpoint ile backend'deki is_pro'yu günceller
@@ -433,9 +473,13 @@ router.post("/sync-pro-status", async (req, res) => {
       });
     }
 
+    // Entitlement'lardan plan tipini çıkar (webhook mantığıyla uyumlu)
+    const planType = getPlanTypeFromEntitlements(entitlements);
+
     console.log(`🔄 [AUTH] Syncing Pro status for user ${userId}:`, {
       isPro,
       entitlements,
+      derivedPlanType: planType,
     });
 
     // Users tablosunu güncelle
@@ -443,8 +487,8 @@ router.post("/sync-pro-status", async (req, res) => {
       .from("users")
       .update({
         is_pro: isPro,
-        // Opsiyonel: subscription bilgisini de kaydedebiliriz
-        subscription_type: isPro && entitlements?.length > 0 ? entitlements[0] : null,
+        // Plan tipini webhook ile uyumlu şekilde kaydet
+        subscription_type: isPro ? planType : null,
       })
       .eq("id", userId)
       .select("id, is_pro, subscription_type")
@@ -459,7 +503,7 @@ router.post("/sync-pro-status", async (req, res) => {
       });
     }
 
-    console.log(`✅ [AUTH] Pro status synced: ${userId} → is_pro: ${isPro}`);
+    console.log(`✅ [AUTH] Pro status synced: ${userId} → is_pro: ${isPro}, subscription_type: ${planType}`);
 
     return res.status(200).json({
       success: true,
@@ -514,6 +558,7 @@ router.get("/user/:supabaseUserId", async (req, res) => {
         supabaseUserId: user.supabase_user_id,
         email: user.email,
         fullName: user.full_name,
+        companyName: user.company_name,
         creditBalance: user.credit_balance,
         avatarUrl: user.avatar_url,
         authProvider: user.auth_provider,

@@ -856,4 +856,61 @@ router.post('/verify-reset-token', async (req, res) => {
     }
 });
 
+// Update User Profile (Company Name, etc.)
+router.post('/update-profile', async (req, res) => {
+    const { userId, companyName, fullName } = req.body;
+
+    try {
+        if (!userId) {
+            return res.status(400).json({ success: false, error: "User ID is required" });
+        }
+
+        console.log(`🔄 [Profile Update] Request for user: ${userId}, companyName: ${companyName}`);
+
+        // 1. Update Supabase Auth user_metadata
+        const updateData = {};
+        if (companyName !== undefined) updateData.company_name = companyName;
+        if (fullName !== undefined) updateData.full_name = fullName;
+
+        const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+            user_metadata: updateData
+        });
+
+        if (authError) {
+            console.error("❌ [Profile Update] Supabase Auth update error:", authError);
+            throw authError;
+        }
+
+        // 2. Update users table in database
+        const dbUpdateData = {};
+        if (companyName !== undefined) dbUpdateData.company_name = companyName;
+        if (fullName !== undefined) dbUpdateData.full_name = fullName;
+
+        // Find DB user by supabase_user_id
+        const { data: dbUser, error: dbError } = await supabase
+            .from('users')
+            .update(dbUpdateData)
+            .eq('supabase_user_id', userId)
+            .select()
+            .single();
+
+        if (dbError) {
+            console.error("❌ [Profile Update] Database update error:", dbError);
+            throw dbError;
+        }
+
+        console.log(`✅ [Profile Update] Profile updated for: ${userId}`);
+
+        res.json({
+            success: true,
+            message: "Profile updated successfully",
+            user: dbUser
+        });
+
+    } catch (error) {
+        console.error("[Profile Update] Unexpected error:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 module.exports = router;
