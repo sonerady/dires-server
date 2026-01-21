@@ -418,9 +418,149 @@ function getPasswordResetTemplate(resetUrl, userName = '') {
   `;
 }
 
+/**
+ * Get team invitation email template
+ * @param {string} inviterName - Name or email of the person inviting
+ * @param {string} inviterCompany - Company name of the inviter (optional)
+ * @param {string} acceptUrl - URL to accept the invitation
+ * @param {string} declineUrl - URL to decline the invitation
+ * @param {string} signupUrl - URL for users without account to sign up (optional)
+ * @returns {string} HTML email template
+ */
+function getTeamInvitationTemplate(inviterName, inviterCompany, acceptUrl, declineUrl, signupUrl = null) {
+  const companyText = inviterCompany ? ` (${inviterCompany})` : '';
+
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team Invitation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background-color: #f5f5f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; padding: 48px 40px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+
+          <!-- Logo -->
+          <tr>
+            <td align="left" style="padding-bottom: 40px;">
+              <span style="font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.5px;">
+                Diress<span style="color: #ef4444;">.</span>
+              </span>
+            </td>
+          </tr>
+
+          <!-- Heading -->
+          <tr>
+            <td style="padding-bottom: 16px;">
+              <h1 style="font-family: 'Poppins', sans-serif; font-size: 28px; font-weight: 700; color: #1a1a1a; margin: 0; line-height: 1.3;">
+                You're Invited to Join a Team
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Message -->
+          <tr>
+            <td style="padding-bottom: 32px;">
+              <p style="font-family: 'Poppins', sans-serif; font-size: 15px; color: #6b7280; line-height: 1.6; margin: 0;">
+                <strong style="color: #1a1a1a;">${inviterName}</strong>${companyText} has invited you to join their team on Diress.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Benefits Box -->
+          <tr>
+            <td style="padding-bottom: 32px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fafafa; border: 1px solid #e5e5e5; border-radius: 12px;">
+                <tr>
+                  <td style="padding: 24px;">
+                    <p style="font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; color: #1a1a1a; margin: 0 0 12px;">
+                      As a team member, you'll get:
+                    </p>
+                    <ul style="font-family: 'Poppins', sans-serif; font-size: 14px; color: #6b7280; margin: 0; padding-left: 20px; line-height: 1.8;">
+                      <li>Access to Pro features</li>
+                      <li>Shared credits with the team</li>
+                      <li>All AI generation tools</li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- CTA Buttons -->
+          <tr>
+            <td align="center" style="padding-bottom: 24px;">
+              <a href="${acceptUrl}" style="display: inline-block; background-color: #1a1a1a; color: #ffffff; font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600; text-decoration: none; padding: 14px 48px; border-radius: 50px; letter-spacing: 0.3px; margin-right: 12px;">
+                ACCEPT INVITATION
+              </a>
+            </td>
+          </tr>
+
+          <tr>
+            <td align="center" style="padding-bottom: 32px;">
+              <a href="${declineUrl}" style="font-family: 'Poppins', sans-serif; font-size: 14px; color: #9ca3af; text-decoration: underline;">
+                Decline invitation
+              </a>
+            </td>
+          </tr>
+
+          <!-- Expiration Notice -->
+          <tr>
+            <td style="padding-bottom: 32px;">
+              <p style="font-family: 'Poppins', sans-serif; font-size: 13px; color: #9ca3af; line-height: 1.5; margin: 0; text-align: center;">
+                This invitation will expire in <strong style="color: #6b7280;">7 days</strong>.
+              </p>
+            </td>
+          </tr>
+
+          ${signupUrl ? `
+          <!-- No Account Notice -->
+          <tr>
+            <td style="padding-bottom: 32px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px;">
+                <tr>
+                  <td style="padding: 20px;">
+                    <p style="font-family: 'Poppins', sans-serif; font-size: 14px; color: #0369a1; margin: 0; line-height: 1.6;">
+                      <strong>Don't have a Diress account?</strong><br>
+                      <a href="${signupUrl}" style="color: #0284c7; text-decoration: underline; font-weight: 500;">Click here to sign up</a> and the invitation will be accepted automatically.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          ` : ''}
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding-top: 24px; border-top: 1px solid #f3f4f6;">
+              <p style="font-family: 'Poppins', sans-serif; font-size: 13px; color: #9ca3af; line-height: 1.5; margin: 0;">
+                Questions? <a href="mailto:support@diress.ai" style="color: #1a1a1a; text-decoration: none; font-weight: 500;">Contact us</a>
+              </p>
+              <p style="font-family: 'Poppins', sans-serif; font-size: 12px; color: #d1d5db; margin: 16px 0 0;">
+                © ${new Date().getFullYear()} Diress.ai
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+}
+
 module.exports = {
   getVerificationEmailTemplate,
   getMobileVerificationEmailTemplate,
   getWelcomeEmailTemplate,
   getPasswordResetTemplate,
+  getTeamInvitationTemplate,
 };

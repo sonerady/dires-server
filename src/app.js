@@ -115,6 +115,8 @@ startScheduler();
 const authRoutes = require("./routes/authRoutes");
 // Generate Product Kit routes import
 const generateProductKitRoutes = require("./routes/generateProductKitRoutes");
+// Team routes import
+const teamRoutes = require("./routes/teamRoutes");
 // Generation Status routes import
 
 const app = express();
@@ -307,6 +309,9 @@ app.use("/api", modelPosesRoutes); // Yeni eklenen route'u /api/posesNew olarak 
 
 // Generate Product Kit routes
 app.use("/api", generateProductKitRoutes);
+
+// Team routes
+app.use("/api/teams", teamRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, "0.0.0.0", () => {
