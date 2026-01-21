@@ -302,40 +302,66 @@ async function sendInvitation(ownerId, inviteeEmail) {
             return { success: false, error: `Team member limit reached (${team.max_members})` };
         }
 
-        // Check for pending invitation to same email
+        // Check for existing invitation to same email (any status)
         const { data: existingInvitation } = await supabase
             .from('team_invitations')
-            .select('id')
+            .select('id, status')
             .eq('team_id', team.id)
             .ilike('invited_email', inviteeEmail)
-            .eq('status', 'pending')
             .single();
 
-        if (existingInvitation) {
-            return { success: false, error: 'An invitation is already pending for this email' };
-        }
-
-        // Create invitation
         const token = generateInvitationToken();
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiration
 
-        const { data: invitation, error: inviteError } = await supabase
-            .from('team_invitations')
-            .insert({
-                team_id: team.id,
-                invited_email: inviteeEmail.toLowerCase(),
-                invited_by: ownerId,
-                token,
-                status: 'pending',
-                expires_at: expiresAt.toISOString()
-            })
-            .select()
-            .single();
+        let invitation;
 
-        if (inviteError) {
-            console.error('[TeamService] Create invitation error:', inviteError);
-            return { success: false, error: 'Failed to create invitation' };
+        if (existingInvitation) {
+            // If pending, return error
+            if (existingInvitation.status === 'pending') {
+                return { success: false, error: 'An invitation is already pending for this email' };
+            }
+
+            // If previously accepted/declined/expired, reset and reuse
+            console.log(`[TeamService] Reusing existing invitation for ${inviteeEmail}, old status: ${existingInvitation.status}`);
+            const { data: updatedInvitation, error: updateError } = await supabase
+                .from('team_invitations')
+                .update({
+                    token,
+                    status: 'pending',
+                    expires_at: expiresAt.toISOString(),
+                    invited_by: ownerId,
+                    created_at: new Date().toISOString()
+                })
+                .eq('id', existingInvitation.id)
+                .select()
+                .single();
+
+            if (updateError) {
+                console.error('[TeamService] Update invitation error:', updateError);
+                return { success: false, error: 'Failed to update invitation' };
+            }
+            invitation = updatedInvitation;
+        } else {
+            // Create new invitation
+            const { data: newInvitation, error: inviteError } = await supabase
+                .from('team_invitations')
+                .insert({
+                    team_id: team.id,
+                    invited_email: inviteeEmail.toLowerCase(),
+                    invited_by: ownerId,
+                    token,
+                    status: 'pending',
+                    expires_at: expiresAt.toISOString()
+                })
+                .select()
+                .single();
+
+            if (inviteError) {
+                console.error('[TeamService] Create invitation error:', inviteError);
+                return { success: false, error: 'Failed to create invitation' };
+            }
+            invitation = newInvitation;
         }
 
         return { success: true, invitation, inviteeId: invitee?.id || null, hasAccount: !!invitee };
