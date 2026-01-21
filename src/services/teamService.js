@@ -742,6 +742,82 @@ async function getPendingInvitations(userEmail) {
 }
 
 /**
+ * Get effective user status (credits and Pro status considering team membership)
+ * Used by auth routes to return correct data for team members
+ * @param {string} userId - User ID
+ * @returns {Promise<{creditBalance: number, isPro: boolean, isTeamMember: boolean, ownerInfo?: object}>}
+ */
+async function getEffectiveUserStatus(userId) {
+    try {
+        // Get user with active_team_id
+        const { data: user, error: userError } = await supabase
+            .from('users')
+            .select('credit_balance, is_pro, active_team_id, subscription_type')
+            .eq('id', userId)
+            .single();
+
+        if (userError || !user) {
+            return {
+                creditBalance: 0,
+                isPro: false,
+                isTeamMember: false,
+                subscriptionType: null
+            };
+        }
+
+        // If user has active team, use owner's credits and Pro status
+        if (user.active_team_id) {
+            const { data: team } = await supabase
+                .from('teams')
+                .select('owner_id')
+                .eq('id', user.active_team_id)
+                .single();
+
+            if (team) {
+                const { data: owner } = await supabase
+                    .from('users')
+                    .select('id, credit_balance, is_pro, subscription_type, full_name, company_name')
+                    .eq('id', team.owner_id)
+                    .single();
+
+                if (owner) {
+                    console.log(`[TeamService] User ${userId} is team member, using owner ${owner.id} data`);
+                    console.log(`   Owner credits: ${owner.credit_balance}, isPro: ${owner.is_pro}`);
+
+                    return {
+                        creditBalance: owner.credit_balance,
+                        isPro: owner.is_pro,
+                        isTeamMember: true,
+                        subscriptionType: owner.subscription_type,
+                        ownerInfo: {
+                            id: owner.id,
+                            fullName: owner.full_name,
+                            companyName: owner.company_name
+                        }
+                    };
+                }
+            }
+        }
+
+        // Use own data
+        return {
+            creditBalance: user.credit_balance,
+            isPro: user.is_pro,
+            isTeamMember: false,
+            subscriptionType: user.subscription_type
+        };
+    } catch (err) {
+        console.error('[TeamService] getEffectiveUserStatus error:', err);
+        return {
+            creditBalance: 0,
+            isPro: false,
+            isTeamMember: false,
+            subscriptionType: null
+        };
+    }
+}
+
+/**
  * Get effective credits for a user (considering team membership)
  * @param {string} userId - User ID
  * @returns {Promise<{creditBalance: number, creditOwnerId: string, isTeamCredit: boolean}>}
@@ -926,6 +1002,50 @@ async function deleteTeam(teamId, ownerId) {
 }
 
 /**
+ * Get all team member user IDs for a user (including the user themselves)
+ * Used for shared workspace data queries (history, generations, etc.)
+ * @param {string} userId - User ID
+ * @returns {Promise<{success: boolean, memberIds: string[], isTeamMember: boolean}>}
+ */
+async function getTeamMemberIds(userId) {
+    try {
+        // Get user's active team
+        const { data: user } = await supabase
+            .from('users')
+            .select('active_team_id')
+            .eq('id', userId)
+            .single();
+
+        if (!user || !user.active_team_id) {
+            // User is not in a team, return only their own ID
+            return { success: true, memberIds: [userId], isTeamMember: false };
+        }
+
+        // Get all team members
+        const { data: members, error } = await supabase
+            .from('team_members')
+            .select('user_id')
+            .eq('team_id', user.active_team_id);
+
+        if (error || !members || members.length === 0) {
+            return { success: true, memberIds: [userId], isTeamMember: false };
+        }
+
+        const memberIds = members.map(m => m.user_id);
+
+        // Ensure current user is included
+        if (!memberIds.includes(userId)) {
+            memberIds.push(userId);
+        }
+
+        return { success: true, memberIds, isTeamMember: true };
+    } catch (err) {
+        console.error('[TeamService] getTeamMemberIds error:', err);
+        return { success: true, memberIds: [userId], isTeamMember: false };
+    }
+}
+
+/**
  * Validate invitation token
  * @param {string} token - Invitation token
  * @returns {Promise<{valid: boolean, invitation?: object, error?: string}>}
@@ -989,9 +1109,11 @@ module.exports = {
     leaveTeam,
     getPendingInvitations,
     getEffectiveCredits,
+    getEffectiveUserStatus,
     deductCredits,
     switchActiveTeam,
     deleteTeam,
     validateInvitationToken,
+    getTeamMemberIds,
     TIER_LIMITS
 };

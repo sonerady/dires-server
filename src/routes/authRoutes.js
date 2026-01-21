@@ -6,6 +6,7 @@ const { v4: uuidv4 } = require("uuid");
 const { OAuth2Client } = require("google-auth-library");
 const jwt = require("jsonwebtoken");
 const jwksClient = require("jwks-rsa");
+const teamService = require("../services/teamService");
 
 // Google OAuth client
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -17,6 +18,30 @@ const appleJwksClient = jwksClient({
   cacheMaxEntries: 5,
   cacheMaxAge: 600000, // 10 minutes
 });
+
+/**
+ * Helper: Get effective user data considering team membership
+ * If user is a team member, returns owner's credits and Pro status
+ */
+async function getEffectiveUserData(user) {
+  const effectiveStatus = await teamService.getEffectiveUserStatus(user.id);
+
+  return {
+    id: user.id,
+    supabaseUserId: user.supabase_user_id,
+    email: user.email,
+    fullName: user.full_name,
+    companyName: user.company_name,
+    // Use owner's credits and Pro status if team member
+    creditBalance: effectiveStatus.creditBalance,
+    isPro: effectiveStatus.isPro,
+    avatarUrl: user.avatar_url,
+    // Team info for frontend
+    isTeamMember: effectiveStatus.isTeamMember,
+    ownerInfo: effectiveStatus.ownerInfo || null,
+    subscriptionType: effectiveStatus.subscriptionType,
+  };
+}
 
 /**
  * Supabase Auth ile giriş yapan kullanıcıyı backend users tablosuna senkronize et
@@ -90,19 +115,12 @@ router.post("/sync-user", async (req, res) => {
         if (updateError) {
           console.error("❌ [AUTH] Error updating user:", updateError);
         } else {
+          // Get effective user data (team credits/Pro if applicable)
+          const effectiveUserData = await getEffectiveUserData(updatedUser);
           return res.status(200).json({
             success: true,
             message: "User updated successfully",
-            user: {
-              id: updatedUser.id,
-              supabaseUserId: updatedUser.supabase_user_id,
-              email: updatedUser.email,
-              fullName: updatedUser.full_name,
-              companyName: updatedUser.company_name,
-              creditBalance: updatedUser.credit_balance,
-              avatarUrl: updatedUser.avatar_url,
-              isPro: updatedUser.is_pro,
-            },
+            user: effectiveUserData,
             isNewUser: false,
             isLinked: true,
             accountType: "existing_auth",
@@ -110,19 +128,12 @@ router.post("/sync-user", async (req, res) => {
         }
       }
 
+      // Get effective user data (team credits/Pro if applicable)
+      const effectiveUserData = await getEffectiveUserData(existingAuthUser);
       return res.status(200).json({
         success: true,
         message: "User found",
-        user: {
-          id: existingAuthUser.id,
-          supabaseUserId: existingAuthUser.supabase_user_id,
-          email: existingAuthUser.email,
-          fullName: existingAuthUser.full_name,
-          companyName: existingAuthUser.company_name,
-          creditBalance: existingAuthUser.credit_balance,
-          avatarUrl: existingAuthUser.avatar_url,
-          isPro: existingAuthUser.is_pro,
-        },
+        user: effectiveUserData,
         isNewUser: false,
         isLinked: true,
         accountType: "existing_auth",
@@ -170,18 +181,12 @@ router.post("/sync-user", async (req, res) => {
 
         console.log("✅ [AUTH] Existing email account opened:", linkedUser.id);
 
+        // Get effective user data (team credits/Pro if applicable)
+        const effectiveUserData = await getEffectiveUserData(linkedUser);
         return res.status(200).json({
           success: true,
           message: "Existing account opened successfully",
-          user: {
-            id: linkedUser.id,
-            supabaseUserId: linkedUser.supabase_user_id,
-            email: linkedUser.email,
-            fullName: linkedUser.full_name,
-            creditBalance: linkedUser.credit_balance,
-            avatarUrl: linkedUser.avatar_url,
-            isPro: linkedUser.is_pro,
-          },
+          user: effectiveUserData,
           isNewUser: false,
           isLinked: true,
           accountType: "existing_email",
@@ -234,18 +239,12 @@ router.post("/sync-user", async (req, res) => {
 
           console.log("✅ [AUTH] Email linked to anonymous account:", linkedUser.id);
 
+          // Get effective user data (team credits/Pro if applicable)
+          const effectiveUserData = await getEffectiveUserData(linkedUser);
           return res.status(200).json({
             success: true,
             message: "Email linked to your account successfully",
-            user: {
-              id: linkedUser.id,
-              supabaseUserId: linkedUser.supabase_user_id,
-              email: linkedUser.email,
-              fullName: linkedUser.full_name,
-              creditBalance: linkedUser.credit_balance,
-              avatarUrl: linkedUser.avatar_url,
-              isPro: linkedUser.is_pro,
-            },
+            user: effectiveUserData,
             isNewUser: false,
             isLinked: true,
             accountType: "anonymous_linked",
@@ -292,18 +291,12 @@ router.post("/sync-user", async (req, res) => {
 
     console.log("✅ [AUTH] New user created:", newUser.id);
 
+    // New users won't have team membership, but use helper for consistency
+    const effectiveUserData = await getEffectiveUserData(newUser);
     return res.status(200).json({
       success: true,
       message: "User created successfully",
-      user: {
-        id: newUser.id,
-        supabaseUserId: newUser.supabase_user_id,
-        email: newUser.email,
-        fullName: newUser.full_name,
-        creditBalance: newUser.credit_balance,
-        avatarUrl: newUser.avatar_url,
-        isPro: newUser.is_pro,
-      },
+      user: effectiveUserData,
       isNewUser: true,
       isLinked: true,
       accountType: "new",
@@ -526,6 +519,7 @@ router.post("/sync-pro-status", async (req, res) => {
 
 /**
  * Supabase user ID ile kullanıcı bilgilerini al
+ * Team member ise owner'ın kredi ve Pro durumunu döndürür
  */
 router.get("/user/:supabaseUserId", async (req, res) => {
   try {
@@ -551,18 +545,14 @@ router.get("/user/:supabaseUserId", async (req, res) => {
       });
     }
 
+    // Get effective user data (team credits/Pro if applicable)
+    const effectiveUserData = await getEffectiveUserData(user);
+
     return res.status(200).json({
       success: true,
       user: {
-        id: user.id,
-        supabaseUserId: user.supabase_user_id,
-        email: user.email,
-        fullName: user.full_name,
-        companyName: user.company_name,
-        creditBalance: user.credit_balance,
-        avatarUrl: user.avatar_url,
+        ...effectiveUserData,
         authProvider: user.auth_provider,
-        isPro: user.is_pro,
       },
     });
   } catch (error) {
@@ -1335,16 +1325,10 @@ async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, p
         throw new Error("Error updating user");
       }
 
+      // Get effective user data (team credits/Pro if applicable)
+      const effectiveUserData = await getEffectiveUserData(updatedUser);
       return {
-        user: {
-          id: updatedUser.id,
-          supabaseUserId: updatedUser.supabase_user_id,
-          email: updatedUser.email,
-          fullName: updatedUser.full_name,
-          creditBalance: updatedUser.credit_balance,
-          avatarUrl: updatedUser.avatar_url,
-          isPro: updatedUser.is_pro,
-        },
+        user: effectiveUserData,
         isNewUser: false,
         isLinked: true,
         wasAnonymous: false,
@@ -1352,16 +1336,10 @@ async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, p
       };
     }
 
+    // Get effective user data (team credits/Pro if applicable)
+    const effectiveUserData = await getEffectiveUserData(existingAuthUser);
     return {
-      user: {
-        id: existingAuthUser.id,
-        supabaseUserId: existingAuthUser.supabase_user_id,
-        email: existingAuthUser.email,
-        fullName: existingAuthUser.full_name,
-        creditBalance: existingAuthUser.credit_balance,
-        avatarUrl: existingAuthUser.avatar_url,
-        isPro: existingAuthUser.is_pro,
-      },
+      user: effectiveUserData,
       isNewUser: false,
       isLinked: true,
       wasAnonymous: false,
@@ -1404,16 +1382,10 @@ async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, p
 
       console.log("✅ [HELPER] Existing email account opened:", linkedUser.id);
 
+      // Get effective user data (team credits/Pro if applicable)
+      const effectiveUserData = await getEffectiveUserData(linkedUser);
       return {
-        user: {
-          id: linkedUser.id,
-          supabaseUserId: linkedUser.supabase_user_id,
-          email: linkedUser.email,
-          fullName: linkedUser.full_name,
-          creditBalance: linkedUser.credit_balance,
-          avatarUrl: linkedUser.avatar_url,
-          isPro: linkedUser.is_pro,
-        },
+        user: effectiveUserData,
         isNewUser: false,
         isLinked: true,
         wasAnonymous: false,
@@ -1462,16 +1434,10 @@ async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, p
 
         console.log("✅ [HELPER] Email linked to anonymous account:", linkedUser.id);
 
+        // Get effective user data (team credits/Pro if applicable)
+        const effectiveUserData = await getEffectiveUserData(linkedUser);
         return {
-          user: {
-            id: linkedUser.id,
-            supabaseUserId: linkedUser.supabase_user_id,
-            email: linkedUser.email,
-            fullName: linkedUser.full_name,
-            creditBalance: linkedUser.credit_balance,
-            avatarUrl: linkedUser.avatar_url,
-            isPro: linkedUser.is_pro,
-          },
+          user: effectiveUserData,
           isNewUser: false,
           isLinked: true,
           wasAnonymous: true,
@@ -1512,16 +1478,10 @@ async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, p
     throw new Error("Error creating user");
   }
 
+  // New users won't have team membership, but use helper for consistency
+  const effectiveUserData = await getEffectiveUserData(newUser);
   return {
-    user: {
-      id: newUser.id,
-      supabaseUserId: newUser.supabase_user_id,
-      email: newUser.email,
-      fullName: newUser.full_name,
-      creditBalance: newUser.credit_balance,
-      avatarUrl: newUser.avatar_url,
-      isPro: newUser.is_pro,
-    },
+    user: effectiveUserData,
     isNewUser: true,
     isLinked: true,
     wasAnonymous: false,
