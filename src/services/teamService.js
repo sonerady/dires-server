@@ -10,7 +10,7 @@ const crypto = require('crypto');
 const TIER_LIMITS = {
     'standard': 1,
     'plus': 2,
-    'premium': 5,
+    'premium': 3,
     'free': 0
 };
 

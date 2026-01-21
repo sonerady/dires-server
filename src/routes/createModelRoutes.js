@@ -1029,18 +1029,18 @@ router.post("/create-model", async (req, res) => {
       });
     }
 
-    // Validation
-    if (!gender || !age) {
+    // Validation - customAge varsa age zorunlu değil
+    if (!gender || (!age && !customAge)) {
       return res.status(400).json({
         success: false,
-        error: "Gender ve age gerekli",
+        error: "Gender and age (or customAge) are required",
       });
     }
 
     if (!modelName || modelName.trim().length === 0) {
       return res.status(400).json({
         success: false,
-        error: "Model name gerekli",
+        error: "Model name is required",
       });
     }
 
@@ -1202,7 +1202,7 @@ router.post("/create-model", async (req, res) => {
 
     res.status(500).json({
       success: false,
-      error: "Model oluşturulurken hata oluştu",
+      error: "Error creating model",
       details: error.message,
     });
   }
@@ -1408,7 +1408,7 @@ router.delete("/delete-model/:modelId", async (req, res) => {
       if (error.code === "PGRST116" || error.message?.includes("No rows")) {
         return res.status(404).json({
           success: false,
-          error: "Model bulunamadı",
+          error: "Model not found",
         });
       }
 
@@ -1427,7 +1427,7 @@ router.delete("/delete-model/:modelId", async (req, res) => {
 
     res.status(500).json({
       success: false,
-      error: "Model silinirken hata oluştu",
+      error: "Error deleting model",
       details: error.message,
     });
   }
@@ -1504,7 +1504,7 @@ router.put("/update-model/:modelId", async (req, res) => {
     if (!modelName || modelName.trim().length === 0) {
       return res.status(400).json({
         success: false,
-        error: "Model adı boş olamaz",
+        error: "Model name cannot be empty",
       });
     }
 
@@ -1525,7 +1525,7 @@ router.put("/update-model/:modelId", async (req, res) => {
       if (error.code === "PGRST116") {
         return res.status(404).json({
           success: false,
-          error: "Model bulunamadı",
+          error: "Model not found",
         });
       }
 
@@ -1544,7 +1544,7 @@ router.put("/update-model/:modelId", async (req, res) => {
 
     res.status(500).json({
       success: false,
-      error: "Model güncellenirken hata oluştu",
+      error: "Error updating model",
       details: error.message,
     });
   }
