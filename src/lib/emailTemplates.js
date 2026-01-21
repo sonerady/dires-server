@@ -492,19 +492,20 @@ function getTeamInvitationTemplate(inviterName, inviterCompany, acceptUrl, decli
             </td>
           </tr>
 
-          <!-- CTA Buttons -->
+          <!-- CTA Button -->
           <tr>
-            <td align="center" style="padding-bottom: 24px;">
-              <a href="${acceptUrl}" style="display: inline-block; background-color: #1a1a1a; color: #ffffff; font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600; text-decoration: none; padding: 14px 48px; border-radius: 50px; letter-spacing: 0.3px; margin-right: 12px;">
-                ACCEPT INVITATION
+            <td align="center" style="padding-bottom: 32px;">
+              <a href="${acceptUrl}" style="display: inline-block; background-color: #22c55e; color: #ffffff; font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600; text-decoration: none; padding: 16px 56px; border-radius: 50px; letter-spacing: 0.3px;">
+                ✓ ACCEPT
               </a>
             </td>
           </tr>
 
+          <!-- Decline Link -->
           <tr>
-            <td align="center" style="padding-bottom: 32px;">
-              <a href="${declineUrl}" style="font-family: 'Poppins', sans-serif; font-size: 14px; color: #9ca3af; text-decoration: underline;">
-                Decline invitation
+            <td align="center" style="padding-bottom: 24px;">
+              <a href="${declineUrl}" style="font-family: 'Poppins', sans-serif; font-size: 13px; color: #9ca3af; text-decoration: underline;">
+                or decline this invitation
               </a>
             </td>
           </tr>
