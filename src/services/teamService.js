@@ -258,14 +258,23 @@ async function sendInvitation(ownerId, inviteeEmail) {
             return { success: false, error: 'You cannot invite yourself' };
         }
 
-        // Check if invitee has a Diress account (optional - can invite users without account)
+        // Check if invitee has a Diress account (REQUIRED - cannot invite users without account)
         const { data: invitee } = await supabase
             .from('users')
             .select('id, email')
             .ilike('email', inviteeEmail)
             .single();
 
-        // If user exists, check if already a team member
+        // If user doesn't have an account, reject the invitation
+        if (!invitee) {
+            return {
+                success: false,
+                error: 'NO_ACCOUNT',
+                message: 'Bu e-posta adresi ile kayıtlı bir Diress hesabı bulunamadı. Kullanıcının önce Diress\'e kayıt olması gerekiyor.'
+            };
+        }
+
+        // User exists, check if already a team member
         if (invitee) {
             const { data: existingMember } = await supabase
                 .from('team_members')
