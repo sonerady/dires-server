@@ -4,14 +4,10 @@
  */
 
 const express = require("express");
-const { Resend } = require("resend");
 const { supabase } = require("../supabaseClient");
 const teamService = require("../services/teamService");
-const { getTeamInvitationTemplate } = require("../lib/emailTemplates");
 
 const router = express.Router();
-const resend = new Resend(process.env.RESEND_API_KEY);
-const WEB_URL = process.env.WEB_URL || "https://app.diress.ai";
 
 // ============================================
 // Team Management
@@ -116,36 +112,9 @@ router.post("/invite", async (req, res) => {
             return res.status(400).json(result);
         }
 
-        // Get inviter info for email
-        const { data: inviter } = await supabase
-            .from("users")
-            .select("email, company_name, full_name")
-            .eq("id", userId)
-            .single();
-
-        // Priority: full_name (Google auth) > email > company_name
-        const inviterName = inviter?.full_name || inviter?.email || inviter?.company_name || "A Diress user";
-        const inviterCompany = inviter?.company_name || null;
-
-        // Generate URLs
-        const token = result.invitation.token;
-        const acceptUrl = `${WEB_URL}/team-invite?token=${token}&action=accept`;
-        const declineUrl = `${WEB_URL}/team-invite?token=${token}&action=decline`;
-        const signupUrl = `${WEB_URL}/login?invite_token=${token}&email=${encodeURIComponent(email)}`;
-
-        // Send invitation email
-        try {
-            await resend.emails.send({
-                from: "Diress <noreply@diress.ai>",
-                to: email,
-                subject: "You've been invited to join a team on Diress",
-                html: getTeamInvitationTemplate(inviterName, inviterCompany, acceptUrl, declineUrl, signupUrl)
-            });
-            console.log(`[Teams] Invitation email sent to ${email}`);
-        } catch (emailErr) {
-            console.error("[Teams] Email send error:", emailErr);
-            // Don't fail the request if email fails
-        }
+        // Email gönderme kaldırıldı - kullanıcı zaten sistemde kayıtlı olduğu için
+        // uygulama içi bildirim (header badge + modal) yeterli
+        console.log(`[Teams] Invitation created for ${email} (no email sent - in-app notification only)`);
 
         res.json({
             success: true,

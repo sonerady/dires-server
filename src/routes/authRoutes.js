@@ -23,10 +23,10 @@ const appleJwksClient = jwksClient({
  * Helper: Get effective user data considering team membership
  * If user is a team member, returns owner's credits and Pro status
  */
-async function getEffectiveUserData(user) {
+async function getEffectiveUserData(user, platform = null) {
   const effectiveStatus = await teamService.getEffectiveUserStatus(user.id);
 
-  return {
+  const userData = {
     id: user.id,
     supabaseUserId: user.supabase_user_id,
     email: user.email,
@@ -41,6 +41,53 @@ async function getEffectiveUserData(user) {
     ownerInfo: effectiveStatus.ownerInfo || null,
     subscriptionType: effectiveStatus.subscriptionType,
   };
+
+  // Include session version based on platform
+  if (platform === 'web') {
+    userData.webSessionVersion = user.web_session_version || 1;
+  } else if (platform === 'mobile') {
+    userData.mobileSessionVersion = user.mobile_session_version || 1;
+  }
+
+  return userData;
+}
+
+/**
+ * Helper: Increment session version for a platform and return updated user
+ * This invalidates all previous sessions on that platform
+ */
+async function incrementSessionVersion(userId, platform) {
+  const columnName = platform === 'web' ? 'web_session_version' : 'mobile_session_version';
+  const loginColumn = platform === 'web' ? 'last_web_login' : 'last_mobile_login';
+
+  // Get current version
+  const { data: user } = await supabase
+    .from('users')
+    .select(`id, ${columnName}`)
+    .eq('id', userId)
+    .single();
+
+  const currentVersion = user?.[columnName] || 1;
+  const newVersion = currentVersion + 1;
+
+  // Update version and login timestamp
+  const { data: updatedUser, error } = await supabase
+    .from('users')
+    .update({
+      [columnName]: newVersion,
+      [loginColumn]: new Date().toISOString()
+    })
+    .eq('id', userId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error(`❌ [AUTH] Error incrementing ${platform} session version:`, error);
+    return { success: false, error };
+  }
+
+  console.log(`🔐 [AUTH] ${platform} session version incremented: ${currentVersion} → ${newVersion} for user ${userId}`);
+  return { success: true, user: updatedUser, newVersion };
 }
 
 /**
@@ -62,7 +109,7 @@ async function getEffectiveUserData(user) {
  */
 router.post("/sync-user", async (req, res) => {
   try {
-    const { supabaseUserId, email, fullName, avatarUrl, provider, existingUserId } = req.body;
+    const { supabaseUserId, email, fullName, avatarUrl, provider, existingUserId, platform } = req.body;
 
     if (!supabaseUserId) {
       return res.status(400).json({
@@ -71,10 +118,14 @@ router.post("/sync-user", async (req, res) => {
       });
     }
 
+    // Platform: 'web' or 'mobile' - used for single session enforcement
+    const loginPlatform = platform || null;
+
     console.log("🔄 [AUTH] Syncing user to backend:", {
       supabaseUserId,
       email,
       provider,
+      platform: loginPlatform,
       existingUserId: existingUserId || "none",
     });
 
@@ -104,6 +155,15 @@ router.post("/sync-user", async (req, res) => {
       if (avatarUrl) updateData.avatar_url = avatarUrl;
       if (provider) updateData.auth_provider = provider;
 
+      // Increment session version for single-session enforcement
+      let finalUser = existingAuthUser;
+      if (loginPlatform) {
+        const sessionResult = await incrementSessionVersion(existingAuthUser.id, loginPlatform);
+        if (sessionResult.success) {
+          finalUser = sessionResult.user;
+        }
+      }
+
       if (Object.keys(updateData).length > 0) {
         const { data: updatedUser, error: updateError } = await supabase
           .from("users")
@@ -115,8 +175,9 @@ router.post("/sync-user", async (req, res) => {
         if (updateError) {
           console.error("❌ [AUTH] Error updating user:", updateError);
         } else {
+          finalUser = updatedUser;
           // Get effective user data (team credits/Pro if applicable)
-          const effectiveUserData = await getEffectiveUserData(updatedUser);
+          const effectiveUserData = await getEffectiveUserData(finalUser, loginPlatform);
           return res.status(200).json({
             success: true,
             message: "User updated successfully",
@@ -129,7 +190,7 @@ router.post("/sync-user", async (req, res) => {
       }
 
       // Get effective user data (team credits/Pro if applicable)
-      const effectiveUserData = await getEffectiveUserData(existingAuthUser);
+      const effectiveUserData = await getEffectiveUserData(finalUser, loginPlatform);
       return res.status(200).json({
         success: true,
         message: "User found",
@@ -181,8 +242,17 @@ router.post("/sync-user", async (req, res) => {
 
         console.log("✅ [AUTH] Existing email account opened:", linkedUser.id);
 
+        // Increment session version for single-session enforcement
+        let finalUser = linkedUser;
+        if (loginPlatform) {
+          const sessionResult = await incrementSessionVersion(linkedUser.id, loginPlatform);
+          if (sessionResult.success) {
+            finalUser = sessionResult.user;
+          }
+        }
+
         // Get effective user data (team credits/Pro if applicable)
-        const effectiveUserData = await getEffectiveUserData(linkedUser);
+        const effectiveUserData = await getEffectiveUserData(finalUser, loginPlatform);
         return res.status(200).json({
           success: true,
           message: "Existing account opened successfully",
@@ -239,8 +309,17 @@ router.post("/sync-user", async (req, res) => {
 
           console.log("✅ [AUTH] Email linked to anonymous account:", linkedUser.id);
 
+          // Increment session version for single-session enforcement
+          let finalUser = linkedUser;
+          if (loginPlatform) {
+            const sessionResult = await incrementSessionVersion(linkedUser.id, loginPlatform);
+            if (sessionResult.success) {
+              finalUser = sessionResult.user;
+            }
+          }
+
           // Get effective user data (team credits/Pro if applicable)
-          const effectiveUserData = await getEffectiveUserData(linkedUser);
+          const effectiveUserData = await getEffectiveUserData(finalUser, loginPlatform);
           return res.status(200).json({
             success: true,
             message: "Email linked to your account successfully",
@@ -291,8 +370,17 @@ router.post("/sync-user", async (req, res) => {
 
     console.log("✅ [AUTH] New user created:", newUser.id);
 
+    // Increment session version for single-session enforcement
+    let finalUser = newUser;
+    if (loginPlatform) {
+      const sessionResult = await incrementSessionVersion(newUser.id, loginPlatform);
+      if (sessionResult.success) {
+        finalUser = sessionResult.user;
+      }
+    }
+
     // New users won't have team membership, but use helper for consistency
-    const effectiveUserData = await getEffectiveUserData(newUser);
+    const effectiveUserData = await getEffectiveUserData(finalUser, loginPlatform);
     return res.status(200).json({
       success: true,
       message: "User created successfully",
@@ -1487,6 +1575,63 @@ async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, p
     wasAnonymous: false,
   };
 }
+
+/**
+ * Validate session version
+ * Client sends their stored session version, server checks if it matches
+ * If mismatch → SESSION_EXPIRED error → client logs out
+ */
+router.post("/validate-session", async (req, res) => {
+  try {
+    const { userId, platform, sessionVersion } = req.body;
+
+    if (!userId || !platform || sessionVersion === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: "userId, platform, and sessionVersion are required",
+      });
+    }
+
+    const columnName = platform === 'web' ? 'web_session_version' : 'mobile_session_version';
+
+    const { data: user, error } = await supabase
+      .from('users')
+      .select(`id, ${columnName}`)
+      .eq('id', userId)
+      .single();
+
+    if (error || !user) {
+      return res.status(404).json({
+        success: false,
+        error: "User not found",
+      });
+    }
+
+    const currentVersion = user[columnName] || 1;
+
+    if (sessionVersion < currentVersion) {
+      console.log(`🚫 [AUTH] Session expired for user ${userId} on ${platform}. Client: ${sessionVersion}, Server: ${currentVersion}`);
+      return res.status(401).json({
+        success: false,
+        error: "SESSION_EXPIRED",
+        message: "Your session has expired. Please log in again.",
+        currentVersion,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      valid: true,
+      currentVersion,
+    });
+  } catch (error) {
+    console.error("❌ [AUTH] Validate session error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Server error",
+    });
+  }
+});
 
 module.exports = router;
 
