@@ -3,6 +3,26 @@ const { supabase } = require("../supabaseClient");
 
 const router = express.Router();
 
+// Team paketlerinden üye sayısını belirle
+const getTeamMembersForPackage = (productId) => {
+  const teamPackages = {
+    // iOS Team paketleri
+    "com.team1.monthly.diress": 1,
+    "com.team2.monthly.diress": 2,
+    "com.team3.monthly.diress": 3,
+    "com.team4.monthly.diress": 4,
+    "com.team5.monthly.diress": 5,
+    "com.team6.monthly.diress": 6,
+  };
+  return teamPackages[productId] || 0;
+};
+
+// Team paketi mi kontrol et
+const isTeamPackage = (productId) => {
+  // com.team1.monthly.diress, com.team2.monthly.diress formatında
+  return productId && productId.startsWith('com.team') && productId.includes('.monthly.diress');
+};
+
 // Paket ID'sine göre kredi miktarlarını belirle
 const getCreditsForPackage = (productId) => {
   const packageCredits = {
@@ -158,6 +178,73 @@ router.post("/webhookv2", async (req, res) => {
         return res.status(400).json({ error: "No user ID found" });
       }
 
+      // Team paketi iptal mi kontrol et
+      if (isTeamPackage(product_id)) {
+        console.log(`👥 TEAM SUBSCRIPTION CANCELLATION: ${product_id}`);
+
+        // Team subscription'ı deaktive et
+        const { data: teamCancelData, error: teamCancelError } = await supabase
+          .from("users")
+          .update({
+            team_max_members: 0,
+            team_subscription_active: false,
+          })
+          .eq("id", userId)
+          .select();
+
+        if (teamCancelError) {
+          console.error("❌ Error cancelling team subscription:", teamCancelError);
+          return res.status(500).json({ error: "Team subscription cancellation failed" });
+        }
+
+        // Kullanıcının team'inin max_members'ını sıfırla
+        const { data: userTeam } = await supabase
+          .from("teams")
+          .select("id")
+          .eq("owner_id", userId)
+          .single();
+
+        if (userTeam) {
+          await supabase
+            .from("teams")
+            .update({ max_members: 0 })
+            .eq("id", userTeam.id);
+          console.log("✅ Team max_members reset to 0");
+        }
+
+        console.log("✅ Team subscription cancelled successfully!");
+
+        // Purchase history'ye kaydet
+        try {
+          await supabase.from("purchase_history").insert({
+            user_id: userId,
+            product_id: product_id,
+            transaction_id: transaction_id || "team_cancellation",
+            credits_added: 0,
+            price: 0,
+            currency: currency || "USD",
+            store: store || "unknown",
+            environment: environment || "unknown",
+            event_type: type,
+            package_type: "team_subscription",
+            purchased_at: new Date(purchased_at_ms || Date.now()),
+            created_at: new Date().toISOString(),
+          });
+        } catch (historyError) {
+          console.error("⚠️ Warning: Team cancellation history error:", historyError);
+        }
+
+        return res.status(200).json({
+          success: true,
+          message: `Team subscription ${type.toLowerCase()} processed`,
+          user_id: userId,
+          team_max_members: 0,
+          team_subscription_active: false,
+          event_type: type,
+        });
+      }
+
+      // Normal subscription iptal işlemi
       // Kullanıcıyı plan olmayan duruma düşür
       const { data: downgradedData, error: downgradeError } = await supabase
         .from("users")
@@ -314,6 +401,82 @@ router.post("/webhookv2", async (req, res) => {
       }
     }
 
+    // ===== TEAM PAKETİ KONTROLÜ =====
+    if (isTeamPackage(product_id)) {
+      const teamMembers = getTeamMembersForPackage(product_id);
+      console.log(`👥 TEAM PACKAGE DETECTED: ${product_id} - ${teamMembers} members`);
+
+      if (teamMembers === 0) {
+        console.error(`❌ Unknown team package: ${product_id}`);
+        return res.status(400).json({ error: `Unknown team package: ${product_id}` });
+      }
+
+      // Kullanıcının team_max_members alanını güncelle
+      const { data: teamUpdateData, error: teamUpdateError } = await supabase
+        .from("users")
+        .update({
+          team_max_members: teamMembers,
+          team_subscription_active: true,
+        })
+        .eq("id", userId)
+        .select();
+
+      if (teamUpdateError) {
+        console.error("❌ Error updating team subscription:", teamUpdateError);
+        return res.status(500).json({ error: "Team subscription update failed" });
+      }
+
+      console.log("✅ Team subscription updated successfully!");
+      console.log("Updated data:", teamUpdateData);
+
+      // Eğer kullanıcının team'i varsa, max_members'ı güncelle
+      const { data: userTeam, error: teamFetchError } = await supabase
+        .from("teams")
+        .select("id")
+        .eq("owner_id", userId)
+        .single();
+
+      if (userTeam && !teamFetchError) {
+        await supabase
+          .from("teams")
+          .update({ max_members: teamMembers })
+          .eq("id", userTeam.id);
+        console.log(`✅ Team max_members updated to ${teamMembers}`);
+      }
+
+      // Purchase history'ye kaydet
+      try {
+        await supabase.from("purchase_history").insert({
+          user_id: userId,
+          product_id: product_id,
+          transaction_id: transaction_id || `team_${Date.now()}`,
+          credits_added: 0,
+          price: price || 0,
+          currency: currency || "USD",
+          store: store || "unknown",
+          environment: environment || "unknown",
+          event_type: type,
+          package_type: "team_subscription",
+          purchased_at: new Date(purchased_at_ms || Date.now()),
+          created_at: new Date().toISOString(),
+        });
+        console.log("📋 Team purchase history saved");
+      } catch (historyError) {
+        console.error("⚠️ Warning: Team purchase history error:", historyError);
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: `Team subscription activated - ${teamMembers} team members allowed`,
+        user_id: userId,
+        team_max_members: teamMembers,
+        product_id: product_id,
+        event_type: type,
+        transaction_id: transaction_id,
+      });
+    }
+
+    // ===== NORMAL KREDİ PAKETİ İŞLEMİ =====
     // Product ID'den kredi miktarını belirle
     const creditsToAdd = getCreditsForPackage(product_id);
 

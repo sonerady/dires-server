@@ -28,7 +28,7 @@ function getMaxTeamMembers(subscriptionTier) {
 /**
  * Check if user is a Pro subscriber
  * @param {string} userId - User ID
- * @returns {Promise<{isPro: boolean, tier: string|null, maxMembers: number}>}
+ * @returns {Promise<{isPro: boolean, tier: string|null, maxMembers: number, hasTeamSubscription: boolean}>}
  */
 async function checkProStatus(userId) {
     try {
@@ -36,7 +36,7 @@ async function checkProStatus(userId) {
 
         const { data: user, error } = await supabase
             .from('users')
-            .select('is_pro, subscription_type')
+            .select('is_pro, subscription_type, team_max_members, team_subscription_active')
             .eq('id', userId)
             .single();
 
@@ -44,21 +44,36 @@ async function checkProStatus(userId) {
 
         if (error || !user) {
             console.log('[TeamService] User not found or error occurred');
-            return { isPro: false, tier: null, maxMembers: 0 };
+            return { isPro: false, tier: null, maxMembers: 0, hasTeamSubscription: false };
         }
 
-        const maxMembers = getMaxTeamMembers(user.subscription_type);
+        // Team subscription varsa, onun member limitini kullan
+        // Yoksa normal subscription tier'a göre belirle
+        let maxMembers = 0;
+        const hasTeamSubscription = user.team_subscription_active === true && user.team_max_members > 0;
+
+        if (hasTeamSubscription) {
+            // Team subscription aktifse, team_max_members'ı kullan
+            maxMembers = user.team_max_members;
+            console.log('[TeamService] Using team subscription max_members:', maxMembers);
+        } else {
+            // Normal subscription tier'a göre belirle
+            maxMembers = getMaxTeamMembers(user.subscription_type);
+            console.log('[TeamService] Using tier-based max_members:', maxMembers);
+        }
+
         const result = {
             isPro: user.is_pro === true,
             tier: user.subscription_type,
-            maxMembers
+            maxMembers,
+            hasTeamSubscription
         };
 
         console.log('[TeamService] Pro status result:', result);
         return result;
     } catch (err) {
         console.error('[TeamService] checkProStatus error:', err);
-        return { isPro: false, tier: null, maxMembers: 0 };
+        return { isPro: false, tier: null, maxMembers: 0, hasTeamSubscription: false };
     }
 }
 

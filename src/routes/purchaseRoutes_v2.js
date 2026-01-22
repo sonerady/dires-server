@@ -479,7 +479,7 @@ router.get("/user/:userId", async (req, res) => {
     try {
       const result = await supabase
         .from("users")
-        .select("credit_balance, is_pro, subscription_type")
+        .select("credit_balance, is_pro, subscription_type, team_max_members, team_subscription_active")
         .eq("id", userId)
         .single();
       userData = result.data;
@@ -508,6 +508,8 @@ router.get("/user/:userId", async (req, res) => {
       credit_balance: userData.credit_balance || 0,
       is_pro: userData.is_pro || false,
       subscription_type: userData.subscription_type || null,
+      team_max_members: userData.team_max_members || 0,
+      team_subscription_active: userData.team_subscription_active || false,
       timestamp: new Date().toISOString(), // Cache busting için timestamp ekle
     });
   } catch (error) {

@@ -425,7 +425,7 @@ router.get("/user/:userId", async (req, res) => {
     try {
       const result = await supabase
         .from("users")
-        .select("credit_balance, is_pro, subscription_type, owner")
+        .select("credit_balance, is_pro, subscription_type, owner, team_max_members, team_subscription_active")
         .eq("id", userId)
         .single();
       userData = result.data;
@@ -435,7 +435,7 @@ router.get("/user/:userId", async (req, res) => {
       try {
         const result = await supabase
           .from("users")
-          .select("credit_balance, is_pro, owner")
+          .select("credit_balance, is_pro, owner, team_max_members, team_subscription_active")
           .eq("id", userId)
           .single();
         userData = result.data;
@@ -466,6 +466,8 @@ router.get("/user/:userId", async (req, res) => {
       is_pro: userData.is_pro || false,
       subscription_type: userData.subscription_type || null,
       owner: userData.owner || false,
+      team_max_members: userData.team_max_members || 0,
+      team_subscription_active: userData.team_subscription_active || false,
       timestamp: new Date().toISOString(), // Cache busting için timestamp ekle
     });
   } catch (error) {
