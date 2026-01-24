@@ -634,8 +634,11 @@ router.get("/predictionStatus/:predictionId", async (req, res) => {
 
     } catch (pollError) {
       console.error("Fal.ai SDK polling error:", pollError);
-      // Check if 404 manually if SDK throws specific error for not found?
-      // Generally SDK throws error on fail.
+      // If error is 404 (not found) or 422 (unprocessable), mark as failed to stop polling
+      if (pollError.status === 404 || pollError.status === 422) {
+        console.warn(`⚠️ Mark generation ${predictionId} as failed due to Fal.ai error ${pollError.status}`);
+        replicateStatus = "failed";
+      }
     }
 
     // Update DB logic remains the same

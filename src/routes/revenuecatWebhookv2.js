@@ -311,12 +311,59 @@ router.post("/webhookv2", async (req, res) => {
     }
 
     // Kullanıcı ID'sini belirle (önce app_user_id, sonra original_app_user_id)
-    const userId = app_user_id || original_app_user_id;
+    const purchaserId = app_user_id || original_app_user_id;
 
-    if (!userId) {
+    if (!purchaserId) {
       console.error("❌ No user ID found in event");
       return res.status(400).json({ error: "No user ID found" });
     }
+
+    // 🔗 TEAM-AWARE: Eğer satın alan bir team member ise, kredileri owner'a ekle
+    // NOT: Eski uygulama versiyonlarında active_team_id olmayabilir - bu durumda normal devam eder
+    let userId = purchaserId; // Default: satın alanın kendisi
+    let isTeamPurchase = false;
+    let teamOwnerId = null;
+
+    try {
+      // Satın alan kullanıcının team üyeliğini kontrol et
+      const { data: purchaserData, error: purchaserError } = await supabase
+        .from("users")
+        .select("active_team_id")
+        .eq("id", purchaserId)
+        .single();
+
+      // active_team_id varsa ve boş değilse team üyeliğini kontrol et
+      if (!purchaserError && purchaserData && purchaserData.active_team_id) {
+        // Kullanıcı bir team'e üye - team owner'ı bul
+        const { data: teamData, error: teamError } = await supabase
+          .from("teams")
+          .select("owner_id")
+          .eq("id", purchaserData.active_team_id)
+          .single();
+
+        if (!teamError && teamData && teamData.owner_id) {
+          // Team member owner değilse, kredileri owner'a ekle
+          if (teamData.owner_id !== purchaserId) {
+            userId = teamData.owner_id;
+            isTeamPurchase = true;
+            teamOwnerId = teamData.owner_id;
+            console.log(`👥 TEAM PURCHASE DETECTED!`);
+            console.log(`   Purchaser (member): ${purchaserId}`);
+            console.log(`   Credits will be added to Owner: ${teamOwnerId}`);
+          } else {
+            console.log(`👤 Purchaser is the team owner - credits go to self`);
+          }
+        }
+      } else {
+        // active_team_id yok veya null - eski kullanıcı veya team'e üye değil
+        console.log(`👤 No active team membership - credits go to purchaser: ${purchaserId}`);
+      }
+    } catch (teamCheckError) {
+      console.log(`⚠️ Team check failed (backward compat), using purchaser as target: ${teamCheckError.message}`);
+      // Hata durumunda satın alanın kendisine ekle - eski uygulama versiyonları için güvenli
+    }
+
+    console.log(`🎯 Final credit target: ${userId} (isTeamPurchase: ${isTeamPurchase})`);
 
     // ✅ GÜÇLÜ DUPLICATE KONTROLÜ - MULTIPLE CHECK
     // Aynı transaction_id daha önce işlenmiş mi kontrol et
@@ -634,21 +681,32 @@ router.post("/webhookv2", async (req, res) => {
 
     // Purchase history tablosuna kayıt ekle (opsiyonel)
     try {
+      const purchaseRecord = {
+        user_id: userId, // Kredilerin eklendiği kullanıcı (owner veya purchaser)
+        product_id: product_id || "unknown",
+        transaction_id: transaction_id || `test_${Date.now()}`,
+        credits_added: creditsToAdd,
+        price: price || 0,
+        currency: currency || "USD",
+        store: store || "unknown",
+        environment: environment || "unknown",
+        event_type: type,
+        purchased_at: new Date(purchased_at_ms || Date.now()),
+        created_at: new Date().toISOString(),
+      };
+
+      // Team purchase ise satın alan kişiyi de kaydet (metadata olarak)
+      if (isTeamPurchase) {
+        purchaseRecord.metadata = JSON.stringify({
+          purchaser_id: purchaserId,
+          is_team_purchase: true,
+          team_owner_id: teamOwnerId
+        });
+      }
+
       const { data: purchaseData, error: purchaseError } = await supabase
         .from("purchase_history")
-        .insert({
-          user_id: userId,
-          product_id: product_id || "unknown",
-          transaction_id: transaction_id || `test_${Date.now()}`,
-          credits_added: creditsToAdd,
-          price: price || 0,
-          currency: currency || "USD",
-          store: store || "unknown",
-          environment: environment || "unknown",
-          event_type: type,
-          purchased_at: new Date(purchased_at_ms || Date.now()),
-          created_at: new Date().toISOString(),
-        });
+        .insert(purchaseRecord);
 
       if (purchaseError) {
         console.error(
@@ -672,10 +730,10 @@ router.post("/webhookv2", async (req, res) => {
           ? `Credits added successfully and user upgraded to PRO with ${planType} plan`
           : "Credits added successfully and user upgraded to PRO (coin pack)";
 
-    res.status(200).json({
+    const responseData = {
       success: true,
       message: responseMessage,
-      user_id: userId,
+      user_id: userId, // Kredilerin eklendiği kullanıcı
       credits_added: creditsToAdd,
       new_balance: newBalance,
       subscription_type: planType,
@@ -684,7 +742,22 @@ router.post("/webhookv2", async (req, res) => {
       transaction_id: transaction_id || `test_${Date.now()}`,
       product_id: product_id,
       is_test: type === "TEST",
-    });
+    };
+
+    // Team purchase bilgilerini ekle
+    if (isTeamPurchase) {
+      responseData.is_team_purchase = true;
+      responseData.purchaser_id = purchaserId;
+      responseData.team_owner_id = teamOwnerId;
+      responseData.message = `${responseMessage} (Team purchase: credits added to team owner)`;
+      console.log(`✅ TEAM PURCHASE COMPLETED:`);
+      console.log(`   Purchaser (member): ${purchaserId}`);
+      console.log(`   Credits added to Owner: ${teamOwnerId}`);
+      console.log(`   Credits: ${creditsToAdd}`);
+      console.log(`   New Owner Balance: ${newBalance}`);
+    }
+
+    res.status(200).json(responseData);
   } catch (error) {
     console.error("💥 Webhook error:", error);
     res.status(500).json({
