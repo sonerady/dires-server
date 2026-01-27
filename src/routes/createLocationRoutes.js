@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { supabase } = require("../supabaseClient");
+const logger = require("../utils/logger");
 
 // Gemini API setup
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -9,10 +10,10 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 // Replicate'den gelen resmi Supabase storage'a kaydet
 async function uploadImageToSupabaseStorage(imageUrl, userId, replicateId) {
   try {
-    console.log("📤 Resim Supabase storage'a yükleniyor...");
-    console.log("Image URL:", imageUrl);
-    console.log("User ID:", userId);
-    console.log("Replicate ID:", replicateId);
+    logger.log("📤 Resim Supabase storage'a yükleniyor...");
+    logger.log("Image URL:", imageUrl);
+    logger.log("User ID:", userId);
+    logger.log("Replicate ID:", replicateId);
 
     // Replicate'den resmi indir
     const imageResponse = await fetch(imageUrl);
@@ -27,7 +28,7 @@ async function uploadImageToSupabaseStorage(imageUrl, userId, replicateId) {
     const timestamp = Date.now();
     const fileName = `user-locations/${userId}/${timestamp}-${replicateId}.jpg`;
 
-    console.log("📁 Dosya adı:", fileName);
+    logger.log("📁 Dosya adı:", fileName);
 
     // Supabase storage'a yükle
     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -43,7 +44,7 @@ async function uploadImageToSupabaseStorage(imageUrl, userId, replicateId) {
       throw uploadError;
     }
 
-    console.log("✅ Resim Supabase storage'a yüklendi:", uploadData.path);
+    logger.log("✅ Resim Supabase storage'a yüklendi:", uploadData.path);
 
     // Public URL oluştur
     const { data: urlData } = supabase.storage
@@ -51,7 +52,7 @@ async function uploadImageToSupabaseStorage(imageUrl, userId, replicateId) {
       .getPublicUrl(fileName);
 
     const publicUrl = urlData.publicUrl;
-    console.log("🔗 Public URL:", publicUrl);
+    logger.log("🔗 Public URL:", publicUrl);
 
     return {
       storagePath: fileName,
@@ -67,10 +68,10 @@ async function uploadImageToSupabaseStorage(imageUrl, userId, replicateId) {
 // Google Imagen-4-fast ile location image generate et - Migrated to Fal.ai
 async function generateLocationWithImagen4(prompt, userId) {
   try {
-    console.log(
+    logger.log(
       "📸 Fal.ai Imagen-4 ile location generation başlatılıyor..."
     );
-    console.log("Prompt:", prompt);
+    logger.log("Prompt:", prompt);
 
     const response = await fetch(
       "https://fal.run/fal-ai/imagen4/preview/ultra",
@@ -96,8 +97,8 @@ async function generateLocationWithImagen4(prompt, userId) {
     }
 
     const result = await response.json();
-    console.log("✅ Fal.ai Imagen-4 generation tamamlandı");
-    console.log("Imagen result:", result);
+    logger.log("✅ Fal.ai Imagen-4 generation tamamlandı");
+    logger.log("Imagen result:", result);
 
     // Fal.ai output: { images: [{ url: "..." }] }
     let imageUrl = null;
@@ -144,7 +145,7 @@ async function generateLocationWithImagen4(prompt, userId) {
 // GPT-4O-mini ile prompt enhance et
 async function enhanceLocationPromptWithGPT(originalPrompt) {
   try {
-    console.log("🤖 GPT-4O-mini ile prompt enhancement başlatılıyor...");
+    logger.log("🤖 GPT-4O-mini ile prompt enhancement başlatılıyor...");
 
     const systemPrompt = `You are an expert AI prompt engineer specializing in photorealistic location photography. Create SHORT, SIMPLE prompts optimized for image generation.
 
@@ -231,7 +232,7 @@ IMPORTANT: You MUST return a valid JSON object with these exact keys: prompt, ti
     }
 
     const result = await response.json();
-    console.log("📊 GPT-4O-mini full result:", JSON.stringify(result, null, 2));
+    logger.log("📊 GPT-4O-mini full result:", JSON.stringify(result, null, 2));
 
     if (result.error) {
       console.error("❌ GPT-4O-mini error:", result.error);
@@ -243,7 +244,7 @@ IMPORTANT: You MUST return a valid JSON object with these exact keys: prompt, ti
       if (Array.isArray(result.output)) {
         // Array ise tüm elemanları birleştir
         gptResponse = result.output.join("").trim();
-        console.log(
+        logger.log(
           "📋 GPT output is array, joined:",
           result.output.length,
           "pieces"
@@ -259,7 +260,7 @@ IMPORTANT: You MUST return a valid JSON object with these exact keys: prompt, ti
       throw new Error("No output field in GPT-4O-mini response");
     }
 
-    console.log("🎯 GPT-4O-mini raw response:", gptResponse);
+    logger.log("🎯 GPT-4O-mini raw response:", gptResponse);
 
     // JSON response'u parse et
     let generatedTitle = null;
@@ -279,32 +280,32 @@ IMPORTANT: You MUST return a valid JSON object with these exact keys: prompt, ti
         enhancedPrompt = jsonResponse.prompt.trim();
         locationType = jsonResponse.locationType.trim();
 
-        console.log("✅ Successfully parsed JSON response");
-        console.log("📝 Parsed title:", generatedTitle);
-        console.log("📝 Parsed prompt length:", enhancedPrompt.length);
-        console.log("📍 Parsed location type:", locationType);
+        logger.log("✅ Successfully parsed JSON response");
+        logger.log("📝 Parsed title:", generatedTitle);
+        logger.log("📝 Parsed prompt length:", enhancedPrompt.length);
+        logger.log("📍 Parsed location type:", locationType);
       } else {
         throw new Error("Missing required fields in JSON response");
       }
     } catch (jsonError) {
-      console.log("⚠️ JSON parse failed, trying old format...");
+      logger.log("⚠️ JSON parse failed, trying old format...");
 
       // Eski TITLE: ve PROMPT: formatını dene
       const titleMatch = gptResponse.match(/TITLE:\s*(.+)/i);
       const promptMatch = gptResponse.match(/PROMPT:\s*(.+)/is); // 's' flag ile multiline
 
-      console.log("🔍 Title match:", titleMatch);
-      console.log("🔍 Prompt match:", promptMatch);
+      logger.log("🔍 Title match:", titleMatch);
+      logger.log("🔍 Prompt match:", promptMatch);
 
       if (titleMatch && promptMatch) {
         generatedTitle = titleMatch[1].trim();
         enhancedPrompt = promptMatch[1].trim();
-        console.log("✅ Successfully parsed old format response");
-        console.log("📝 Parsed title:", generatedTitle);
-        console.log("📝 Parsed prompt length:", enhancedPrompt.length);
-        console.log("📍 Using default location type: unknown");
+        logger.log("✅ Successfully parsed old format response");
+        logger.log("📝 Parsed title:", generatedTitle);
+        logger.log("📝 Parsed prompt length:", enhancedPrompt.length);
+        logger.log("📍 Using default location type: unknown");
       } else {
-        console.log(
+        logger.log(
           "⚠️ Could not parse any format, throwing error for fallback"
         );
         throw new Error("Failed to parse GPT response format");
@@ -328,28 +329,28 @@ IMPORTANT: You MUST return a valid JSON object with these exact keys: prompt, ti
 
     // Token sayısını kontrol et (prompt için)
     const tokenCount = enhancedPrompt.split(/\s+/).length;
-    console.log(`Generated prompt token count: ${tokenCount}`);
+    logger.log(`Generated prompt token count: ${tokenCount}`);
 
     // Eğer 512 token'dan fazlaysa kısalt
     if (tokenCount > 512) {
       const words = enhancedPrompt.split(/\s+/);
       enhancedPrompt = words.slice(0, 512).join(" ");
-      console.log(`Prompt kısaltıldı: ${enhancedPrompt}`);
+      logger.log(`Prompt kısaltıldı: ${enhancedPrompt}`);
     }
 
     // Basit uzunluk kontrolü (çok kısa değilse kabul et)
     if (tokenCount < 50) {
-      console.log("⚠️ Generated prompt çok kısa, tekrar denenebilir...");
-      console.log("Token sayısı:", tokenCount);
+      logger.log("⚠️ Generated prompt çok kısa, tekrar denenebilir...");
+      logger.log("Token sayısı:", tokenCount);
     }
 
-    console.log("✅ GPT-4O-mini prompt enhancement tamamlandı");
-    console.log("Generated title:", generatedTitle);
-    console.log(
+    logger.log("✅ GPT-4O-mini prompt enhancement tamamlandı");
+    logger.log("Generated title:", generatedTitle);
+    logger.log(
       "Enhanced prompt preview:",
       enhancedPrompt.substring(0, 100) + "..."
     );
-    console.log("Enhanced prompt length:", enhancedPrompt.length);
+    logger.log("Enhanced prompt length:", enhancedPrompt.length);
 
     return {
       title: generatedTitle,
@@ -379,9 +380,9 @@ async function saveLocationToDatabase(
   locationType = "unknown"
 ) {
   try {
-    console.log("💾 Location Supabase'e kaydediliyor...");
-    console.log("📝 Enhanced prompt değeri:", enhancedPrompt);
-    console.log("📝 Enhanced prompt length:", enhancedPrompt?.length);
+    logger.log("💾 Location Supabase'e kaydediliyor...");
+    logger.log("📝 Enhanced prompt değeri:", enhancedPrompt);
+    logger.log("📝 Enhanced prompt length:", enhancedPrompt?.length);
 
     const { data, error } = await supabase
       .from("custom_locations")
@@ -412,7 +413,7 @@ async function saveLocationToDatabase(
         error.message?.includes("relation") ||
         error.message?.includes("table")
       ) {
-        console.log("⚠️ Tablo mevcut değil, geçici data dönülüyor...");
+        logger.log("⚠️ Tablo mevcut değil, geçici data dönülüyor...");
         return {
           id: Date.now(),
           title: title,
@@ -432,7 +433,7 @@ async function saveLocationToDatabase(
       throw error;
     }
 
-    console.log("✅ Location Supabase'e kaydedildi:", data.id);
+    logger.log("✅ Location Supabase'e kaydedildi:", data.id);
     return data;
   } catch (error) {
     console.error("Database kayıt hatası:", error);
@@ -454,8 +455,8 @@ router.post("/create-location", async (req, res) => {
       locationType = null,
     } = req.body;
 
-    console.log("🔍 skipSaveToDatabase value:", skipSaveToDatabase);
-    console.log("🔍 skipSaveToDatabase type:", typeof skipSaveToDatabase);
+    logger.log("🔍 skipSaveToDatabase value:", skipSaveToDatabase);
+    logger.log("🔍 skipSaveToDatabase type:", typeof skipSaveToDatabase);
 
     // User ID validation - birden fazla yöntem
     let actualUserId = userId;
@@ -477,11 +478,11 @@ router.post("/create-location", async (req, res) => {
       actualUserId = req.query.userId;
     }
 
-    console.log("🔍 User ID sources:");
-    console.log("- Body userId:", userId);
-    console.log("- Header x-user-id:", req.headers["x-user-id"]);
-    console.log("- Query userId:", req.query.userId);
-    console.log("- Final actualUserId:", actualUserId);
+    logger.log("🔍 User ID sources:");
+    logger.log("- Body userId:", userId);
+    logger.log("- Header x-user-id:", req.headers["x-user-id"]);
+    logger.log("- Query userId:", req.query.userId);
+    logger.log("- Final actualUserId:", actualUserId);
 
     // UUID format validation
     if (actualUserId) {
@@ -512,16 +513,16 @@ router.post("/create-location", async (req, res) => {
       });
     }
 
-    console.log("🚀 Create location işlemi başlatıldı");
-    console.log("Original prompt:", prompt);
-    console.log("Title:", title);
-    console.log("Category:", category);
-    console.log("User ID:", actualUserId);
-    console.log("Is Public:", isPublic);
+    logger.log("🚀 Create location işlemi başlatıldı");
+    logger.log("Original prompt:", prompt);
+    logger.log("Title:", title);
+    logger.log("Category:", category);
+    logger.log("User ID:", actualUserId);
+    logger.log("Is Public:", isPublic);
 
     // 1. GPT-4O-mini ile prompt ve title oluştur
     const gptResult = await enhanceLocationPromptWithGPT(prompt);
-    console.log("🔍 GPT Result:", {
+    logger.log("🔍 GPT Result:", {
       title: gptResult.title,
       promptLength: gptResult.prompt?.length,
       promptPreview: gptResult.prompt?.substring(0, 100) + "...",
@@ -536,18 +537,18 @@ router.post("/create-location", async (req, res) => {
     );
 
     // 3. Supabase'e kaydet (zorla)
-    console.log("🔍 DEBUG: Forcing database save...");
+    logger.log("🔍 DEBUG: Forcing database save...");
     if (true) {
       // Zorla kaydet
-      console.log(
+      logger.log(
         "🔍 Before call - enhancedPrompt:",
         enhancedPrompt?.substring(0, 100) + "..."
       );
-      console.log(
+      logger.log(
         "🔍 Before call - enhancedPrompt length:",
         enhancedPrompt?.length
       );
-      console.log("🔍 Before call - generatedTitle:", generatedTitle);
+      logger.log("🔍 Before call - generatedTitle:", generatedTitle);
       // Location type'ı belirle: frontend'den geliyorsa onu kullan, yoksa GPT'den geleni
       const finalLocationType =
         locationType || gptResult.locationType || "unknown";
@@ -565,7 +566,7 @@ router.post("/create-location", async (req, res) => {
         finalLocationType // Frontend'den gelen veya GPT'den gelen location type
       );
 
-      console.log(
+      logger.log(
         "✅ Create location işlemi tamamlandı (Fal.ai Imagen-4 ile veritabanına kaydedildi)"
       );
 
@@ -589,7 +590,7 @@ router.post("/create-location", async (req, res) => {
       });
     } else {
       // Sadece generate et, veritabanına kaydetme
-      console.log("✅ Create location işlemi tamamlandı (sadece generate)");
+      logger.log("✅ Create location işlemi tamamlandı (sadece generate)");
 
       res.json({
         success: true,
@@ -623,8 +624,8 @@ router.get("/user-locations/:userId", async (req, res) => {
     const { userId } = req.params;
     const { category = "custom", limit = 20, offset = 0 } = req.query;
 
-    console.log("👤 User locations fetch - userId:", userId);
-    console.log("📝 Category:", category);
+    logger.log("👤 User locations fetch - userId:", userId);
+    logger.log("📝 Category:", category);
 
     // UUID format validation
     const uuidRegex =
@@ -652,7 +653,7 @@ router.get("/user-locations/:userId", async (req, res) => {
       throw error;
     }
 
-    console.log("✅ User locations found:", data?.length || 0);
+    logger.log("✅ User locations found:", data?.length || 0);
 
     res.json({
       success: true,
@@ -690,8 +691,8 @@ router.get("/public-locations", async (req, res) => {
       sort = "created_at_desc", // newest, oldest, created_at_desc, created_at_asc
     } = req.query;
 
-    console.log("🔀 Public locations fetch - shuffle:", shuffle, "sort:", sort);
-    console.log("📝 Limit:", limit, "Offset:", offset);
+    logger.log("🔀 Public locations fetch - shuffle:", shuffle, "sort:", sort);
+    logger.log("📝 Limit:", limit, "Offset:", offset);
 
     // Sort order'ı belirle
     let orderBy = { column: "created_at", ascending: false }; // Default: newest first
@@ -720,14 +721,14 @@ router.get("/public-locations", async (req, res) => {
 
       // Shuffle yap
       const shuffledData = shuffleArray(allData || []);
-      console.log(`🎲 Shuffled ${shuffledData.length} locations`);
+      logger.log(`🎲 Shuffled ${shuffledData.length} locations`);
 
       // Pagination uygula
       const startIndex = parseInt(offset);
       const endIndex = startIndex + parseInt(limit);
       const paginatedData = shuffledData.slice(startIndex, endIndex);
 
-      console.log(
+      logger.log(
         `📄 Returning ${paginatedData.length} items (${startIndex}-${endIndex})`
       );
 
@@ -775,7 +776,7 @@ router.delete("/delete-location/:locationId", async (req, res) => {
   try {
     const { locationId } = req.params;
 
-    console.log("🗑️ Location silme işlemi başlatıldı - ID:", locationId);
+    logger.log("🗑️ Location silme işlemi başlatıldı - ID:", locationId);
 
     // Location'ı veritabanından sil
     const { data, error } = await supabase
@@ -794,7 +795,7 @@ router.delete("/delete-location/:locationId", async (req, res) => {
         error.message?.includes("relation") ||
         error.message?.includes("table")
       ) {
-        console.log(
+        logger.log(
           "⚠️ Tablo mevcut değil, geçici başarılı response dönülüyor..."
         );
         return res.json({
@@ -814,7 +815,7 @@ router.delete("/delete-location/:locationId", async (req, res) => {
       throw error;
     }
 
-    console.log("✅ Location başarıyla silindi:", data?.id);
+    logger.log("✅ Location başarıyla silindi:", data?.id);
 
     res.json({
       success: true,
@@ -848,14 +849,14 @@ router.post("/save-to-gallery", async (req, res) => {
       locationType = "unknown",
     } = req.body;
 
-    console.log("💾 Save to gallery işlemi başlatıldı");
-    console.log("Generated Title:", generatedTitle);
-    console.log("Original Prompt:", originalPrompt);
-    console.log("User ID from body:", userId);
-    console.log("User ID from headers:", req.headers["x-user-id"]);
-    console.log("All headers:", Object.keys(req.headers));
-    console.log("Raw x-user-id header:", req.headers["x-user-id"]);
-    console.log("Raw user-id header:", req.headers["user-id"]);
+    logger.log("💾 Save to gallery işlemi başlatıldı");
+    logger.log("Generated Title:", generatedTitle);
+    logger.log("Original Prompt:", originalPrompt);
+    logger.log("User ID from body:", userId);
+    logger.log("User ID from headers:", req.headers["x-user-id"]);
+    logger.log("All headers:", Object.keys(req.headers));
+    logger.log("Raw x-user-id header:", req.headers["x-user-id"]);
+    logger.log("Raw user-id header:", req.headers["user-id"]);
 
     // User ID validation
     let actualUserId = userId;
@@ -869,11 +870,11 @@ router.post("/save-to-gallery", async (req, res) => {
     }
 
     // Debug: Header değerlerini kontrol et
-    console.log("Header x-user-id value:", req.headers["x-user-id"]);
-    console.log("Header X-User-ID value:", req.headers["X-User-ID"]);
-    console.log("Header user-id value:", req.headers["user-id"]);
-    console.log("Header User-ID value:", req.headers["User-ID"]);
-    console.log("Final actualUserId:", actualUserId);
+    logger.log("Header x-user-id value:", req.headers["x-user-id"]);
+    logger.log("Header X-User-ID value:", req.headers["X-User-ID"]);
+    logger.log("Header user-id value:", req.headers["user-id"]);
+    logger.log("Header User-ID value:", req.headers["User-ID"]);
+    logger.log("Final actualUserId:", actualUserId);
 
     // UUID format validation - sadece userId varsa kontrol et
     if (actualUserId && actualUserId !== "undefined") {
@@ -913,7 +914,7 @@ router.post("/save-to-gallery", async (req, res) => {
         .single();
 
       if (existingLocation) {
-        console.log("⚠️ Duplicate kayıt bulundu:", existingLocation.id);
+        logger.log("⚠️ Duplicate kayıt bulundu:", existingLocation.id);
         return res.json({
           success: true,
           message: "Location zaten galeri'de mevcut",
@@ -937,7 +938,7 @@ router.post("/save-to-gallery", async (req, res) => {
       locationType
     );
 
-    console.log("✅ Location başarıyla galeri'ye eklendi:", savedLocation.id);
+    logger.log("✅ Location başarıyla galeri'ye eklendi:", savedLocation.id);
 
     res.json({
       success: true,

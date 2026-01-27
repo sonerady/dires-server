@@ -3,6 +3,7 @@ const router = express.Router();
 const { supabase } = require("../supabaseClient");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const axios = require("axios");
+const logger = require("../utils/logger");
 
 // Gemini API için istemci oluştur
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -20,10 +21,10 @@ async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) 
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      console.log(`🤖 [REPLICATE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
+      logger.log(`🤖 [REPLICATE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
 
-      console.log(`🔍 [REPLICATE-GEMINI] Images count: ${imageUrls.length}`);
-      console.log(`🔍 [REPLICATE-GEMINI] Prompt length: ${prompt.length} chars`);
+      logger.log(`🔍 [REPLICATE-GEMINI] Images count: ${imageUrls.length}`);
+      logger.log(`🔍 [REPLICATE-GEMINI] Prompt length: ${prompt.length} chars`);
 
       const requestBody = {
         input: {
@@ -74,7 +75,7 @@ async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) 
         throw new Error("Replicate Gemini response is empty");
       }
 
-      console.log(`✅ [REPLICATE-GEMINI] Başarılı response alındı (attempt ${attempt})`);
+      logger.log(`✅ [REPLICATE-GEMINI] Başarılı response alındı (attempt ${attempt})`);
 
       return outputText.trim();
 
@@ -87,7 +88,7 @@ async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) 
       }
 
       const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-      console.log(`⏳ [REPLICATE-GEMINI] ${waitTime}ms bekleniyor...`);
+      logger.log(`⏳ [REPLICATE-GEMINI] ${waitTime}ms bekleniyor...`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
   }
@@ -100,10 +101,10 @@ async function uploadModelImageToSupabaseStorage(
   replicateId
 ) {
   try {
-    console.log("📤 Model resmi Supabase storage'a yükleniyor...");
-    console.log("Image URL:", imageUrl);
-    console.log("User ID:", userId);
-    console.log("Replicate ID:", replicateId);
+    logger.log("📤 Model resmi Supabase storage'a yükleniyor...");
+    logger.log("Image URL:", imageUrl);
+    logger.log("User ID:", userId);
+    logger.log("Replicate ID:", replicateId);
 
     // Replicate'den resmi indir
     const imageResponse = await fetch(imageUrl);
@@ -118,7 +119,7 @@ async function uploadModelImageToSupabaseStorage(
     const timestamp = Date.now();
     const fileName = `user-models/${userId}/${timestamp}-${replicateId}.jpg`;
 
-    console.log("📁 Dosya adı:", fileName);
+    logger.log("📁 Dosya adı:", fileName);
 
     // Supabase storage'a yükle
     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -134,7 +135,7 @@ async function uploadModelImageToSupabaseStorage(
       throw uploadError;
     }
 
-    console.log("✅ Model resmi Supabase storage'a yüklendi:", uploadData.path);
+    logger.log("✅ Model resmi Supabase storage'a yüklendi:", uploadData.path);
 
     // Public URL oluştur
     const { data: urlData } = supabase.storage
@@ -142,7 +143,7 @@ async function uploadModelImageToSupabaseStorage(
       .getPublicUrl(fileName);
 
     const publicUrl = urlData.publicUrl;
-    console.log("🔗 Public URL:", publicUrl);
+    logger.log("🔗 Public URL:", publicUrl);
 
     return {
       storagePath: fileName,
@@ -162,8 +163,8 @@ async function generateModelNameWithGemini(
   regionCode
 ) {
   try {
-    console.log("🏷️ Replicate Gemini ile model ismi oluşturuluyor...");
-    console.log(
+    logger.log("🏷️ Replicate Gemini ile model ismi oluşturuluyor...");
+    logger.log(
       "Gender:",
       gender,
       "Age:",
@@ -208,7 +209,7 @@ Generate the appropriate first name:`;
     // Replicate Gemini API çağrısı
     let generatedName = await callReplicateGeminiFlash(prompt, [], 3);
 
-    console.log("📊 Replicate Gemini name generation result:", generatedName);
+    logger.log("📊 Replicate Gemini name generation result:", generatedName);
 
     // İsmi temizle - sadece ilk kelimeyi al ve büyük harfle başlat
     generatedName = generatedName
@@ -223,11 +224,11 @@ Generate the appropriate first name:`;
       generatedName.charAt(0).toUpperCase() +
       generatedName.slice(1).toLowerCase();
 
-    console.log("✅ Generated model name:", generatedName);
+    logger.log("✅ Generated model name:", generatedName);
 
     // Eğer isim çok kısa ise tekrar dene
     if (!generatedName || generatedName.length < 2) {
-      console.log("⚠️ İsim çok kısa, tekrar deneniyor...");
+      logger.log("⚠️ İsim çok kısa, tekrar deneniyor...");
       const retryPrompt = `Generate a single ${gender} first name from ${regionCode} culture (${languageCode} language). Just the name, nothing else:`;
       const retryResult = await callReplicateGeminiFlash(retryPrompt, [], 3);
       generatedName = retryResult
@@ -245,7 +246,7 @@ Generate the appropriate first name:`;
     // Son kontrol - hala boşsa basit bir isim ver
     if (!generatedName || generatedName.length < 2) {
       generatedName = gender === "woman" ? "Maria" : "Alex";
-      console.log("🔄 Final fallback name used:", generatedName);
+      logger.log("🔄 Final fallback name used:", generatedName);
     }
 
     return generatedName;
@@ -254,7 +255,7 @@ Generate the appropriate first name:`;
 
     // Hata durumunda basit fallback
     const simpleName = gender === "woman" ? "Maria" : "Alex";
-    console.log("🔄 Error fallback name:", simpleName);
+    logger.log("🔄 Error fallback name:", simpleName);
     return simpleName;
   }
 }
@@ -274,7 +275,7 @@ async function getUserExistingModelNames(userId) {
     }
 
     const modelNames = data.map((model) => model.name).filter(Boolean);
-    console.log("📋 Kullanıcının mevcut modelleri:", modelNames);
+    logger.log("📋 Kullanıcının mevcut modelleri:", modelNames);
     return modelNames;
   } catch (error) {
     console.error("❌ Mevcut modeller çekilirken hata:", error);
@@ -292,14 +293,14 @@ async function analyzeImageAndGeneratePrompt(
   existingModelNames = []
 ) {
   try {
-    console.log(
+    logger.log(
       "🤖 Replicate Gemini ile resim analizi ve prompt oluşturma başlatılıyor..."
     );
-    console.log("📸 Upload edilen resim URL:", uploadedImageUrl);
-    console.log("📝 Model Name:", modelName);
-    console.log("🌍 Language Code:", languageCode);
-    console.log("🌍 Region Code:", regionCode);
-    console.log("📋 Existing Model Names:", existingModelNames);
+    logger.log("📸 Upload edilen resim URL:", uploadedImageUrl);
+    logger.log("📝 Model Name:", modelName);
+    logger.log("🌍 Language Code:", languageCode);
+    logger.log("🌍 Region Code:", regionCode);
+    logger.log("📋 Existing Model Names:", existingModelNames);
 
     const requestData = {
       task: "analyze_image_and_generate_prompt",
@@ -383,7 +384,7 @@ Analyze the image and return the JSON response:`;
     const imageUrls = uploadedImageUrl.startsWith("http") ? [uploadedImageUrl] : [];
     let responseText = await callReplicateGeminiFlash(promptText, imageUrls, 3);
 
-    console.log("📊 Replicate Gemini image analysis result:", responseText);
+    logger.log("📊 Replicate Gemini image analysis result:", responseText);
 
     // JSON parse et
     try {
@@ -393,7 +394,7 @@ Analyze the image and return the JSON response:`;
         .replace(/```\n?/g, "");
       const analysisResult = JSON.parse(responseText);
 
-      console.log("✅ Parsed analysis result:", analysisResult);
+      logger.log("✅ Parsed analysis result:", analysisResult);
 
       // Validation
       if (
@@ -426,7 +427,7 @@ Analyze the image and return the JSON response:`;
       };
     } catch (parseError) {
       console.error("❌ JSON parse hatası:", parseError);
-      console.log("Raw response:", responseText);
+      logger.log("Raw response:", responseText);
 
       // Fallback: Manual extraction
       const genderMatch = responseText.match(/"gender":\s*"(woman|man)"/i);
@@ -482,7 +483,7 @@ Analyze the image and return the JSON response:`;
 
 async function enhanceModelPromptWithGemini2(originalPrompt, gender, age) {
   try {
-    console.log("🤖 Gemini ile ID photo prompt enhancement başlatılıyor...");
+    logger.log("🤖 Gemini ile ID photo prompt enhancement başlatılıyor...");
 
     const prompt = `You are an expert AI prompt engineer specializing in professional ID photo generation. Create detailed, professional prompts for ID-style portrait photography.
 
@@ -538,21 +539,21 @@ Create a professional ID photo prompt incorporating these details: "${originalPr
     // Replicate Gemini API çağrısı
     let enhancedPrompt = await callReplicateGeminiFlash(prompt, [], 3);
 
-    console.log("🎯 Replicate Gemini enhanced prompt:", enhancedPrompt);
+    logger.log("🎯 Replicate Gemini enhanced prompt:", enhancedPrompt);
 
     // Token sayısını kontrol et (yaklaşık)
     const tokenCount = enhancedPrompt.split(/\s+/).length;
-    console.log(`Generated prompt token count: ${tokenCount}`);
+    logger.log(`Generated prompt token count: ${tokenCount}`);
 
     // Eğer çok uzunsa kısalt
     if (tokenCount > 512) {
       const words = enhancedPrompt.split(/\s+/);
       enhancedPrompt = words.slice(0, 512).join(" ");
-      console.log(`Prompt kısaltıldı: ${enhancedPrompt}`);
+      logger.log(`Prompt kısaltıldı: ${enhancedPrompt}`);
     }
 
-    console.log("✅ Replicate Gemini ID photo prompt enhancement tamamlandı");
-    console.log("Enhanced prompt length:", enhancedPrompt.length);
+    logger.log("✅ Replicate Gemini ID photo prompt enhancement tamamlandı");
+    logger.log("Enhanced prompt length:", enhancedPrompt.length);
 
     return enhancedPrompt;
   } catch (error) {
@@ -564,7 +565,7 @@ Create a professional ID photo prompt incorporating these details: "${originalPr
       } person wearing a clean white t-shirt. Shot straight on with direct camera angle against a pure white background. The subject looks directly at the camera with a neutral, professional expression. Studio lighting, passport photo style, clean white background, white t-shirt, frontal view, high quality. Crystal clear, sharp focus throughout. NO borders, NO frames, NO text, NO watermarks, NO overlays, clean image only. ${originalPrompt ? `Additional details: ${originalPrompt}` : ""
       }`;
 
-    console.log("🔄 Fallback prompt kullanılıyor:", fallbackPrompt);
+    logger.log("🔄 Fallback prompt kullanılıyor:", fallbackPrompt);
     return fallbackPrompt;
   }
 }
@@ -575,10 +576,10 @@ const IMAGEN_4_API_URL = "https://fal.run/fal-ai/imagen4/preview/ultra";
 // Google nano-banana ile model generate et (text-to-image) - Migrated to Fal.ai Imagen 4
 async function generateModelWithNanoBanana(prompt, gender, age, userId) {
   try {
-    console.log("👤 [FAL.AI] Imagen 4 ile model generation başlatılıyor...");
-    console.log("Original prompt:", prompt);
-    console.log("Gender:", gender);
-    console.log("Age:", age);
+    logger.log("👤 [FAL.AI] Imagen 4 ile model generation başlatılıyor...");
+    logger.log("Original prompt:", prompt);
+    logger.log("Gender:", gender);
+    logger.log("Age:", age);
 
     // 1. Gemini ile prompt'u enhance et
     const enhancedPrompt = await enhanceModelPromptWithGemini2(
@@ -587,7 +588,7 @@ async function generateModelWithNanoBanana(prompt, gender, age, userId) {
       age
     );
 
-    console.log("Enhanced prompt:", enhancedPrompt);
+    logger.log("Enhanced prompt:", enhancedPrompt);
 
     // Imagen 4 için request body - Text-to-Image
     const requestBody = {
@@ -597,7 +598,7 @@ async function generateModelWithNanoBanana(prompt, gender, age, userId) {
       safety_filter_level: "block_only_high",
     };
 
-    console.log("📦 [FAL.AI] Request body:", requestBody);
+    logger.log("📦 [FAL.AI] Request body:", requestBody);
 
     const response = await axios.post(
       IMAGEN_4_API_URL,
@@ -611,11 +612,11 @@ async function generateModelWithNanoBanana(prompt, gender, age, userId) {
       }
     );
 
-    console.log("📄 [FAL.AI] Yanıt alındı, Status:", response.status);
+    logger.log("📄 [FAL.AI] Yanıt alındı, Status:", response.status);
 
     // Fal.ai response: { images: [{ url: "..." }] }
     const result = response.data;
-    console.log("✅ [FAL.AI] Result:", result);
+    logger.log("✅ [FAL.AI] Result:", result);
 
     let imageUrl = null;
     if (result.images && result.images.length > 0 && result.images[0].url) {
@@ -654,10 +655,10 @@ async function generateModelWithNanoBanana(prompt, gender, age, userId) {
 // Google nano-banana ile uploaded image'i ID photo'ya transform et - Migrated to Fal.ai
 async function transformImageToIDPhoto(imageUrl, userId) {
   try {
-    console.log(
+    logger.log(
       "🔄 [FAL.AI] Nano Banana ile image-to-ID-photo transformation başlatılıyor..."
     );
-    console.log("Input image URL:", imageUrl);
+    logger.log("Input image URL:", imageUrl);
 
     // Hazır transform prompt - ID photo'ya dönüştürme
     const transformPrompt = `Transform this image into a professional ID photo style portrait. The person should be wearing a clean white t-shirt against a pure white background. Shot straight on with direct camera angle. Professional studio lighting with even illumination, no shadows. Neutral, professional facial expression looking directly at the camera. 
@@ -672,8 +673,8 @@ CRITICAL SHARPNESS REQUIREMENTS:
 
 Clean composition with proper ID photo proportions. NO borders, NO frames, NO text, NO watermarks, NO overlays. Pure white background, white t-shirt, frontal view, passport photo style, professional quality.`;
 
-    console.log("Transform prompt:", transformPrompt);
-    console.log("🔍 Image URL test edilecek:", imageUrl);
+    logger.log("Transform prompt:", transformPrompt);
+    logger.log("🔍 Image URL test edilecek:", imageUrl);
 
     // Önce resmin erişilebilir olup olmadığını test et
     try {
@@ -681,7 +682,7 @@ Clean composition with proper ID photo proportions. NO borders, NO frames, NO te
         method: "HEAD",
         timeout: 10000,
       });
-      console.log("✅ Image URL erişilebilir, status:", testResponse.status);
+      logger.log("✅ Image URL erişilebilir, status:", testResponse.status);
     } catch (testError) {
       console.error("❌ Image URL erişilemez:", testError.message);
       throw new Error(`Image URL erişilemez: ${testError.message}`);
@@ -694,7 +695,7 @@ Clean composition with proper ID photo proportions. NO borders, NO frames, NO te
       num_images: 1,
     };
 
-    console.log("📦 [FAL.AI] Transform Request Body:", requestBody);
+    logger.log("📦 [FAL.AI] Transform Request Body:", requestBody);
 
     const response = await axios.post(
       NANO_BANANA_API_URL,
@@ -708,9 +709,9 @@ Clean composition with proper ID photo proportions. NO borders, NO frames, NO te
       }
     );
 
-    console.log("📄 [FAL.AI] Transformation Response Status:", response.status);
+    logger.log("📄 [FAL.AI] Transformation Response Status:", response.status);
     const result = response.data;
-    console.log("✅ [FAL.AI] Transform result:", result);
+    logger.log("✅ [FAL.AI] Transform result:", result);
 
     // Eğer API hatası varsa
     if (result.detail || result.error) {
@@ -770,12 +771,12 @@ async function saveModelToDatabase(
   originalImageUrl = null
 ) {
   try {
-    console.log("💾 Model Supabase'e kaydediliyor...");
-    console.log("📝 Model name:", name);
-    console.log("📝 Gender:", gender);
-    console.log("📝 Age:", age);
-    console.log("📝 Terms Accepted:", termsAccepted);
-    console.log("📝 Original Image URL:", originalImageUrl);
+    logger.log("💾 Model Supabase'e kaydediliyor...");
+    logger.log("📝 Model name:", name);
+    logger.log("📝 Gender:", gender);
+    logger.log("📝 Age:", age);
+    logger.log("📝 Terms Accepted:", termsAccepted);
+    logger.log("📝 Original Image URL:", originalImageUrl);
 
     const insertData = {
       name: name,
@@ -813,7 +814,7 @@ async function saveModelToDatabase(
       throw error;
     }
 
-    console.log("✅ Model Supabase'e kaydedildi:", data.id);
+    logger.log("✅ Model Supabase'e kaydedildi:", data.id);
     return data;
   } catch (error) {
     console.error("Database model kayıt hatası:", error);
@@ -881,7 +882,7 @@ async function createSquareCanvasWithBackground(imageBuffer) {
       .jpeg({ quality: 95 })
       .toBuffer();
 
-    console.log(
+    logger.log(
       "✅ Square canvas with background oluşturuldu:",
       canvasSize + "x" + canvasSize
     );
@@ -895,7 +896,7 @@ async function createSquareCanvasWithBackground(imageBuffer) {
 // Uploaded image'i Supabase'e yükle (referenceBrowserRoutes.js'dan kopyalandı)
 async function uploadImageToSupabase(imageUri, userId) {
   try {
-    console.log("📤 Uploaded image Supabase'e yükleniyor...");
+    logger.log("📤 Uploaded image Supabase'e yükleniyor...");
     let imageBuffer;
 
     // HTTP URL ise indir, değilse base64 olarak kabul et
@@ -910,8 +911,8 @@ async function uploadImageToSupabase(imageUri, userId) {
       // Base64 data URL
       const base64Data = imageUri.split(",")[1];
       imageBuffer = Buffer.from(base64Data, "base64");
-      console.log("📏 Base64 boyutu:", base64Data.length);
-      console.log("📏 Buffer boyutu:", imageBuffer.length);
+      logger.log("📏 Base64 boyutu:", base64Data.length);
+      logger.log("📏 Buffer boyutu:", imageBuffer.length);
     } else {
       // file:// protokolü - Bu durumda frontend'den base64 data gönderilmeli
       throw new Error(
@@ -928,11 +929,11 @@ async function uploadImageToSupabase(imageUri, userId) {
         .rotate() // EXIF orientation bilgisini otomatik uygula
         .jpeg({ quality: 95 })
         .toBuffer();
-      console.log("🔄 Model upload: EXIF rotation uygulandı");
+      logger.log("🔄 Model upload: EXIF rotation uygulandı");
 
       // 2. Square canvas with background oluştur
       processedBuffer = await createSquareCanvasWithBackground(rotatedBuffer);
-      console.log("🎨 Model upload: Square canvas with background oluşturuldu");
+      logger.log("🎨 Model upload: Square canvas with background oluşturuldu");
     } catch (sharpError) {
       console.error("❌ Sharp işleme hatası:", sharpError.message);
       processedBuffer = imageBuffer; // Son çare: orijinal buffer
@@ -943,7 +944,7 @@ async function uploadImageToSupabase(imageUri, userId) {
     const randomId = Math.random().toString(36).substring(2, 15);
     const fileName = `images/${userId}/${timestamp}-model-${randomId}.jpg`;
 
-    console.log("📁 Upload dosya adı:", fileName);
+    logger.log("📁 Upload dosya adı:", fileName);
 
     // Supabase storage'a yükle (processed buffer ile)
     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -959,7 +960,7 @@ async function uploadImageToSupabase(imageUri, userId) {
       throw new Error(`Supabase upload error: ${uploadError.message}`);
     }
 
-    console.log("✅ Image Supabase'e yüklendi:", uploadData.path);
+    logger.log("✅ Image Supabase'e yüklendi:", uploadData.path);
 
     // Public URL oluştur
     const { data: urlData } = supabase.storage
@@ -967,7 +968,7 @@ async function uploadImageToSupabase(imageUri, userId) {
       .getPublicUrl(fileName);
 
     const publicUrl = urlData.publicUrl;
-    console.log("🔗 Image Public URL:", publicUrl);
+    logger.log("🔗 Image Public URL:", publicUrl);
 
     return publicUrl;
   } catch (error) {
@@ -993,16 +994,16 @@ router.post("/create-model", async (req, res) => {
       termsAccepted = null, // Şartları kabul etme durumu (nullable - eski versiyonlar için)
     } = req.body;
 
-    console.log("🚀 Create model işlemi başlatıldı");
-    console.log("Model Name:", modelName);
-    console.log("Original prompt:", prompt);
-    console.log("Gender:", gender);
-    console.log("Age:", age);
-    console.log("Custom Age:", customAge);
-    console.log("User ID:", userId);
-    console.log("Is Public:", isPublic);
-    console.log("Selected Image:", !!selectedImage);
-    console.log("Terms Accepted:", termsAccepted);
+    logger.log("🚀 Create model işlemi başlatıldı");
+    logger.log("Model Name:", modelName);
+    logger.log("Original prompt:", prompt);
+    logger.log("Gender:", gender);
+    logger.log("Age:", age);
+    logger.log("Custom Age:", customAge);
+    logger.log("User ID:", userId);
+    logger.log("Is Public:", isPublic);
+    logger.log("Selected Image:", !!selectedImage);
+    logger.log("Terms Accepted:", termsAccepted);
 
     // User ID validation
     let actualUserId = userId;
@@ -1047,7 +1048,7 @@ router.post("/create-model", async (req, res) => {
     // Age değerini belirle (custom age varsa onu kullan)
     const finalAge = customAge || age;
 
-    console.log("✅ Using provided model name:", modelName.trim());
+    logger.log("✅ Using provided model name:", modelName.trim());
 
     let imagenResult;
     let analysisResult = null; // Image analysis result'ı store et
@@ -1055,24 +1056,24 @@ router.post("/create-model", async (req, res) => {
 
     if (selectedImage) {
       // Image upload edilmişse: Resmi Supabase'e yükle, sonra nano-banana ile transform et
-      console.log(
+      logger.log(
         "📸 Selected image modu: nano-banana image-to-image transformation"
       );
 
       // 1. Upload edilen resmi Supabase'e yükle
-      console.log("📸 selectedImage.uri:", selectedImage.uri);
+      logger.log("📸 selectedImage.uri:", selectedImage.uri);
 
       uploadedImageUrl = await uploadImageToSupabase(
         selectedImage.uri,
         actualUserId
       );
-      console.log("✅ Resim Supabase'e yüklendi:", uploadedImageUrl);
+      logger.log("✅ Resim Supabase'e yüklendi:", uploadedImageUrl);
 
       // 1.5. Kullanıcının mevcut modellerini çek
       const existingModelNames = await getUserExistingModelNames(actualUserId);
 
       // 1.6. Gemini ile resmi analiz et ve gender/age detect et
-      console.log("🔍 Gemini ile resim analiz ve gender/age detection...");
+      logger.log("🔍 Gemini ile resim analiz ve gender/age detection...");
       analysisResult = await analyzeImageAndGeneratePrompt(
         uploadedImageUrl,
         modelName.trim() || null,
@@ -1080,16 +1081,16 @@ router.post("/create-model", async (req, res) => {
         regionCode,
         existingModelNames
       );
-      console.log("✅ Gemini analysis result:", analysisResult);
+      logger.log("✅ Gemini analysis result:", analysisResult);
 
       const detectedGender = analysisResult.detectedGender;
       const detectedAge = analysisResult.detectedAge;
 
-      console.log(
+      logger.log(
         `🔍 Detected from image: ${detectedGender}, ${detectedAge} years old`
       );
 
-      console.log("✅ Using user-provided model name:", modelName.trim());
+      logger.log("✅ Using user-provided model name:", modelName.trim());
 
       // 2. nano-banana ile image-to-image transformation (ID photo'ya dönüştür)
       try {
@@ -1104,7 +1105,7 @@ router.post("/create-model", async (req, res) => {
         );
 
         // Fallback: Zaten analiz edilmiş gender/age kullan, text-to-image yap
-        console.log(
+        logger.log(
           "🔄 Fallback: Text-to-image ile generation (detected values ile)..."
         );
 
@@ -1121,7 +1122,7 @@ router.post("/create-model", async (req, res) => {
       }
     } else {
       // Text prompt varsa: Text-to-image
-      console.log("✍️ Text prompt modu: Generation işlemi başlatılıyor");
+      logger.log("✍️ Text prompt modu: Generation işlemi başlatılıyor");
       imagenResult = await generateModelWithNanoBanana(
         prompt,
         gender,
@@ -1142,7 +1143,7 @@ router.post("/create-model", async (req, res) => {
     // Eğer analiz sonucunda isim yoksa, kullanıcının girdiği ismi kullan
     const finalModelName = analysisResult?.suggestedName || modelName.trim() || "Model";
 
-    console.log(
+    logger.log(
       `💾 Saving to DB with: gender=${finalGender}, age=${finalFinalAge}, name=${finalModelName}`
     );
 
@@ -1175,7 +1176,7 @@ router.post("/create-model", async (req, res) => {
       uploadedImageUrl // Orijinal yüklenen resim URL'i (null olabilir)
     );
 
-    console.log("✅ Create model işlemi tamamlandı");
+    logger.log("✅ Create model işlemi tamamlandı");
 
     res.json({
       success: true,
@@ -1218,9 +1219,9 @@ router.post("/analyze-image", async (req, res) => {
       userId = null,
     } = req.body;
 
-    console.log("🔍 [ANALYZE_IMAGE] Image analysis başlatılıyor...");
-    console.log("🌍 Language Code:", languageCode);
-    console.log("🌍 Region Code:", regionCode);
+    logger.log("🔍 [ANALYZE_IMAGE] Image analysis başlatılıyor...");
+    logger.log("🌍 Language Code:", languageCode);
+    logger.log("🌍 Region Code:", regionCode);
 
     if (!selectedImage || !selectedImage.uri) {
       return res.status(400).json({
@@ -1253,7 +1254,7 @@ router.post("/analyze-image", async (req, res) => {
         selectedImage.uri,
         actualUserId || "temp"
       );
-      console.log("✅ Resim Supabase'e yüklendi:", uploadedImageUrl);
+      logger.log("✅ Resim Supabase'e yüklendi:", uploadedImageUrl);
     } catch (uploadError) {
       console.error("❌ Image upload hatası:", uploadError);
       return res.status(500).json({
@@ -1278,7 +1279,7 @@ router.post("/analyze-image", async (req, res) => {
       existingModelNames
     );
 
-    console.log("✅ [ANALYZE_IMAGE] Analysis result:", analysisResult);
+    logger.log("✅ [ANALYZE_IMAGE] Analysis result:", analysisResult);
 
     // 4. Sonuçları döndür
     res.json({
@@ -1305,7 +1306,7 @@ router.get("/user-models/:userId", async (req, res) => {
     const { userId } = req.params;
     const { limit = 20, offset = 0 } = req.query;
 
-    console.log("👤 User models fetch - userId:", userId);
+    logger.log("👤 User models fetch - userId:", userId);
 
     // UUID format validation
     const uuidRegex =
@@ -1363,7 +1364,7 @@ router.get("/user-models/:userId", async (req, res) => {
       });
     }
 
-    console.log("✅ User models found:", data?.length || 0);
+    logger.log("✅ User models found:", data?.length || 0);
 
     // Optimize image URLs
     const optimizedData = (data || []).map((model) => ({
@@ -1391,7 +1392,7 @@ router.delete("/delete-model/:modelId", async (req, res) => {
   try {
     const { modelId } = req.params;
 
-    console.log("🗑️ Model silme işlemi başlatıldı - ID:", modelId);
+    logger.log("🗑️ Model silme işlemi başlatıldı - ID:", modelId);
 
     // Model'i veritabanından sil
     const { data, error } = await supabase
@@ -1415,7 +1416,7 @@ router.delete("/delete-model/:modelId", async (req, res) => {
       throw error;
     }
 
-    console.log("✅ Model başarıyla silindi:", data?.id);
+    logger.log("✅ Model başarıyla silindi:", data?.id);
 
     res.json({
       success: true,
@@ -1445,7 +1446,7 @@ router.post("/detect-gender", async (req, res) => {
       });
     }
 
-    console.log("🔍 [GENDER_DETECT] Starting gender detection...");
+    logger.log("🔍 [GENDER_DETECT] Starting gender detection...");
 
     // Replicate Gemini ile gender detection
     // Not: Replicate API sadece URL kabul ediyor, base64 desteklemiyor
@@ -1459,11 +1460,11 @@ router.post("/detect-gender", async (req, res) => {
     try {
       // Base64 resmi URL'ye çeviremiyoruz, boş olarak gönderiyoruz
       // Replicate API resim olmadan çalışacak - bu durumda fallback kullanılacak
-      console.log("⚠️ [GENDER_DETECT] Base64 image - Replicate API does not support, using fallback");
+      logger.log("⚠️ [GENDER_DETECT] Base64 image - Replicate API does not support, using fallback");
 
       // Default gender döndür (bu endpoint base64 kullandığı için)
       const finalGender = "woman";
-      console.log("✅ [GENDER_DETECT] Using default gender:", finalGender);
+      logger.log("✅ [GENDER_DETECT] Using default gender:", finalGender);
 
       res.json({
         success: true,
@@ -1498,7 +1499,7 @@ router.put("/update-model/:modelId", async (req, res) => {
     const { modelId } = req.params;
     const { modelName } = req.body;
 
-    console.log("🔄 Model güncelleme isteği:", { modelId, modelName });
+    logger.log("🔄 Model güncelleme isteği:", { modelId, modelName });
 
     // Model adı validasyonu
     if (!modelName || modelName.trim().length === 0) {
@@ -1532,7 +1533,7 @@ router.put("/update-model/:modelId", async (req, res) => {
       throw error;
     }
 
-    console.log("✅ Model adı başarıyla güncellendi:", data?.name);
+    logger.log("✅ Model adı başarıyla güncellendi:", data?.name);
 
     res.json({
       success: true,

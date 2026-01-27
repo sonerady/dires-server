@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const fs = require("fs");
 const path = require("path");
+const logger = require("../utils/logger");
 
 // JSON dosyalarının yolları - src/lib dizinine işaret edecek şekilde güncellendi
 const indoorImagesPath = path.join(__dirname, "../lib/indoor_images.json");

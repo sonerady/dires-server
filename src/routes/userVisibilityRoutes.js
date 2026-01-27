@@ -1,5 +1,6 @@
 const express = require("express");
 const { supabase } = require("../supabaseClient");
+const logger = require("../utils/logger");
 
 const router = express.Router();
 
@@ -8,7 +9,7 @@ router.get("/user/:id/visibility", async (req, res) => {
   const { id } = req.params;
 
   try {
-    console.log(
+    logger.log(
       "👁️ [GET VISIBILITY] Kullanıcı visibility ayarı sorgulanıyor:",
       id
     );
@@ -35,7 +36,7 @@ router.get("/user/:id/visibility", async (req, res) => {
       });
     }
 
-    console.log(
+    logger.log(
       "✅ [GET VISIBILITY] Visibility ayarı başarıyla alındı:",
       data.product_visibility
     );
@@ -62,7 +63,7 @@ router.put("/user/:id/visibility", async (req, res) => {
   const { product_visibility } = req.body;
 
   try {
-    console.log(
+    logger.log(
       "👁️ [PUT VISIBILITY] Kullanıcı visibility ayarı güncelleniyor:",
       {
         userId: id,
@@ -118,7 +119,7 @@ router.put("/user/:id/visibility", async (req, res) => {
       });
     }
 
-    console.log("✅ [PUT VISIBILITY] Visibility ayarı başarıyla güncellendi:", {
+    logger.log("✅ [PUT VISIBILITY] Visibility ayarı başarıyla güncellendi:", {
       userId: id,
       newVisibility: product_visibility,
       updatedData: data,
@@ -146,7 +147,7 @@ router.get("/user/:id/settings", async (req, res) => {
   const { id } = req.params;
 
   try {
-    console.log("⚙️ [GET SETTINGS] Kullanıcı ayarları sorgulanıyor:", id);
+    logger.log("⚙️ [GET SETTINGS] Kullanıcı ayarları sorgulanıyor:", id);
 
     const { data, error } = await supabase
       .from("users")
@@ -170,7 +171,7 @@ router.get("/user/:id/settings", async (req, res) => {
       });
     }
 
-    console.log("✅ [GET SETTINGS] Kullanıcı ayarları başarıyla alındı");
+    logger.log("✅ [GET SETTINGS] Kullanıcı ayarları başarıyla alındı");
 
     res.status(200).json({
       success: true,
