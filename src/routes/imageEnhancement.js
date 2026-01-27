@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const axios = require("axios");
 const { supabase } = require("../supabaseClient");
+const { getEffectiveCredits } = require("../services/teamService");
 
 const FAL_ENDPOINT = "https://fal.run/clarityai/crystal-upscaler";
 
@@ -33,29 +34,21 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Image URL is required" });
     }
 
-    // Kredi kontrolü ve düşme
+    // 🔗 TEAM-AWARE: Kredi kontrolü ve düşme
+    let creditOwnerId = userId; // Kredi sahibi (team owner veya kendisi)
+
     if (userId && userId !== "anonymous_user") {
       try {
-        console.log("💰 [BACKEND] Kredi kontrolü yapılıyor, userId:", userId);
+        console.log("💰 [BACKEND] Team-aware kredi kontrolü yapılıyor, userId:", userId);
 
-        const { data: userCredit, error: creditError } = await supabase
-          .from("users")
-          .select("credit_balance")
-          .eq("id", userId)
-          .single();
+        // Team-aware kredi bilgisi al
+        const effectiveCredits = await getEffectiveCredits(userId);
+        const currentCredit = effectiveCredits.creditBalance || 0;
+        creditOwnerId = effectiveCredits.creditOwnerId;
 
-        if (creditError) {
-          console.error("❌ [BACKEND] Kredi sorgulama hatası:", creditError);
-          return res.status(500).json({
-            success: false,
-            error: "Kredi bilgisi alınamadı",
-          });
-        }
-
-        const currentCredit = userCredit?.credit_balance || 0;
         console.log(
-          `💳 [BACKEND] Mevcut kredi: ${currentCredit}, gerekli: ${CREDIT_COST}, Yeterli mi? ${currentCredit >= CREDIT_COST ? "EVET ✅" : "HAYIR ❌"
-          }`
+          `💳 [BACKEND] Team-aware kredi: ${currentCredit}, gerekli: ${CREDIT_COST}, Yeterli mi? ${currentCredit >= CREDIT_COST ? "EVET ✅" : "HAYIR ❌"}`,
+          effectiveCredits.isTeamCredit ? `(team owner: ${creditOwnerId})` : "(kendi kredisi)"
         );
 
         if (currentCredit < CREDIT_COST) {
@@ -74,11 +67,11 @@ router.post("/", async (req, res) => {
           `✅ [BACKEND] Kredi yeterli! ${currentCredit} >= ${CREDIT_COST}, devam ediliyor...`
         );
 
-        // Krediyi düş
+        // Krediyi doğru hesaptan düş (team owner veya kendisi)
         const { error: updateError } = await supabase
           .from("users")
           .update({ credit_balance: currentCredit - CREDIT_COST })
-          .eq("id", userId);
+          .eq("id", creditOwnerId);
 
         if (updateError) {
           console.error("❌ Kredi düşme hatası:", updateError);
@@ -90,8 +83,7 @@ router.post("/", async (req, res) => {
 
         creditDeducted = true;
         console.log(
-          `✅ ${CREDIT_COST} kredi düşüldü. Kalan: ${currentCredit - CREDIT_COST
-          }`
+          `✅ ${CREDIT_COST} kredi düşüldü (${creditOwnerId === userId ? "kendi hesabından" : "team owner hesabından"}). Kalan: ${currentCredit - CREDIT_COST}`
         );
       } catch (creditManagementError) {
         console.error("❌ Kredi yönetimi hatası:", creditManagementError);
@@ -159,35 +151,35 @@ router.post("/", async (req, res) => {
       errorType: error.constructor.name,
     });
 
-    // Hata durumunda kredi iade et
-    if (creditDeducted && userId && userId !== "anonymous_user") {
+    // 🔗 TEAM-AWARE: Hata durumunda kredi iade et (doğru hesaba)
+    if (creditDeducted && creditOwnerId && creditOwnerId !== "anonymous_user") {
       try {
         console.log(
-          `💰 [BACKEND] Kredi iade ediliyor, userId: ${userId}, amount: ${CREDIT_COST}`
+          `💰 [BACKEND] Kredi iade ediliyor, creditOwnerId: ${creditOwnerId}, amount: ${CREDIT_COST}`
         );
-        const { data: currentUserCredit } = await supabase
+        const { data: currentOwnerCredit } = await supabase
           .from("users")
           .select("credit_balance")
-          .eq("id", userId)
+          .eq("id", creditOwnerId)
           .single();
 
         await supabase
           .from("users")
           .update({
             credit_balance:
-              (currentUserCredit?.credit_balance || 0) + CREDIT_COST,
+              (currentOwnerCredit?.credit_balance || 0) + CREDIT_COST,
           })
-          .eq("id", userId);
+          .eq("id", creditOwnerId);
 
         console.log(
-          `✅ [BACKEND] ${CREDIT_COST} kredi iade edildi (hata nedeniyle)`
+          `✅ [BACKEND] ${CREDIT_COST} kredi iade edildi (hata nedeniyle) - ${creditOwnerId === userId ? "kendi hesabına" : "team owner hesabına"}`
         );
       } catch (refundError) {
         console.error("❌ [BACKEND] Kredi iade hatası:", refundError);
       }
     } else {
       console.log(
-        `ℹ️ [BACKEND] Kredi iade edilmedi (creditDeducted: ${creditDeducted}, userId: ${userId})`
+        `ℹ️ [BACKEND] Kredi iade edilmedi (creditDeducted: ${creditDeducted}, creditOwnerId: ${creditOwnerId})`
       );
     }
 

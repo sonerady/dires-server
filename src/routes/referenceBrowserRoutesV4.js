@@ -13,6 +13,7 @@ const { createCanvas, loadImage } = require("canvas");
 const {
   sendGenerationCompletedNotification,
 } = require("../services/pushNotificationService");
+const teamService = require("../services/teamService");
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -626,25 +627,40 @@ async function deductCreditOnSuccess(generationId, userId) {
       return false;
     }
 
-    // Jenerasyon başına kredi düş (her tamamlanan için 20)
-    const totalCreditCost = CREDIT_COST; // 20
+    // Jenerasyon başına kredi düş (her tamamlanan için 10)
+    const totalCreditCost = CREDIT_COST;
     console.log(
       `💳 [COMPLETION-CREDIT] Bu generation için ${totalCreditCost} kredi düşürülecek`
     );
 
-    // Krediyi atomic olarak düş
-    const { data: currentUser, error: userError } = await supabase
-      .from("users")
-      .select("credit_balance")
-      .eq("id", userId)
-      .single();
+    // 🔗 TEAM-AWARE: Team-aware kredi bilgisi al
+    let creditOwnerId = userId;
+    let currentCredit = 0;
 
-    if (userError || !currentUser) {
-      console.error(`❌ User ${userId} bulunamadı:`, userError);
-      return false;
+    try {
+      const effectiveCredits = await teamService.getEffectiveCredits(userId);
+      currentCredit = effectiveCredits.creditBalance || 0;
+      creditOwnerId = effectiveCredits.creditOwnerId;
+
+      console.log(
+        `💳 [COMPLETION-CREDIT] Team-aware kredi: ${currentCredit}`,
+        effectiveCredits.isTeamCredit ? `(team owner: ${creditOwnerId})` : "(kendi kredisi)"
+      );
+    } catch (teamError) {
+      console.warn(`⚠️ [COMPLETION-CREDIT] Team-aware başarısız, fallback kullanılıyor:`, teamError.message);
+      // Fallback: eski yöntem
+      const { data: currentUser, error: userError } = await supabase
+        .from("users")
+        .select("credit_balance")
+        .eq("id", userId)
+        .single();
+
+      if (userError || !currentUser) {
+        console.error(`❌ User ${userId} bulunamadı:`, userError);
+        return false;
+      }
+      currentCredit = currentUser.credit_balance || 0;
     }
-
-    const currentCredit = currentUser.credit_balance || 0;
 
     if (currentCredit < totalCreditCost) {
       console.error(
@@ -655,10 +671,11 @@ async function deductCreditOnSuccess(generationId, userId) {
     }
 
     // 🔒 Atomic kredi düşürme - race condition'ı önlemek için RPC kullan
+    // 🔗 TEAM-AWARE: creditOwnerId kullan (team owner veya kendisi)
     const { data: updateResult, error: updateError } = await supabase.rpc(
       "deduct_user_credit",
       {
-        user_id: userId,
+        user_id: creditOwnerId, // Team-aware: doğru hesaptan düş
         credit_amount: totalCreditCost,
       }
     );
@@ -671,7 +688,7 @@ async function deductCreditOnSuccess(generationId, userId) {
     const newBalance =
       updateResult?.new_balance || currentCredit - totalCreditCost;
     console.log(
-      `✅ ${totalCreditCost} kredi başarıyla düşüldü. Yeni bakiye: ${newBalance}`
+      `✅ [COMPLETION-CREDIT] ${totalCreditCost} kredi başarıyla düşüldü (${creditOwnerId === userId ? "kendi hesabından" : "team owner hesabından"}). Yeni bakiye: ${newBalance}`
     );
 
     // 💳 Kredi tracking bilgilerini generation'a kaydet
@@ -4092,24 +4109,32 @@ router.post("/generate", async (req, res) => {
       // 💳 KREDI GÜNCELLEME SIRASI
       // Kredi düşümü updateGenerationStatus içinde tetikleniyor (pay-on-success).
       // Bu nedenle güncel krediyi, status güncellemesinden SONRA okumalıyız.
+      // 🔗 TEAM-AWARE: Team owner'ın kredisini al (team member ise)
       let currentCredit = null;
       if (userId && userId !== "anonymous_user") {
         try {
-          const { data: updatedUser } = await supabase
-            .from("users")
-            .select("credit_balance")
-            .eq("id", userId)
-            .single();
-
-          currentCredit = updatedUser?.credit_balance || 0;
+          const effectiveCredits = await teamService.getEffectiveCredits(userId);
+          currentCredit = effectiveCredits.creditBalance || 0;
           console.log(
-            `💳 Güncel kredi balance (post-deduct): ${currentCredit}`
+            `💳 [TEAM-AWARE] Güncel kredi balance (post-deduct): ${currentCredit}`,
+            effectiveCredits.isTeamCredit ? `(team owner: ${effectiveCredits.creditOwnerId})` : "(kendi hesabı)"
           );
         } catch (creditError) {
           console.error(
             "❌ Güncel kredi sorgu hatası (post-deduct):",
             creditError
           );
+          // Fallback: eski yöntem
+          try {
+            const { data: updatedUser } = await supabase
+              .from("users")
+              .select("credit_balance")
+              .eq("id", userId)
+              .single();
+            currentCredit = updatedUser?.credit_balance || 0;
+          } catch (fallbackError) {
+            console.error("❌ Fallback kredi sorgu hatası:", fallbackError);
+          }
         }
       }
 
@@ -4424,6 +4449,7 @@ router.get("/results", async (req, res) => {
 });
 
 // Kullanıcının mevcut kredisini getiren endpoint
+// 🔗 TEAM-AWARE: Team member ise owner'ın kredisini döndürür
 router.get("/credit/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
@@ -4438,6 +4464,23 @@ router.get("/credit/:userId", async (req, res) => {
       });
     }
 
+    // 🔗 TEAM-AWARE: Önce team-aware endpoint'i dene
+    try {
+      const effectiveCredits = await teamService.getEffectiveCredits(userId);
+      return res.status(200).json({
+        success: true,
+        result: {
+          credit: effectiveCredits.creditBalance || 0,
+          isAnonymous: false,
+          isTeamCredit: effectiveCredits.isTeamCredit || false,
+          creditOwnerId: effectiveCredits.creditOwnerId,
+        },
+      });
+    } catch (teamError) {
+      console.warn("⚠️ Team-aware kredi başarısız, fallback kullanılıyor:", teamError.message);
+    }
+
+    // Fallback: eski yöntem
     const { data: userCredit, error } = await supabase
       .from("users")
       .select("credit_balance")
@@ -4815,9 +4858,12 @@ router.get("/generation-status/:generationId", async (req, res) => {
 });
 
 // Kullanıcının pending/processing generation'larını getiren endpoint
+// Team üyesi ise tüm ekip üyelerinin pending generation'larını getirir (Shared Workspace)
+// platform=mobile ise sadece kullanıcının kendi verilerini döndürür
 router.get("/pending-generations/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
+    const { platform } = req.query; // 'web' veya 'mobile'
 
     if (!userId) {
       return res.status(400).json({
@@ -4828,13 +4874,25 @@ router.get("/pending-generations/:userId", async (req, res) => {
       });
     }
 
-    console.log(`🔍 Pending generations sorgusu: ${userId}`);
+    // Mobile için sadece kullanıcının kendi verilerini döndür
+    // Web için team üyelerinin verilerini de döndür (Shared Workspace)
+    let memberIds = [userId];
+    let isTeamMember = false;
 
-    // Pending ve processing durumundaki generation'ları getir
+    if (platform !== 'mobile') {
+      const teamData = await teamService.getTeamMemberIds(userId);
+      memberIds = teamData.memberIds;
+      isTeamMember = teamData.isTeamMember;
+    }
+
+    console.log(`🔍 Pending generations sorgusu: ${userId} (platform: ${platform || 'web'})`);
+    console.log(`📊 [PENDING-V4] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
+
+    // Pending ve processing durumundaki generation'ları getir (takım üyeleri dahil - sadece web)
     const { data: generations, error } = await supabase
       .from("reference_results")
       .select("*")
-      .eq("user_id", userId)
+      .in("user_id", memberIds)
       .in("status", ["pending", "processing"])
       .order("created_at", { ascending: false });
 
@@ -4927,10 +4985,12 @@ router.get("/pending-generations/:userId", async (req, res) => {
 });
 
 // Kullanıcının tüm generation'larını getiren endpoint (pending, processing, completed, failed)
+// Team üyesi ise tüm ekip üyelerinin generation'larını getirir (Shared Workspace)
+// platform=mobile ise sadece kullanıcının kendi verilerini döndürür
 router.get("/user-generations/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-    const { status } = req.query; // Opsiyonel: belirli statusleri filtrelemek için
+    const { status, platform } = req.query; // Opsiyonel: belirli statusleri filtrelemek için, platform: 'web' veya 'mobile'
 
     if (!userId) {
       return res.status(400).json({
@@ -4941,10 +5001,23 @@ router.get("/user-generations/:userId", async (req, res) => {
       });
     }
 
+    // Mobile için sadece kullanıcının kendi verilerini döndür
+    // Web için team üyelerinin verilerini de döndür (Shared Workspace)
+    let memberIds = [userId];
+    let isTeamMember = false;
+
+    if (platform !== 'mobile') {
+      const teamData = await teamService.getTeamMemberIds(userId);
+      memberIds = teamData.memberIds;
+      isTeamMember = teamData.isTeamMember;
+    }
+
     console.log(
-      `🔍 User generations sorgusu: ${userId}${status ? ` (status: ${status})` : ""
-      }`
+      `🔍 User generations sorgusu: ${userId}${
+        status ? ` (status: ${status})` : ""
+      } (platform: ${platform || 'web'})`
     );
+    console.log(`📊 [USER-GENERATIONS-V4] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
 
     // 🕐 Her zaman son 1 saatlik data'yı döndür
     const oneHourAgo = new Date();
@@ -4955,10 +5028,11 @@ router.get("/user-generations/:userId", async (req, res) => {
       `🕐 [API_FILTER] Son 1 saatlik data döndürülüyor: ${oneHourAgoISO} sonrası`
     );
 
+    // Team üyeleri için .in() kullan
     let query = supabase
       .from("reference_results")
       .select("*")
-      .eq("user_id", userId)
+      .in("user_id", memberIds)
       .gte("created_at", oneHourAgoISO) // Her zaman 1 saatlik filtreleme
       .order("created_at", { ascending: false });
 

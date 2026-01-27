@@ -9,6 +9,8 @@ const sharp = require("sharp");
 
 // Supabase client
 const { supabase } = require("../supabaseClient");
+// Team service for team-aware credit operations
+const teamService = require("../services/teamService");
 
 // Replicate import kaldırıldı (Fal.ai'ye geçildi)
 // @fal-ai/client import
@@ -407,35 +409,57 @@ router.post("/generateImgToVid", async (req, res) => {
       cleanedProductMain = cleanBase64(product_main_image);
     }
 
-    // Check user's credit balance
-    const { data: userData, error: userError } = await supabase
-      .from("users")
-      .select("credit_balance")
-      .eq("id", userId)
-      .single();
+    // 🔗 TEAM-AWARE: Check user's credit balance
+    // Team member ise owner'ın kredilerini kontrol et ve owner'dan düş
+    let effectiveUserId = userId; // Kredi düşülecek kullanıcı
+    let effectiveCreditBalance = 0;
+    let isTeamCredit = false;
 
-    if (userError) {
-      console.error("Error fetching user data:", userError);
-      return res.status(500).json({
-        success: false,
-        message: "Failed to fetch user data",
-        error: userError.message,
-      });
+    try {
+      const effectiveCredits = await teamService.getEffectiveCredits(userId);
+      effectiveCreditBalance = effectiveCredits.creditBalance || 0;
+      isTeamCredit = effectiveCredits.isTeamCredit || false;
+
+      if (isTeamCredit && effectiveCredits.creditOwnerId) {
+        effectiveUserId = effectiveCredits.creditOwnerId; // Owner'ın ID'si
+        console.log(`👥 [VIDEO] Team member detected - using owner credits`);
+        console.log(`   Member: ${userId}`);
+        console.log(`   Owner (credit source): ${effectiveUserId}`);
+        console.log(`   Available credits: ${effectiveCreditBalance}`);
+      }
+    } catch (teamError) {
+      console.log(`⚠️ [VIDEO] Team check failed, using user's own credits:`, teamError.message);
+      // Fallback: kullanıcının kendi kredisini al
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("credit_balance")
+        .eq("id", userId)
+        .single();
+
+      if (userError) {
+        console.error("Error fetching user data:", userError);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to fetch user data",
+          error: userError.message,
+        });
+      }
+      effectiveCreditBalance = userData.credit_balance || 0;
     }
 
     // Check if user has enough credits
-    if (userData.credit_balance < creditCost) {
+    if (effectiveCreditBalance < creditCost) {
       return res.status(400).json({
         success: false,
         message: `Insufficient credit balance. Required: ${creditCost} credits`,
       });
     }
 
-    // Deduct credits
+    // Deduct credits from the effective user (owner or member)
     const { error: creditUpdateError } = await supabase
       .from("users")
-      .update({ credit_balance: userData.credit_balance - creditCost })
-      .eq("id", userId);
+      .update({ credit_balance: effectiveCreditBalance - creditCost })
+      .eq("id", effectiveUserId);
 
     if (creditUpdateError) {
       console.error("Error updating credit balance:", creditUpdateError);
@@ -444,6 +468,11 @@ router.post("/generateImgToVid", async (req, res) => {
         message: "Failed to deduct credits",
         error: creditUpdateError.message,
       });
+    }
+
+    if (isTeamCredit) {
+      console.log(`✅ [VIDEO] Credits deducted from team owner: ${effectiveUserId}`);
+      console.log(`   Cost: ${creditCost}, New balance: ${effectiveCreditBalance - creditCost}`);
     }
 
     // 1) firstFrameUrl işleme

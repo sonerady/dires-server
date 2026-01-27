@@ -2,6 +2,7 @@ const express = require("express");
 const { supabase } = require("../supabaseClient");
 const axios = require("axios");
 const { fal } = require("@fal-ai/client");
+const teamService = require("../services/teamService");
 
 // Fal.ai Config
 fal.config({
@@ -147,15 +148,20 @@ router.get("/getPredictions/:userId", async (req, res) => {
   }
 
   try {
+    // Get team member IDs for shared workspace
+    const { memberIds, isTeamMember } = await teamService.getTeamMemberIds(userId);
+
+    console.log(`📊 [PREDICTIONS] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
+
     // Bir saat önceki zaman damgası
     const oneHourAgo = new Date();
     oneHourAgo.setHours(oneHourAgo.getHours() - 1);
 
-    // Kullanıcının 1 saatten eski tahminlerini sil
+    // Kullanıcının (ve takım üyelerinin) 1 saatten eski tahminlerini sil
     const { error: deleteError } = await supabase
       .from("predictions")
       .delete()
-      .eq("user_id", userId)
+      .in("user_id", memberIds)
       .lt("created_at", oneHourAgo.toISOString());
 
     if (deleteError) {
@@ -170,13 +176,13 @@ router.get("/getPredictions/:userId", async (req, res) => {
     const oneDayAgo = new Date();
     oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
-    // Supabase sorgusu
+    // Supabase sorgusu - Team üyeleri için .in() kullan
     let query = supabase
       .from("predictions")
       .select(
-        "id, prediction_id, categories, product_id, product_main_image, created_at"
+        "id, prediction_id, categories, product_id, product_main_image, created_at, user_id"
       )
-      .eq("user_id", userId)
+      .in("user_id", memberIds)
       .gte("created_at", oneDayAgo.toISOString())
       .order("created_at", { ascending: false });
 

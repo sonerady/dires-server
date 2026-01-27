@@ -13,6 +13,7 @@ const { createCanvas, loadImage } = require("canvas");
 const {
   sendGenerationCompletedNotification,
 } = require("../services/pushNotificationService");
+const teamService = require("../services/teamService");
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -1142,15 +1143,26 @@ async function deductCreditOnSuccess(generationId, userId) {
       `💳 [COMPLETION-CREDIT] Bu generation için ${totalCreditCost} kredi düşürülecek`
     );
 
-    // Krediyi atomic olarak düş
+    // 🔗 TEAM-AWARE: Team member ise owner'ın kredisinden düş
+    const effectiveCredits = await teamService.getEffectiveCredits(userId);
+    const creditOwnerId = effectiveCredits.creditOwnerId || userId;
+    const isTeamCredit = effectiveCredits.isTeamCredit || false;
+
+    console.log(`💳 [TEAM-AWARE] Kredi sahibi belirlendi:`, {
+      requestingUser: userId,
+      creditOwnerId: creditOwnerId,
+      isTeamCredit: isTeamCredit
+    });
+
+    // Krediyi atomic olarak düş - creditOwnerId üzerinden
     const { data: currentUser, error: userError } = await supabase
       .from("users")
       .select("credit_balance")
-      .eq("id", userId)
+      .eq("id", creditOwnerId)
       .single();
 
     if (userError || !currentUser) {
-      console.error(`❌ User ${userId} bulunamadı:`, userError);
+      console.error(`❌ User ${creditOwnerId} bulunamadı:`, userError);
       return false;
     }
 
@@ -1165,10 +1177,11 @@ async function deductCreditOnSuccess(generationId, userId) {
     }
 
     // 🔒 Atomic kredi düşürme - race condition'ı önlemek için RPC kullan
+    // creditOwnerId kullanarak doğru hesaptan düşür
     const { data: updateResult, error: updateError } = await supabase.rpc(
       "deduct_user_credit",
       {
-        user_id: userId,
+        user_id: creditOwnerId,
         credit_amount: totalCreditCost,
       }
     );
@@ -1181,7 +1194,7 @@ async function deductCreditOnSuccess(generationId, userId) {
     const newBalance =
       updateResult?.new_balance || currentCredit - totalCreditCost;
     console.log(
-      `✅ ${totalCreditCost} kredi başarıyla düşüldü. Yeni bakiye: ${newBalance}`
+      `✅ ${totalCreditCost} kredi başarıyla düşüldü (${isTeamCredit ? 'team owner' : 'user'}: ${creditOwnerId}). Yeni bakiye: ${newBalance}`
     );
 
     // 💳 Kredi tracking bilgilerini generation'a kaydet
@@ -1749,11 +1762,31 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
         settings?.productColor && settings.productColor !== "original"
           ? `\n    \n    🎨 PRODUCT COLOR REQUIREMENT:\n    The user has specifically selected "${settings.productColor}" as the product color. CRITICAL: Ensure the garment/product appears in ${settings.productColor} color in the final image. This color selection must be prominently featured and accurately represented.`
           : ""
+      }${
+        settings?.framing && settings.framing !== "auto"
+          ? `\n    \n    📐 CAMERA FRAMING REQUIREMENT:\n    The user has specifically selected "${settings.framing.replace(/_/g, ' ')}" as the camera framing/composition. CRITICAL: You MUST compose the shot as a ${settings.framing.replace(/_/g, ' ')} shot.\n    ${
+              settings.framing === "full_body"
+                ? "Frame the ENTIRE body from head to feet with proper spacing around the model. Show the complete figure including legs and feet."
+                : settings.framing === "knee_shot"
+                ? "Frame from the knees upward, focusing on upper body region while cutting off below the knees."
+                : settings.framing === "medium_shot"
+                ? "Frame from waist upward, showing upper torso and head area only."
+                : settings.framing === "chest_up"
+                ? "Frame from chest upward, focusing on upper torso, shoulders, neck and head."
+                : settings.framing === "close_up"
+                ? "Tight framing on face and upper chest only, creating an intimate close-up shot."
+                : `Use ${settings.framing.replace(/_/g, ' ')} framing as specified.`
+            }\n    This framing selection is MANDATORY and must be strictly followed in the final composition.`
+          : ""
       }
-    
+
     IMPORTANT: Please incorporate ALL user settings above into your description when appropriate.${
       settings?.productColor && settings.productColor !== "original"
         ? ` Pay special attention to the product color requirement - the garment must be ${settings.productColor}.`
+        : ""
+    }${
+      settings?.framing && settings.framing !== "auto"
+        ? ` Pay special attention to the camera framing requirement - the shot MUST be composed as a ${settings.framing.replace(/_/g, ' ')} shot.`
         : ""
     }`;
     }
@@ -5589,18 +5622,15 @@ router.post("/generate", async (req, res) => {
       // 💳 KREDI GÜNCELLEME SIRASI
       // Kredi düşümü updateGenerationStatus içinde tetikleniyor (pay-on-success).
       // Bu nedenle güncel krediyi, status güncellemesinden SONRA okumalıyız.
+      // 🔗 TEAM-AWARE: Team member için owner'ın kredisini döndür
       let currentCredit = null;
       if (userId && userId !== "anonymous_user") {
         try {
-          const { data: updatedUser } = await supabase
-            .from("users")
-            .select("credit_balance")
-            .eq("id", userId)
-            .single();
-
-          currentCredit = updatedUser?.credit_balance || 0;
+          const effectiveCredits = await teamService.getEffectiveCredits(userId);
+          currentCredit = effectiveCredits.creditBalance || 0;
           console.log(
-            `💳 Güncel kredi balance (post-deduct): ${currentCredit}`
+            `💳 Güncel kredi balance (post-deduct, team-aware): ${currentCredit}`,
+            effectiveCredits.isTeamCredit ? `(team owner: ${effectiveCredits.creditOwnerId})` : ''
           );
         } catch (creditError) {
           console.error(
@@ -5788,6 +5818,7 @@ router.post("/generate", async (req, res) => {
 });
 
 // Kullanıcının reference browser sonuçlarını getiren endpoint
+// Team üyesi ise tüm ekip üyelerinin sonuçlarını getirir (Shared Workspace)
 router.get("/results/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
@@ -5802,13 +5833,18 @@ router.get("/results/:userId", async (req, res) => {
       });
     }
 
+    // Get team member IDs for shared workspace
+    const { memberIds, isTeamMember } = await teamService.getTeamMemberIds(userId);
+
+    console.log(`📊 [RESULTS-V5] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
+
     const offset = (page - 1) * limit;
 
-    // Kullanıcının sonuçlarını getir (en yeni önce)
+    // Kullanıcının (veya takım üyelerinin) sonuçlarını getir (en yeni önce)
     const { data: results, error } = await supabase
       .from("reference_results")
       .select("*")
-      .eq("user_id", userId)
+      .in("user_id", memberIds)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -5827,7 +5863,7 @@ router.get("/results/:userId", async (req, res) => {
     const { count, error: countError } = await supabase
       .from("reference_results")
       .select("*", { count: "exact", head: true })
-      .eq("user_id", userId);
+      .in("user_id", memberIds);
 
     if (countError) {
       console.error("❌ Toplam sayı getirme hatası:", countError);
@@ -6151,6 +6187,9 @@ router.get("/generation-status/:generationId", async (req, res) => {
       });
     }
 
+    // Get team member IDs for shared workspace
+    const { memberIds, isTeamMember } = await teamService.getTeamMemberIds(userId);
+
     // Log'u sadece ilk sorgulamada yap (spam önlemek için)
     if (Math.random() < 0.1) {
       // %10 ihtimalle logla
@@ -6158,30 +6197,30 @@ router.get("/generation-status/:generationId", async (req, res) => {
         `🔍 Generation status sorgusu: ${generationId.slice(
           0,
           8
-        )}... (User: ${userId.slice(0, 8)}...)`
+        )}... (User: ${userId.slice(0, 8)}..., Team: ${isTeamMember})`
       );
     }
 
-    // Generation'ı sorgula
+    // Generation'ı sorgula - Team üyeleri için .in() kullan
     const { data: generationArray, error } = await supabase
       .from("reference_results")
       .select("*")
       .eq("generation_id", generationId)
-      .eq("user_id", userId);
+      .in("user_id", memberIds);
 
-    // Debug: Bu user'ın aktif generation'larını da kontrol et
+    // Debug: Bu user/team'in aktif generation'larını da kontrol et
     if (!generationArray || generationArray.length === 0) {
       const { data: userGenerations } = await supabase
         .from("reference_results")
-        .select("generation_id, status, created_at")
-        .eq("user_id", userId)
+        .select("generation_id, status, created_at, user_id")
+        .in("user_id", memberIds)
         .in("status", ["pending", "processing"])
         .order("created_at", { ascending: false })
         .limit(5);
 
       if (userGenerations && userGenerations.length > 0) {
         console.log(
-          `🔍 User ${userId.slice(0, 8)} has ${
+          `🔍 User/Team ${userId.slice(0, 8)} has ${
             userGenerations.length
           } active generations:`,
           userGenerations
@@ -6199,7 +6238,7 @@ router.get("/generation-status/:generationId", async (req, res) => {
           console.log(
             `🧹 Cleaning ${
               expiredGenerations.length
-            } expired generations for user ${userId.slice(0, 8)}`
+            } expired generations for user/team ${userId.slice(0, 8)}`
           );
 
           await supabase
@@ -6209,7 +6248,7 @@ router.get("/generation-status/:generationId", async (req, res) => {
               "generation_id",
               expiredGenerations.map((g) => g.generation_id)
             )
-            .eq("user_id", userId);
+            .in("user_id", memberIds);
         }
       }
     }
@@ -6342,9 +6381,12 @@ router.get("/generation-status/:generationId", async (req, res) => {
 });
 
 // Kullanıcının pending/processing generation'larını getiren endpoint
+// Team üyesi ise tüm ekip üyelerinin pending generation'larını getirir (Shared Workspace)
+// platform=mobile ise sadece kullanıcının kendi verilerini döndürür
 router.get("/pending-generations/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
+    const { platform } = req.query; // 'web' veya 'mobile'
 
     if (!userId) {
       return res.status(400).json({
@@ -6355,13 +6397,25 @@ router.get("/pending-generations/:userId", async (req, res) => {
       });
     }
 
-    console.log(`🔍 Pending generations sorgusu: ${userId}`);
+    // Mobile için sadece kullanıcının kendi verilerini döndür
+    // Web için team üyelerinin verilerini de döndür (Shared Workspace)
+    let memberIds = [userId];
+    let isTeamMember = false;
 
-    // Pending ve processing durumundaki generation'ları getir
+    if (platform !== 'mobile') {
+      const teamData = await teamService.getTeamMemberIds(userId);
+      memberIds = teamData.memberIds;
+      isTeamMember = teamData.isTeamMember;
+    }
+
+    console.log(`🔍 Pending generations sorgusu: ${userId} (platform: ${platform || 'web'})`);
+    console.log(`📊 [PENDING-V5] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
+
+    // Pending ve processing durumundaki generation'ları getir (takım üyeleri dahil - sadece web)
     const { data: generations, error } = await supabase
       .from("reference_results")
       .select("*")
-      .eq("user_id", userId)
+      .in("user_id", memberIds)
       .in("status", ["pending", "processing"])
       .order("created_at", { ascending: false });
 
@@ -6454,10 +6508,12 @@ router.get("/pending-generations/:userId", async (req, res) => {
 });
 
 // Kullanıcının tüm generation'larını getiren endpoint (pending, processing, completed, failed)
+// Team üyesi ise tüm ekip üyelerinin generation'larını getirir (Shared Workspace)
+// platform=mobile ise sadece kullanıcının kendi verilerini döndürür
 router.get("/user-generations/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-    const { status } = req.query; // Opsiyonel: belirli statusleri filtrelemek için
+    const { status, platform } = req.query; // Opsiyonel: belirli statusleri filtrelemek için, platform: 'web' veya 'mobile'
 
     if (!userId) {
       return res.status(400).json({
@@ -6468,11 +6524,23 @@ router.get("/user-generations/:userId", async (req, res) => {
       });
     }
 
+    // Mobile için sadece kullanıcının kendi verilerini döndür
+    // Web için team üyelerinin verilerini de döndür (Shared Workspace)
+    let memberIds = [userId];
+    let isTeamMember = false;
+
+    if (platform !== 'mobile') {
+      const teamData = await teamService.getTeamMemberIds(userId);
+      memberIds = teamData.memberIds;
+      isTeamMember = teamData.isTeamMember;
+    }
+
     console.log(
       `🔍 User generations sorgusu: ${userId}${
         status ? ` (status: ${status})` : ""
-      }`
+      } (platform: ${platform || 'web'})`
     );
+    console.log(`📊 [USER-GENERATIONS-V5] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
 
     // 🕐 Her zaman son 1 saatlik data'yı döndür
     const oneHourAgo = new Date();
@@ -6483,10 +6551,17 @@ router.get("/user-generations/:userId", async (req, res) => {
       `🕐 [API_FILTER] Son 1 saatlik data döndürülüyor: ${oneHourAgoISO} sonrası`
     );
 
+    // Team üyeleri için .in() kullan
+    // User email bilgisini de çekmek için join yap
     let query = supabase
       .from("reference_results")
-      .select("*")
-      .eq("user_id", userId)
+      .select(`
+        *,
+        users:user_id (
+          email
+        )
+      `)
+      .in("user_id", memberIds)
       .gte("created_at", oneHourAgoISO) // Her zaman 1 saatlik filtreleme
       .order("created_at", { ascending: false });
 
@@ -6535,6 +6610,8 @@ router.get("/user-generations/:userId", async (req, res) => {
           generations?.map((gen) => ({
             id: gen.id,
             generationId: gen.generation_id,
+            userId: gen.user_id,
+            userEmail: gen.users?.email || null, // Team workspace için user email
             status: gen.status,
             resultImageUrl: gen.result_image_url,
             originalPrompt: gen.original_prompt,
@@ -6559,6 +6636,7 @@ router.get("/user-generations/:userId", async (req, res) => {
             updatedAt: gen.updated_at,
           })) || [],
         totalCount: generations?.length || 0,
+        isTeamData: isTeamMember,
       },
     });
   } catch (error) {

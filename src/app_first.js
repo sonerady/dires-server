@@ -1,5 +1,5 @@
 // app.js
-require("dotenv").config();
+require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -65,8 +65,8 @@ const purchaseRoutes = require("./routes/purchaseRoutes");
 const purchaseSummaryRoutes = require("./routes/purchaseSummaryRoutes");
 const appConfigRoutes = require("./routes/appConfigRoutes");
 const consRoutes = require("./routes/consRoutes");
-const changeColorRoutes = require("./routes/changeColorRoutes_v1");
-const changeColorRoutesV2 = require("./routes/changeColorRoutesV3");
+const changeColorRoutes = require("./routes/changeColorRoutes");
+const changeColorRoutesV2 = require("./routes/changeColorRoutesV2");
 const infoModalRoutes = require("./routes/infoModalRoutes");
 const appLinksRoutes = require("./routes/appLinksRoutes");
 const modalContentsRoutes = require("./routes/modalContentsRoutes");
@@ -129,7 +129,7 @@ app.use(
     origin: "*", // Tüm originlere izin ver
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-User-ID"],
-  }),
+  })
 );
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
@@ -195,11 +195,7 @@ app.use("/api", getBalance);
 const refinerDownloadRoutes = require("./routes/refinerDownloadRoutes");
 // Debug middleware for refiner-download
 app.use("/api/refiner-download", (req, res, next) => {
-  console.log(
-    "🔍 [DEBUG] Refiner-download request received:",
-    req.method,
-    req.url,
-  );
+  console.log("🔍 [DEBUG] Refiner-download request received:", req.method, req.url);
   next();
 });
 app.use("/api/refiner-download", refinerDownloadRoutes);
@@ -235,7 +231,7 @@ app.use("/api/referenceJewelryBrowserV4", referenceJewelryBrowserRoutesV4);
 app.use("/api/reference-images", referenceImageRoutes);
 app.use(
   "/api/referenceBrowserWithoutCanvas",
-  referenceBrowserRoutesWithoutCanvas,
+  referenceBrowserRoutesWithoutCanvas
 );
 
 app.use("/api/referencePhotoshoot", referencePhotoshootRoutes);
@@ -328,6 +324,6 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log("🔄 Server reloaded with Refiner Download routes!");
   console.log(`Server is accessible at http://localhost:${PORT}`);
   console.log(
-    `For mobile devices use your machine's IP address: http://192.168.1.100:${PORT}`,
+    `For mobile devices use your machine's IP address: http://192.168.1.100:${PORT}`
   );
 });

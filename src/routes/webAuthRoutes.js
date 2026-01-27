@@ -16,12 +16,108 @@ const {
 const rateLimitStore = new Map();
 
 /**
+ * Check for registration abuse based on device fingerprint and IP
+ * Returns { isAbuse: boolean, reasons: string[], score: number }
+ */
+async function checkRegistrationAbuse(ip, deviceFingerprint, email) {
+    const abuseResult = {
+        isAbuse: false,
+        reasons: [],
+        score: 0
+    };
+
+    try {
+        // 1. Check device fingerprint (most reliable)
+        if (deviceFingerprint) {
+            const { data: deviceMatches } = await supabaseAdmin
+                .from('registration_tracking')
+                .select('id, created_at')
+                .eq('device_fingerprint', deviceFingerprint);
+
+            if (deviceMatches && deviceMatches.length > 0) {
+                abuseResult.score += 60;
+                abuseResult.reasons.push('same_device');
+                console.log(`🚨 [ABUSE] Same device fingerprint found: ${deviceFingerprint.substring(0, 8)}...`);
+            }
+        }
+
+        // 2. Check IP address (last 30 days)
+        if (ip) {
+            const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+            const { data: ipMatches } = await supabaseAdmin
+                .from('registration_tracking')
+                .select('id, created_at')
+                .eq('ip_address', ip)
+                .gte('created_at', thirtyDaysAgo);
+
+            if (ipMatches && ipMatches.length >= 2) {
+                abuseResult.score += 30;
+                abuseResult.reasons.push('multiple_ip_registrations');
+                console.log(`🚨 [ABUSE] Multiple registrations from IP: ${ip} (${ipMatches.length} found)`);
+            }
+        }
+
+        // 3. Check for disposable email domains
+        const emailDomain = email.split('@')[1]?.toLowerCase();
+        const disposableDomains = [
+            'tempmail.com', 'guerrillamail.com', '10minutemail.com', 'throwaway.email',
+            'mailinator.com', 'temp-mail.org', 'fakeinbox.com', 'tempinbox.com',
+            'getnada.com', 'yopmail.com', 'trashmail.com', 'maildrop.cc'
+        ];
+
+        if (disposableDomains.includes(emailDomain)) {
+            abuseResult.score += 40;
+            abuseResult.reasons.push('disposable_email');
+            console.log(`🚨 [ABUSE] Disposable email domain detected: ${emailDomain}`);
+        }
+
+        // Determine if this is abuse (score >= 50)
+        abuseResult.isAbuse = abuseResult.score >= 50;
+
+        console.log(`📊 [ABUSE CHECK] Score: ${abuseResult.score}, IsAbuse: ${abuseResult.isAbuse}, Reasons: ${abuseResult.reasons.join(', ') || 'none'}`);
+
+    } catch (error) {
+        console.error('❌ [ABUSE CHECK] Error:', error);
+        // On error, don't block registration but log it
+    }
+
+    return abuseResult;
+}
+
+/**
+ * Record registration in tracking table
+ */
+async function trackRegistration(userId, ip, deviceFingerprint, email, abuseResult, creditsGranted) {
+    try {
+        // Use supabaseAdmin to bypass RLS
+        const { data, error } = await supabaseAdmin.from('registration_tracking').insert({
+            user_id: userId,
+            ip_address: ip,
+            device_fingerprint: deviceFingerprint,
+            email_domain: email.split('@')[1]?.toLowerCase(),
+            suspicion_score: abuseResult.score,
+            abuse_reasons: abuseResult.reasons,
+            credits_granted: creditsGranted
+        });
+
+        if (error) {
+            console.error('❌ [TRACKING] Supabase insert error:', error.message, error.details);
+        } else {
+            console.log(`📝 [TRACKING] Registration recorded for user: ${userId}`);
+        }
+    } catch (error) {
+        console.error('❌ [TRACKING] Error recording registration:', error);
+    }
+}
+
+/**
  * Helper: Supabase Auth kullanıcısını users tablosuna senkronize et
  * Web login/signup sonrası çağrılır
+ * @param creditsToGrant - Yeni kullanıcıya verilecek kredi miktarı (default 40)
  */
-async function syncUserToUsersTable(supabaseUserId, email, fullName = null, provider = 'email') {
+async function syncUserToUsersTable(supabaseUserId, email, fullName = null, provider = 'email', companyName = null, creditsToGrant = 40) {
     try {
-        console.log(`🔄 [WEB AUTH] Syncing user to users table: ${email}`);
+        console.log(`🔄 [WEB AUTH] Syncing user to users table: ${email}, companyName: ${companyName}`);
 
         // 1. Bu Supabase user ID ile kayıt var mı?
         const { data: existingAuthUser, error: authError } = await supabase
@@ -75,8 +171,9 @@ async function syncUserToUsersTable(supabaseUserId, email, fullName = null, prov
                 supabase_user_id: supabaseUserId,
                 email: email,
                 full_name: fullName,
+                company_name: companyName,
                 auth_provider: provider,
-                credit_balance: 40, // Yeni kullanıcıya 40 kredi hediye
+                credit_balance: creditsToGrant, // Yeni kullanıcıya kredi hediye (abuse ise 0)
                 received_initial_credit: true,
                 initial_credit_date: new Date().toISOString(),
                 created_at: new Date().toISOString(),
@@ -116,7 +213,8 @@ router.post('/login', async (req, res) => {
             data.user.id,
             data.user.email,
             data.user.user_metadata?.full_name,
-            'email'
+            'email',
+            data.user.user_metadata?.company_name
         );
 
         res.json({
@@ -135,8 +233,11 @@ router.post('/login', async (req, res) => {
 
 // Email/Password Sign Up (WITH EMAIL VERIFICATION)
 router.post('/signup', async (req, res) => {
-    let { email, password, options, platform } = req.body;
+    let { email, password, options, platform, deviceFingerprint } = req.body;
     console.log(`[Signup] Request received for email: ${email} (platform: ${platform || 'web'})`);
+
+    // Get IP address for abuse tracking
+    const ip = req.ip || req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.connection?.remoteAddress;
 
     email = email ? email.trim() : '';
 
@@ -236,17 +337,33 @@ router.post('/signup', async (req, res) => {
 
         console.log(`[Signup] User created and auto-confirmed. ID: ${createdUser.user.id}`);
 
-        // 2. Users tablosuna kayıt oluştur
+        // 2. Check for registration abuse BEFORE granting credits
+        const abuseResult = await checkRegistrationAbuse(ip, deviceFingerprint, email);
+        const creditsToGrant = abuseResult.isAbuse ? 0 : 40;
+
+        if (abuseResult.isAbuse) {
+            console.log(`🚨 [Signup] Abuse detected! User ${email} will receive 0 credits. Reasons: ${abuseResult.reasons.join(', ')}`);
+        } else {
+            console.log(`✅ [Signup] No abuse detected. User ${email} will receive ${creditsToGrant} credits.`);
+        }
+
+        // 3. Users tablosuna kayıt oluştur (with adjusted credits)
         const { user: dbUser, isNew } = await syncUserToUsersTable(
             createdUser.user.id,
             email,
-            options?.data?.company_name || options?.data?.full_name,
-            'email'
+            options?.data?.full_name || null,
+            'email',
+            options?.data?.company_name || null,
+            creditsToGrant
         );
 
         console.log(`[Signup] Users table sync: ${isNew ? 'created' : 'linked'}, ID: ${dbUser?.id}`);
 
-        // 3. Generate verification code (6 digits)
+        // 4. Track this registration for future abuse detection
+        // Use Supabase Auth user ID (createdUser.user.id) because FK references auth.users
+        await trackRegistration(createdUser.user.id, ip, deviceFingerprint, email, abuseResult, creditsToGrant);
+
+        // 5. Generate verification code (6 digits)
         const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
         const verificationToken = uuidv4();
 
@@ -260,7 +377,7 @@ router.post('/signup', async (req, res) => {
             }
         });
 
-        // 4. Send Verification Email via Resend
+        // 6. Send Verification Email via Resend
         const verificationUrl = `https://app.diress.ai/verify?token=${verificationToken}&userId=${createdUser.user.id}`;
         const userName = options?.data?.company_name || options?.data?.full_name || email.split('@')[0];
 

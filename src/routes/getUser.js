@@ -1,5 +1,6 @@
 const express = require("express");
 const { supabase } = require("../supabaseClient"); // Supabase client'ı import ediyoruz
+const teamService = require("../services/teamService"); // Team service for effective credits
 
 const router = express.Router();
 
@@ -31,26 +32,36 @@ router.get("/user/:id", async (req, res) => {
   }
 });
 
-// Kullanıcı bakiyesini almak için route
+// Kullanıcı bakiyesini almak için route (team-aware)
 router.get("/users/:id/balance", async (req, res) => {
   const { id } = req.params;
 
   try {
-    const { data, error } = await supabase
-      .from("users")
-      .select("credit_balance")
-      .eq("id", id)
-      .single();
+    // Team-aware: Eğer kullanıcı bir team member ise owner'ın kredilerini döndür
+    const effectiveCredits = await teamService.getEffectiveCredits(id);
 
-    if (error) {
-      console.error("Bakiye sorgulama hatası:", error.message);
-      return res.status(400).json({ error: error.message });
-    }
-
-    res.status(200).json(data);
+    res.status(200).json({
+      credit_balance: effectiveCredits.creditBalance,
+      isTeamCredit: effectiveCredits.isTeamCredit || false,
+      creditOwnerId: effectiveCredits.creditOwnerId || id
+    });
   } catch (err) {
     console.error("Bakiye bilgisi alınamadı:", err.message);
-    res.status(500).json({ message: "Sunucu hatası" });
+    // Fallback: doğrudan kullanıcının kendi bakiyesini al
+    try {
+      const { data, error } = await supabase
+        .from("users")
+        .select("credit_balance")
+        .eq("id", id)
+        .single();
+
+      if (error) {
+        return res.status(400).json({ error: error.message });
+      }
+      res.status(200).json(data);
+    } catch (fallbackErr) {
+      res.status(500).json({ message: "Sunucu hatası" });
+    }
   }
 });
 

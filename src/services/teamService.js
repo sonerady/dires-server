@@ -98,13 +98,22 @@ async function getOrCreateTeam(userId) {
             .single();
 
         if (existingTeam) {
+            console.log('[TeamService] Existing team found:', existingTeam.id, 'max_members:', existingTeam.max_members);
+
             // Update max_members if tier changed
             if (existingTeam.max_members !== proStatus.maxMembers) {
-                await supabase
+                console.log('[TeamService] Updating team max_members from', existingTeam.max_members, 'to', proStatus.maxMembers);
+                const { error: updateError } = await supabase
                     .from('teams')
                     .update({ max_members: proStatus.maxMembers })
                     .eq('id', existingTeam.id);
-                existingTeam.max_members = proStatus.maxMembers;
+
+                if (updateError) {
+                    console.error('[TeamService] Failed to update team max_members:', updateError);
+                } else {
+                    console.log('[TeamService] Team max_members updated successfully');
+                    existingTeam.max_members = proStatus.maxMembers;
+                }
             }
             return { success: true, team: existingTeam };
         }
@@ -322,8 +331,12 @@ async function sendInvitation(ownerId, inviteeEmail) {
             .neq('role', 'owner');
 
         const currentCount = currentMembers ? currentMembers.length : 0;
-        if (currentCount >= team.max_members) {
-            return { success: false, error: `Team member limit reached (${team.max_members})` };
+        console.log('[TeamService] Member limit check - current:', currentCount, 'max:', team.max_members);
+
+        // Ensure max_members is at least 1 for Pro users (fallback)
+        const effectiveMaxMembers = team.max_members > 0 ? team.max_members : 1;
+        if (currentCount >= effectiveMaxMembers) {
+            return { success: false, error: `Team member limit reached (${effectiveMaxMembers})` };
         }
 
         // Check for existing invitation to same email (any status)
@@ -870,26 +883,34 @@ async function getEffectiveUserStatus(userId) {
 /**
  * Get effective credits for a user (considering team membership)
  * @param {string} userId - User ID
- * @returns {Promise<{creditBalance: number, creditOwnerId: string, isTeamCredit: boolean}>}
+ * @returns {Promise<{creditBalance: number, creditOwnerId: string, isTeamCredit: boolean, isPro: boolean}>}
  */
 async function getEffectiveCredits(userId) {
     try {
         // Get user with active_team_id
         const { data: user, error: userError } = await supabase
             .from('users')
-            .select('credit_balance, active_team_id')
+            .select('credit_balance, active_team_id, is_pro')
             .eq('id', userId)
             .single();
 
+        console.log('[TeamService] getEffectiveCredits - User data:', {
+            userId,
+            hasActiveTeam: !!user?.active_team_id,
+            activeTeamId: user?.active_team_id
+        });
+
         if (userError || !user) {
+            console.log('[TeamService] getEffectiveCredits - User not found or error:', userError);
             return {
                 creditBalance: 0,
                 creditOwnerId: userId,
-                isTeamCredit: false
+                isTeamCredit: false,
+                isPro: false
             };
         }
 
-        // If user has active team, use owner's credits
+        // If user has active team, use owner's credits and pro status
         if (user.active_team_id) {
             const { data: team } = await supabase
                 .from('teams')
@@ -897,35 +918,56 @@ async function getEffectiveCredits(userId) {
                 .eq('id', user.active_team_id)
                 .single();
 
+            console.log('[TeamService] getEffectiveCredits - Team data:', {
+                teamId: user.active_team_id,
+                ownerId: team?.owner_id
+            });
+
             if (team) {
                 const { data: owner } = await supabase
                     .from('users')
-                    .select('credit_balance')
+                    .select('credit_balance, is_pro, subscription_type')
                     .eq('id', team.owner_id)
                     .single();
 
                 if (owner) {
+                    // is_pro veya subscription_type varsa pro sayılır
+                    const ownerIsPro = owner.is_pro ||
+                        (owner.subscription_type && owner.subscription_type !== 'free' && owner.subscription_type !== null);
+
+                    console.log('[TeamService] getEffectiveCredits - Using owner credits:', {
+                        ownerCredits: owner.credit_balance,
+                        ownerIsPro: ownerIsPro,
+                        ownerSubscriptionType: owner.subscription_type
+                    });
                     return {
                         creditBalance: owner.credit_balance,
                         creditOwnerId: team.owner_id,
-                        isTeamCredit: true
+                        isTeamCredit: true,
+                        isPro: ownerIsPro
                     };
                 }
             }
         }
 
         // Use own credits
+        console.log('[TeamService] getEffectiveCredits - Using own credits:', {
+            credits: user.credit_balance,
+            isPro: user.is_pro
+        });
         return {
             creditBalance: user.credit_balance,
             creditOwnerId: userId,
-            isTeamCredit: false
+            isTeamCredit: false,
+            isPro: user.is_pro || false
         };
     } catch (err) {
         console.error('[TeamService] getEffectiveCredits error:', err);
         return {
             creditBalance: 0,
             creditOwnerId: userId,
-            isTeamCredit: false
+            isTeamCredit: false,
+            isPro: false
         };
     }
 }
@@ -1066,8 +1108,24 @@ async function getTeamMemberIds(userId) {
             .eq('id', userId)
             .single();
 
-        if (!user || !user.active_team_id) {
-            // User is not in a team, return only their own ID
+        let teamId = user?.active_team_id;
+
+        // If user doesn't have active_team_id, check if they own a team
+        if (!teamId) {
+            const { data: ownedTeam } = await supabase
+                .from('teams')
+                .select('id')
+                .eq('owner_id', userId)
+                .single();
+
+            if (ownedTeam) {
+                teamId = ownedTeam.id;
+                console.log(`[TeamService] User ${userId.substring(0, 8)}... is team owner, using team: ${teamId}`);
+            }
+        }
+
+        if (!teamId) {
+            // User is not in a team and doesn't own one
             return { success: true, memberIds: [userId], isTeamMember: false };
         }
 
@@ -1075,15 +1133,17 @@ async function getTeamMemberIds(userId) {
         const { data: members, error } = await supabase
             .from('team_members')
             .select('user_id')
-            .eq('team_id', user.active_team_id);
+            .eq('team_id', teamId);
 
         if (error || !members || members.length === 0) {
+            // Team exists but no members in team_members table
+            // Return just the owner (who is the current user)
             return { success: true, memberIds: [userId], isTeamMember: false };
         }
 
         const memberIds = members.map(m => m.user_id);
 
-        // Ensure current user is included
+        // Ensure current user (team owner) is included
         if (!memberIds.includes(userId)) {
             memberIds.push(userId);
         }

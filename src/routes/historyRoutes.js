@@ -1,5 +1,6 @@
 const express = require("express");
 const { createClient } = require("@supabase/supabase-js");
+const teamService = require("../services/teamService");
 const router = express.Router();
 
 // Supabase client'ını import et
@@ -134,6 +135,7 @@ const optimizeHistoryImages = (historyItems) => {
 /**
  * GET /api/history/user/:userId
  * Kullanıcının history verilerini getir (pagination ile)
+ * Team üyesi ise tüm ekip üyelerinin history'sini getirir (Shared Workspace)
  */
 router.get("/user/:userId", async (req, res) => {
   try {
@@ -152,18 +154,23 @@ router.get("/user/:userId", async (req, res) => {
     const parsedPage = Math.max(parseInt(page) || 1, 1);
     const offset = (parsedPage - 1) * parsedLimit;
 
+    // Get team member IDs for shared workspace
+    const { memberIds, isTeamMember } = await teamService.getTeamMemberIds(userId);
+
     console.log(`📊 [HISTORY] Fetching history for user: ${userId}`);
+    console.log(`📊 [HISTORY] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
     console.log(
       `📊 [HISTORY] Pagination: page=${parsedPage}, limit=${parsedLimit}, offset=${offset}`
     );
 
     // Toplam sayıyı al (visibility kolonu varsa true olanları, yoksa tümünü)
     // Using retry wrapper for connection stability
+    // Use .in() for team members, .eq() for single user
     let { count: totalCount, error: countError } = await retryQuery(() =>
       supabase
         .from("reference_results")
         .select("*", { count: "exact", head: true })
-        .eq("user_id", userId)
+        .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
         .eq("visibility", true)
     );
@@ -175,7 +182,7 @@ router.get("/user/:userId", async (req, res) => {
         supabase
           .from("reference_results")
           .select("*", { count: "exact", head: true })
-          .eq("user_id", userId)
+          .in("user_id", memberIds)
           .in("status", ["completed", "failed"])
       );
       totalCount = fallbackResult.count;
@@ -214,7 +221,7 @@ router.get("/user/:userId", async (req, res) => {
           kits
         `
         )
-        .eq("user_id", userId)
+        .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
         .eq("visibility", true)
         .order("created_at", { ascending: false })
@@ -246,7 +253,7 @@ router.get("/user/:userId", async (req, res) => {
             kits
           `
           )
-          .eq("user_id", userId)
+          .in("user_id", memberIds)
           .in("status", ["completed", "failed"])
           .order("created_at", { ascending: false })
           .range(offset, offset + parsedLimit - 1)
@@ -279,6 +286,7 @@ router.get("/user/:userId", async (req, res) => {
         hasMore: hasMore,
         totalPages: Math.ceil((totalCount || 0) / parsedLimit),
       },
+      isTeamData: isTeamMember,
     });
   } catch (error) {
     console.error("❌ [HISTORY] Unexpected error:", error);
@@ -292,6 +300,7 @@ router.get("/user/:userId", async (req, res) => {
 /**
  * GET /api/history/stats/:userId
  * Kullanıcının history istatistiklerini getir
+ * Team üyesi ise tüm ekip üyelerinin istatistiklerini getirir (Shared Workspace)
  */
 router.get("/stats/:userId", async (req, res) => {
   try {
@@ -304,11 +313,16 @@ router.get("/stats/:userId", async (req, res) => {
       });
     }
 
+    // Get team member IDs for shared workspace
+    const { memberIds, isTeamMember } = await teamService.getTeamMemberIds(userId);
+
+    console.log(`📊 [HISTORY_STATS] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
+
     // İstatistikleri getir (visibility kolonu varsa true olanları, yoksa tümünü)
     let statsQuery = supabase
       .from("reference_results")
       .select("status, credits_deducted")
-      .eq("user_id", userId)
+      .in("user_id", memberIds)
       .eq("visibility", true);
 
     let { data: statsData, error: statsError } = await statsQuery;
@@ -319,7 +333,7 @@ router.get("/stats/:userId", async (req, res) => {
       const fallbackQuery = supabase
         .from("reference_results")
         .select("status, credits_deducted")
-        .eq("user_id", userId);
+        .in("user_id", memberIds);
       const fallbackResult = await fallbackQuery;
       statsData = fallbackResult.data;
       statsError = fallbackResult.error;
@@ -345,6 +359,7 @@ router.get("/stats/:userId", async (req, res) => {
     return res.json({
       success: true,
       data: stats,
+      isTeamData: isTeamMember,
     });
   } catch (error) {
     console.error("❌ [HISTORY_STATS] Unexpected error:", error);
@@ -493,6 +508,57 @@ router.get("/kits/:generationId", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ [HISTORY_KITS] Unexpected error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+});
+
+/**
+ * GET /api/history/debug/user-counts
+ * Debug endpoint to check actual per-user record counts WITHOUT team logic
+ * Query param: userIds (comma-separated)
+ */
+router.get("/debug/user-counts", async (req, res) => {
+  try {
+    const { userIds } = req.query;
+
+    if (!userIds) {
+      return res.status(400).json({
+        success: false,
+        message: "userIds query parameter required (comma-separated)",
+      });
+    }
+
+    const userIdArray = userIds.split(",").map(id => id.trim());
+    const results = {};
+
+    for (const userId of userIdArray) {
+      // Query count for THIS user only (no team logic)
+      const { count, error } = await supabase
+        .from("reference_results")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .in("status", ["completed", "failed"])
+        .eq("visibility", true);
+
+      results[userId] = {
+        count: count || 0,
+        error: error?.message || null
+      };
+
+      console.log(`🔍 [DEBUG] User ${userId.substring(0, 8)}... has ${count} records`);
+    }
+
+    return res.json({
+      success: true,
+      message: "Per-user counts (WITHOUT team logic)",
+      data: results,
+      total: Object.values(results).reduce((sum, r) => sum + r.count, 0)
+    });
+  } catch (error) {
+    console.error("❌ [DEBUG] Error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",

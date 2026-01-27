@@ -4,6 +4,7 @@ const axios = require("axios");
 const { createClient } = require("@supabase/supabase-js");
 const { v4: uuidv4 } = require("uuid");
 const sharp = require("sharp");
+const teamService = require("../services/teamService");
 
 // Supabase client
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -624,31 +625,42 @@ router.post("/generate-product-kit", async (req, res) => {
     const KIT_GENERATION_COST = 15; // Cost per kit generation
 
     try {
-        const { imageUrl, recordId, userId } = req.body;
+        const { imageUrl, recordId, userId, teamAware } = req.body;
 
         console.log(`🎨 [PRODUCT_KIT] Request received for URL: ${imageUrl.substring(0, 50)}...`);
-        console.log(`🎨 [PRODUCT_KIT] Record ID: ${recordId}, User ID: ${userId}`);
+        console.log(`🎨 [PRODUCT_KIT] Record ID: ${recordId}, User ID: ${userId}, teamAware: ${teamAware}`);
 
         if (!imageUrl) {
             return res.status(400).json({ success: false, error: "Missing imageUrl" });
         }
 
-        // STEP -2: Check Free Tier Status
+        // Determine effective user for credits/stats (team-aware: use owner's account)
+        let creditOwnerId = userId;
+        let isTeamCredit = false;
+
+        if (teamAware && userId && userId !== "anonymous_user") {
+            const effectiveCredits = await teamService.getEffectiveCredits(userId);
+            creditOwnerId = effectiveCredits.creditOwnerId;
+            isTeamCredit = effectiveCredits.isTeamCredit;
+            console.log(`📊 [PRODUCT_KIT] Team-aware mode: creditOwnerId=${creditOwnerId}, isTeamCredit=${isTeamCredit}`);
+        }
+
+        // STEP -2: Check Free Tier Status (use creditOwnerId for team-aware)
         let isFree = false;
-        if (userId && userId !== "anonymous_user") {
-            const kitCount = await getUserKitCount(userId);
-            console.log(`📊 [PRODUCT_KIT] User kit count: ${kitCount}`);
+        if (creditOwnerId && creditOwnerId !== "anonymous_user") {
+            const kitCount = await getUserKitCount(creditOwnerId);
+            console.log(`📊 [PRODUCT_KIT] Kit count for ${creditOwnerId}: ${kitCount}`);
             if (kitCount < 5) {
                 isFree = true;
-                console.log("🎁 [PRODUCT_KIT] User is within FREE TIER (count < 5). No credits will be deducted.");
+                console.log("🎁 [PRODUCT_KIT] Within FREE TIER (count < 5). No credits will be deducted.");
             }
         }
 
-        // STEP -1: Check Credit Balance (Only if NOT free)
-        if (!isFree && userId && userId !== "anonymous_user") {
-            const hasEnoughCredits = await checkUserBalance(userId, KIT_GENERATION_COST);
+        // STEP -1: Check Credit Balance (use creditOwnerId for team-aware)
+        if (!isFree && creditOwnerId && creditOwnerId !== "anonymous_user") {
+            const hasEnoughCredits = await checkUserBalance(creditOwnerId, KIT_GENERATION_COST);
             if (!hasEnoughCredits) {
-                console.warn(`⛔ [PRODUCT_KIT] Insufficient credits for user: ${userId}`);
+                console.warn(`⛔ [PRODUCT_KIT] Insufficient credits for creditOwnerId: ${creditOwnerId}`);
                 return res.status(402).json({
                     success: false,
                     error: "INSUFFICIENT_CREDITS",
@@ -875,18 +887,18 @@ Ghost_Mannequin_Prompt: [your generated prompt]
             });
         }
 
-        // Step 5: Increment stats if successful
-        if (generatedImages.length > 0 && userId) {
-            await incrementEcommerceKitCount(userId);
+        // Step 5: Increment stats if successful (use creditOwnerId for team-aware)
+        if (generatedImages.length > 0 && creditOwnerId) {
+            await incrementEcommerceKitCount(creditOwnerId);
+            console.log(`📊 [PRODUCT_KIT] Stats incremented for: ${creditOwnerId}`);
         }
 
-        // Step 6: Deduct Credits
-        if (!isFree && generatedImages.length > 0 && userId && userId !== "anonymous_user") {
-            console.log("💳 [PRODUCT_KIT] Step 6: Deducting credits...");
-            const deducted = await deductUserCredit(userId, KIT_GENERATION_COST);
+        // Step 6: Deduct Credits (use creditOwnerId for team-aware)
+        if (!isFree && generatedImages.length > 0 && creditOwnerId && creditOwnerId !== "anonymous_user") {
+            console.log(`💳 [PRODUCT_KIT] Step 6: Deducting credits from: ${creditOwnerId}...`);
+            const deducted = await deductUserCredit(creditOwnerId, KIT_GENERATION_COST);
             if (!deducted) {
                 console.error("❌ [PRODUCT_KIT] Credit deduction failed even after successful generation!");
-                // Consider adding a "retry" or "debt" flag? Or enable logging for manual reconciliation.
             }
         }
 
@@ -915,20 +927,35 @@ Ghost_Mannequin_Prompt: [your generated prompt]
 });
 
 // NEW: Fetch E-commerce Kit stats for a user
+// Team-aware: If teamAware=true query param, returns owner's stats instead of member's
 router.get("/ecommerce-stats/:userId", async (req, res) => {
     try {
         const { userId } = req.params;
+        const teamAware = req.query.teamAware === 'true';
+
+        let effectiveUserId = userId;
+        let isTeamData = false;
+
+        // Team-aware mode: Get owner's stats for credit/free tier checks
+        if (teamAware && userId && userId !== "anonymous_user") {
+            const { creditOwnerId, isTeamCredit } = await teamService.getEffectiveCredits(userId);
+            effectiveUserId = creditOwnerId;
+            isTeamData = isTeamCredit;
+            console.log(`📊 [STATS_GET] Team-aware mode: userId=${userId}, effectiveUserId=${effectiveUserId}, isTeamData=${isTeamData}`);
+        }
+
         const { data, error } = await supabase
             .from("user_ecommerce_stats")
             .select("ecommerce_kit_count")
-            .eq("user_id", userId)
+            .eq("user_id", effectiveUserId)
             .maybeSingle();
 
         if (error) throw error;
 
         res.json({
             success: true,
-            count: data?.ecommerce_kit_count || 0
+            count: data?.ecommerce_kit_count || 0,
+            isTeamData // New field - old clients will ignore
         });
     } catch (error) {
         console.error("❌ [STATS_GET] Error:", error.message);
@@ -937,30 +964,37 @@ router.get("/ecommerce-stats/:userId", async (req, res) => {
 });
 
 // NEW: Fetch user's product kits list
+// Team üyesi ise tüm ekip üyelerinin kitlerini getirir (Shared Workspace)
 router.get("/user-kits/:userId", async (req, res) => {
     try {
         const { userId } = req.params;
         const limit = parseInt(req.query.limit) || 20;
         const offset = parseInt(req.query.offset) || 0;
 
-        console.log(`📦 [USER_KITS] Fetching kits for user: ${userId}, limit: ${limit}, offset: ${offset}`);
+        // Get team member IDs for shared workspace
+        const { memberIds, isTeamMember } = await teamService.getTeamMemberIds(userId);
 
+        console.log(`📦 [USER_KITS] Fetching kits for user: ${userId}, limit: ${limit}, offset: ${offset}`);
+        console.log(`📊 [USER_KITS] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
+
+        // Team üyeleri için .in() kullan
         const { data, error, count } = await supabase
             .from("product_kits")
             .select("*", { count: "exact" })
-            .eq("user_id", userId)
+            .in("user_id", memberIds)
             .order("created_at", { ascending: false })
             .range(offset, offset + limit - 1);
 
         if (error) throw error;
 
-        console.log(`✅ [USER_KITS] Found ${data?.length || 0} kits for user`);
+        console.log(`✅ [USER_KITS] Found ${data?.length || 0} kits for user/team`);
 
         res.json({
             success: true,
             kits: data || [],
             totalCount: count || 0,
-            hasMore: (offset + limit) < (count || 0)
+            hasMore: (offset + limit) < (count || 0),
+            isTeamData: isTeamMember
         });
     } catch (error) {
         console.error("❌ [USER_KITS] Error:", error.message);
