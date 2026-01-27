@@ -1,6 +1,7 @@
 const express = require("express");
 const { createClient } = require("@supabase/supabase-js");
 const teamService = require("../services/teamService");
+const logger = require("../utils/logger");
 const router = express.Router();
 
 // Supabase client'ını import et
@@ -18,7 +19,7 @@ const retryQuery = async (queryFn, maxRetries = 3, delay = 500) => {
       if (result.error && result.error.message === '') {
         // Empty error message indicates connection issue, retry
         lastError = result.error;
-        console.log(`⚠️ [HISTORY] Empty error on attempt ${attempt}/${maxRetries}, retrying...`);
+        logger.log(`⚠️ [HISTORY] Empty error on attempt ${attempt}/${maxRetries}, retrying...`);
         if (attempt < maxRetries) {
           await new Promise(resolve => setTimeout(resolve, delay * attempt));
           continue;
@@ -27,7 +28,7 @@ const retryQuery = async (queryFn, maxRetries = 3, delay = 500) => {
       return result;
     } catch (err) {
       lastError = err;
-      console.log(`⚠️ [HISTORY] Exception on attempt ${attempt}/${maxRetries}:`, err.message);
+      logger.log(`⚠️ [HISTORY] Exception on attempt ${attempt}/${maxRetries}:`, err.message);
       if (attempt < maxRetries) {
         await new Promise(resolve => setTimeout(resolve, delay * attempt));
       }
@@ -157,9 +158,9 @@ router.get("/user/:userId", async (req, res) => {
     // Get team member IDs for shared workspace
     const { memberIds, isTeamMember } = await teamService.getTeamMemberIds(userId);
 
-    console.log(`📊 [HISTORY] Fetching history for user: ${userId}`);
-    console.log(`📊 [HISTORY] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
-    console.log(
+    logger.log(`📊 [HISTORY] Fetching history for user: ${userId}`);
+    logger.log(`📊 [HISTORY] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
+    logger.log(
       `📊 [HISTORY] Pagination: page=${parsedPage}, limit=${parsedLimit}, offset=${offset}`
     );
 
@@ -177,7 +178,7 @@ router.get("/user/:userId", async (req, res) => {
 
     // Eğer visibility kolonu yoksa (hata alırsak), visibility filtresiz tekrar dene
     if (countError && (countError.message?.includes("visibility") || countError.code === "PGRST116")) {
-      console.log("⚠️ [HISTORY] Visibility column not found, retrying without visibility filter");
+      logger.log("⚠️ [HISTORY] Visibility column not found, retrying without visibility filter");
       const fallbackResult = await retryQuery(() =>
         supabase
           .from("reference_results")
@@ -230,7 +231,7 @@ router.get("/user/:userId", async (req, res) => {
 
     // Eğer visibility kolonu yoksa (hata alırsak), visibility filtresiz tekrar dene
     if (historyError && (historyError.message?.includes("visibility") || historyError.code === "PGRST116")) {
-      console.log("⚠️ [HISTORY] Visibility column not found, retrying without visibility filter");
+      logger.log("⚠️ [HISTORY] Visibility column not found, retrying without visibility filter");
       const fallbackResult = await retryQuery(() =>
         supabase
           .from("reference_results")
@@ -272,9 +273,9 @@ router.get("/user/:userId", async (req, res) => {
 
     const hasMore = offset + parsedLimit < (totalCount || 0);
 
-    console.log(`📊 [HISTORY] Retrieved ${historyData?.length || 0} items`);
-    console.log(`📊 [HISTORY] Total count: ${totalCount}`);
-    console.log(`📊 [HISTORY] Has more: ${hasMore}`);
+    logger.log(`📊 [HISTORY] Retrieved ${historyData?.length || 0} items`);
+    logger.log(`📊 [HISTORY] Total count: ${totalCount}`);
+    logger.log(`📊 [HISTORY] Has more: ${hasMore}`);
 
     return res.json({
       success: true,
@@ -316,7 +317,7 @@ router.get("/stats/:userId", async (req, res) => {
     // Get team member IDs for shared workspace
     const { memberIds, isTeamMember } = await teamService.getTeamMemberIds(userId);
 
-    console.log(`📊 [HISTORY_STATS] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
+    logger.log(`📊 [HISTORY_STATS] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
 
     // İstatistikleri getir (visibility kolonu varsa true olanları, yoksa tümünü)
     let statsQuery = supabase
@@ -329,7 +330,7 @@ router.get("/stats/:userId", async (req, res) => {
 
     // Eğer visibility kolonu yoksa (hata alırsak), visibility filtresiz tekrar dene
     if (statsError && (statsError.message?.includes("visibility") || statsError.code === "PGRST116")) {
-      console.log("⚠️ [HISTORY_STATS] Visibility column not found, retrying without visibility filter");
+      logger.log("⚠️ [HISTORY_STATS] Visibility column not found, retrying without visibility filter");
       const fallbackQuery = supabase
         .from("reference_results")
         .select("status, credits_deducted")
@@ -379,7 +380,7 @@ router.delete("/delete/:generationId", async (req, res) => {
     const { generationId } = req.params;
     const { userId } = req.body;
 
-    console.log(`🗑️ [HISTORY] Delete request for generationId: ${generationId}, userId: ${userId}`);
+    logger.log(`🗑️ [HISTORY] Delete request for generationId: ${generationId}, userId: ${userId}`);
 
     // Input validation
     if (!generationId) {
@@ -424,7 +425,7 @@ router.delete("/delete/:generationId", async (req, res) => {
       });
     }
 
-    console.log(`✅ [HISTORY] History item deleted (visibility=false): ${generationId}`);
+    logger.log(`✅ [HISTORY] History item deleted (visibility=false): ${generationId}`);
 
     return res.json({
       success: true,
@@ -448,7 +449,7 @@ router.get("/kits/:generationId", async (req, res) => {
   try {
     const { generationId } = req.params;
 
-    console.log(`📦 [HISTORY_KITS] Fetching kits for generation: ${generationId}`);
+    logger.log(`📦 [HISTORY_KITS] Fetching kits for generation: ${generationId}`);
 
     // Input validation
     if (!generationId) {
@@ -497,7 +498,7 @@ router.get("/kits/:generationId", async (req, res) => {
       }
     }
 
-    console.log(`✅ [HISTORY_KITS] Retrieved ${kitsArray.length} kits for generation: ${generationId}`);
+    logger.log(`✅ [HISTORY_KITS] Retrieved ${kitsArray.length} kits for generation: ${generationId}`);
 
     return res.json({
       success: true,
@@ -548,7 +549,7 @@ router.get("/debug/user-counts", async (req, res) => {
         error: error?.message || null
       };
 
-      console.log(`🔍 [DEBUG] User ${userId.substring(0, 8)}... has ${count} records`);
+      logger.log(`🔍 [DEBUG] User ${userId.substring(0, 8)}... has ${count} records`);
     }
 
     return res.json({

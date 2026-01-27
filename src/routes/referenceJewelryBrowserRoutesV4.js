@@ -10,17 +10,18 @@ const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const { createCanvas, loadImage } = require("canvas");
 const teamService = require("../services/teamService");
+const logger = require("../utils/logger");
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey =
   process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY;
 
-console.log(
+logger.log(
   "🔑 Supabase Key Type:",
   process.env.SUPABASE_SERVICE_KEY ? "SERVICE_KEY" : "ANON_KEY"
 );
-console.log("🔑 Key starts with:", supabaseKey?.substring(0, 20) + "...");
+logger.log("🔑 Key starts with:", supabaseKey?.substring(0, 20) + "...");
 
 const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
@@ -38,7 +39,7 @@ if (!fs.existsSync(tempDir)) {
 // Geçici dosyaları hemen silme fonksiyonu (işlem biter bitmez)
 async function cleanupTemporaryFiles(fileUrls) {
   // Bu fonksiyon artık dosya silme işlemi yapmıyor.
-  console.log(
+  logger.log(
     "🧹 cleanupTemporaryFiles çağrıldı fakat dosya silme işlemi devre dışı bırakıldı."
   );
   // İleride log veya başka bir işlem eklenebilir.
@@ -147,7 +148,7 @@ async function checkUserProStatus(userId) {
 
     // is_pro true ise pro kabul et
     const isPro = user?.is_pro === true;
-    console.log(`👤 User ${userId.slice(0, 8)} pro status: ${isPro}`);
+    logger.log(`👤 User ${userId.slice(0, 8)} pro status: ${isPro}`);
 
     return isPro;
   } catch (error) {
@@ -159,9 +160,9 @@ async function checkUserProStatus(userId) {
 // Result image'ı user-specific bucket'e kaydetme fonksiyonu
 async function saveResultImageToUserBucket(resultImageUrl, userId) {
   try {
-    console.log("📤 Result image user bucket'ine kaydediliyor...");
-    console.log("🖼️ Result image URL:", resultImageUrl);
-    console.log("👤 User ID:", userId);
+    logger.log("📤 Result image user bucket'ine kaydediliyor...");
+    logger.log("🖼️ Result image URL:", resultImageUrl);
+    logger.log("👤 User ID:", userId);
 
     if (!resultImageUrl || !userId) {
       throw new Error("Result image URL ve User ID gereklidir");
@@ -179,7 +180,7 @@ async function saveResultImageToUserBucket(resultImageUrl, userId) {
     const randomId = uuidv4().substring(0, 8);
     const fileName = `${userId}/${timestamp}_result_${randomId}.jpg`;
 
-    console.log("📁 User bucket dosya adı:", fileName);
+    logger.log("📁 User bucket dosya adı:", fileName);
 
     // user_image_results bucket'ine yükle
     const { data, error } = await supabase.storage
@@ -195,14 +196,14 @@ async function saveResultImageToUserBucket(resultImageUrl, userId) {
       throw new Error(`User bucket upload error: ${error.message}`);
     }
 
-    console.log("✅ User bucket upload başarılı:", data);
+    logger.log("✅ User bucket upload başarılı:", data);
 
     // Public URL al
     const { data: urlData } = supabase.storage
       .from("user_image_results")
       .getPublicUrl(fileName);
 
-    console.log("🔗 User bucket public URL:", urlData.publicUrl);
+    logger.log("🔗 User bucket public URL:", urlData.publicUrl);
 
     return urlData.publicUrl;
   } catch (error) {
@@ -243,7 +244,7 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
         .rotate() // EXIF orientation bilgisini otomatik uygula
         .jpeg({ quality: 100 })
         .toBuffer();
-      console.log("🔄 Tek resim upload: EXIF rotation uygulandı");
+      logger.log("🔄 Tek resim upload: EXIF rotation uygulandı");
     } catch (sharpError) {
       console.error("❌ Sharp işleme hatası:", sharpError.message);
 
@@ -257,19 +258,19 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
             .rotate() // EXIF rotation burada da dene
             .png({ quality: 100 })
             .toBuffer();
-          console.log(
+          logger.log(
             "✅ Tek resim upload: PNG'ye dönüştürüldü (EXIF rotation uygulandı)"
           );
         } catch (pngError) {
           console.error("❌ PNG dönüştürme hatası:", pngError.message);
           processedBuffer = imageBuffer; // Son çare: orijinal buffer
-          console.log(
+          logger.log(
             "⚠️ Orijinal buffer kullanılıyor (EXIF rotation uygulanamadı)"
           );
         }
       } else {
         processedBuffer = imageBuffer; // Son çare: orijinal buffer
-        console.log(
+        logger.log(
           "⚠️ Orijinal buffer kullanılıyor (EXIF rotation uygulanamadı)"
         );
       }
@@ -281,7 +282,7 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
     const fileName = `temp_${timestamp}_reference_${userId || "anonymous"
       }_${randomId}.jpg`;
 
-    console.log("Supabase'e yüklenecek dosya adı:", fileName);
+    logger.log("Supabase'e yüklenecek dosya adı:", fileName);
 
     // Supabase'e yükle (processed buffer ile)
     const { data, error } = await supabase.storage
@@ -297,14 +298,14 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
       throw new Error(`Supabase upload error: ${error.message}`);
     }
 
-    console.log("Supabase yükleme başarılı:", data);
+    logger.log("Supabase yükleme başarılı:", data);
 
     // Public URL al
     const { data: urlData } = supabase.storage
       .from("reference")
       .getPublicUrl(fileName);
 
-    console.log("Supabase public URL:", urlData.publicUrl);
+    logger.log("Supabase public URL:", urlData.publicUrl);
 
     return urlData.publicUrl;
   } catch (error) {
@@ -316,7 +317,7 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
 // Reference images'ları Supabase'e upload eden fonksiyon
 async function uploadReferenceImagesToSupabase(referenceImages, userId) {
   try {
-    console.log(
+    logger.log(
       "📤 Reference images Supabase'e yükleniyor...",
       referenceImages.length,
       "adet"
@@ -338,9 +339,9 @@ async function uploadReferenceImagesToSupabase(referenceImages, userId) {
           referenceImage.uri.startsWith("https://")
         ) {
           imageSourceForUpload = referenceImage.uri;
-          console.log(`📤 Reference image ${i + 1}: HTTP URI kullanılıyor`);
+          logger.log(`📤 Reference image ${i + 1}: HTTP URI kullanılıyor`);
         } else {
-          console.log(
+          logger.log(
             `⚠️ Reference image ${i + 1}: Desteklenmeyen format, atlanıyor`
           );
           uploadedUrls.push(referenceImage.uri); // Fallback olarak original URI'yi kullan
@@ -352,7 +353,7 @@ async function uploadReferenceImagesToSupabase(referenceImages, userId) {
           userId
         );
         uploadedUrls.push(uploadedUrl);
-        console.log(
+        logger.log(
           `✅ Reference image ${i + 1} başarıyla upload edildi:`,
           uploadedUrl
         );
@@ -366,7 +367,7 @@ async function uploadReferenceImagesToSupabase(referenceImages, userId) {
       }
     }
 
-    console.log(
+    logger.log(
       "📤 Toplam",
       uploadedUrls.length,
       "reference image URL'si hazırlandı"
@@ -397,11 +398,11 @@ async function createPendingGeneration(
   try {
     // User ID yoksa veya UUID formatında değilse, UUID oluştur
     let userIdentifier = userId;
-    console.log("🔍 [DEBUG createPendingGeneration] Gelen userId:", userId);
+    logger.log("🔍 [DEBUG createPendingGeneration] Gelen userId:", userId);
 
     if (!userIdentifier || userIdentifier === "anonymous_user") {
       userIdentifier = uuidv4(); // UUID formatında anonymous user oluştur
-      console.log(
+      logger.log(
         "🔍 [DEBUG] Yeni anonymous UUID oluşturuldu:",
         userIdentifier
       );
@@ -411,13 +412,13 @@ async function createPendingGeneration(
       )
     ) {
       // Eğer gelen ID UUID formatında değilse, UUID'ye çevir veya yeni UUID oluştur
-      console.log(
+      logger.log(
         "🔍 [DEBUG] User ID UUID formatında değil, yeni UUID oluşturuluyor:",
         userIdentifier
       );
       userIdentifier = uuidv4();
     } else {
-      console.log(
+      logger.log(
         "🔍 [DEBUG] User ID UUID formatında, aynı ID kullanılıyor:",
         userIdentifier
       );
@@ -454,12 +455,12 @@ async function createPendingGeneration(
       return null;
     }
 
-    console.log("✅ Pending generation kaydedildi:", insertData[0]?.id);
-    console.log(
+    logger.log("✅ Pending generation kaydedildi:", insertData[0]?.id);
+    logger.log(
       "🔍 [DEBUG] Kaydedilen generation_id:",
       insertData[0]?.generation_id
     );
-    console.log("🔍 [DEBUG] Kaydedilen status:", insertData[0]?.status);
+    logger.log("🔍 [DEBUG] Kaydedilen status:", insertData[0]?.status);
     return insertData[0]; // Insert edilen kaydı döndür
   } catch (dbError) {
     console.error("❌ Pending generation veritabanı hatası:", dbError);
@@ -470,7 +471,7 @@ async function createPendingGeneration(
 // Başarılı completion'da kredi düşürme fonksiyonu
 async function deductCreditOnSuccess(generationId, userId) {
   try {
-    console.log(
+    logger.log(
       `💳 [COMPLETION-CREDIT] Generation ${generationId} başarılı, kredi düşürülüyor...`
     );
 
@@ -489,28 +490,28 @@ async function deductCreditOnSuccess(generationId, userId) {
     }
 
     try {
-      console.log(
+      logger.log(
         `💳 [DEDUP-CHECK] Generation ${generationId} settings:`,
         JSON.stringify(existingGen?.settings || {}, null, 2)
       );
     } catch (_) {
-      console.log(
+      logger.log(
         `💳 [DEDUP-CHECK] Generation ${generationId} settings: <unserializable>`
       );
     }
-    console.log(
+    logger.log(
       `💳 [DEDUP-CHECK] creditDeducted flag:`,
       existingGen.settings?.creditDeducted
     );
 
     if (existingGen.settings?.creditDeducted === true) {
-      console.log(
+      logger.log(
         `💳 [COMPLETION-CREDIT] Generation ${generationId} için zaten kredi düşürülmüş, atlanıyor`
       );
       return true;
     }
 
-    console.log(`💳 [DEDUP-CHECK] İlk kredi düşürme, devam ediliyor...`);
+    logger.log(`💳 [DEDUP-CHECK] İlk kredi düşürme, devam ediliyor...`);
 
     // Generation bilgilerini al (totalGenerations için)
     const { data: generation, error: genError } = await supabase
@@ -536,7 +537,7 @@ async function deductCreditOnSuccess(generationId, userId) {
     const CREDIT_COST = qualityVersion === "v2" ? 35 : 10;
     const totalCreditCost = CREDIT_COST;
 
-    console.log(
+    logger.log(
       `💳 [COMPLETION-CREDIT] Bu generation (${qualityVersion}) için ${totalCreditCost} kredi düşürülecek`
     );
 
@@ -545,7 +546,7 @@ async function deductCreditOnSuccess(generationId, userId) {
     const creditOwnerId = effectiveCredits.creditOwnerId || userId;
     const isTeamCredit = effectiveCredits.isTeamCredit || false;
 
-    console.log(`💳 [TEAM-AWARE] Kredi sahibi belirlendi:`, {
+    logger.log(`💳 [TEAM-AWARE] Kredi sahibi belirlendi:`, {
       requestingUser: userId,
       creditOwnerId: creditOwnerId,
       isTeamCredit: isTeamCredit
@@ -590,12 +591,12 @@ async function deductCreditOnSuccess(generationId, userId) {
 
     const newBalance =
       updateResult?.new_balance || currentCredit - totalCreditCost;
-    console.log(
+    logger.log(
       `✅ ${totalCreditCost} kredi başarıyla düşüldü (${isTeamCredit ? 'team owner' : 'user'}: ${creditOwnerId}). Yeni bakiye: ${newBalance}`
     );
 
     // 💳 Kredi tracking bilgilerini generation'a kaydet
-    console.log(
+    logger.log(
       `💳 [TRACKING] Generation ${generationId} için kredi tracking bilgileri kaydediliyor...`
     );
     const creditTrackingUpdates = {
@@ -614,7 +615,7 @@ async function deductCreditOnSuccess(generationId, userId) {
       console.error(`❌ Credit tracking güncelleme hatası:`, trackingError);
       // Kredi zaten düştü, tracking hatası önemli değil
     } else {
-      console.log(
+      logger.log(
         `💳 [TRACKING] Generation ${generationId} credit tracking başarıyla kaydedildi:`,
         creditTrackingUpdates
       );
@@ -625,7 +626,7 @@ async function deductCreditOnSuccess(generationId, userId) {
       ...(existingGen?.settings || {}),
       creditDeducted: true,
     };
-    console.log(
+    logger.log(
       `🏷️ [FLAG-UPDATE] Updating settings for ${generationId}:`,
       JSON.stringify(updatedSettings, null, 2)
     );
@@ -639,7 +640,7 @@ async function deductCreditOnSuccess(generationId, userId) {
       console.error(`❌ CreditDeducted flag güncelleme hatası:`, flagError);
       // Kredi zaten düştü, flag hatası önemli değil
     } else {
-      console.log(
+      logger.log(
         `🏷️ Generation ${generationId} creditDeducted flag'i başarıyla eklendi`
       );
     }
@@ -683,16 +684,16 @@ async function updateGenerationStatus(
     let finalUpdates = { ...updates };
 
     if (status === "completed" && updates.result_image_url) {
-      console.log("💾 Result image user bucket'ine kaydediliyor...");
+      logger.log("💾 Result image user bucket'ine kaydediliyor...");
       try {
         // 1️⃣ Önce user'ın pro olup olmadığını kontrol et
         const isUserPro = await checkUserProStatus(userId);
-        console.log(`👤 User pro status: ${isUserPro}`);
+        logger.log(`👤 User pro status: ${isUserPro}`);
 
         let processedImageUrl = updates.result_image_url;
 
         // 2️⃣ Watermark işlemi client-side'a taşındı, server'da sadece orijinal resmi kaydet
-        console.log(
+        logger.log(
           "💎 Watermark işlemi client-side'da yapılacak, orijinal resim kaydediliyor"
         );
         processedImageUrl = updates.result_image_url;
@@ -703,7 +704,7 @@ async function updateGenerationStatus(
           userId
         );
         finalUpdates.result_image_url = userBucketUrl;
-        console.log("✅ Result image user bucket'e kaydedildi:", userBucketUrl);
+        logger.log("✅ Result image user bucket'e kaydedildi:", userBucketUrl);
       } catch (bucketError) {
         console.error("❌ User bucket kaydetme hatası:", bucketError);
         // Hata durumunda orijinal URL'yi kullan
@@ -728,21 +729,21 @@ async function updateGenerationStatus(
       return false;
     }
 
-    console.log(`✅ Generation ${generationId} status güncellendi: ${status}`);
+    logger.log(`✅ Generation ${generationId} status güncellendi: ${status}`);
 
     // 💳 Başarılı completion'da kredi düş (idempotent)
     if (status === "completed" && userId && userId !== "anonymous_user") {
       const alreadyCompleted = previousStatus === "completed";
       const alreadyDeducted = previousSettings?.creditDeducted === true;
       if (alreadyCompleted && alreadyDeducted) {
-        console.log(
+        logger.log(
           `💳 [SKIP] ${generationId} zaten completed ve kredi düşülmüş. Deduction atlanıyor.`
         );
       } else {
-        console.log(
+        logger.log(
           `💳 [TRIGGER] updateGenerationStatus: ${generationId} → ${status} | previous=${previousStatus}`
         );
-        console.log(`💳 [TRIGGER] Kredi düşürme kontrolü başlatılıyor...`);
+        logger.log(`💳 [TRIGGER] Kredi düşürme kontrolü başlatılıyor...`);
         await deductCreditOnSuccess(generationId, userId);
       }
     }
@@ -770,10 +771,10 @@ async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) 
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      console.log(`🤖 [REPLICATE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
+      logger.log(`🤖 [REPLICATE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
 
-      console.log(`🔍 [REPLICATE-GEMINI] Images count: ${imageUrls.length}`);
-      console.log(`🔍 [REPLICATE-GEMINI] Prompt length: ${prompt.length} chars`);
+      logger.log(`🔍 [REPLICATE-GEMINI] Images count: ${imageUrls.length}`);
+      logger.log(`🔍 [REPLICATE-GEMINI] Prompt length: ${prompt.length} chars`);
 
       const requestBody = {
         input: {
@@ -824,7 +825,7 @@ async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) 
         throw new Error("Replicate Gemini response is empty");
       }
 
-      console.log(`✅ [REPLICATE-GEMINI] Başarılı response alındı (attempt ${attempt})`);
+      logger.log(`✅ [REPLICATE-GEMINI] Başarılı response alındı (attempt ${attempt})`);
 
       return outputText.trim();
 
@@ -837,7 +838,7 @@ async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) 
       }
 
       const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-      console.log(`⏳ [REPLICATE-GEMINI] ${waitTime}ms bekleniyor...`);
+      logger.log(`⏳ [REPLICATE-GEMINI] ${waitTime}ms bekleniyor...`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
   }
@@ -849,7 +850,7 @@ async function compressImageForGemini(imageUrl, userId) {
   const MAX_SIZE_BYTES = 3 * 1024 * 1024; // 3MB
 
   try {
-    console.log(`📏 [COMPRESS-GEMINI] Resim kontrol ediliyor: ${imageUrl.substring(0, 80)}...`);
+    logger.log(`📏 [COMPRESS-GEMINI] Resim kontrol ediliyor: ${imageUrl.substring(0, 80)}...`);
 
     // Resmi indir
     const imageResponse = await axios.get(imageUrl, {
@@ -859,19 +860,19 @@ async function compressImageForGemini(imageUrl, userId) {
     const imageBuffer = Buffer.from(imageResponse.data);
     const originalSize = imageBuffer.length;
 
-    console.log(`📏 [COMPRESS-GEMINI] Orijinal boyut: ${(originalSize / 1024 / 1024).toFixed(2)} MB`);
+    logger.log(`📏 [COMPRESS-GEMINI] Orijinal boyut: ${(originalSize / 1024 / 1024).toFixed(2)} MB`);
 
     // Eğer 3MB'dan küçükse, orijinal URL'yi döndür
     if (originalSize <= MAX_SIZE_BYTES) {
-      console.log(`✅ [COMPRESS-GEMINI] Resim zaten 3MB altında, orijinal URL kullanılıyor`);
+      logger.log(`✅ [COMPRESS-GEMINI] Resim zaten 3MB altında, orijinal URL kullanılıyor`);
       return imageUrl;
     }
 
-    console.log(`🔄 [COMPRESS-GEMINI] Resim 3MB'dan büyük, compress ediliyor...`);
+    logger.log(`🔄 [COMPRESS-GEMINI] Resim 3MB'dan büyük, compress ediliyor...`);
 
     // Resim metadata'sını al
     const metadata = await sharp(imageBuffer).metadata();
-    console.log(`📐 [COMPRESS-GEMINI] Resim boyutları: ${metadata.width}x${metadata.height}`);
+    logger.log(`📐 [COMPRESS-GEMINI] Resim boyutları: ${metadata.width}x${metadata.height}`);
 
     let quality = 85;
     let compressedBuffer;
@@ -885,7 +886,7 @@ async function compressImageForGemini(imageUrl, userId) {
       .jpeg({ quality: quality })
       .toBuffer();
     compressedSize = compressedBuffer.length;
-    console.log(`📏 [COMPRESS-GEMINI] Quality ${quality} ile boyut: ${(compressedSize / 1024 / 1024).toFixed(2)} MB`);
+    logger.log(`📏 [COMPRESS-GEMINI] Quality ${quality} ile boyut: ${(compressedSize / 1024 / 1024).toFixed(2)} MB`);
 
     // Eğer hala büyükse, adım adım quality düşür ve resize uygula
     while (compressedSize > MAX_SIZE_BYTES && quality >= 30) {
@@ -896,7 +897,7 @@ async function compressImageForGemini(imageUrl, userId) {
         const scaleFactor = 0.8;
         resizeWidth = Math.round(resizeWidth * scaleFactor);
         resizeHeight = Math.round(resizeHeight * scaleFactor);
-        console.log(`📐 [COMPRESS-GEMINI] Orantılı resize: ${resizeWidth}x${resizeHeight}`);
+        logger.log(`📐 [COMPRESS-GEMINI] Orantılı resize: ${resizeWidth}x${resizeHeight}`);
       }
 
       compressedBuffer = await sharp(imageBuffer)
@@ -906,12 +907,12 @@ async function compressImageForGemini(imageUrl, userId) {
         .toBuffer();
 
       compressedSize = compressedBuffer.length;
-      console.log(`📏 [COMPRESS-GEMINI] Quality ${quality}, Size ${resizeWidth}x${resizeHeight} ile boyut: ${(compressedSize / 1024 / 1024).toFixed(2)} MB`);
+      logger.log(`📏 [COMPRESS-GEMINI] Quality ${quality}, Size ${resizeWidth}x${resizeHeight} ile boyut: ${(compressedSize / 1024 / 1024).toFixed(2)} MB`);
     }
 
     // Son çare - agresif compress (oran korunur)
     if (compressedSize > MAX_SIZE_BYTES) {
-      console.log(`⚠️ [COMPRESS-GEMINI] Hala 3MB üzerinde, agresif compress uygulanıyor`);
+      logger.log(`⚠️ [COMPRESS-GEMINI] Hala 3MB üzerinde, agresif compress uygulanıyor`);
 
       const MAX_DIMENSION = 2000;
       const longestEdge = Math.max(resizeWidth, resizeHeight);
@@ -920,7 +921,7 @@ async function compressImageForGemini(imageUrl, userId) {
         const scaleFactor = MAX_DIMENSION / longestEdge;
         resizeWidth = Math.round(resizeWidth * scaleFactor);
         resizeHeight = Math.round(resizeHeight * scaleFactor);
-        console.log(`📐 [COMPRESS-GEMINI] Orantılı resize: ${resizeWidth}x${resizeHeight} (oran korundu)`);
+        logger.log(`📐 [COMPRESS-GEMINI] Orantılı resize: ${resizeWidth}x${resizeHeight} (oran korundu)`);
       }
 
       quality = 25;
@@ -932,10 +933,10 @@ async function compressImageForGemini(imageUrl, userId) {
         .toBuffer();
 
       compressedSize = compressedBuffer.length;
-      console.log(`📏 [COMPRESS-GEMINI] Agresif compress sonrası boyut: ${(compressedSize / 1024 / 1024).toFixed(2)} MB`);
+      logger.log(`📏 [COMPRESS-GEMINI] Agresif compress sonrası boyut: ${(compressedSize / 1024 / 1024).toFixed(2)} MB`);
     }
 
-    console.log(`✅ [COMPRESS-GEMINI] Final boyut: ${(compressedSize / 1024 / 1024).toFixed(2)} MB (${((1 - compressedSize / originalSize) * 100).toFixed(1)}% küçültüldü)`);
+    logger.log(`✅ [COMPRESS-GEMINI] Final boyut: ${(compressedSize / 1024 / 1024).toFixed(2)} MB (${((1 - compressedSize / originalSize) * 100).toFixed(1)}% küçültüldü)`);
 
     // Compress edilmiş resmi Supabase'e yükle
     const timestamp = Date.now();
@@ -960,7 +961,7 @@ async function compressImageForGemini(imageUrl, userId) {
       .from("reference")
       .getPublicUrl(fileName);
 
-    console.log(`✅ [COMPRESS-GEMINI] Compress edilmiş resim yüklendi: ${urlData.publicUrl}`);
+    logger.log(`✅ [COMPRESS-GEMINI] Compress edilmiş resim yüklendi: ${urlData.publicUrl}`);
     return urlData.publicUrl;
 
   } catch (error) {
@@ -976,7 +977,7 @@ function formatAspectRatio(ratioStr) {
   try {
     // "original" veya tanımsız değerler için varsayılan oran
     if (!ratioStr || ratioStr === "original" || ratioStr === "undefined") {
-      console.log(
+      logger.log(
         `Geçersiz ratio formatı: ${ratioStr}, varsayılan değer kullanılıyor: 9:16`
       );
       return "9:16";
@@ -984,7 +985,7 @@ function formatAspectRatio(ratioStr) {
 
     // ":" içermeyen değerler için varsayılan oran
     if (!ratioStr.includes(":")) {
-      console.log(
+      logger.log(
         `Geçersiz ratio formatı: ${ratioStr}, varsayılan değer kullanılıyor: 9:16`
       );
       return "9:16";
@@ -992,7 +993,7 @@ function formatAspectRatio(ratioStr) {
 
     // Eğer gelen değer geçerli bir ratio ise kullan
     if (validRatios.includes(ratioStr)) {
-      console.log(`Gelen ratio değeri geçerli: ${ratioStr}`);
+      logger.log(`Gelen ratio değeri geçerli: ${ratioStr}`);
       return ratioStr;
     }
 
@@ -1000,7 +1001,7 @@ function formatAspectRatio(ratioStr) {
     const [width, height] = ratioStr.split(":").map(Number);
 
     if (!width || !height || isNaN(width) || isNaN(height)) {
-      console.log(
+      logger.log(
         `Geçersiz ratio değerleri: ${ratioStr}, varsayılan değer kullanılıyor: 9:16`
       );
       return "9:16";
@@ -1022,7 +1023,7 @@ function formatAspectRatio(ratioStr) {
       }
     }
 
-    console.log(
+    logger.log(
       `Ratio ${ratioStr} için en yakın desteklenen değer: ${closestRatio}`
     );
     return closestRatio;
@@ -1089,14 +1090,14 @@ async function enhancePromptWithGemini(
   userId = null // Compress için userId
 ) {
   try {
-    console.log(
+    logger.log(
       "🤖 Gemini 2.5 Flash ile takı fotoğrafçılığı prompt iyileştirme başlatılıyor"
     );
-    console.log("🏞️ [GEMINI] Location image parametresi:", locationImage);
-    console.log("🤸 [GEMINI] Pose image parametresi:", poseImage);
-    console.log("💇 [GEMINI] Hair style image parametresi:", hairStyleImage);
-    console.log("💎 [GEMINI] Multiple jewelry mode:", isMultipleProducts);
-    console.log("🔄 [GEMINI] Back side analysis mode:", isBackSideAnalysis);
+    logger.log("🏞️ [GEMINI] Location image parametresi:", locationImage);
+    logger.log("🤸 [GEMINI] Pose image parametresi:", poseImage);
+    logger.log("💇 [GEMINI] Hair style image parametresi:", hairStyleImage);
+    logger.log("💎 [GEMINI] Multiple jewelry mode:", isMultipleProducts);
+    logger.log("🔄 [GEMINI] Back side analysis mode:", isBackSideAnalysis);
 
     // Gemini 2.0 Flash modeli - Yeni SDK
     const model = "gemini-flash-latest";
@@ -1108,7 +1109,7 @@ async function enhancePromptWithGemini(
         ([key, value]) => value !== null && value !== undefined && value !== ""
       );
 
-    console.log("🎛️ [BACKEND GEMINI] Settings kontrolü:", hasValidSettings);
+    logger.log("🎛️ [BACKEND GEMINI] Settings kontrolü:", hasValidSettings);
 
     // Cinsiyet belirleme - varsayılan olarak kadın
     const gender = settings?.gender || "female";
@@ -1180,15 +1181,15 @@ async function enhancePromptWithGemini(
       }
     }
 
-    console.log("👤 [GEMINI] Gelen gender ayarı:", gender);
-    console.log("👶 [GEMINI] Gelen age ayarı:", age);
-    console.log("👤 [GEMINI] Base model türü:", baseModelText);
-    console.log("👤 [GEMINI] Age'li model türü:", modelGenderText);
+    logger.log("👤 [GEMINI] Gelen gender ayarı:", gender);
+    logger.log("👶 [GEMINI] Gelen age ayarı:", age);
+    logger.log("👤 [GEMINI] Base model türü:", baseModelText);
+    logger.log("👤 [GEMINI] Age'li model türü:", modelGenderText);
 
     // Age specification - use client's age info naturally but limited
     let ageSection = "";
     if (age) {
-      console.log("👶 [GEMINI] Yaş bilgisi tespit edildi:", age);
+      logger.log("👶 [GEMINI] Yaş bilgisi tespit edildi:", age);
 
       ageSection = `
     AGE SPECIFICATION:
@@ -1214,7 +1215,7 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
     let bodyShapeMeasurementsSection = "";
     if (settings?.type === "custom_measurements" && settings?.measurements) {
       const { bust, waist, hips, height, weight } = settings.measurements;
-      console.log(
+      logger.log(
         "📏 [BACKEND GEMINI] Custom body measurements alındı:",
         settings.measurements
       );
@@ -1231,7 +1232,7 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
     
     IMPORTANT: Use these exact measurements to ensure the ${baseModelText} has realistic body proportions that match the provided measurements. The garment should fit naturally on a body with these specific measurements. Consider how the garment would drape and fit on someone with these proportions. The model's body should reflect these measurements in a natural and proportional way.`;
 
-      console.log("📏 [BACKEND GEMINI] Body measurements section oluşturuldu");
+      logger.log("📏 [BACKEND GEMINI] Body measurements section oluşturuldu");
     }
 
     let settingsPromptSection = "";
@@ -1250,13 +1251,13 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
         .map(([key, value]) => `${key}: ${value}`)
         .join(", ");
 
-      console.log("🎛️ [BACKEND GEMINI] Settings için prompt oluşturuluyor...");
-      console.log("📝 [BACKEND GEMINI] Settings text:", settingsText);
-      console.log(
+      logger.log("🎛️ [BACKEND GEMINI] Settings için prompt oluşturuluyor...");
+      logger.log("📝 [BACKEND GEMINI] Settings text:", settingsText);
+      logger.log(
         "🏞️ [BACKEND GEMINI] Location enhanced prompt:",
         settings?.locationEnhancedPrompt
       );
-      console.log("🎨 [BACKEND GEMINI] Product color:", settings?.productColor);
+      logger.log("🎨 [BACKEND GEMINI] Product color:", settings?.productColor);
 
       settingsPromptSection = `
     User selected settings: ${settingsText}
@@ -1347,7 +1348,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
         }
     - If the featured item is footwear, a handbag, hat, watch, jewelry, eyewear, or other accessory, guide the pose using modern fashion campaign cues that hero the item while keeping every detail visible.`;
 
-      console.log(
+      logger.log(
         `🤸 [GEMINI] Akıllı poz seçimi aktif - ${isMultipleProducts ? "çoklu ürün ensembline" : "kıyafete"
         } uygun poz önerilecek`
       );
@@ -1359,7 +1360,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
           : ""
         }.`;
 
-      console.log("🤸 [GEMINI] Pose prompt section eklendi");
+      logger.log("🤸 [GEMINI] Pose prompt section eklendi");
     } else if (hasPoseText) {
       // Check if we have a detailed pose description (from our new Gemini pose system)
       const poseNameForPrompt = sanitizePoseText(settings.pose);
@@ -1367,7 +1368,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
 
       // Try to get detailed pose description from Gemini
       try {
-        console.log(
+        logger.log(
           "🤸 [GEMINI] Pose için detaylı açıklama oluşturuluyor:",
           settings.pose
         );
@@ -1377,7 +1378,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
           settings.gender || "female",
           "clothing"
         );
-        console.log(
+        logger.log(
           "🤸 [GEMINI] Detaylı pose açıklaması alındı:",
           detailedPoseDescription
         );
@@ -1402,7 +1403,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
             : "the garment being showcased"
           }. The pose should enhance the presentation of the clothing and create an appealing commercial photography composition.`;
 
-        console.log("🤸 [GEMINI] Detaylı pose açıklaması kullanılıyor");
+        logger.log("🤸 [GEMINI] Detaylı pose açıklaması kullanılıyor");
       } else {
         // Fallback to simple pose mention
         posePromptSection = `
@@ -1412,12 +1413,12 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
             : "the garment being showcased"
           }. Ignore any background/backdrop/studio/environment directions that may be associated with that pose and always keep the original background from the input image unchanged and accurately described.`;
 
-        console.log(
+        logger.log(
           "🤸 [GEMINI] Basit pose açıklaması kullanılıyor (fallback)"
         );
       }
 
-      console.log(
+      logger.log(
         "🤸 [GEMINI] Kullanıcı tarafından seçilen poz:",
         settings.pose
       );
@@ -1450,7 +1451,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
           : ""
         }`;
 
-      console.log(
+      logger.log(
         `📸 [GEMINI] Akıllı perspektif seçimi aktif - ${isMultipleProducts ? "çoklu ürün ensembline" : "kıyafete"
         } uygun kamera açısı önerilecek`
       );
@@ -1461,7 +1462,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
         }". Please ensure the photography follows this perspective while maintaining professional composition and optimal ${isMultipleProducts ? "multi-product ensemble" : "garment"
         } presentation.`;
 
-      console.log(
+      logger.log(
         "📸 [GEMINI] Kullanıcı tarafından seçilen perspektif:",
         settings.perspective
       );
@@ -1477,7 +1478,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     HAIR STYLE REFERENCE: A hair style reference image has been provided to show the desired hairstyle for the ${baseModelText}. Please analyze this hair style image carefully and incorporate the exact hair length, texture, cut, styling, and overall hair appearance into your enhanced prompt. The ${baseModelText} should have this specific hairstyle that complements ${isMultipleProducts ? "the multi-product ensemble" : "the garment"
         } and overall aesthetic.`;
 
-      console.log("💇 [GEMINI] Hair style prompt section eklendi");
+      logger.log("💇 [GEMINI] Hair style prompt section eklendi");
     }
 
     // Location image bilgisi için ek prompt section
@@ -1506,7 +1507,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
 
     The environment description should be detailed enough to guide the AI image generation model in creating a photorealistic, professional fashion photograph that seamlessly integrates the model and garment into this specific location setting.`;
 
-      console.log("🏞️ [GEMINI] Location prompt section eklendi");
+      logger.log("🏞️ [GEMINI] Location prompt section eklendi");
     }
 
     // Text-based hair style requirement if user selected hairStyle string
@@ -1515,7 +1516,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
       hairStyleTextSection = `
     
     SPECIFIC HAIR STYLE REQUIREMENT: The user has selected a specific hair style: "${settings.hairStyle}". Please ensure the ${baseModelText} is styled with this exact hair style, matching its length, texture and overall look naturally.`;
-      console.log(
+      logger.log(
         "💇 [GEMINI] Hair style text section eklendi:",
         settings.hairStyle
       );
@@ -1830,7 +1831,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
       }
     }
 
-    console.log(
+    logger.log(
       "Gemini'ye gönderilen takı fotoğrafçılığı prompt'u:",
       promptForGemini
     );
@@ -1840,13 +1841,13 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
 
     // Multi-mode resim gönderimi: Back side analysis, Multiple products, veya Normal mod
     if (isBackSideAnalysis && referenceImages && referenceImages.length >= 2) {
-      console.log(
+      logger.log(
         "🔄 [BACK_SIDE] Gemini'ye 2 resim gönderiliyor (ön + arka)..."
       );
 
       try {
         // İlk resim (ön taraf)
-        console.log(
+        logger.log(
           `🔄 [BACK_SIDE] İlk resim (ön taraf) Gemini'ye gönderiliyor: ${referenceImages[0].uri || referenceImages[0]
           }`
         );
@@ -1867,12 +1868,12 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
           },
         });
 
-        console.log(
+        logger.log(
           "🔄 [BACK_SIDE] İlk resim (ön taraf) başarıyla Gemini'ye eklendi"
         );
 
         // İkinci resim (arka taraf)
-        console.log(
+        logger.log(
           `🔄 [BACK_SIDE] İkinci resim (arka taraf) Gemini'ye gönderiliyor: ${referenceImages[1].uri || referenceImages[1]
           }`
         );
@@ -1893,10 +1894,10 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
           },
         });
 
-        console.log(
+        logger.log(
           "🔄 [BACK_SIDE] İkinci resim (arka taraf) başarıyla Gemini'ye eklendi"
         );
-        console.log("🔄 [BACK_SIDE] Toplam 2 resim Gemini'ye gönderildi");
+        logger.log("🔄 [BACK_SIDE] Toplam 2 resim Gemini'ye gönderildi");
       } catch (imageError) {
         console.error(
           `🔄 [BACK_SIDE] Resim yüklenirken hata: ${imageError.message}`
@@ -1908,7 +1909,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
       referenceImages.length > 0
     ) {
       // Multi-product veya Multi-images mode: Tüm referans resimleri gönder
-      console.log(
+      logger.log(
         `🛍️ [MULTI-MODE] Gemini'ye ${referenceImages.length} adet referans resmi gönderiliyor...`
       );
 
@@ -1917,7 +1918,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
           const referenceImage = referenceImages[i];
           const imageUrl = referenceImage.uri || referenceImage;
 
-          console.log(
+          logger.log(
             `🛍️ [MULTI-PRODUCT] ${i + 1
             }. resim Gemini'ye gönderiliyor: ${imageUrl}`
           );
@@ -1936,12 +1937,12 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
             },
           });
 
-          console.log(
+          logger.log(
             `🛍️ [MULTI-PRODUCT] ${i + 1}. resim başarıyla Gemini'ye eklendi`
           );
         }
 
-        console.log(
+        logger.log(
           `🛍️ [MULTI-PRODUCT] Toplam ${referenceImages.length} adet referans resmi Gemini'ye gönderildi`
         );
       } catch (imageError) {
@@ -1952,7 +1953,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
     } else {
       // Normal mod: Tek resim gönder
       try {
-        console.log(`Referans görsel Gemini'ye gönderiliyor: ${imageUrl}`);
+        logger.log(`Referans görsel Gemini'ye gönderiliyor: ${imageUrl}`);
 
         const imageResponse = await axios.get(imageUrl, {
           responseType: "arraybuffer",
@@ -1970,7 +1971,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
           },
         });
 
-        console.log("Referans görsel başarıyla Gemini'ye yüklendi");
+        logger.log("Referans görsel başarıyla Gemini'ye yüklendi");
       } catch (imageError) {
         console.error(`Görsel yüklenirken hata: ${imageError.message}`);
       }
@@ -1983,7 +1984,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
       try {
         // URL'den query parametrelerini temizle
         const cleanPoseImageUrl = poseImage.split("?")[0];
-        console.log(
+        logger.log(
           `🤸 Pose görsel base64'e çeviriliyor: ${cleanPoseImageUrl}`
         );
 
@@ -2003,7 +2004,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
           },
         });
 
-        console.log("🤸 Pose görsel başarıyla Gemini'ye eklendi");
+        logger.log("🤸 Pose görsel başarıyla Gemini'ye eklendi");
       } catch (poseImageError) {
         console.error(
           `🤸 Pose görseli eklenirken hata: ${poseImageError.message}`
@@ -2016,7 +2017,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
       try {
         // URL'den query parametrelerini temizle
         const cleanHairStyleImageUrl = hairStyleImage.split("?")[0];
-        console.log(
+        logger.log(
           `💇 Hair style görsel base64'e çeviriliyor: ${cleanHairStyleImageUrl}`
         );
 
@@ -2037,7 +2038,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
           },
         });
 
-        console.log("💇 Hair style görsel başarıyla Gemini'ye eklendi");
+        logger.log("💇 Hair style görsel başarıyla Gemini'ye eklendi");
       } catch (hairStyleImageError) {
         console.error(
           `💇 Hair style görseli eklenirken hata: ${hairStyleImageError.message}`
@@ -2050,7 +2051,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
       try {
         // URL'den query parametrelerini temizle
         const cleanLocationImageUrl = locationImage.split("?")[0];
-        console.log(
+        logger.log(
           `🏞️ Location görsel base64'e çeviriliyor: ${cleanLocationImageUrl}`
         );
 
@@ -2071,7 +2072,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
           },
         });
 
-        console.log("🏞️ Location görsel başarıyla Gemini'ye eklendi");
+        logger.log("🏞️ Location görsel başarıyla Gemini'ye eklendi");
       } catch (locationImageError) {
         console.error(
           `🏞️ Location görseli eklenirken hata: ${locationImageError.message}`
@@ -2111,7 +2112,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
       imageUrls.push(cleanLocUrl);
     }
 
-    console.log(`🖼️ [REPLICATE-GEMINI] Toplam ${imageUrls.length} resim URL'si toplanacak`);
+    logger.log(`🖼️ [REPLICATE-GEMINI] Toplam ${imageUrls.length} resim URL'si toplanacak`);
 
     // 🔄 Resimleri Gemini'ye göndermeden önce 3MB altına compress et
     const compressedImageUrls = [];
@@ -2124,13 +2125,13 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
         compressedImageUrls.push(imgUrl); // Hata durumunda orijinal URL'yi kullan
       }
     }
-    console.log(`✅ [COMPRESS-GEMINI] ${compressedImageUrls.length} resim compress kontrolü tamamlandı`);
+    logger.log(`✅ [COMPRESS-GEMINI] ${compressedImageUrls.length} resim compress kontrolü tamamlandı`);
 
     // Replicate Gemini Flash API çağrısı
     let enhancedPrompt;
 
     try {
-      console.log("🤖 [REPLICATE-GEMINI] API çağrısı başlatılıyor...");
+      logger.log("🤖 [REPLICATE-GEMINI] API çağrısı başlatılıyor...");
 
       // parts[0].text prompt'u içeriyor
       const promptText = parts[0].text;
@@ -2146,11 +2147,11 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
       const staticRules = "";
 
       enhancedPrompt = geminiGeneratedPrompt + staticRules;
-      console.log(
+      logger.log(
         "🤖 [REPLICATE-GEMINI] Replicate Gemini'nin ürettiği prompt:",
         geminiGeneratedPrompt
       );
-      console.log(
+      logger.log(
         "✨ [REPLICATE-GEMINI] Final enhanced prompt (statik kurallarla):",
         enhancedPrompt
       );
@@ -2168,7 +2169,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
 
     // Eğer Gemini sonuç üretemediyse (enhancedPrompt orijinal prompt ile aynıysa) direkt fallback prompt kullan
     if (enhancedPrompt === originalPrompt) {
-      console.log(
+      logger.log(
         "🔄 [FALLBACK] Gemini başarısız, detaylı fallback prompt kullanılıyor"
       );
 
@@ -2276,13 +2277,13 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
       let environmentDescription = "";
       if (locationEnhancedPrompt && locationEnhancedPrompt.trim()) {
         environmentDescription += ` in ${locationEnhancedPrompt}`;
-        console.log(
+        logger.log(
           "🏞️ [FALLBACK] Enhanced location prompt kullanılıyor:",
           locationEnhancedPrompt
         );
       } else if (location) {
         environmentDescription += ` in ${location}`;
-        console.log("🏞️ [FALLBACK] Basit location kullanılıyor:", location);
+        logger.log("🏞️ [FALLBACK] Basit location kullanılıyor:", location);
       }
       if (weather) environmentDescription += ` during ${weather} weather`;
 
@@ -2345,7 +2346,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
       // Final kalite - Fashion photography standartları
       fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
 
-      console.log(
+      logger.log(
         "🔄 [FALLBACK] Generated detailed fallback prompt:",
         fallbackPrompt
       );
@@ -2369,7 +2370,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
     // }
 
     // Fallback prompt - detaylı kıyafet odaklı format
-    console.log(
+    logger.log(
       "🔄 [FALLBACK] Enhanced prompt oluşturulamadı, detaylı fallback prompt kullanılıyor"
     );
 
@@ -2480,13 +2481,13 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
     let environmentDescription = "";
     if (locationEnhancedPrompt && locationEnhancedPrompt.trim()) {
       environmentDescription += ` in ${locationEnhancedPrompt}`;
-      console.log(
+      logger.log(
         "🏞️ [FALLBACK ERROR] Enhanced location prompt kullanılıyor:",
         locationEnhancedPrompt
       );
     } else if (location) {
       environmentDescription += ` in ${location}`;
-      console.log("🏞️ [FALLBACK ERROR] Basit location kullanılıyor:", location);
+      logger.log("🏞️ [FALLBACK ERROR] Basit location kullanılıyor:", location);
     }
     if (weather) environmentDescription += ` during ${weather} weather`;
 
@@ -2549,7 +2550,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
     // Final kalite - Fashion photography standartları
     fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
 
-    console.log(
+    logger.log(
       "🔄 [FALLBACK] Generated detailed fallback prompt:",
       fallbackPrompt
     );
@@ -2564,7 +2565,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
 // Arkaplan silme fonksiyonu kaldırıldı - artık kullanılmıyor
 
 async function pollReplicateResult(predictionId, maxAttempts = 60) {
-  console.log(`Replicate prediction polling başlatılıyor: ${predictionId}`);
+  logger.log(`Replicate prediction polling başlatılıyor: ${predictionId}`);
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
@@ -2581,10 +2582,10 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
       );
 
       const result = response.data;
-      console.log(`Polling attempt ${attempt + 1}: status = ${result.status}`);
+      logger.log(`Polling attempt ${attempt + 1}: status = ${result.status}`);
 
       if (result.status === "succeeded") {
-        console.log("Replicate işlemi başarıyla tamamlandı");
+        logger.log("Replicate işlemi başarıyla tamamlandı");
         return result;
       } else if (result.status === "failed") {
         console.error("Replicate işlemi başarısız:", result.error);
@@ -2639,7 +2640,7 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
               "Prediction interrupted; please retry (code: PA)"
             ))
         ) {
-          console.log(
+          logger.log(
             "🔄 Geçici nano-banana hatası tespit edildi, retry'a uygun:",
             result.error
           );
@@ -2677,7 +2678,7 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
         console.error(
           `❌ PA hatası tespit edildi, polling KESIN DURDURULUYOR: ${error.message}`
         );
-        console.log("🛑 PA hatası - Polling döngüsü derhal sonlandırılıyor");
+        logger.log("🛑 PA hatası - Polling döngüsü derhal sonlandırılıyor");
         throw error; // Orijinal hatayı fırlat ki üst seviyede yakalanabilsin
       }
 
@@ -2705,19 +2706,19 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
 
 // Retry mekanizmalı polling fonksiyonu
 async function pollReplicateResultWithRetry(predictionId, maxRetries = 3) {
-  console.log(
+  logger.log(
     `🔄 Retry'li polling başlatılıyor: ${predictionId} (maxRetries: ${maxRetries})`
   );
 
   for (let retryAttempt = 1; retryAttempt <= maxRetries; retryAttempt++) {
     try {
-      console.log(`🔄 Polling retry attempt ${retryAttempt}/${maxRetries}`);
+      logger.log(`🔄 Polling retry attempt ${retryAttempt}/${maxRetries}`);
 
       // Normal polling fonksiyonunu çağır
       const result = await pollReplicateResult(predictionId);
 
       // Başarılı ise sonucu döndür
-      console.log(`✅ Polling retry ${retryAttempt} başarılı!`);
+      logger.log(`✅ Polling retry ${retryAttempt} başarılı!`);
       return result;
     } catch (pollingError) {
       console.error(
@@ -2739,7 +2740,7 @@ async function pollReplicateResultWithRetry(predictionId, maxRetries = 3) {
 
       // Geçici hatalar için retry yap (E9243 gibi)
       if (pollingError.message.includes("RETRYABLE_ERROR")) {
-        console.log(`🔄 Geçici hata retry edilecek: ${pollingError.message}`);
+        logger.log(`🔄 Geçici hata retry edilecek: ${pollingError.message}`);
         // Retry döngüsü devam edecek
       }
 
@@ -2753,7 +2754,7 @@ async function pollReplicateResultWithRetry(predictionId, maxRetries = 3) {
 
       // Bir sonraki deneme için bekle
       const waitTime = retryAttempt * 3000; // 3s, 6s, 9s
-      console.log(
+      logger.log(
         `⏳ Polling retry ${retryAttempt} için ${waitTime}ms bekleniyor...`
       );
       await new Promise((resolve) => setTimeout(resolve, waitTime));
@@ -2825,7 +2826,7 @@ router.post("/generate", async (req, res) => {
     }
 
     if (!modelReferenceImage && modelPhoto) {
-      console.log(
+      logger.log(
         "🧍 [BACKEND] Model referansı SelectAge'den alındı:",
         modelPhoto
       );
@@ -2858,49 +2859,49 @@ router.post("/generate", async (req, res) => {
     userId = requestUserId;
 
     if (modelReferenceImage) {
-      console.log(
+      logger.log(
         "🧍 [BACKEND] Model referans görseli tespit edildi:",
         modelReferenceImage?.uri || modelReferenceImage
       );
     } else {
-      console.log("🧍 [BACKEND] Model referans görseli bulunamadı");
+      logger.log("🧍 [BACKEND] Model referans görseli bulunamadı");
     }
 
     const hasRequestField = (fieldName) =>
       Object.prototype.hasOwnProperty.call(req.body, fieldName);
 
     if (!isPoseChange && hasRequestField("hasProductPhotos")) {
-      console.log(
+      logger.log(
         "🕺 [BACKEND] ChangeModelPose payload tespit edildi (hasProductPhotos mevcut), isPoseChange true olarak işaretleniyor"
       );
       isPoseChange = true;
     }
 
-    console.log("🖼️ [BACKEND] isMultipleImages:", isMultipleImages);
-    console.log("🛍️ [BACKEND] isMultipleProducts:", isMultipleProducts);
-    console.log("🕺 [BACKEND] isPoseChange:", isPoseChange);
-    console.log("🕺 [BACKEND] customDetail:", customDetail);
+    logger.log("🖼️ [BACKEND] isMultipleImages:", isMultipleImages);
+    logger.log("🛍️ [BACKEND] isMultipleProducts:", isMultipleProducts);
+    logger.log("🕺 [BACKEND] isPoseChange:", isPoseChange);
+    logger.log("🕺 [BACKEND] customDetail:", customDetail);
     const incomingReferenceCount = referenceImages?.length || 0;
     const totalReferenceCount =
       incomingReferenceCount + (modelReferenceImage ? 1 : 0);
 
-    console.log(
+    logger.log(
       "📤 [BACKEND] Gelen referenceImages:",
       incomingReferenceCount,
       "adet"
     );
-    console.log(
+    logger.log(
       "📤 [BACKEND] Toplam referans (model dahil):",
       totalReferenceCount
     );
 
     const hasValidPrompt = promptText && promptText.trim();
 
-    console.log(
+    logger.log(
       "🔍 [VALIDATION] promptText:",
       promptText ? "✅ Var" : "❌ Yok"
     );
-    console.log("🔍 [VALIDATION] hasValidPrompt:", hasValidPrompt);
+    logger.log("🔍 [VALIDATION] hasValidPrompt:", hasValidPrompt);
 
     if (!hasValidPrompt || totalReferenceCount < 1) {
       return res.status(400).json({
@@ -2913,7 +2914,7 @@ router.post("/generate", async (req, res) => {
     }
 
     // 💡 YENİ YAKLAŞIM: Kredi başlangıçta düşürülmüyor, başarılı tamamlamada düşürülecek
-    console.log(
+    logger.log(
       `💳 [NEW APPROACH] Kredi başlangıçta düşürülmüyor, başarılı tamamlamada düşürülecek`
     );
 
@@ -2941,7 +2942,7 @@ router.post("/generate", async (req, res) => {
           }
         }) || [];
 
-      console.log(
+      logger.log(
         `💳 [SESSION-DEDUP] SessionId ${sessionId} ile ${sessionGenerations.length
         } generation bulundu (${recentGenerations?.length || 0
         } recent'tan filtrelendi)`
@@ -2952,12 +2953,12 @@ router.post("/generate", async (req, res) => {
         sessionGenerations &&
         sessionGenerations.length >= 1
       ) {
-        console.log(
+        logger.log(
           `💳 [SESSION-DEDUP] Aynı session'da generation var, kredi düşürme atlanıyor (${sessionGenerations.length} generation)`
         );
         // shouldDeductCredit = false; // Disabled
       } else {
-        console.log(
+        logger.log(
           `💳 [SESSION-DEDUP] Session'ın ilk generation'ı, kredi düşürülecek`
         );
       }
@@ -2972,44 +2973,44 @@ router.post("/generate", async (req, res) => {
         .gte("created_at", thirtySecondsAgo)
         .order("created_at", { ascending: false });
 
-      console.log(
+      logger.log(
         `💳 [TIME-DEDUP] Son 30 saniyede ${recentGenerations?.length || 0
         } generation bulundu`
       );
 
       if (!recentError && recentGenerations && recentGenerations.length >= 1) {
-        console.log(
+        logger.log(
           `💳 [TIME-DEDUP] Son 30 saniyede generation var, kredi düşürme atlanıyor (${recentGenerations.length} generation)`
         );
         // shouldDeductCredit = false; // Disabled
       } else {
-        console.log(`💳 [TIME-DEDUP] İlk generation, kredi düşürülecek`);
+        logger.log(`💳 [TIME-DEDUP] İlk generation, kredi düşürülecek`);
       }
     }
 
     // Kalite versiyonunu al (frontend'den settings içinde veya direkt root'ta gelebilir)
     const qualityVersion =
       req.body.settings?.qualityVersion || req.body.qualityVersion || "v1";
-    console.log(`🔍 [QUALITY] Talep edilen kalite versiyonu: ${qualityVersion}`);
+    logger.log(`🔍 [QUALITY] Talep edilen kalite versiyonu: ${qualityVersion}`);
 
     const CREDIT_COST = qualityVersion === "v2" ? 35 : 10;
 
-    console.log(`💳 [CREDIT DEBUG] generationId: ${generationId}`);
-    console.log(`💳 [CREDIT DEBUG] totalGenerations: ${totalGenerations}`);
-    console.log(`💳 [NEW SYSTEM] Kredi işlemleri completion'da yapılacak`);
+    logger.log(`💳 [CREDIT DEBUG] generationId: ${generationId}`);
+    logger.log(`💳 [CREDIT DEBUG] totalGenerations: ${totalGenerations}`);
+    logger.log(`💳 [NEW SYSTEM] Kredi işlemleri completion'da yapılacak`);
 
     // ✅ Eski kredi logic'i tamamen devre dışı - pay-on-success sistemi kullanılıyor
     if (false) {
       // shouldDeductCredit logic disabled
       // Toplam generation sayısına göre kredi hesapla
       const totalCreditCost = CREDIT_COST * totalGenerations;
-      console.log(
+      logger.log(
         `💳 [CREDIT DEBUG] totalCreditCost: ${totalCreditCost} (${CREDIT_COST} x ${totalGenerations})`
       );
 
       try {
-        console.log(`💳 Kullanıcı ${userId} için kredi kontrolü yapılıyor...`);
-        console.log(
+        logger.log(`💳 Kullanıcı ${userId} için kredi kontrolü yapılıyor...`);
+        logger.log(
           `💳 Toplam ${totalGenerations} generation için ${totalCreditCost} kredi düşülecek`
         );
 
@@ -3063,7 +3064,7 @@ router.post("/generate", async (req, res) => {
         }
 
         creditDeducted = true;
-        console.log(
+        logger.log(
           `✅ ${totalCreditCost} kredi başarıyla düşüldü (${totalGenerations} generation). Yeni bakiye: ${currentCreditCheck - totalCreditCost
           }`
         );
@@ -3083,7 +3084,7 @@ router.post("/generate", async (req, res) => {
     }
 
     // 📋 Reference images'ları Supabase'e upload et (pending generation için)
-    console.log("📤 Reference images Supabase'e upload ediliyor...");
+    logger.log("📤 Reference images Supabase'e upload ediliyor...");
     const referenceImageUrls = await uploadReferenceImagesToSupabase(
       referenceImages,
       userId
@@ -3093,11 +3094,11 @@ router.post("/generate", async (req, res) => {
     finalGenerationId = generationId || uuidv4();
 
     // 📝 Pending generation oluştur (işlem başlamadan önce)
-    console.log(`📝 Pending generation oluşturuluyor: ${finalGenerationId}`);
-    console.log(
+    logger.log(`📝 Pending generation oluşturuluyor: ${finalGenerationId}`);
+    logger.log(
       `🔍 [DEBUG] Generation ID uzunluğu: ${finalGenerationId?.length}`
     );
-    console.log(`🔍 [DEBUG] Generation ID tipi: ${typeof finalGenerationId}`);
+    logger.log(`🔍 [DEBUG] Generation ID tipi: ${typeof finalGenerationId}`);
 
     // SessionId ve totalGenerations'ı settings'e ekle (completion'da kredi için gerekli)
     const settingsWithSession = {
@@ -3142,7 +3143,7 @@ router.post("/generate", async (req, res) => {
             })
             .eq("id", userId);
 
-          console.log(
+          logger.log(
             `💰 ${actualCreditDeducted} kredi iade edildi (Pending generation hatası)`
           );
         } catch (refundError) {
@@ -3161,16 +3162,16 @@ router.post("/generate", async (req, res) => {
     // 🔄 Status'u processing'e güncelle
     await updateGenerationStatus(finalGenerationId, userId, "processing");
 
-    console.log("🎛️ [BACKEND] Gelen settings parametresi:", settings);
-    console.log("🏞️ [BACKEND] Settings içindeki location:", settings?.location);
-    console.log(
+    logger.log("🎛️ [BACKEND] Gelen settings parametresi:", settings);
+    logger.log("🏞️ [BACKEND] Settings içindeki location:", settings?.location);
+    logger.log(
       "🏞️ [BACKEND] Settings içindeki locationEnhancedPrompt:",
       settings?.locationEnhancedPrompt
     );
-    console.log("📝 [BACKEND] Gelen promptText:", promptText);
-    console.log("🏞️ [BACKEND] Gelen locationImage:", locationImage);
-    console.log("🤸 [BACKEND] Gelen poseImage:", poseImage);
-    console.log("💇 [BACKEND] Gelen hairStyleImage:", hairStyleImage);
+    logger.log("📝 [BACKEND] Gelen promptText:", promptText);
+    logger.log("🏞️ [BACKEND] Gelen locationImage:", locationImage);
+    logger.log("🤸 [BACKEND] Gelen poseImage:", poseImage);
+    logger.log("💇 [BACKEND] Gelen hairStyleImage:", hairStyleImage);
 
     let finalImage;
 
@@ -3178,7 +3179,7 @@ router.post("/generate", async (req, res) => {
     if (isMultipleImages && referenceImages.length > 1) {
       // Back side analysis için özel upload işlemi
       if (req.body.isBackSideAnalysis) {
-        console.log(
+        logger.log(
           "🔄 [BACK_SIDE] Tüm resimleri Supabase'e upload ediliyor..."
         );
 
@@ -3194,7 +3195,7 @@ router.post("/generate", async (req, res) => {
             userId
           );
           uploadedUrls.push(uploadedUrl);
-          console.log(
+          logger.log(
             `📤 [BACK_SIDE] Resim ${i + 1} upload edildi:`,
             uploadedUrl
           );
@@ -3205,18 +3206,18 @@ router.post("/generate", async (req, res) => {
           referenceImages[i] = { ...referenceImages[i], uri: uploadedUrls[i] };
         }
 
-        console.log("✅ [BACK_SIDE] Tüm resimler Supabase'e upload edildi");
+        logger.log("✅ [BACK_SIDE] Tüm resimler Supabase'e upload edildi");
 
         // Canvas birleştirme bypass et - direkt URL'leri kullan
         finalImage = null; // Canvas'a gerek yok
       } else {
-        console.log(
+        logger.log(
           "🖼️ [BACKEND] Çoklu resim modu - Her resim ayrı ayrı upload ediliyor..."
         );
 
         // Kombin modu kontrolü
         const isKombinMode = req.body.isKombinMode || false;
-        console.log("🛍️ [BACKEND] Kombin modu kontrolü:", isKombinMode);
+        logger.log("🛍️ [BACKEND] Kombin modu kontrolü:", isKombinMode);
 
         // Her resmi ayrı ayrı Supabase'e upload et
         const uploadedUrls = [];
@@ -3230,7 +3231,7 @@ router.post("/generate", async (req, res) => {
             userId
           );
           uploadedUrls.push(uploadedUrl);
-          console.log(
+          logger.log(
             `📤 [BACKEND] Resim ${i + 1} upload edildi:`,
             uploadedUrl
           );
@@ -3241,14 +3242,14 @@ router.post("/generate", async (req, res) => {
           referenceImages[i] = { ...referenceImages[i], uri: uploadedUrls[i] };
         }
 
-        console.log("✅ [BACKEND] Tüm resimler ayrı ayrı upload edildi");
+        logger.log("✅ [BACKEND] Tüm resimler ayrı ayrı upload edildi");
 
         // Canvas birleştirme yapma - direkt ayrı resimleri kullan
         finalImage = null; // Canvas'a gerek yok
 
         // Kombin modunda MUTLAKA isMultipleProducts'ı true yap ki Gemini doğru prompt oluştursun
         if (isKombinMode) {
-          console.log(
+          logger.log(
             "🛍️ [BACKEND] Kombin modu için isMultipleProducts değeri:",
             `${originalIsMultipleProducts} → true`
           );
@@ -3258,7 +3259,7 @@ router.post("/generate", async (req, res) => {
       } // Back side analysis else bloğu kapatma
     } else {
       // Tek resim için Supabase URL'sini doğrudan kullanmak üzere hazırlık yap
-      console.log(
+      logger.log(
         "🖼️ [BACKEND] Tek resim için Supabase yükleme işlemi başlatılıyor..."
       );
 
@@ -3273,7 +3274,7 @@ router.post("/generate", async (req, res) => {
         });
       }
 
-      console.log("Referans görseli:", referenceImage.uri);
+      logger.log("Referans görseli:", referenceImage.uri);
 
       // Referans resmini önce Supabase'e yükle ve URL al
       let imageSourceForUpload;
@@ -3305,41 +3306,41 @@ router.post("/generate", async (req, res) => {
       finalImage = sanitizeImageUrl(uploadedImageUrl);
     }
 
-    console.log("Supabase'den alınan final resim URL'si:", finalImage);
+    logger.log("Supabase'den alınan final resim URL'si:", finalImage);
 
     // Aspect ratio'yu formatla
     const formattedRatio = formatAspectRatio(ratio || "9:16");
-    console.log(
+    logger.log(
       `İstenen ratio: ${ratio}, formatlanmış ratio: ${formattedRatio}`
     );
 
     // 🚀 Paralel işlemler başlat
-    console.log(
+    logger.log(
       "🚀 Paralel işlemler başlatılıyor: Gemini + Arkaplan silme + ControlNet hazırlığı..."
     );
 
     let enhancedPrompt, backgroundRemovedImage;
 
     if (isPoseChange) {
-      console.log(
+      logger.log(
         "🕺 Pose change mode: Gemini ile poz değiştirme prompt'u oluşturuluyor"
       );
 
       // Poz değiştirme modunda Gemini ile prompt oluştur
-      console.log(
+      logger.log(
         "🤖 [GEMINI CALL - POSE] enhancePromptWithGemini parametreleri:"
       );
-      console.log("🤖 [GEMINI CALL - POSE] - finalImage URL:", finalImage);
-      console.log(
+      logger.log("🤖 [GEMINI CALL - POSE] - finalImage URL:", finalImage);
+      logger.log(
         "🤖 [GEMINI CALL - POSE] - isMultipleProducts:",
         isMultipleProducts
       );
-      console.log(
+      logger.log(
         "🤖 [GEMINI CALL - POSE] - referenceImages sayısı:",
         referenceImages?.length || 0
       );
 
-      console.log("📝 [GEMINI CALL - POSE] Prompt içeriği:", promptText);
+      logger.log("📝 [GEMINI CALL - POSE] Prompt içeriği:", promptText);
 
       // Pose change için sadece model fotoğrafını Gemini'ye gönder
       let modelImageForGemini;
@@ -3361,7 +3362,7 @@ router.post("/generate", async (req, res) => {
         modelImageForGemini = finalImage;
       }
 
-      console.log(
+      logger.log(
         "🤖 [GEMINI CALL - POSE] Sadece model fotoğrafı gönderiliyor:",
         modelImageForGemini
       );
@@ -3382,19 +3383,19 @@ router.post("/generate", async (req, res) => {
         userId // Compress için userId
       );
       backgroundRemovedImage = finalImage; // Orijinal image'ı kullan, arkaplan silme yok
-      console.log("🕺 Pose change prompt:", enhancedPrompt);
+      logger.log("🕺 Pose change prompt:", enhancedPrompt);
     } else {
       // 🖼️ NORMAL MODE - Arkaplan silme işlemi (paralel)
       // Gemini prompt üretimini paralelde başlat
-      console.log("🤖 [GEMINI CALL] enhancePromptWithGemini parametreleri:");
-      console.log("🤖 [GEMINI CALL] - finalImage URL:", finalImage);
-      console.log("🤖 [GEMINI CALL] - isMultipleProducts:", isMultipleProducts);
-      console.log(
+      logger.log("🤖 [GEMINI CALL] enhancePromptWithGemini parametreleri:");
+      logger.log("🤖 [GEMINI CALL] - finalImage URL:", finalImage);
+      logger.log("🤖 [GEMINI CALL] - isMultipleProducts:", isMultipleProducts);
+      logger.log(
         "🤖 [GEMINI CALL] - referenceImages sayısı:",
         referenceImages?.length || 0
       );
 
-      console.log("📝 [GEMINI CALL] Prompt içeriği:", promptText);
+      logger.log("📝 [GEMINI CALL] Prompt içeriği:", promptText);
 
       const geminiPromise = enhancePromptWithGemini(
         promptText,
@@ -3413,30 +3414,30 @@ router.post("/generate", async (req, res) => {
       );
 
       // ⏳ Sadece Gemini prompt iyileştirme bekle
-      console.log("⏳ Gemini prompt iyileştirme bekleniyor...");
+      logger.log("⏳ Gemini prompt iyileştirme bekleniyor...");
       enhancedPrompt = await geminiPromise;
     }
 
-    console.log("✅ Gemini prompt iyileştirme tamamlandı");
+    logger.log("✅ Gemini prompt iyileştirme tamamlandı");
 
     // Arkaplan silme kaldırıldı - direkt olarak finalImage kullanılacak
     backgroundRemovedImage = finalImage;
 
     // 🎨 Yerel ControlNet Canny çıkarma işlemi - Arkaplan silindikten sonra
-    // console.log("🎨 Yerel ControlNet Canny çıkarılıyor (Sharp ile)...");
+    // logger.log("🎨 Yerel ControlNet Canny çıkarılıyor (Sharp ile)...");
     let cannyImage = null;
     // try {
     //   cannyImage = await generateLocalControlNetCanny(
     //     backgroundRemovedImage,
     //     userId
     //   );
-    //   console.log("✅ Yerel ControlNet Canny tamamlandı:", cannyImage);
+    //   logger.log("✅ Yerel ControlNet Canny tamamlandı:", cannyImage);
     // } catch (controlNetError) {
     //   console.error(
     //     "❌ Yerel ControlNet Canny hatası:",
     //     controlNetError.message
     //   );
-    //   console.log(
+    //   logger.log(
     //     "⚠️ Yerel ControlNet hatası nedeniyle sadece arkaplanı silinmiş resim kullanılacak"
     //   );
     //   cannyImage = null;
@@ -3450,7 +3451,7 @@ router.post("/generate", async (req, res) => {
     if (isMultipleImages && referenceImages.length > 1) {
       // Çoklu resim modunda ayrı resimleri kullan (canvas birleştirme yok)
       combinedImageForReplicate = null; // Ayrı resimler kullanılacak
-      console.log(
+      logger.log(
         "🖼️ [BACKEND] Çoklu resim modu: Ayrı resimler Gemini'ye gönderilecek"
       );
     } else {
@@ -3458,19 +3459,19 @@ router.post("/generate", async (req, res) => {
       // Back side analysis durumunda canvas kullanmıyoruz
       if (!req.body.isBackSideAnalysis) {
         combinedImageForReplicate = backgroundRemovedImage;
-        console.log(
+        logger.log(
           "🖼️ [BACKEND] Tek resim modu: Arkaplan kaldırılmış resim Gemini'ye gönderiliyor"
         );
       } else {
         combinedImageForReplicate = null; // Back side'da kullanılmıyor
-        console.log(
+        logger.log(
           "🔄 [BACK_SIDE] Canvas bypass edildi, direkt URL'ler kullanılacak"
         );
       }
     }
     // if (cannyImage) {
     //   try {
-    //     console.log(
+    //     logger.log(
     //       "🎨 Orijinal ve Canny resimleri birleştiriliyor (Replicate için)..."
     //     );
     //     combinedImageForReplicate = await combineTwoImagesWithBlackLine(
@@ -3478,25 +3479,25 @@ router.post("/generate", async (req, res) => {
     //       cannyImage,
     //       userId
     //     );
-    //     console.log(
+    //     logger.log(
     //       "✅ İki resim birleştirme tamamlandı:",
     //       combinedImageForReplicate
     //     );
     //   } catch (combineError) {
     //     console.error("❌ Resim birleştirme hatası:", combineError.message);
-    //     console.log(
+    //     logger.log(
     //       "⚠️ Birleştirme hatası nedeniyle sadece arkaplanı silinmiş resim kullanılacak"
     //     );
     //     combinedImageForReplicate = backgroundRemovedImage;
     //   }
     // } else {
-    //   console.log(
+    //   logger.log(
     //     "⚠️ ControlNet Canny mevcut değil, sadece arkaplanı silinmiş resim kullanılacak"
     //   );
     // }
 
-    console.log("📝 [BACKEND MAIN] Original prompt:", promptText);
-    console.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
+    logger.log("📝 [BACKEND MAIN] Original prompt:", promptText);
+    logger.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
 
     // Replicate google/nano-banana modeli ile istek gönder
     let replicateResponse;
@@ -3506,11 +3507,11 @@ router.post("/generate", async (req, res) => {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(
+        logger.log(
           `🔄 Replicate google/nano-banana API attempt ${attempt}/${maxRetries}`
         );
 
-        console.log("🚀 Replicate google/nano-banana API çağrısı yapılıyor...");
+        logger.log("🚀 Replicate google/nano-banana API çağrısı yapılıyor...");
 
         // Replicate API için request body hazırla
         let imageInputArray;
@@ -3521,14 +3522,14 @@ router.post("/generate", async (req, res) => {
           referenceImages &&
           referenceImages.length >= 2
         ) {
-          console.log(
+          logger.log(
             "🔄 [BACK_SIDE] 2 ayrı resim Nano Banana'ya gönderiliyor..."
           );
           imageInputArray = [
             referenceImages[0].uri || referenceImages[0], // Ön resim - direkt string
             referenceImages[1].uri || referenceImages[1], // Arka resim - direkt string
           ];
-          console.log("📤 [BACK_SIDE] Image input array:", imageInputArray);
+          logger.log("📤 [BACK_SIDE] Image input array:", imageInputArray);
         } else if (
           (isMultipleImages && referenceImages.length > 1) ||
           (modelReferenceImage &&
@@ -3536,7 +3537,7 @@ router.post("/generate", async (req, res) => {
         ) {
           const totalRefs =
             referenceImages.length + (modelReferenceImage ? 1 : 0);
-          console.log(
+          logger.log(
             `🖼️ [MULTIPLE] ${totalRefs} adet referans resmi Nano Banana'ya gönderiliyor...`
           );
 
@@ -3576,11 +3577,11 @@ router.post("/generate", async (req, res) => {
           }
 
           imageInputArray = sortedImages.map((img) => img.uri || img);
-          console.log(
+          logger.log(
             "📤 [MULTIPLE] Sıralı image input array:",
             sortedImages.map((img, idx) => `${idx + 1}. ${img.type}`)
           );
-          console.log("📤 [MULTIPLE] Image URLs:", imageInputArray);
+          logger.log("📤 [MULTIPLE] Image URLs:", imageInputArray);
         } else {
           // Tek resim modu: Birleştirilmiş tek resim
           imageInputArray = [combinedImageForReplicate];
@@ -3602,8 +3603,8 @@ router.post("/generate", async (req, res) => {
               num_inference_steps: 20, // Normal ile aynı (hız için)
             },
           };
-          console.log("🕺 [POSE_CHANGE] Nano Banana request body hazırlandı");
-          console.log(
+          logger.log("🕺 [POSE_CHANGE] Nano Banana request body hazırlandı");
+          logger.log(
             "🕺 [POSE_CHANGE] Prompt:",
             enhancedPrompt.substring(0, 200) + "..."
           );
@@ -3624,12 +3625,12 @@ router.post("/generate", async (req, res) => {
         let falModel = "fal-ai/nano-banana/edit"; // Model ID for Fal.ai
 
         if (qualityVersion === "v2") {
-          console.log(
+          logger.log(
             "🚀 [QUALITY] V2 seçili - Fal.ai Nano Banana PRO parametreleri kullanılacak"
           );
           falModel = "fal-ai/nano-banana-pro/edit"; // Pro model
         } else {
-          console.log(
+          logger.log(
             "🚀 [QUALITY] V1 seçili - Fal.ai Nano Banana parametreleri (varsayılan)"
           );
         }
@@ -3640,7 +3641,7 @@ router.post("/generate", async (req, res) => {
         // Prompt truncation (Fal.ai 5000 char limit)
         let finalPrompt = enhancedPrompt;
         if (finalPrompt.length > 4900) {
-          console.log(
+          logger.log(
             `⚠️ Prompt length (${finalPrompt.length}) exceeds safety limit, truncating to 4900...`
           );
           finalPrompt = finalPrompt.substring(0, 4900);
@@ -3660,7 +3661,7 @@ router.post("/generate", async (req, res) => {
           // Pro model parametreleri buraya eklenebilir
         }
 
-        console.log("📋 Fal.ai Request Body:", {
+        logger.log("📋 Fal.ai Request Body:", {
           prompt: finalPrompt.substring(0, 100) + "...",
           imageInput: req.body.isBackSideAnalysis
             ? "2 separate images"
@@ -3687,13 +3688,13 @@ router.post("/generate", async (req, res) => {
           }
         );
 
-        console.log("📋 Fal.ai API Response Status:", response.status);
+        logger.log("📋 Fal.ai API Response Status:", response.status);
 
         // Fal.ai response handling
         // Fal.ai returns: { images: [ { url: "...", ... } ], seed: ..., ... }
         if (response.data.images && response.data.images.length > 0) {
           const outputUrls = response.data.images.map(img => img.url);
-          console.log(
+          logger.log(
             "✅ Fal.ai API başarılı, images alındı:",
             outputUrls
           );
@@ -3710,7 +3711,7 @@ router.post("/generate", async (req, res) => {
             },
           };
 
-          console.log(
+          logger.log(
             `✅ Fal.ai ${falModel} API başarılı (attempt ${attempt})`
           );
           break; // Başarılı olursa loop'tan çık
@@ -3727,7 +3728,7 @@ router.post("/generate", async (req, res) => {
               errorMsg.includes("rate limit") ||
               errorMsg.includes("timeout"))
           ) {
-            console.log(
+            logger.log(
               `🔄 Geçici fal.ai hatası tespit edildi (attempt ${attempt}), retry yapılacak:`,
               errorMsg
             );
@@ -3782,7 +3783,7 @@ router.post("/generate", async (req, res) => {
         ) {
           totalRetryAttempts++;
           const waitTime = attempt * 2000; // 2s, 4s, 6s bekle
-          console.log(
+          logger.log(
             `⏳ ${waitTime}ms bekleniyor, sonra tekrar denenecek... (${attempt}/${maxRetries})`
           );
           await new Promise((resolve) => setTimeout(resolve, waitTime));
@@ -3805,13 +3806,13 @@ router.post("/generate", async (req, res) => {
     }
 
     const initialResult = replicateResponse.data;
-    console.log("Replicate API başlangıç yanıtı:", initialResult);
+    logger.log("Replicate API başlangıç yanıtı:", initialResult);
 
     if (!initialResult.id) {
       console.error("Replicate prediction ID alınamadı:", initialResult);
 
       // 🗑️ Prediction ID hatası durumunda geçici dosyaları temizle
-      console.log(
+      logger.log(
         "🧹 Prediction ID hatası sonrası geçici dosyalar temizleniyor..."
       );
       await cleanupTemporaryFiles(temporaryFiles);
@@ -3833,7 +3834,7 @@ router.post("/generate", async (req, res) => {
             })
             .eq("id", userId);
 
-          console.log(
+          logger.log(
             `💰 ${actualCreditDeducted} kredi iade edildi (Prediction ID hatası)`
           );
         } catch (refundError) {
@@ -3854,7 +3855,7 @@ router.post("/generate", async (req, res) => {
     const finalResult = initialResult;
     const processingTime = Math.round((Date.now() - Date.now()) / 1000); // Approx 0 as it's sync
 
-    console.log("Fal.ai final result:", finalResult);
+    logger.log("Fal.ai final result:", finalResult);
 
     // Flux-kontext-dev API'den gelen sonuç farklı format olabilir (Prefer: wait nedeniyle)
     const isFluxKontextDevResult =
@@ -3864,16 +3865,16 @@ router.post("/generate", async (req, res) => {
 
     // Dev API'ye fallback yapıldıktan sonra başarılı sonuç kontrolü
     if (isFluxKontextDevResult || isStandardResult) {
-      console.log("Replicate API işlemi başarılı");
+      logger.log("Replicate API işlemi başarılı");
 
       // 📊 Retry istatistiklerini logla
       if (totalRetryAttempts > 0) {
-        console.log(
+        logger.log(
           `📊 Retry İstatistikleri: ${totalRetryAttempts} retry yapıldı`
         );
-        console.log(`📊 Retry Nedenleri: ${retryReasons.join(" | ")}`);
+        logger.log(`📊 Retry Nedenleri: ${retryReasons.join(" | ")}`);
       } else {
-        console.log("📊 Retry İstatistikleri: İlk denemede başarılı");
+        logger.log("📊 Retry İstatistikleri: İlk denemede başarılı");
       }
 
       // ✅ Status'u completed'e güncelle
@@ -3893,7 +3894,7 @@ router.post("/generate", async (req, res) => {
         try {
           const effectiveCredits = await teamService.getEffectiveCredits(userId);
           currentCredit = effectiveCredits.creditBalance || 0;
-          console.log(
+          logger.log(
             `💳 Güncel kredi balance (post-deduct, team-aware): ${currentCredit}`,
             effectiveCredits.isTeamCredit ? `(team owner: ${effectiveCredits.creditOwnerId})` : ''
           );
@@ -3920,7 +3921,7 @@ router.post("/generate", async (req, res) => {
       // Not: saveGenerationToDatabase artık gerekli değil çünkü updateGenerationStatus ile güncelliyoruz
 
       // 🗑️ İşlem başarıyla tamamlandı, geçici dosyaları hemen temizle
-      console.log("🧹 Başarılı işlem sonrası geçici dosyalar temizleniyor...");
+      logger.log("🧹 Başarılı işlem sonrası geçici dosyalar temizleniyor...");
       await cleanupTemporaryFiles(temporaryFiles);
 
       return res.status(200).json(responseData);
@@ -3934,7 +3935,7 @@ router.post("/generate", async (req, res) => {
       });
 
       // 🗑️ Replicate hata durumında geçici dosyaları temizle
-      console.log(
+      logger.log(
         "🧹 Replicate hatası sonrası geçici dosyalar temizleniyor..."
       );
       await cleanupTemporaryFiles(temporaryFiles);
@@ -3956,7 +3957,7 @@ router.post("/generate", async (req, res) => {
             })
             .eq("id", userId);
 
-          console.log(
+          logger.log(
             `💰 ${actualCreditDeducted} kredi iade edildi (Replicate hatası)`
           );
         } catch (refundError) {
@@ -3986,7 +3987,7 @@ router.post("/generate", async (req, res) => {
     }
 
     // 🗑️ Hata durumunda da geçici dosyaları temizle
-    console.log("🧹 Hata durumunda geçici dosyalar temizleniyor...");
+    logger.log("🧹 Hata durumunda geçici dosyalar temizleniyor...");
     await cleanupTemporaryFiles(temporaryFiles);
 
     // Kredi iade et
@@ -4006,7 +4007,7 @@ router.post("/generate", async (req, res) => {
           })
           .eq("id", userId);
 
-        console.log(
+        logger.log(
           `💰 ${actualCreditDeducted} kredi iade edildi (Genel hata)`
         );
       } catch (refundError) {
@@ -4098,7 +4099,7 @@ router.get("/results/:userId", async (req, res) => {
     // Get team member IDs for shared workspace
     const { memberIds, isTeamMember } = await teamService.getTeamMemberIds(userId);
 
-    console.log(`📊 [RESULTS-V4-JEWELRY] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
+    logger.log(`📊 [RESULTS-V4-JEWELRY] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
 
     const offset = (page - 1) * limit;
 
@@ -4280,10 +4281,10 @@ async function generatePoseDescriptionWithGemini(
   garmentType = "clothing"
 ) {
   try {
-    console.log("🤸 Gemini ile pose açıklaması oluşturuluyor...");
-    console.log("🤸 Pose title:", poseTitle);
-    console.log("🤸 Gender:", gender);
-    console.log("🤸 Garment type:", garmentType);
+    logger.log("🤸 Gemini ile pose açıklaması oluşturuluyor...");
+    logger.log("🤸 Pose title:", poseTitle);
+    logger.log("🤸 Gender:", gender);
+    logger.log("🤸 Garment type:", garmentType);
 
     // Gemini 2.0 Flash modeli - Yeni SDK
     const model = "gemini-flash-latest";
@@ -4320,7 +4321,7 @@ async function generatePoseDescriptionWithGemini(
     Generate a similar detailed pose instruction for the given pose title "${poseTitle}" for a ${modelGenderText}.
     `;
 
-    console.log("🤸 Gemini'ye gönderilen pose prompt:", posePrompt);
+    logger.log("🤸 Gemini'ye gönderilen pose prompt:", posePrompt);
 
     // Resim verilerini içerecek parts dizisini hazırla
     const parts = [{ text: posePrompt }];
@@ -4332,16 +4333,16 @@ async function generatePoseDescriptionWithGemini(
     if (poseImage && poseImage.startsWith("http")) {
       const cleanPoseImageUrl = poseImage.split("?")[0];
       imageUrls.push(cleanPoseImageUrl);
-      console.log("🤸 Pose görseli Replicate Gemini'ye eklenecek:", cleanPoseImageUrl);
+      logger.log("🤸 Pose görseli Replicate Gemini'ye eklenecek:", cleanPoseImageUrl);
     }
 
     // Replicate Gemini Flash API çağrısı
     const poseDescription = await callReplicateGeminiFlash(posePrompt, imageUrls, 3);
-    console.log("🤸 Replicate Gemini'nin ürettiği pose açıklaması:", poseDescription);
+    logger.log("🤸 Replicate Gemini'nin ürettiği pose açıklaması:", poseDescription);
 
     const sanitizedDescription = sanitizePoseText(poseDescription);
     if (sanitizedDescription !== poseDescription) {
-      console.log("🤸 Pose açıklaması temizlendi:", sanitizedDescription);
+      logger.log("🤸 Pose açıklaması temizlendi:", sanitizedDescription);
     }
 
     return sanitizedDescription;
@@ -4364,11 +4365,11 @@ router.post("/generatePoseDescription", async (req, res) => {
       garmentType = "clothing",
     } = req.body;
 
-    console.log("🤸 Pose açıklaması isteği alındı:");
-    console.log("🤸 Pose title:", poseTitle);
-    console.log("🤸 Gender:", gender);
-    console.log("🤸 Garment type:", garmentType);
-    console.log("🤸 Pose image:", poseImage ? "Mevcut" : "Yok");
+    logger.log("🤸 Pose açıklaması isteği alındı:");
+    logger.log("🤸 Pose title:", poseTitle);
+    logger.log("🤸 Gender:", gender);
+    logger.log("🤸 Garment type:", garmentType);
+    logger.log("🤸 Pose image:", poseImage ? "Mevcut" : "Yok");
 
     if (!poseTitle) {
       return res.status(400).json({
@@ -4387,7 +4388,7 @@ router.post("/generatePoseDescription", async (req, res) => {
       garmentType
     );
 
-    console.log("🤸 Pose açıklaması başarıyla oluşturuldu");
+    logger.log("🤸 Pose açıklaması başarıyla oluşturuldu");
 
     return res.status(200).json({
       success: true,
@@ -4440,7 +4441,7 @@ router.get("/generation-status/:generationId", async (req, res) => {
     // Log'u sadece ilk sorgulamada yap (spam önlemek için)
     if (Math.random() < 0.1) {
       // %10 ihtimalle logla
-      console.log(
+      logger.log(
         `🔍 Generation status sorgusu: ${generationId.slice(
           0,
           8
@@ -4466,7 +4467,7 @@ router.get("/generation-status/:generationId", async (req, res) => {
         .limit(5);
 
       if (userGenerations && userGenerations.length > 0) {
-        console.log(
+        logger.log(
           `🔍 User/Team ${userId.slice(0, 8)} has ${userGenerations.length
           } active generations:`,
           userGenerations
@@ -4481,7 +4482,7 @@ router.get("/generation-status/:generationId", async (req, res) => {
         );
 
         if (expiredGenerations.length > 0) {
-          console.log(
+          logger.log(
             `🧹 Cleaning ${expiredGenerations.length
             } expired generations for user/team ${userId.slice(0, 8)}`
           );
@@ -4515,7 +4516,7 @@ router.get("/generation-status/:generationId", async (req, res) => {
 
     if (!generation) {
       // Log'u daha sade yap (spam önlemek için)
-      console.log(
+      logger.log(
         `🔍 Generation not found: ${generationId.slice(
           0,
           8
@@ -4547,7 +4548,7 @@ router.get("/generation-status/:generationId", async (req, res) => {
       (generation.status === "processing" || generation.status === "pending") &&
       minutesElapsed > PROCESSING_TIMEOUT_MINUTES
     ) {
-      console.log(
+      logger.log(
         `⏰ Generation ${generationId} timeout (${Math.round(
           minutesElapsed
         )} dakika), failed olarak işaretleniyor`
@@ -4560,7 +4561,7 @@ router.get("/generation-status/:generationId", async (req, res) => {
         await updateGenerationStatus(generationId, userId, "failed", {
           processing_time_seconds: Math.round(minutesElapsed * 60),
         });
-        console.log(
+        logger.log(
           `✅ Timeout generation ${generationId} failed olarak güncellendi`
         );
       } catch (updateError) {
@@ -4571,7 +4572,7 @@ router.get("/generation-status/:generationId", async (req, res) => {
       }
     }
 
-    console.log(
+    logger.log(
       `✅ Generation durumu: ${finalStatus}${shouldUpdateStatus ? " (timeout nedeniyle güncellendi)" : ""
       }`
     );
@@ -4635,8 +4636,8 @@ router.get("/pending-generations/:userId", async (req, res) => {
       isTeamMember = teamData.isTeamMember;
     }
 
-    console.log(`🔍 Pending generations sorgusu: ${userId} (platform: ${platform || 'web'})`);
-    console.log(`📊 [PENDING-V4-JEWELRY] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
+    logger.log(`🔍 Pending generations sorgusu: ${userId} (platform: ${platform || 'web'})`);
+    logger.log(`📊 [PENDING-V4-JEWELRY] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
 
     // Pending ve processing durumundaki generation'ları getir (takım üyeleri dahil - sadece web)
     const { data: generations, error } = await supabase
@@ -4657,7 +4658,7 @@ router.get("/pending-generations/:userId", async (req, res) => {
       });
     }
 
-    console.log(
+    logger.log(
       `✅ ${generations?.length || 0} pending/processing generation bulundu`
     );
 
@@ -4673,7 +4674,7 @@ router.get("/pending-generations/:userId", async (req, res) => {
         const minutesElapsed = (now - createdAt) / (1000 * 60);
 
         if (minutesElapsed > PROCESSING_TIMEOUT_MINUTES) {
-          console.log(
+          logger.log(
             `⏰ Generation ${gen.generation_id} timeout (${Math.round(
               minutesElapsed
             )} dakika)`
@@ -4685,7 +4686,7 @@ router.get("/pending-generations/:userId", async (req, res) => {
             await updateGenerationStatus(gen.generation_id, userId, "failed", {
               processing_time_seconds: Math.round(minutesElapsed * 60),
             });
-            console.log(
+            logger.log(
               `✅ Timeout generation ${gen.generation_id} failed olarak güncellendi`
             );
           } catch (updateError) {
@@ -4699,7 +4700,7 @@ router.get("/pending-generations/:userId", async (req, res) => {
         }
       }
 
-      console.log(
+      logger.log(
         `🧹 ${timeoutGenerations.length} timeout generation temizlendi, ${validGenerations.length} aktif generation kaldı`
       );
     }
@@ -4762,19 +4763,19 @@ router.get("/user-generations/:userId", async (req, res) => {
       isTeamMember = teamData.isTeamMember;
     }
 
-    console.log(
+    logger.log(
       `🔍 User generations sorgusu: ${userId}${
         status ? ` (status: ${status})` : ""
       } (platform: ${platform || 'web'})`
     );
-    console.log(`📊 [USER-GENERATIONS-V4-JEWELRY] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
+    logger.log(`📊 [USER-GENERATIONS-V4-JEWELRY] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
 
     // 🕐 Her zaman son 1 saatlik data'yı döndür
     const oneHourAgo = new Date();
     oneHourAgo.setHours(oneHourAgo.getHours() - 1);
     const oneHourAgoISO = oneHourAgo.toISOString();
 
-    console.log(
+    logger.log(
       `🕐 [API_FILTER] Son 1 saatlik data döndürülüyor: ${oneHourAgoISO} sonrası`
     );
 
@@ -4814,16 +4815,16 @@ router.get("/user-generations/:userId", async (req, res) => {
       });
     }
 
-    console.log(
+    logger.log(
       `✅ ${generations?.length || 0} generation bulundu (${status || "all statuses"
       })`
     );
 
     // Debug: Generation'ları logla
     if (generations && generations.length > 0) {
-      console.log(`🔍 [DEBUG] ${generations.length} generation bulundu:`);
+      logger.log(`🔍 [DEBUG] ${generations.length} generation bulundu:`);
       generations.forEach((gen, index) => {
-        console.log(
+        logger.log(
           `  ${index + 1}. ID: ${gen.generation_id}, Status: ${gen.status}`
         );
       });
@@ -4898,13 +4899,13 @@ router.get("/generation/:generationId/reference-images", async (req, res) => {
       });
     }
 
-    console.log(
+    logger.log(
       `🔍 [REFERENCE_IMAGES_ROUTE] Generation ${generationId.slice(
         0,
         8
       )}... için reference images sorgusu (User: ${userId.slice(0, 8)}...)`
     );
-    console.log(`📋 [REFERENCE_IMAGES_ROUTE] Request details:`, {
+    logger.log(`📋 [REFERENCE_IMAGES_ROUTE] Request details:`, {
       method: req.method,
       path: req.path,
       generationId: generationId.slice(0, 8) + "...",
@@ -4938,7 +4939,7 @@ router.get("/generation/:generationId/reference-images", async (req, res) => {
       generationArray && generationArray.length > 0 ? generationArray[0] : null;
 
     if (!generation) {
-      console.log(
+      logger.log(
         `🔍 [REFERENCE_IMAGES] Generation ${generationId} bulunamadı`
       );
       return res.status(404).json({
@@ -4951,7 +4952,7 @@ router.get("/generation/:generationId/reference-images", async (req, res) => {
     }
 
     const referenceImages = generation.reference_images || [];
-    console.log(
+    logger.log(
       `✅ [REFERENCE_IMAGES] Generation ${generationId} için ${referenceImages.length} reference image bulundu`
     );
 

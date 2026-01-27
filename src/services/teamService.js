@@ -5,6 +5,7 @@
 
 const { supabase, supabaseAdmin } = require('../supabaseClient');
 const crypto = require('crypto');
+const logger = require('../utils/logger');
 
 // Tier-based member limits
 const TIER_LIMITS = {
@@ -32,7 +33,7 @@ function getMaxTeamMembers(subscriptionTier) {
  */
 async function checkProStatus(userId) {
     try {
-        console.log('[TeamService] Checking Pro status for userId:', userId);
+        logger.log('[TeamService] Checking Pro status for userId:', userId);
 
         const { data: user, error } = await supabase
             .from('users')
@@ -40,10 +41,10 @@ async function checkProStatus(userId) {
             .eq('id', userId)
             .single();
 
-        console.log('[TeamService] User data:', user, 'Error:', error);
+        logger.log('[TeamService] User data:', user, 'Error:', error);
 
         if (error || !user) {
-            console.log('[TeamService] User not found or error occurred');
+            logger.log('[TeamService] User not found or error occurred');
             return { isPro: false, tier: null, maxMembers: 0, hasTeamSubscription: false };
         }
 
@@ -55,11 +56,11 @@ async function checkProStatus(userId) {
         if (hasTeamSubscription) {
             // Team subscription aktifse, team_max_members'ı kullan
             maxMembers = user.team_max_members;
-            console.log('[TeamService] Using team subscription max_members:', maxMembers);
+            logger.log('[TeamService] Using team subscription max_members:', maxMembers);
         } else {
             // Normal subscription tier'a göre belirle
             maxMembers = getMaxTeamMembers(user.subscription_type);
-            console.log('[TeamService] Using tier-based max_members:', maxMembers);
+            logger.log('[TeamService] Using tier-based max_members:', maxMembers);
         }
 
         const result = {
@@ -69,7 +70,7 @@ async function checkProStatus(userId) {
             hasTeamSubscription
         };
 
-        console.log('[TeamService] Pro status result:', result);
+        logger.log('[TeamService] Pro status result:', result);
         return result;
     } catch (err) {
         console.error('[TeamService] checkProStatus error:', err);
@@ -98,11 +99,11 @@ async function getOrCreateTeam(userId) {
             .single();
 
         if (existingTeam) {
-            console.log('[TeamService] Existing team found:', existingTeam.id, 'max_members:', existingTeam.max_members);
+            logger.log('[TeamService] Existing team found:', existingTeam.id, 'max_members:', existingTeam.max_members);
 
             // Update max_members if tier changed
             if (existingTeam.max_members !== proStatus.maxMembers) {
-                console.log('[TeamService] Updating team max_members from', existingTeam.max_members, 'to', proStatus.maxMembers);
+                logger.log('[TeamService] Updating team max_members from', existingTeam.max_members, 'to', proStatus.maxMembers);
                 const { error: updateError } = await supabase
                     .from('teams')
                     .update({ max_members: proStatus.maxMembers })
@@ -111,7 +112,7 @@ async function getOrCreateTeam(userId) {
                 if (updateError) {
                     console.error('[TeamService] Failed to update team max_members:', updateError);
                 } else {
-                    console.log('[TeamService] Team max_members updated successfully');
+                    logger.log('[TeamService] Team max_members updated successfully');
                     existingTeam.max_members = proStatus.maxMembers;
                 }
             }
@@ -331,7 +332,7 @@ async function sendInvitation(ownerId, inviteeEmail) {
             .neq('role', 'owner');
 
         const currentCount = currentMembers ? currentMembers.length : 0;
-        console.log('[TeamService] Member limit check - current:', currentCount, 'max:', team.max_members);
+        logger.log('[TeamService] Member limit check - current:', currentCount, 'max:', team.max_members);
 
         // Ensure max_members is at least 1 for Pro users (fallback)
         const effectiveMaxMembers = team.max_members > 0 ? team.max_members : 1;
@@ -360,7 +361,7 @@ async function sendInvitation(ownerId, inviteeEmail) {
             }
 
             // If previously accepted/declined/expired, reset and reuse
-            console.log(`[TeamService] Reusing existing invitation for ${inviteeEmail}, old status: ${existingInvitation.status}`);
+            logger.log(`[TeamService] Reusing existing invitation for ${inviteeEmail}, old status: ${existingInvitation.status}`);
             const { data: updatedInvitation, error: updateError } = await supabase
                 .from('team_invitations')
                 .update({
@@ -844,8 +845,8 @@ async function getEffectiveUserStatus(userId) {
                     .single();
 
                 if (owner) {
-                    console.log(`[TeamService] User ${userId} is team member, using owner ${owner.id} data`);
-                    console.log(`   Owner credits: ${owner.credit_balance}, isPro: ${owner.is_pro}`);
+                    logger.log(`[TeamService] User ${userId} is team member, using owner ${owner.id} data`);
+                    logger.log(`   Owner credits: ${owner.credit_balance}, isPro: ${owner.is_pro}`);
 
                     return {
                         creditBalance: owner.credit_balance,
@@ -894,14 +895,14 @@ async function getEffectiveCredits(userId) {
             .eq('id', userId)
             .single();
 
-        console.log('[TeamService] getEffectiveCredits - User data:', {
+        logger.log('[TeamService] getEffectiveCredits - User data:', {
             userId,
             hasActiveTeam: !!user?.active_team_id,
             activeTeamId: user?.active_team_id
         });
 
         if (userError || !user) {
-            console.log('[TeamService] getEffectiveCredits - User not found or error:', userError);
+            logger.log('[TeamService] getEffectiveCredits - User not found or error:', userError);
             return {
                 creditBalance: 0,
                 creditOwnerId: userId,
@@ -918,7 +919,7 @@ async function getEffectiveCredits(userId) {
                 .eq('id', user.active_team_id)
                 .single();
 
-            console.log('[TeamService] getEffectiveCredits - Team data:', {
+            logger.log('[TeamService] getEffectiveCredits - Team data:', {
                 teamId: user.active_team_id,
                 ownerId: team?.owner_id
             });
@@ -935,7 +936,7 @@ async function getEffectiveCredits(userId) {
                     const ownerIsPro = owner.is_pro ||
                         (owner.subscription_type && owner.subscription_type !== 'free' && owner.subscription_type !== null);
 
-                    console.log('[TeamService] getEffectiveCredits - Using owner credits:', {
+                    logger.log('[TeamService] getEffectiveCredits - Using owner credits:', {
                         ownerCredits: owner.credit_balance,
                         ownerIsPro: ownerIsPro,
                         ownerSubscriptionType: owner.subscription_type
@@ -951,7 +952,7 @@ async function getEffectiveCredits(userId) {
         }
 
         // Use own credits
-        console.log('[TeamService] getEffectiveCredits - Using own credits:', {
+        logger.log('[TeamService] getEffectiveCredits - Using own credits:', {
             credits: user.credit_balance,
             isPro: user.is_pro
         });
@@ -1120,7 +1121,7 @@ async function getTeamMemberIds(userId) {
 
             if (ownedTeam) {
                 teamId = ownedTeam.id;
-                console.log(`[TeamService] User ${userId.substring(0, 8)}... is team owner, using team: ${teamId}`);
+                logger.log(`[TeamService] User ${userId.substring(0, 8)}... is team owner, using team: ${teamId}`);
             }
         }
 
