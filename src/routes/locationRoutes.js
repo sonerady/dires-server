@@ -10,9 +10,9 @@ const studioImagesPath = path.join(__dirname, "../lib/studio_images.json");
 const outdoorImagesPath = path.join(__dirname, "../lib/outdoor_images.json");
 
 // Dosya yollarını konsola yazdırarak kontrol et
-console.log("Indoor images path:", indoorImagesPath);
-console.log("Studio images path:", studioImagesPath);
-console.log("Outdoor images path:", outdoorImagesPath);
+logger.log("Indoor images path:", indoorImagesPath);
+logger.log("Studio images path:", studioImagesPath);
+logger.log("Outdoor images path:", outdoorImagesPath);
 
 // Resim URL'lerine boyut parametresi ekleyen yardımcı fonksiyon
 const optimizeImageUrl = (imageUrl) => {
@@ -59,7 +59,7 @@ const loadAndProcessLocations = (filePath, category) => {
       image: optimizeImageUrl(item.image),
       category: category,
     }));
-    console.log(`${items.length} ${category} lokasyonu yüklendi.`);
+    logger.log(`${items.length} ${category} lokasyonu yüklendi.`);
     return items;
   } catch (error) {
     console.error(`${category} lokasyonları yüklenirken hata:`, error);

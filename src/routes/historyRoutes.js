@@ -38,11 +38,12 @@ const retryQuery = async (queryFn, maxRetries = 3, delay = 500) => {
 };
 
 // Thumbnail için resim URL'sini optimize eden fonksiyon
+// api.diress.ai ve supabase.co URL'lerini destekler
 const optimizeImageForThumbnail = (imageUrl) => {
   if (!imageUrl) return imageUrl;
 
-  // Supabase storage URL'si ise thumbnail boyutu ekle
-  if (imageUrl.includes("supabase.co")) {
+  // Supabase storage path'ini kontrol et (api.diress.ai veya supabase.co)
+  if (imageUrl.includes("/storage/v1/object/public/")) {
     // URL'de zaten query parametreleri varsa ekleme
     if (imageUrl.includes("?")) {
       // Sadece render URL'sine çevir, parametreleri koruyarak
@@ -63,11 +64,12 @@ const optimizeImageForThumbnail = (imageUrl) => {
 };
 
 // Modal için resim URL'sini temizleyen fonksiyon - original boyut
+// api.diress.ai ve supabase.co URL'lerini destekler
 const optimizeImageForModal = (imageUrl) => {
   if (!imageUrl) return imageUrl;
 
-  // Supabase storage URL'si ise parametreleri kaldır (original boyut)
-  if (imageUrl.includes("supabase.co")) {
+  // Supabase storage path'ini kontrol et (api.diress.ai veya supabase.co)
+  if (imageUrl.includes("/storage/v1/") && (imageUrl.includes("/object/public/") || imageUrl.includes("/render/image/public/"))) {
     // Render URL'sini object URL'sine çevir ve parametreleri kaldır
     return imageUrl
       .replace("/storage/v1/render/image/public/", "/storage/v1/object/public/")
