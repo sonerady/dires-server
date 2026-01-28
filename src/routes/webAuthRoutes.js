@@ -115,7 +115,7 @@ async function trackRegistration(userId, ip, deviceFingerprint, email, abuseResu
  * Web login/signup sonrası çağrılır
  * @param creditsToGrant - Yeni kullanıcıya verilecek kredi miktarı (default 40)
  */
-async function syncUserToUsersTable(supabaseUserId, email, fullName = null, provider = 'email', companyName = null, creditsToGrant = 40) {
+async function syncUserToUsersTable(supabaseUserId, email, fullName = null, provider = 'email', companyName = null, creditsToGrant = 40, deviceId = null) {
     try {
         console.log(`🔄 [WEB AUTH] Syncing user to users table: ${email}, companyName: ${companyName}`);
 
@@ -164,6 +164,7 @@ async function syncUserToUsersTable(supabaseUserId, email, fullName = null, prov
         console.log(`🆕 [WEB AUTH] Creating new user for: ${email}`);
 
         const newUserId = uuidv4();
+        const shouldReceiveCredit = creditsToGrant > 0;
         const { data: newUser, error: insertError } = await supabase
             .from("users")
             .insert([{
@@ -173,11 +174,12 @@ async function syncUserToUsersTable(supabaseUserId, email, fullName = null, prov
                 full_name: fullName,
                 company_name: companyName,
                 auth_provider: provider,
-                credit_balance: creditsToGrant, // Yeni kullanıcıya kredi hediye (abuse ise 0)
-                received_initial_credit: true,
-                initial_credit_date: new Date().toISOString(),
+                credit_balance: creditsToGrant, // Yeni kullanıcıya kredi hediye (abuse/device check ise 0)
+                received_initial_credit: shouldReceiveCredit,
+                initial_credit_date: shouldReceiveCredit ? new Date().toISOString() : null,
                 created_at: new Date().toISOString(),
                 owner: false,
+                device_id: deviceId, // 🛡️ Mobil cihaz ID'si
             }])
             .select()
             .single();
@@ -233,8 +235,8 @@ router.post('/login', async (req, res) => {
 
 // Email/Password Sign Up (WITH EMAIL VERIFICATION)
 router.post('/signup', async (req, res) => {
-    let { email, password, options, platform, deviceFingerprint } = req.body;
-    console.log(`[Signup] Request received for email: ${email} (platform: ${platform || 'web'})`);
+    let { email, password, options, platform, deviceFingerprint, deviceId } = req.body;
+    console.log(`[Signup] Request received for email: ${email} (platform: ${platform || 'web'}) deviceId: ${deviceId || 'none'}`);
 
     // Get IP address for abuse tracking
     const ip = req.ip || req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.connection?.remoteAddress;
@@ -339,11 +341,40 @@ router.post('/signup', async (req, res) => {
 
         // 2. Check for registration abuse BEFORE granting credits
         const abuseResult = await checkRegistrationAbuse(ip, deviceFingerprint, email);
-        const creditsToGrant = abuseResult.isAbuse ? 0 : 40;
+        let creditsToGrant = abuseResult.isAbuse ? 0 : 40;
 
         if (abuseResult.isAbuse) {
             console.log(`🚨 [Signup] Abuse detected! User ${email} will receive 0 credits. Reasons: ${abuseResult.reasons.join(', ')}`);
-        } else {
+        }
+
+        // 🛡️ MOBILE: Device ID bazlı kredi kontrolü (çift kredi engelleme)
+        if (platform === 'mobile' && deviceId && creditsToGrant > 0) {
+            console.log(`🔍 [Signup] Mobile device credit check for: ${deviceId}`);
+            try {
+                const { data: creditCheck, error: creditCheckError } = await supabase.rpc(
+                    "check_device_credit_eligibility",
+                    { device_id_param: deviceId }
+                );
+
+                if (!creditCheckError && creditCheck && creditCheck.length > 0) {
+                    const { can_receive_credit, existing_user_count, last_credit_date } = creditCheck[0];
+                    console.log(`🔍 [Signup] Device credit check result:`, {
+                        can_receive_credit,
+                        existing_user_count,
+                        last_credit_date,
+                    });
+
+                    if (!can_receive_credit) {
+                        creditsToGrant = 0;
+                        console.log(`🛡️ [Signup] ⚠️ DEVICE DAHA ÖNCE KREDİ ALDI - YENİ KULLANICI 0 KREDİ ALACAK`);
+                    }
+                }
+            } catch (deviceCheckError) {
+                console.error(`❌ [Signup] Device credit check error:`, deviceCheckError);
+            }
+        }
+
+        if (creditsToGrant > 0) {
             console.log(`✅ [Signup] No abuse detected. User ${email} will receive ${creditsToGrant} credits.`);
         }
 
@@ -354,7 +385,8 @@ router.post('/signup', async (req, res) => {
             options?.data?.full_name || null,
             'email',
             options?.data?.company_name || null,
-            creditsToGrant
+            creditsToGrant,
+            deviceId // 🛡️ Mobil cihaz ID'si
         );
 
         console.log(`[Signup] Users table sync: ${isNew ? 'created' : 'linked'}, ID: ${dbUser?.id}`);

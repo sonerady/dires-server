@@ -738,7 +738,7 @@ router.get("/user/:supabaseUserId", async (req, res) => {
  */
 router.post("/email/login", async (req, res) => {
   try {
-    const { email, password, existingUserId } = req.body;
+    const { email, password, existingUserId, deviceId } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({
@@ -780,6 +780,7 @@ router.post("/email/login", async (req, res) => {
       avatarUrl: data.user.user_metadata?.avatar_url,
       provider: "email",
       existingUserId,
+      deviceId, // 🛡️ Çift kredi engelleme için
     });
 
     return res.status(200).json({
@@ -805,7 +806,7 @@ router.post("/email/login", async (req, res) => {
  */
 router.post("/email/signup", async (req, res) => {
   try {
-    const { email, password, companyName, existingUserId } = req.body;
+    const { email, password, companyName, existingUserId, deviceId } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({
@@ -942,6 +943,7 @@ router.post("/email/signup", async (req, res) => {
       avatarUrl: null,
       provider: "email",
       existingUserId,
+      deviceId, // 🛡️ Çift kredi engelleme için
     });
 
     return res.status(200).json({
@@ -1012,7 +1014,7 @@ router.post("/email/reset-password", async (req, res) => {
  */
 router.post("/google", async (req, res) => {
   try {
-    const { idToken, accessToken, existingUserId } = req.body;
+    const { idToken, accessToken, existingUserId, deviceId } = req.body;
 
     if (!idToken && !accessToken) {
       return res.status(400).json({
@@ -1139,6 +1141,7 @@ router.post("/google", async (req, res) => {
       avatarUrl: picture,
       provider: "google",
       existingUserId,
+      deviceId, // 🛡️ Çift kredi engelleme için
     });
 
     return res.status(200).json({
@@ -1166,7 +1169,7 @@ router.post("/google", async (req, res) => {
  */
 router.post("/apple", async (req, res) => {
   try {
-    const { identityToken, fullName, existingUserId } = req.body;
+    const { identityToken, fullName, existingUserId, deviceId } = req.body;
 
     if (!identityToken) {
       return res.status(400).json({
@@ -1270,6 +1273,7 @@ router.post("/apple", async (req, res) => {
       avatarUrl: null,
       provider: "apple",
       existingUserId,
+      deviceId, // 🛡️ Çift kredi engelleme için
     });
 
     return res.status(200).json({
@@ -1459,7 +1463,7 @@ router.post("/logout", async (req, res) => {
  *    └── YOK → Anonim hesaba email bağla (ilk kez kayıt)
  * 3. Yeni kullanıcı oluştur (eğer hiçbir eşleşme yoksa)
  */
-async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, provider, existingUserId }) {
+async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, provider, existingUserId, deviceId }) {
   // 1. Bu Supabase Auth kullanıcısı zaten var mı kontrol et
   const { data: existingAuthUser, error: fetchError } = await supabase
     .from("users")
@@ -1620,15 +1624,51 @@ async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, p
   // 4. Yeni kullanıcı oluştur
   console.log("🆕 [HELPER] Creating new user");
 
+  // 🛡️ GÜVENLIK: Device ID bazlı kredi kontrolü (mobil çift kredi engelleme)
+  let shouldReceiveCredit = true;
+
+  if (deviceId) {
+    console.log(`🔍 [HELPER] Device ID mevcut: ${deviceId}`);
+    console.log(`🔍 [HELPER] Device kredi uygunluğu kontrol ediliyor...`);
+
+    const { data: creditCheck, error: creditCheckError } = await supabase.rpc(
+      "check_device_credit_eligibility",
+      { device_id_param: deviceId }
+    );
+
+    if (creditCheckError) {
+      console.log(`❌ [HELPER] Device kredi kontrolü HATASI:`, creditCheckError.message);
+    } else if (!creditCheck || creditCheck.length === 0) {
+      console.log(`⚠️ [HELPER] Device kredi kontrolü sonuç döndürmedi`);
+    } else {
+      const { can_receive_credit, existing_user_count, last_credit_date } = creditCheck[0];
+
+      console.log(`🔍 [HELPER] Device kredi kontrolü SONUCU:`);
+      console.log(`   - Can Receive Credit: ${can_receive_credit}`);
+      console.log(`   - Existing User Count: ${existing_user_count}`);
+      console.log(`   - Last Credit Date: ${last_credit_date || "(yok)"}`);
+
+      if (!can_receive_credit) {
+        shouldReceiveCredit = false;
+        console.log(`🛡️ [HELPER] ⚠️ DEVICE DAHA ÖNCE KREDİ ALDI - YENİ KULLANICI 0 KREDİ ALACAK`);
+      } else {
+        console.log(`✅ [HELPER] Device kredi alabilir - yeni kullanıcı 40 kredi alacak`);
+      }
+    }
+  } else {
+    console.log(`⚠️ [HELPER] Device ID GÖNDERİLMEDİ - kredi kontrolü atlanıyor`);
+  }
+
   const newUserId = uuidv4();
   const insertData = {
     id: newUserId,
     supabase_user_id: supabaseUserId,
-    credit_balance: 40,
-    received_initial_credit: true,
-    initial_credit_date: new Date().toISOString(),
+    credit_balance: shouldReceiveCredit ? 40 : 0,
+    received_initial_credit: shouldReceiveCredit,
+    initial_credit_date: shouldReceiveCredit ? new Date().toISOString() : null,
     created_at: new Date().toISOString(),
     owner: false,
+    device_id: deviceId || null,
   };
 
   if (email) insertData.email = email;
