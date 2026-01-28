@@ -1022,8 +1022,8 @@ const shuffleArray = (array, seed = null) => {
 const optimizeImageUrl = (imageUrl) => {
   if (!imageUrl) return imageUrl;
 
-  // Supabase storage URL'si ise optimize et
-  if (imageUrl.includes("supabase.co")) {
+  // Supabase storage URL'si ise optimize et (custom domain desteği ile)
+  if (imageUrl.includes("/storage/v1/")) {
     // URL'de zaten query parametreleri varsa ekleme
     if (imageUrl.includes("?")) {
       // Sadece render URL'sine çevir, parametreleri koruyarak
@@ -1057,11 +1057,8 @@ const optimizeLocationImages = (locations) => {
 const cleanImageUrlForApi = (imageUrl) => {
   if (!imageUrl) return imageUrl;
 
-  // Supabase render URL'si ise original object URL'sine çevir ve parametreleri kaldır
-  if (
-    imageUrl.includes("supabase.co") &&
-    imageUrl.includes("/storage/v1/render/image/public/")
-  ) {
+  // Supabase render URL'si ise original object URL'sine çevir ve parametreleri kaldır (custom domain desteği ile)
+  if (imageUrl.includes("/storage/v1/render/image/public/")) {
     const cleanUrl = imageUrl
       .replace("/storage/v1/render/image/public/", "/storage/v1/object/public/")
       .split("?")[0]; // Query parametrelerini kaldır

@@ -826,8 +826,8 @@ async function saveModelToDatabase(
 const optimizeImageUrl = (imageUrl) => {
   if (!imageUrl) return imageUrl;
 
-  // Supabase storage URL'si ise optimize et
-  if (imageUrl.includes("supabase.co")) {
+  // Supabase storage URL'si ise optimize et (custom domain desteği ile)
+  if (imageUrl.includes("/storage/v1/object/public/")) {
     return (
       imageUrl.replace(
         "/storage/v1/object/public/",

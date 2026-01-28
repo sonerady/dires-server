@@ -5,8 +5,8 @@ const { supabase } = require("../supabaseClient");
 // Resim URL'lerine boyut parametresi ekleyen yardımcı fonksiyon
 const optimizeImageUrl = (imageUrl) => {
   if (!imageUrl) return imageUrl;
-  // Sadece supabase URL'lerini işle
-  if (imageUrl.includes("supabase.co/storage")) {
+  // Sadece supabase URL'lerini işle (custom domain desteği ile)
+  if (imageUrl.includes("/storage/v1/")) {
     const hasParams = imageUrl.includes("?");
     return `${imageUrl}${hasParams ? "&" : "?"}width=512&height=512`;
   }

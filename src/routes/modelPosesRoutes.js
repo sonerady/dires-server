@@ -13,8 +13,8 @@ const manPoses = require(path.join(__dirname, "../../lib/man_poses_new.json"));
 const optimizeImageUrl = (imageUrl) => {
   if (!imageUrl) return imageUrl;
 
-  // Supabase storage URL'si ise optimize et - dikey kartlar için yüksek boyut
-  if (imageUrl.includes("supabase.co")) {
+  // Supabase storage URL'si ise optimize et - dikey kartlar için yüksek boyut (custom domain desteği ile)
+  if (imageUrl.includes("/storage/v1/")) {
     // Eğer zaten render URL'i ise, query parametrelerini güncelle
     if (imageUrl.includes("/storage/v1/render/image/public/")) {
       // Mevcut query parametrelerini kaldır ve yeni ekle

@@ -109,7 +109,7 @@ async function incrementSessionVersion(userId, platform) {
  */
 router.post("/sync-user", async (req, res) => {
   try {
-    const { supabaseUserId, email, fullName, avatarUrl, provider, existingUserId, platform } = req.body;
+    const { supabaseUserId, email, fullName, avatarUrl, provider, existingUserId, platform, deviceId } = req.body;
 
     if (!supabaseUserId) {
       return res.status(400).json({
@@ -121,13 +121,16 @@ router.post("/sync-user", async (req, res) => {
     // Platform: 'web' or 'mobile' - used for single session enforcement
     const loginPlatform = platform || null;
 
-    console.log("🔄 [AUTH] Syncing user to backend:", {
-      supabaseUserId,
-      email,
-      provider,
-      platform: loginPlatform,
-      existingUserId: existingUserId || "none",
-    });
+    console.log("═══════════════════════════════════════════════════════════════════");
+    console.log("🔄 [AUTH] SYNC-USER ENDPOINT ÇAĞRILDI");
+    console.log("═══════════════════════════════════════════════════════════════════");
+    console.log("📧 Email:", email || "(yok)");
+    console.log("🔑 Supabase User ID:", supabaseUserId);
+    console.log("👤 Provider:", provider || "(yok)");
+    console.log("📱 Platform:", loginPlatform || "(yok)");
+    console.log("🆔 Existing User ID:", existingUserId || "(yok)");
+    console.log("📲 Device ID:", deviceId || "(yok)");
+    console.log("═══════════════════════════════════════════════════════════════════");
 
     // 1. Bu Supabase Auth kullanıcısı zaten bağlı mı kontrol et
     const { data: existingAuthUser, error: fetchError } = await supabase
@@ -147,7 +150,13 @@ router.post("/sync-user", async (req, res) => {
 
     // Supabase Auth kullanıcısı zaten varsa → bilgileri güncelle ve döndür
     if (existingAuthUser) {
-      console.log("✅ [AUTH] User already linked, returning:", existingAuthUser.id);
+      console.log("───────────────────────────────────────────────────────────────────");
+      console.log("✅ [AUTH] MEVCUT SUPABASE AUTH KULLANICISI BULUNDU");
+      console.log("───────────────────────────────────────────────────────────────────");
+      console.log("🆔 User ID:", existingAuthUser.id);
+      console.log("📧 Email:", existingAuthUser.email || "(yok)");
+      console.log("💰 Credit Balance:", existingAuthUser.credit_balance);
+      console.log("───────────────────────────────────────────────────────────────────");
 
       const updateData = {};
       if (email) updateData.email = email;
@@ -212,9 +221,13 @@ router.post("/sync-user", async (req, res) => {
 
       if (!emailFetchError && existingEmailUser) {
         // ✅ Bu email ile hesap VAR → O hesabı aç (MERGE YOK)
-        console.log(`🔗 [AUTH] Found existing account with email: ${email}`);
-        console.log(`   Account ID: ${existingEmailUser.id}`);
-        console.log(`   Credits: ${existingEmailUser.credit_balance}`);
+        console.log("───────────────────────────────────────────────────────────────────");
+        console.log("🔗 [AUTH] MEVCUT EMAIL HESABI BULUNDU - YENİ KULLANICI OLUŞTURULMAYACAK");
+        console.log("───────────────────────────────────────────────────────────────────");
+        console.log("🆔 Account ID:", existingEmailUser.id);
+        console.log("📧 Email:", email);
+        console.log("💰 Credits:", existingEmailUser.credit_balance);
+        console.log("───────────────────────────────────────────────────────────────────");
 
         // Supabase user ID'yi güncelle (farklı provider'dan giriş olabilir)
         const updateData = {
@@ -268,20 +281,41 @@ router.post("/sync-user", async (req, res) => {
 
     // 3. Email ile hesap bulunamadı → Anonim hesaba email bağla (ilk kayıt)
     if (existingUserId) {
+      console.log(`🔍 [AUTH] Checking anonymous account: ${existingUserId}`);
+
       const { data: anonymousUser, error: anonError } = await supabase
         .from("users")
         .select("*")
         .eq("id", existingUserId)
         .single();
 
+      if (anonError) {
+        console.log(`⚠️ [AUTH] Anonymous user not found: ${existingUserId}`, anonError.message);
+      }
+
       if (!anonError && anonymousUser) {
-        // Anonim hesap zaten başka bir Supabase Auth'a bağlıysa yeni hesap oluştur
-        if (anonymousUser.supabase_user_id && anonymousUser.supabase_user_id !== supabaseUserId) {
-          console.log("⚠️ [AUTH] Anonymous user already linked to different account, creating new");
+        console.log("───────────────────────────────────────────────────────────────────");
+        console.log("✅ [AUTH] ANONİM HESAP BULUNDU");
+        console.log("───────────────────────────────────────────────────────────────────");
+        console.log("🆔 ID:", anonymousUser.id);
+        console.log("📧 Mevcut Email:", anonymousUser.email || "(yok)");
+        console.log("💰 Credits:", anonymousUser.credit_balance);
+        console.log("🔑 Supabase User ID:", anonymousUser.supabase_user_id || "(yok)");
+        console.log("📲 Device ID:", anonymousUser.device_id || "(yok)");
+        console.log("───────────────────────────────────────────────────────────────────");
+
+        // Anonim hesapta zaten EMAIL varsa (farklı bir email'e bağlı) → yeni hesap oluştur
+        // EMAIL yoksa → bu hesaba yeni email'i bağla
+        if (anonymousUser.email && email && anonymousUser.email.toLowerCase() !== email.toLowerCase()) {
+          console.log("⚠️ [AUTH] Anonymous user already linked to different email:", anonymousUser.email);
+          console.log("   Requested email:", email);
+          console.log("   Creating new account...");
           // Aşağıda yeni hesap oluşturulacak
         } else {
-          // ✅ Anonim hesaba email bağla (İLK KAYIT)
+          // ✅ Anonim hesaba email bağla (İLK KAYIT veya aynı email ile tekrar giriş)
           console.log(`🔗 [AUTH] Linking email to anonymous account: ${existingUserId}`);
+          console.log(`   Current email: ${anonymousUser.email || '(none)'}`);
+          console.log(`   New email: ${email}`);
 
           const updateData = {
             supabase_user_id: supabaseUserId,
@@ -335,17 +369,55 @@ router.post("/sync-user", async (req, res) => {
     }
 
     // 4. Yeni kullanıcı oluştur (web'den ilk kayıt veya anonim hesap bulunamadı)
-    console.log("🆕 [AUTH] Creating new user");
+    console.log("───────────────────────────────────────────────────────────────────");
+    console.log("🆕 [AUTH] YENİ KULLANICI OLUŞTURULUYOR");
+    console.log("───────────────────────────────────────────────────────────────────");
+
+    // 🛡️ GÜVENLIK: Device ID bazlı kredi kontrolü (mobil çift kredi engelleme)
+    let shouldReceiveCredit = true;
+
+    if (deviceId) {
+      console.log(`🔍 [AUTH] Device ID mevcut: ${deviceId}`);
+      console.log(`🔍 [AUTH] Device kredi uygunluğu kontrol ediliyor...`);
+
+      const { data: creditCheck, error: creditCheckError } = await supabase.rpc(
+        "check_device_credit_eligibility",
+        { device_id_param: deviceId }
+      );
+
+      if (creditCheckError) {
+        console.log(`❌ [AUTH] Device kredi kontrolü HATASI:`, creditCheckError.message);
+      } else if (!creditCheck || creditCheck.length === 0) {
+        console.log(`⚠️ [AUTH] Device kredi kontrolü sonuç döndürmedi`);
+      } else {
+        const { can_receive_credit, existing_user_count, last_credit_date } = creditCheck[0];
+
+        console.log(`🔍 [AUTH] Device kredi kontrolü SONUCU:`);
+        console.log(`   - Can Receive Credit: ${can_receive_credit}`);
+        console.log(`   - Existing User Count: ${existing_user_count}`);
+        console.log(`   - Last Credit Date: ${last_credit_date || "(yok)"}`);
+
+        if (!can_receive_credit) {
+          shouldReceiveCredit = false;
+          console.log(`🛡️ [AUTH] ⚠️ DEVICE DAHA ÖNCE KREDİ ALDI - YENİ KULLANICI 0 KREDİ ALACAK`);
+        } else {
+          console.log(`✅ [AUTH] Device kredi alabilir - yeni kullanıcı 40 kredi alacak`);
+        }
+      }
+    } else {
+      console.log(`⚠️ [AUTH] Device ID GÖNDERİLMEDİ - kredi kontrolü atlanıyor`);
+    }
 
     const newUserId = uuidv4();
     const insertData = {
       id: newUserId,
       supabase_user_id: supabaseUserId,
-      credit_balance: 40, // Yeni kullanıcıya 40 kredi hediye
-      received_initial_credit: true,
-      initial_credit_date: new Date().toISOString(),
+      credit_balance: shouldReceiveCredit ? 40 : 0, // Cihaz daha önce kredi aldıysa 0, almadıysa 40
+      received_initial_credit: shouldReceiveCredit,
+      initial_credit_date: shouldReceiveCredit ? new Date().toISOString() : null,
       created_at: new Date().toISOString(),
       owner: false,
+      device_id: deviceId || null, // Device ID'yi kaydet
     };
 
     if (email) insertData.email = email;
@@ -368,7 +440,15 @@ router.post("/sync-user", async (req, res) => {
       });
     }
 
-    console.log("✅ [AUTH] New user created:", newUser.id);
+    console.log("═══════════════════════════════════════════════════════════════════");
+    console.log("✅ [AUTH] YENİ KULLANICI BAŞARIYLA OLUŞTURULDU");
+    console.log("═══════════════════════════════════════════════════════════════════");
+    console.log("🆔 User ID:", newUser.id);
+    console.log("📧 Email:", newUser.email || "(yok)");
+    console.log("💰 Credit Balance:", newUser.credit_balance);
+    console.log("🎁 Received Initial Credit:", newUser.received_initial_credit);
+    console.log("📲 Device ID:", newUser.device_id || "(yok)");
+    console.log("═══════════════════════════════════════════════════════════════════");
 
     // Increment session version for single-session enforcement
     let finalUser = newUser;

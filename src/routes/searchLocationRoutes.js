@@ -6,8 +6,8 @@ const { supabase } = require("../supabaseClient");
 const optimizeImageUrl = (imageUrl) => {
   if (!imageUrl) return imageUrl;
 
-  // Supabase storage URL'si ise optimize et
-  if (imageUrl.includes("supabase.co")) {
+  // Supabase storage URL'si ise optimize et (custom domain desteği ile)
+  if (imageUrl.includes("/storage/v1/")) {
     // URL'de zaten query parametreleri varsa ekleme
     if (imageUrl.includes("?")) {
       // Sadece render URL'sine çevir, parametreleri koruyarak
