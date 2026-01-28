@@ -888,10 +888,10 @@ async function getEffectiveUserStatus(userId) {
  */
 async function getEffectiveCredits(userId) {
     try {
-        // Get user with active_team_id
+        // Get user with active_team_id and team_max_members
         const { data: user, error: userError } = await supabase
             .from('users')
-            .select('credit_balance, active_team_id, is_pro')
+            .select('credit_balance, active_team_id, is_pro, team_max_members')
             .eq('id', userId)
             .single();
 
@@ -907,7 +907,8 @@ async function getEffectiveCredits(userId) {
                 creditBalance: 0,
                 creditOwnerId: userId,
                 isTeamCredit: false,
-                isPro: false
+                isPro: false,
+                teamMaxMembers: 0
             };
         }
 
@@ -945,7 +946,8 @@ async function getEffectiveCredits(userId) {
                         creditBalance: owner.credit_balance,
                         creditOwnerId: team.owner_id,
                         isTeamCredit: true,
-                        isPro: ownerIsPro
+                        isPro: ownerIsPro,
+                        teamMaxMembers: user.team_max_members || 0
                     };
                 }
             }
@@ -954,13 +956,15 @@ async function getEffectiveCredits(userId) {
         // Use own credits
         logger.log('[TeamService] getEffectiveCredits - Using own credits:', {
             credits: user.credit_balance,
-            isPro: user.is_pro
+            isPro: user.is_pro,
+            teamMaxMembers: user.team_max_members
         });
         return {
             creditBalance: user.credit_balance,
             creditOwnerId: userId,
             isTeamCredit: false,
-            isPro: user.is_pro || false
+            isPro: user.is_pro || false,
+            teamMaxMembers: user.team_max_members || 0
         };
     } catch (err) {
         console.error('[TeamService] getEffectiveCredits error:', err);
@@ -968,7 +972,8 @@ async function getEffectiveCredits(userId) {
             creditBalance: 0,
             creditOwnerId: userId,
             isTeamCredit: false,
-            isPro: false
+            isPro: false,
+            teamMaxMembers: 0
         };
     }
 }

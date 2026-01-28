@@ -663,6 +663,19 @@ router.post("/webhookv2", async (req, res) => {
     // Sadece subscription paketleri için plan tipi belirle
     if (planType) {
       updateFields.subscription_type = planType;
+
+      // Subscription tipine göre team member hakkı belirle
+      // Standard: 0, Plus: 1, Premium: 2
+      const teamMembersForPlan = {
+        standard: 0,
+        plus: 1,
+        premium: 2,
+      };
+      const teamMembers = teamMembersForPlan[planType] ?? 0;
+      updateFields.team_max_members = teamMembers;
+      // Team özelliği aktif mi? (Plus ve Premium için true, Standard için false)
+      updateFields.team_subscription_active = teamMembers > 0;
+      console.log(`👥 Setting team_max_members to ${teamMembers}, team_subscription_active to ${teamMembers > 0} for ${planType} plan`);
     }
 
     const { data: updateData, error: updateError } = await supabase
