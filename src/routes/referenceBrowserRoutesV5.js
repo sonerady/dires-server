@@ -6225,7 +6225,7 @@ router.get("/generation-status/:generationId", async (req, res) => {
             userGenerations.length
           } active generations:`,
           userGenerations
-            .map((g) => `${g.generation_id.slice(0, 8)}(${g.status})`)
+            .map((g) => `${g.generation_id ? g.generation_id.slice(0, 8) : 'null'}(${g.status})`)
             .join(", ")
         );
 
@@ -6242,14 +6242,18 @@ router.get("/generation-status/:generationId", async (req, res) => {
             } expired generations for user/team ${userId.slice(0, 8)}`
           );
 
-          await supabase
-            .from("reference_results")
-            .update({ status: "failed" })
-            .in(
-              "generation_id",
-              expiredGenerations.map((g) => g.generation_id)
-            )
-            .in("user_id", memberIds);
+          // Null generation_id'leri filtrele
+          const validGenerationIds = expiredGenerations
+            .map((g) => g.generation_id)
+            .filter((id) => id !== null && id !== undefined);
+
+          if (validGenerationIds.length > 0) {
+            await supabase
+              .from("reference_results")
+              .update({ status: "failed" })
+              .in("generation_id", validGenerationIds)
+              .in("user_id", memberIds);
+          }
         }
       }
     }

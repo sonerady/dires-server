@@ -673,9 +673,9 @@ router.post("/webhookv2", async (req, res) => {
       };
       const teamMembers = teamMembersForPlan[planType] ?? 0;
       updateFields.team_max_members = teamMembers;
-      // Team özelliği aktif mi? (Plus ve Premium için true, Standard için false)
-      updateFields.team_subscription_active = teamMembers > 0;
-      console.log(`👥 Setting team_max_members to ${teamMembers}, team_subscription_active to ${teamMembers > 0} for ${planType} plan`);
+      // Team özelliği aktif mi? (Tüm abonelik tipleri için true - Standard dahil)
+      updateFields.team_subscription_active = true;
+      console.log(`👥 Setting team_max_members to ${teamMembers}, team_subscription_active to true for ${planType} plan`);
     }
 
     const { data: updateData, error: updateError } = await supabase
