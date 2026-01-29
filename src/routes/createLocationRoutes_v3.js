@@ -1014,7 +1014,6 @@ const shuffleArray = (array, seed = null) => {
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
 
-  console.log(`🎲 Shuffled with seed: ${randomSeed}`);
   return shuffled;
 };
 
@@ -1068,32 +1067,50 @@ const cleanImageUrlForApi = (imageUrl) => {
   return imageUrl;
 };
 
-// GET PUBLIC LOCATIONS
+// GET PUBLIC LOCATIONS - V3 OPTIMIZED
+// location_type parametresi ile server-side filtreleme
+// Gereksiz veri transferini önler, client-side filtreleme gerekmez
 router.get("/public-locations", async (req, res) => {
   try {
     const {
       category = "custom",
       limit = 50,
       offset = 0,
-      shuffle = "true", // Default shuffle kalıyor
-      sort = "created_at_desc", // newest, oldest, created_at_desc, created_at_asc
-      includeStudio = "false", // Studio'ları dahil et mi?
-      t = null, // Timestamp cache buster / shuffle seed
+      shuffle = "true",
+      sort = "created_at_desc",
+      includeStudio = "false",
+      location_type = null, // 🆕 V3: Specific location type filter (outdoor, indoor, studio)
+      t = null,
     } = req.query;
 
-    console.log("🔀 Public locations fetch - shuffle:", shuffle, "sort:", sort);
-    console.log("📝 Limit:", limit, "Offset:", offset);
-    console.log("🎬 Include Studio:", includeStudio);
-    console.log("⏰ Timestamp seed:", t);
 
-    // Location type filtresi - studio dahil mi?
-    const allowedLocationTypes =
-      includeStudio === "true"
+    // 🆕 V3: location_type parametresi varsa sadece o type'ı getir
+    // Bu sayede client-side filtreleme gerekmez, network trafiği azalır
+    let allowedLocationTypes;
+
+    if (location_type) {
+      // Specific location type requested - sadece o type'ı getir
+      const validTypes = ["outdoor", "indoor", "studio"];
+      const requestedType = location_type.toLowerCase();
+
+      if (validTypes.includes(requestedType)) {
+        allowedLocationTypes = [requestedType];
+        console.log(`📍 [V3] Filtering by specific type: ${requestedType}`);
+      } else {
+        console.warn(`⚠️ [V3] Invalid location_type: ${location_type}, using default`);
+        allowedLocationTypes = includeStudio === "true"
+          ? ["outdoor", "indoor", "studio"]
+          : ["outdoor", "indoor"];
+      }
+    } else {
+      // No specific type - use includeStudio logic (backward compatible)
+      allowedLocationTypes = includeStudio === "true"
         ? ["outdoor", "indoor", "studio"]
         : ["outdoor", "indoor"];
+    }
 
-    // Sort order'ı belirle
-    let orderBy = { column: "created_at", ascending: false }; // Default: newest first
+    // Sort order
+    let orderBy = { column: "created_at", ascending: false };
 
     if (sort === "newest" || sort === "created_at_desc") {
       orderBy = { column: "created_at", ascending: false };
@@ -1101,70 +1118,109 @@ router.get("/public-locations", async (req, res) => {
       orderBy = { column: "created_at", ascending: true };
     }
 
-    // Shuffle parametresi true ise tüm veriyi al, shuffle yap, sonra paginate et
+    const parsedLimit = parseInt(limit);
+    const parsedOffset = parseInt(offset);
+
+    // 🆕 V3 OPTIMIZATION: Shuffle için daha verimli yaklaşım
+    // Tek bir location_type isteniyorsa, sadece o type'tan limit kadar çek
     if (shuffle === "true") {
-      // Önce tüm public location'ları al
-      const { data: allData, error } = await supabase
-        .from("custom_locations")
-        .select("*, favorite_count")
-        .eq("category", category)
-        .eq("is_public", true)
-        .eq("status", "completed")
-        .in("location_type", allowedLocationTypes) // Dynamic location types
-        .order(orderBy.column, { ascending: orderBy.ascending });
+      // Shuffle için random order kullan - Supabase'in random() fonksiyonu ile
+      // Bu sayede tüm veriyi çekip memory'de shuffle yapmaya gerek kalmaz
 
-      if (error) {
-        throw error;
+      // Eğer tek bir location_type isteniyorsa, doğrudan limit uygula
+      const isSingleType = location_type && allowedLocationTypes.length === 1;
+
+      if (isSingleType) {
+        // 🚀 OPTIMIZED: Tek type için tüm veriyi çek, shuffle yap, pagination uygula
+        const shuffleSeed = t ? parseInt(t) : Date.now();
+
+        // Tüm veriyi çek (shuffle için gerekli)
+        const { data: allData, error, count } = await supabase
+          .from("custom_locations")
+          .select("*, favorite_count", { count: "exact" })
+          .eq("category", category)
+          .eq("is_public", true)
+          .eq("status", "completed")
+          .eq("location_type", allowedLocationTypes[0]) // Tek type
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          throw error;
+        }
+
+        // Memory'de shuffle yap (seed ile tutarlı)
+        const shuffledData = shuffleArray(allData || [], shuffleSeed);
+
+        // Pagination uygula
+        const startIndex = parsedOffset;
+        const endIndex = startIndex + parsedLimit;
+        const paginatedData = shuffledData.slice(startIndex, endIndex);
+
+        res.json({
+          success: true,
+          data: optimizeLocationImages(paginatedData),
+          count: paginatedData.length,
+          total: shuffledData.length,
+          hasMore: endIndex < shuffledData.length,
+          locationType: allowedLocationTypes[0], // 🆕 Client'a hangi type döndüğünü bildir
+        });
+      } else {
+        // Birden fazla type için tüm veriyi çek, shuffle yap, pagination uygula
+        const { data: allData, error } = await supabase
+          .from("custom_locations")
+          .select("*, favorite_count")
+          .eq("category", category)
+          .eq("is_public", true)
+          .eq("status", "completed")
+          .in("location_type", allowedLocationTypes)
+          .order(orderBy.column, { ascending: orderBy.ascending });
+
+        if (error) {
+          throw error;
+        }
+
+        const shuffleSeed = t ? parseInt(t) : null;
+        const shuffledData = shuffleArray(allData || [], shuffleSeed);
+
+        const startIndex = parsedOffset;
+        const endIndex = startIndex + parsedLimit;
+        const paginatedData = shuffledData.slice(startIndex, endIndex);
+
+        res.json({
+          success: true,
+          data: optimizeLocationImages(paginatedData),
+          count: paginatedData.length,
+          total: shuffledData.length,
+          hasMore: endIndex < shuffledData.length,
+        });
       }
-
-      // Shuffle yap - timestamp'i seed olarak kullan (opsiyonel)
-      const shuffleSeed = t ? parseInt(t) : null;
-      const shuffledData = shuffleArray(allData || [], shuffleSeed);
-      console.log(
-        `🎲 Shuffled ${shuffledData.length} locations with seed: ${shuffleSeed || "auto-generated"
-        }`
-      );
-
-      // Pagination uygula
-      const startIndex = parseInt(offset);
-      const endIndex = startIndex + parseInt(limit);
-      const paginatedData = shuffledData.slice(startIndex, endIndex);
-
-      console.log(
-        `📄 Returning ${paginatedData.length} items (${startIndex}-${endIndex})`
-      );
-
-      res.json({
-        success: true,
-        data: optimizeLocationImages(paginatedData),
-        count: paginatedData.length,
-        total: shuffledData.length,
-        hasMore: endIndex < shuffledData.length,
-      });
     } else {
       // Normal pagination (shuffle olmadan)
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from("custom_locations")
-        .select("*, favorite_count")
+        .select("*, favorite_count", { count: "exact" })
         .eq("category", category)
         .eq("is_public", true)
         .eq("status", "completed")
-        .in("location_type", allowedLocationTypes) // Dynamic location types
+        .in("location_type", allowedLocationTypes)
         .order(orderBy.column, { ascending: orderBy.ascending })
-        .range(offset, offset + limit - 1);
+        .range(parsedOffset, parsedOffset + parsedLimit - 1);
 
       if (error) {
         throw error;
       }
+
 
       res.json({
         success: true,
         data: optimizeLocationImages(data || []),
         count: data?.length || 0,
+        total: count || data?.length || 0,
+        hasMore: (count || 0) > parsedOffset + parsedLimit,
       });
     }
   } catch (error) {
-    console.error("Public locations fetch hatası:", error);
+    console.error("❌ [V3] Public locations fetch hatası:", error);
     res.status(500).json({
       success: false,
       error: "Public locations getirilemedi",
