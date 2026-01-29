@@ -928,7 +928,7 @@ async function getEffectiveCredits(userId) {
             if (team) {
                 const { data: owner } = await supabase
                     .from('users')
-                    .select('credit_balance, is_pro, subscription_type')
+                    .select('credit_balance, is_pro, subscription_type, team_max_members')
                     .eq('id', team.owner_id)
                     .single();
 
@@ -940,14 +940,15 @@ async function getEffectiveCredits(userId) {
                     logger.log('[TeamService] getEffectiveCredits - Using owner credits:', {
                         ownerCredits: owner.credit_balance,
                         ownerIsPro: ownerIsPro,
-                        ownerSubscriptionType: owner.subscription_type
+                        ownerSubscriptionType: owner.subscription_type,
+                        ownerTeamMaxMembers: owner.team_max_members
                     });
                     return {
                         creditBalance: owner.credit_balance,
                         creditOwnerId: team.owner_id,
                         isTeamCredit: true,
                         isPro: ownerIsPro,
-                        teamMaxMembers: user.team_max_members || 0
+                        teamMaxMembers: owner.team_max_members || 0
                     };
                 }
             }
