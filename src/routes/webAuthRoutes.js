@@ -114,10 +114,11 @@ async function trackRegistration(userId, ip, deviceFingerprint, email, abuseResu
  * Helper: Supabase Auth kullanıcısını users tablosuna senkronize et
  * Web login/signup sonrası çağrılır
  * @param creditsToGrant - Yeni kullanıcıya verilecek kredi miktarı (default 40)
+ * @param existingUserId - Mobil'den gelen anonim user ID (account linking için)
  */
-async function syncUserToUsersTable(supabaseUserId, email, fullName = null, provider = 'email', companyName = null, creditsToGrant = 40, deviceId = null) {
+async function syncUserToUsersTable(supabaseUserId, email, fullName = null, provider = 'email', companyName = null, creditsToGrant = 40, deviceId = null, existingUserId = null) {
     try {
-        console.log(`🔄 [WEB AUTH] Syncing user to users table: ${email}, companyName: ${companyName}`);
+        console.log(`🔄 [WEB AUTH] Syncing user to users table: ${email}, companyName: ${companyName}, existingUserId: ${existingUserId || '(yok)'}`);
 
         // 1. Bu Supabase user ID ile kayıt var mı?
         const { data: existingAuthUser, error: authError } = await supabase
@@ -160,7 +161,44 @@ async function syncUserToUsersTable(supabaseUserId, email, fullName = null, prov
             return { user: linkedUser, isNew: false };
         }
 
-        // 3. Yeni kullanıcı oluştur
+        // 3. 🔗 existingUserId (anonim hesap) var mı? → Email bağla!
+        if (existingUserId) {
+            const { data: anonymousUser, error: anonError } = await supabase
+                .from("users")
+                .select("*")
+                .eq("id", existingUserId)
+                .single();
+
+            if (!anonError && anonymousUser) {
+                console.log(`🔗 [WEB AUTH] Linking anonymous user ${existingUserId} with email ${email}`);
+                console.log(`   📊 Anonymous user credits: ${anonymousUser.credit_balance}`);
+
+                const { data: linkedUser, error: linkError } = await supabase
+                    .from("users")
+                    .update({
+                        supabase_user_id: supabaseUserId,
+                        email: email,
+                        full_name: fullName || anonymousUser.full_name,
+                        company_name: companyName || anonymousUser.company_name,
+                        auth_provider: provider,
+                        // credit_balance KORUNUYOR! (eski krediler kaybolmuyor)
+                    })
+                    .eq("id", existingUserId)
+                    .select()
+                    .single();
+
+                if (linkError) {
+                    console.error(`❌ [WEB AUTH] Error linking anonymous user:`, linkError);
+                    // Hata olsa bile anonim kullanıcıyı dön
+                    return { user: anonymousUser, isNew: false };
+                }
+
+                console.log(`✅ [WEB AUTH] Anonymous user linked successfully! User ID: ${linkedUser.id}, Credits preserved: ${linkedUser.credit_balance}`);
+                return { user: linkedUser, isNew: false };
+            }
+        }
+
+        // 4. Yeni kullanıcı oluştur (sadece hiçbir hesap bulunamazsa)
         console.log(`🆕 [WEB AUTH] Creating new user for: ${email}`);
 
         const newUserId = uuidv4();
@@ -235,8 +273,8 @@ router.post('/login', async (req, res) => {
 
 // Email/Password Sign Up (WITH EMAIL VERIFICATION)
 router.post('/signup', async (req, res) => {
-    let { email, password, options, platform, deviceFingerprint, deviceId } = req.body;
-    console.log(`[Signup] Request received for email: ${email} (platform: ${platform || 'web'}) deviceId: ${deviceId || 'none'}`);
+    let { email, password, options, platform, deviceFingerprint, deviceId, existingUserId } = req.body;
+    console.log(`[Signup] Request received for email: ${email} (platform: ${platform || 'web'}) deviceId: ${deviceId || 'none'} existingUserId: ${existingUserId || 'none'}`);
 
     // Get IP address for abuse tracking
     const ip = req.ip || req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.connection?.remoteAddress;
@@ -378,7 +416,7 @@ router.post('/signup', async (req, res) => {
             console.log(`✅ [Signup] No abuse detected. User ${email} will receive ${creditsToGrant} credits.`);
         }
 
-        // 3. Users tablosuna kayıt oluştur (with adjusted credits)
+        // 3. Users tablosuna kayıt oluştur (with adjusted credits + account linking)
         const { user: dbUser, isNew } = await syncUserToUsersTable(
             createdUser.user.id,
             email,
@@ -386,7 +424,8 @@ router.post('/signup', async (req, res) => {
             'email',
             options?.data?.company_name || null,
             creditsToGrant,
-            deviceId // 🛡️ Mobil cihaz ID'si
+            deviceId, // 🛡️ Mobil cihaz ID'si
+            existingUserId // 🔗 Account linking için anonim user ID
         );
 
         console.log(`[Signup] Users table sync: ${isNew ? 'created' : 'linked'}, ID: ${dbUser?.id}`);
