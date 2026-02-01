@@ -9,6 +9,7 @@ const FAL_ENDPOINT = "https://fal.run/clarityai/crystal-upscaler";
 router.post("/", async (req, res) => {
   const CREDIT_COST = 5; // Image enhancement için kredi maliyeti
   let creditDeducted = false;
+  let creditOwnerId;
   let userId;
 
   try {
@@ -35,7 +36,7 @@ router.post("/", async (req, res) => {
     }
 
     // 🔗 TEAM-AWARE: Kredi kontrolü ve düşme
-    let creditOwnerId = userId; // Kredi sahibi (team owner veya kendisi)
+    creditOwnerId = userId; // Kredi sahibi (team owner veya kendisi)
 
     if (userId && userId !== "anonymous_user") {
       try {
