@@ -115,6 +115,7 @@ router.get("/app-config/version", async (req, res) => {
       message: resolveMessage(data, lang),
       metadata: data.metadata || null,
       websiteOpen: data.website_open || false,
+      websiteLaunchDate: data.website_launch_date || null,
       lang,
       fetchedAt: new Date().toISOString(),
     };
