@@ -206,6 +206,7 @@ router.post("/sync-user", async (req, res) => {
               isNewUser: false,
               isLinked: true,
               accountType: "existing_auth",
+              preserveAnonymousAccount: !!(existingUserId && existingUserId !== finalUser.id),
             });
           }
         }
@@ -219,6 +220,7 @@ router.post("/sync-user", async (req, res) => {
           isNewUser: false,
           isLinked: true,
           accountType: "existing_auth",
+          preserveAnonymousAccount: !!(existingUserId && existingUserId !== finalUser.id),
         });
       }
     }
@@ -492,7 +494,7 @@ router.post("/sync-user", async (req, res) => {
       isNewUser: true,
       isLinked: true,
       accountType: "new",
-      preserveAnonymousAccount: false,
+      preserveAnonymousAccount: !!(existingUserId && existingUserId !== newUser.id),
     });
   } catch (error) {
     console.error("❌ [AUTH] Unexpected error:", error);

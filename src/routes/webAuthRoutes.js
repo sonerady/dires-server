@@ -161,7 +161,7 @@ async function syncUserToUsersTable(supabaseUserId, email, fullName = null, prov
             return { user: linkedUser, isNew: false };
         }
 
-        // 3. 🔗 existingUserId (anonim hesap) var mı? → Email bağla!
+        // 3. 🔗 existingUserId (anonim hesap) var mı? → Email bağla (sadece email yoksa veya aynıysa!)
         if (existingUserId) {
             const { data: anonymousUser, error: anonError } = await supabase
                 .from("users")
@@ -170,31 +170,41 @@ async function syncUserToUsersTable(supabaseUserId, email, fullName = null, prov
                 .single();
 
             if (!anonError && anonymousUser) {
-                console.log(`🔗 [WEB AUTH] Linking anonymous user ${existingUserId} with email ${email}`);
-                console.log(`   📊 Anonymous user credits: ${anonymousUser.credit_balance}`);
+                // ⚠️ Anonim hesapta zaten FARKLI email varsa, üzerine yazma!
+                if (anonymousUser.email && email &&
+                    anonymousUser.email.toLowerCase() !== email.toLowerCase()) {
+                    console.log(`⚠️ [WEB AUTH] Anonim hesap ${existingUserId} zaten farklı email'e bağlı: ${anonymousUser.email}`);
+                    console.log(`   İstenen email: ${email}`);
+                    console.log(`   Yeni hesap oluşturulacak (Step 4'e düşüyor)...`);
+                    // return yapma - Step 4'e düşsün
+                } else {
+                    // Güvenli: email yok veya aynı email → bağla
+                    console.log(`🔗 [WEB AUTH] Linking anonymous user ${existingUserId} with email ${email}`);
+                    console.log(`   📊 Anonymous user credits: ${anonymousUser.credit_balance}`);
 
-                const { data: linkedUser, error: linkError } = await supabase
-                    .from("users")
-                    .update({
-                        supabase_user_id: supabaseUserId,
-                        email: email,
-                        full_name: fullName || anonymousUser.full_name,
-                        company_name: companyName || anonymousUser.company_name,
-                        auth_provider: provider,
-                        // credit_balance KORUNUYOR! (eski krediler kaybolmuyor)
-                    })
-                    .eq("id", existingUserId)
-                    .select()
-                    .single();
+                    const { data: linkedUser, error: linkError } = await supabase
+                        .from("users")
+                        .update({
+                            supabase_user_id: supabaseUserId,
+                            email: email,
+                            full_name: fullName || anonymousUser.full_name,
+                            company_name: companyName || anonymousUser.company_name,
+                            auth_provider: provider,
+                            // credit_balance KORUNUYOR! (eski krediler kaybolmuyor)
+                        })
+                        .eq("id", existingUserId)
+                        .select()
+                        .single();
 
-                if (linkError) {
-                    console.error(`❌ [WEB AUTH] Error linking anonymous user:`, linkError);
-                    // Hata olsa bile anonim kullanıcıyı dön
-                    return { user: anonymousUser, isNew: false };
+                    if (linkError) {
+                        console.error(`❌ [WEB AUTH] Error linking anonymous user:`, linkError);
+                        // Hata olsa bile anonim kullanıcıyı dön
+                        return { user: anonymousUser, isNew: false };
+                    }
+
+                    console.log(`✅ [WEB AUTH] Anonymous user linked successfully! User ID: ${linkedUser.id}, Credits preserved: ${linkedUser.credit_balance}`);
+                    return { user: linkedUser, isNew: false };
                 }
-
-                console.log(`✅ [WEB AUTH] Anonymous user linked successfully! User ID: ${linkedUser.id}, Credits preserved: ${linkedUser.credit_balance}`);
-                return { user: linkedUser, isNew: false };
             }
         }
 
