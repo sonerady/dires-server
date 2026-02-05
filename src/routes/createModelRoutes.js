@@ -1306,7 +1306,6 @@ router.get("/user-models/:userId", async (req, res) => {
     const { userId } = req.params;
     const { limit = 20, offset = 0 } = req.query;
 
-    logger.log("👤 User models fetch - userId:", userId);
 
     // UUID format validation
     const uuidRegex =
@@ -1364,7 +1363,6 @@ router.get("/user-models/:userId", async (req, res) => {
       });
     }
 
-    logger.log("✅ User models found:", data?.length || 0);
 
     // Optimize image URLs
     const optimizedData = (data || []).map((model) => ({

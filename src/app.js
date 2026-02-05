@@ -28,6 +28,7 @@ const referenceBrowserRoutesV2 = require("./routes/referenceBrowserRoutesV2");
 const referenceBrowserRoutesV3 = require("./routes/referenceBrowserRoutesV3");
 const referenceBrowserRoutesV4 = require("./routes/referenceBrowserRoutesV4");
 const referenceBrowserRoutesV5 = require("./routes/referenceBrowserRoutesV5");
+const referenceBrowserRoutesV6 = require("./routes/referenceBrowserRoutesV6");
 const referenceJewelryBrowserRoutesV4 = require("./routes/referenceJewelryBrowserRoutesV4");
 
 const referenceBrowserRoutesWithoutCanvas = require("./routes/referenceBrowserRoutesWithoutCanvas");
@@ -231,6 +232,8 @@ app.use("/api/referenceBrowserV2", referenceBrowserRoutesV2);
 app.use("/api/referenceBrowserV3", referenceBrowserRoutesV3);
 app.use("/api/referenceBrowserV4", referenceBrowserRoutesV4);
 app.use("/api/referenceBrowserV5", referenceBrowserRoutesV5);
+app.use("/api/referenceBrowserV6", referenceBrowserRoutesV6);
+
 app.use("/api/referenceJewelryBrowserV4", referenceJewelryBrowserRoutesV4);
 app.use("/api/reference-images", referenceImageRoutes);
 app.use(

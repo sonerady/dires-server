@@ -158,56 +158,69 @@ router.post("/sync-user", async (req, res) => {
       console.log("💰 Credit Balance:", existingAuthUser.credit_balance);
       console.log("───────────────────────────────────────────────────────────────────");
 
-      const updateData = {};
-      if (email) updateData.email = email;
-      if (fullName) updateData.full_name = fullName;
-      if (avatarUrl) updateData.avatar_url = avatarUrl;
-      if (provider) updateData.auth_provider = provider;
+      // Email farklıysa bu hesabı güncelleme - Adım 2/3/4'e devam et
+      // Bu durum, persistSession nedeniyle eski supabase_user_id'nin yeni email ile gelmesi halinde oluşur
+      if (email && existingAuthUser.email &&
+          existingAuthUser.email.toLowerCase() !== email.toLowerCase()) {
+        console.log("───────────────────────────────────────────────────────────────────");
+        console.log("⚠️ [AUTH] supabase_user_id eslesti ama email FARKLI - Adim 2'ye geciliyor");
+        console.log("   Hesaptaki email:", existingAuthUser.email);
+        console.log("   Gelen email:", email);
+        console.log("───────────────────────────────────────────────────────────────────");
+        // return yapmadan devam et - Adım 2 (email ile arama) çalışacak
+      } else {
+        // Aynı email veya email yok - normal güncelleme akışı
+        const updateData = {};
+        if (email) updateData.email = email;
+        if (fullName) updateData.full_name = fullName;
+        if (avatarUrl) updateData.avatar_url = avatarUrl;
+        if (provider) updateData.auth_provider = provider;
 
-      // Increment session version for single-session enforcement
-      let finalUser = existingAuthUser;
-      if (loginPlatform) {
-        const sessionResult = await incrementSessionVersion(existingAuthUser.id, loginPlatform);
-        if (sessionResult.success) {
-          finalUser = sessionResult.user;
+        // Increment session version for single-session enforcement
+        let finalUser = existingAuthUser;
+        if (loginPlatform) {
+          const sessionResult = await incrementSessionVersion(existingAuthUser.id, loginPlatform);
+          if (sessionResult.success) {
+            finalUser = sessionResult.user;
+          }
         }
-      }
 
-      if (Object.keys(updateData).length > 0) {
-        const { data: updatedUser, error: updateError } = await supabase
-          .from("users")
-          .update(updateData)
-          .eq("supabase_user_id", supabaseUserId)
-          .select()
-          .single();
+        if (Object.keys(updateData).length > 0) {
+          const { data: updatedUser, error: updateError } = await supabase
+            .from("users")
+            .update(updateData)
+            .eq("supabase_user_id", supabaseUserId)
+            .select()
+            .single();
 
-        if (updateError) {
-          console.error("❌ [AUTH] Error updating user:", updateError);
-        } else {
-          finalUser = updatedUser;
-          // Get effective user data (team credits/Pro if applicable)
-          const effectiveUserData = await getEffectiveUserData(finalUser, loginPlatform);
-          return res.status(200).json({
-            success: true,
-            message: "User updated successfully",
-            user: effectiveUserData,
-            isNewUser: false,
-            isLinked: true,
-            accountType: "existing_auth",
-          });
+          if (updateError) {
+            console.error("❌ [AUTH] Error updating user:", updateError);
+          } else {
+            finalUser = updatedUser;
+            // Get effective user data (team credits/Pro if applicable)
+            const effectiveUserData = await getEffectiveUserData(finalUser, loginPlatform);
+            return res.status(200).json({
+              success: true,
+              message: "User updated successfully",
+              user: effectiveUserData,
+              isNewUser: false,
+              isLinked: true,
+              accountType: "existing_auth",
+            });
+          }
         }
-      }
 
-      // Get effective user data (team credits/Pro if applicable)
-      const effectiveUserData = await getEffectiveUserData(finalUser, loginPlatform);
-      return res.status(200).json({
-        success: true,
-        message: "User found",
-        user: effectiveUserData,
-        isNewUser: false,
-        isLinked: true,
-        accountType: "existing_auth",
-      });
+        // Get effective user data (team credits/Pro if applicable)
+        const effectiveUserData = await getEffectiveUserData(finalUser, loginPlatform);
+        return res.status(200).json({
+          success: true,
+          message: "User found",
+          user: effectiveUserData,
+          isNewUser: false,
+          isLinked: true,
+          accountType: "existing_auth",
+        });
+      }
     }
 
     // 2. EMAIL İLE HESAP KONTROLÜ

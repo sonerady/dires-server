@@ -12,7 +12,6 @@ router.get("/:userId", async (req, res) => {
     const { userId } = req.params;
     const { type, limit = 50, offset = 0 } = req.query;
 
-    console.log(`📋 Fetching favorites for user: ${userId}`);
 
     // Build query with location details - Manual JOIN using location_id
     const {
@@ -98,7 +97,6 @@ router.get("/:userId", async (req, res) => {
       };
     });
 
-    console.log(`✅ Found ${data?.length || 0} favorites for user ${userId}`);
 
     res.json({
       success: true,
