@@ -210,6 +210,33 @@ router.post("/webhookv2", async (req, res) => {
             .update({ max_members: 0 })
             .eq("id", userTeam.id);
           console.log("✅ Team max_members reset to 0");
+
+          // Owner hariç tüm team üyelerini sil
+          const { data: removedMembers, error: removeMembersError } = await supabase
+            .from("team_members")
+            .delete()
+            .eq("team_id", userTeam.id)
+            .neq("role", "owner")
+            .select();
+
+          if (removeMembersError) {
+            console.error("⚠️ Error removing team members:", removeMembersError);
+          } else {
+            console.log(`✅ Removed ${removedMembers?.length || 0} team members`);
+          }
+
+          // Bekleyen davetleri de iptal et
+          const { error: cancelInvitesError } = await supabase
+            .from("team_invitations")
+            .update({ status: "cancelled" })
+            .eq("team_id", userTeam.id)
+            .eq("status", "pending");
+
+          if (cancelInvitesError) {
+            console.error("⚠️ Error cancelling pending invitations:", cancelInvitesError);
+          } else {
+            console.log("✅ Pending invitations cancelled");
+          }
         }
 
         console.log("✅ Team subscription cancelled successfully!");
