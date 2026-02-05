@@ -179,6 +179,7 @@ async function getTeamWithMembers(teamId) {
                     id,
                     email,
                     company_name,
+                    credit_balance,
                     created_at
                 )
             `)
