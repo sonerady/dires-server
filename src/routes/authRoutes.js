@@ -325,58 +325,69 @@ router.post("/sync-user", async (req, res) => {
           console.log("   Creating new account...");
           // Aşağıda yeni hesap oluşturulacak
         } else {
-          // ✅ Anonim hesaba email bağla (İLK KAYIT veya aynı email ile tekrar giriş)
-          console.log(`🔗 [AUTH] Linking email to anonymous account: ${existingUserId}`);
-          console.log(`   Current email: ${anonymousUser.email || '(none)'}`);
-          console.log(`   New email: ${email}`);
+          // EK GÜVENLİK: else bloğuna girmiş olsa bile, mevcut email farklıysa güncelleme yapma
+          if (anonymousUser.email && email &&
+              anonymousUser.email.toLowerCase() !== email.toLowerCase()) {
+            console.log("───────────────────────────────────────────────────────────────────");
+            console.log("🛡️ [AUTH] GUARD: else blogunda farkli email tespit edildi - Adim 4'e geciliyor");
+            console.log("   Mevcut email:", anonymousUser.email);
+            console.log("   Gelen email:", email);
+            console.log("───────────────────────────────────────────────────────────────────");
+            // Bu bloğu atla, Adım 4'e düşsün (return yapma)
+          } else {
+            // ✅ Anonim hesaba email bağla (İLK KAYIT veya aynı email ile tekrar giriş)
+            console.log(`🔗 [AUTH] Linking email to anonymous account: ${existingUserId}`);
+            console.log(`   Current email: ${anonymousUser.email || '(none)'}`);
+            console.log(`   New email: ${email}`);
 
-          const updateData = {
-            supabase_user_id: supabaseUserId,
-          };
-          if (email) updateData.email = email;
-          if (fullName) updateData.full_name = fullName;
-          if (avatarUrl) updateData.avatar_url = avatarUrl;
-          if (provider) updateData.auth_provider = provider;
+            const updateData = {
+              supabase_user_id: supabaseUserId,
+            };
+            if (email) updateData.email = email;
+            if (fullName) updateData.full_name = fullName;
+            if (avatarUrl) updateData.avatar_url = avatarUrl;
+            if (provider) updateData.auth_provider = provider;
 
-          const { data: linkedUser, error: linkError } = await supabase
-            .from("users")
-            .update(updateData)
-            .eq("id", existingUserId)
-            .select()
-            .single();
+            const { data: linkedUser, error: linkError } = await supabase
+              .from("users")
+              .update(updateData)
+              .eq("id", existingUserId)
+              .select()
+              .single();
 
-          if (linkError) {
-            console.error("❌ [AUTH] Error linking anonymous user:", linkError);
-            return res.status(500).json({
-              success: false,
-              message: "Error linking user",
-              error: linkError.message,
+            if (linkError) {
+              console.error("❌ [AUTH] Error linking anonymous user:", linkError);
+              return res.status(500).json({
+                success: false,
+                message: "Error linking user",
+                error: linkError.message,
+              });
+            }
+
+            console.log("✅ [AUTH] Email linked to anonymous account:", linkedUser.id);
+
+            // Increment session version for single-session enforcement
+            let finalUser = linkedUser;
+            if (loginPlatform) {
+              const sessionResult = await incrementSessionVersion(linkedUser.id, loginPlatform);
+              if (sessionResult.success) {
+                finalUser = sessionResult.user;
+              }
+            }
+
+            // Get effective user data (team credits/Pro if applicable)
+            const effectiveUserData = await getEffectiveUserData(finalUser, loginPlatform);
+            return res.status(200).json({
+              success: true,
+              message: "Email linked to your account successfully",
+              user: effectiveUserData,
+              isNewUser: false,
+              isLinked: true,
+              accountType: "anonymous_linked",
+              // Anonim hesap artık email'e bağlı, saklamaya gerek yok
+              preserveAnonymousAccount: false,
             });
           }
-
-          console.log("✅ [AUTH] Email linked to anonymous account:", linkedUser.id);
-
-          // Increment session version for single-session enforcement
-          let finalUser = linkedUser;
-          if (loginPlatform) {
-            const sessionResult = await incrementSessionVersion(linkedUser.id, loginPlatform);
-            if (sessionResult.success) {
-              finalUser = sessionResult.user;
-            }
-          }
-
-          // Get effective user data (team credits/Pro if applicable)
-          const effectiveUserData = await getEffectiveUserData(finalUser, loginPlatform);
-          return res.status(200).json({
-            success: true,
-            message: "Email linked to your account successfully",
-            user: effectiveUserData,
-            isNewUser: false,
-            isLinked: true,
-            accountType: "anonymous_linked",
-            // Anonim hesap artık email'e bağlı, saklamaya gerek yok
-            preserveAnonymousAccount: false,
-          });
         }
       }
     }
