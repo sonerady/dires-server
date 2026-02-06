@@ -12,7 +12,7 @@ const { supabase } = require("../supabaseClient");
 
 // Güncelleme yayınlanma tarihi - Bu tarihi her güncelleme için değiştir
 // Bu tarihten SONRA kayıt olan kullanıcılar modalı görecek
-const WHATS_NEW_CUTOFF_DATE = "2025-01-24T00:00:00.000Z"; // 24 Ocak 2025
+const WHATS_NEW_CUTOFF_DATE = "2026-02-06T00:00:00.000Z"; // 6 Şubat 2026
 
 /**
  * GET /api/whats-new/should-show
