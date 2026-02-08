@@ -21,6 +21,7 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const addProductRouter = require("./routes/addProduct");
 const getUserProductRouter = require("./routes/getUserProduct");
 const editRoomRoutes = require("./routes/editRoomRoutes");
+const chatEditRoutes = require("./routes/chatEditRoutes");
 const removeBgRouter = require("./routes/removeBg");
 const uploadImageRouter = require("./routes/uploadImage");
 const generateTrain = require("./routes/generateTrain");
@@ -249,6 +250,7 @@ app.use("/api", changeColorRoutesV2);
 app.use("/api/poses", poseRoutes); // Eski poseRoutes geri getirildi
 app.use("/api/user", infoModalRoutes);
 app.use("/api/editRoom", editRoomRoutes);
+app.use("/api/chat-edit", chatEditRoutes);
 app.use("/api/canvas", canvasCombineRoutes);
 // ESKİ WEBHOOK DEVRE DIŞI - Duplicate kredi sorunu yüzünden kapatıldı
 // app.use("/revenuecat", revenuecatWebhookRouter);
