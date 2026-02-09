@@ -340,7 +340,7 @@ ${existingModelNames.length > 0 ? `\nEXISTING MODEL NAMES (DO NOT USE THESE): ${
 
 ANALYSIS REQUIREMENTS:
 1. Detect the person's gender (woman/man)
-2. Estimate their age (number between 18-80)
+2. Estimate their age (number between 0-80). IMPORTANT: If the person is clearly a baby, toddler, child, or teenager, estimate their actual age accurately (e.g., 0 for newborn, 1-2 for baby, 3-12 for child, 13-17 for teenager). Do NOT default to 18+.
 3. Analyze physical features (skin tone, hair, eyes, facial structure)
 4. Generate a professional ID photo prompt
 5. ALWAYS generate a MODERN, contemporary name appropriate for the detected person, matching the language and region. The name must be different from existing model names and should be a popular, modern name that fits the person's appearance and age. ${modelName ? `You can use "${modelName}" if it fits, or suggest a better modern name based on the person's appearance.` : ''}
@@ -521,7 +521,7 @@ Generate a detailed ENGLISH prompt for creating professional ID photos.
 
 GENDER AND AGE CONTEXT:
 - Gender: ${gender}
-- Age: ${age}
+- Age: ${age}${["newborn", "baby", "child"].includes(age) ? ` (IMPORTANT: This is a ${age}, NOT an adult. Generate a prompt for a ${age === "newborn" ? "newborn baby (0-3 months)" : age === "baby" ? "baby/toddler (1-2 years old)" : "child (3-12 years old)"})` : ""}
 
 USER DETAILS TO INCORPORATE:
 "${originalPrompt}"
@@ -534,7 +534,7 @@ CRITICAL QUALITY REQUIREMENTS:
 - Professional studio photography sharpness standards
 - High definition, crisp details, razor-sharp focus
 
-Create a professional ID photo prompt incorporating these details: "${originalPrompt}" for a ${age} year old ${gender}. Return only the enhanced prompt text, no additional formatting or explanations:`;
+Create a professional ID photo prompt incorporating these details: "${originalPrompt}" for a ${["newborn", "baby", "child"].includes(age) ? age : `${age} year old`} ${gender}. Return only the enhanced prompt text, no additional formatting or explanations:`;
 
     // Replicate Gemini API çağrısı
     let enhancedPrompt = await callReplicateGeminiFlash(prompt, [], 3);
@@ -561,7 +561,8 @@ Create a professional ID photo prompt incorporating these details: "${originalPr
     console.error("❌ Full error:", error);
 
     // Fallback: Basit prompt döndür
-    const fallbackPrompt = `Professional ID photo style portrait of a ${age} ${gender === "woman" ? "female" : "male"
+    const ageDescription = age === "newborn" ? "newborn baby (0-3 months old)" : age === "baby" ? "baby toddler (1-2 years old)" : age === "child" ? "child (3-12 years old)" : `${age} year old`;
+    const fallbackPrompt = `Professional ID photo style portrait of a ${ageDescription} ${gender === "woman" ? "female" : "male"
       } person wearing a clean white t-shirt. Shot straight on with direct camera angle against a pure white background. The subject looks directly at the camera with a neutral, professional expression. Studio lighting, passport photo style, clean white background, white t-shirt, frontal view, high quality. Crystal clear, sharp focus throughout. NO borders, NO frames, NO text, NO watermarks, NO overlays, clean image only. ${originalPrompt ? `Additional details: ${originalPrompt}` : ""
       }`;
 
@@ -574,19 +575,26 @@ Create a professional ID photo prompt incorporating these details: "${originalPr
 const IMAGEN_4_API_URL = "https://fal.run/fal-ai/imagen4/preview/ultra";
 
 // Google nano-banana ile model generate et (text-to-image) - Migrated to Fal.ai Imagen 4
-async function generateModelWithNanoBanana(prompt, gender, age, userId) {
+async function generateModelWithNanoBanana(prompt, gender, age, userId, hijabPrompt = null) {
   try {
     logger.log("👤 [FAL.AI] Imagen 4 ile model generation başlatılıyor...");
     logger.log("Original prompt:", prompt);
     logger.log("Gender:", gender);
     logger.log("Age:", age);
+    logger.log("Hijab prompt:", hijabPrompt ? "provided" : "none");
 
     // 1. Gemini ile prompt'u enhance et
-    const enhancedPrompt = await enhanceModelPromptWithGemini2(
+    let enhancedPrompt = await enhanceModelPromptWithGemini2(
       prompt,
       gender,
       age
     );
+
+    // 2. Hijab prompt varsa enhanced prompt'a ekle
+    if (hijabPrompt) {
+      enhancedPrompt = enhancedPrompt + " " + hijabPrompt;
+      logger.log("🧕 Hijab prompt eklendi, final prompt length:", enhancedPrompt.length);
+    }
 
     logger.log("Enhanced prompt:", enhancedPrompt);
 
@@ -653,15 +661,16 @@ async function generateModelWithNanoBanana(prompt, gender, age, userId) {
 }
 
 // Google nano-banana ile uploaded image'i ID photo'ya transform et - Migrated to Fal.ai
-async function transformImageToIDPhoto(imageUrl, userId) {
+async function transformImageToIDPhoto(imageUrl, userId, hijabPrompt = null) {
   try {
     logger.log(
       "🔄 [FAL.AI] Nano Banana ile image-to-ID-photo transformation başlatılıyor..."
     );
     logger.log("Input image URL:", imageUrl);
+    logger.log("Hijab prompt:", hijabPrompt ? "provided" : "none");
 
     // Hazır transform prompt - ID photo'ya dönüştürme
-    const transformPrompt = `Transform this image into a professional ID photo style portrait. The person should be wearing a clean white t-shirt against a pure white background. Shot straight on with direct camera angle. Professional studio lighting with even illumination, no shadows. Neutral, professional facial expression looking directly at the camera. 
+    let transformPrompt = `Transform this image into a professional ID photo style portrait. The person should be wearing a clean white t-shirt against a pure white background. Shot straight on with direct camera angle. Professional studio lighting with even illumination, no shadows. Neutral, professional facial expression looking directly at the camera.
 
 CRITICAL SHARPNESS REQUIREMENTS:
 - Crystal clear, razor-sharp focus throughout the entire image
@@ -672,6 +681,12 @@ CRITICAL SHARPNESS REQUIREMENTS:
 - High definition, crisp details, perfect focus
 
 Clean composition with proper ID photo proportions. NO borders, NO frames, NO text, NO watermarks, NO overlays. Pure white background, white t-shirt, frontal view, passport photo style, professional quality.`;
+
+    // Hijab prompt varsa transform prompt'a ekle
+    if (hijabPrompt) {
+      transformPrompt = transformPrompt + " " + hijabPrompt;
+      logger.log("🧕 Hijab prompt eklendi, final transform prompt length:", transformPrompt.length);
+    }
 
     logger.log("Transform prompt:", transformPrompt);
     logger.log("🔍 Image URL test edilecek:", imageUrl);
@@ -992,6 +1007,8 @@ router.post("/create-model", async (req, res) => {
       languageCode = "en",
       regionCode = "US",
       termsAccepted = null, // Şartları kabul etme durumu (nullable - eski versiyonlar için)
+      hijabMode = false, // Tesettür modu
+      hijabPrompt = null, // Tesettür modu prompt'u
     } = req.body;
 
     logger.log("🚀 Create model işlemi başlatıldı");
@@ -1004,6 +1021,8 @@ router.post("/create-model", async (req, res) => {
     logger.log("Is Public:", isPublic);
     logger.log("Selected Image:", !!selectedImage);
     logger.log("Terms Accepted:", termsAccepted);
+    logger.log("Hijab Mode:", hijabMode);
+    logger.log("Hijab Prompt:", hijabPrompt ? "provided" : "none");
 
     // User ID validation
     let actualUserId = userId;
@@ -1096,7 +1115,8 @@ router.post("/create-model", async (req, res) => {
       try {
         imagenResult = await transformImageToIDPhoto(
           uploadedImageUrl,
-          actualUserId
+          actualUserId,
+          hijabPrompt
         );
       } catch (transformError) {
         console.error(
@@ -1117,7 +1137,8 @@ router.post("/create-model", async (req, res) => {
           enhancedPrompt,
           detectedGender,
           detectedAge,
-          actualUserId
+          actualUserId,
+          hijabPrompt
         );
       }
     } else {
@@ -1127,7 +1148,8 @@ router.post("/create-model", async (req, res) => {
         prompt,
         gender,
         finalAge,
-        actualUserId
+        actualUserId,
+        hijabPrompt
       );
     }
 
@@ -1135,9 +1157,30 @@ router.post("/create-model", async (req, res) => {
     const finalGender = selectedImage
       ? analysisResult?.detectedGender || gender
       : gender;
-    const finalFinalAge = selectedImage
-      ? analysisResult?.detectedAge || finalAge
-      : finalAge;
+
+    // Age belirleme: Kullanıcının seçtiği yaş kategorisine saygı göster
+    // Eğer kullanıcı "child", "baby", "newborn" gibi bir kategori seçtiyse,
+    // Gemini'nin detect ettiği yaş bu kategoriye uymuyorsa kullanıcının seçimini kullan
+    let finalFinalAge;
+    if (selectedImage && analysisResult?.detectedAge) {
+      const detectedAge = parseInt(analysisResult.detectedAge);
+      const userAge = finalAge; // customAge || age (kullanıcının seçtiği)
+
+      // Kullanıcının seçtiği yaş kategorisi ile Gemini'nin tahmini uyumlu mu kontrol et
+      const isUserSelectedChild = ["newborn", "baby", "child"].includes(userAge);
+      const isDetectedAdult = !isNaN(detectedAge) && detectedAge >= 16;
+
+      if (isUserSelectedChild && isDetectedAdult) {
+        // Kullanıcı çocuk seçmiş ama Gemini yetişkin yaş tespit etmiş - kullanıcının seçimini kullan
+        logger.log(`⚠️ [AGE_FIX] User selected "${userAge}" but Gemini detected ${detectedAge}. Using user's selection.`);
+        finalFinalAge = userAge;
+      } else {
+        // Normal akış - Gemini'nin tespitini kullan
+        finalFinalAge = analysisResult.detectedAge;
+      }
+    } else {
+      finalFinalAge = finalAge;
+    }
 
     // Model ismini belirle: analiz sonucunda gelen suggestedName'i öncelikli kullan
     // Eğer analiz sonucunda isim yoksa, kullanıcının girdiği ismi kullan
