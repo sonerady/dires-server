@@ -383,8 +383,8 @@ IMPORTANT: Output ONLY the enhanced prompt text, nothing else. No explanations, 
     timings.geminiEnd = Date.now();
     console.log(`✨ [CHAT-EDIT] Enhanced prompt: "${enhancedPrompt.substring(0, 200)}..."`);
 
-    // ── 6. Call fal.ai nano-banana API ──
-    console.log("🎯 [CHAT-EDIT] Calling fal.ai nano-banana...");
+    // ── 6. Call fal.ai nano-banana-pro API ──
+    console.log("🎯 [CHAT-EDIT] Calling fal.ai nano-banana-pro...");
     timings.falStart = Date.now();
 
     const truncatedPrompt =
@@ -399,6 +399,7 @@ IMPORTANT: Output ONLY the enhanced prompt text, nothing else. No explanations, 
       aspect_ratio: aspectRatio || "9:16",
       num_images: 1,
       resolution: "2K",
+      quality: "2K",
     };
 
     let resultImageUrl = null;
@@ -411,7 +412,7 @@ IMPORTANT: Output ONLY the enhanced prompt text, nothing else. No explanations, 
         );
 
         const falResponse = await axios.post(
-          "https://fal.run/fal-ai/nano-banana/edit",
+          "https://fal.run/fal-ai/nano-banana-pro/edit",
           falRequestBody,
           {
             headers: {
