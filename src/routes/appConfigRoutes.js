@@ -99,6 +99,8 @@ router.get("/app-config/version", async (req, res) => {
         changelogUrl: null,
         message: null,
         metadata: null,
+        googleLoginEnabled: true,
+        appleLoginEnabled: true,
         lang,
         fetchedAt: new Date().toISOString(),
       };
@@ -116,6 +118,8 @@ router.get("/app-config/version", async (req, res) => {
       metadata: data.metadata || null,
       websiteOpen: data.website_open || false,
       websiteLaunchDate: data.website_launch_date || null,
+      googleLoginEnabled: data.google_login_enabled !== false,
+      appleLoginEnabled: data.apple_login_enabled !== false,
       lang,
       fetchedAt: new Date().toISOString(),
     };
