@@ -14,6 +14,10 @@ const getModelRouter = require("./routes/getModel");
 const listTraingsRouter = require("./routes/listModels");
 const getTraining = require("./routes/getTraining");
 const updateCreditRouter = require("./routes/updateCredit");
+const changePose = require("./routes/updateCredit");
+const changeProductColor = require("./routes/changeProductColor");
+const backSideCloset = require("./routes/backSideCloset");
+
 const getUserRouter = require("./routes/getUser");
 const geminiImageEditRouter = require("./routes/geminiImageEdit");
 const referenceBrowserRoutesBack = require("./routes/referenceBrowserRoutesBack");
@@ -234,6 +238,9 @@ app.use("/api/referenceBrowserV3", referenceBrowserRoutesV3);
 app.use("/api/referenceBrowserV4", referenceBrowserRoutesV4);
 app.use("/api/referenceBrowserV5", referenceBrowserRoutesV5);
 app.use("/api/referenceBrowserV6", referenceBrowserRoutesV6);
+app.use("/api/changePose", changePose);
+app.use("/api/changeProductColor", changeProductColor);
+app.use("/api/backSideCloset", backSideCloset);
 
 app.use("/api/referenceJewelryBrowserV4", referenceJewelryBrowserRoutesV4);
 app.use("/api/reference-images", referenceImageRoutes);

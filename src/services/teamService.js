@@ -242,6 +242,17 @@ async function getUserTeam(userId) {
             return { ...teamData, role: membership.role };
         }
 
+        // Auto-create team if user has active team subscription but no team yet
+        const proStatus = await checkProStatus(userId);
+        if (proStatus.isPro && proStatus.maxMembers > 0) {
+            logger.log('[TeamService] getUserTeam: No team found but user has team subscription, auto-creating...');
+            const createResult = await getOrCreateTeam(userId);
+            if (createResult.success && createResult.team) {
+                const teamData = await getTeamWithMembers(createResult.team.id);
+                return { ...teamData, role: 'owner' };
+            }
+        }
+
         return { success: true, team: null, role: null };
     } catch (err) {
         console.error('[TeamService] getUserTeam error:', err);
