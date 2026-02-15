@@ -9,7 +9,7 @@
  */
 
 // Cloudflare Image Resizing aktif mi? (false yapılırsa eski Supabase render kullanılır - rollback için)
-const USE_CLOUDFLARE = true;
+const USE_CLOUDFLARE = false;
 
 // Cloudflare proxied domain (cdn-cgi/image/ bu domain üzerinden çalışır)
 // api.diress.ai DNS only olduğu için, proxied olan diress.ai kullanılmalı
