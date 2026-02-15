@@ -219,17 +219,10 @@ router.post("/generate", async (req, res) => {
       });
     }
 
-    if (!selections || selections.length === 0) {
-      return res.status(400).json({
-        success: false,
-        result: {
-          message: "selections are required. Please select an area to edit.",
-        },
-      });
-    }
+    const hasSelections = selections && selections.length > 0;
 
     console.log(`\n🎨 [CHAT-EDIT] New request from user ${userId}`);
-    console.log(`📝 [CHAT-EDIT] Prompt: "${prompt}"`);
+    console.log(`📝 [CHAT-EDIT] Prompt: "${prompt}" | Selections: ${hasSelections ? selections.length : 'none (full image)'}`);
 
     // ── 2. Credit check ──
     if (userId && userId !== "anonymous_user") {
@@ -295,8 +288,8 @@ router.post("/generate", async (req, res) => {
             user_id: userId,
             user_prompt: prompt,
             original_image_url: originalImageUrl,
-            selection_count: selections.length,
-            selections_json: selections,
+            selection_count: hasSelections ? selections.length : 0,
+            selections_json: hasSelections ? selections : [],
             display_dimensions: displayDimensions || null,
             aspect_ratio: aspectRatio || null,
             status: "processing",
@@ -314,41 +307,53 @@ router.post("/generate", async (req, res) => {
       }
     }
 
-    // ── 4. Download original image & compose masked image ──
+    // ── 4. Download original image & compose masked image (if selections exist) ──
     console.log("📐 [CHAT-EDIT] Downloading original image...");
     const origBuffer = await downloadImageBuffer(originalImageUrl);
     console.log(`📐 [CHAT-EDIT] Original image: ${(origBuffer.length / 1024 / 1024).toFixed(2)}MB`);
 
-    // 4a. Compose masked image server-side from selection paths
-    console.log(`🎭 [CHAT-EDIT] Composing masked image from ${selections.length} selections...`);
+    let maskedImageUrl = null;
+    let maskedBuffer = null;
     const metadata = await sharp(origBuffer).metadata();
-    const dims = displayDimensions || { width: 0, height: 0 };
-    const scaleX = metadata.width / (dims.width || metadata.width);
-    const scaleY = metadata.height / (dims.height || metadata.height);
 
-    const pathsStr = selections
-      .map((sel) => `<path d="${sel.path}" fill="rgba(128, 0, 128, 0.4)" stroke="none" transform="scale(${scaleX}, ${scaleY})"/>`)
-      .join("\n    ");
+    if (hasSelections) {
+      // 4a. Compose masked image server-side from selection paths
+      console.log(`🎭 [CHAT-EDIT] Composing masked image from ${selections.length} selections...`);
+      const dims = displayDimensions || { width: 0, height: 0 };
+      const scaleX = metadata.width / (dims.width || metadata.width);
+      const scaleY = metadata.height / (dims.height || metadata.height);
 
-    const svgOverlay = `<svg xmlns="http://www.w3.org/2000/svg" width="${metadata.width}" height="${metadata.height}">
+      const pathsStr = selections
+        .map((sel) => `<path d="${sel.path}" fill="rgba(128, 0, 128, 0.4)" stroke="none" transform="scale(${scaleX}, ${scaleY})"/>`)
+        .join("\n    ");
+
+      const svgOverlay = `<svg xmlns="http://www.w3.org/2000/svg" width="${metadata.width}" height="${metadata.height}">
     ${pathsStr}
   </svg>`;
 
-    const maskedBuffer = await sharp(origBuffer)
-      .composite([{ input: Buffer.from(svgOverlay), top: 0, left: 0 }])
-      .png()
-      .toBuffer();
+      maskedBuffer = await sharp(origBuffer)
+        .composite([{ input: Buffer.from(svgOverlay), top: 0, left: 0 }])
+        .png()
+        .toBuffer();
 
-    console.log(`🎭 [CHAT-EDIT] Masked image: ${(maskedBuffer.length / 1024 / 1024).toFixed(2)}MB`);
-    const maskedUpload = await uploadImageBufferToSupabase(maskedBuffer, "mask");
-    const maskedImageUrl = maskedUpload.url;
-    tempFilePaths.push(maskedUpload.remotePath);
+      console.log(`🎭 [CHAT-EDIT] Masked image: ${(maskedBuffer.length / 1024 / 1024).toFixed(2)}MB`);
+      const maskedUpload = await uploadImageBufferToSupabase(maskedBuffer, "mask");
+      maskedImageUrl = maskedUpload.url;
+      tempFilePaths.push(maskedUpload.remotePath);
+    } else {
+      console.log(`🎨 [CHAT-EDIT] No selections - full image edit mode`);
+    }
 
     // ── 5. Enhance prompt with Replicate Gemini 2.5 Flash ──
     console.log("🤖 [CHAT-EDIT] Enhancing prompt with Gemini...");
     timings.geminiStart = Date.now();
 
-    const geminiPrompt = `You are an expert AI image editing prompt engineer. Your task is to create a precise, detailed English prompt for an AI image editor that produces PHYSICALLY REALISTIC and COHERENT edits.
+    let geminiPrompt;
+    let geminiImageUrls;
+
+    if (hasSelections) {
+      // Selection mode - mevcut prompt (purple overlay açıklamalı)
+      geminiPrompt = `You are an expert AI image editing prompt engineer. Your task is to create a precise, detailed English prompt for an AI image editor that produces PHYSICALLY REALISTIC and COHERENT edits.
 
 The user wrote this edit instruction (may be in any language): "${prompt}"
 
@@ -374,10 +379,38 @@ CRITICAL REALISM RULES — the edit MUST obey these:
 The goal is a photorealistic result that looks like it was captured by a camera, NOT a pasted-on overlay or collage. Every added element must be INTEGRATED into the scene as if it was always there.
 
 IMPORTANT: Output ONLY the enhanced prompt text, nothing else. No explanations, no prefixes, no quotes.`;
+      geminiImageUrls = [originalImageUrl, maskedImageUrl];
+    } else {
+      // Full image mode - selection yok, tüm resmi düzenle
+      geminiPrompt = `You are an expert AI image editing prompt engineer. Your task is to create a precise, detailed English prompt for an AI image editor that produces PHYSICALLY REALISTIC and COHERENT edits.
+
+The user wrote this edit instruction (may be in any language): "${prompt}"
+
+You are given ONE image — the ORIGINAL image to be edited.
+The user wants to edit the ENTIRE image based on their instruction. There is NO specific area marked — the edit applies to the whole image.
+
+Based on the user's instruction and the image content, write a single, clear, detailed English prompt that:
+- Describes exactly what changes should be made to the image
+- Specifies what the image should look like AFTER the edit
+- Preserves the overall composition, subject identity, and key elements unless the user explicitly wants them changed
+- Is written as a direct instruction (e.g., "Change the background to...", "Make the lighting...", "Transform the style to...")
+
+CRITICAL REALISM RULES — the edit MUST obey these:
+- PHYSICS & GRAVITY: Objects must sit, hang, or rest naturally. No floating items, defying gravity, or impossible placements.
+- LIGHTING & SHADOWS: Added/changed elements must match the existing light source direction, intensity, color temperature, and cast accurate shadows and reflections.
+- PERSPECTIVE & SCALE: New elements must follow the same vanishing points, camera angle, depth of field, and be correctly sized relative to surrounding objects.
+- MATERIAL & TEXTURE: Surfaces must look real — fabric should drape naturally, metal should reflect, glass should refract, skin should have pores and natural tones.
+- ANATOMY & PROPORTIONS: If editing a person or body part, maintain correct human anatomy, natural proportions, and realistic posture. No extra fingers, distorted limbs, or unnatural body shapes.
+
+The goal is a photorealistic result that looks like it was captured by a camera, NOT a synthetic or AI-generated look.
+
+IMPORTANT: Output ONLY the enhanced prompt text, nothing else. No explanations, no prefixes, no quotes.`;
+      geminiImageUrls = [originalImageUrl];
+    }
 
     const enhancedPrompt = await callReplicateGeminiFlash(
       geminiPrompt,
-      [originalImageUrl, maskedImageUrl]
+      geminiImageUrls
     );
 
     timings.geminiEnd = Date.now();
@@ -387,14 +420,16 @@ IMPORTANT: Output ONLY the enhanced prompt text, nothing else. No explanations, 
     console.log("🎯 [CHAT-EDIT] Calling fal.ai nano-banana-pro...");
     timings.falStart = Date.now();
 
+    const qualitySuffix = " Render in ultra-high 4K resolution with maximum detail, sharp textures, and photorealistic quality.";
+    const promptWithQuality = enhancedPrompt + qualitySuffix;
     const truncatedPrompt =
-      enhancedPrompt.length > 4900
-        ? enhancedPrompt.substring(0, 4900)
-        : enhancedPrompt;
+      promptWithQuality.length > 4900
+        ? promptWithQuality.substring(0, 4900)
+        : promptWithQuality;
 
     const falRequestBody = {
       prompt: truncatedPrompt,
-      image_urls: [originalImageUrl, maskedImageUrl],
+      image_urls: hasSelections ? [originalImageUrl, maskedImageUrl] : [originalImageUrl],
       output_format: "png",
       aspect_ratio: aspectRatio || "9:16",
       num_images: 1,
@@ -490,10 +525,10 @@ IMPORTANT: Output ONLY the enhanced prompt text, nothing else. No explanations, 
       try {
         await supabase.from("chat_edits").update({
           enhanced_prompt: enhancedPrompt,
-          masked_image_url: maskedImageUrl,
+          masked_image_url: maskedImageUrl || null,
           result_image_url: supabaseResultUrl,
           original_image_size_bytes: origBuffer.length,
-          masked_image_size_bytes: maskedBuffer.length,
+          masked_image_size_bytes: maskedBuffer ? maskedBuffer.length : null,
           result_image_size_bytes: resultBuffer.length,
           original_resolution: { width: metadata.width, height: metadata.height },
           status: "completed",
