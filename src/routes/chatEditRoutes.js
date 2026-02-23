@@ -12,7 +12,7 @@ const supabaseKey =
   process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const CREDIT_COST = 5;
+const CREDIT_COST = 10;
 
 // ─── Replicate Gemini 2.5 Flash - Prompt Enhancement ───
 async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {

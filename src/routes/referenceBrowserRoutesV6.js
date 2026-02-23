@@ -15,6 +15,7 @@ const {
 } = require("../services/pushNotificationService");
 const teamService = require("../services/teamService");
 const logger = require("../utils/logger");
+const { optimizeImageUrl } = require("../utils/imageOptimizer");
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -5191,12 +5192,15 @@ router.post("/generate", async (req, res) => {
       const resultImageUrl = Array.isArray(finalResult.output)
         ? finalResult.output[0]
         : finalResult.output;
-      await updateGenerationStatus(finalGenerationId, userId, "completed", {
+      const updatedGeneration = await updateGenerationStatus(finalGenerationId, userId, "completed", {
         enhanced_prompt: enhancedPrompt,
         result_image_url: resultImageUrl,
         replicate_prediction_id: initialResult.id,
         processing_time_seconds: processingTime,
       });
+      // updateGenerationStatus Supabase bucket'e kaydedip DB'yi günceller,
+      // dönen kayıttaki result_image_url artık Supabase URL'sidir (fal.media değil)
+      const finalResultImageUrl = updatedGeneration?.result_image_url || resultImageUrl;
 
       // 💳 KREDI GÜNCELLEME SIRASI
       // Kredi düşümü updateGenerationStatus içinde tetikleniyor (pay-on-success).
@@ -5222,10 +5226,9 @@ router.post("/generate", async (req, res) => {
       const responseData = {
         success: true,
         result: {
-          // fal.ai returns output as array, client expects string
-          imageUrl: Array.isArray(finalResult.output)
-            ? finalResult.output[0]
-            : finalResult.output,
+          // Supabase bucket URL kullan (fal.media yerine)
+          imageUrl: finalResultImageUrl,
+          imageUrlThumbnail: finalResultImageUrl ? optimizeImageUrl(finalResultImageUrl, { width: 500, height: 500, quality: 80 }) : null,
           originalPrompt: promptText,
           enhancedPrompt: enhancedPrompt,
           replicateData: finalResult,
@@ -5927,6 +5930,11 @@ router.get("/generation-status/:generationId", async (req, res) => {
       }
     }
 
+    const thumbnailUrl = generation.result_image_url ? optimizeImageUrl(generation.result_image_url, { width: 500, height: 500, quality: 80 }) : null;
+    if (finalStatus === "completed") {
+      logger.log(`🖼️ [THUMBNAIL] Generation ${generation.generation_id}: original=${generation.result_image_url?.substring(0, 60)} | thumbnail=${thumbnailUrl?.substring(0, 80)}`);
+    }
+
     return res.status(200).json({
       success: true,
       result: {
@@ -5938,6 +5946,7 @@ router.get("/generation-status/:generationId", async (req, res) => {
           "v1", // Kalite versiyonu
         status: finalStatus,
         resultImageUrl: generation.result_image_url,
+        resultImageThumbnail: thumbnailUrl,
         originalPrompt: generation.original_prompt,
         enhancedPrompt: generation.enhanced_prompt,
         settings: generation.settings || {}, // Settings bilgisini de ekle
@@ -6065,6 +6074,7 @@ router.get("/pending-generations/:userId", async (req, res) => {
             generationId: gen.generation_id,
             status: gen.status,
             resultImageUrl: gen.result_image_url,
+            resultImageThumbnail: gen.result_image_url ? optimizeImageUrl(gen.result_image_url, { width: 500, height: 500, quality: 80 }) : null,
             originalPrompt: gen.original_prompt,
             enhancedPrompt: gen.enhanced_prompt,
             errorMessage: null, // error_message kolonu yok
@@ -6192,6 +6202,7 @@ router.get("/user-generations/:userId", async (req, res) => {
             userEmail: gen.users?.email || null, // Team workspace için user email
             status: gen.status,
             resultImageUrl: gen.result_image_url,
+            resultImageThumbnail: gen.result_image_url ? optimizeImageUrl(gen.result_image_url, { width: 500, height: 500, quality: 80 }) : null,
             originalPrompt: gen.original_prompt,
             enhancedPrompt: gen.enhanced_prompt,
             referenceImages: gen.reference_images,

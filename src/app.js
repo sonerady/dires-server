@@ -15,6 +15,7 @@ const listTraingsRouter = require("./routes/listModels");
 const getTraining = require("./routes/getTraining");
 const updateCreditRouter = require("./routes/updateCredit");
 const changePose = require("./routes/changePose");
+const createRefiner = require("./routes/createRefiner");
 const changeProductColor = require("./routes/changeProductColor");
 const backSideCloset = require("./routes/backSideCloset");
 
@@ -63,6 +64,7 @@ const referenceRefinerRoutes = require("./routes/referenceRefinerRoutes");
 const referenceImageRoutes = require("./routes/referenceImageRoutes");
 const bodyShapeRoutes = require("./routes/bodyShapeRoutes");
 const historyRoutes = require("./routes/historyRoutes");
+const featureHistoryRoutes = require("./routes/featureHistoryRoutes");
 const hairStyleRoutes = require("./routes/hairStyleRoutes");
 const hairColorRoutes = require("./routes/hairColorRoutes");
 const aiBackgroundsRouter = require("./routes/aiBackgroundsRoutes");
@@ -221,6 +223,7 @@ app.use("/api", locationRoutes);
 app.use("/api/backgrounds", backgroundRoutes);
 app.use("/api/bodyshapes", bodyShapeRoutes);
 app.use("/api/history", historyRoutes);
+app.use("/api/feature-history", featureHistoryRoutes);
 
 const downloadRoutes = require("./routes/downloadRoutes");
 app.use("/api/download", downloadRoutes);
@@ -239,6 +242,8 @@ app.use("/api/referenceBrowserV4", referenceBrowserRoutesV4);
 app.use("/api/referenceBrowserV5", referenceBrowserRoutesV5);
 app.use("/api/referenceBrowserV6", referenceBrowserRoutesV6);
 app.use("/api/changePose", changePose);
+app.use("/api/createRefiner", createRefiner);
+
 app.use("/api/changeProductColor", changeProductColor);
 app.use("/api/backSideCloset", backSideCloset);
 

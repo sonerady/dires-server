@@ -24,7 +24,7 @@ const supabaseKey =
 
 logger.log(
   "🔑 Supabase Key Type:",
-  process.env.SUPABASE_SERVICE_KEY ? "SERVICE_KEY" : "ANON_KEY"
+  process.env.SUPABASE_SERVICE_KEY ? "SERVICE_KEY" : "ANON_KEY",
 );
 logger.log("🔑 Key starts with:", supabaseKey?.substring(0, 20) + "...");
 
@@ -45,7 +45,7 @@ const genAI = new GoogleGenAI({
 async function callReplicateGeminiFlash(
   prompt,
   imageUrls = [],
-  maxRetries = 3
+  maxRetries = 3,
 ) {
   const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 
@@ -56,14 +56,12 @@ async function callReplicateGeminiFlash(
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       logger.log(
-        `🤖 [REPLICATE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`
+        `🤖 [REPLICATE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`,
       );
 
       // Debug: Request bilgilerini logla
       logger.log(`🔍 [REPLICATE-GEMINI] Images count: ${imageUrls.length}`);
-      logger.log(
-        `🔍 [REPLICATE-GEMINI] Prompt length: ${prompt.length} chars`
-      );
+      logger.log(`🔍 [REPLICATE-GEMINI] Prompt length: ${prompt.length} chars`);
 
       const requestBody = {
         input: {
@@ -87,7 +85,7 @@ async function callReplicateGeminiFlash(
             Prefer: "wait",
           },
           timeout: 120000, // 2 dakika timeout
-        }
+        },
       );
 
       const data = response.data;
@@ -102,7 +100,7 @@ async function callReplicateGeminiFlash(
       if (data.status !== "succeeded") {
         console.error(
           `❌ [REPLICATE-GEMINI] Prediction failed with status:`,
-          data.status
+          data.status,
         );
         throw new Error(`Prediction failed with status: ${data.status}`);
       }
@@ -121,7 +119,7 @@ async function callReplicateGeminiFlash(
       }
 
       logger.log(
-        `✅ [REPLICATE-GEMINI] Başarılı response alındı (attempt ${attempt})`
+        `✅ [REPLICATE-GEMINI] Başarılı response alındı (attempt ${attempt})`,
       );
       logger.log(`📊 [REPLICATE-GEMINI] Metrics:`, data.metrics);
 
@@ -129,12 +127,12 @@ async function callReplicateGeminiFlash(
     } catch (error) {
       console.error(
         `❌ [REPLICATE-GEMINI] Attempt ${attempt} failed:`,
-        error.message
+        error.message,
       );
 
       if (attempt === maxRetries) {
         console.error(
-          `❌ [REPLICATE-GEMINI] All ${maxRetries} attempts failed`
+          `❌ [REPLICATE-GEMINI] All ${maxRetries} attempts failed`,
         );
         throw error;
       }
@@ -157,15 +155,15 @@ fal.config({
 async function callFalAiGptImageEditForRefiner(
   prompt,
   imageUrl,
-  maxRetries = 3
+  maxRetries = 3,
 ) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       logger.log(
-        `🎨 [FAL_AI_GPT_REFINER] Image generation attempt ${attempt}/${maxRetries}`
+        `🎨 [FAL_AI_GPT_REFINER] Image generation attempt ${attempt}/${maxRetries}`,
       );
       logger.log(
-        `🎨 [FAL_AI_GPT_REFINER] Prompt: ${prompt.substring(0, 100)}...`
+        `🎨 [FAL_AI_GPT_REFINER] Prompt: ${prompt.substring(0, 100)}...`,
       );
 
       // fal.queue.submit ile GPT Image 1.5'e istek gönder
@@ -181,7 +179,7 @@ async function callFalAiGptImageEditForRefiner(
             num_images: 1,
             output_format: "jpeg",
           },
-        }
+        },
       );
 
       if (!request_id) {
@@ -189,7 +187,7 @@ async function callFalAiGptImageEditForRefiner(
       }
 
       logger.log(
-        `⏳ [FAL_AI_GPT_REFINER] Request submitted, request_id: ${request_id}`
+        `⏳ [FAL_AI_GPT_REFINER] Request submitted, request_id: ${request_id}`,
       );
 
       // Poll for completion
@@ -200,12 +198,13 @@ async function callFalAiGptImageEditForRefiner(
           {
             requestId: request_id,
             logs: false,
-          }
+          },
         );
 
         logger.log(
-          `⏳ [FAL_AI_GPT_REFINER] Poll ${poll + 1}/${maxPolls}, status: ${statusResult.status
-          }`
+          `⏳ [FAL_AI_GPT_REFINER] Poll ${poll + 1}/${maxPolls}, status: ${
+            statusResult.status
+          }`,
         );
 
         if (statusResult.status === "COMPLETED") {
@@ -214,7 +213,7 @@ async function callFalAiGptImageEditForRefiner(
             "fal-ai/gpt-image-1.5/edit",
             {
               requestId: request_id,
-            }
+            },
           );
 
           if (
@@ -240,7 +239,7 @@ async function callFalAiGptImageEditForRefiner(
     } catch (error) {
       console.error(
         `❌ [FAL_AI_GPT_REFINER] Attempt ${attempt} failed:`,
-        error.message
+        error.message,
       );
 
       if (attempt === maxRetries) {
@@ -263,7 +262,7 @@ if (!fs.existsSync(tempDir)) {
 async function cleanupTemporaryFiles(fileUrls) {
   // Bu fonksiyon artık dosya silme işlemi yapmıyor.
   logger.log(
-    "🧹 cleanupTemporaryFiles çağrıldı fakat dosya silme işlemi devre dışı bırakıldı."
+    "🧹 cleanupTemporaryFiles çağrıldı fakat dosya silme işlemi devre dışı bırakıldı.",
   );
   // İleride log veya başka bir işlem eklenebilir.
 }
@@ -276,7 +275,7 @@ function sanitizeImageUrl(imageUrl) {
   try {
     const parsedUrl = new URL(imageUrl);
     ["width", "height", "quality"].forEach((param) =>
-      parsedUrl.searchParams.delete(param)
+      parsedUrl.searchParams.delete(param),
     );
     // searchParams.delete already mutates search; ensure empty queries stripped
     if (!parsedUrl.searchParams.toString()) {
@@ -319,7 +318,7 @@ async function ensureRemoteReferenceImage(imageEntry, userId) {
   if (typeof imageEntry === "string") {
     if (imageEntry.startsWith("file://")) {
       throw new Error(
-        "Yerel dosya path'i desteklenmiyor. Base64 data gönderilmelidir."
+        "Yerel dosya path'i desteklenmiyor. Base64 data gönderilmelidir.",
       );
     }
     return {
@@ -342,21 +341,23 @@ async function ensureRemoteReferenceImage(imageEntry, userId) {
       const uploadSource = `data:image/jpeg;base64,${result.base64}`;
       const uploadedUrl = await uploadReferenceImageToSupabase(
         uploadSource,
-        userId
+        userId,
       );
       result.uri = uploadedUrl;
       // 🚀 OPTIMIZE: base64'ü silme - Gemini için sakla
       // result.base64 zaten var, onu koruyoruz
       result.alreadyUploaded = true; // 🚀 Bu resim zaten upload edildi flag'i
       logger.log(
-        `📤 [UPLOAD] ${currentUri.startsWith("blob:") ? "Blob" : "File"
+        `📤 [UPLOAD] ${
+          currentUri.startsWith("blob:") ? "Blob" : "File"
         } URL Supabase'e yüklendi (base64 korundu):`,
-        uploadedUrl?.slice(0, 60)
+        uploadedUrl?.slice(0, 60),
       );
     } else {
       throw new Error(
-        `${currentUri.startsWith("blob:") ? "Blob" : "Yerel dosya"
-        } path'i tespit edildi ancak base64 verisi bulunamadı.`
+        `${
+          currentUri.startsWith("blob:") ? "Blob" : "Yerel dosya"
+        } path'i tespit edildi ancak base64 verisi bulunamadı.`,
       );
     }
   }
@@ -473,7 +474,7 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
     } else {
       // file:// protokolü - Bu durumda frontend'den base64 data gönderilmeli
       throw new Error(
-        "Yerel dosya path'i desteklenmemektedir. Lütfen resmin base64 data'sını gönderin."
+        "Yerel dosya path'i desteklenmemektedir. Lütfen resmin base64 data'sını gönderin.",
       );
     }
 
@@ -499,33 +500,34 @@ async function uploadReferenceImageToSupabase(imageUri, userId) {
             .png()
             .toBuffer();
           logger.log(
-            "✅ Tek resim upload: PNG'ye dönüştürüldü (EXIF rotation uygulandı)"
+            "✅ Tek resim upload: PNG'ye dönüştürüldü (EXIF rotation uygulandı)",
           );
         } catch (pngError) {
           console.error("❌ PNG dönüştürme hatası:", pngError.message);
           processedBuffer = imageBuffer; // Son çare: orijinal buffer
           logger.log(
-            "⚠️ Orijinal buffer kullanılıyor (EXIF rotation uygulanamadı)"
+            "⚠️ Orijinal buffer kullanılıyor (EXIF rotation uygulanamadı)",
           );
         }
       } else {
         processedBuffer = imageBuffer; // Son çare: orijinal buffer
         logger.log(
-          "⚠️ Orijinal buffer kullanılıyor (EXIF rotation uygulanamadı)"
+          "⚠️ Orijinal buffer kullanılıyor (EXIF rotation uygulanamadı)",
         );
       }
     }
 
     // Boyut bilgisi (compress client tarafında yapılıyor)
     logger.log(
-      `📏 [SIZE-CHECK] Resim boyutu: ${(processedBuffer.length / 1024 / 1024).toFixed(2)} MB (client tarafında compress edildi)`
+      `📏 [SIZE-CHECK] Resim boyutu: ${(processedBuffer.length / 1024 / 1024).toFixed(2)} MB (client tarafında compress edildi)`,
     );
 
     // Dosya adı oluştur (otomatik temizleme için timestamp prefix)
     const timestamp = Date.now();
     const randomId = uuidv4().substring(0, 8);
-    const fileName = `temp_${timestamp}_reference_${userId || "anonymous"
-      }_${randomId}.jpg`;
+    const fileName = `temp_${timestamp}_reference_${
+      userId || "anonymous"
+    }_${randomId}.jpg`;
 
     logger.log("Supabase'e yüklenecek dosya adı:", fileName);
 
@@ -566,7 +568,7 @@ async function uploadReferenceImagesToSupabase(referenceImages, userId) {
     logger.log(
       "📤 Reference images Supabase'e yükleniyor...",
       referenceImages.length,
-      "adet"
+      "adet",
     );
 
     const uploadedUrls = [];
@@ -582,18 +584,20 @@ async function uploadReferenceImagesToSupabase(referenceImages, userId) {
         // tekrar upload etme, sadece URL ve base64'ü kullan
         if (referenceImage.alreadyUploaded) {
           logger.log(
-            `🚀 [OPTIMIZE] Reference image ${i + 1
-            }: Zaten upload edilmiş, tekrar upload atlanıyor`
+            `🚀 [OPTIMIZE] Reference image ${
+              i + 1
+            }: Zaten upload edilmiş, tekrar upload atlanıyor`,
           );
           uploadedUrls.push(referenceImage.uri);
           base64ForGemini = referenceImage.base64 || null;
           base64DataArray.push(base64ForGemini);
           if (base64ForGemini) {
             logger.log(
-              `✅ Reference image ${i + 1
+              `✅ Reference image ${
+                i + 1
               }: Mevcut base64 kullanılıyor - boyut: ${Math.round(
-                base64ForGemini.length / 1024
-              )} KB`
+                base64ForGemini.length / 1024,
+              )} KB`,
             );
           }
           continue;
@@ -605,9 +609,7 @@ async function uploadReferenceImagesToSupabase(referenceImages, userId) {
         if (referenceImage.base64) {
           imageSourceForUpload = `data:image/jpeg;base64,${referenceImage.base64}`;
           base64ForGemini = referenceImage.base64; // 🚀 Gemini için sakla
-          logger.log(
-            `📤 Reference image ${i + 1}: Client base64 kullanılıyor`
-          );
+          logger.log(`📤 Reference image ${i + 1}: Client base64 kullanılıyor`);
         } else if (
           referenceImage.uri &&
           (referenceImage.uri.startsWith("http://") ||
@@ -616,8 +618,9 @@ async function uploadReferenceImagesToSupabase(referenceImages, userId) {
           // 🚀 HTTP URL'yi indir ve base64'e çevir - hem upload hem Gemini için kullan
           try {
             logger.log(
-              `🔄 Reference image ${i + 1
-              }: HTTP URL'den indiriliyor (tek sefer)...`
+              `🔄 Reference image ${
+                i + 1
+              }: HTTP URL'den indiriliyor (tek sefer)...`,
             );
             const cleanUrl = sanitizeImageUrl(referenceImage.uri);
             const imageResponse = await axios.get(cleanUrl, {
@@ -625,25 +628,26 @@ async function uploadReferenceImagesToSupabase(referenceImages, userId) {
               timeout: 30000,
             });
             base64ForGemini = Buffer.from(imageResponse.data).toString(
-              "base64"
+              "base64",
             );
             imageSourceForUpload = `data:image/jpeg;base64,${base64ForGemini}`;
             logger.log(
-              `✅ Reference image ${i + 1
+              `✅ Reference image ${
+                i + 1
               }: URL'den base64'e çevrildi - boyut: ${Math.round(
-                base64ForGemini.length / 1024
-              )} KB`
+                base64ForGemini.length / 1024,
+              )} KB`,
             );
           } catch (downloadErr) {
             console.error(
               `❌ Reference image ${i + 1}: İndirme hatası:`,
-              downloadErr.message
+              downloadErr.message,
             );
             imageSourceForUpload = referenceImage.uri; // Fallback: orijinal URL
           }
         } else {
           logger.log(
-            `⚠️ Reference image ${i + 1}: Desteklenmeyen format, atlanıyor`
+            `⚠️ Reference image ${i + 1}: Desteklenmeyen format, atlanıyor`,
           );
           uploadedUrls.push(referenceImage.uri); // Fallback olarak original URI'yi kullan
           base64DataArray.push(null);
@@ -652,18 +656,18 @@ async function uploadReferenceImagesToSupabase(referenceImages, userId) {
 
         const uploadedUrl = await uploadReferenceImageToSupabase(
           imageSourceForUpload,
-          userId
+          userId,
         );
         uploadedUrls.push(uploadedUrl);
         base64DataArray.push(base64ForGemini); // 🚀 Gemini için base64'ü sakla
         logger.log(
           `✅ Reference image ${i + 1} başarıyla upload edildi:`,
-          uploadedUrl
+          uploadedUrl,
         );
       } catch (uploadError) {
         console.error(
           `❌ Reference image ${i + 1} upload hatası:`,
-          uploadError.message
+          uploadError.message,
         );
         // Hata durumunda original URI'yi fallback olarak kullan
         uploadedUrls.push(referenceImage.uri);
@@ -674,7 +678,7 @@ async function uploadReferenceImagesToSupabase(referenceImages, userId) {
     logger.log(
       "📤 Toplam",
       uploadedUrls.length,
-      "reference image URL'si hazırlandı"
+      "reference image URL'si hazırlandı",
     );
 
     // 🚀 Hem URL'leri hem base64'leri döndür
@@ -699,7 +703,7 @@ async function createPendingGeneration(
   isMultipleImages = false,
   isMultipleProducts = false,
   generationId = null,
-  qualityVersion = "v1" // Kalite versiyonu parametresi
+  qualityVersion = "v1", // Kalite versiyonu parametresi
 ) {
   try {
     // User ID yoksa veya UUID formatında değilse, UUID oluştur
@@ -708,25 +712,22 @@ async function createPendingGeneration(
 
     if (!userIdentifier || userIdentifier === "anonymous_user") {
       userIdentifier = uuidv4(); // UUID formatında anonymous user oluştur
-      logger.log(
-        "🔍 [DEBUG] Yeni anonymous UUID oluşturuldu:",
-        userIdentifier
-      );
+      logger.log("🔍 [DEBUG] Yeni anonymous UUID oluşturuldu:", userIdentifier);
     } else if (
       !userIdentifier.match(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
       )
     ) {
       // Eğer gelen ID UUID formatında değilse, UUID'ye çevir veya yeni UUID oluştur
       logger.log(
         "🔍 [DEBUG] User ID UUID formatında değil, yeni UUID oluşturuluyor:",
-        userIdentifier
+        userIdentifier,
       );
       userIdentifier = uuidv4();
     } else {
       logger.log(
         "🔍 [DEBUG] User ID UUID formatında, aynı ID kullanılıyor:",
-        userIdentifier
+        userIdentifier,
       );
     }
 
@@ -764,7 +765,7 @@ async function createPendingGeneration(
     logger.log("✅ Pending generation kaydedildi:", insertData[0]?.id);
     logger.log(
       "🔍 [DEBUG] Kaydedilen generation_id:",
-      insertData[0]?.generation_id
+      insertData[0]?.generation_id,
     );
     logger.log("🔍 [DEBUG] Kaydedilen status:", insertData[0]?.status);
     return insertData[0]; // Insert edilen kaydı döndür
@@ -775,32 +776,28 @@ async function createPendingGeneration(
 }
 
 // ============================================================
-// Pose Change Generations tablosuna kayıt fonksiyonları
-// reference_results'a ek olarak pose_change_generations tablosuna da yazar
+// Refiner Generations tablosuna kayıt fonksiyonları
+// reference_results'a ek olarak refiner_generations tablosuna da yazar
 // ============================================================
 
-async function saveToPoseChangeGenerations({
+async function saveToRefinerGenerations({
   userId,
   generationId,
   status = "pending",
   originalPrompt = null,
   enhancedPrompt = null,
-  customDetail = null,
   originalImageUrl = null,
-  poseImageUrl = null,
   resultImageUrl = null,
-  productImages = [],
-  gender = "woman",
   settings = {},
-  aspectRatio = "9:16",
+  aspectRatio = "2:3",
   qualityVersion = "v1",
   falRequestId = null,
   processingTimeSeconds = null,
-  creditsUsed = 10,
+  creditsUsed = 20,
 }) {
   try {
     const { data, error } = await supabase
-      .from("pose_change_generations")
+      .from("refiner_generations")
       .insert([
         {
           user_id: userId,
@@ -808,12 +805,8 @@ async function saveToPoseChangeGenerations({
           status,
           original_prompt: originalPrompt,
           enhanced_prompt: enhancedPrompt,
-          custom_detail: customDetail,
           original_image_url: originalImageUrl,
-          pose_image_url: poseImageUrl,
           result_image_url: resultImageUrl,
-          product_images: productImages,
-          gender,
           settings,
           aspect_ratio: aspectRatio,
           quality_version: qualityVersion,
@@ -825,18 +818,18 @@ async function saveToPoseChangeGenerations({
       .select();
 
     if (error) {
-      console.error("❌ [POSE_TABLE] Kayıt hatası:", error.message);
+      console.error("❌ [REFINER_TABLE] Kayıt hatası:", error.message);
       return null;
     }
-    logger.log(`✅ [POSE_TABLE] Kayıt oluşturuldu: ${generationId} (${status})`);
+    logger.log(`✅ [REFINER_TABLE] Kayıt oluşturuldu: ${generationId} (${status})`);
     return data?.[0] || null;
   } catch (err) {
-    console.error("❌ [POSE_TABLE] Exception:", err.message);
+    console.error("❌ [REFINER_TABLE] Exception:", err.message);
     return null;
   }
 }
 
-async function updatePoseChangeGeneration(generationId, userId, updates = {}) {
+async function updateRefinerGeneration(generationId, userId, updates = {}) {
   try {
     const updateData = {
       ...updates,
@@ -844,20 +837,20 @@ async function updatePoseChangeGeneration(generationId, userId, updates = {}) {
     };
 
     const { data, error } = await supabase
-      .from("pose_change_generations")
+      .from("refiner_generations")
       .update(updateData)
       .eq("generation_id", generationId)
       .eq("user_id", userId)
       .select();
 
     if (error) {
-      console.error("❌ [POSE_TABLE] Güncelleme hatası:", error.message);
+      console.error("❌ [REFINER_TABLE] Güncelleme hatası:", error.message);
       return false;
     }
-    logger.log(`✅ [POSE_TABLE] Güncellendi: ${generationId} →`, Object.keys(updates).join(", "));
+    logger.log(`✅ [REFINER_TABLE] Güncellendi: ${generationId} →`, Object.keys(updates).join(", "));
     return true;
   } catch (err) {
-    console.error("❌ [POSE_TABLE] Update exception:", err.message);
+    console.error("❌ [REFINER_TABLE] Update exception:", err.message);
     return false;
   }
 }
@@ -866,7 +859,7 @@ async function updatePoseChangeGeneration(generationId, userId, updates = {}) {
 async function deductCreditOnSuccess(generationId, userId) {
   try {
     logger.log(
-      `💳 [COMPLETION-CREDIT] Generation ${generationId} başarılı, kredi düşürülüyor...`
+      `💳 [COMPLETION-CREDIT] Generation ${generationId} başarılı, kredi düşürülüyor...`,
     );
 
     // 🔒 Deduplication: Bu generation için zaten kredi düşürülmüş mü kontrol et
@@ -886,21 +879,21 @@ async function deductCreditOnSuccess(generationId, userId) {
     try {
       logger.log(
         `💳 [DEDUP-CHECK] Generation ${generationId} settings:`,
-        JSON.stringify(existingGen?.settings || {}, null, 2)
+        JSON.stringify(existingGen?.settings || {}, null, 2),
       );
     } catch (_) {
       logger.log(
-        `💳 [DEDUP-CHECK] Generation ${generationId} settings: <unserializable>`
+        `💳 [DEDUP-CHECK] Generation ${generationId} settings: <unserializable>`,
       );
     }
     logger.log(
       `💳 [DEDUP-CHECK] creditDeducted flag:`,
-      existingGen.settings?.creditDeducted
+      existingGen.settings?.creditDeducted,
     );
 
     if (existingGen.settings?.creditDeducted === true) {
       logger.log(
-        `💳 [COMPLETION-CREDIT] Generation ${generationId} için zaten kredi düşürülmüş, atlanıyor`
+        `💳 [COMPLETION-CREDIT] Generation ${generationId} için zaten kredi düşürülmüş, atlanıyor`,
       );
       return true;
     }
@@ -915,13 +908,13 @@ async function deductCreditOnSuccess(generationId, userId) {
     const CREDIT_COST = qualityVersion === "v2" ? 35 : 10; // v2 için 35, v1 için 10 kredi
 
     logger.log(
-      `💳 [CREDIT] Kalite versiyonu: ${qualityVersion}, Kredi maliyeti: ${CREDIT_COST}`
+      `💳 [CREDIT] Kalite versiyonu: ${qualityVersion}, Kredi maliyeti: ${CREDIT_COST}`,
     );
 
     // Jenerasyon başına kredi düş
     const totalCreditCost = CREDIT_COST;
     logger.log(
-      `💳 [COMPLETION-CREDIT] Bu generation için ${totalCreditCost} kredi düşürülecek`
+      `💳 [COMPLETION-CREDIT] Bu generation için ${totalCreditCost} kredi düşürülecek`,
     );
 
     // 🔗 TEAM-AWARE: Team member ise owner'ın kredisinden düş
@@ -932,7 +925,7 @@ async function deductCreditOnSuccess(generationId, userId) {
     logger.log(`💳 [TEAM-AWARE] Kredi sahibi belirlendi:`, {
       requestingUser: userId,
       creditOwnerId: creditOwnerId,
-      isTeamCredit: isTeamCredit
+      isTeamCredit: isTeamCredit,
     });
 
     // Krediyi atomic olarak düş - creditOwnerId üzerinden
@@ -951,7 +944,7 @@ async function deductCreditOnSuccess(generationId, userId) {
 
     if (currentCredit < totalCreditCost) {
       console.error(
-        `❌ Yetersiz kredi! Mevcut: ${currentCredit}, Gerekli: ${totalCreditCost}`
+        `❌ Yetersiz kredi! Mevcut: ${currentCredit}, Gerekli: ${totalCreditCost}`,
       );
       // Başarısız sonuç olarak işaretle ama generation'ı completed bırak
       return false;
@@ -964,7 +957,7 @@ async function deductCreditOnSuccess(generationId, userId) {
       {
         user_id: creditOwnerId,
         credit_amount: totalCreditCost,
-      }
+      },
     );
 
     if (updateError) {
@@ -975,12 +968,12 @@ async function deductCreditOnSuccess(generationId, userId) {
     const newBalance =
       updateResult?.new_balance || currentCredit - totalCreditCost;
     logger.log(
-      `✅ ${totalCreditCost} kredi başarıyla düşüldü (${isTeamCredit ? 'team owner' : 'user'}: ${creditOwnerId}). Yeni bakiye: ${newBalance}`
+      `✅ ${totalCreditCost} kredi başarıyla düşüldü (${isTeamCredit ? "team owner" : "user"}: ${creditOwnerId}). Yeni bakiye: ${newBalance}`,
     );
 
     // 💳 Kredi tracking bilgilerini generation'a kaydet
     logger.log(
-      `💳 [TRACKING] Generation ${generationId} için kredi tracking bilgileri kaydediliyor...`
+      `💳 [TRACKING] Generation ${generationId} için kredi tracking bilgileri kaydediliyor...`,
     );
     const creditTrackingUpdates = {
       credits_before_generation: currentCredit,
@@ -1000,7 +993,7 @@ async function deductCreditOnSuccess(generationId, userId) {
     } else {
       logger.log(
         `💳 [TRACKING] Generation ${generationId} credit tracking başarıyla kaydedildi:`,
-        creditTrackingUpdates
+        creditTrackingUpdates,
       );
     }
 
@@ -1011,7 +1004,7 @@ async function deductCreditOnSuccess(generationId, userId) {
     };
     logger.log(
       `🏷️ [FLAG-UPDATE] Updating settings for ${generationId}:`,
-      JSON.stringify(updatedSettings, null, 2)
+      JSON.stringify(updatedSettings, null, 2),
     );
     const { error: flagError } = await supabase
       .from("reference_results")
@@ -1024,7 +1017,7 @@ async function deductCreditOnSuccess(generationId, userId) {
       // Kredi zaten düştü, flag hatası önemli değil
     } else {
       logger.log(
-        `🏷️ Generation ${generationId} creditDeducted flag'i başarıyla eklendi`
+        `🏷️ Generation ${generationId} creditDeducted flag'i başarıyla eklendi`,
       );
     }
 
@@ -1040,7 +1033,7 @@ async function updateGenerationStatus(
   generationId,
   userId,
   status,
-  updates = {}
+  updates = {},
 ) {
   try {
     // Idempotent kredi düşümü için önce mevcut kaydın durumunu ve settings'ini oku
@@ -1059,7 +1052,7 @@ async function updateGenerationStatus(
     } catch (readErr) {
       console.warn(
         "⚠️ Mevcut generation durumu okunamadı (devam ediliyor)",
-        readErr
+        readErr,
       );
     }
 
@@ -1077,14 +1070,14 @@ async function updateGenerationStatus(
 
         // 2️⃣ Watermark işlemi client-side'a taşındı, server'da sadece orijinal resmi kaydet
         logger.log(
-          "💎 Watermark işlemi client-side'da yapılacak, orijinal resim kaydediliyor"
+          "💎 Watermark işlemi client-side'da yapılacak, orijinal resim kaydediliyor",
         );
         processedImageUrl = updates.result_image_url;
 
         // 3️⃣ İşlenmiş resmi user bucket'ine kaydet
         const userBucketUrl = await saveResultImageToUserBucket(
           processedImageUrl,
-          userId
+          userId,
         );
         finalUpdates.result_image_url = userBucketUrl;
         logger.log("✅ Result image user bucket'e kaydedildi:", userBucketUrl);
@@ -1114,23 +1107,23 @@ async function updateGenerationStatus(
 
     logger.log(`✅ Generation ${generationId} status güncellendi: ${status}`);
 
-    // 📊 Pose change tablosunu da güncelle (isPoseChange veya settings'den kontrol)
-    const isPoseChangeGen = previousSettings?.isPoseChange || previousSettings?.pose || finalUpdates?.settings?.isPoseChange;
-    if (isPoseChangeGen) {
-      const poseUpdateData = { status };
+    // 📊 Refiner modunda refiner_generations tablosunu da güncelle
+    const isRefiner = previousSettings?.isRefinerMode || finalUpdates?.settings?.isRefinerMode;
+    if (isRefiner) {
+      const refinerUpdateData = { status };
       if (finalUpdates.result_image_url) {
-        poseUpdateData.result_image_url = finalUpdates.result_image_url;
+        refinerUpdateData.result_image_url = finalUpdates.result_image_url;
       }
       if (finalUpdates.enhanced_prompt) {
-        poseUpdateData.enhanced_prompt = finalUpdates.enhanced_prompt;
+        refinerUpdateData.enhanced_prompt = finalUpdates.enhanced_prompt;
       }
       if (finalUpdates.replicate_prediction_id) {
-        poseUpdateData.fal_request_id = finalUpdates.replicate_prediction_id;
+        refinerUpdateData.fal_request_id = finalUpdates.replicate_prediction_id;
       }
       if (finalUpdates.processing_time_seconds) {
-        poseUpdateData.processing_time_seconds = finalUpdates.processing_time_seconds;
+        refinerUpdateData.processing_time_seconds = finalUpdates.processing_time_seconds;
       }
-      await updatePoseChangeGeneration(generationId, userId, poseUpdateData);
+      await updateRefinerGeneration(generationId, userId, refinerUpdateData);
     }
 
     // 💳 Başarılı completion'da kredi düş (idempotent)
@@ -1139,11 +1132,11 @@ async function updateGenerationStatus(
       const alreadyDeducted = previousSettings?.creditDeducted === true;
       if (alreadyCompleted && alreadyDeducted) {
         logger.log(
-          `💳 [SKIP] ${generationId} zaten completed ve kredi düşülmüş. Deduction atlanıyor.`
+          `💳 [SKIP] ${generationId} zaten completed ve kredi düşülmüş. Deduction atlanıyor.`,
         );
       } else {
         logger.log(
-          `💳 [TRIGGER] updateGenerationStatus: ${generationId} → ${status} | previous=${previousStatus}`
+          `💳 [TRIGGER] updateGenerationStatus: ${generationId} → ${status} | previous=${previousStatus}`,
         );
         logger.log(`💳 [TRIGGER] Kredi düşürme kontrolü başlatılıyor...`);
         await deductCreditOnSuccess(generationId, userId);
@@ -1152,16 +1145,16 @@ async function updateGenerationStatus(
       // 📱 Push notification gönder (sadece yeni completed ise)
       if (!alreadyCompleted) {
         logger.log(
-          `📱 [NOTIFICATION] Generation completed - notification gönderiliyor: ${generationId}`
+          `📱 [NOTIFICATION] Generation completed - notification gönderiliyor: ${generationId}`,
         );
         sendGenerationCompletedNotification(userId, generationId).catch(
           (error) => {
             console.error(
               `❌ [NOTIFICATION] Notification gönderme hatası:`,
-              error
+              error,
             );
             // Notification hatası generation'ı etkilemesin, sessizce devam et
-          }
+          },
         );
       }
     }
@@ -1183,7 +1176,7 @@ function formatAspectRatio(ratioStr) {
     // "original" veya tanımsız değerler için varsayılan oran
     if (!ratioStr || ratioStr === "original" || ratioStr === "undefined") {
       logger.log(
-        `Geçersiz ratio formatı: ${ratioStr}, varsayılan değer kullanılıyor: 9:16`
+        `Geçersiz ratio formatı: ${ratioStr}, varsayılan değer kullanılıyor: 9:16`,
       );
       return "9:16";
     }
@@ -1191,7 +1184,7 @@ function formatAspectRatio(ratioStr) {
     // ":" içermeyen değerler için varsayılan oran
     if (!ratioStr.includes(":")) {
       logger.log(
-        `Geçersiz ratio formatı: ${ratioStr}, varsayılan değer kullanılıyor: 9:16`
+        `Geçersiz ratio formatı: ${ratioStr}, varsayılan değer kullanılıyor: 9:16`,
       );
       return "9:16";
     }
@@ -1207,7 +1200,7 @@ function formatAspectRatio(ratioStr) {
 
     if (!width || !height || isNaN(width) || isNaN(height)) {
       logger.log(
-        `Geçersiz ratio değerleri: ${ratioStr}, varsayılan değer kullanılıyor: 9:16`
+        `Geçersiz ratio değerleri: ${ratioStr}, varsayılan değer kullanılıyor: 9:16`,
       );
       return "9:16";
     }
@@ -1229,13 +1222,13 @@ function formatAspectRatio(ratioStr) {
     }
 
     logger.log(
-      `Ratio ${ratioStr} için en yakın desteklenen değer: ${closestRatio}`
+      `Ratio ${ratioStr} için en yakın desteklenen değer: ${closestRatio}`,
     );
     return closestRatio;
   } catch (error) {
     console.error(
       `Ratio formatı işlenirken hata oluştu: ${error.message}`,
-      error
+      error,
     );
     return "9:16";
   }
@@ -1298,12 +1291,10 @@ async function enhancePromptWithGemini(
   referenceImages = null, // Back side analysis için 2 resim
   isMultipleImages = false, // Çoklu resim modu mu?
   userId = null, // Compress için userId
-  originalBase64Data = null // Orijinal base64 verisi - URL'den tekrar indirmemek için
+  originalBase64Data = null, // Orijinal base64 verisi - URL'den tekrar indirmemek için
 ) {
   try {
-    logger.log(
-      "🤖 [GEMINI] Google Gemini ile prompt iyileştirme başlatılıyor"
-    );
+    logger.log("🤖 [GEMINI] Google Gemini ile prompt iyileştirme başlatılıyor");
     logger.log("🏞️ [GEMINI] Location image parametresi:", locationImage);
     logger.log("🤸 [GEMINI] Pose image parametresi:", poseImage);
     logger.log("💇 [GEMINI] Hair style image parametresi:", hairStyleImage);
@@ -1319,7 +1310,7 @@ async function enhancePromptWithGemini(
     const hasValidSettings =
       settings &&
       Object.entries(settings).some(
-        ([key, value]) => value !== null && value !== undefined && value !== ""
+        ([key, value]) => value !== null && value !== undefined && value !== "",
       );
 
     logger.log("🎛️ [BACKEND GEMINI] Settings kontrolü:", hasValidSettings);
@@ -1376,7 +1367,7 @@ async function enhancePromptWithGemini(
       baseModelText = `newborn baby ${genderWord}`;
 
       logger.log(
-        "👶 [GEMINI] NEWBORN MODE tespit edildi - Newborn fashion photography"
+        "👶 [GEMINI] NEWBORN MODE tespit edildi - Newborn fashion photography",
       );
     } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 3) {
       // Baby/Toddler (1-3 yaş)
@@ -1493,7 +1484,7 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       const { bust, waist, hips, height, weight } = settings.measurements;
       logger.log(
         "📏 [BACKEND GEMINI] Custom body measurements alındı:",
-        settings.measurements
+        settings.measurements,
       );
 
       bodyShapeMeasurementsSection = `
@@ -1522,7 +1513,7 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
             value !== "" &&
             key !== "measurements" &&
             key !== "type" &&
-            key !== "locationEnhancedPrompt" // Enhanced prompt'u settings text'inden hariç tut
+            key !== "locationEnhancedPrompt", // Enhanced prompt'u settings text'inden hariç tut
         )
         .map(([key, value]) => `${key}: ${value}`)
         .join(", ");
@@ -1531,7 +1522,7 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
       logger.log("📝 [BACKEND GEMINI] Settings text:", settingsText);
       logger.log(
         "🏞️ [BACKEND GEMINI] Location enhanced prompt:",
-        settings?.locationEnhancedPrompt
+        settings?.locationEnhancedPrompt,
       );
       logger.log("🎨 [BACKEND GEMINI] Product color:", settings?.productColor);
 
@@ -1540,49 +1531,54 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
     
     SETTINGS DETAIL FOR BETTER PROMPT CREATION:
     ${Object.entries(settings)
-          .filter(
-            ([key, value]) =>
-              value !== null &&
-              value !== undefined &&
-              value !== "" &&
-              key !== "measurements" &&
-              key !== "type" &&
-              key !== "locationEnhancedPrompt" // Enhanced prompt'u detay listesinden hariç tut
-          )
-          .map(
-            ([key, value]) =>
-              `- ${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
-          )
-          .join("\n    ")}${settings?.locationEnhancedPrompt &&
-            settings.locationEnhancedPrompt.trim()
-            ? `\n    \n    SPECIAL LOCATION DESCRIPTION:\n    User has provided a detailed location description: "${settings.locationEnhancedPrompt}"\n    IMPORTANT: Use this exact location description for the environment setting instead of a generic location name.`
-            : ""
-        }${settings?.productColor && settings.productColor !== "original"
-          ? `\n    \n    🎨 PRODUCT COLOR REQUIREMENT:\n    The user has specifically selected "${settings.productColor}" as the product color. CRITICAL: Ensure the garment/product appears in ${settings.productColor} color in the final image. This color selection must be prominently featured and accurately represented.`
-          : ""
-        }${settings?.framing && settings.framing !== "auto"
-          ? `\n    \n    📐 CAMERA FRAMING REQUIREMENT:\n    The user has specifically selected "${settings.framing.replace(/_/g, ' ')}" as the camera framing/composition. CRITICAL: You MUST compose the shot as a ${settings.framing.replace(/_/g, ' ')} shot.\n    ${settings.framing === "full_body"
-            ? "Frame the ENTIRE body from head to feet with proper spacing around the model. Show the complete figure including legs and feet."
-            : settings.framing === "knee_shot"
-              ? "Frame from the knees upward, focusing on upper body region while cutting off below the knees."
-              : settings.framing === "medium_shot"
-                ? "Frame from waist upward, showing upper torso and head area only."
-                : settings.framing === "chest_up"
-                  ? "Frame from chest upward, focusing on upper torso, shoulders, neck and head."
-                  : settings.framing === "close_up"
-                    ? "Tight framing on face and upper chest only, creating an intimate close-up shot."
-                    : `Use ${settings.framing.replace(/_/g, ' ')} framing as specified.`
+      .filter(
+        ([key, value]) =>
+          value !== null &&
+          value !== undefined &&
+          value !== "" &&
+          key !== "measurements" &&
+          key !== "type" &&
+          key !== "locationEnhancedPrompt", // Enhanced prompt'u detay listesinden hariç tut
+      )
+      .map(
+        ([key, value]) =>
+          `- ${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`,
+      )
+      .join("\n    ")}${
+      settings?.locationEnhancedPrompt && settings.locationEnhancedPrompt.trim()
+        ? `\n    \n    SPECIAL LOCATION DESCRIPTION:\n    User has provided a detailed location description: "${settings.locationEnhancedPrompt}"\n    IMPORTANT: Use this exact location description for the environment setting instead of a generic location name.`
+        : ""
+    }${
+      settings?.productColor && settings.productColor !== "original"
+        ? `\n    \n    🎨 PRODUCT COLOR REQUIREMENT:\n    The user has specifically selected "${settings.productColor}" as the product color. CRITICAL: Ensure the garment/product appears in ${settings.productColor} color in the final image. This color selection must be prominently featured and accurately represented.`
+        : ""
+    }${
+      settings?.framing && settings.framing !== "auto"
+        ? `\n    \n    📐 CAMERA FRAMING REQUIREMENT:\n    The user has specifically selected "${settings.framing.replace(/_/g, " ")}" as the camera framing/composition. CRITICAL: You MUST compose the shot as a ${settings.framing.replace(/_/g, " ")} shot.\n    ${
+            settings.framing === "full_body"
+              ? "Frame the ENTIRE body from head to feet with proper spacing around the model. Show the complete figure including legs and feet."
+              : settings.framing === "knee_shot"
+                ? "Frame from the knees upward, focusing on upper body region while cutting off below the knees."
+                : settings.framing === "medium_shot"
+                  ? "Frame from waist upward, showing upper torso and head area only."
+                  : settings.framing === "chest_up"
+                    ? "Frame from chest upward, focusing on upper torso, shoulders, neck and head."
+                    : settings.framing === "close_up"
+                      ? "Tight framing on face and upper chest only, creating an intimate close-up shot."
+                      : `Use ${settings.framing.replace(/_/g, " ")} framing as specified.`
           }\n    This framing selection is MANDATORY and must be strictly followed in the final composition.`
-          : ""
-        }
+        : ""
+    }
 
-    IMPORTANT: Please incorporate ALL user settings above into your description when appropriate.${settings?.productColor && settings.productColor !== "original"
-          ? ` Pay special attention to the product color requirement - the garment must be ${settings.productColor}.`
-          : ""
-        }${settings?.framing && settings.framing !== "auto"
-          ? ` Pay special attention to the camera framing requirement - the shot MUST be composed as a ${settings.framing.replace(/_/g, ' ')} shot.`
-          : ""
-        }`;
+    IMPORTANT: Please incorporate ALL user settings above into your description when appropriate.${
+      settings?.productColor && settings.productColor !== "original"
+        ? ` Pay special attention to the product color requirement - the garment must be ${settings.productColor}.`
+        : ""
+    }${
+      settings?.framing && settings.framing !== "auto"
+        ? ` Pay special attention to the camera framing requirement - the shot MUST be composed as a ${settings.framing.replace(/_/g, " ")} shot.`
+        : ""
+    }`;
     }
 
     // Pose ve perspective için akıllı öneri sistemi
@@ -1610,48 +1606,57 @@ POSE RULES:
 IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remain fully visible and well lit.
 
 
-    - Best showcase ${isMultipleProducts
-          ? "all products in the ensemble and their coordination"
-          : "the garment's design, cut, and construction details"
-        }
-    - Highlight ${isMultipleProducts
-          ? "how the products work together and each product's unique selling points"
-          : "the product's unique features and selling points"
-        }
-    - Demonstrate how ${isMultipleProducts
-          ? "the fabrics of different products drape and interact naturally"
-          : "the fabric drapes and moves naturally"
-        }
-    - Show ${isMultipleProducts
-          ? "how all products fit together and create an appealing silhouette"
-          : "the garment's fit and silhouette most effectively"
-        }
-    - Match the style and aesthetic of ${isMultipleProducts
-          ? "the coordinated ensemble (formal, casual, sporty, elegant, etc.)"
-          : "the garment (formal, casual, sporty, elegant, etc.)"
-        }
-    - Allow clear visibility of important design elements ${isMultipleProducts
-          ? "across all products"
-          : "like necklines, sleeves, hems, and patterns"
-        }
+    - Best showcase ${
+      isMultipleProducts
+        ? "all products in the ensemble and their coordination"
+        : "the garment's design, cut, and construction details"
+    }
+    - Highlight ${
+      isMultipleProducts
+        ? "how the products work together and each product's unique selling points"
+        : "the product's unique features and selling points"
+    }
+    - Demonstrate how ${
+      isMultipleProducts
+        ? "the fabrics of different products drape and interact naturally"
+        : "the fabric drapes and moves naturally"
+    }
+    - Show ${
+      isMultipleProducts
+        ? "how all products fit together and create an appealing silhouette"
+        : "the garment's fit and silhouette most effectively"
+    }
+    - Match the style and aesthetic of ${
+      isMultipleProducts
+        ? "the coordinated ensemble (formal, casual, sporty, elegant, etc.)"
+        : "the garment (formal, casual, sporty, elegant, etc.)"
+    }
+    - Allow clear visibility of important design elements ${
+      isMultipleProducts
+        ? "across all products"
+        : "like necklines, sleeves, hems, and patterns"
+    }
     - Create an appealing and natural presentation that would be suitable for commercial photography
-    ${isMultipleProducts
-          ? "- Ensure each product in the ensemble is visible and well-positioned\n    - Demonstrate the styling versatility of combining these products"
-          : ""
-        }
+    ${
+      isMultipleProducts
+        ? "- Ensure each product in the ensemble is visible and well-positioned\n    - Demonstrate the styling versatility of combining these products"
+        : ""
+    }
     - If the featured item is footwear, a handbag, hat, watch, jewelry, eyewear, or other accessory, guide the pose using modern fashion campaign cues that hero the item while keeping every detail visible.`;
 
       logger.log(
-        `🤸 [GEMINI] Akıllı poz seçimi aktif - ${isMultipleProducts ? "çoklu ürün ensembline" : "kıyafete"
-        } uygun poz önerilecek`
+        `🤸 [GEMINI] Akıllı poz seçimi aktif - ${
+          isMultipleProducts ? "çoklu ürün ensembline" : "kıyafete"
+        } uygun poz önerilecek`,
       );
     } else if (hasPoseImage) {
       posePromptSection = `
     
-    POSE REFERENCE: A pose reference image has been provided to show the desired body position and posture for the ${baseModelText}. Please analyze this pose image carefully and incorporate the exact body positioning, hand placement, stance, facial expression, and overall posture into your enhanced prompt. The ${baseModelText} should adopt this specific pose naturally and convincingly${isMultipleProducts
-          ? ", ensuring all products in the ensemble remain clearly visible and well-positioned"
-          : ""
-        }.`;
+    POSE REFERENCE: A pose reference image has been provided to show the desired body position and posture for the ${baseModelText}. Please analyze this pose image carefully and incorporate the exact body positioning, hand placement, stance, facial expression, and overall posture into your enhanced prompt. The ${baseModelText} should adopt this specific pose naturally and convincingly${
+      isMultipleProducts
+        ? ", ensuring all products in the ensemble remain clearly visible and well-positioned"
+        : ""
+    }.`;
 
       logger.log("🤸 [GEMINI] Pose prompt section eklendi");
     } else if (hasPoseText) {
@@ -1663,17 +1668,17 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
       try {
         logger.log(
           "🤸 [GEMINI] Pose için detaylı açıklama oluşturuluyor:",
-          settings.pose
+          settings.pose,
         );
         detailedPoseDescription = await generatePoseDescriptionWithGemini(
           poseNameForPrompt,
           poseImage,
           settings.gender || "female",
-          "clothing"
+          "clothing",
         );
         logger.log(
           "🤸 [GEMINI] Detaylı pose açıklaması alındı:",
-          detailedPoseDescription
+          detailedPoseDescription,
         );
       } catch (poseDescError) {
         console.error("🤸 [GEMINI] Pose açıklaması hatası:", poseDescError);
@@ -1681,7 +1686,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
 
       if (detailedPoseDescription) {
         const cleanedPoseDescription = sanitizePoseText(
-          detailedPoseDescription
+          detailedPoseDescription,
         );
         posePromptSection = `
     
@@ -1691,29 +1696,29 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     
     IMPORTANT: If the pose description above mentions any studio, backdrop, background, environment, or set, you must ignore those parts and instead describe and preserve the exact background that already exists in the provided model image.
     
-    Ensure the ${baseModelText} follows this pose instruction precisely while maintaining natural movement and ensuring the pose complements ${isMultipleProducts
-            ? "all products in the ensemble being showcased"
-            : "the garment being showcased"
-          }. The pose should enhance the presentation of the clothing and create an appealing commercial photography composition.`;
+    Ensure the ${baseModelText} follows this pose instruction precisely while maintaining natural movement and ensuring the pose complements ${
+      isMultipleProducts
+        ? "all products in the ensemble being showcased"
+        : "the garment being showcased"
+    }. The pose should enhance the presentation of the clothing and create an appealing commercial photography composition.`;
 
         logger.log("🤸 [GEMINI] Detaylı pose açıklaması kullanılıyor");
       } else {
         // Fallback to simple pose mention
         posePromptSection = `
     
-    SPECIFIC POSE REQUIREMENT: The user has selected a specific pose: "${poseNameForPrompt}". Please ensure the ${baseModelText} adopts this pose while maintaining natural movement and ensuring the pose complements ${isMultipleProducts
-            ? "all products in the ensemble being showcased"
-            : "the garment being showcased"
-          }. Ignore any background/backdrop/studio/environment directions that may be associated with that pose and always keep the original background from the input image unchanged and accurately described.`;
+    SPECIFIC POSE REQUIREMENT: The user has selected a specific pose: "${poseNameForPrompt}". Please ensure the ${baseModelText} adopts this pose while maintaining natural movement and ensuring the pose complements ${
+      isMultipleProducts
+        ? "all products in the ensemble being showcased"
+        : "the garment being showcased"
+    }. Ignore any background/backdrop/studio/environment directions that may be associated with that pose and always keep the original background from the input image unchanged and accurately described.`;
 
-        logger.log(
-          "🤸 [GEMINI] Basit pose açıklaması kullanılıyor (fallback)"
-        );
+        logger.log("🤸 [GEMINI] Basit pose açıklaması kullanılıyor (fallback)");
       }
 
       logger.log(
         "🤸 [GEMINI] Kullanıcı tarafından seçilen poz:",
-        settings.pose
+        settings.pose,
       );
     }
 
@@ -1721,43 +1726,52 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     if (!settings?.perspective) {
       perspectivePromptSection = `
     
-    - Best capture ${isMultipleProducts
-          ? "all products' most important design features and their coordination"
-          : "the garment's most important design features"
-        }
-    - Show ${isMultipleProducts
-          ? "the construction quality and craftsmanship details of each product"
-          : "the product's construction quality and craftsmanship details"
-        }
-    - Highlight ${isMultipleProducts
-          ? "how all products fit together and the overall ensemble silhouette"
-          : "the fit and silhouette most effectively"
-        }
-    - Create the most appealing and commercial-quality presentation ${isMultipleProducts ? "for the multi-product styling" : ""
-        }
-    - Match ${isMultipleProducts
-          ? "the ensemble's style and intended market positioning"
-          : "the garment's style and intended market positioning"
-        }
-    ${isMultipleProducts
-          ? "- Ensure all products are visible and well-framed within the composition"
-          : ""
-        }`;
+    - Best capture ${
+      isMultipleProducts
+        ? "all products' most important design features and their coordination"
+        : "the garment's most important design features"
+    }
+    - Show ${
+      isMultipleProducts
+        ? "the construction quality and craftsmanship details of each product"
+        : "the product's construction quality and craftsmanship details"
+    }
+    - Highlight ${
+      isMultipleProducts
+        ? "how all products fit together and the overall ensemble silhouette"
+        : "the fit and silhouette most effectively"
+    }
+    - Create the most appealing and commercial-quality presentation ${
+      isMultipleProducts ? "for the multi-product styling" : ""
+    }
+    - Match ${
+      isMultipleProducts
+        ? "the ensemble's style and intended market positioning"
+        : "the garment's style and intended market positioning"
+    }
+    ${
+      isMultipleProducts
+        ? "- Ensure all products are visible and well-framed within the composition"
+        : ""
+    }`;
 
       logger.log(
-        `📸 [GEMINI] Akıllı perspektif seçimi aktif - ${isMultipleProducts ? "çoklu ürün ensembline" : "kıyafete"
-        } uygun kamera açısı önerilecek`
+        `📸 [GEMINI] Akıllı perspektif seçimi aktif - ${
+          isMultipleProducts ? "çoklu ürün ensembline" : "kıyafete"
+        } uygun kamera açısı önerilecek`,
       );
     } else {
       perspectivePromptSection = `
     
-    SPECIFIC CAMERA PERSPECTIVE: The user has selected a specific camera perspective: "${settings.perspective
-        }". Please ensure the photography follows this perspective while maintaining professional composition and optimal ${isMultipleProducts ? "multi-product ensemble" : "garment"
-        } presentation.`;
+    SPECIFIC CAMERA PERSPECTIVE: The user has selected a specific camera perspective: "${
+      settings.perspective
+    }". Please ensure the photography follows this perspective while maintaining professional composition and optimal ${
+      isMultipleProducts ? "multi-product ensemble" : "garment"
+    } presentation.`;
 
       logger.log(
         "📸 [GEMINI] Kullanıcı tarafından seçilen perspektif:",
-        settings.perspective
+        settings.perspective,
       );
     }
 
@@ -1768,8 +1782,9 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     if (hairStyleImage) {
       hairStylePromptSection = `
     
-    HAIR STYLE REFERENCE: A hair style reference image has been provided to show the desired hairstyle for the ${baseModelText}. Please analyze this hair style image carefully and incorporate the exact hair length, texture, cut, styling, and overall hair appearance into your enhanced prompt. The ${baseModelText} should have this specific hairstyle that complements ${isMultipleProducts ? "the multi-product ensemble" : "the garment"
-        } and overall aesthetic.`;
+    HAIR STYLE REFERENCE: A hair style reference image has been provided to show the desired hairstyle for the ${baseModelText}. Please analyze this hair style image carefully and incorporate the exact hair length, texture, cut, styling, and overall hair appearance into your enhanced prompt. The ${baseModelText} should have this specific hairstyle that complements ${
+      isMultipleProducts ? "the multi-product ensemble" : "the garment"
+    } and overall aesthetic.`;
 
       logger.log("💇 [GEMINI] Hair style prompt section eklendi");
     }
@@ -1811,7 +1826,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     SPECIFIC HAIR STYLE REQUIREMENT: The user has selected a specific hair style: "${settings.hairStyle}". Please ensure the ${baseModelText} is styled with this exact hair style, matching its length, texture and overall look naturally.`;
       logger.log(
         "💇 [GEMINI] Hair style text section eklendi:",
-        settings.hairStyle
+        settings.hairStyle,
       );
     }
 
@@ -1846,17 +1861,17 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
       // Newborn için özel yüz tanımları
       faceDescriptor =
         faceDescriptorsNewborn[
-        Math.floor(Math.random() * faceDescriptorsNewborn.length)
+          Math.floor(Math.random() * faceDescriptorsNewborn.length)
         ];
     } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
       faceDescriptor =
         faceDescriptorsChild[
-        Math.floor(Math.random() * faceDescriptorsChild.length)
+          Math.floor(Math.random() * faceDescriptorsChild.length)
         ];
     } else {
       faceDescriptor =
         faceDescriptorsAdult[
-        Math.floor(Math.random() * faceDescriptorsAdult.length)
+          Math.floor(Math.random() * faceDescriptorsAdult.length)
         ];
     }
 
@@ -1927,22 +1942,26 @@ Confident model poses.
       - User: "arka planı mavi yap" → "Replace the background with blue color while preserving lighting."
       
       Generate ONLY the focused edit prompt, nothing else.
-      ${isMultipleProducts
+      ${
+        isMultipleProducts
           ? "11. MANDATORY: Ensure ALL garments/products in the ensemble remain visible and properly coordinated after the edit"
           : ""
-        }
+      }
 
       GEMINI TASK:
       1. Understand what modification the user wants
-      2. ${isMultipleProducts
+      2. ${
+        isMultipleProducts
           ? "Identify how this modification affects ALL products in the ensemble"
           : "Create a professional English prompt that applies this modification"
-        }
-      3. Ensure the modification is technically possible and realistic${isMultipleProducts ? " for the complete multi-product outfit" : ""
-        }
+      }
+      3. Ensure the modification is technically possible and realistic${
+        isMultipleProducts ? " for the complete multi-product outfit" : ""
+      }
       4. Maintain the overall quality and style of the original image
-      5. Describe the change in detail while preserving other elements${isMultipleProducts ? " and ALL unaffected products" : ""
-        }
+      5. Describe the change in detail while preserving other elements${
+        isMultipleProducts ? " and ALL unaffected products" : ""
+      }
 
       LANGUAGE REQUIREMENT: Always generate your prompt in English and START with "Replace, change...".
 
@@ -1995,17 +2014,20 @@ The user has selected the following settings for this product photo transformati
 
       creationSettingsInstruction += `
 ▶ EFFECT SETTINGS (CRITICAL - MUST FOLLOW EXACTLY):
-- Add Shadow Underneath Product: ${addShadow
+- Add Shadow Underneath Product: ${
+        addShadow
           ? "YES - Add a soft, natural shadow beneath/underneath the product for depth and professional look"
           : "ABSOLUTELY NO - Do NOT add ANY shadow underneath the product. The product MUST appear to be floating on a completely flat, shadowless background. There should be ZERO drop shadow, ZERO soft shadow, ZERO cast shadow beneath the product. The background must be completely uniform and clean with no darkness or shading underneath the product whatsoever."
-        }
-- Add Reflection Underneath Product: ${addReflection
+      }
+- Add Reflection Underneath Product: ${
+        addReflection
           ? "YES - Add a subtle reflection/mirror effect beneath the product for luxury catalog look"
           : "ABSOLUTELY NO - Do NOT add ANY reflection or mirror effect underneath the product. There should be ZERO floor reflection, ZERO glossy surface reflection, ZERO mirror effect beneath the product. The product should NOT appear to be sitting on a reflective surface."
-        }
+      }
 
-${!addShadow && !addReflection
-          ? `
+${
+  !addShadow && !addReflection
+    ? `
 ⚠️ EXTREMELY IMPORTANT - NO SHADOW AND NO REFLECTION:
 Since BOTH shadow and reflection are DISABLED, the product MUST appear on a completely flat, uniform background with:
 - NO shadow of any kind underneath (no drop shadow, no soft shadow, no cast shadow)
@@ -2013,19 +2035,21 @@ Since BOTH shadow and reflection are DISABLED, the product MUST appear on a comp
 - The product should appear to be "floating" on a perfectly clean, uniform colored background
 - The background color should be completely consistent and even - no variations, no darkness under the product
 `
-          : ""
-        }
+    : ""
+}
 
 CRITICAL: These settings OVERRIDE the default background rules in the product-specific sections below. Make sure your generated prompt explicitly mentions:
 1. The exact background color requested (in English)
-2. ${addShadow
+2. ${
+        addShadow
           ? "Include soft natural shadow underneath for depth"
           : "EXPLICITLY STATE: 'No shadow underneath the product' or 'Shadowless background'"
-        }
-3. ${addReflection
+      }
+3. ${
+        addReflection
           ? "Include subtle reflection for luxury look"
           : "EXPLICITLY STATE: 'No reflection underneath' or 'Non-reflective background'"
-        }
+      }
 
 `;
 
@@ -2052,10 +2076,11 @@ Based on the identified product type, generate a SPECIALIZED transformation prom
 STRICT FORMAT REQUIREMENTS:
 - Start with: "Transform this amateur product photo into a professional high-end e-commerce catalog photo."
 - AFTER the opening statement, IMMEDIATELY specify the user-selected settings:
-  * "Background: [ENGLISH color name] ${addShadow
-          ? "with soft natural shadow for depth"
-          : "with no shadow - completely flat and clean"
-        } ${addReflection ? "and subtle reflection effect for luxury look" : ""}"
+  * "Background: [ENGLISH color name] ${
+    addShadow
+      ? "with soft natural shadow for depth"
+      : "with no shadow - completely flat and clean"
+  } ${addReflection ? "and subtle reflection effect for luxury look" : ""}"
 - Focus & Clarity Requirement: You MUST include instructions for "Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus" in your generated prompt.
 - Include ALL relevant sections based on product type
 - End with: "The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting."
@@ -2064,14 +2089,17 @@ STRICT FORMAT REQUIREMENTS:
 === PRODUCT-SPECIFIC TRANSFORMATION RULES ===
 
 ▶ FOR CLOTHING (Most Important - Ghost Mannequin Style):
-Background: Pure flat ${colorInputMode === "hex" ? backgroundColor : backgroundColor
-        } background (solid, uniform color - NOT a studio environment), ${addShadow
+Background: Pure flat ${
+        colorInputMode === "hex" ? backgroundColor : backgroundColor
+      } background (solid, uniform color - NOT a studio environment), ${
+        addShadow
           ? "with soft natural shadow underneath for depth"
           : "absolutely NO shadows, NO gradients - completely flat and uniform"
-        }${addReflection
+      }${
+        addReflection
           ? ", with subtle floor reflection for premium catalog look"
           : ""
-        }.
+      }.
 Ghost Mannequin Effect (CRITICAL): 
   - COMPLETELY remove any visible mannequin, hanger, or human body parts
   - Create professional "invisible mannequin" effect showing the garment's internal 3D structure
@@ -2087,14 +2115,17 @@ Positioning: Perfectly centered, shoulders level, hemline balanced, symmetrical 
 Lighting: Even, bright, professional studio lighting - no harsh shadows, no blown highlights
 
 ▶ FOR JEWELRY (Rings, Necklaces, Bracelets, Earrings):
-Background: Pure flat ${colorInputMode === "hex" ? backgroundColor : backgroundColor
-        } background (solid, uniform color) ${addShadow
+Background: Pure flat ${
+        colorInputMode === "hex" ? backgroundColor : backgroundColor
+      } background (solid, uniform color) ${
+        addShadow
           ? "with SOFT REALISTIC SHADOW underneath for depth"
           : "with absolutely NO shadow underneath"
-        } ${addReflection
+      } ${
+        addReflection
           ? "and elegant reflection for luxury feel"
           : "and NO reflection"
-        }
+      }
 EARRING PAIRING RULE (CRITICAL):
   - If the product is an EARRING and only ONE earring is visible in the image (no pair shown):
     * You MUST create/generate the matching pair earring
@@ -2115,8 +2146,9 @@ Detail: Macro-level clarity showing every facet, clasp mechanism, chain links
 Positioning: Arranged elegantly, chains untangled, clasps hidden or styled
 
 ▶ FOR FOOTWEAR (Shoes, Sneakers, Boots, Sandals, Slippers):
-Background: Pure flat ${colorInputMode === "hex" ? backgroundColor : backgroundColor
-        } background (solid, uniform color).
+Background: Pure flat ${
+        colorInputMode === "hex" ? backgroundColor : backgroundColor
+      } background (solid, uniform color).
 Positioning & Presentation (CRITICAL): 
   - SINGLE SHOE RULE: Even if the original photo shows a pair of shoes/slippers, your generated prompt MUST instruct to show ONLY ONE SINGLE shoe.
   - STRICT SIDE PROFILE: This single shoe MUST be presented in a direct, technical side profile view (outer side) as the primary angle. This is the absolute industry standard for professional clean e-commerce product photography.
@@ -2124,14 +2156,16 @@ Positioning & Presentation (CRITICAL):
   - COMPLETELY remove any visible legs, feet, socks, or mannequin parts from the original photo.
   - Ensure the shoe is perfectly centered in the frame.
 Shadow & Reflection (CRITICAL):
-  - Shadow: ${addShadow
-          ? "Add a subtle, FLAT soft shadow directly beneath the sole contact points on the ground to ground the shoe realistically. The shadow must be clean and not spill outwards too far."
-          : "Absolutely NO shadow - the shoe must appear on a completely clean, shadowless background."
-        }
-  - Reflection: ${addReflection
-          ? "Add a very subtle floor reflection beneath the shoe for a premium luxury catalog look."
-          : "Absolutely NO reflection underneath."
-        }
+  - Shadow: ${
+    addShadow
+      ? "Add a subtle, FLAT soft shadow directly beneath the sole contact points on the ground to ground the shoe realistically. The shadow must be clean and not spill outwards too far."
+      : "Absolutely NO shadow - the shoe must appear on a completely clean, shadowless background."
+  }
+  - Reflection: ${
+    addReflection
+      ? "Add a very subtle floor reflection beneath the shoe for a premium luxury catalog look."
+      : "Absolutely NO reflection underneath."
+  }
 Cleaning & Quality:
   - High Clarity: The shoe's texture (leather, mesh, suede, rubber) must be sharp and clear with high detail resolution.
   - Flawless Condition: Remove ALL dust, scuffs, creases (especially on the toe box), dirt marks, or sticker residue. Laces should appear neatly styled and clean.
@@ -2145,23 +2179,27 @@ Detail Enhancement:
   - Show material quality (leather grain, fabric weave, rubber texture)
 
 ▶ FOR EYEWEAR (Sunglasses, Glasses):
-Background: Pure flat ${backgroundColor} background (solid, uniform color) ${addShadow
+Background: Pure flat ${backgroundColor} background (solid, uniform color) ${
+        addShadow
           ? "with subtle shadow underneath for depth"
           : "with absolutely NO shadow underneath"
-        } ${addReflection
+      } ${
+        addReflection
           ? "and reflection below for premium look"
           : "and NO reflection"
-        }
+      }
 Positioning: Front-facing or slight 3/4 angle showing frame shape
 Lens: Crystal clear, no smudges, no fingerprints, proper reflections showing lens quality
 Frame: Highlight material quality, hinge details, temple arm construction
 
 ▶ FOR BAGS & ACCESSORIES:
-Background: Pure flat ${colorInputMode === "hex" ? backgroundColor : backgroundColor
-        } background (solid, uniform color) ${addShadow
+Background: Pure flat ${
+        colorInputMode === "hex" ? backgroundColor : backgroundColor
+      } background (solid, uniform color) ${
+        addShadow
           ? "with natural shadow underneath"
           : "with absolutely NO shadow underneath"
-        } ${addReflection ? "and subtle reflection" : "and NO reflection"}
+      } ${addReflection ? "and subtle reflection" : "and NO reflection"}
 Positioning: Standing upright naturally, straps/handles arranged elegantly
 Structure: Correct any sagging, maintain proper shape as if stuffed/structured
 Hardware: Metal parts polished, zippers/clasps highlighted
@@ -2194,7 +2232,8 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
 
       ${criticalDirectives}
 
-      ${isMultipleProducts
+      ${
+        isMultipleProducts
           ? `
       🛍️ MULTIPLE PRODUCTS COLOR CHANGE: You are receiving MULTIPLE SEPARATE REFERENCE IMAGES, each showing a different garment/product. When changing the color to ${targetColor}, you MUST analyze ALL reference images, specify which product(s) to change and ensure ALL products remain properly coordinated as an ensemble.
 
@@ -2208,61 +2247,70 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       - REMEMBER: Each reference image shows a separate item - consider them together as one outfit
       `
           : ""
-        }
+      }
 
-      Create a professional fashion photography prompt in English that STARTS with "change" for changing ONLY the color of ${isMultipleProducts
+      Create a professional fashion photography prompt in English that STARTS with "change" for changing ONLY the color of ${
+        isMultipleProducts
           ? "the specified product(s)/garment(s)"
           : "the product/garment"
-        } from the reference image to ${targetColor}.
+      } from the reference image to ${targetColor}.
       
       FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for professional fashion photography and commercial garment presentation. Ensure the output is suitable for high-end fashion shoots, editorial styling, and commercial product photography.
 
       IMPORTANT: Please explicitly mention in your generated prompt that this is for "professional fashion photography" to ensure the AI image model understands the context and produces high-quality fashion photography results.
 
       CRITICAL REQUIREMENTS FOR COLOR CHANGE:
-      1. The prompt MUST begin with "Replace the ${isMultipleProducts
+      1. The prompt MUST begin with "Replace the ${
+        isMultipleProducts
           ? "specified product(s)/garment(s)"
           : "product/garment"
-        }..."
-      2. ONLY change the color to ${targetColor}${isMultipleProducts ? " for the specified product(s)" : ""
-        }
+      }..."
+      2. ONLY change the color to ${targetColor}${
+        isMultipleProducts ? " for the specified product(s)" : ""
+      }
       3. Keep EVERYTHING else exactly the same: design, shape, patterns, details, style, fit, texture
-      4. Do not modify ${isMultipleProducts ? "any garment" : "the garment"
-        } design, cut, or any other aspect except the color
-      5. The final image should be photorealistic, showing ${isMultipleProducts
+      4. Do not modify ${
+        isMultipleProducts ? "any garment" : "the garment"
+      } design, cut, or any other aspect except the color
+      5. The final image should be photorealistic, showing ${
+        isMultipleProducts
           ? "the complete ensemble with the specified color changes"
           : `the same garment but in ${targetColor} color`
-        }
+      }
       6. Use natural studio lighting with a clean background
       7. Preserve ALL original details except color: patterns (but in new color), textures, hardware, stitching, logos, graphics, and construction elements
-      8. ${isMultipleProducts
+      8. ${
+        isMultipleProducts
           ? `ALL garments/products must appear identical to the reference image, just with the specified color change to ${targetColor} and proper ensemble coordination`
           : `The garment must appear identical to the reference image, just in ${targetColor} color instead of the original color`
-        }
+      }
       9. MANDATORY: Include "professional fashion photography" phrase in your generated prompt
-      ${isMultipleProducts
+      ${
+        isMultipleProducts
           ? `10. MANDATORY: Clearly specify which product(s) change color and which remain in their original colors`
           : ""
-        }
+      }
 
       LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "change".
 
-      ${originalPrompt
+      ${
+        originalPrompt
           ? `Additional color change requirements: ${originalPrompt}.`
           : ""
-        }
+      }
       `;
     } else if (isPoseChange) {
       // POSE CHANGE MODE - Optimize edilmiş poz değiştirme prompt'u (100-150 token)
       promptForGemini = `
       FASHION POSE TRANSFORMATION: Generate a focused, detailed English prompt (100-150 words) that transforms the model's pose efficiently. Focus ONLY on altering the pose while keeping the existing model, outfit, lighting, and background exactly the same. You MUST explicitly describe the original background/environment details and state that they stay unchanged.
 
-      USER POSE REQUEST: ${settings?.pose && settings.pose.trim()
+      USER POSE REQUEST: ${
+        settings?.pose && settings.pose.trim()
           ? `Transform the model to: ${settings.pose.trim()}`
           : customDetail && customDetail.trim()
             ? `Transform the model to: ${customDetail.trim()}`
             : "Transform to a completely different iconic professional fashion modeling pose that contrasts dramatically with the current pose"
-        }
+      }
 
       COMPREHENSIVE POSE TRANSFORMATION REQUIREMENTS:
 
@@ -2358,7 +2406,8 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
 
       ${criticalDirectives}
 
-      ${isMultipleProducts
+      ${
+        isMultipleProducts
           ? `
       🛍️ MULTIPLE PRODUCTS BACK SIDE MODE: You are receiving MULTIPLE SEPARATE REFERENCE IMAGES showing different garments/products with both front and back views. You MUST analyze and describe ALL products visible across all reference images from both angles and coordinate them properly as an ensemble.
 
@@ -2370,7 +2419,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       - REMEMBER: Each reference image shows separate items - combine them intelligently
       `
           : ""
-        }
+      }
 
       Create a professional fashion photography prompt in English that shows the model from the BACK VIEW wearing the garment, specifically displaying the back design elements visible in the "ARKA ÜRÜN" image.
       
@@ -2403,10 +2452,11 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
 
       LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace".
 
-      ${originalPrompt
+      ${
+        originalPrompt
           ? `USER CONTEXT: The user has provided these specific requirements: ${originalPrompt}. Please integrate these requirements naturally into your back side analysis prompt while maintaining professional structure.`
           : ""
-        }
+      }
       
       ${ageSection}
       ${childPromptSection}
@@ -2492,7 +2542,8 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
 
       ${criticalDirectives}
 
-      ${isMultipleProducts
+      ${
+        isMultipleProducts
           ? `
       🛍️ MULTIPLE PRODUCTS MODE: You are receiving MULTIPLE SEPARATE REFERENCE IMAGES, each showing a different garment/product that together form a complete outfit/ensemble. You MUST analyze ALL the reference images provided and describe every single product visible across all images. Each product is equally important and must be properly described and fitted onto the ${modelGenderText}.
 
@@ -2507,56 +2558,69 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
       - REMEMBER: Each reference image shows a separate item - combine them intelligently into one cohesive outfit
       `
           : ""
-        }
+      }
 
-      Create a professional fashion photography prompt in English that STARTS with "Replace" for replacing ${isMultipleProducts
+      Create a professional fashion photography prompt in English that STARTS with "Replace" for replacing ${
+        isMultipleProducts
           ? "ALL the garments/products from the reference image"
           : "the garment from the reference image"
-        } onto a ${modelGenderText}.
+      } onto a ${modelGenderText}.
       
-      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for ${isNewborn
+      FASHION PHOTOGRAPHY CONTEXT: The prompt you generate will be used for ${
+        isNewborn
           ? "professional newborn fashion photography"
           : "professional fashion photography"
-        } and commercial garment presentation. Ensure the output is suitable for ${isNewborn
+      } and commercial garment presentation. Ensure the output is suitable for ${
+        isNewborn
           ? "high-end newborn fashion photography shoots, newborn editorial styling, and newborn commercial product photography"
           : "high-end fashion shoots, editorial styling, and commercial product photography"
-        }.
+      }.
 
-      IMPORTANT: Please explicitly mention in your generated prompt that this is for "${isNewborn
+      IMPORTANT: Please explicitly mention in your generated prompt that this is for "${
+        isNewborn
           ? "professional newborn fashion photography"
           : "professional fashion photography"
-        }" to ensure the AI image model understands the context and produces high-quality ${isNewborn ? "newborn " : ""
-        }fashion photography results.
+      }" to ensure the AI image model understands the context and produces high-quality ${
+        isNewborn ? "newborn " : ""
+      }fashion photography results.
 
       CRITICAL REQUIREMENTS:
-      1. The prompt MUST begin with "Replace the ${isMultipleProducts
+      1. The prompt MUST begin with "Replace the ${
+        isMultipleProducts
           ? "multiple flat-lay garments/products"
           : "flat-lay garment"
-        }..."
-      2. Keep ${isMultipleProducts
+      }..."
+      2. Keep ${
+        isMultipleProducts
           ? "ALL original garments/products"
           : "the original garment"
-        } exactly the same without changing any design, shape, colors, patterns, or details
-      3. Do not modify or redesign ${isMultipleProducts ? "any of the garments/products" : "the garment"
-        } in any way
-      4. The final image should be photorealistic, showing ${isMultipleProducts
+      } exactly the same without changing any design, shape, colors, patterns, or details
+      3. Do not modify or redesign ${
+        isMultipleProducts ? "any of the garments/products" : "the garment"
+      } in any way
+      4. The final image should be photorealistic, showing ${
+        isMultipleProducts
           ? "ALL garments/products perfectly fitted and coordinated"
           : "the same garment perfectly fitted"
-        } on the ${baseModelText}
+      } on the ${baseModelText}
       5. Use natural studio lighting with a clean background
-      6. Preserve ALL original details of ${isMultipleProducts ? "EACH garment/product" : "the garment"
-        }: colors, patterns, textures, hardware, stitching, logos, graphics, and construction elements
-      7. ${isMultipleProducts
+      6. Preserve ALL original details of ${
+        isMultipleProducts ? "EACH garment/product" : "the garment"
+      }: colors, patterns, textures, hardware, stitching, logos, graphics, and construction elements
+      7. ${
+        isMultipleProducts
           ? "ALL garments/products must appear identical to the reference image, just worn by the model as a complete coordinated outfit"
           : "The garment must appear identical to the reference image, just worn by the model instead of being flat"
-        }
+      }
       8. MANDATORY: Include "professional fashion photography" phrase in your generated prompt
-      ${isMultipleProducts
+      ${
+        isMultipleProducts
           ? "9. MANDATORY: Explicitly mention and describe EACH individual product/garment visible in the reference image - do not generalize or group them"
           : ""
-        }
+      }
 
-      ${isMultipleProducts
+      ${
+        isMultipleProducts
           ? `
       MULTIPLE PRODUCTS DETAIL COVERAGE (MANDATORY): 
       - ANALYZE the reference image and identify EACH distinct garment/product (e.g., top, bottom, jacket, accessories, etc.)
@@ -2566,16 +2630,17 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
       - ENSURE no product is overlooked or generically described
       `
           : ""
-        }
+      }
 
       ${fluxMaxGarmentTransformationDirectives}
 
       LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace".
 
-      ${originalPrompt
+      ${
+        originalPrompt
           ? `USER CONTEXT: The user has provided these specific requirements: ${originalPrompt}. Please integrate these requirements naturally into your garment replacement prompt while maintaining the professional structure and flow.`
           : ""
-        }
+      }
       
       ${ageSection}
       ${childPromptSection}
@@ -2613,14 +2678,14 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
     // Multi-mode resim gönderimi: Back side analysis, Multiple products, veya Normal mod
     if (isBackSideAnalysis && referenceImages && referenceImages.length >= 2) {
       logger.log(
-        "🔄 [BACK_SIDE] Gemini'ye 2 resim gönderiliyor (ön + arka)..."
+        "🔄 [BACK_SIDE] Gemini'ye 2 resim gönderiliyor (ön + arka)...",
       );
 
       const firstImageUrl = sanitizeImageUrl(
-        referenceImages[0].uri || referenceImages[0]
+        referenceImages[0].uri || referenceImages[0],
       );
       const secondImageUrl = sanitizeImageUrl(
-        referenceImages[1].uri || referenceImages[1]
+        referenceImages[1].uri || referenceImages[1],
       );
 
       try {
@@ -2631,7 +2696,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
 
         imageBuffers.push(
           Buffer.from(firstResponse.data),
-          Buffer.from(secondResponse.data)
+          Buffer.from(secondResponse.data),
         );
         logger.log("🔄 [BACK_SIDE] Toplam 2 resim Gemini'ye eklendi");
       } catch (imageError) {
@@ -2645,7 +2710,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
     ) {
       // Multi-product mode: Tüm referans resimleri gönder
       logger.log(
-        `🛍️ [MULTI-PRODUCT] Gemini'ye ${referenceImages.length} adet referans resmi gönderiliyor...`
+        `🛍️ [MULTI-PRODUCT] Gemini'ye ${referenceImages.length} adet referans resmi gönderiliyor...`,
       );
 
       try {
@@ -2656,11 +2721,11 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
 
         const imageResponses = await Promise.all(imagePromises);
         imageBuffers.push(
-          ...imageResponses.map((res) => Buffer.from(res.data))
+          ...imageResponses.map((res) => Buffer.from(res.data)),
         );
 
         logger.log(
-          `🛍️ [MULTI-PRODUCT] Toplam ${referenceImages.length} adet referans resmi Gemini'ye eklendi`
+          `🛍️ [MULTI-PRODUCT] Toplam ${referenceImages.length} adet referans resmi Gemini'ye eklendi`,
         );
       } catch (imageError) {
         console.error("❌ Resim indirme hatası:", imageError);
@@ -2671,7 +2736,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
       if (originalBase64Data) {
         // 🚀 Orijinal base64 varsa direkt kullan - URL'den indirme yapma
         logger.log(
-          "🚀 [GEMINI] Orijinal base64 kullanılıyor - URL indirmesi atlandı"
+          "🚀 [GEMINI] Orijinal base64 kullanılıyor - URL indirmesi atlandı",
         );
         imageBuffers.push(Buffer.from(originalBase64Data, "base64"));
         logger.log("🖼️ Referans görsel (base64) Gemini'ye eklendi");
@@ -2711,7 +2776,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
     if (hairStyleImage) {
       try {
         const cleanHairStyleImageUrl = sanitizeImageUrl(
-          hairStyleImage.split("?")[0]
+          hairStyleImage.split("?")[0],
         );
         const hairResponse = await axios.get(cleanHairStyleImageUrl, {
           responseType: "arraybuffer",
@@ -2727,7 +2792,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
     if (locationImage) {
       try {
         const cleanLocationImageUrl = sanitizeImageUrl(
-          locationImage.split("?")[0]
+          locationImage.split("?")[0],
         );
         const locationResponse = await axios.get(cleanLocationImageUrl, {
           responseType: "arraybuffer",
@@ -2756,10 +2821,10 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
     // Referans resimlerin URL'lerini ekle
     if (isBackSideAnalysis && referenceImages && referenceImages.length >= 2) {
       const firstImageUrl = sanitizeImageUrl(
-        referenceImages[0].uri || referenceImages[0]
+        referenceImages[0].uri || referenceImages[0],
       );
       const secondImageUrl = sanitizeImageUrl(
-        referenceImages[1].uri || referenceImages[1]
+        referenceImages[1].uri || referenceImages[1],
       );
       imageUrlsForReplicate.push(firstImageUrl, secondImageUrl);
     } else if (
@@ -2795,7 +2860,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
     }
     if (hairStyleImage) {
       const cleanHairStyleImageUrl = sanitizeImageUrl(
-        hairStyleImage.split("?")[0]
+        hairStyleImage.split("?")[0],
       );
       if (
         cleanHairStyleImageUrl.startsWith("http://") ||
@@ -2806,7 +2871,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
     }
     if (locationImage) {
       const cleanLocationImageUrl = sanitizeImageUrl(
-        locationImage.split("?")[0]
+        locationImage.split("?")[0],
       );
       if (
         cleanLocationImageUrl.startsWith("http://") ||
@@ -2817,7 +2882,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
     }
 
     logger.log(
-      `🤖 [REPLICATE-GEMINI] Toplam ${imageUrlsForReplicate.length} resim URL'si hazırlandı`
+      `🤖 [REPLICATE-GEMINI] Toplam ${imageUrlsForReplicate.length} resim URL'si hazırlandı`,
     );
 
     // Replicate Gemini Flash API çağrısı (3 retry ile)
@@ -2831,7 +2896,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
       const geminiGeneratedPrompt = await callReplicateGeminiFlash(
         textPrompt,
         imageUrlsForReplicate,
-        3
+        3,
       );
 
       // Statik kurallar kaldırıldı - fal.ai 5000 karakter limiti var
@@ -2841,7 +2906,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
       enhancedPrompt = geminiGeneratedPrompt + staticRules;
       logger.log(
         `🤖 [REPLICATE-GEMINI] Gemini'nin ürettiği prompt (${geminiGeneratedPrompt.length} karakter):`,
-        geminiGeneratedPrompt
+        geminiGeneratedPrompt,
       );
 
       // Gemini safety filter kesme kontrolü - prompt çok kısa veya cümle ortasında kesilmişse
@@ -2851,13 +2916,15 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
 
       if (isTooShort || !endsWithPunctuation) {
         logger.log(
-          `⚠️ [GEMINI-TRUNCATION] Prompt kesik tespit edildi! Uzunluk: ${trimmedGemini.length}, Noktalama ile bitiyor: ${endsWithPunctuation}`
+          `⚠️ [GEMINI-TRUNCATION] Prompt kesik tespit edildi! Uzunluk: ${trimmedGemini.length}, Noktalama ile bitiyor: ${endsWithPunctuation}`,
         );
         logger.log(
-          `⚠️ [GEMINI-TRUNCATION] Son 50 karakter: "${trimmedGemini.slice(-50)}"`
+          `⚠️ [GEMINI-TRUNCATION] Son 50 karakter: "${trimmedGemini.slice(-50)}"`,
         );
         // Fallback prompt'a düşmeyi tetikle
-        throw new Error(`Gemini prompt truncated (${trimmedGemini.length} chars, ends with punctuation: ${endsWithPunctuation})`);
+        throw new Error(
+          `Gemini prompt truncated (${trimmedGemini.length} chars, ends with punctuation: ${endsWithPunctuation})`,
+        );
       }
 
       // 🔧 REFINER MODE için Gemini yanıt validasyonu - yanlış format kontrolü
@@ -2876,7 +2943,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
 
         if (hasWrongFormat) {
           logger.log(
-            "⚠️ [REFINER-VALIDATION] Gemini yanlış format üretmiş (model/garment replacement), fallback kullanılıyor"
+            "⚠️ [REFINER-VALIDATION] Gemini yanlış format üretmiş (model/garment replacement), fallback kullanılıyor",
           );
 
           const addShadowVal = settings?.addShadow ?? false;
@@ -2916,12 +2983,15 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
             ? "Add subtle reflection underneath for luxury catalog look."
             : "No reflection underneath.";
 
-          enhancedPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishVal} ${shadowTextVal}; ${reflectionTextVal} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishVal}, completely flat${addShadowVal ? "" : ", shadowless"
-            }${addReflectionVal ? "" : ", and non-reflective"
-            }, making the product appear ${addShadowVal || addReflectionVal
+          enhancedPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishVal} ${shadowTextVal}; ${reflectionTextVal} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishVal}, completely flat${
+            addShadowVal ? "" : ", shadowless"
+          }${
+            addReflectionVal ? "" : ", and non-reflective"
+          }, making the product appear ${
+            addShadowVal || addReflectionVal
               ? "professionally presented"
               : "to float cleanly"
-            }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
+          }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
 
           logger.log("🔧 [REFINER-VALIDATION] Fallback prompt uygulandı");
         } else {
@@ -2930,18 +3000,18 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
       }
 
       logger.log(
-        "✨ [REPLICATE-GEMINI] Final enhanced prompt (statik kurallarla) hazırlandı"
+        "✨ [REPLICATE-GEMINI] Final enhanced prompt (statik kurallarla) hazırlandı",
       );
     } catch (geminiError) {
       console.error(
         "❌ [REPLICATE-GEMINI] All attempts failed:",
-        geminiError.message
+        geminiError.message,
       );
 
       // 🔧 REFINER MODE için özel catch fallback - Gemini tamamen başarısız olduğunda
       if (isRefinerMode) {
         logger.log(
-          "🔧 [CATCH-REFINER] Gemini başarısız, refiner fallback prompt kullanılıyor"
+          "🔧 [CATCH-REFINER] Gemini başarısız, refiner fallback prompt kullanılıyor",
         );
 
         const addShadowCatch = settings?.addShadow ?? false;
@@ -2981,12 +3051,15 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
           ? "Add subtle reflection underneath for luxury catalog look."
           : "No reflection underneath.";
 
-        enhancedPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishCatch} ${shadowTextCatch}; ${reflectionTextCatch} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishCatch}, completely flat${addShadowCatch ? "" : ", shadowless"
-          }${addReflectionCatch ? "" : ", and non-reflective"
-          }, making the product appear ${addShadowCatch || addReflectionCatch
+        enhancedPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishCatch} ${shadowTextCatch}; ${reflectionTextCatch} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishCatch}, completely flat${
+          addShadowCatch ? "" : ", shadowless"
+        }${
+          addReflectionCatch ? "" : ", and non-reflective"
+        }, making the product appear ${
+          addShadowCatch || addReflectionCatch
             ? "professionally presented"
             : "to float cleanly"
-          }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
+        }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
       } else {
         // Normal mode için fallback - statik kuralları ekle
         const staticRules = `
@@ -3008,13 +3081,13 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
     // Eğer Gemini sonuç üretemediyse (enhancedPrompt orijinal prompt ile aynıysa) direkt fallback prompt kullan
     if (enhancedPrompt === originalPrompt) {
       logger.log(
-        "🔄 [FALLBACK] Gemini başarısız, detaylı fallback prompt kullanılıyor"
+        "🔄 [FALLBACK] Gemini başarısız, detaylı fallback prompt kullanılıyor",
       );
 
       // 🔧 REFINER MODE için özel fallback prompt - Model/garment replacement DEĞİL, ürün fotoğrafı iyileştirme
       if (isRefinerMode) {
         logger.log(
-          "🔧 [FALLBACK-REFINER] Refiner mode fallback prompt kullanılıyor"
+          "🔧 [FALLBACK-REFINER] Refiner mode fallback prompt kullanılıyor",
         );
 
         // Refiner settings'lerini al
@@ -3056,12 +3129,15 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
           ? "Add subtle reflection underneath for luxury catalog look."
           : "No reflection underneath.";
 
-        const refinerFallbackPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglish} ${shadowText}; ${reflectionText} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglish}, completely flat${addShadow ? "" : ", shadowless"
-          }${addReflection ? "" : ", and non-reflective"
-          }, making the product appear ${addShadow || addReflection
+        const refinerFallbackPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglish} ${shadowText}; ${reflectionText} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglish}, completely flat${
+          addShadow ? "" : ", shadowless"
+        }${
+          addReflection ? "" : ", and non-reflective"
+        }, making the product appear ${
+          addShadow || addReflection
             ? "professionally presented"
             : "to float cleanly"
-          }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
+        }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
 
         logger.log("🔧 [FALLBACK-REFINER] Generated refiner fallback prompt");
         return refinerFallbackPrompt;
@@ -3192,7 +3268,7 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
         environmentDescription += ` in ${locationEnhancedPrompt}`;
         logger.log(
           "🏞️ [FALLBACK] Enhanced location prompt kullanılıyor:",
-          locationEnhancedPrompt
+          locationEnhancedPrompt,
         );
       } else if (location) {
         environmentDescription += ` in ${location}`;
@@ -3213,23 +3289,27 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
       }
 
       // Ana prompt oluştur - Fashion photography odaklı (çoklu ürün desteği ile)
-      let fallbackPrompt = `Replace the ${isMultipleProducts
-        ? "multiple flat-lay garments/products"
-        : "flat-lay garment"
-        } from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
+      let fallbackPrompt = `Replace the ${
+        isMultipleProducts
+          ? "multiple flat-lay garments/products"
+          : "flat-lay garment"
+      } from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
 
       // Fashion photography ve kalite gereksinimleri
-      fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve ${isMultipleProducts
-        ? "ALL original garments/products"
-        : "the original garment"
-        } exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show ${isMultipleProducts
+      fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve ${
+        isMultipleProducts
+          ? "ALL original garments/products"
+          : "the original garment"
+      } exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show ${
+        isMultipleProducts
           ? "ALL identical garments/products perfectly fitted and coordinated"
           : "the identical garment perfectly fitted"
-        } on the dynamic model for high-end fashion shoots. `;
+      } on the dynamic model for high-end fashion shoots. `;
 
       // Kıyafet özellikleri (genel)
-      fallbackPrompt += `${isMultipleProducts ? "Each garment/product" : "The garment"
-        } features high-quality fabric with proper texture, stitching, and construction details. `;
+      fallbackPrompt += `${
+        isMultipleProducts ? "Each garment/product" : "The garment"
+      } features high-quality fabric with proper texture, stitching, and construction details. `;
 
       // Çoklu ürün için ek koordinasyon talimatları
       if (isMultipleProducts) {
@@ -3237,24 +3317,30 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
       }
 
       // Temizlik gereksinimleri - güvenli versiyon
-      fallbackPrompt += `Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed. Transform the ${isMultipleProducts ? "flat-lay garments/products" : "flat-lay garment"
-        } into hyper-realistic, three-dimensional worn ${isMultipleProducts ? "garments/products" : "garment"
-        } on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
+      fallbackPrompt += `Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed. Transform the ${
+        isMultipleProducts ? "flat-lay garments/products" : "flat-lay garment"
+      } into hyper-realistic, three-dimensional worn ${
+        isMultipleProducts ? "garments/products" : "garment"
+      } on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
 
       // Fizik gereksinimleri
-      fallbackPrompt += `Ensure realistic fabric physics for ${isMultipleProducts ? "ALL garments/products" : "the garment"
-        }: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
+      fallbackPrompt += `Ensure realistic fabric physics for ${
+        isMultipleProducts ? "ALL garments/products" : "the garment"
+      }: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
 
       // Detay koruma - güvenli versiyon
-      fallbackPrompt += `Preserve all original details of ${isMultipleProducts ? "EACH garment/product" : "the garment"
-        } including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning ${isMultipleProducts
+      fallbackPrompt += `Preserve all original details of ${
+        isMultipleProducts ? "EACH garment/product" : "the garment"
+      } including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning ${
+        isMultipleProducts
           ? "any of the original garments/products"
           : "the original garment"
-        }. `;
+      }. `;
 
       // Pattern entegrasyonu
-      fallbackPrompt += `Integrate prints/patterns correctly over the 3D form for ${isMultipleProducts ? "ALL products" : "the garment"
-        }: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
+      fallbackPrompt += `Integrate prints/patterns correctly over the 3D form for ${
+        isMultipleProducts ? "ALL products" : "the garment"
+      }: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
 
       // Newborn fashion photography direktifleri (fallback prompt için)
       if (isNewbornFallback || (!isNaN(parsedAgeInt) && parsedAgeInt === 0)) {
@@ -3266,7 +3352,7 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
 
       logger.log(
         "🔄 [FALLBACK] Generated detailed fallback prompt:",
-        fallbackPrompt
+        fallbackPrompt,
       );
 
       enhancedPrompt = fallbackPrompt + fallbackStaticRules;
@@ -3289,13 +3375,13 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
 
     // Fallback prompt - detaylı kıyafet odaklı format
     logger.log(
-      "🔄 [FALLBACK] Enhanced prompt oluşturulamadı, detaylı fallback prompt kullanılıyor"
+      "🔄 [FALLBACK] Enhanced prompt oluşturulamadı, detaylı fallback prompt kullanılıyor",
     );
 
     // 🔧 REFINER MODE için özel catch fallback - Gemini hata verdiğinde
     if (isRefinerMode) {
       logger.log(
-        "🔧 [CATCH-REFINER-ERROR] Gemini hatası, refiner fallback prompt kullanılıyor"
+        "🔧 [CATCH-REFINER-ERROR] Gemini hatası, refiner fallback prompt kullanılıyor",
       );
 
       const addShadowCatchErr = settings?.addShadow ?? false;
@@ -3335,12 +3421,15 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
         ? "Add subtle reflection underneath for luxury catalog look."
         : "No reflection underneath.";
 
-      return `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishCatchErr} ${shadowTextCatchErr}; ${reflectionTextCatchErr} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishCatchErr}, completely flat${addShadowCatchErr ? "" : ", shadowless"
-        }${addReflectionCatchErr ? "" : ", and non-reflective"
-        }, making the product appear ${addShadowCatchErr || addReflectionCatchErr
+      return `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishCatchErr} ${shadowTextCatchErr}; ${reflectionTextCatchErr} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishCatchErr}, completely flat${
+        addShadowCatchErr ? "" : ", shadowless"
+      }${
+        addReflectionCatchErr ? "" : ", and non-reflective"
+      }, making the product appear ${
+        addShadowCatchErr || addReflectionCatchErr
           ? "professionally presented"
           : "to float cleanly"
-        }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
+      }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
     }
 
     // Statik kuralları fallback prompt'un sonuna da ekle
@@ -3484,7 +3573,7 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
       environmentDescription += ` in ${locationEnhancedPrompt}`;
       logger.log(
         "🏞️ [FALLBACK ERROR] Enhanced location prompt kullanılıyor:",
-        locationEnhancedPrompt
+        locationEnhancedPrompt,
       );
     } else if (location) {
       environmentDescription += ` in ${location}`;
@@ -3505,23 +3594,27 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
     }
 
     // Ana prompt oluştur (çoklu ürün desteği ile)
-    let fallbackPrompt = `Replace the ${isMultipleProducts
-      ? "multiple flat-lay garments/products"
-      : "flat-lay garment"
-      } from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
+    let fallbackPrompt = `Replace the ${
+      isMultipleProducts
+        ? "multiple flat-lay garments/products"
+        : "flat-lay garment"
+    } from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
 
     // Fashion photography ve kalite gereksinimleri
-    fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve ${isMultipleProducts
-      ? "ALL original garments/products"
-      : "the original garment"
-      } exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show ${isMultipleProducts
+    fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve ${
+      isMultipleProducts
+        ? "ALL original garments/products"
+        : "the original garment"
+    } exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show ${
+      isMultipleProducts
         ? "ALL identical garments/products perfectly fitted and coordinated"
         : "the identical garment perfectly fitted"
-      } on the dynamic model for high-end fashion shoots. `;
+    } on the dynamic model for high-end fashion shoots. `;
 
     // Kıyafet özellikleri (genel)
-    fallbackPrompt += `${isMultipleProducts ? "Each garment/product" : "The garment"
-      } features high-quality fabric with proper texture, stitching, and construction details. `;
+    fallbackPrompt += `${
+      isMultipleProducts ? "Each garment/product" : "The garment"
+    } features high-quality fabric with proper texture, stitching, and construction details. `;
 
     // Çoklu ürün için ek koordinasyon talimatları
     if (isMultipleProducts) {
@@ -3529,24 +3622,30 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
     }
 
     // Temizlik gereksinimleri - güvenli versiyon
-    fallbackPrompt += `Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed. Transform the ${isMultipleProducts ? "flat-lay garments/products" : "flat-lay garment"
-      } into hyper-realistic, three-dimensional worn ${isMultipleProducts ? "garments/products" : "garment"
-      } on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
+    fallbackPrompt += `Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed. Transform the ${
+      isMultipleProducts ? "flat-lay garments/products" : "flat-lay garment"
+    } into hyper-realistic, three-dimensional worn ${
+      isMultipleProducts ? "garments/products" : "garment"
+    } on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
 
     // Fizik gereksinimleri
-    fallbackPrompt += `Ensure realistic fabric physics for ${isMultipleProducts ? "ALL garments/products" : "the garment"
-      }: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
+    fallbackPrompt += `Ensure realistic fabric physics for ${
+      isMultipleProducts ? "ALL garments/products" : "the garment"
+    }: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
 
     // Detay koruma - güvenli versiyon
-    fallbackPrompt += `Preserve all original details of ${isMultipleProducts ? "EACH garment/product" : "the garment"
-      } including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning ${isMultipleProducts
+    fallbackPrompt += `Preserve all original details of ${
+      isMultipleProducts ? "EACH garment/product" : "the garment"
+    } including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning ${
+      isMultipleProducts
         ? "any of the original garments/products"
         : "the original garment"
-      }. `;
+    }. `;
 
     // Pattern entegrasyonu
-    fallbackPrompt += `Integrate prints/patterns correctly over the 3D form for ${isMultipleProducts ? "ALL products" : "the garment"
-      }: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
+    fallbackPrompt += `Integrate prints/patterns correctly over the 3D form for ${
+      isMultipleProducts ? "ALL products" : "the garment"
+    }: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
 
     // Newborn fashion photography direktifleri (ikinci fallback prompt için)
     if (
@@ -3561,7 +3660,7 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
 
     logger.log(
       "🔄 [FALLBACK] Generated detailed fallback prompt:",
-      fallbackPrompt
+      fallbackPrompt,
     );
 
     // Son fallback durumunda da statik kuralları ekle
@@ -3597,7 +3696,7 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
           },
           responseType: "json",
           timeout: 15000, // 30s'den 15s'ye düşürüldü polling için
-        }
+        },
       );
 
       const result = response.data;
@@ -3619,10 +3718,10 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
         ) {
           console.error(
             "❌ PA hatası tespit edildi, polling DERHAL durduruluyor:",
-            result.error
+            result.error,
           );
           throw new Error(
-            "PREDICTION_INTERRUPTED: Replicate sunucusunda kesinti oluştu. Lütfen tekrar deneyin."
+            "PREDICTION_INTERRUPTED: Replicate sunucusunda kesinti oluştu. Lütfen tekrar deneyin.",
           );
         }
 
@@ -3639,7 +3738,7 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
         ) {
           console.error(
             "❌ Content moderation/model hatası tespit edildi, Gemini 2.5 Flash Image Preview'e geçiş yapılacak:",
-            result.error
+            result.error,
           );
           throw new Error("SENSITIVE_CONTENT_FLUX_FALLBACK");
         }
@@ -3656,12 +3755,12 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
             result.error.includes("Please try again later") ||
             result.error.includes("Prediction failed.") ||
             result.error.includes(
-              "Prediction interrupted; please retry (code: PA)"
+              "Prediction interrupted; please retry (code: PA)",
             ))
         ) {
           logger.log(
             "🔄 Geçici nano-banana hatası tespit edildi, retry'a uygun:",
-            result.error
+            result.error,
           );
           throw new Error(`RETRYABLE_ERROR: ${result.error}`);
         }
@@ -3683,7 +3782,7 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
       // Sensitive content hatasını özel olarak handle et
       if (error.message === "SENSITIVE_CONTENT_FLUX_FALLBACK") {
         console.error(
-          "❌ Sensitive content hatası, Gemini 2.5 Flash Image Preview'e geçiş için polling durduruluyor"
+          "❌ Sensitive content hatası, Gemini 2.5 Flash Image Preview'e geçiş için polling durduruluyor",
         );
         throw error; // Hata mesajını olduğu gibi fırlat
       }
@@ -3695,7 +3794,7 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
         error.message.includes("PREDICTION_INTERRUPTED")
       ) {
         console.error(
-          `❌ PA hatası tespit edildi, polling KESIN DURDURULUYOR: ${error.message}`
+          `❌ PA hatası tespit edildi, polling KESIN DURDURULUYOR: ${error.message}`,
         );
         logger.log("🛑 PA hatası - Polling döngüsü derhal sonlandırılıyor");
         throw error; // Orijinal hatayı fırlat ki üst seviyede yakalanabilsin
@@ -3707,7 +3806,7 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
         error.message.includes("processing was canceled")
       ) {
         console.error(
-          "❌ Replicate işlemi başarısız/iptal, polling durduruluyor"
+          "❌ Replicate işlemi başarısız/iptal, polling durduruluyor",
         );
         throw error; // Hata mesajını olduğu gibi fırlat
       }
@@ -3726,7 +3825,7 @@ async function pollReplicateResult(predictionId, maxAttempts = 60) {
 // Retry mekanizmalı polling fonksiyonu
 async function pollReplicateResultWithRetry(predictionId, maxRetries = 3) {
   logger.log(
-    `🔄 Retry'li polling başlatılıyor: ${predictionId} (maxRetries: ${maxRetries})`
+    `🔄 Retry'li polling başlatılıyor: ${predictionId} (maxRetries: ${maxRetries})`,
   );
 
   for (let retryAttempt = 1; retryAttempt <= maxRetries; retryAttempt++) {
@@ -3742,7 +3841,7 @@ async function pollReplicateResultWithRetry(predictionId, maxRetries = 3) {
     } catch (pollingError) {
       console.error(
         `❌ Polling retry ${retryAttempt} hatası:`,
-        pollingError.message
+        pollingError.message,
       );
 
       // Bu hatalar için retry yapma - direkt fırlat
@@ -3752,7 +3851,7 @@ async function pollReplicateResultWithRetry(predictionId, maxRetries = 3) {
         pollingError.message.includes("processing was canceled")
       ) {
         console.error(
-          `❌ Retry yapılmayacak hata türü: ${pollingError.message}`
+          `❌ Retry yapılmayacak hata türü: ${pollingError.message}`,
         );
         throw pollingError;
       }
@@ -3766,7 +3865,7 @@ async function pollReplicateResultWithRetry(predictionId, maxRetries = 3) {
       // Son deneme ise hata fırlat
       if (retryAttempt === maxRetries) {
         console.error(
-          `❌ Tüm polling retry attemptları başarısız: ${pollingError.message}`
+          `❌ Tüm polling retry attemptları başarısız: ${pollingError.message}`,
         );
         throw pollingError;
       }
@@ -3774,7 +3873,7 @@ async function pollReplicateResultWithRetry(predictionId, maxRetries = 3) {
       // Bir sonraki deneme için bekle
       const waitTime = retryAttempt * 3000; // 3s, 6s, 9s
       logger.log(
-        `⏳ Polling retry ${retryAttempt} için ${waitTime}ms bekleniyor...`
+        `⏳ Polling retry ${retryAttempt} için ${waitTime}ms bekleniyor...`,
       );
       await new Promise((resolve) => setTimeout(resolve, waitTime));
     }
@@ -3827,11 +3926,11 @@ router.post("/generate", async (req, res) => {
     actualCreditDeducted = CREDIT_COST;
 
     logger.log(
-      `🎨 [QUALITY_VERSION] Settings'ten alınan kalite versiyonu: ${qualityVersion}`
+      `🎨 [QUALITY_VERSION] Settings'ten alınan kalite versiyonu: ${qualityVersion}`,
     );
     logger.log(
       `🎨 [QUALITY_VERSION] Settings objesi:`,
-      JSON.stringify(settings || {}, null, 2)
+      JSON.stringify(settings || {}, null, 2),
     );
 
     modelPhoto = modelPhoto ? sanitizeImageUrl(modelPhoto) : modelPhoto;
@@ -3839,8 +3938,8 @@ router.post("/generate", async (req, res) => {
     // ReferenceImages sanitization + model referansını yakala
     referenceImages = Array.isArray(referenceImages)
       ? referenceImages
-        .map((img) => normalizeReferenceEntry(img))
-        .filter(Boolean)
+          .map((img) => normalizeReferenceEntry(img))
+          .filter(Boolean)
       : [];
 
     let modelReferenceImage = null;
@@ -3855,7 +3954,7 @@ router.post("/generate", async (req, res) => {
         ...referenceImages[existingModelIndex],
         uri: sanitizeImageUrl(
           referenceImages[existingModelIndex]?.uri ||
-          referenceImages[existingModelIndex]?.url
+            referenceImages[existingModelIndex]?.url,
         ),
         type:
           referenceImages[existingModelIndex]?.type ||
@@ -3869,7 +3968,7 @@ router.post("/generate", async (req, res) => {
     if (!modelReferenceImage && modelPhoto) {
       logger.log(
         "🧍 [BACKEND] Model referansı SelectAge'den alındı:",
-        modelPhoto
+        modelPhoto,
       );
       modelReferenceImage = {
         uri: modelPhoto,
@@ -3883,14 +3982,14 @@ router.post("/generate", async (req, res) => {
     referenceImages = (
       await Promise.all(
         referenceImages.map((img) =>
-          ensureRemoteReferenceImage(img, requestUserId)
-        )
+          ensureRemoteReferenceImage(img, requestUserId),
+        ),
       )
     ).filter(Boolean);
 
     modelReferenceImage = await ensureRemoteReferenceImage(
       modelReferenceImage,
-      requestUserId
+      requestUserId,
     );
 
     // isMultipleProducts'ı değiştirilebilir hale getir (kombin modu için)
@@ -3902,7 +4001,7 @@ router.post("/generate", async (req, res) => {
     if (modelReferenceImage) {
       logger.log(
         "🧍 [BACKEND] Model referans görseli tespit edildi:",
-        modelReferenceImage?.uri || modelReferenceImage
+        modelReferenceImage?.uri || modelReferenceImage,
       );
     } else {
       logger.log("🧍 [BACKEND] Model referans görseli bulunamadı");
@@ -3913,7 +4012,7 @@ router.post("/generate", async (req, res) => {
 
     if (!isPoseChange && hasRequestField("hasProductPhotos")) {
       logger.log(
-        "🕺 [BACKEND] ChangeModelPose payload tespit edildi (hasProductPhotos mevcut), isPoseChange true olarak işaretleniyor"
+        "🕺 [BACKEND] ChangeModelPose payload tespit edildi (hasProductPhotos mevcut), isPoseChange true olarak işaretleniyor",
       );
       isPoseChange = true;
     }
@@ -3934,26 +4033,20 @@ router.post("/generate", async (req, res) => {
     logger.log(
       "📤 [BACKEND] Gelen referenceImages:",
       incomingReferenceCount,
-      "adet"
+      "adet",
     );
     logger.log(
       "📤 [BACKEND] Toplam referans (model dahil):",
-      totalReferenceCount
+      totalReferenceCount,
     );
 
     // EditScreen modunda promptText boş olabilir (editPrompt kullanılacak)
     const hasValidPrompt =
       promptText || (isEditMode && editPrompt && editPrompt.trim());
 
-    logger.log(
-      "🔍 [VALIDATION] promptText:",
-      promptText ? "✅ Var" : "❌ Yok"
-    );
+    logger.log("🔍 [VALIDATION] promptText:", promptText ? "✅ Var" : "❌ Yok");
     logger.log("🔍 [VALIDATION] isEditMode:", isEditMode);
-    logger.log(
-      "🔍 [VALIDATION] editPrompt:",
-      editPrompt ? "✅ Var" : "❌ Yok"
-    );
+    logger.log("🔍 [VALIDATION] editPrompt:", editPrompt ? "✅ Var" : "❌ Yok");
     logger.log("🔍 [VALIDATION] hasValidPrompt:", hasValidPrompt);
 
     if (!hasValidPrompt || totalReferenceCount < 1) {
@@ -3968,7 +4061,7 @@ router.post("/generate", async (req, res) => {
 
     // 💡 YENİ YAKLAŞIM: Kredi başlangıçta düşürülmüyor, başarılı tamamlamada düşürülecek
     logger.log(
-      `💳 [NEW APPROACH] Kredi başlangıçta düşürülmüyor, başarılı tamamlamada düşürülecek`
+      `💳 [NEW APPROACH] Kredi başlangıçta düşürülmüyor, başarılı tamamlamada düşürülecek`,
     );
 
     // Kredi kontrolü kaldırıldı - başarılı completion'da yapılacak
@@ -3996,9 +4089,11 @@ router.post("/generate", async (req, res) => {
         }) || [];
 
       logger.log(
-        `💳 [SESSION-DEDUP] SessionId ${sessionId} ile ${sessionGenerations.length
-        } generation bulundu (${recentGenerations?.length || 0
-        } recent'tan filtrelendi)`
+        `💳 [SESSION-DEDUP] SessionId ${sessionId} ile ${
+          sessionGenerations.length
+        } generation bulundu (${
+          recentGenerations?.length || 0
+        } recent'tan filtrelendi)`,
       );
 
       if (
@@ -4007,12 +4102,12 @@ router.post("/generate", async (req, res) => {
         sessionGenerations.length >= 1
       ) {
         logger.log(
-          `💳 [SESSION-DEDUP] Aynı session'da generation var, kredi düşürme atlanıyor (${sessionGenerations.length} generation)`
+          `💳 [SESSION-DEDUP] Aynı session'da generation var, kredi düşürme atlanıyor (${sessionGenerations.length} generation)`,
         );
         // shouldDeductCredit = false; // Disabled
       } else {
         logger.log(
-          `💳 [SESSION-DEDUP] Session'ın ilk generation'ı, kredi düşürülecek`
+          `💳 [SESSION-DEDUP] Session'ın ilk generation'ı, kredi düşürülecek`,
         );
       }
     } else if (false) {
@@ -4027,13 +4122,14 @@ router.post("/generate", async (req, res) => {
         .order("created_at", { ascending: false });
 
       logger.log(
-        `💳 [TIME-DEDUP] Son 30 saniyede ${recentGenerations?.length || 0
-        } generation bulundu`
+        `💳 [TIME-DEDUP] Son 30 saniyede ${
+          recentGenerations?.length || 0
+        } generation bulundu`,
       );
 
       if (!recentError && recentGenerations && recentGenerations.length >= 1) {
         logger.log(
-          `💳 [TIME-DEDUP] Son 30 saniyede generation var, kredi düşürme atlanıyor (${recentGenerations.length} generation)`
+          `💳 [TIME-DEDUP] Son 30 saniyede generation var, kredi düşürme atlanıyor (${recentGenerations.length} generation)`,
         );
         // shouldDeductCredit = false; // Disabled
       } else {
@@ -4051,13 +4147,13 @@ router.post("/generate", async (req, res) => {
       // Toplam generation sayısına göre kredi hesapla
       const totalCreditCost = CREDIT_COST * totalGenerations;
       logger.log(
-        `💳 [CREDIT DEBUG] totalCreditCost: ${totalCreditCost} (${CREDIT_COST} x ${totalGenerations})`
+        `💳 [CREDIT DEBUG] totalCreditCost: ${totalCreditCost} (${CREDIT_COST} x ${totalGenerations})`,
       );
 
       try {
         logger.log(`💳 Kullanıcı ${userId} için kredi kontrolü yapılıyor...`);
         logger.log(
-          `💳 Toplam ${totalGenerations} generation için ${totalCreditCost} kredi düşülecek`
+          `💳 Toplam ${totalGenerations} generation için ${totalCreditCost} kredi düşülecek`,
         );
 
         // Krediyi atomic olarak düş (row locking ile)
@@ -4111,8 +4207,9 @@ router.post("/generate", async (req, res) => {
 
         creditDeducted = true;
         logger.log(
-          `✅ ${totalCreditCost} kredi başarıyla düşüldü (${totalGenerations} generation). Yeni bakiye: ${currentCreditCheck - totalCreditCost
-          }`
+          `✅ ${totalCreditCost} kredi başarıyla düşüldü (${totalGenerations} generation). Yeni bakiye: ${
+            currentCreditCheck - totalCreditCost
+          }`,
         );
 
         // Gerçekte düşülen kredi miktarını sakla (iade için)
@@ -4134,13 +4231,14 @@ router.post("/generate", async (req, res) => {
     logger.log("📤 Reference images Supabase'e upload ediliyor...");
     const uploadResult = await uploadReferenceImagesToSupabase(
       referenceImages,
-      userId
+      userId,
     );
     const referenceImageUrls = uploadResult.urls;
     const referenceBase64Array = uploadResult.base64Array; // 🚀 Gemini için base64'ler
     logger.log(
-      `🚀 [OPTIMIZE] ${referenceBase64Array.filter((b) => b).length
-      } adet base64 Gemini için hazır`
+      `🚀 [OPTIMIZE] ${
+        referenceBase64Array.filter((b) => b).length
+      } adet base64 Gemini için hazır`,
     );
 
     // 🆔 Generation ID oluştur (eğer client'ten gelmediyse)
@@ -4149,7 +4247,7 @@ router.post("/generate", async (req, res) => {
     // 📝 Pending generation oluştur (işlem başlamadan önce)
     logger.log(`📝 Pending generation oluşturuluyor: ${finalGenerationId}`);
     logger.log(
-      `🔍 [DEBUG] Generation ID uzunluğu: ${finalGenerationId?.length}`
+      `🔍 [DEBUG] Generation ID uzunluğu: ${finalGenerationId?.length}`,
     );
     logger.log(`🔍 [DEBUG] Generation ID tipi: ${typeof finalGenerationId}`);
 
@@ -4158,7 +4256,6 @@ router.post("/generate", async (req, res) => {
       ...settings,
       totalGenerations: totalGenerations, // Pay-on-success için gerekli
       ...(sessionId && { sessionId: sessionId }),
-      ...(isPoseChange && { isPoseChange: true }), // Pose change flag'i kaydet
     };
 
     // Kalite versiyonunu ayrı bir değişken olarak al
@@ -4178,7 +4275,7 @@ router.post("/generate", async (req, res) => {
       isMultipleImages,
       isMultipleProducts,
       finalGenerationId,
-      qualityVersionForDB // Kalite versiyonunu parametre olarak geç
+      qualityVersionForDB, // Kalite versiyonunu parametre olarak geç
     );
 
     if (!pendingGeneration) {
@@ -4202,7 +4299,7 @@ router.post("/generate", async (req, res) => {
             .eq("id", userId);
 
           logger.log(
-            `💰 ${actualCreditDeducted} kredi iade edildi (Pending generation hatası)`
+            `💰 ${actualCreditDeducted} kredi iade edildi (Pending generation hatası)`,
           );
         } catch (refundError) {
           console.error("❌ Kredi iade hatası:", refundError);
@@ -4220,47 +4317,25 @@ router.post("/generate", async (req, res) => {
     // 🔄 Status'u processing'e güncelle
     await updateGenerationStatus(finalGenerationId, userId, "processing");
 
-    // 📊 Pose change modunda pose_change_generations tablosuna da kaydet
-    if (isPoseChange) {
-      // referenceImageUrls sadece ürün fotoğraflarını içerir (model fotoğrafı line 3866'da splice edildi)
-      const productImageUrls = referenceImageUrls || [];
-      // Model fotoğrafı ayrıca ensureRemoteReferenceImage ile upload edildi (line 3891)
-      const modelImageUrl = modelReferenceImage?.uri || null;
-
-      logger.log(`📊 [POSE_TABLE] Kayıt verileri:`, {
-        generationId: finalGenerationId,
-        originalImageUrl: modelImageUrl?.substring(0, 80) || "YOK",
-        poseImageUrl: poseImage?.substring?.(0, 80) || "YOK",
-        productImages: productImageUrls.map(u => u?.substring(0, 80)),
-        referenceImageUrlsCount: referenceImageUrls?.length || 0,
-        gender: settings?.gender || "woman",
-        customDetail: customDetail || "YOK",
-      });
-
-      await saveToPoseChangeGenerations({
+    // 📊 Refiner modunda refiner_generations tablosuna da kaydet
+    if (isRefinerMode) {
+      await saveToRefinerGenerations({
         userId,
         generationId: finalGenerationId,
         status: "processing",
         originalPrompt: promptText,
-        customDetail: customDetail || settings?.customDetail || null,
-        originalImageUrl: modelImageUrl,
-        poseImageUrl: poseImage || null,
-        productImages: productImageUrls,
-        gender: settings?.gender || "woman",
+        originalImageUrl: referenceImageUrls?.[0] || null,
         settings: settingsWithSession,
         aspectRatio: ratio,
         qualityVersion: qualityVersionForDB,
-        creditsUsed: CREDIT_COST,
       });
-    } else {
-      logger.log(`⚠️ [POSE_TABLE] isPoseChange=false, pose tablosuna kayıt atlanıyor`);
     }
 
     logger.log("🎛️ [BACKEND] Gelen settings parametresi:", settings);
     logger.log("🏞️ [BACKEND] Settings içindeki location:", settings?.location);
     logger.log(
       "🏞️ [BACKEND] Settings içindeki locationEnhancedPrompt:",
-      settings?.locationEnhancedPrompt
+      settings?.locationEnhancedPrompt,
     );
     logger.log("📝 [BACKEND] Gelen promptText:", promptText);
     logger.log("🏞️ [BACKEND] Gelen locationImage:", locationImage);
@@ -4275,11 +4350,11 @@ router.post("/generate", async (req, res) => {
       logger.log(
         "🚀 [BACKEND] Gemini için base64 hazır (upload sırasında alındı) - boyut:",
         Math.round(originalBase64ForGemini.length / 1024),
-        "KB"
+        "KB",
       );
     } else {
       logger.log(
-        "⚠️ [BACKEND] Base64 bulunamadı - Gemini URL'den indirecek (fallback)"
+        "⚠️ [BACKEND] Base64 bulunamadı - Gemini URL'den indirecek (fallback)",
       );
     }
 
@@ -4290,7 +4365,7 @@ router.post("/generate", async (req, res) => {
       // Back side analysis için özel upload işlemi
       if (req.body.isBackSideAnalysis) {
         logger.log(
-          "🔄 [BACK_SIDE] Tüm resimleri Supabase'e upload ediliyor..."
+          "🔄 [BACK_SIDE] Tüm resimleri Supabase'e upload ediliyor...",
         );
 
         // Her resmi Supabase'e upload et
@@ -4302,12 +4377,12 @@ router.post("/generate", async (req, res) => {
             : img.uri;
           const uploadedUrl = await uploadReferenceImageToSupabase(
             imageSource,
-            userId
+            userId,
           );
           uploadedUrls.push(uploadedUrl);
           logger.log(
             `📤 [BACK_SIDE] Resim ${i + 1} upload edildi:`,
-            uploadedUrl
+            uploadedUrl,
           );
         }
 
@@ -4322,7 +4397,7 @@ router.post("/generate", async (req, res) => {
         finalImage = null; // Canvas'a gerek yok
       } else {
         logger.log(
-          "🖼️ [BACKEND] Çoklu resim modu - Her resim ayrı ayrı upload ediliyor..."
+          "🖼️ [BACKEND] Çoklu resim modu - Her resim ayrı ayrı upload ediliyor...",
         );
 
         // Kombin modu kontrolü
@@ -4338,13 +4413,10 @@ router.post("/generate", async (req, res) => {
             : img.uri;
           const uploadedUrl = await uploadReferenceImageToSupabase(
             imageSource,
-            userId
+            userId,
           );
           uploadedUrls.push(uploadedUrl);
-          logger.log(
-            `📤 [BACKEND] Resim ${i + 1} upload edildi:`,
-            uploadedUrl
-          );
+          logger.log(`📤 [BACKEND] Resim ${i + 1} upload edildi:`, uploadedUrl);
         }
 
         // URL'leri referenceImages array'ine geri koy
@@ -4361,7 +4433,7 @@ router.post("/generate", async (req, res) => {
         if (isKombinMode) {
           logger.log(
             "🛍️ [BACKEND] Kombin modu için isMultipleProducts değeri:",
-            `${originalIsMultipleProducts} → true`
+            `${originalIsMultipleProducts} → true`,
           );
           // Bu değişkeni lokal olarak override et
           isMultipleProducts = true;
@@ -4371,7 +4443,7 @@ router.post("/generate", async (req, res) => {
       // 🚀 OPTIMIZE: Tek resim için zaten uploadReferenceImagesToSupabase ile upload edildi
       // Tekrar upload yapmıyoruz - referenceImageUrls[0]'ı kullan
       logger.log(
-        "🖼️ [BACKEND] Tek resim modu - önceden upload edilen URL kullanılıyor"
+        "🖼️ [BACKEND] Tek resim modu - önceden upload edilen URL kullanılıyor",
       );
 
       if (!referenceImageUrls?.[0]) {
@@ -4387,7 +4459,7 @@ router.post("/generate", async (req, res) => {
       // Zaten upload edilmiş URL'yi kullan - tekrar upload YOK!
       finalImage = sanitizeImageUrl(referenceImageUrls[0]);
       logger.log(
-        "🚀 [OPTIMIZE] Tek resim için önceden upload edilen URL kullanıldı (çift upload önlendi)"
+        "🚀 [OPTIMIZE] Tek resim için önceden upload edilen URL kullanıldı (çift upload önlendi)",
       );
     }
 
@@ -4396,12 +4468,12 @@ router.post("/generate", async (req, res) => {
     // Aspect ratio'yu formatla
     const formattedRatio = formatAspectRatio(ratio || "9:16");
     logger.log(
-      `İstenen ratio: ${ratio}, formatlanmış ratio: ${formattedRatio}`
+      `İstenen ratio: ${ratio}, formatlanmış ratio: ${formattedRatio}`,
     );
 
     // 🚀 Paralel işlemler başlat
     logger.log(
-      "🚀 Paralel işlemler başlatılıyor: Gemini + Arkaplan silme + ControlNet hazırlığı..."
+      "🚀 Paralel işlemler başlatılıyor: Gemini + Arkaplan silme + ControlNet hazırlığı...",
     );
 
     let enhancedPrompt, backgroundRemovedImage;
@@ -4410,27 +4482,27 @@ router.post("/generate", async (req, res) => {
       // 🎨 COLOR CHANGE MODE, 🕺 POSE CHANGE MODE veya 🔧 REFINER MODE - Özel prompt'lar
       if (isColorChange) {
         logger.log(
-          "🎨 Color change mode: Basit renk değiştirme prompt'u oluşturuluyor"
+          "🎨 Color change mode: Basit renk değiştirme prompt'u oluşturuluyor",
         );
         enhancedPrompt = `Change the main color of the product/item in this image to ${targetColor}. Keep all design details, patterns, textures, and shapes exactly the same. Only change the primary color to ${targetColor}. The result should be photorealistic with natural lighting.`;
       } else if (isRefinerMode) {
         logger.log(
-          "🔧 Refiner mode: Profesyonel e-ticaret fotoğraf refiner prompt'u oluşturuluyor"
+          "🔧 Refiner mode: Profesyonel e-ticaret fotoğraf refiner prompt'u oluşturuluyor",
         );
 
         // Refiner modu için Gemini ile gelişmiş prompt oluştur
         logger.log(
-          "🤖 [GEMINI CALL - REFINER] enhancePromptWithGemini parametreleri:"
+          "🤖 [GEMINI CALL - REFINER] enhancePromptWithGemini parametreleri:",
         );
         logger.log("🤖 [GEMINI CALL - REFINER] - finalImage URL:", finalImage);
         logger.log(
           "🤖 [GEMINI CALL - REFINER] - isMultipleProducts:",
-          isMultipleProducts
+          isMultipleProducts,
         );
 
         enhancedPrompt = await enhancePromptWithGemini(
           promptText ||
-          "Transform this amateur product photo into a professional high-end e-commerce product photo with invisible mannequin effect, perfect lighting, white background, and luxury presentation quality",
+            "Transform this amateur product photo into a professional high-end e-commerce product photo with invisible mannequin effect, perfect lighting, white background, and luxury presentation quality",
           finalImage,
           settings || {},
           locationImage,
@@ -4448,25 +4520,25 @@ router.post("/generate", async (req, res) => {
           referenceImages, // Multi-product için tüm referans resimler
           false, // isMultipleImages
           userId, // Compress için userId
-          originalBase64ForGemini // 🚀 Orijinal base64 - URL indirmesi atlanacak
+          originalBase64ForGemini, // 🚀 Orijinal base64 - URL indirmesi atlanacak
         );
       } else if (isPoseChange) {
         logger.log(
-          "🕺 Pose change mode: Gemini ile poz değiştirme prompt'u oluşturuluyor"
+          "🕺 Pose change mode: Gemini ile poz değiştirme prompt'u oluşturuluyor",
         );
 
         // Poz değiştirme modunda Gemini ile prompt oluştur
         logger.log(
-          "🤖 [GEMINI CALL - POSE] enhancePromptWithGemini parametreleri:"
+          "🤖 [GEMINI CALL - POSE] enhancePromptWithGemini parametreleri:",
         );
         logger.log("🤖 [GEMINI CALL - POSE] - finalImage URL:", finalImage);
         logger.log(
           "🤖 [GEMINI CALL - POSE] - isMultipleProducts:",
-          isMultipleProducts
+          isMultipleProducts,
         );
         logger.log(
           "🤖 [GEMINI CALL - POSE] - referenceImages sayısı:",
-          referenceImages?.length || 0
+          referenceImages?.length || 0,
         );
 
         // EditScreen modunda editPrompt'u, normal modda promptText'i kullan
@@ -4477,7 +4549,7 @@ router.post("/generate", async (req, res) => {
 
         logger.log(
           "📝 [GEMINI CALL - POSE] Kullanılacak prompt:",
-          isEditMode ? "editPrompt" : "promptText"
+          isEditMode ? "editPrompt" : "promptText",
         );
         logger.log("📝 [GEMINI CALL - POSE] Prompt içeriği:", promptToUse);
 
@@ -4488,14 +4560,14 @@ router.post("/generate", async (req, res) => {
           (modelReferenceImage.uri || modelReferenceImage.url)
         ) {
           modelImageForGemini = sanitizeImageUrl(
-            modelReferenceImage.uri || modelReferenceImage.url
+            modelReferenceImage.uri || modelReferenceImage.url,
           );
         } else if (referenceImages && referenceImages.length > 0) {
           const firstReference = referenceImages[0];
           modelImageForGemini = sanitizeImageUrl(
             firstReference && (firstReference.uri || firstReference.url)
               ? firstReference.uri || firstReference.url
-              : firstReference
+              : firstReference,
           );
         } else {
           modelImageForGemini = finalImage;
@@ -4503,7 +4575,7 @@ router.post("/generate", async (req, res) => {
 
         logger.log(
           "🤖 [GEMINI CALL - POSE] Sadece model fotoğrafı gönderiliyor:",
-          modelImageForGemini
+          modelImageForGemini,
         );
 
         enhancedPrompt = await enhancePromptWithGemini(
@@ -4525,7 +4597,7 @@ router.post("/generate", async (req, res) => {
           null, // referenceImages - Gemini'ye product photolar gönderilmez
           false, // isMultipleImages - Gemini'ye tek resim gönderiliyor
           userId, // Compress için userId
-          originalBase64ForGemini // 🚀 Orijinal base64 - URL indirmesi atlanacak
+          originalBase64ForGemini, // 🚀 Orijinal base64 - URL indirmesi atlanacak
         );
       }
       backgroundRemovedImage = finalImage; // Orijinal image'ı kullan, arkaplan silme yok
@@ -4535,7 +4607,7 @@ router.post("/generate", async (req, res) => {
           : isRefinerMode
             ? "🔧 Refiner prompt:"
             : "🕺 Pose change prompt:",
-        enhancedPrompt
+        enhancedPrompt,
       );
     } else if (!isPoseChange) {
       // 🖼️ NORMAL MODE - Arkaplan silme işlemi (paralel)
@@ -4545,7 +4617,7 @@ router.post("/generate", async (req, res) => {
       logger.log("🤖 [GEMINI CALL] - isMultipleProducts:", isMultipleProducts);
       logger.log(
         "🤖 [GEMINI CALL] - referenceImages sayısı:",
-        referenceImages?.length || 0
+        referenceImages?.length || 0,
       );
 
       // EditScreen modunda editPrompt'u, normal modda promptText'i kullan
@@ -4556,7 +4628,7 @@ router.post("/generate", async (req, res) => {
 
       logger.log(
         "📝 [GEMINI CALL] Kullanılacak prompt:",
-        isEditMode ? "editPrompt" : "promptText"
+        isEditMode ? "editPrompt" : "promptText",
       );
       logger.log("📝 [GEMINI CALL] Prompt içeriği:", promptToUse);
 
@@ -4579,7 +4651,7 @@ router.post("/generate", async (req, res) => {
         referenceImages, // Multi-product için tüm referans resimler
         isMultipleImages, // Çoklu resim modu mu?
         userId, // Compress için userId
-        originalBase64ForGemini // 🚀 Orijinal base64 - URL indirmesi atlanacak
+        originalBase64ForGemini, // 🚀 Orijinal base64 - URL indirmesi atlanacak
       );
 
       // ⏳ Sadece Gemini prompt iyileştirme bekle
@@ -4621,7 +4693,7 @@ router.post("/generate", async (req, res) => {
       // Çoklu resim modunda ayrı resimleri kullan (canvas birleştirme yok)
       combinedImageForReplicate = null; // Ayrı resimler kullanılacak
       logger.log(
-        "🖼️ [BACKEND] Çoklu resim modu: Ayrı resimler Gemini'ye gönderilecek"
+        "🖼️ [BACKEND] Çoklu resim modu: Ayrı resimler Gemini'ye gönderilecek",
       );
     } else {
       // Tek resim modunda arkaplan kaldırılmış resmi kullan
@@ -4629,12 +4701,12 @@ router.post("/generate", async (req, res) => {
       if (!req.body.isBackSideAnalysis) {
         combinedImageForReplicate = backgroundRemovedImage;
         logger.log(
-          "🖼️ [BACKEND] Tek resim modu: Arkaplan kaldırılmış resim Gemini'ye gönderiliyor"
+          "🖼️ [BACKEND] Tek resim modu: Arkaplan kaldırılmış resim Gemini'ye gönderiliyor",
         );
       } else {
         combinedImageForReplicate = null; // Back side'da kullanılmıyor
         logger.log(
-          "🔄 [BACK_SIDE] Canvas bypass edildi, direkt URL'ler kullanılacak"
+          "🔄 [BACK_SIDE] Canvas bypass edildi, direkt URL'ler kullanılacak",
         );
       }
     }
@@ -4677,13 +4749,10 @@ router.post("/generate", async (req, res) => {
         // GPT Image 1.5 ile görsel oluştur
         const gptImageResult = await callFalAiGptImageEditForRefiner(
           enhancedPrompt,
-          finalImage
+          finalImage,
         );
 
-        logger.log(
-          "✅ [REFINER MODE] GPT Image 1.5 başarılı:",
-          gptImageResult
-        );
+        logger.log("✅ [REFINER MODE] GPT Image 1.5 başarılı:", gptImageResult);
 
         // Generation'ı completed olarak güncelle (result_image_url ile - updateGenerationStatus içinde Supabase'e kaydediliyor)
         await updateGenerationStatus(finalGenerationId, userId, "completed", {
@@ -4691,9 +4760,7 @@ router.post("/generate", async (req, res) => {
           enhanced_prompt: enhancedPrompt,
         });
 
-        logger.log(
-          "✅ [REFINER MODE] Generation completed olarak güncellendi"
-        );
+        logger.log("✅ [REFINER MODE] Generation completed olarak güncellendi");
 
         // Response döndür (imageUrl eklendi - RefinerScreen için)
         return res.json({
@@ -4710,7 +4777,7 @@ router.post("/generate", async (req, res) => {
       } catch (refinerError) {
         console.error(
           "❌ [REFINER MODE] GPT Image 1.5 hatası:",
-          refinerError.message
+          refinerError.message,
         );
 
         // Generation'ı failed olarak güncelle
@@ -4735,7 +4802,7 @@ router.post("/generate", async (req, res) => {
               .eq("id", userId);
 
             logger.log(
-              `💰 ${actualCreditDeducted} kredi iade edildi (Refiner mode hatası)`
+              `💰 ${actualCreditDeducted} kredi iade edildi (Refiner mode hatası)`,
             );
           } catch (refundError) {
             console.error("❌ Kredi iade hatası:", refundError);
@@ -4761,7 +4828,7 @@ router.post("/generate", async (req, res) => {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         logger.log(
-          `🔄 Fal.ai nano-banana API attempt ${attempt}/${maxRetries}`
+          `🔄 Fal.ai nano-banana API attempt ${attempt}/${maxRetries}`,
         );
 
         logger.log("🚀 Fal.ai nano-banana API çağrısı yapılıyor...");
@@ -4776,7 +4843,7 @@ router.post("/generate", async (req, res) => {
           referenceImages.length >= 2
         ) {
           logger.log(
-            "🔄 [BACK_SIDE] 2 ayrı resim Nano Banana'ya gönderiliyor..."
+            "🔄 [BACK_SIDE] 2 ayrı resim Nano Banana'ya gönderiliyor...",
           );
           imageInputArray = [
             referenceImages[0].uri || referenceImages[0], // Ön resim - direkt string
@@ -4791,7 +4858,7 @@ router.post("/generate", async (req, res) => {
           const totalRefs =
             referenceImages.length + (modelReferenceImage ? 1 : 0);
           logger.log(
-            `🖼️ [MULTIPLE] ${totalRefs} adet referans resmi Nano Banana'ya gönderiliyor...`
+            `🖼️ [MULTIPLE] ${totalRefs} adet referans resmi Nano Banana'ya gönderiliyor...`,
           );
 
           const sortedImages = [];
@@ -4800,7 +4867,7 @@ router.post("/generate", async (req, res) => {
             sortedImages.push({
               ...modelReferenceImage,
               uri: sanitizeImageUrl(
-                modelReferenceImage.uri || modelReferenceImage
+                modelReferenceImage.uri || modelReferenceImage,
               ),
               type: modelReferenceImage.type || "model",
             });
@@ -4816,7 +4883,7 @@ router.post("/generate", async (req, res) => {
           } else if (referenceImages.length > 0 || combinedImageForReplicate) {
             const productSource =
               typeof combinedImageForReplicate === "string" &&
-                combinedImageForReplicate
+              combinedImageForReplicate
                 ? combinedImageForReplicate
                 : referenceImages[0]?.uri || referenceImages[0];
 
@@ -4832,7 +4899,7 @@ router.post("/generate", async (req, res) => {
           imageInputArray = sortedImages.map((img) => img.uri || img);
           logger.log(
             "📤 [MULTIPLE] Sıralı image input array:",
-            sortedImages.map((img, idx) => `${idx + 1}. ${img.type}`)
+            sortedImages.map((img, idx) => `${idx + 1}. ${img.type}`),
           );
           logger.log("📤 [MULTIPLE] Image URLs:", imageInputArray);
         } else {
@@ -4853,7 +4920,7 @@ router.post("/generate", async (req, res) => {
             : "fal-ai/nano-banana/edit";
 
         logger.log(
-          `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model: ${falModel}`
+          `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model: ${falModel}`,
         );
 
         let requestBody;
@@ -4862,14 +4929,19 @@ router.post("/generate", async (req, res) => {
         // Fal.ai 5000 karakter limiti - prompt'u kırp
         const maxPromptLength = 4900;
         let truncatedPrompt = enhancedPrompt;
-        logger.log(`📏 [FAL_PROMPT] Enhanced prompt uzunluğu: ${enhancedPrompt.length} karakter`);
+        logger.log(
+          `📏 [FAL_PROMPT] Enhanced prompt uzunluğu: ${enhancedPrompt.length} karakter`,
+        );
         if (enhancedPrompt.length > maxPromptLength) {
           logger.log(
-            `⚠️ Prompt ${enhancedPrompt.length} karakter, ${maxPromptLength}'e kırpılıyor...`
+            `⚠️ Prompt ${enhancedPrompt.length} karakter, ${maxPromptLength}'e kırpılıyor...`,
           );
           truncatedPrompt = enhancedPrompt.substring(0, maxPromptLength);
         }
-        logger.log(`📋 [FAL_PROMPT] Fal.ai'ya giden prompt (${truncatedPrompt.length} karakter):`, truncatedPrompt);
+        logger.log(
+          `📋 [FAL_PROMPT] Fal.ai'ya giden prompt (${truncatedPrompt.length} karakter):`,
+          truncatedPrompt,
+        );
 
         // Back side analysis veya v2 modunda quality "2K" olarak ayarla
         const qualityParam =
@@ -4887,11 +4959,11 @@ router.post("/generate", async (req, res) => {
             ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
           };
           logger.log(
-            `🕺 [POSE_CHANGE] fal.ai ${falModel} request body hazırlandı`
+            `🕺 [POSE_CHANGE] fal.ai ${falModel} request body hazırlandı`,
           );
           logger.log(
             "🕺 [POSE_CHANGE] Prompt:",
-            enhancedPrompt.substring(0, 200) + "..."
+            enhancedPrompt.substring(0, 200) + "...",
           );
         } else {
           // NORMAL MODE - Kalite versiyonuna göre parametreler
@@ -4928,7 +5000,7 @@ router.post("/generate", async (req, res) => {
               "Content-Type": "application/json",
             },
             timeout: 300000, // 5 dakika timeout
-          }
+          },
         );
 
         logger.log("📋 Fal.ai API Response Status:", response.status);
@@ -4942,7 +5014,7 @@ router.post("/generate", async (req, res) => {
         if (response.data.images && response.data.images.length > 0) {
           logger.log(
             "✅ Fal.ai API başarılı, images alındı:",
-            response.data.images.map((img) => img.url)
+            response.data.images.map((img) => img.url),
           );
 
           // Fal.ai response'u Replicate formatına dönüştür (mevcut kod ile uyumluluk için)
@@ -4958,9 +5030,7 @@ router.post("/generate", async (req, res) => {
             },
           };
 
-          logger.log(
-            `✅ Fal.ai nano-banana API başarılı (attempt ${attempt})`
-          );
+          logger.log(`✅ Fal.ai nano-banana API başarılı (attempt ${attempt})`);
           break; // Başarılı olursa loop'tan çık
         } else if (response.data.detail || response.data.error) {
           // Fal.ai error response
@@ -4977,7 +5047,7 @@ router.post("/generate", async (req, res) => {
           ) {
             logger.log(
               `🔄 Geçici fal.ai hatası tespit edildi (attempt ${attempt}), retry yapılacak:`,
-              errorMsg
+              errorMsg,
             );
             retryReasons.push(`Attempt ${attempt}: ${errorMsg}`);
             throw new Error(`RETRYABLE_SERVICE_ERROR: ${errorMsg}`);
@@ -4988,14 +5058,14 @@ router.post("/generate", async (req, res) => {
           // No images returned - unexpected
           console.error(
             "❌ Fal.ai API unexpected response - no images:",
-            response.data
+            response.data,
           );
           throw new Error(`Fal.ai API returned no images`);
         }
       } catch (apiError) {
         console.error(
           `❌ Fal.ai nano-banana API attempt ${attempt} failed:`,
-          apiError.message
+          apiError.message,
         );
 
         // 120 saniye timeout hatası ise direkt failed yap ve retry yapma
@@ -5005,7 +5075,7 @@ router.post("/generate", async (req, res) => {
           apiError.code === "ECONNABORTED"
         ) {
           console.error(
-            `❌ 120 saniye timeout hatası, generation failed yapılıyor: ${apiError.message}`
+            `❌ 120 saniye timeout hatası, generation failed yapılıyor: ${apiError.message}`,
           );
 
           // Generation status'unu direkt failed yap
@@ -5027,7 +5097,7 @@ router.post("/generate", async (req, res) => {
           totalRetryAttempts++;
           const waitTime = attempt * 2000; // 2s, 4s, 6s bekle
           logger.log(
-            `⏳ ${waitTime}ms bekleniyor, sonra tekrar denenecek... (${attempt}/${maxRetries})`
+            `⏳ ${waitTime}ms bekleniyor, sonra tekrar denenecek... (${attempt}/${maxRetries})`,
           );
           await new Promise((resolve) => setTimeout(resolve, waitTime));
           continue;
@@ -5040,7 +5110,7 @@ router.post("/generate", async (req, res) => {
             code: apiError.code,
             message: apiError.message?.substring(0, 100),
             status: apiError.response?.status,
-          }
+          },
         );
 
         // Son deneme veya farklı hata türü ise fırlat
@@ -5056,7 +5126,7 @@ router.post("/generate", async (req, res) => {
 
       // 🗑️ Prediction ID hatası durumunda geçici dosyaları temizle
       logger.log(
-        "🧹 Prediction ID hatası sonrası geçici dosyalar temizleniyor..."
+        "🧹 Prediction ID hatası sonrası geçici dosyalar temizleniyor...",
       );
       await cleanupTemporaryFiles(temporaryFiles);
 
@@ -5078,7 +5148,7 @@ router.post("/generate", async (req, res) => {
             .eq("id", userId);
 
           logger.log(
-            `💰 ${actualCreditDeducted} kredi iade edildi (Prediction ID hatası)`
+            `💰 ${actualCreditDeducted} kredi iade edildi (Prediction ID hatası)`,
           );
         } catch (refundError) {
           console.error("❌ Kredi iade hatası:", refundError);
@@ -5112,13 +5182,13 @@ router.post("/generate", async (req, res) => {
     ) {
       // Processing durumunda polling yap (fal.ai için genellikle gerekmez)
       logger.log(
-        "⏳ Fal.ai nano-banana - processing status, polling başlatılıyor"
+        "⏳ Fal.ai nano-banana - processing status, polling başlatılıyor",
       );
 
       try {
         finalResult = await pollReplicateResultWithRetry(
           initialResult.id,
-          maxPollingRetries
+          maxPollingRetries,
         );
         processingTime = Math.round((Date.now() - startTime) / 1000);
       } catch (pollingError) {
@@ -5130,9 +5200,7 @@ router.post("/generate", async (req, res) => {
         });
 
         // 🗑️ Polling hatası durumunda geçici dosyaları temizle
-        logger.log(
-          "🧹 Polling hatası sonrası geçici dosyalar temizleniyor..."
-        );
+        logger.log("🧹 Polling hatası sonrası geçici dosyalar temizleniyor...");
         await cleanupTemporaryFiles(temporaryFiles);
 
         // Error response'a generationId ekle ki client hangi generation'ın başarısız olduğunu bilsin
@@ -5151,7 +5219,7 @@ router.post("/generate", async (req, res) => {
     } else {
       // Diğer durumlar (failed, vs) - retry mekanizmasıyla
       logger.log(
-        "🎯 Fal.ai nano-banana - failed status, retry mekanizması başlatılıyor"
+        "🎯 Fal.ai nano-banana - failed status, retry mekanizması başlatılıyor",
       );
 
       // Failed status için retry logic
@@ -5162,13 +5230,13 @@ router.post("/generate", async (req, res) => {
         retryAttempt++
       ) {
         logger.log(
-          `🔄 Failed status retry attempt ${retryAttempt}/${maxPollingRetries}`
+          `🔄 Failed status retry attempt ${retryAttempt}/${maxPollingRetries}`,
         );
 
         try {
           // 2 saniye bekle, sonra yeni prediction başlat
           await new Promise((resolve) =>
-            setTimeout(resolve, 2000 * retryAttempt)
+            setTimeout(resolve, 2000 * retryAttempt),
           );
 
           // Aynı parametrelerle yeni prediction oluştur
@@ -5181,7 +5249,7 @@ router.post("/generate", async (req, res) => {
             referenceImages.length >= 2
           ) {
             logger.log(
-              "🔄 [RETRY BACK_SIDE] 2 ayrı resim Nano Banana'ya gönderiliyor..."
+              "🔄 [RETRY BACK_SIDE] 2 ayrı resim Nano Banana'ya gönderiliyor...",
             );
             retryImageInputArray = [
               referenceImages[0].uri || referenceImages[0], // Ön resim - direkt string
@@ -5195,25 +5263,27 @@ router.post("/generate", async (req, res) => {
             const totalRefs =
               referenceImages.length + (modelReferenceImage ? 1 : 0);
             logger.log(
-              `🔄 [RETRY MULTIPLE] ${totalRefs} ayrı resim Nano Banana'ya gönderiliyor...`
+              `🔄 [RETRY MULTIPLE] ${totalRefs} ayrı resim Nano Banana'ya gönderiliyor...`,
             );
 
             const sortedImages = [];
 
             if (modelReferenceImage) {
               sortedImages.push(
-                sanitizeImageUrl(modelReferenceImage.uri || modelReferenceImage)
+                sanitizeImageUrl(
+                  modelReferenceImage.uri || modelReferenceImage,
+                ),
               );
             }
 
             if (isMultipleImages && referenceImages.length > 1) {
               referenceImages.forEach((img) =>
-                sortedImages.push(sanitizeImageUrl(img.uri || img))
+                sortedImages.push(sanitizeImageUrl(img.uri || img)),
               );
             } else {
               const productSource =
                 typeof combinedImageForReplicate === "string" &&
-                  combinedImageForReplicate
+                combinedImageForReplicate
                   ? combinedImageForReplicate
                   : referenceImages[0]?.uri || referenceImages[0];
 
@@ -5239,7 +5309,7 @@ router.post("/generate", async (req, res) => {
           };
 
           logger.log(
-            `🔄 Retry ${retryAttempt}: Yeni prediction oluşturuluyor... (Model: ${falModel})`
+            `🔄 Retry ${retryAttempt}: Yeni prediction oluşturuluyor... (Model: ${falModel})`,
           );
 
           const retryResponse = await axios.post(
@@ -5251,7 +5321,7 @@ router.post("/generate", async (req, res) => {
                 "Content-Type": "application/json",
               },
               timeout: 300000,
-            }
+            },
           );
 
           logger.log(`🔄 Retry ${retryAttempt} Response:`, {
@@ -5268,7 +5338,7 @@ router.post("/generate", async (req, res) => {
             const outputUrls = retryResponse.data.images.map((img) => img.url);
             logger.log(
               `✅ Retry ${retryAttempt} başarılı! Images alındı:`,
-              outputUrls
+              outputUrls,
             );
             // Fal.ai response'u mevcut format ile uyumlu hale getir
             finalResult = {
@@ -5281,19 +5351,19 @@ router.post("/generate", async (req, res) => {
           } else if (retryResponse.data.detail || retryResponse.data.error) {
             console.error(
               `❌ Retry ${retryAttempt} başarısız:`,
-              retryResponse.data.detail || retryResponse.data.error
+              retryResponse.data.detail || retryResponse.data.error,
             );
             // Bu retry attempt başarısız, bir sonraki deneme yapılacak
           } else {
             console.error(
-              `❌ Retry ${retryAttempt} başarısız - no images returned`
+              `❌ Retry ${retryAttempt} başarısız - no images returned`,
             );
             // Bu retry attempt başarısız, bir sonraki deneme yapılacak
           }
         } catch (retryError) {
           console.error(
             `❌ Retry ${retryAttempt} exception:`,
-            retryError.message
+            retryError.message,
           );
           // Bu retry attempt başarısız, bir sonraki deneme yapılacak
         }
@@ -5301,7 +5371,7 @@ router.post("/generate", async (req, res) => {
 
       if (!retrySuccessful) {
         console.error(
-          `❌ Tüm retry attemptları başarısız oldu. Orijinal failed result kullanılıyor.`
+          `❌ Tüm retry attemptları başarısız oldu. Orijinal failed result kullanılıyor.`,
         );
         finalResult = initialResult;
       }
@@ -5324,7 +5394,7 @@ router.post("/generate", async (req, res) => {
       // 📊 Retry istatistiklerini logla
       if (totalRetryAttempts > 0) {
         logger.log(
-          `📊 Retry İstatistikleri: ${totalRetryAttempts} retry yapıldı`
+          `📊 Retry İstatistikleri: ${totalRetryAttempts} retry yapıldı`,
         );
         logger.log(`📊 Retry Nedenleri: ${retryReasons.join(" | ")}`);
       } else {
@@ -5336,15 +5406,21 @@ router.post("/generate", async (req, res) => {
       const resultImageUrl = Array.isArray(finalResult.output)
         ? finalResult.output[0]
         : finalResult.output;
-      const updatedGeneration = await updateGenerationStatus(finalGenerationId, userId, "completed", {
-        enhanced_prompt: enhancedPrompt,
-        result_image_url: resultImageUrl,
-        replicate_prediction_id: initialResult.id,
-        processing_time_seconds: processingTime,
-      });
+      const updatedGeneration = await updateGenerationStatus(
+        finalGenerationId,
+        userId,
+        "completed",
+        {
+          enhanced_prompt: enhancedPrompt,
+          result_image_url: resultImageUrl,
+          replicate_prediction_id: initialResult.id,
+          processing_time_seconds: processingTime,
+        },
+      );
       // updateGenerationStatus Supabase bucket'e kaydedip DB'yi günceller,
       // dönen kayıttaki result_image_url artık Supabase URL'sidir (fal.media değil)
-      const finalResultImageUrl = updatedGeneration?.result_image_url || resultImageUrl;
+      const finalResultImageUrl =
+        updatedGeneration?.result_image_url || resultImageUrl;
 
       // 💳 KREDI GÜNCELLEME SIRASI
       // Kredi düşümü updateGenerationStatus içinde tetikleniyor (pay-on-success).
@@ -5353,16 +5429,19 @@ router.post("/generate", async (req, res) => {
       let currentCredit = null;
       if (userId && userId !== "anonymous_user") {
         try {
-          const effectiveCredits = await teamService.getEffectiveCredits(userId);
+          const effectiveCredits =
+            await teamService.getEffectiveCredits(userId);
           currentCredit = effectiveCredits.creditBalance || 0;
           logger.log(
             `💳 Güncel kredi balance (post-deduct, team-aware): ${currentCredit}`,
-            effectiveCredits.isTeamCredit ? `(team owner: ${effectiveCredits.creditOwnerId})` : ''
+            effectiveCredits.isTeamCredit
+              ? `(team owner: ${effectiveCredits.creditOwnerId})`
+              : "",
           );
         } catch (creditError) {
           console.error(
             "❌ Güncel kredi sorgu hatası (post-deduct):",
-            creditError
+            creditError,
           );
         }
       }
@@ -5372,7 +5451,13 @@ router.post("/generate", async (req, res) => {
         result: {
           // Supabase bucket URL kullan (fal.media yerine)
           imageUrl: finalResultImageUrl,
-          imageUrlThumbnail: finalResultImageUrl ? optimizeImageUrl(finalResultImageUrl, { width: 500, height: 500, quality: 80 }) : null,
+          imageUrlThumbnail: finalResultImageUrl
+            ? optimizeImageUrl(finalResultImageUrl, {
+                width: 500,
+                height: 500,
+                quality: 80,
+              })
+            : null,
           originalPrompt: promptText,
           enhancedPrompt: enhancedPrompt,
           replicateData: finalResult,
@@ -5398,9 +5483,7 @@ router.post("/generate", async (req, res) => {
       });
 
       // 🗑️ Replicate hata durumında geçici dosyaları temizle
-      logger.log(
-        "🧹 Replicate hatası sonrası geçici dosyalar temizleniyor..."
-      );
+      logger.log("🧹 Replicate hatası sonrası geçici dosyalar temizleniyor...");
       await cleanupTemporaryFiles(temporaryFiles);
 
       // Kredi iade et
@@ -5421,7 +5504,7 @@ router.post("/generate", async (req, res) => {
             .eq("id", userId);
 
           logger.log(
-            `💰 ${actualCreditDeducted} kredi iade edildi (Replicate hatası)`
+            `💰 ${actualCreditDeducted} kredi iade edildi (Replicate hatası)`,
           );
         } catch (refundError) {
           console.error("❌ Kredi iade hatası:", refundError);
@@ -5470,9 +5553,7 @@ router.post("/generate", async (req, res) => {
           })
           .eq("id", userId);
 
-        logger.log(
-          `💰 ${actualCreditDeducted} kredi iade edildi (Genel hata)`
-        );
+        logger.log(`💰 ${actualCreditDeducted} kredi iade edildi (Genel hata)`);
       } catch (refundError) {
         console.error("❌ Kredi iade hatası:", refundError);
       }
@@ -5560,9 +5641,12 @@ router.get("/results/:userId", async (req, res) => {
     }
 
     // Get team member IDs for shared workspace
-    const { memberIds, isTeamMember } = await teamService.getTeamMemberIds(userId);
+    const { memberIds, isTeamMember } =
+      await teamService.getTeamMemberIds(userId);
 
-    logger.log(`📊 [RESULTS-V5] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
+    logger.log(
+      `📊 [RESULTS-V5] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(", ")}`,
+    );
 
     const offset = (page - 1) * limit;
 
@@ -5741,7 +5825,7 @@ async function generatePoseDescriptionWithGemini(
   poseTitle,
   poseImage,
   gender = "female",
-  garmentType = "clothing"
+  garmentType = "clothing",
 ) {
   try {
     logger.log("🤸 [GEMINI] Pose açıklaması oluşturuluyor...");
@@ -5806,7 +5890,7 @@ async function generatePoseDescriptionWithGemini(
     const poseDescription = await callReplicateGeminiFlash(
       posePrompt,
       imageUrlsForPose,
-      3
+      3,
     );
 
     if (!poseDescription) {
@@ -5815,7 +5899,7 @@ async function generatePoseDescriptionWithGemini(
 
     logger.log(
       "🤸 [REPLICATE-GEMINI] Pose açıklaması alındı:",
-      poseDescription.substring(0, 100) + "..."
+      poseDescription.substring(0, 100) + "...",
     );
 
     const sanitizedDescription = sanitizePoseText(poseDescription);
@@ -5828,7 +5912,7 @@ async function generatePoseDescriptionWithGemini(
     console.error("🤸 Replicate Gemini pose açıklaması hatası:", error);
     // Fallback: Basit pose açıklaması
     return sanitizePoseText(
-      `Professional ${gender.toLowerCase()} model pose: ${poseTitle}. Stand naturally with good posture, position body to showcase the garment effectively.`
+      `Professional ${gender.toLowerCase()} model pose: ${poseTitle}. Stand naturally with good posture, position body to showcase the garment effectively.`,
     );
   }
 }
@@ -5863,7 +5947,7 @@ router.post("/generatePoseDescription", async (req, res) => {
       poseTitle,
       poseImage,
       gender,
-      garmentType
+      garmentType,
     );
 
     logger.log("🤸 Pose açıklaması başarıyla oluşturuldu");
@@ -5914,7 +5998,8 @@ router.get("/generation-status/:generationId", async (req, res) => {
     }
 
     // Get team member IDs for shared workspace
-    const { memberIds, isTeamMember } = await teamService.getTeamMemberIds(userId);
+    const { memberIds, isTeamMember } =
+      await teamService.getTeamMemberIds(userId);
 
     // Log'u sadece ilk sorgulamada yap (spam önlemek için)
     if (Math.random() < 0.1) {
@@ -5922,8 +6007,8 @@ router.get("/generation-status/:generationId", async (req, res) => {
       logger.log(
         `🔍 Generation status sorgusu: ${generationId.slice(
           0,
-          8
-        )}... (User: ${userId.slice(0, 8)}..., Team: ${isTeamMember})`
+          8,
+        )}... (User: ${userId.slice(0, 8)}..., Team: ${isTeamMember})`,
       );
     }
 
@@ -5946,23 +6031,28 @@ router.get("/generation-status/:generationId", async (req, res) => {
 
       if (userGenerations && userGenerations.length > 0) {
         logger.log(
-          `🔍 User/Team ${userId.slice(0, 8)} has ${userGenerations.length
+          `🔍 User/Team ${userId.slice(0, 8)} has ${
+            userGenerations.length
           } active generations:`,
           userGenerations
-            .map((g) => `${g.generation_id ? g.generation_id.slice(0, 8) : 'null'}(${g.status})`)
-            .join(", ")
+            .map(
+              (g) =>
+                `${g.generation_id ? g.generation_id.slice(0, 8) : "null"}(${g.status})`,
+            )
+            .join(", "),
         );
 
         // 30 dakikadan eski pending/processing generation'ları temizle
         const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
         const expiredGenerations = userGenerations.filter(
-          (g) => new Date(g.created_at) < thirtyMinutesAgo
+          (g) => new Date(g.created_at) < thirtyMinutesAgo,
         );
 
         if (expiredGenerations.length > 0) {
           logger.log(
-            `🧹 Cleaning ${expiredGenerations.length
-            } expired generations for user/team ${userId.slice(0, 8)}`
+            `🧹 Cleaning ${
+              expiredGenerations.length
+            } expired generations for user/team ${userId.slice(0, 8)}`,
           );
 
           // Null generation_id'leri filtrele
@@ -6001,8 +6091,8 @@ router.get("/generation-status/:generationId", async (req, res) => {
       logger.log(
         `🔍 Generation not found: ${generationId.slice(
           0,
-          8
-        )}... (could be completed or expired)`
+          8,
+        )}... (could be completed or expired)`,
       );
 
       // Frontend'e generation'ın tamamlandığını veya süresi dolduğunu söyle
@@ -6032,8 +6122,8 @@ router.get("/generation-status/:generationId", async (req, res) => {
     ) {
       logger.log(
         `⏰ Generation ${generationId} timeout (${Math.round(
-          minutesElapsed
-        )} dakika), failed olarak işaretleniyor`
+          minutesElapsed,
+        )} dakika), failed olarak işaretleniyor`,
       );
       finalStatus = "failed";
       shouldUpdateStatus = true;
@@ -6044,19 +6134,20 @@ router.get("/generation-status/:generationId", async (req, res) => {
           processing_time_seconds: Math.round(minutesElapsed * 60),
         });
         logger.log(
-          `✅ Timeout generation ${generationId} failed olarak güncellendi`
+          `✅ Timeout generation ${generationId} failed olarak güncellendi`,
         );
       } catch (updateError) {
         console.error(
           `❌ Timeout generation ${generationId} güncelleme hatası:`,
-          updateError
+          updateError,
         );
       }
     }
 
     logger.log(
-      `✅ Generation durumu: ${finalStatus}${shouldUpdateStatus ? " (timeout nedeniyle güncellendi)" : ""
-      }`
+      `✅ Generation durumu: ${finalStatus}${
+        shouldUpdateStatus ? " (timeout nedeniyle güncellendi)" : ""
+      }`,
     );
 
     // 💳 Güncel kredi bilgisini de döndür (arka plandan dönüşte güncellensin)
@@ -6074,9 +6165,17 @@ router.get("/generation-status/:generationId", async (req, res) => {
       }
     }
 
-    const thumbnailUrl = generation.result_image_url ? optimizeImageUrl(generation.result_image_url, { width: 500, height: 500, quality: 80 }) : null;
+    const thumbnailUrl = generation.result_image_url
+      ? optimizeImageUrl(generation.result_image_url, {
+          width: 500,
+          height: 500,
+          quality: 80,
+        })
+      : null;
     if (finalStatus === "completed") {
-      logger.log(`🖼️ [THUMBNAIL] Generation ${generation.generation_id}: original=${generation.result_image_url?.substring(0, 60)} | thumbnail=${thumbnailUrl?.substring(0, 80)}`);
+      logger.log(
+        `🖼️ [THUMBNAIL] Generation ${generation.generation_id}: original=${generation.result_image_url?.substring(0, 60)} | thumbnail=${thumbnailUrl?.substring(0, 80)}`,
+      );
     }
 
     return res.status(200).json({
@@ -6135,14 +6234,18 @@ router.get("/pending-generations/:userId", async (req, res) => {
     let memberIds = [userId];
     let isTeamMember = false;
 
-    if (platform !== 'mobile') {
+    if (platform !== "mobile") {
       const teamData = await teamService.getTeamMemberIds(userId);
       memberIds = teamData.memberIds;
       isTeamMember = teamData.isTeamMember;
     }
 
-    logger.log(`🔍 Pending generations sorgusu: ${userId} (platform: ${platform || 'web'})`);
-    logger.log(`📊 [PENDING-V5] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
+    logger.log(
+      `🔍 Pending generations sorgusu: ${userId} (platform: ${platform || "web"})`,
+    );
+    logger.log(
+      `📊 [PENDING-V5] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(", ")}`,
+    );
 
     // Pending ve processing durumundaki generation'ları getir (takım üyeleri dahil - sadece web)
     const { data: generations, error } = await supabase
@@ -6164,7 +6267,7 @@ router.get("/pending-generations/:userId", async (req, res) => {
     }
 
     logger.log(
-      `✅ ${generations?.length || 0} pending/processing generation bulundu`
+      `✅ ${generations?.length || 0} pending/processing generation bulundu`,
     );
 
     // ⏰ Timeout kontrolü ve otomatik cleanup
@@ -6181,8 +6284,8 @@ router.get("/pending-generations/:userId", async (req, res) => {
         if (minutesElapsed > PROCESSING_TIMEOUT_MINUTES) {
           logger.log(
             `⏰ Generation ${gen.generation_id} timeout (${Math.round(
-              minutesElapsed
-            )} dakika)`
+              minutesElapsed,
+            )} dakika)`,
           );
           timeoutGenerations.push(gen);
 
@@ -6192,12 +6295,12 @@ router.get("/pending-generations/:userId", async (req, res) => {
               processing_time_seconds: Math.round(minutesElapsed * 60),
             });
             logger.log(
-              `✅ Timeout generation ${gen.generation_id} failed olarak güncellendi`
+              `✅ Timeout generation ${gen.generation_id} failed olarak güncellendi`,
             );
           } catch (updateError) {
             console.error(
               `❌ Timeout generation ${gen.generation_id} güncelleme hatası:`,
-              updateError
+              updateError,
             );
           }
         } else {
@@ -6206,7 +6309,7 @@ router.get("/pending-generations/:userId", async (req, res) => {
       }
 
       logger.log(
-        `🧹 ${timeoutGenerations.length} timeout generation temizlendi, ${validGenerations.length} aktif generation kaldı`
+        `🧹 ${timeoutGenerations.length} timeout generation temizlendi, ${validGenerations.length} aktif generation kaldı`,
       );
     }
 
@@ -6218,7 +6321,13 @@ router.get("/pending-generations/:userId", async (req, res) => {
             generationId: gen.generation_id,
             status: gen.status,
             resultImageUrl: gen.result_image_url,
-            resultImageThumbnail: gen.result_image_url ? optimizeImageUrl(gen.result_image_url, { width: 500, height: 500, quality: 80 }) : null,
+            resultImageThumbnail: gen.result_image_url
+              ? optimizeImageUrl(gen.result_image_url, {
+                  width: 500,
+                  height: 500,
+                  quality: 80,
+                })
+              : null,
             originalPrompt: gen.original_prompt,
             enhancedPrompt: gen.enhanced_prompt,
             errorMessage: null, // error_message kolonu yok
@@ -6263,17 +6372,20 @@ router.get("/user-generations/:userId", async (req, res) => {
     let memberIds = [userId];
     let isTeamMember = false;
 
-    if (platform !== 'mobile') {
+    if (platform !== "mobile") {
       const teamData = await teamService.getTeamMemberIds(userId);
       memberIds = teamData.memberIds;
       isTeamMember = teamData.isTeamMember;
     }
 
     logger.log(
-      `🔍 User generations sorgusu: ${userId}${status ? ` (status: ${status})` : ""
-      } (platform: ${platform || 'web'})`
+      `🔍 User generations sorgusu: ${userId}${
+        status ? ` (status: ${status})` : ""
+      } (platform: ${platform || "web"})`,
     );
-    logger.log(`📊 [USER-GENERATIONS-V5] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(', ')}`);
+    logger.log(
+      `📊 [USER-GENERATIONS-V5] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(", ")}`,
+    );
 
     // 🕐 Her zaman son 1 saatlik data'yı döndür
     const oneHourAgo = new Date();
@@ -6281,19 +6393,21 @@ router.get("/user-generations/:userId", async (req, res) => {
     const oneHourAgoISO = oneHourAgo.toISOString();
 
     logger.log(
-      `🕐 [API_FILTER] Son 1 saatlik data döndürülüyor: ${oneHourAgoISO} sonrası`
+      `🕐 [API_FILTER] Son 1 saatlik data döndürülüyor: ${oneHourAgoISO} sonrası`,
     );
 
     // Team üyeleri için .in() kullan
     // User email bilgisini de çekmek için join yap
     let query = supabase
       .from("reference_results")
-      .select(`
+      .select(
+        `
         *,
         users:user_id (
           email
         )
-      `)
+      `,
+      )
       .in("user_id", memberIds)
       .gte("created_at", oneHourAgoISO) // Her zaman 1 saatlik filtreleme
       .order("created_at", { ascending: false });
@@ -6321,8 +6435,9 @@ router.get("/user-generations/:userId", async (req, res) => {
     }
 
     logger.log(
-      `✅ ${generations?.length || 0} generation bulundu (${status || "all statuses"
-      })`
+      `✅ ${generations?.length || 0} generation bulundu (${
+        status || "all statuses"
+      })`,
     );
 
     // Debug: Generation'ları logla
@@ -6330,7 +6445,7 @@ router.get("/user-generations/:userId", async (req, res) => {
       logger.log(`🔍 [DEBUG] ${generations.length} generation bulundu:`);
       generations.forEach((gen, index) => {
         logger.log(
-          `  ${index + 1}. ID: ${gen.generation_id}, Status: ${gen.status}`
+          `  ${index + 1}. ID: ${gen.generation_id}, Status: ${gen.status}`,
         );
       });
     }
@@ -6346,7 +6461,13 @@ router.get("/user-generations/:userId", async (req, res) => {
             userEmail: gen.users?.email || null, // Team workspace için user email
             status: gen.status,
             resultImageUrl: gen.result_image_url,
-            resultImageThumbnail: gen.result_image_url ? optimizeImageUrl(gen.result_image_url, { width: 500, height: 500, quality: 80 }) : null,
+            resultImageThumbnail: gen.result_image_url
+              ? optimizeImageUrl(gen.result_image_url, {
+                  width: 500,
+                  height: 500,
+                  quality: 80,
+                })
+              : null,
             originalPrompt: gen.original_prompt,
             enhancedPrompt: gen.enhanced_prompt,
             referenceImages: gen.reference_images,
@@ -6411,8 +6532,8 @@ router.get("/generation/:generationId/reference-images", async (req, res) => {
     logger.log(
       `🔍 [REFERENCE_IMAGES_ROUTE] Generation ${generationId.slice(
         0,
-        8
-      )}... için reference images sorgusu (User: ${userId.slice(0, 8)}...)`
+        8,
+      )}... için reference images sorgusu (User: ${userId.slice(0, 8)}...)`,
     );
     logger.log(`📋 [REFERENCE_IMAGES_ROUTE] Request details:`, {
       method: req.method,
@@ -6432,7 +6553,7 @@ router.get("/generation/:generationId/reference-images", async (req, res) => {
     if (error) {
       console.error(
         "❌ [REFERENCE_IMAGES] Generation sorgulama hatası:",
-        error
+        error,
       );
       return res.status(500).json({
         success: false,
@@ -6448,9 +6569,7 @@ router.get("/generation/:generationId/reference-images", async (req, res) => {
       generationArray && generationArray.length > 0 ? generationArray[0] : null;
 
     if (!generation) {
-      logger.log(
-        `🔍 [REFERENCE_IMAGES] Generation ${generationId} bulunamadı`
-      );
+      logger.log(`🔍 [REFERENCE_IMAGES] Generation ${generationId} bulunamadı`);
       return res.status(404).json({
         success: false,
         result: {
@@ -6462,17 +6581,17 @@ router.get("/generation/:generationId/reference-images", async (req, res) => {
 
     const referenceImages = generation.reference_images || [];
     logger.log(
-      `✅ [REFERENCE_IMAGES] Generation ${generationId} için ${referenceImages.length} reference image bulundu`
+      `✅ [REFERENCE_IMAGES] Generation ${generationId} için ${referenceImages.length} reference image bulundu`,
     );
 
     // Reference images'ları işle ve array formatında döndür
     const processedReferenceImages = Array.isArray(referenceImages)
       ? referenceImages.map((imageUrl, index) => ({
-        uri: imageUrl,
-        width: 1024,
-        height: 1024,
-        type: index === 0 ? "model" : "product", // İlk resim model, diğerleri product
-      }))
+          uri: imageUrl,
+          width: 1024,
+          height: 1024,
+          type: index === 0 ? "model" : "product", // İlk resim model, diğerleri product
+        }))
       : [];
 
     return res.status(200).json({

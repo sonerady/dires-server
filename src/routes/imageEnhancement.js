@@ -6,11 +6,29 @@ const { getEffectiveCredits } = require("../services/teamService");
 
 const FAL_ENDPOINT = "https://fal.run/clarityai/crystal-upscaler";
 
+// Helper: Get file size via HEAD request
+const getRemoteFileSize = async (url) => {
+  if (!url) return null;
+  try {
+    const headResponse = await axios.head(url, { timeout: 10000 });
+    const contentLength = headResponse.headers["content-length"];
+    if (contentLength) {
+      const parsed = parseInt(contentLength, 10);
+      if (!isNaN(parsed) && parsed > 0) return parsed;
+    }
+  } catch (err) {
+    console.warn("⚠️ [UPSCALE] File size HEAD request failed:", err.message);
+  }
+  return null;
+};
+
 router.post("/", async (req, res) => {
   const CREDIT_COST = 5; // Image enhancement için kredi maliyeti
   let creditDeducted = false;
   let creditOwnerId;
   let userId;
+  let creditBalanceBefore = null;
+  let creditBalanceAfter = null;
 
   try {
     const {
@@ -46,6 +64,7 @@ router.post("/", async (req, res) => {
         const effectiveCredits = await getEffectiveCredits(userId);
         const currentCredit = effectiveCredits.creditBalance || 0;
         creditOwnerId = effectiveCredits.creditOwnerId;
+        creditBalanceBefore = currentCredit;
 
         console.log(
           `💳 [BACKEND] Team-aware kredi: ${currentCredit}, gerekli: ${CREDIT_COST}, Yeterli mi? ${currentCredit >= CREDIT_COST ? "EVET ✅" : "HAYIR ❌"}`,
@@ -83,8 +102,9 @@ router.post("/", async (req, res) => {
         }
 
         creditDeducted = true;
+        creditBalanceAfter = currentCredit - CREDIT_COST;
         console.log(
-          `✅ ${CREDIT_COST} kredi düşüldü (${creditOwnerId === userId ? "kendi hesabından" : "team owner hesabından"}). Kalan: ${currentCredit - CREDIT_COST}`
+          `✅ ${CREDIT_COST} kredi düşüldü (${creditOwnerId === userId ? "kendi hesabından" : "team owner hesabından"}). Kalan: ${creditBalanceAfter}`
         );
       } catch (creditManagementError) {
         console.error("❌ Kredi yönetimi hatası:", creditManagementError);
@@ -134,6 +154,43 @@ router.post("/", async (req, res) => {
       throw new Error("Fal.ai response did not contain a valid image URL");
     }
 
+    // Save to upscale_generations table
+    if (userId && userId !== "anonymous_user") {
+      try {
+        // Get file sizes in parallel
+        const [originalSize, resultSize] = await Promise.all([
+          getRemoteFileSize(imageUrl),
+          getRemoteFileSize(resultImageUrl),
+        ]);
+
+        const { error: insertError } = await supabase
+          .from("upscale_generations")
+          .insert({
+            user_id: userId,
+            status: "completed",
+            original_image_url: imageUrl,
+            result_image_url: resultImageUrl,
+            original_size_bytes: originalSize,
+            result_size_bytes: resultSize,
+            scale: Number(scale) || 2,
+            credits_cost: CREDIT_COST,
+            credit_balance_before: creditBalanceBefore,
+            credit_balance_after: creditBalanceAfter,
+          });
+
+        if (insertError) {
+          console.error("⚠️ [UPSCALE] DB insert error (non-blocking):", insertError);
+        } else {
+          console.log("✅ [UPSCALE] Saved to upscale_generations table", {
+            originalSize,
+            resultSize,
+          });
+        }
+      } catch (dbError) {
+        console.error("⚠️ [UPSCALE] DB save error (non-blocking):", dbError.message);
+      }
+    }
+
     const response = {
       success: true,
       input: imageUrl,
@@ -151,6 +208,25 @@ router.post("/", async (req, res) => {
       response: error.response?.data,
       errorType: error.constructor.name,
     });
+
+    // Save failed generation to DB
+    if (userId && userId !== "anonymous_user") {
+      try {
+        await supabase.from("upscale_generations").insert({
+          user_id: userId,
+          status: "failed",
+          original_image_url: req.body?.imageUrl || null,
+          result_image_url: null,
+          scale: Number(req.body?.scale) || 2,
+          credits_cost: CREDIT_COST,
+          credit_balance_before: creditBalanceBefore,
+          credit_balance_after: creditDeducted ? creditBalanceAfter : creditBalanceBefore,
+        });
+        console.log("✅ [UPSCALE] Failed generation saved to DB");
+      } catch (dbError) {
+        console.error("⚠️ [UPSCALE] Failed to save error to DB:", dbError.message);
+      }
+    }
 
     // 🔗 TEAM-AWARE: Hata durumunda kredi iade et (doğru hesaba)
     if (creditDeducted && creditOwnerId && creditOwnerId !== "anonymous_user") {

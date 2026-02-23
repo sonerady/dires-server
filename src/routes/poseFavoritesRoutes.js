@@ -1,30 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const { supabase } = require("../supabaseClient");
+const { optimizeImageUrl } = require("../utils/imageOptimizer");
 
-// Supabase resim URL'lerini optimize eden yardımcı fonksiyon (düşük boyut için)
-const optimizeImageUrl = (imageUrl) => {
-  if (!imageUrl) return imageUrl;
-
-  // Supabase storage URL'si ise optimize et - dikey kartlar için yüksek boyut (custom domain desteği ile)
-  if (imageUrl.includes("/storage/v1/")) {
-    // Eğer zaten render URL'i ise, query parametrelerini güncelle
-    if (imageUrl.includes("/storage/v1/render/image/public/")) {
-      // Mevcut query parametrelerini kaldır ve yeni ekle
-      const baseUrl = imageUrl.split("?")[0];
-      return baseUrl + "?width=400&height=800&quality=80";
-    }
-    // Normal object URL'i ise render URL'ine çevir
-    return (
-      imageUrl.replace(
-        "/storage/v1/object/public/",
-        "/storage/v1/render/image/public/"
-      ) + "?width=400&height=800&quality=80"
-    );
-  }
-
-  return imageUrl;
-};
+// Pose kartları dikey olduğu için 400x800 boyutunda optimize et
+const optimizePoseImageUrl = (imageUrl) => optimizeImageUrl(imageUrl, { width: 400, height: 800, quality: 80 });
 
 /**
  * Favori ekleme/çıkarma (toggle)
@@ -189,7 +169,7 @@ router.get("/list/:userId", async (req, res) => {
     // Optimize image URLs
     const optimizedFavorites = favorites.map((fav) => ({
       ...fav,
-      pose_image_url: optimizeImageUrl(fav.pose_image_url),
+      pose_image_url: optimizePoseImageUrl(fav.pose_image_url),
     }));
 
     res.json({

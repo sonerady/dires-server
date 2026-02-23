@@ -1,30 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const { supabase } = require("../supabaseClient");
+const { optimizeImageUrl } = require("../utils/imageOptimizer");
 
-// Supabase resim URL'lerini optimize eden yardımcı fonksiyon (düşük boyut için)
-const optimizeImageUrl = (imageUrl) => {
-  if (!imageUrl) return imageUrl;
-
-  // Supabase storage URL'si ise optimize et - dikey kartlar için yüksek boyut (custom domain desteği ile)
-  if (imageUrl.includes("/storage/v1/")) {
-    // Eğer zaten render URL'i ise, query parametrelerini güncelle
-    if (imageUrl.includes("/storage/v1/render/image/public/")) {
-      // Mevcut query parametrelerini kaldır ve yeni ekle
-      const baseUrl = imageUrl.split("?")[0];
-      return baseUrl + "?width=600&height=1200&quality=80";
-    }
-    // Normal object URL'i ise render URL'ine çevir
-    return (
-      imageUrl.replace(
-        "/storage/v1/object/public/",
-        "/storage/v1/render/image/public/"
-      ) + "?width=600&height=1200&quality=80"
-    );
-  }
-
-  return imageUrl;
-};
+// Hair style kartları dikey olduğu için 600x1200 boyutunda optimize et
+const optimizeHairStyleImageUrl = (imageUrl) => optimizeImageUrl(imageUrl, { width: 600, height: 1200, quality: 80 });
 
 /**
  * Favori ekleme/çıkarma (toggle)
@@ -189,7 +169,7 @@ router.get("/list/:userId", async (req, res) => {
     // Image URL'leri optimize et
     const optimizedFavorites = favorites.map((fav) => ({
       ...fav,
-      hair_style_image_url: optimizeImageUrl(fav.hair_style_image_url),
+      hair_style_image_url: optimizeHairStyleImageUrl(fav.hair_style_image_url),
     }));
 
     res.json({

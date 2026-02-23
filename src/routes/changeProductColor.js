@@ -686,6 +686,94 @@ async function uploadReferenceImagesToSupabase(referenceImages, userId) {
   }
 }
 
+// 📊 Color change tablosuna kayıt oluşturma fonksiyonu
+async function saveToColorChangeGenerations({
+  userId,
+  generationId,
+  status = "pending",
+  originalPrompt = null,
+  enhancedPrompt = null,
+  originalImageUrl = null,
+  resultImageUrl = null,
+  targetColor = null,
+  settings = {},
+  aspectRatio = "9:16",
+  qualityVersion = "v1",
+  falRequestId = null,
+  processingTimeSeconds = null,
+  creditsUsed = 10,
+}) {
+  try {
+    const { data, error } = await supabase
+      .from("color_change_generations")
+      .insert([
+        {
+          user_id: userId,
+          generation_id: generationId,
+          status,
+          original_prompt: originalPrompt,
+          enhanced_prompt: enhancedPrompt,
+          original_image_url: originalImageUrl,
+          result_image_url: resultImageUrl,
+          target_color: targetColor,
+          settings,
+          aspect_ratio: aspectRatio,
+          quality_version: qualityVersion,
+          fal_request_id: falRequestId,
+          processing_time_seconds: processingTimeSeconds,
+          credits_used: creditsUsed,
+        },
+      ])
+      .select();
+
+    if (error) {
+      console.error("❌ [COLOR_TABLE] Kayıt hatası:", error.message);
+      return null;
+    }
+    logger.log(
+      `✅ [COLOR_TABLE] Kayıt oluşturuldu: ${generationId} (${status})`
+    );
+    return data?.[0] || null;
+  } catch (err) {
+    console.error("❌ [COLOR_TABLE] Exception:", err.message);
+    return null;
+  }
+}
+
+// 📊 Color change tablosunu güncelleme fonksiyonu
+async function updateColorChangeGeneration(
+  generationId,
+  userId,
+  updates = {}
+) {
+  try {
+    const updateData = {
+      ...updates,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
+      .from("color_change_generations")
+      .update(updateData)
+      .eq("generation_id", generationId)
+      .eq("user_id", userId)
+      .select();
+
+    if (error) {
+      console.error("❌ [COLOR_TABLE] Güncelleme hatası:", error.message);
+      return false;
+    }
+    logger.log(
+      `✅ [COLOR_TABLE] Güncellendi: ${generationId} →`,
+      Object.keys(updates).join(", ")
+    );
+    return true;
+  } catch (err) {
+    console.error("❌ [COLOR_TABLE] Update exception:", err.message);
+    return false;
+  }
+}
+
 // İşlem başlamadan önce pending status ile kayıt oluşturma fonksiyonu
 async function createPendingGeneration(
   userId,
@@ -1057,6 +1145,29 @@ async function updateGenerationStatus(
           }
         );
       }
+    }
+
+    // 🎨 Color change tablosunu da senkronize et
+    const isColorChangeGen =
+      previousSettings?.isColorChange ||
+      finalUpdates?.settings?.isColorChange;
+    if (isColorChangeGen) {
+      const colorUpdateData = { status };
+      if (finalUpdates.result_image_url)
+        colorUpdateData.result_image_url = finalUpdates.result_image_url;
+      if (finalUpdates.enhanced_prompt)
+        colorUpdateData.enhanced_prompt = finalUpdates.enhanced_prompt;
+      if (finalUpdates.replicate_prediction_id)
+        colorUpdateData.fal_request_id =
+          finalUpdates.replicate_prediction_id;
+      if (finalUpdates.processing_time_seconds)
+        colorUpdateData.processing_time_seconds =
+          finalUpdates.processing_time_seconds;
+      await updateColorChangeGeneration(
+        generationId,
+        userId,
+        colorUpdateData
+      );
     }
 
     return data[0];
@@ -4051,6 +4162,7 @@ router.post("/generate", async (req, res) => {
       ...settings,
       totalGenerations: totalGenerations, // Pay-on-success için gerekli
       ...(sessionId && { sessionId: sessionId }),
+      ...(isColorChange && { isColorChange: true }), // Color change flag'i kaydet
     };
 
     // Kalite versiyonunu ayrı bir değişken olarak al
@@ -4111,6 +4223,22 @@ router.post("/generate", async (req, res) => {
 
     // 🔄 Status'u processing'e güncelle
     await updateGenerationStatus(finalGenerationId, userId, "processing");
+
+    // 📊 Color change modunda color_change_generations tablosuna da kaydet
+    if (isColorChange) {
+      await saveToColorChangeGenerations({
+        userId,
+        generationId: finalGenerationId,
+        status: "processing",
+        originalPrompt: promptText,
+        originalImageUrl: referenceImageUrls?.[0] || null,
+        targetColor: targetColor || settings?.productColor || null,
+        settings: settingsWithSession,
+        aspectRatio: ratio,
+        qualityVersion: qualityVersionForDB,
+        creditsUsed: CREDIT_COST,
+      });
+    }
 
     logger.log("🎛️ [BACKEND] Gelen settings parametresi:", settings);
     logger.log("🏞️ [BACKEND] Settings içindeki location:", settings?.location);

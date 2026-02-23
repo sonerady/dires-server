@@ -3,6 +3,7 @@ const router = express.Router();
 const fs = require("fs");
 const path = require("path");
 const logger = require("../utils/logger");
+const { optimizeImageUrl } = require("../utils/imageOptimizer");
 
 // JSON dosyalarının yolları - src/lib dizinine işaret edecek şekilde güncellendi
 const indoorImagesPath = path.join(__dirname, "../lib/indoor_images.json");
@@ -13,17 +14,6 @@ const outdoorImagesPath = path.join(__dirname, "../lib/outdoor_images.json");
 logger.log("Indoor images path:", indoorImagesPath);
 logger.log("Studio images path:", studioImagesPath);
 logger.log("Outdoor images path:", outdoorImagesPath);
-
-// Resim URL'lerine boyut parametresi ekleyen yardımcı fonksiyon
-const optimizeImageUrl = (imageUrl) => {
-  if (!imageUrl) return imageUrl;
-  // Sadece supabase URL'lerini işle (custom domain desteği ile)
-  if (imageUrl.includes("/storage/v1/")) {
-    const hasParams = imageUrl.includes("?");
-    return `${imageUrl}${hasParams ? "&" : "?"}width=512&height=512`;
-  }
-  return imageUrl;
-};
 
 // Dosya adından başlık oluşturan yardımcı fonksiyon - KÜÇÜK HARFLERLE
 const formatTitle = (filename) => {

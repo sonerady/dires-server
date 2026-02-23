@@ -4,6 +4,7 @@ const router = express.Router();
 const { GoogleGenAI } = require("@google/genai");
 const axios = require("axios");
 const { supabase } = require("../supabaseClient");
+const { optimizeImageUrl, optimizeLocationImages, cleanImageUrlForApi } = require("../utils/imageOptimizer");
 
 // Gemini API setup
 const genAI = new GoogleGenAI({
@@ -1015,56 +1016,6 @@ const shuffleArray = (array, seed = null) => {
   }
 
   return shuffled;
-};
-
-// Supabase resim URL'lerini optimize eden yardımcı fonksiyon
-const optimizeImageUrl = (imageUrl) => {
-  if (!imageUrl) return imageUrl;
-
-  // Supabase storage URL'si ise optimize et (custom domain desteği ile)
-  if (imageUrl.includes("/storage/v1/")) {
-    // URL'de zaten query parametreleri varsa ekleme
-    if (imageUrl.includes("?")) {
-      // Sadece render URL'sine çevir, parametreleri koruyarak
-      return imageUrl.replace(
-        "/storage/v1/object/public/",
-        "/storage/v1/render/image/public/"
-      );
-    }
-    return (
-      imageUrl.replace(
-        "/storage/v1/object/public/",
-        "/storage/v1/render/image/public/"
-      ) + "?width=500&height=500&quality=80"
-    );
-  }
-
-  return imageUrl;
-};
-
-// Location objelerinin resim URL'lerini optimize eden fonksiyon
-const optimizeLocationImages = (locations) => {
-  if (!Array.isArray(locations)) return locations;
-
-  return locations.map((location) => ({
-    ...location,
-    image_url: optimizeImageUrl(location.image_url),
-  }));
-};
-
-// Seçilen resmin boyut parametrelerini kaldıran fonksiyon (API'ye gönderilmeden önce)
-const cleanImageUrlForApi = (imageUrl) => {
-  if (!imageUrl) return imageUrl;
-
-  // Supabase render URL'si ise original object URL'sine çevir ve parametreleri kaldır (custom domain desteği ile)
-  if (imageUrl.includes("/storage/v1/render/image/public/")) {
-    const cleanUrl = imageUrl
-      .replace("/storage/v1/render/image/public/", "/storage/v1/object/public/")
-      .split("?")[0]; // Query parametrelerini kaldır
-    return cleanUrl;
-  }
-
-  return imageUrl;
 };
 
 // GET PUBLIC LOCATIONS - V3 OPTIMIZED

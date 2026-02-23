@@ -1,41 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { supabase } = require("../supabaseClient");
-
-// Supabase resim URL'lerini optimize eden yardımcı fonksiyon
-const optimizeImageUrl = (imageUrl) => {
-  if (!imageUrl) return imageUrl;
-
-  // Supabase storage URL'si ise optimize et (custom domain desteği ile)
-  if (imageUrl.includes("/storage/v1/")) {
-    // URL'de zaten query parametreleri varsa ekleme
-    if (imageUrl.includes("?")) {
-      // Sadece render URL'sine çevir, parametreleri koruyarak
-      return imageUrl.replace(
-        "/storage/v1/object/public/",
-        "/storage/v1/render/image/public/"
-      );
-    }
-    return (
-      imageUrl.replace(
-        "/storage/v1/object/public/",
-        "/storage/v1/render/image/public/"
-      ) + "?width=500&height=500&quality=80"
-    );
-  }
-
-  return imageUrl;
-};
-
-// Location objelerinin resim URL'lerini optimize eden fonksiyon
-const optimizeLocationImages = (locations) => {
-  if (!Array.isArray(locations)) return locations;
-
-  return locations.map((location) => ({
-    ...location,
-    image_url: optimizeImageUrl(location.image_url),
-  }));
-};
+const { optimizeImageUrl, optimizeLocationImages } = require("../utils/imageOptimizer");
 
 // SEARCH LOCATIONS BY TAGS, TITLE, OR GENERATED_TITLE
 router.get("/search-locations", async (req, res) => {

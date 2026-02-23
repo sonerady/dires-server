@@ -5,6 +5,7 @@ const { createClient } = require("@supabase/supabase-js");
 const { v4: uuidv4 } = require("uuid");
 const sharp = require("sharp");
 const teamService = require("../services/teamService");
+const { optimizeKitImages } = require("../utils/imageOptimizer");
 
 // Supabase client
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -991,7 +992,7 @@ router.get("/user-kits/:userId", async (req, res) => {
 
         res.json({
             success: true,
-            kits: data || [],
+            kits: optimizeKitImages(data || []),
             totalCount: count || 0,
             hasMore: (offset + limit) < (count || 0),
             isTeamData: isTeamMember

@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const path = require("path"); // path modülünü import et
 const { supabase } = require("../supabaseClient"); // Supabase client'ı import et
+const { optimizeImageUrl } = require("../utils/imageOptimizer");
 
 const womanPoses = require(path.join(
   __dirname,
@@ -9,29 +10,8 @@ const womanPoses = require(path.join(
 ));
 const manPoses = require(path.join(__dirname, "../../lib/man_poses_new.json"));
 
-// Supabase resim URL'lerini optimize eden yardımcı fonksiyon (düşük boyut için)
-const optimizeImageUrl = (imageUrl) => {
-  if (!imageUrl) return imageUrl;
-
-  // Supabase storage URL'si ise optimize et - dikey kartlar için yüksek boyut (custom domain desteği ile)
-  if (imageUrl.includes("/storage/v1/")) {
-    // Eğer zaten render URL'i ise, query parametrelerini güncelle
-    if (imageUrl.includes("/storage/v1/render/image/public/")) {
-      // Mevcut query parametrelerini kaldır ve yeni ekle
-      const baseUrl = imageUrl.split("?")[0];
-      return baseUrl + "?width=400&height=800&quality=80";
-    }
-    // Normal object URL'i ise render URL'ine çevir
-    return (
-      imageUrl.replace(
-        "/storage/v1/object/public/",
-        "/storage/v1/render/image/public/"
-      ) + "?width=400&height=800&quality=80"
-    );
-  }
-
-  return imageUrl;
-};
+// Pose kartları dikey olduğu için 400x800 boyutunda optimize et
+const optimizePoseImageUrl = (imageUrl) => optimizeImageUrl(imageUrl, { width: 400, height: 800, quality: 80 });
 
 router.get("/posesNew", async (req, res) => {
   // /poses yerine doğrudan "/" olarak değiştirildi
@@ -105,8 +85,8 @@ router.get("/posesNew", async (req, res) => {
             id: `custom_${pose.id}`,
             title: pose.description,
             key: pose.description,
-            image: optimizeImageUrl(pose.image_url), // Image URL'ini optimize et
-            image_url: optimizeImageUrl(pose.image_url), // Image URL'ini optimize et
+            image: optimizePoseImageUrl(pose.image_url), // Image URL'ini optimize et
+            image_url: optimizePoseImageUrl(pose.image_url), // Image URL'ini optimize et
             isCustom: true,
             isPublic: true,
             userId: pose.user_id,
@@ -146,7 +126,7 @@ router.get("/posesNew", async (req, res) => {
       .slice(startIndex, endIndex)
       .map((pose) => ({
         ...pose,
-        image: optimizeImageUrl(pose.image_url || pose.image), // image'ı optimize et
+        image: optimizePoseImageUrl(pose.image_url || pose.image), // image'ı optimize et
       }));
     const hasMore = endIndex < validPoses.length; // validPoses kullan
 

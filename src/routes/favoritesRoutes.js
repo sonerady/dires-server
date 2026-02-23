@@ -1,5 +1,6 @@
 const express = require("express");
 const { supabase } = require("../supabaseClient");
+const { optimizeImageUrl } = require("../utils/imageOptimizer");
 const router = express.Router();
 
 /**
@@ -90,7 +91,7 @@ router.get("/:userId", async (req, res) => {
         ...favorite,
         location_title:
           location?.title || location?.generated_title || "Unknown Location",
-        location_image_url: location?.image_url || "",
+        location_image_url: optimizeImageUrl(location?.image_url || ""),
         location_category: location?.category || favorite.location_category,
         location_type: location?.location_type || favorite.location_type,
         favorite_count: location?.favorite_count || 0,

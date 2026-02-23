@@ -686,6 +686,96 @@ async function uploadReferenceImagesToSupabase(referenceImages, userId) {
   }
 }
 
+// 📊 Back side tablosuna kayıt oluşturma fonksiyonu
+async function saveToBackSideGenerations({
+  userId,
+  generationId,
+  status = "pending",
+  originalPrompt = null,
+  enhancedPrompt = null,
+  customDetail = null,
+  originalImageUrl = null,
+  backImageUrl = null,
+  resultImageUrl = null,
+  settings = {},
+  aspectRatio = "9:16",
+  qualityVersion = "v1",
+  falRequestId = null,
+  processingTimeSeconds = null,
+  creditsUsed = 10,
+}) {
+  try {
+    const { data, error } = await supabase
+      .from("back_side_generations")
+      .insert([
+        {
+          user_id: userId,
+          generation_id: generationId,
+          status,
+          original_prompt: originalPrompt,
+          enhanced_prompt: enhancedPrompt,
+          custom_detail: customDetail,
+          original_image_url: originalImageUrl,
+          back_image_url: backImageUrl,
+          result_image_url: resultImageUrl,
+          settings,
+          aspect_ratio: aspectRatio,
+          quality_version: qualityVersion,
+          fal_request_id: falRequestId,
+          processing_time_seconds: processingTimeSeconds,
+          credits_used: creditsUsed,
+        },
+      ])
+      .select();
+
+    if (error) {
+      console.error("❌ [BACKSIDE_TABLE] Kayıt hatası:", error.message);
+      return null;
+    }
+    logger.log(
+      `✅ [BACKSIDE_TABLE] Kayıt oluşturuldu: ${generationId} (${status})`
+    );
+    return data?.[0] || null;
+  } catch (err) {
+    console.error("❌ [BACKSIDE_TABLE] Exception:", err.message);
+    return null;
+  }
+}
+
+// 📊 Back side tablosunu güncelleme fonksiyonu
+async function updateBackSideGeneration(
+  generationId,
+  userId,
+  updates = {}
+) {
+  try {
+    const updateData = {
+      ...updates,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
+      .from("back_side_generations")
+      .update(updateData)
+      .eq("generation_id", generationId)
+      .eq("user_id", userId)
+      .select();
+
+    if (error) {
+      console.error("❌ [BACKSIDE_TABLE] Güncelleme hatası:", error.message);
+      return false;
+    }
+    logger.log(
+      `✅ [BACKSIDE_TABLE] Güncellendi: ${generationId} →`,
+      Object.keys(updates).join(", ")
+    );
+    return true;
+  } catch (err) {
+    console.error("❌ [BACKSIDE_TABLE] Update exception:", err.message);
+    return false;
+  }
+}
+
 // İşlem başlamadan önce pending status ile kayıt oluşturma fonksiyonu
 async function createPendingGeneration(
   userId,
@@ -1057,6 +1147,25 @@ async function updateGenerationStatus(
           }
         );
       }
+    }
+
+    // 🔄 Back side tablosunu da senkronize et
+    const isBackSideGen =
+      previousSettings?.isBackSideCloset ||
+      finalUpdates?.settings?.isBackSideCloset;
+    if (isBackSideGen) {
+      const bsUpdateData = { status };
+      if (finalUpdates.result_image_url)
+        bsUpdateData.result_image_url = finalUpdates.result_image_url;
+      if (finalUpdates.enhanced_prompt)
+        bsUpdateData.enhanced_prompt = finalUpdates.enhanced_prompt;
+      if (finalUpdates.replicate_prediction_id)
+        bsUpdateData.fal_request_id =
+          finalUpdates.replicate_prediction_id;
+      if (finalUpdates.processing_time_seconds)
+        bsUpdateData.processing_time_seconds =
+          finalUpdates.processing_time_seconds;
+      await updateBackSideGeneration(generationId, userId, bsUpdateData);
     }
 
     return data[0];
@@ -4051,6 +4160,7 @@ router.post("/generate", async (req, res) => {
       ...settings,
       totalGenerations: totalGenerations, // Pay-on-success için gerekli
       ...(sessionId && { sessionId: sessionId }),
+      ...(req.body.isBackSideAnalysis && { isBackSideCloset: true }), // Back side flag'i kaydet
     };
 
     // Kalite versiyonunu ayrı bir değişken olarak al
@@ -4111,6 +4221,23 @@ router.post("/generate", async (req, res) => {
 
     // 🔄 Status'u processing'e güncelle
     await updateGenerationStatus(finalGenerationId, userId, "processing");
+
+    // 📊 Back side modunda back_side_generations tablosuna da kaydet
+    if (req.body.isBackSideAnalysis) {
+      await saveToBackSideGenerations({
+        userId,
+        generationId: finalGenerationId,
+        status: "processing",
+        originalPrompt: promptText,
+        customDetail: customDetail || settings?.customDetail || null,
+        originalImageUrl: referenceImageUrls?.[0] || null,
+        backImageUrl: referenceImageUrls?.[1] || null,
+        settings: settingsWithSession,
+        aspectRatio: ratio,
+        qualityVersion: qualityVersionForDB,
+        creditsUsed: CREDIT_COST,
+      });
+    }
 
     logger.log("🎛️ [BACKEND] Gelen settings parametresi:", settings);
     logger.log("🏞️ [BACKEND] Settings içindeki location:", settings?.location);

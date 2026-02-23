@@ -2,6 +2,7 @@ const express = require("express");
 const { createClient } = require("@supabase/supabase-js");
 const teamService = require("../services/teamService");
 const logger = require("../utils/logger");
+const { optimizeHistoryImages } = require("../utils/imageOptimizer");
 const router = express.Router();
 
 // Supabase client'ını import et
@@ -35,104 +36,6 @@ const retryQuery = async (queryFn, maxRetries = 3, delay = 500) => {
     }
   }
   return { data: null, count: null, error: lastError || { message: 'Max retries exceeded' } };
-};
-
-// Thumbnail için resim URL'sini optimize eden fonksiyon
-// api.diress.ai ve supabase.co URL'lerini destekler
-const optimizeImageForThumbnail = (imageUrl) => {
-  if (!imageUrl) return imageUrl;
-
-  // Supabase storage path'ini kontrol et (api.diress.ai veya supabase.co)
-  if (imageUrl.includes("/storage/v1/object/public/")) {
-    // URL'de zaten query parametreleri varsa ekleme
-    if (imageUrl.includes("?")) {
-      // Sadece render URL'sine çevir, parametreleri koruyarak
-      return imageUrl.replace(
-        "/storage/v1/object/public/",
-        "/storage/v1/render/image/public/"
-      );
-    }
-    return (
-      imageUrl.replace(
-        "/storage/v1/object/public/",
-        "/storage/v1/render/image/public/"
-      ) + "?width=300&height=300&quality=70"
-    );
-  }
-
-  return imageUrl;
-};
-
-// Modal için resim URL'sini temizleyen fonksiyon - original boyut
-// api.diress.ai ve supabase.co URL'lerini destekler
-const optimizeImageForModal = (imageUrl) => {
-  if (!imageUrl) return imageUrl;
-
-  // Supabase storage path'ini kontrol et (api.diress.ai veya supabase.co)
-  if (imageUrl.includes("/storage/v1/") && (imageUrl.includes("/object/public/") || imageUrl.includes("/render/image/public/"))) {
-    // Render URL'sini object URL'sine çevir ve parametreleri kaldır
-    return imageUrl
-      .replace("/storage/v1/render/image/public/", "/storage/v1/object/public/")
-      .split("?")[0]; // Tüm query parametrelerini kaldır
-  }
-
-  return imageUrl;
-};
-
-// History objelerinin resim URL'lerini optimize eden fonksiyon
-const optimizeHistoryImages = (historyItems) => {
-  if (!Array.isArray(historyItems)) return historyItems;
-
-  return historyItems.map((item) => {
-    const optimizedItem = { ...item };
-
-    // Result image'ları thumbnail olarak optimize et
-    if (optimizedItem.result_image_url) {
-      optimizedItem.result_image_url_thumbnail = optimizeImageForThumbnail(
-        optimizedItem.result_image_url
-      );
-      optimizedItem.result_image_url_original = optimizeImageForModal(
-        optimizedItem.result_image_url
-      );
-    }
-
-    // Reference images'ları optimize et
-    if (optimizedItem.reference_images) {
-      try {
-        let referenceImages = Array.isArray(optimizedItem.reference_images)
-          ? optimizedItem.reference_images
-          : JSON.parse(optimizedItem.reference_images || "[]");
-
-        optimizedItem.reference_images_thumbnail = referenceImages.map(
-          optimizeImageForThumbnail
-        );
-        optimizedItem.reference_images_original = referenceImages.map(
-          optimizeImageForModal
-        );
-
-        // Frontend için orijinal reference_images'ı da array olarak gönder
-        optimizedItem.reference_images = referenceImages;
-      } catch (e) {
-        console.warn("Reference images parse error:", e);
-        // Hata durumunda boş array gönder
-        optimizedItem.reference_images = [];
-        optimizedItem.reference_images_thumbnail = [];
-        optimizedItem.reference_images_original = [];
-      }
-    }
-
-    // Location image'ı optimize et
-    if (optimizedItem.location_image) {
-      optimizedItem.location_image_thumbnail = optimizeImageForThumbnail(
-        optimizedItem.location_image
-      );
-      optimizedItem.location_image_original = optimizeImageForModal(
-        optimizedItem.location_image
-      );
-    }
-
-    return optimizedItem;
-  });
 };
 
 /**

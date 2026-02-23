@@ -120,29 +120,10 @@ async function callReplicateGeminiFlash(
   }
 }
 
-// Supabase resim URL'lerini optimize eden yardımcı fonksiyon (düşük boyut için)
-const optimizeImageUrl = (imageUrl) => {
-  if (!imageUrl) return imageUrl;
+const { optimizeImageUrl } = require("../utils/imageOptimizer");
 
-  // Supabase storage URL'si ise optimize et - dikey kartlar için yüksek boyut (custom domain desteği ile)
-  if (imageUrl.includes("/storage/v1/")) {
-    // Eğer zaten render URL'i ise, query parametrelerini güncelle
-    if (imageUrl.includes("/storage/v1/render/image/public/")) {
-      // Mevcut query parametrelerini kaldır ve yeni ekle
-      const baseUrl = imageUrl.split("?")[0];
-      return baseUrl + "?width=600&height=1200&quality=80";
-    }
-    // Normal object URL'i ise render URL'ine çevir
-    return (
-      imageUrl.replace(
-        "/storage/v1/object/public/",
-        "/storage/v1/render/image/public/"
-      ) + "?width=600&height=1200&quality=80"
-    );
-  }
-
-  return imageUrl;
-};
+// Hair style kartları dikey olduğu için 600x1200 boyutunda optimize et
+const optimizeHairStyleImageUrl = (imageUrl) => optimizeImageUrl(imageUrl, { width: 600, height: 1200, quality: 80 });
 
 // Delay fonksiyonu
 function delay(ms) {
@@ -673,7 +654,7 @@ router.get("/list/:userId", async (req, res) => {
     // Image URL'leri optimize et
     const optimizedHairStyles = hairStyles.map((hairStyle) => ({
       ...hairStyle,
-      image_url: optimizeImageUrl(hairStyle.image_url),
+      image_url: optimizeHairStyleImageUrl(hairStyle.image_url),
     }));
 
     res.json({

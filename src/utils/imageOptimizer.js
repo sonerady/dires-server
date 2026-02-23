@@ -206,6 +206,46 @@ const optimizeHistoryImages = (historyItems) => {
       );
     }
 
+    // Original image (dedicated generation tables)
+    if (optimizedItem.original_image_url) {
+      optimizedItem.original_image_url_thumbnail = optimizeForThumbnail(
+        optimizedItem.original_image_url,
+      );
+      optimizedItem.original_image_url_original = getOriginalForModal(
+        optimizedItem.original_image_url,
+      );
+    }
+
+    // Back image (back_side_generations)
+    if (optimizedItem.back_image_url) {
+      optimizedItem.back_image_url_thumbnail = optimizeForThumbnail(
+        optimizedItem.back_image_url,
+      );
+      optimizedItem.back_image_url_original = getOriginalForModal(
+        optimizedItem.back_image_url,
+      );
+    }
+
+    // Pose image URL (pose_change_generations)
+    if (optimizedItem.pose_image_url) {
+      optimizedItem.pose_image_url_thumbnail = optimizeForThumbnail(
+        optimizedItem.pose_image_url,
+      );
+      optimizedItem.pose_image_url_original = getOriginalForModal(
+        optimizedItem.pose_image_url,
+      );
+    }
+
+    // Masked image URL (chat_edits)
+    if (optimizedItem.masked_image_url) {
+      optimizedItem.masked_image_url_thumbnail = optimizeForThumbnail(
+        optimizedItem.masked_image_url,
+      );
+      optimizedItem.masked_image_url_original = getOriginalForModal(
+        optimizedItem.masked_image_url,
+      );
+    }
+
     return optimizedItem;
   });
 };

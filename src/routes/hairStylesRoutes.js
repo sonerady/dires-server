@@ -4,30 +4,10 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const { v4: uuidv4 } = require("uuid");
+const { optimizeImageUrl } = require("../utils/imageOptimizer");
 
-// Supabase resim URL'lerini optimize eden yardımcı fonksiyon (düşük boyut için)
-const optimizeImageUrl = (imageUrl) => {
-  if (!imageUrl) return imageUrl;
-
-  // Supabase storage URL'si ise optimize et - dikey kartlar için yüksek boyut (custom domain desteği ile)
-  if (imageUrl.includes("/storage/v1/")) {
-    // Eğer zaten render URL'i ise, query parametrelerini güncelle
-    if (imageUrl.includes("/storage/v1/render/image/public/")) {
-      // Mevcut query parametrelerini kaldır ve yeni ekle
-      const baseUrl = imageUrl.split("?")[0];
-      return baseUrl + "?width=600&height=1200&quality=80";
-    }
-    // Normal object URL'i ise render URL'ine çevir
-    return (
-      imageUrl.replace(
-        "/storage/v1/object/public/",
-        "/storage/v1/render/image/public/"
-      ) + "?width=600&height=1200&quality=80"
-    );
-  }
-
-  return imageUrl;
-};
+// Hair style kartları dikey olduğu için 600x1200 boyutunda optimize et
+const optimizeHairStyleImageUrl = (imageUrl) => optimizeImageUrl(imageUrl, { width: 600, height: 1200, quality: 80 });
 
 // Hair styles JSON dosyalarının yolları
 const WOMAN_HAIR_STYLES_FILE = path.join(
@@ -108,7 +88,7 @@ router.get("/styles/:gender", async (req, res) => {
         allStyles.push({
           ...style,
           // Image URL'yi optimize et
-          image_url: optimizeImageUrl(style.image_url),
+          image_url: optimizeHairStyleImageUrl(style.image_url),
           // Deterministik ID oluştur
           id:
             style.id ||
@@ -269,7 +249,7 @@ router.get("/style/:gender/:styleKey", async (req, res) => {
         foundStyle = {
           ...style,
           // Image URL'yi optimize et
-          image_url: optimizeImageUrl(style.image_url),
+          image_url: optimizeHairStyleImageUrl(style.image_url),
           // Deterministik ID oluştur
           id:
             style.id ||
@@ -386,7 +366,7 @@ router.get("/search/:gender", async (req, res) => {
           searchResults.push({
             ...style,
             // Image URL'yi optimize et
-            image_url: optimizeImageUrl(style.image_url),
+            image_url: optimizeHairStyleImageUrl(style.image_url),
             // ID yoksa UUID ata, varsa mevcut ID'yi kullan
             id: style.id || uuidv4(),
             category_key: cat.category_key,
@@ -484,7 +464,7 @@ router.get("/random/:gender", async (req, res) => {
         allStyles.push({
           ...style,
           // Image URL'yi optimize et
-          image_url: optimizeImageUrl(style.image_url),
+          image_url: optimizeHairStyleImageUrl(style.image_url),
           // Deterministik ID oluştur
           id:
             style.id ||

@@ -4,6 +4,7 @@ const { supabase } = require("../supabaseClient");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const axios = require("axios");
 const logger = require("../utils/logger");
+const { optimizeImageUrl } = require("../utils/imageOptimizer");
 
 // Gemini API için istemci oluştur
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -837,22 +838,8 @@ async function saveModelToDatabase(
   }
 }
 
-// Supabase resim URL'lerini optimize eden yardımcı fonksiyon
-const optimizeImageUrl = (imageUrl) => {
-  if (!imageUrl) return imageUrl;
-
-  // Supabase storage URL'si ise optimize et (custom domain desteği ile)
-  if (imageUrl.includes("/storage/v1/object/public/")) {
-    return (
-      imageUrl.replace(
-        "/storage/v1/object/public/",
-        "/storage/v1/render/image/public/"
-      ) + "?width=400&height=400&quality=80"
-    );
-  }
-
-  return imageUrl;
-};
+// Model kartları için 400x400 boyutunda optimize et
+const optimizeModelImageUrl = (imageUrl) => optimizeImageUrl(imageUrl, { width: 400, height: 400, quality: 80 });
 
 // Resmi 1:1 canvas'a yerleştir (ortada + arka plan blurlu)
 async function createSquareCanvasWithBackground(imageBuffer) {
@@ -1228,7 +1215,7 @@ router.post("/create-model", async (req, res) => {
         id: savedModel.id,
         name: savedModel.name,
         imageUrl: savedModel.image_url, // Modal için normal boyut
-        imageUrlOptimized: optimizeImageUrl(savedModel.image_url), // FlatList için küçük boyut
+        imageUrlOptimized: optimizeModelImageUrl(savedModel.image_url), // FlatList için küçük boyut
         gender: savedModel.gender,
         age: savedModel.age,
         originalPrompt: savedModel.original_prompt,
@@ -1410,7 +1397,7 @@ router.get("/user-models/:userId", async (req, res) => {
     // Optimize image URLs
     const optimizedData = (data || []).map((model) => ({
       ...model,
-      image_url: optimizeImageUrl(model.image_url),
+      image_url: optimizeModelImageUrl(model.image_url),
     }));
 
     res.json({
