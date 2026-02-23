@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-// Updated Gemini API with latest gemini-2.0-flash model
+// Updated Gemini API with latest gemini-3-flash model
 // Using @google/generative-ai with new safety settings configuration
 const { GoogleGenAI } = require("@google/genai");
 const mime = require("mime");
@@ -614,13 +614,13 @@ async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) 
           prompt: prompt,
           videos: [],
           temperature: 1,
-          dynamic_thinking: false,
+          thinking_level: "low",
           max_output_tokens: 65535
         }
       };
 
       const response = await axios.post(
-        "https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions",
+        "https://api.replicate.com/v1/models/google/gemini-3-flash/predictions",
         requestBody,
         {
           headers: {
@@ -5231,7 +5231,7 @@ async function generatePoseDescriptionWithGemini(
     console.log("🤸 Garment type:", garmentType);
 
     // Gemini 2.0 Flash modeli - Yeni SDK
-    const model = "gemini-2.0-flash-001";
+    const model = "gemini-3-flash-001";
 
     // Gender mapping
     const modelGenderText =

@@ -40,7 +40,7 @@ const genAI = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
-// Replicate API üzerinden Gemini 2.5 Flash çağrısı yapan helper fonksiyon
+// Replicate API üzerinden Gemini 3 Flash çağrısı yapan helper fonksiyon
 // Hata durumunda 3 kez tekrar dener
 async function callReplicateGeminiFlash(
   prompt,
@@ -72,13 +72,13 @@ async function callReplicateGeminiFlash(
           prompt: prompt,
           videos: [],
           temperature: 1,
-          dynamic_thinking: false,
+          thinking_level: "low",
           max_output_tokens: 65535,
         },
       };
 
       const response = await axios.post(
-        "https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions",
+        "https://api.replicate.com/v1/models/google/gemini-3-flash/predictions",
         requestBody,
         {
           headers: {

@@ -81,13 +81,13 @@ async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) 
           prompt: prompt,
           videos: [],
           temperature: 1,
-          dynamic_thinking: false,
+          thinking_level: "low",
           max_output_tokens: 65535
         }
       };
 
       const response = await axios.post(
-        "https://api.replicate.com/v1/models/google/gemini-2.5-flash/predictions",
+        "https://api.replicate.com/v1/models/google/gemini-3-flash/predictions",
         requestBody,
         {
           headers: {

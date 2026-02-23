@@ -178,7 +178,7 @@ async function enhancePromptWithGemini(
     console.log("Original prompt:", originalPrompt);
 
     // Gemini modeli
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash" });
 
     // Basit prompt talimatı
     const promptForGemini = `

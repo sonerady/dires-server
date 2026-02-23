@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-// Updated Gemini API with latest gemini-2.0-flash model
+// Updated Gemini API with latest gemini-3-flash model
 // Using @google/generative-ai with new safety settings configuration
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { createClient } = require("@supabase/supabase-js");
@@ -4152,7 +4152,7 @@ async function generatePoseDescriptionWithGemini(
 
     // Gemini 2.0 Flash modeli
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
+      model: "gemini-3-flash",
       safetySettings: [
         {
           category: "HARM_CATEGORY_HARASSMENT",

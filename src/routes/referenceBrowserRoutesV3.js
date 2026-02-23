@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-// Updated Gemini API with latest gemini-2.0-flash model
+// Updated Gemini API with latest gemini-3-flash model
 // Using @google/generative-ai with new safety settings configuration
 const { GoogleGenAI } = require("@google/genai");
 const mime = require("mime");
@@ -693,7 +693,7 @@ async function enhancePromptWithGemini(
     console.log("🔄 [GEMINI] Back side analysis mode:", isBackSideAnalysis);
 
     // Gemini 2.0 Flash modeli - Yeni SDK
-    const model = "gemini-2.0-flash";
+    const model = "gemini-3-flash";
 
     // Settings'in var olup olmadığını kontrol et
     const hasValidSettings =
@@ -5250,7 +5250,7 @@ async function generatePoseDescriptionWithGemini(
     console.log("🤸 Garment type:", garmentType);
 
     // Gemini 2.0 Flash modeli - Yeni SDK
-    const model = "gemini-2.0-flash-001";
+    const model = "gemini-3-flash-001";
 
     // Gender mapping
     const modelGenderText =
