@@ -4701,8 +4701,12 @@ router.post("/generate", async (req, res) => {
           ? "v1"
           : settings?.qualityVersion || settings?.quality_version || "v1";
         const isV2 = qualityVersion === "v2";
-        // nano-banana-2/edit - tüm versiyonlar için tek model
-        const falModel = "fal-ai/nano-banana-2/edit";
+        // For fal.ai, we use nano-banana/edit for v1 and nano-banana-pro/edit for v2
+        // Back side analysis modunda her zaman nano-banana-pro kullan
+        const falModel =
+          isV2 || req.body.isBackSideAnalysis
+            ? "fal-ai/nano-banana-pro/edit"
+            : "fal-ai/nano-banana/edit";
 
         logger.log(
           `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model: ${falModel}`
@@ -4711,6 +4715,7 @@ router.post("/generate", async (req, res) => {
         let requestBody;
         const aspectRatioForRequest = formattedRatio || "9:16";
 
+        // Fal.ai 5000 karakter limiti - prompt'u kırp
         const maxPromptLength = 4900;
         let truncatedPrompt = enhancedPrompt;
         logger.log(`📏 [FAL_PROMPT] Enhanced prompt uzunluğu: ${enhancedPrompt.length} karakter`);
@@ -4722,22 +4727,21 @@ router.post("/generate", async (req, res) => {
         }
         logger.log(`📋 [FAL_PROMPT] Fal.ai'ya giden prompt (${truncatedPrompt.length} karakter):`, truncatedPrompt);
 
-        // nano-banana-2: v2 veya back-side analysis modunda 2K, varsayılan 1K
-        const resolutionParam =
-          isV2 || req.body.isBackSideAnalysis ? "2K" : "1K";
-
-        requestBody = {
-          prompt: truncatedPrompt,
-          image_urls: imageInputArray,
-          output_format: "png",
-          aspect_ratio: aspectRatioForRequest,
-          num_images: 1,
-          resolution: resolutionParam,
-          safety_tolerance: "6",
-          limit_generations: true,
-        };
+        // Back side analysis veya v2 modunda quality "2K" olarak ayarla
+        const qualityParam =
+          isV2 || req.body.isBackSideAnalysis ? "2K" : undefined;
 
         if (isPoseChange) {
+          // POSE CHANGE MODE - Farklı input parametreleri
+          requestBody = {
+            prompt: truncatedPrompt, // Kırpılmış prompt
+            image_urls: imageInputArray,
+            output_format: "png",
+            aspect_ratio: aspectRatioForRequest,
+            num_images: 1,
+            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
+            ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
+          };
           logger.log(
             `🕺 [POSE_CHANGE] fal.ai ${falModel} request body hazırlandı`
           );
@@ -4745,6 +4749,17 @@ router.post("/generate", async (req, res) => {
             "🕺 [POSE_CHANGE] Prompt:",
             enhancedPrompt.substring(0, 200) + "..."
           );
+        } else {
+          // NORMAL MODE - Kalite versiyonuna göre parametreler
+          requestBody = {
+            prompt: truncatedPrompt, // Kırpılmış prompt
+            image_urls: imageInputArray,
+            output_format: "png",
+            aspect_ratio: aspectRatioForRequest,
+            num_images: 1,
+            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
+            ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
+          };
         }
 
         logger.log("📋 Fal.ai Request Body:", {
@@ -5075,9 +5090,8 @@ router.post("/generate", async (req, res) => {
             output_format: "png",
             aspect_ratio: formattedRatio || "9:16",
             num_images: 1,
-            resolution: resolutionParam,
-            safety_tolerance: "6",
-            limit_generations: true,
+            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
+            ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
           };
 
           logger.log(
