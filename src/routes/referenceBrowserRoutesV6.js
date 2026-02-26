@@ -4711,8 +4711,7 @@ router.post("/generate", async (req, res) => {
         let requestBody;
         const aspectRatioForRequest = formattedRatio || "9:16";
 
-        // nano-banana-2 50.000 karakter destekliyor ama güvenlik için 49.000'e kırp
-        const maxPromptLength = 49000;
+        const maxPromptLength = 4900;
         let truncatedPrompt = enhancedPrompt;
         logger.log(`📏 [FAL_PROMPT] Enhanced prompt uzunluğu: ${enhancedPrompt.length} karakter`);
         if (enhancedPrompt.length > maxPromptLength) {
