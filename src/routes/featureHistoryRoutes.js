@@ -10,15 +10,21 @@ const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Retry helper function for Supabase queries
-const retryQuery = async (queryFn, maxRetries = 3, delay = 500) => {
+const retryQuery = async (queryFn, maxRetries = 3, delay = 1000) => {
   let lastError = null;
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const result = await queryFn();
-      if (result.error && result.error.message === "") {
+      const isRetryableError = result.error && (
+        result.error.message === "" ||
+        result.error.code === "57014" ||
+        result.error.message?.includes("statement timeout") ||
+        result.error.message?.includes("timeout")
+      );
+      if (isRetryableError) {
         lastError = result.error;
         logger.log(
-          `⚠️ [FEATURE-HISTORY] Empty error on attempt ${attempt}/${maxRetries}, retrying...`,
+          `⚠️ [FEATURE-HISTORY] Retryable error on attempt ${attempt}/${maxRetries}: ${result.error.code || result.error.message}, retrying...`,
         );
         if (attempt < maxRetries) {
           await new Promise((resolve) =>
@@ -270,7 +276,7 @@ router.get("/color-change/:userId", async (req, res) => {
       `📊 [FEATURE-HISTORY] Fetching color-change history for user: ${userId}`,
     );
 
-    // Filter by isColorChange flag in settings (reference_results table)
+    // Filter by productColor in settings (reference_results table)
     const { count: totalCount, error: countError } = await retryQuery(() =>
       supabase
         .from("reference_results")
