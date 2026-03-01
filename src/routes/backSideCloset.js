@@ -1137,7 +1137,7 @@ async function updateGenerationStatus(
         logger.log(
           `📱 [NOTIFICATION] Generation completed - notification gönderiliyor: ${generationId}`
         );
-        sendGenerationCompletedNotification(userId, generationId).catch(
+        sendGenerationCompletedNotification(userId, generationId, { source: previousSettings?.source }).catch(
           (error) => {
             console.error(
               `❌ [NOTIFICATION] Notification gönderme hatası:`,

@@ -139,7 +139,13 @@ async function sendPushNotification(userId, title, body, data = {}) {
  * @param {string} generationId - Generation ID'si
  * @returns {Promise<{success: boolean, error?: string}>}
  */
-async function sendGenerationCompletedNotification(userId, generationId) {
+async function sendGenerationCompletedNotification(userId, generationId, options = {}) {
+  // Skip push notification for web-generated requests
+  if (options.source === 'web') {
+    console.log(`⏭️ [NOTIFICATION] Skipping push notification for web request: ${generationId?.slice(0, 8)}`);
+    return { success: true, skipped: true };
+  }
+
   try {
     // Kullanıcının dil tercihini al
     const { data: userData, error: userError } = await supabase

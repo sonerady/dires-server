@@ -640,26 +640,31 @@ router.get("/user-locations/:userId", async (req, res) => {
       });
     }
 
-    const { data, error } = await supabase
+    const parsedLimit = parseInt(limit);
+    const parsedOffset = parseInt(offset);
+
+    const { data, error, count: totalCount } = await supabase
       .from("custom_locations")
-      .select("*, favorite_count")
+      .select("*, favorite_count", { count: "exact" })
       .eq("user_id", userId)
       .eq("category", category)
       .eq("status", "completed")
       .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1);
+      .range(parsedOffset, parsedOffset + parsedLimit - 1);
 
     if (error) {
       console.error("Supabase user locations fetch hatası:", error);
       throw error;
     }
 
-    console.log("✅ User locations found:", data?.length || 0);
+    console.log("✅ User locations found:", data?.length || 0, "total:", totalCount);
 
     res.json({
       success: true,
       data: optimizeLocationImages(data || []),
       count: data?.length || 0,
+      total: totalCount || 0,
+      hasMore: (parsedOffset + parsedLimit) < (totalCount || 0),
     });
   } catch (error) {
     console.error("User locations fetch hatası:", error);

@@ -1018,6 +1018,25 @@ const shuffleArray = (array, seed = null) => {
   return shuffled;
 };
 
+// GET TOTAL PUBLIC LOCATION COUNT (all categories)
+router.get("/public-locations-count", async (req, res) => {
+  try {
+    const { count, error } = await supabase
+      .from("custom_locations")
+      .select("id", { count: "exact", head: true })
+      .eq("category", "custom")
+      .eq("is_public", true)
+      .eq("status", "completed");
+
+    if (error) throw error;
+
+    res.json({ success: true, total: count || 0 });
+  } catch (error) {
+    console.error("Error getting location count:", error);
+    res.status(500).json({ success: false, total: 0 });
+  }
+});
+
 // GET PUBLIC LOCATIONS - V3 OPTIMIZED
 // location_type parametresi ile server-side filtreleme
 // Gereksiz veri transferini önler, client-side filtreleme gerekmez
@@ -1117,9 +1136,9 @@ router.get("/public-locations", async (req, res) => {
         });
       } else {
         // Birden fazla type için tüm veriyi çek, shuffle yap, pagination uygula
-        const { data: allData, error } = await supabase
+        const { data: allData, error, count: totalCount } = await supabase
           .from("custom_locations")
-          .select("*, favorite_count")
+          .select("*, favorite_count", { count: "exact" })
           .eq("category", category)
           .eq("is_public", true)
           .eq("status", "completed")
@@ -1141,8 +1160,8 @@ router.get("/public-locations", async (req, res) => {
           success: true,
           data: optimizeLocationImages(paginatedData),
           count: paginatedData.length,
-          total: shuffledData.length,
-          hasMore: endIndex < shuffledData.length,
+          total: totalCount || shuffledData.length,
+          hasMore: endIndex < (totalCount || shuffledData.length),
         });
       }
     } else {

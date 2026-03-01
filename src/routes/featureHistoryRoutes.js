@@ -2,7 +2,7 @@ const express = require("express");
 const { createClient } = require("@supabase/supabase-js");
 const teamService = require("../services/teamService");
 const logger = require("../utils/logger");
-const { optimizeHistoryImages } = require("../utils/imageOptimizer");
+const { optimizeHistoryImages, getOriginalUrl } = require("../utils/imageOptimizer");
 const router = express.Router();
 
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -74,9 +74,173 @@ const setupRequest = async (req) => {
 };
 
 /**
+ * Resolve location_ids for history items that have location_image but no locationId in settings.
+ * Does a batch lookup against custom_locations by generated_title.
+ */
+const resolveLocationIds = async (data) => {
+  if (!data || !Array.isArray(data) || data.length === 0) return data;
+
+  // Parse settings and find items needing location_id resolution
+  const titleSet = new Set();
+  const parsedSettingsMap = new Map();
+
+  data.forEach((item, idx) => {
+    if (!item.location_image) return;
+    let settings = item.settings;
+    if (typeof settings === "string") {
+      try { settings = JSON.parse(settings); } catch (e) { settings = {}; }
+    }
+    if (!settings) settings = {};
+    parsedSettingsMap.set(idx, settings);
+
+    // Already has locationId - no need to resolve
+    if (settings.locationId) return;
+
+    // Collect location title for batch lookup
+    if (settings.location && typeof settings.location === "string") {
+      titleSet.add(settings.location);
+    }
+  });
+
+  if (titleSet.size === 0) {
+    // Still enrich items that already have locationId from settings
+    return data.map((item, idx) => {
+      const settings = parsedSettingsMap.get(idx);
+      if (settings?.locationId) {
+        return { ...item, resolved_location_id: String(settings.locationId) };
+      }
+      return item;
+    });
+  }
+
+  // Batch query custom_locations by generated_title
+  const titles = [...titleSet];
+  const { data: locations, error } = await supabase
+    .from("custom_locations")
+    .select("id, generated_title")
+    .in("generated_title", titles);
+
+  if (error) {
+    logger.log("⚠️ [FEATURE-HISTORY] resolveLocationIds query error:", error.message);
+  }
+
+  // Build title -> id map (first match wins)
+  const titleToId = {};
+  if (locations && Array.isArray(locations)) {
+    locations.forEach((loc) => {
+      if (loc.generated_title && !titleToId[loc.generated_title]) {
+        titleToId[loc.generated_title] = String(loc.id);
+      }
+    });
+  }
+
+  // Enrich data with resolved_location_id
+  return data.map((item, idx) => {
+    const settings = parsedSettingsMap.get(idx);
+    if (!settings) return item;
+
+    if (settings.locationId) {
+      return { ...item, resolved_location_id: String(settings.locationId) };
+    }
+    if (settings.location && titleToId[settings.location]) {
+      return { ...item, resolved_location_id: titleToId[settings.location] };
+    }
+    return item;
+  });
+};
+
+/**
+ * Resolve pose IDs for history items that have pose_image but no poseId in settings.
+ * Matches custom poses by normalizing image_url with getOriginalUrl.
+ */
+const resolvePoseIds = async (data) => {
+  if (!data || !Array.isArray(data) || data.length === 0) return data;
+
+  const imageUrlSet = new Set();
+  const rawImageUrlSet = new Set();
+  const parsedSettingsMap = new Map();
+
+  data.forEach((item, idx) => {
+    if (!item.pose_image) return;
+    let settings = item.settings;
+    if (typeof settings === "string") {
+      try { settings = JSON.parse(settings); } catch (e) { settings = {}; }
+    }
+    if (!settings) settings = {};
+    parsedSettingsMap.set(idx, settings);
+
+    // Already has poseId - no need to resolve
+    if (settings.poseId) return;
+
+    // Collect pose_image URL for batch lookup against custom_poses
+    if (item.pose_image && typeof item.pose_image === "string") {
+      // Normalize URL for matching and keep raw for fallback query
+      const normalizedUrl = getOriginalUrl(item.pose_image);
+      imageUrlSet.add(normalizedUrl);
+      rawImageUrlSet.add(item.pose_image);
+      if (normalizedUrl !== item.pose_image) {
+        rawImageUrlSet.add(normalizedUrl);
+      }
+    }
+  });
+
+  if (imageUrlSet.size === 0) {
+    // Still enrich items that already have poseId from settings
+    return data.map((item, idx) => {
+      const settings = parsedSettingsMap.get(idx);
+      if (settings?.poseId) {
+        return { ...item, resolved_pose_id: String(settings.poseId), resolved_pose_type: settings.poseType || "custom" };
+      }
+      return item;
+    });
+  }
+
+  // Batch query custom_poses by image_url (try both raw and normalized URLs)
+  const allUrls = [...rawImageUrlSet];
+  const { data: customPoses, error } = await supabase
+    .from("custom_poses")
+    .select("id, image_url, description")
+    .in("image_url", allUrls);
+
+  if (error) {
+    logger.log("⚠️ [FEATURE-HISTORY] resolvePoseIds query error:", error.message);
+  }
+
+  // Build normalized_image_url -> id map
+  const normalizedUrlToId = {};
+  if (customPoses && Array.isArray(customPoses)) {
+    customPoses.forEach((pose) => {
+      if (pose.image_url) {
+        const normalized = getOriginalUrl(pose.image_url);
+        if (!normalizedUrlToId[normalized]) {
+          normalizedUrlToId[normalized] = String(pose.id);
+        }
+      }
+    });
+  }
+
+  // Enrich data with resolved_pose_id
+  return data.map((item, idx) => {
+    const settings = parsedSettingsMap.get(idx);
+    if (!settings) return item;
+
+    if (settings.poseId) {
+      return { ...item, resolved_pose_id: String(settings.poseId), resolved_pose_type: settings.poseType || "custom" };
+    }
+    if (item.pose_image) {
+      const normalizedPoseImage = getOriginalUrl(item.pose_image);
+      if (normalizedUrlToId[normalizedPoseImage]) {
+        return { ...item, resolved_pose_id: normalizedUrlToId[normalizedPoseImage], resolved_pose_type: "custom" };
+      }
+    }
+    return item;
+  });
+};
+
+/**
  * Shared response builder
  */
-const buildResponse = (
+const buildResponse = async (
   res,
   data,
   totalCount,
@@ -86,9 +250,14 @@ const buildResponse = (
   isTeamMember,
 ) => {
   const hasMore = offset + parsedLimit < (totalCount || 0);
+
+  // Resolve location_ids and pose_ids for items
+  let enrichedData = await resolveLocationIds(data || []);
+  enrichedData = await resolvePoseIds(enrichedData);
+
   return res.json({
     success: true,
-    data: optimizeHistoryImages(data || []),
+    data: optimizeHistoryImages(enrichedData),
     pagination: {
       page: parsedPage,
       limit: parsedLimit,
@@ -164,7 +333,7 @@ router.get("/virtual-model/:userId", async (req, res) => {
     logger.log(
       `📊 [FEATURE-HISTORY] virtual-model: ${data?.length || 0} items, total: ${totalCount}`,
     );
-    return buildResponse(
+    return await buildResponse(
       res,
       data,
       totalCount,
@@ -242,7 +411,7 @@ router.get("/pose-change/:userId", async (req, res) => {
     logger.log(
       `📊 [FEATURE-HISTORY] pose-change: ${data?.length || 0} items, total: ${totalCount}`,
     );
-    return buildResponse(
+    return await buildResponse(
       res,
       data,
       totalCount,
@@ -321,7 +490,7 @@ router.get("/color-change/:userId", async (req, res) => {
     logger.log(
       `📊 [FEATURE-HISTORY] color-change: ${data?.length || 0} items, total: ${totalCount}`,
     );
-    return buildResponse(
+    return await buildResponse(
       res,
       data,
       totalCount,
@@ -399,7 +568,7 @@ router.get("/back-side/:userId", async (req, res) => {
     logger.log(
       `📊 [FEATURE-HISTORY] back-side: ${data?.length || 0} items, total: ${totalCount}`,
     );
-    return buildResponse(
+    return await buildResponse(
       res,
       data,
       totalCount,
@@ -474,7 +643,7 @@ router.get("/refiner/:userId", async (req, res) => {
     logger.log(
       `📊 [FEATURE-HISTORY] refiner: ${data?.length || 0} items, total: ${totalCount}`,
     );
-    return buildResponse(
+    return await buildResponse(
       res,
       data,
       totalCount,
@@ -548,7 +717,7 @@ router.get("/chat-edit/:userId", async (req, res) => {
     logger.log(
       `📊 [FEATURE-HISTORY] chat-edit: ${data?.length || 0} items, total: ${totalCount}`,
     );
-    return buildResponse(
+    return await buildResponse(
       res,
       data,
       totalCount,
@@ -619,7 +788,7 @@ router.get("/upscale/:userId", async (req, res) => {
     logger.log(
       `📊 [FEATURE-HISTORY] upscale: ${data?.length || 0} items, total: ${totalCount}`,
     );
-    return buildResponse(
+    return await buildResponse(
       res,
       data,
       totalCount,
@@ -694,7 +863,7 @@ router.get("/ecommerce-kits/:userId", async (req, res) => {
     logger.log(
       `📊 [FEATURE-HISTORY] ecommerce-kits: ${data?.length || 0} items, total: ${totalCount}`,
     );
-    return buildResponse(
+    return await buildResponse(
       res,
       data,
       totalCount,
