@@ -304,9 +304,10 @@ const optimizeKitImages = (kits) => {
 const optimizeLocationImages = (locations, options = {}) => {
   if (!Array.isArray(locations)) return locations;
 
+  const locationDefaults = { width: 300, height: 300, quality: 70, ...options };
   return locations.map((location) => ({
     ...location,
-    image_url: optimizeImageUrl(location.image_url, options),
+    image_url: optimizeImageUrl(location.image_url, locationDefaults),
   }));
 };
 
