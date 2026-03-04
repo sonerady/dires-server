@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const logger = require("../utils/logger");
 const { optimizeImageUrl } = require("../utils/imageOptimizer");
+const { catalogRateLimiter, botDetection } = require("../middleware/rateLimiter");
 
 // JSON dosyalarının yolları - src/lib dizinine işaret edecek şekilde güncellendi
 const indoorImagesPath = path.join(__dirname, "../lib/indoor_images.json");
@@ -88,7 +89,7 @@ const paginateData = (data, page, limit) => {
 };
 
 // Indoor lokasyonlarını getir
-router.get("/indoor", (req, res) => {
+router.get("/indoor", botDetection, catalogRateLimiter, (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -116,7 +117,7 @@ router.get("/indoor", (req, res) => {
 });
 
 // Studio lokasyonlarını getir
-router.get("/studio", (req, res) => {
+router.get("/studio", botDetection, catalogRateLimiter, (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -144,7 +145,7 @@ router.get("/studio", (req, res) => {
 });
 
 // Outdoor lokasyonlarını getir
-router.get("/outdoor", (req, res) => {
+router.get("/outdoor", botDetection, catalogRateLimiter, (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;

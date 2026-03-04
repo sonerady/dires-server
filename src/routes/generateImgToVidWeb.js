@@ -9,6 +9,9 @@ const sharp = require("sharp");
 
 // Supabase client
 const { supabase } = require("../supabaseClient");
+// Security middleware
+const { requireBrowser } = require("../middleware/rateLimiter");
+const { requireAuth } = require("../middleware/authMiddleware");
 // Team service for team-aware credit operations
 const teamService = require("../services/teamService");
 
@@ -348,7 +351,7 @@ async function uploadToSupabaseAsArray(base64String, prefix = "product_main_") {
  * - Supabase'e prediction kaydı ekler (prediction_id, user_id, vb.).
  * - 202 Accepted döner, statüyü /api/predictionStatus/:id ile sorgulayabilirsin.
  */
-router.post("/generateImgToVidWeb", async (req, res) => {
+router.post("/generateImgToVidWeb", requireBrowser, requireAuth, async (req, res) => {
   try {
     const {
       userId,
@@ -599,7 +602,7 @@ router.post("/generateImgToVidWeb", async (req, res) => {
  * - DB'yi günceller (ancak 'status' kolonunu artık güncellemiyoruz).
  * - Sonucu front-end'e döner.
  */
-router.get("/predictionStatus/:predictionId", async (req, res) => {
+router.get("/predictionStatus/:predictionId", requireBrowser, requireAuth, async (req, res) => {
   try {
     const { predictionId } = req.params;
     if (!predictionId) {

@@ -3,6 +3,7 @@ const router = express.Router();
 const path = require("path"); // path modülünü import et
 const { supabase } = require("../supabaseClient"); // Supabase client'ı import et
 const { optimizeImageUrl } = require("../utils/imageOptimizer");
+const { catalogRateLimiter, botDetection } = require("../middleware/rateLimiter");
 
 const womanPoses = require(path.join(
   __dirname,
@@ -13,7 +14,7 @@ const manPoses = require(path.join(__dirname, "../../lib/man_poses_new.json"));
 // Pose kartları dikey olduğu için 400x800 boyutunda optimize et
 const optimizePoseImageUrl = (imageUrl) => optimizeImageUrl(imageUrl, { width: 400, height: 800, quality: 80 });
 
-router.get("/posesNew", async (req, res) => {
+router.get("/posesNew", botDetection, catalogRateLimiter, async (req, res) => {
   // /poses yerine doğrudan "/" olarak değiştirildi
   try {
     const {

@@ -5,6 +5,10 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const path = require("path");
 
+// Security middleware
+const { requireAuth } = require("./middleware/authMiddleware");
+const { catalogRateLimiter, botDetection, requireBrowser } = require("./middleware/rateLimiter");
+
 // Mevcut route'ların import'ları
 const imageRoutes = require("./routes/imageRoutes");
 const backgroundGeneratorRouter = require("./routes/backgroundGenerator");
@@ -158,6 +162,7 @@ const whatsNewRoutes = require("./routes/whatsNewRoutes");
 // Generation Status routes import
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy (Railway)
 
 // CORS ayarlarını daha esnek hale getir
 app.use(
@@ -222,13 +227,13 @@ app.use("/api/getModel", getModelRouter);
 app.use("/api/listTrainings", listTraingsRouter);
 app.use("/api/getTraining", getTraining);
 app.use("/api/imageEnhancement", imageEnhancementRouter);
-app.use("/api/imageEnhancementWeb", imageEnhancementWebRouter);
+app.use("/api/imageEnhancementWeb", requireBrowser, requireAuth, imageEnhancementWebRouter);
 app.use("/api/faceSwap", faceSwapRouter);
 app.use("/api", updateCreditRouter);
 app.use("/api", getUserRouter);
 app.use("/api/push-notifications", pushNotificationRoutes);
 app.use("/api", notificationRoutes);
-app.use("/api/notificationsWeb", notificationRoutesWeb);
+app.use("/api/notificationsWeb", requireBrowser, requireAuth, notificationRoutesWeb);
 app.use("/api/uploadImage", uploadImageRouter);
 app.use("/api", generateTrain);
 app.use("/api/checkStatus", checkStatusRouter);
@@ -261,18 +266,18 @@ app.use("/api", generateImgToVidWebRouter);
 app.use("/api", posesRouter);
 app.use("/api", generateImagesJsonRouter);
 app.use("/api", locationRoutes);
-app.use("/api/backgrounds", backgroundRoutes);
-app.use("/api/bodyshapes", bodyShapeRoutes);
+app.use("/api/backgrounds", botDetection, catalogRateLimiter, backgroundRoutes);
+app.use("/api/bodyshapes", botDetection, catalogRateLimiter, bodyShapeRoutes);
 app.use("/api/history", historyRoutes);
-app.use("/api/historyWeb", historyRoutesWeb);
+app.use("/api/historyWeb", requireBrowser, requireAuth, historyRoutesWeb);
 app.use("/api/feature-history", featureHistoryRoutes);
-app.use("/api/feature-historyWeb", featureHistoryRoutesWeb);
+app.use("/api/feature-historyWeb", requireBrowser, requireAuth, featureHistoryRoutesWeb);
 app.use("/api/admin-dashboard", adminDashboardRoutes);
 
 const downloadRoutes = require("./routes/downloadRoutes");
 app.use("/api/download", downloadRoutes);
-app.use("/api/hairstyles", hairStyleRoutes);
-app.use("/api/haircolors", hairColorRoutes);
+app.use("/api/hairstyles", botDetection, catalogRateLimiter, hairStyleRoutes);
+app.use("/api/haircolors", botDetection, catalogRateLimiter, hairColorRoutes);
 app.use("/api", geminiImageProcessRouter);
 app.use("/api", imageClarityProcessRouter);
 app.use("/api", geminiImageEditRouter);
@@ -285,19 +290,19 @@ app.use("/api/referenceBrowserV3", referenceBrowserRoutesV3);
 app.use("/api/referenceBrowserV4", referenceBrowserRoutesV4);
 app.use("/api/referenceBrowserV5", referenceBrowserRoutesV5);
 app.use("/api/referenceBrowserV6", referenceBrowserRoutesV6);
-app.use("/api/referenceBrowserWeb", referenceBrowserRoutesWeb);
+app.use("/api/referenceBrowserWeb", requireBrowser, requireAuth, referenceBrowserRoutesWeb);
 app.use("/api/changePose", changePose);
-app.use("/api/changePoseWeb", changePoseWeb);
+app.use("/api/changePoseWeb", requireBrowser, requireAuth, changePoseWeb);
 app.use("/api/createRefiner", createRefiner);
-app.use("/api/createRefinerWeb", createRefinerWeb);
+app.use("/api/createRefinerWeb", requireBrowser, requireAuth, createRefinerWeb);
 
 app.use("/api/changeProductColor", changeProductColor);
-app.use("/api/changeProductColorWeb", changeProductColorWeb);
+app.use("/api/changeProductColorWeb", requireBrowser, requireAuth, changeProductColorWeb);
 app.use("/api/backSideCloset", backSideCloset);
-app.use("/api/backSideClosetWeb", backSideClosetWeb);
+app.use("/api/backSideClosetWeb", requireBrowser, requireAuth, backSideClosetWeb);
 
 app.use("/api/referenceJewelryBrowserV4", referenceJewelryBrowserRoutesV4);
-app.use("/api/referenceJewelryBrowserWeb", referenceJewelryBrowserRoutesWeb);
+app.use("/api/referenceJewelryBrowserWeb", requireBrowser, requireAuth, referenceJewelryBrowserRoutesWeb);
 app.use("/api/reference-images", referenceImageRoutes);
 app.use(
   "/api/referenceBrowserWithoutCanvas",
@@ -309,7 +314,7 @@ app.use("/api/referenceRefiner", referenceRefinerRoutes);
 app.use("/api", consRoutes);
 app.use("/api", changeColorRoutes);
 app.use("/api", changeColorRoutesV2);
-app.use("/api/poses", poseRoutes); // Eski poseRoutes geri getirildi
+app.use("/api/poses", botDetection, catalogRateLimiter, poseRoutes); // Eski poseRoutes geri getirildi
 app.use("/api/user", infoModalRoutes);
 app.use("/api/editRoom", editRoomRoutes);
 app.use("/api/chat-edit", chatEditRoutes);
@@ -326,19 +331,19 @@ app.use("/api", appConfigRoutes);
 
 // Custom Pose routes ekle
 app.use("/api/customPose", customPoseRoutes);
-app.use("/api/customPoseWeb", customPoseRoutesWeb);
+app.use("/api/customPoseWeb", requireBrowser, requireAuth, customPoseRoutesWeb);
 
 // Custom Hair Style routes ekle
 app.use("/api/customHairStyle", customHairStyleRoutes);
-app.use("/api/customHairStyleWeb", customHairStyleRoutesWeb);
+app.use("/api/customHairStyleWeb", requireBrowser, requireAuth, customHairStyleRoutesWeb);
 
 // Pose Favorites routes ekle
 app.use("/api/pose-favorites", poseFavoritesRoutes);
-app.use("/api/pose-favoritesWeb", poseFavoritesRoutesWeb);
+app.use("/api/pose-favoritesWeb", requireBrowser, requireAuth, poseFavoritesRoutesWeb);
 
 // Hair Style Favorites routes ekle
 app.use("/api/hair-style-favorites", hairStyleFavoritesRoutes);
-app.use("/api/hair-style-favoritesWeb", hairStyleFavoritesRoutesWeb);
+app.use("/api/hair-style-favoritesWeb", requireBrowser, requireAuth, hairStyleFavoritesRoutesWeb);
 
 // Last Selected Pose routes ekle
 const lastSelectedPoseRoutes = require("./routes/lastSelectedPoseRoutes");
@@ -348,27 +353,27 @@ app.use("/api/last-selected-pose", lastSelectedPoseRoutes);
 app.use("/api/location", createLocationRoutes);
 app.use("/api/location/v2", createLocationRoutesV2);
 app.use("/api/location/v3", createLocationRoutesV3);
-app.use("/api/locationWeb/v2", createLocationRoutesWebV2);
-app.use("/api/locationWeb/v3", createLocationRoutesWeb);
+app.use("/api/locationWeb/v2", requireBrowser, requireAuth, createLocationRoutesWebV2);
+app.use("/api/locationWeb/v3", requireBrowser, requireAuth, createLocationRoutesWeb);
 // Search Location routes ekle
 app.use("/api/location/v2", searchLocationRoutes);
-app.use("/api/locationWeb/v2", searchLocationRoutesWeb);
+app.use("/api/locationWeb/v2", requireBrowser, requireAuth, searchLocationRoutesWeb);
 
 // Location Suggestion routes ekle
 app.use("/api/location-suggestions", locationSuggestionRoutes);
-app.use("/api/location-suggestionsWeb", locationSuggestionRoutesWeb);
+app.use("/api/location-suggestionsWeb", requireBrowser, requireAuth, locationSuggestionRoutesWeb);
 
 // Create Model routes ekle
 app.use("/api/model", createModelRoutes);
-app.use("/api/modelWeb", createModelRoutesWeb);
+app.use("/api/modelWeb", requireBrowser, requireAuth, createModelRoutesWeb);
 
 // Hair Styles routes ekle
-app.use("/api/hair-styles", hairStylesRoutes);
-app.use("/api/hair-stylesWeb", hairStylesRoutesWeb);
+app.use("/api/hair-styles", botDetection, catalogRateLimiter, hairStylesRoutes);
+app.use("/api/hair-stylesWeb", requireBrowser, requireAuth, hairStylesRoutesWeb);
 
 // Favorites routes ekle
 app.use("/api/favorites", favoritesRoutes);
-app.use("/api/favoritesWeb", favoritesRoutesWeb);
+app.use("/api/favoritesWeb", requireBrowser, requireAuth, favoritesRoutesWeb);
 
 // Video routes ekle
 app.use("/api", videoRoutes);
@@ -398,7 +403,7 @@ app.use("/api", generateProductKitRoutes);
 
 // Team routes
 app.use("/api/teams", teamRoutes);
-app.use("/api/teamsWeb", teamRoutesWeb);
+app.use("/api/teamsWeb", requireBrowser, requireAuth, teamRoutesWeb);
 
 // What's New routes
 app.use("/api/whats-new", whatsNewRoutes);
