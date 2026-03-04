@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f7f7f7;
+            color: #222;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background: #fff;
+            border-right: 1px solid #e5e5e5;
+            padding: 24px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            overflow-y: auto;
+        }
+
+        .sidebar-title {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #999;
+            padding: 0 20px;
+            margin-bottom: 16px;
+        }
+
+        .sidebar-item {
+            display: block;
+            width: 100%;
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            text-align: left;
+            font-size: 14px;
+            color: #555;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .sidebar-item:hover { background: #f5f5f5; color: #222; }
+        .sidebar-item.active { background: #f0f0f0; color: #000; font-weight: 600; border-left: 3px solid #333; }
+
+        /* Main content */
+        .main {
+            margin-left: 240px;
+            flex: 1;
+            padding: 24px;
+        }
+
+        /* Header bar */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .filter-select {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            background: #fff;
+            color: #333;
+            outline: none;
+        }
+
+        .stats {
+            font-size: 13px;
+            color: #888;
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+        }
+
+        /* Card */
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+
+        .card-image-container {
+            position: relative;
+            width: 100%;
+            padding-top: 133%; /* 2:3 aspect ratio */
+            background: #f0f0f0;
+        }
+
+        .card-image {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-original {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 48px;
+            height: 48px;
+            border-radius: 6px;
+            object-fit: cover;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+
+        .card-info {
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-date {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .card-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        .badge-completed { background: #f0f0f0; color: #555; }
+        .badge-pending { background: #f5f0e0; color: #8a7a50; }
+        .badge-processing { background: #e8f0f8; color: #5070a0; }
+
+        .card-credits {
+            font-size: 11px;
+            color: #aaa;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            margin-top: 32px;
+            padding-bottom: 24px;
+        }
+
+        .pagination button {
+            padding: 8px 20px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: #fff;
+            font-size: 13px;
+            cursor: pointer;
+            color: #333;
+            transition: all 0.15s;
+        }
+
+        .pagination button:hover:not(:disabled) { background: #f5f5f5; }
+        .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .pagination span {
+            font-size: 13px;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        #pageInput {
+            width: 48px;
+            padding: 4px 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            text-align: center;
+            outline: none;
+            -moz-appearance: textfield;
+        }
+
+        #pageInput::-webkit-outer-spin-button,
+        #pageInput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        /* Modal overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: #fff;
+            border-radius: 12px;
+            max-width: 1100px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .modal-close {
+            float: right;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            padding: 0 4px;
+            line-height: 1;
+        }
+
+        .modal-close:hover { color: #333; }
+
+        .modal-images {
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .modal-image-box {
+            flex: 1;
+            text-align: center;
+        }
+
+        .modal-image-box label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+
+        .modal-image-box img {
+            width: 100%;
+            max-height: 65vh;
+            object-fit: contain;
+            border-radius: 8px;
+            background: #f5f5f5;
+        }
+
+        .modal-details {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #eee;
+            font-size: 13px;
+            color: #666;
+            flex-wrap: wrap;
+        }
+
+        .modal-detail {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .modal-detail span:first-child {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: #aaa;
+        }
+
+        .modal-detail span:last-child {
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 80px 20px;
+            color: #bbb;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-title">Tables</div>
+        <button class="sidebar-item active" data-feature="virtual-model">Virtual Model</button>
+        <button class="sidebar-item" data-feature="refiner">Refiner</button>
+        <button class="sidebar-item" data-feature="pose-change">Pose Change</button>
+        <button class="sidebar-item" data-feature="color-change">Color Change</button>
+        <button class="sidebar-item" data-feature="back-side">Back Side</button>
+        <button class="sidebar-item" data-feature="chat-edit">AI Edit</button>
+        <button class="sidebar-item" data-feature="upscale">Upscale</button>
+        <button class="sidebar-item" data-feature="ecommerce-kits">E-commerce Kits</button>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main">
+        <div class="header">
+            <h1 id="pageTitle">Virtual Model</h1>
+            <div class="header-controls">
+                <select class="filter-select" id="statusFilter">
+                    <option value="all">All Status</option>
+                    <option value="completed" selected>Completed</option>
+                    <option value="pending">Pending</option>
+                    <option value="processing">Processing</option>
+                </select>
+                <span class="stats" id="statsText"></span>
+            </div>
+        </div>
+
+        <div class="grid" id="grid"></div>
+        <div class="loading" id="loading" style="display:none;">Loading...</div>
+        <div class="empty" id="empty" style="display:none;">No results found.</div>
+
+        <div class="pagination" id="pagination" style="display:none;">
+            <button id="prevBtn" onclick="changePage(-1)">Previous</button>
+            <span id="pageInfo">
+                <input type="number" id="pageInput" min="1" onkeydown="if(event.key==='Enter')goToPage()" /> / <span id="totalPagesText"></span>
+            </span>
+            <button id="nextBtn" onclick="changePage(1)">Next</button>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <div class="modal-images">
+                <div class="modal-image-box">
+                    <label>Original</label>
+                    <img id="modalOriginal" src="" alt="Original">
+                </div>
+                <div class="modal-image-box">
+                    <label>Result</label>
+                    <img id="modalResult" src="" alt="Result">
+                </div>
+            </div>
+            <div class="modal-details" id="modalDetails"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentFeature = 'virtual-model';
+        let currentPage = 1;
+        let totalPages = 1;
+        const limit = 20;
+
+        const FEATURES = {
+            'virtual-model': { label: 'Virtual Model', sourceTable: 'reference_results' },
+            'refiner': { label: 'Refiner', sourceTable: 'reference_results' },
+            'pose-change': { label: 'Pose Change', sourceTable: 'reference_results' },
+            'color-change': { label: 'Color Change', sourceTable: 'reference_results' },
+            'back-side': { label: 'Back Side', sourceTable: 'reference_results' },
+            'chat-edit': { label: 'AI Edit', sourceTable: 'chat_edits' },
+            'upscale': { label: 'Upscale', sourceTable: 'upscale_generations' },
+            'ecommerce-kits': { label: 'E-commerce Kits', sourceTable: 'product_kits' },
+        };
+
+        // Read state from URL
+        function readUrlState() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('feature')) currentFeature = params.get('feature');
+            if (params.get('page')) currentPage = parseInt(params.get('page'), 10) || 1;
+            if (params.get('status')) document.getElementById('statusFilter').value = params.get('status');
+            // Activate correct sidebar item
+            document.querySelectorAll('.sidebar-item').forEach(b => {
+                b.classList.toggle('active', b.dataset.feature === currentFeature);
+                if (b.dataset.feature === currentFeature) document.getElementById('pageTitle').textContent = b.textContent;
+            });
+        }
+
+        function updateUrl() {
+            const status = document.getElementById('statusFilter').value;
+            const params = new URLSearchParams({ feature: currentFeature, page: currentPage, status });
+            history.replaceState(null, '', '?' + params.toString());
+        }
+
+        function goToPage() {
+            const input = document.getElementById('pageInput');
+            const val = parseInt(input.value, 10);
+            if (val >= 1 && val <= totalPages) {
+                currentPage = val;
+                fetchData();
+            } else {
+                input.value = currentPage;
+            }
+        }
+
+        const CDN_DOMAIN = 'https://diress.ai';
+
+        function cdnUrl(url, { width = 500, height = 500, quality = 80, fit = 'cover' } = {}) {
+            if (!url || !url.includes('/storage/v1/')) return url;
+            // Strip existing cdn-cgi wrapper
+            let clean = url;
+            while (clean.includes('/cdn-cgi/image/')) {
+                const idx = clean.indexOf('/cdn-cgi/image/');
+                const afterOptions = clean.indexOf('/', idx + '/cdn-cgi/image/'.length);
+                if (afterOptions !== -1) clean = clean.substring(afterOptions + 1);
+                else break;
+            }
+            if (!clean.startsWith('http')) clean = 'https://' + clean;
+            return `${CDN_DOMAIN}/cdn-cgi/image/width=${width},height=${height},quality=${quality},fit=${fit},format=webp/${clean}`;
+        }
+
+        // Column mapping per feature (based on source table)
+        function getSourceTable() {
+            return FEATURES[currentFeature]?.sourceTable || 'reference_results';
+        }
+
+        function getResultUrl(item) {
+            const src = getSourceTable();
+            if (src === 'product_kits') {
+                const imgs = item.kit_images;
+                if (Array.isArray(imgs) && imgs.length > 0) return imgs[0];
+                if (typeof imgs === 'string') { try { const p = JSON.parse(imgs); return Array.isArray(p) && p.length > 0 ? p[0] : ''; } catch(e) { return ''; } }
+                return '';
+            }
+            return item.result_image_url || '';
+        }
+
+        function getOriginalUrl(item) {
+            const src = getSourceTable();
+            if (src === 'reference_results') {
+                const refs = item.reference_images;
+                if (Array.isArray(refs) && refs.length > 0) return refs[0];
+                if (typeof refs === 'string') { try { const p = JSON.parse(refs); return Array.isArray(p) && p.length > 0 ? p[0] : ''; } catch(e) { return ''; } }
+                return '';
+            }
+            if (src === 'product_kits') {
+                const photos = item.original_photos;
+                if (Array.isArray(photos) && photos.length > 0) return photos[0];
+                if (typeof photos === 'string') { try { const p = JSON.parse(photos); return Array.isArray(p) && p.length > 0 ? p[0] : ''; } catch(e) { return ''; } }
+                return '';
+            }
+            return item.original_image_url || '';
+        }
+
+        function getCredits(item) {
+            return item.credits_used || item.credits_deducted || item.credits_cost || '';
+        }
+
+        function timeAgo(dateStr) {
+            const now = new Date();
+            const date = new Date(dateStr);
+            const diff = Math.floor((now - date) / 1000);
+            if (diff < 10) return 'az önce';
+            if (diff < 60) return `${diff} saniye önce`;
+            const mins = Math.floor(diff / 60);
+            if (mins < 60) return `${mins} dakika önce`;
+            const hours = Math.floor(mins / 60);
+            if (hours < 24) return `${hours} saat önce`;
+            const days = Math.floor(hours / 24);
+            if (days < 30) return `${days} gün önce`;
+            const months = Math.floor(days / 30);
+            if (months < 12) return `${months} ay önce`;
+            const years = Math.floor(months / 12);
+            return `${years} yıl önce`;
+        }
+
+        // Sidebar click
+        document.querySelectorAll('.sidebar-item').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFeature = btn.dataset.feature;
+                document.getElementById('pageTitle').textContent = btn.textContent;
+                currentPage = 1;
+                fetchData();
+            });
+        });
+
+        // Status filter
+        document.getElementById('statusFilter').addEventListener('change', () => {
+            currentPage = 1;
+            fetchData();
+        });
+
+        function changePage(dir) {
+            currentPage += dir;
+            fetchData();
+        }
+
+        async function fetchData() {
+            const grid = document.getElementById('grid');
+            const loading = document.getElementById('loading');
+            const empty = document.getElementById('empty');
+            const pagination = document.getElementById('pagination');
+            const status = document.getElementById('statusFilter').value;
+
+            updateUrl();
+            grid.innerHTML = '';
+            loading.style.display = 'block';
+            empty.style.display = 'none';
+            pagination.style.display = 'none';
+
+            try {
+                const url = `/api/admin-dashboard/generations?feature=${currentFeature}&page=${currentPage}&limit=${limit}&status=${status}`;
+                const res = await fetch(url);
+                const json = await res.json();
+
+                loading.style.display = 'none';
+
+                if (!json.success || !json.data || json.data.length === 0) {
+                    empty.style.display = 'block';
+                    document.getElementById('statsText').textContent = '0 results';
+                    return;
+                }
+
+                totalPages = json.totalPages;
+                document.getElementById('statsText').textContent = `${json.total} total`;
+
+                json.data.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.onclick = () => openModal(item);
+
+                    const dateStr = timeAgo(item.created_at);
+
+                    const statusVal = item.status || '';
+                    const statusClass = statusVal === 'completed' ? 'badge-completed' : statusVal === 'pending' ? 'badge-pending' : 'badge-processing';
+
+                    const resultUrl = getResultUrl(item);
+                    const originalUrl = getOriginalUrl(item);
+                    const credits = getCredits(item);
+
+                    const cardResultUrl = cdnUrl(resultUrl, { width: 400, height: 600, quality: 75 });
+                    const cardOriginalUrl = cdnUrl(originalUrl, { width: 96, height: 96, quality: 70 });
+
+                    card.innerHTML = `
+                        <div class="card-image-container">
+                            ${resultUrl ? `<img class="card-image" src="${cardResultUrl}" alt="Result" loading="lazy" onerror="this.style.display='none'">` : ''}
+                            ${originalUrl ? `<img class="card-original" src="${cardOriginalUrl}" alt="Original" loading="lazy" onerror="this.style.display='none'">` : ''}
+                        </div>
+                        <div class="card-info">
+                            <span class="card-date">${dateStr}</span>
+                            <div class="card-meta">
+                                ${statusVal ? `<span class="badge ${statusClass}">${statusVal}</span>` : ''}
+                                ${credits ? `<span class="card-credits">${credits} cr</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+
+                // Pagination
+                if (totalPages > 1) {
+                    pagination.style.display = 'flex';
+                    document.getElementById('prevBtn').disabled = currentPage <= 1;
+                    document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+                    document.getElementById('pageInput').value = currentPage;
+                    document.getElementById('pageInput').max = totalPages;
+                    document.getElementById('totalPagesText').textContent = totalPages;
+                }
+
+            } catch (err) {
+                loading.style.display = 'none';
+                empty.style.display = 'block';
+                empty.textContent = 'Error loading data.';
+                console.error(err);
+            }
+        }
+
+        function openModal(item) {
+            const overlay = document.getElementById('modalOverlay');
+            document.getElementById('modalOriginal').src = cdnUrl(getOriginalUrl(item), { width: 800, height: 1200, quality: 85 });
+            document.getElementById('modalResult').src = cdnUrl(getResultUrl(item), { width: 800, height: 1200, quality: 85 });
+
+            const details = document.getElementById('modalDetails');
+            const credits = getCredits(item);
+            const ago = timeAgo(item.created_at);
+
+            details.innerHTML = `
+                <div class="modal-detail"><span>Generation ID</span><span>${item.generation_id || '-'}</span></div>
+                <div class="modal-detail"><span>Created</span><span>${ago}</span></div>
+                <div class="modal-detail"><span>Status</span><span>${item.status || '-'}</span></div>
+                <div class="modal-detail"><span>Credits</span><span>${credits || '-'}</span></div>
+                <div class="modal-detail"><span>Aspect Ratio</span><span>${item.aspect_ratio || '-'}</span></div>
+                <div class="modal-detail"><span>Quality</span><span>${item.quality_version || '-'}</span></div>
+                <div class="modal-detail"><span>User ID</span><span>${item.user_id ? item.user_id.slice(0, 8) + '...' : '-'}</span></div>
+            `;
+
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(event) {
+            if (event && event.target !== document.getElementById('modalOverlay')) return;
+            document.getElementById('modalOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // ESC to close
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // Initial load — read URL state first
+        readUrlState();
+        fetchData();
+
+        // Handle browser back/forward
+        window.addEventListener('popstate', () => {
+            readUrlState();
+            fetchData();
+        });
+    </script>
+</body>
+</html>

@@ -15,9 +15,13 @@ const listTraingsRouter = require("./routes/listModels");
 const getTraining = require("./routes/getTraining");
 const updateCreditRouter = require("./routes/updateCredit");
 const changePose = require("./routes/changePose");
+const changePoseWeb = require("./routes/changePoseWeb");
 const createRefiner = require("./routes/createRefiner");
+const createRefinerWeb = require("./routes/createRefinerWeb");
 const changeProductColor = require("./routes/changeProductColor");
+const changeProductColorWeb = require("./routes/changeProductColorWeb");
 const backSideCloset = require("./routes/backSideCloset");
+const backSideClosetWeb = require("./routes/backSideClosetWeb");
 
 const getUserRouter = require("./routes/getUser");
 const geminiImageEditRouter = require("./routes/geminiImageEdit");
@@ -36,6 +40,7 @@ const referenceBrowserRoutesV4 = require("./routes/referenceBrowserRoutesV4");
 const referenceBrowserRoutesV5 = require("./routes/referenceBrowserRoutesV5");
 const referenceBrowserRoutesV6 = require("./routes/referenceBrowserRoutesV6");
 const referenceJewelryBrowserRoutesV4 = require("./routes/referenceJewelryBrowserRoutesV4");
+const referenceJewelryBrowserRoutesWeb = require("./routes/referenceJewelryBrowserRoutesWeb");
 
 const referenceBrowserRoutesWithoutCanvas = require("./routes/referenceBrowserRoutesWithoutCanvas");
 const checkStatusRouter = require("./routes/checkStatus");
@@ -45,6 +50,7 @@ const getBalance = require("./routes/getBalance");
 const generatePredictionsRouter = require("./routes/generatePredictions");
 const generateImgToVidRouter = require("./routes/generateImgToVid");
 const generateImgToVidv2Router = require("./routes/generateImgToVidv2"); // Kling 2.6
+const generateImgToVidWebRouter = require("./routes/generateImgToVidWeb");
 const getPredictionsRouter = require("./routes/getPredictions");
 const registerAnonymousUserRouter = require("./routes/registerAnonymousUser");
 const registerAnonymousUserRouterV2 = require("./routes/registerAnonymousUserV2");
@@ -54,17 +60,21 @@ const generateImagesJsonRouter = require("./routes/generateImagesJson");
 const locationRoutes = require("./routes/locationRoutes");
 const backgroundRoutes = require("./routes/backgroundRoutes");
 const imageEnhancementRouter = require("./routes/imageEnhancement");
+const imageEnhancementWebRouter = require("./routes/imageEnhancementWeb");
 const faceSwapRouter = require("./routes/faceSwap");
 const geminiImageProcessRouter = require("./routes/geminiImageProcess");
 const createAiBackgroundRouter = require("./routes/createAiBackground");
 const imageClarityProcessRouter = require("./routes/imageClarityProcess");
 const referenceBrowserRoutes = require("./routes/referenceBrowserRoutes");
+const referenceBrowserRoutesWeb = require("./routes/referenceBrowserRoutesWeb");
 const referencePhotoshootRoutes = require("./routes/referencePhotoshootRoutes");
 const referenceRefinerRoutes = require("./routes/referenceRefinerRoutes");
 const referenceImageRoutes = require("./routes/referenceImageRoutes");
 const bodyShapeRoutes = require("./routes/bodyShapeRoutes");
 const historyRoutes = require("./routes/historyRoutes");
+const historyRoutesWeb = require("./routes/historyRoutesWeb");
 const featureHistoryRoutes = require("./routes/featureHistoryRoutes");
+const featureHistoryRoutesWeb = require("./routes/featureHistoryRoutesWeb");
 const hairStyleRoutes = require("./routes/hairStyleRoutes");
 const hairColorRoutes = require("./routes/hairColorRoutes");
 const aiBackgroundsRouter = require("./routes/aiBackgroundsRoutes");
@@ -79,17 +89,22 @@ const infoModalRoutes = require("./routes/infoModalRoutes");
 const appLinksRoutes = require("./routes/appLinksRoutes");
 const modalContentsRoutes = require("./routes/modalContentsRoutes");
 const modelPosesRoutes = require("./routes/modelPosesRoutes"); // Yeni eklenen route
+const modelPosesRoutesWeb = require("./routes/modelPosesRoutesWeb");
 // RevenueCat webhook route import
 const revenuecatWebhookRouterv2 = require("./routes/revenuecatWebhookv2");
 // const revenuecatWebhookRouter = require("./routes/revenuecatWebhook"); // ESKİ WEBHOOK DEVRE DIŞI
 // Custom Pose routes import
 const customPoseRoutes = require("./routes/customPoseRoutes");
+const customPoseRoutesWeb = require("./routes/customPoseRoutesWeb");
 // Custom Hair Style routes import
 const customHairStyleRoutes = require("./routes/customHairStyleRoutes");
+const customHairStyleRoutesWeb = require("./routes/customHairStyleRoutesWeb");
 // Pose Favorites routes import
 const poseFavoritesRoutes = require("./routes/poseFavoritesRoutes");
+const poseFavoritesRoutesWeb = require("./routes/poseFavoritesRoutesWeb");
 // Hair Style Favorites routes import
 const hairStyleFavoritesRoutes = require("./routes/hairStyleFavoritesRoutes");
+const hairStyleFavoritesRoutesWeb = require("./routes/hairStyleFavoritesRoutesWeb");
 // Canvas Combine routes import
 const canvasCombineRoutes = require("./routes/canvasCombineRoutes");
 // Icon Generator routes import
@@ -98,18 +113,27 @@ const iconGeneratorRoutes = require("./routes/iconGeneratorRoutes");
 const createLocationRoutes = require("./routes/createLocationRoutes");
 const createLocationRoutesV2 = require("./routes/createLocationRoutes_v2");
 const createLocationRoutesV3 = require("./routes/createLocationRoutes_v3");
+const createLocationRoutesWeb = require("./routes/createLocationRoutesWeb");
+const createLocationRoutesWebV2 = require("./routes/createLocationRoutesWebV2");
 // Search Location routes import
 const searchLocationRoutes = require("./routes/searchLocationRoutes");
+const searchLocationRoutesWeb = require("./routes/searchLocationRoutesWeb");
 // Location Suggestion routes import
 const locationSuggestionRoutes = require("./routes/locationSuggestionRoutes");
+const locationSuggestionRoutesWeb = require("./routes/locationSuggestionRoutesWeb");
 // Create Model routes import
 const createModelRoutes = require("./routes/createModelRoutes");
+const createModelRoutesWeb = require("./routes/createModelRoutesWeb");
 // Favorites routes import
 const favoritesRoutes = require("./routes/favoritesRoutes");
+const favoritesRoutesWeb = require("./routes/favoritesRoutesWeb");
 // Video routes import
 const videoRoutes = require("./routes/videoRoutes");
 // Hair Styles routes import
 const hairStylesRoutes = require("./routes/hairStylesRoutes");
+const hairStylesRoutesWeb = require("./routes/hairStylesRoutesWeb");
+// Admin Dashboard routes import
+const adminDashboardRoutes = require("./routes/adminDashboardRoutes");
 // User Visibility routes import
 const userVisibilityRoutes = require("./routes/userVisibilityRoutes");
 // Push Notification routes import
@@ -121,10 +145,14 @@ startScheduler();
 
 // Auth routes import
 const authRoutes = require("./routes/authRoutes");
+const authRoutesWeb = require("./routes/authRoutesWeb");
 // Generate Product Kit routes import
 const generateProductKitRoutes = require("./routes/generateProductKitRoutes");
 // Team routes import
 const teamRoutes = require("./routes/teamRoutes");
+const teamRoutesWeb = require("./routes/teamRoutesWeb");
+// Notification routes Web import
+const notificationRoutesWeb = require("./routes/notificationRoutesWeb");
 // What's New routes import
 const whatsNewRoutes = require("./routes/whatsNewRoutes");
 // Generation Status routes import
@@ -139,6 +167,11 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization", "X-User-ID"],
   }),
 );
+
+// LemonSqueezy webhook - MUST be before bodyParser.json() to preserve raw body for signature verification
+const lemonsqueezyWebhook = require("./routes/lemonsqueezyWebhook");
+app.use("/api/lemonsqueezy", express.raw({ type: "application/json" }), lemonsqueezyWebhook);
+
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
@@ -153,6 +186,11 @@ app.get("/icon-generator-ui.html", (req, res) => {
 // Notification Dashboard UI'yi serve et
 app.get("/notification-dashboard.html", (req, res) => {
   res.sendFile(path.join(__dirname, "../notification-dashboard.html"));
+});
+
+// Admin Dashboard UI'yi serve et
+app.get("/admin-dashboard.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "../admin-dashboard.html"));
 });
 
 // Basit test endpointi ekle
@@ -184,11 +222,13 @@ app.use("/api/getModel", getModelRouter);
 app.use("/api/listTrainings", listTraingsRouter);
 app.use("/api/getTraining", getTraining);
 app.use("/api/imageEnhancement", imageEnhancementRouter);
+app.use("/api/imageEnhancementWeb", imageEnhancementWebRouter);
 app.use("/api/faceSwap", faceSwapRouter);
 app.use("/api", updateCreditRouter);
 app.use("/api", getUserRouter);
 app.use("/api/push-notifications", pushNotificationRoutes);
 app.use("/api", notificationRoutes);
+app.use("/api/notificationsWeb", notificationRoutesWeb);
 app.use("/api/uploadImage", uploadImageRouter);
 app.use("/api", generateTrain);
 app.use("/api/checkStatus", checkStatusRouter);
@@ -217,13 +257,17 @@ app.use("/api/v2", registerAnonymousUserRouterV2);
 app.use("/api/v3", registerAnonymousUserRouterV3);
 app.use("/api", generateImgToVidRouter);
 app.use("/api", generateImgToVidv2Router); // Kling 2.6
+app.use("/api", generateImgToVidWebRouter);
 app.use("/api", posesRouter);
 app.use("/api", generateImagesJsonRouter);
 app.use("/api", locationRoutes);
 app.use("/api/backgrounds", backgroundRoutes);
 app.use("/api/bodyshapes", bodyShapeRoutes);
 app.use("/api/history", historyRoutes);
+app.use("/api/historyWeb", historyRoutesWeb);
 app.use("/api/feature-history", featureHistoryRoutes);
+app.use("/api/feature-historyWeb", featureHistoryRoutesWeb);
+app.use("/api/admin-dashboard", adminDashboardRoutes);
 
 const downloadRoutes = require("./routes/downloadRoutes");
 app.use("/api/download", downloadRoutes);
@@ -241,13 +285,19 @@ app.use("/api/referenceBrowserV3", referenceBrowserRoutesV3);
 app.use("/api/referenceBrowserV4", referenceBrowserRoutesV4);
 app.use("/api/referenceBrowserV5", referenceBrowserRoutesV5);
 app.use("/api/referenceBrowserV6", referenceBrowserRoutesV6);
+app.use("/api/referenceBrowserWeb", referenceBrowserRoutesWeb);
 app.use("/api/changePose", changePose);
+app.use("/api/changePoseWeb", changePoseWeb);
 app.use("/api/createRefiner", createRefiner);
+app.use("/api/createRefinerWeb", createRefinerWeb);
 
 app.use("/api/changeProductColor", changeProductColor);
+app.use("/api/changeProductColorWeb", changeProductColorWeb);
 app.use("/api/backSideCloset", backSideCloset);
+app.use("/api/backSideClosetWeb", backSideClosetWeb);
 
 app.use("/api/referenceJewelryBrowserV4", referenceJewelryBrowserRoutesV4);
+app.use("/api/referenceJewelryBrowserWeb", referenceJewelryBrowserRoutesWeb);
 app.use("/api/reference-images", referenceImageRoutes);
 app.use(
   "/api/referenceBrowserWithoutCanvas",
@@ -276,15 +326,19 @@ app.use("/api", appConfigRoutes);
 
 // Custom Pose routes ekle
 app.use("/api/customPose", customPoseRoutes);
+app.use("/api/customPoseWeb", customPoseRoutesWeb);
 
 // Custom Hair Style routes ekle
 app.use("/api/customHairStyle", customHairStyleRoutes);
+app.use("/api/customHairStyleWeb", customHairStyleRoutesWeb);
 
 // Pose Favorites routes ekle
 app.use("/api/pose-favorites", poseFavoritesRoutes);
+app.use("/api/pose-favoritesWeb", poseFavoritesRoutesWeb);
 
 // Hair Style Favorites routes ekle
 app.use("/api/hair-style-favorites", hairStyleFavoritesRoutes);
+app.use("/api/hair-style-favoritesWeb", hairStyleFavoritesRoutesWeb);
 
 // Last Selected Pose routes ekle
 const lastSelectedPoseRoutes = require("./routes/lastSelectedPoseRoutes");
@@ -294,20 +348,27 @@ app.use("/api/last-selected-pose", lastSelectedPoseRoutes);
 app.use("/api/location", createLocationRoutes);
 app.use("/api/location/v2", createLocationRoutesV2);
 app.use("/api/location/v3", createLocationRoutesV3);
+app.use("/api/locationWeb/v2", createLocationRoutesWebV2);
+app.use("/api/locationWeb/v3", createLocationRoutesWeb);
 // Search Location routes ekle
 app.use("/api/location/v2", searchLocationRoutes);
+app.use("/api/locationWeb/v2", searchLocationRoutesWeb);
 
 // Location Suggestion routes ekle
 app.use("/api/location-suggestions", locationSuggestionRoutes);
+app.use("/api/location-suggestionsWeb", locationSuggestionRoutesWeb);
 
 // Create Model routes ekle
 app.use("/api/model", createModelRoutes);
+app.use("/api/modelWeb", createModelRoutesWeb);
 
 // Hair Styles routes ekle
 app.use("/api/hair-styles", hairStylesRoutes);
+app.use("/api/hair-stylesWeb", hairStylesRoutesWeb);
 
 // Favorites routes ekle
 app.use("/api/favorites", favoritesRoutes);
+app.use("/api/favoritesWeb", favoritesRoutesWeb);
 
 // Video routes ekle
 app.use("/api", videoRoutes);
@@ -321,6 +382,7 @@ app.use("/api/icon-generator", iconGeneratorRoutes);
 // App Links routes ekle
 app.use("/api/app-links", appLinksRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/authWeb", authRoutesWeb);
 const webAuthRoutes = require("./routes/webAuthRoutes");
 app.use("/api/web/auth", webAuthRoutes);
 
@@ -329,12 +391,14 @@ app.use(modalContentsRoutes);
 
 // Model Poses routes ekle (artık /api/posesNew altında olacak)
 app.use("/api", modelPosesRoutes); // Yeni eklenen route'u /api/posesNew olarak ayarla
+app.use("/api", modelPosesRoutesWeb);
 
 // Generate Product Kit routes
 app.use("/api", generateProductKitRoutes);
 
 // Team routes
 app.use("/api/teams", teamRoutes);
+app.use("/api/teamsWeb", teamRoutesWeb);
 
 // What's New routes
 app.use("/api/whats-new", whatsNewRoutes);
