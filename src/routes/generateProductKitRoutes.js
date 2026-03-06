@@ -93,45 +93,61 @@ async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) 
 }
 
 // Optimize image for Fal.ai (resize to max 1024 on long side)
+const MAX_FILE_SIZE = 7 * 1024 * 1024; // 7MB
+
 async function getOptimizedImageUrl(imageUrl) {
     if (!imageUrl) return null;
     try {
         console.log(`🖼️ [OPTIMIZE] Checking/optimizing image: ${imageUrl.substring(0, 80)}...`);
 
-        // Fetch image
         const response = await axios.get(imageUrl, {
             responseType: 'arraybuffer',
             timeout: 30000
         });
         const buffer = Buffer.from(response.data);
+        const originalSize = buffer.length;
 
-        // Check dimensions
-        const metadata = await sharp(buffer).metadata();
-        const MAX_SIZE = 1024;
-
-        if (metadata.width <= MAX_SIZE && metadata.height <= MAX_SIZE) {
-            console.log(`✅ [OPTIMIZE] Image size is OK (${metadata.width}x${metadata.height})`);
+        // Already under 7MB — no optimization needed
+        if (originalSize <= MAX_FILE_SIZE) {
+            console.log(`✅ [OPTIMIZE] Image is OK (${(originalSize / 1024 / 1024).toFixed(1)}MB)`);
             return imageUrl;
         }
 
-        console.log(`🔄 [OPTIMIZE] Resizing image from ${metadata.width}x${metadata.height} to max ${MAX_SIZE}...`);
+        const metadata = await sharp(buffer).metadata();
+        console.log(`🔄 [OPTIMIZE] Image is ${(originalSize / 1024 / 1024).toFixed(1)}MB (${metadata.width}x${metadata.height}), compressing to <7MB...`);
 
-        // Resize
-        const resizedBuffer = await sharp(buffer)
-            .resize(MAX_SIZE, MAX_SIZE, {
-                fit: 'inside',
-                withoutEnlargement: true
-            })
-            .jpeg({ quality: 90 })
-            .toBuffer();
+        // Step 1: Keep original dimensions, lower JPEG quality progressively
+        let quality = 92;
+        let optimizedBuffer;
 
-        // Upload resized version as a temporary file
+        do {
+            quality -= 5;
+            optimizedBuffer = await sharp(buffer)
+                .jpeg({ quality })
+                .toBuffer();
+            console.log(`🔄 [OPTIMIZE] quality ${quality} → ${(optimizedBuffer.length / 1024 / 1024).toFixed(1)}MB`);
+        } while (optimizedBuffer.length > MAX_FILE_SIZE && quality > 40);
+
+        // Step 2: If still over 7MB, scale down slightly (85%)
+        if (optimizedBuffer.length > MAX_FILE_SIZE) {
+            const scale = 0.85;
+            const newW = Math.round(metadata.width * scale);
+            const newH = Math.round(metadata.height * scale);
+            console.log(`🔄 [OPTIMIZE] Still over 7MB, scaling to ${newW}x${newH}...`);
+            optimizedBuffer = await sharp(buffer)
+                .resize(newW, newH)
+                .jpeg({ quality: 50 })
+                .toBuffer();
+        }
+
+        console.log(`✅ [OPTIMIZE] Final: ${(optimizedBuffer.length / 1024 / 1024).toFixed(1)}MB, quality ${quality}`);
+
         const timestamp = Date.now();
         const fileName = `temp_optimized/${timestamp}_${uuidv4().substring(0, 8)}.jpg`;
 
         const { data, error } = await supabase.storage
             .from("user_image_results")
-            .upload(fileName, resizedBuffer, {
+            .upload(fileName, optimizedBuffer, {
                 contentType: "image/jpeg",
                 upsert: true
             });
@@ -154,11 +170,7 @@ async function getOptimizedImageUrl(imageUrl) {
     }
 }
 
-// @fal-ai/client import
-const { fal } = require("@fal-ai/client");
-fal.config({
-    credentials: process.env.FAL_API_KEY,
-});
+
 
 // Fal.ai Reve Fast Edit API call using SDK (DEPRECATED - Using GPT Image 1.5 instead)
 // async function callFalAiReveEdit(prompt, imageUrl, maxRetries = 3) {
@@ -229,68 +241,87 @@ fal.config({
 //     }
 // }
 
-// Fal.ai GPT Image 1.5 Edit API call using SDK
+// Replicate GPT Image 1.5 Edit API call
 // Always sends BOTH result image and reference image together
-async function callFalAiGptImageEdit(prompt, resultImageUrl, referenceImageUrl, maxRetries = 3) {
+async function callReplicateGptImageEdit(prompt, resultImageUrl, referenceImageUrl, maxRetries = 3) {
+    const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+
+    if (!REPLICATE_API_TOKEN) {
+        throw new Error("REPLICATE_API_TOKEN environment variable is not set");
+    }
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-            console.log(`🎨 [FAL_AI_GPT] Image generation attempt ${attempt}/${maxRetries}`);
-            console.log(`🎨 [FAL_AI_GPT] Prompt: ${prompt.substring(0, 100)}...`);
+            console.log(`🎨 [KIT_REPLICATE] Image generation attempt ${attempt}/${maxRetries}`);
+            console.log(`🎨 [KIT_REPLICATE] Prompt: ${prompt.substring(0, 100)}...`);
 
-            // fal.queue.submit ile GPT Image 1.5'e istek gönder - HER ZAMAN 2 RESIM
-            const { request_id } = await fal.queue.submit("fal-ai/gpt-image-1.5/edit", {
-                input: {
-                    prompt: prompt,
-                    image_urls: [resultImageUrl, referenceImageUrl], // Both images together!
-                    image_size: "1024x1536", // Exact size from docs (portrait)
-                    quality: "low", // low, medium, high
-                    input_fidelity: "high", // low, high  
-                    num_images: 1,
-                    output_format: "jpeg"
+            const response = await axios.post(
+                "https://api.replicate.com/v1/models/openai/gpt-image-1.5/predictions",
+                {
+                    input: {
+                        prompt: prompt,
+                        input_images: [resultImageUrl, referenceImageUrl],
+                        aspect_ratio: "2:3",
+                        quality: "low",
+                        number_of_images: 1,
+                    }
+                },
+                {
+                    headers: {
+                        "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
+                        "Content-Type": "application/json",
+                    },
+                    timeout: 30000,
                 }
-            });
+            );
 
-            if (!request_id) {
-                throw new Error("Fal.ai did not return a request_id");
+            const prediction = response.data;
+
+            if (!prediction.id) {
+                throw new Error("Replicate did not return a prediction ID");
             }
 
-            console.log(`⏳ [FAL_AI_GPT] Request submitted, request_id: ${request_id}`);
+            console.log(`⏳ [KIT_REPLICATE] Prediction created, id: ${prediction.id}`);
 
-            // Poll for completion
             let maxPolls = 60;
             for (let poll = 0; poll < maxPolls; poll++) {
-                const statusResult = await fal.queue.status("fal-ai/gpt-image-1.5/edit", {
-                    requestId: request_id,
-                    logs: false
-                });
-
-                console.log(`⏳ [FAL_AI_GPT] Poll ${poll + 1}/${maxPolls}, status: ${statusResult.status}`);
-
-                if (statusResult.status === "COMPLETED") {
-                    // Get the final result
-                    const finalResult = await fal.queue.result("fal-ai/gpt-image-1.5/edit", {
-                        requestId: request_id
-                    });
-
-                    if (finalResult.data && finalResult.data.images && finalResult.data.images.length > 0) {
-                        console.log(`✅ [FAL_AI_GPT] Image generated successfully`);
-                        return finalResult.data.images[0].url;
+                const statusResponse = await axios.get(
+                    `https://api.replicate.com/v1/predictions/${prediction.id}`,
+                    {
+                        headers: {
+                            "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
+                            "Content-Type": "application/json",
+                        },
+                        timeout: 15000,
                     }
-                    throw new Error("No images in completed result");
+                );
+
+                const result = statusResponse.data;
+                console.log(`⏳ [KIT_REPLICATE] Poll ${poll + 1}/${maxPolls}, status: ${result.status}`);
+
+                if (result.status === "succeeded") {
+                    const output = result.output;
+                    if (output) {
+                        const imageUrl = Array.isArray(output) ? output[0] : output;
+                        if (imageUrl) {
+                            console.log(`✅ [KIT_REPLICATE] Image generated successfully`);
+                            return imageUrl;
+                        }
+                    }
+                    throw new Error("No image URL in succeeded result");
                 }
 
-                if (statusResult.status === "FAILED") {
-                    throw new Error("Fal.ai GPT Image generation failed");
+                if (result.status === "failed" || result.status === "canceled") {
+                    throw new Error(`Replicate prediction ${result.status}: ${result.error || "unknown error"}`);
                 }
 
-                // Wait before next poll
                 await new Promise(resolve => setTimeout(resolve, 2000));
             }
 
-            throw new Error("Fal.ai GPT Image polling timeout");
+            throw new Error("Replicate GPT Image polling timeout");
 
         } catch (error) {
-            console.error(`❌ [FAL_AI_GPT] Attempt ${attempt} failed:`, error.message);
+            console.error(`❌ [KIT_REPLICATE] Attempt ${attempt} failed:`, error.message);
 
             if (attempt === maxRetries) {
                 throw error;
@@ -815,7 +846,7 @@ Ghost_Mannequin_Prompt: [your generated prompt]
         const imageGenerationPromises = imagePrompts.map(async (prompt, index) => {
             try {
                 console.log(`🎨 [PRODUCT_KIT] Generating ${imageTypes[index]} with BOTH result and reference images...`);
-                const generatedUrl = await callFalAiGptImageEdit(prompt, optimizedResultUrl, optimizedReferenceUrl);
+                const generatedUrl = await callReplicateGptImageEdit(prompt, optimizedResultUrl, optimizedReferenceUrl);
 
                 // Save to user bucket
                 const savedUrl = await saveGeneratedImageToUserBucket(
