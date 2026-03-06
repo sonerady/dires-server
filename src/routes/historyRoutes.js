@@ -124,7 +124,8 @@ router.get("/user/:userId", async (req, res) => {
           credits_after_generation,
           settings,
           quality_version,
-          kits
+          kits,
+          stories
         `
         )
         .in("user_id", memberIds)
@@ -156,7 +157,8 @@ router.get("/user/:userId", async (req, res) => {
             credits_after_generation,
             settings,
             quality_version,
-            kits
+            kits,
+            stories
           `
           )
           .in("user_id", memberIds)
@@ -414,6 +416,148 @@ router.get("/kits/:generationId", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ [HISTORY_KITS] Unexpected error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+});
+
+/**
+ * GET /api/history/stories/:generationId
+ * Get stories array for a specific generation
+ */
+router.get("/stories/:generationId", async (req, res) => {
+  try {
+    const { generationId } = req.params;
+
+    logger.log(`📖 [HISTORY_STORIES] Fetching stories for generation: ${generationId}`);
+
+    if (!generationId) {
+      return res.status(400).json({
+        success: false,
+        message: "Generation ID required",
+      });
+    }
+
+    const { data: generationData, error: fetchError } = await supabase
+      .from("reference_results")
+      .select("stories")
+      .eq("generation_id", generationId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error("❌ [HISTORY_STORIES] Query error:", fetchError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch stories data",
+        error: fetchError.message
+      });
+    }
+
+    if (!generationData) {
+      return res.status(404).json({
+        success: false,
+        message: "Generation not found",
+      });
+    }
+
+    let storiesArray = [];
+    if (generationData.stories) {
+      try {
+        storiesArray = Array.isArray(generationData.stories)
+          ? generationData.stories
+          : JSON.parse(generationData.stories || "[]");
+      } catch (e) {
+        console.warn("Stories parse error:", e);
+        storiesArray = [];
+      }
+    }
+
+    logger.log(`✅ [HISTORY_STORIES] Retrieved ${storiesArray.length} stories for generation: ${generationId}`);
+
+    return res.json({
+      success: true,
+      data: {
+        stories: storiesArray,
+        count: storiesArray.length,
+      },
+    });
+  } catch (error) {
+    console.error("❌ [HISTORY_STORIES] Unexpected error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+});
+
+/**
+ * GET /api/history/fashion-kits/:generationId
+ * Get fashion_kits array for a specific generation
+ */
+router.get("/fashion-kits/:generationId", async (req, res) => {
+  try {
+    const { generationId } = req.params;
+
+    logger.log(`👗 [HISTORY_FASHION] Fetching fashion kits for generation: ${generationId}`);
+
+    if (!generationId) {
+      return res.status(400).json({
+        success: false,
+        message: "Generation ID required",
+      });
+    }
+
+    const { data: generationData, error: fetchError } = await supabase
+      .from("reference_results")
+      .select("fashion_kits")
+      .eq("generation_id", generationId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error("❌ [HISTORY_FASHION] Query error:", fetchError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch fashion kits data",
+        error: fetchError.message
+      });
+    }
+
+    if (!generationData) {
+      return res.status(404).json({
+        success: false,
+        message: "Generation not found",
+      });
+    }
+
+    let fashionKitsArray = [];
+    if (generationData.fashion_kits) {
+      try {
+        fashionKitsArray = Array.isArray(generationData.fashion_kits)
+          ? generationData.fashion_kits
+          : JSON.parse(generationData.fashion_kits || "[]");
+      } catch (e) {
+        console.warn("Fashion kits parse error:", e);
+        fashionKitsArray = [];
+      }
+    }
+
+    logger.log(`✅ [HISTORY_FASHION] Retrieved ${fashionKitsArray.length} fashion kits for generation: ${generationId}`);
+
+    return res.json({
+      success: true,
+      data: {
+        fashionKits: fashionKitsArray,
+        count: fashionKitsArray.length,
+      },
+    });
+  } catch (error) {
+    console.error("❌ [HISTORY_FASHION] Unexpected error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",

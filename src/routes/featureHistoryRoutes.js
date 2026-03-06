@@ -313,7 +313,7 @@ router.get("/virtual-model/:userId", async (req, res) => {
       supabase
         .from("reference_results")
         .select(
-          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits`,
+          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
@@ -391,7 +391,7 @@ router.get("/pose-change/:userId", async (req, res) => {
       supabase
         .from("reference_results")
         .select(
-          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, pose_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits`,
+          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, pose_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
@@ -470,7 +470,7 @@ router.get("/color-change/:userId", async (req, res) => {
       supabase
         .from("reference_results")
         .select(
-          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits`,
+          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
@@ -548,7 +548,7 @@ router.get("/back-side/:userId", async (req, res) => {
       supabase
         .from("reference_results")
         .select(
-          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits`,
+          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
@@ -623,7 +623,7 @@ router.get("/refiner/:userId", async (req, res) => {
       supabase
         .from("reference_results")
         .select(
-          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits`,
+          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
@@ -874,6 +874,156 @@ router.get("/ecommerce-kits/:userId", async (req, res) => {
     );
   } catch (error) {
     console.error("❌ [FEATURE-HISTORY] ecommerce-kits error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+});
+
+/**
+ * GET /api/feature-history/stories/:userId
+ * Product stories history from product_stories table
+ */
+router.get("/stories/:userId", async (req, res) => {
+  try {
+    const setup = await setupRequest(req);
+    if (setup.error)
+      return res.status(400).json({ success: false, message: setup.error });
+
+    const { userId, parsedLimit, parsedPage, offset, memberIds, isTeamMember, ascending } =
+      setup;
+
+    logger.log(
+      `📊 [FEATURE-HISTORY] Fetching stories history for user: ${userId}`,
+    );
+
+    const { count: totalCount, error: countError } = await retryQuery(() =>
+      supabase
+        .from("product_stories")
+        .select("*", { count: "exact", head: true })
+        .in("user_id", memberIds),
+    );
+
+    if (countError) {
+      console.error(
+        "❌ [FEATURE-HISTORY] stories count error:",
+        countError,
+      );
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch count" });
+    }
+
+    const { data, error } = await retryQuery(() =>
+      supabase
+        .from("product_stories")
+        .select(
+          `id, user_id, generation_id, original_photos, story_images, processing_time_seconds, total_images_generated, credits_used, is_free_tier, created_at`,
+        )
+        .in("user_id", memberIds)
+        .order("created_at", { ascending })
+        .range(offset, offset + parsedLimit - 1),
+    );
+
+    if (error) {
+      console.error(
+        "❌ [FEATURE-HISTORY] stories query error:",
+        error,
+      );
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch data" });
+    }
+
+    logger.log(
+      `📊 [FEATURE-HISTORY] stories: ${data?.length || 0} items, total: ${totalCount}`,
+    );
+    return await buildResponse(
+      res,
+      data,
+      totalCount,
+      parsedPage,
+      parsedLimit,
+      offset,
+      isTeamMember,
+    );
+  } catch (error) {
+    console.error("❌ [FEATURE-HISTORY] stories error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+});
+
+/**
+ * GET /api/feature-history/fashion-kits/:userId
+ * Fashion kits history from product_fashion_kits table
+ */
+router.get("/fashion-kits/:userId", async (req, res) => {
+  try {
+    const setup = await setupRequest(req);
+    if (setup.error)
+      return res.status(400).json({ success: false, message: setup.error });
+
+    const { userId, parsedLimit, parsedPage, offset, memberIds, isTeamMember, ascending } =
+      setup;
+
+    logger.log(
+      `📊 [FEATURE-HISTORY] Fetching fashion-kits history for user: ${userId}`,
+    );
+
+    const { count: totalCount, error: countError } = await retryQuery(() =>
+      supabase
+        .from("product_fashion_kits")
+        .select("*", { count: "exact", head: true })
+        .in("user_id", memberIds),
+    );
+
+    if (countError) {
+      console.error(
+        "❌ [FEATURE-HISTORY] fashion-kits count error:",
+        countError,
+      );
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch count" });
+    }
+
+    const { data, error } = await retryQuery(() =>
+      supabase
+        .from("product_fashion_kits")
+        .select(
+          `id, user_id, generation_id, original_photos, fashion_kit_images, processing_time_seconds, total_images_generated, credits_used, is_free_tier, created_at`,
+        )
+        .in("user_id", memberIds)
+        .order("created_at", { ascending })
+        .range(offset, offset + parsedLimit - 1),
+    );
+
+    if (error) {
+      console.error(
+        "❌ [FEATURE-HISTORY] fashion-kits query error:",
+        error,
+      );
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch data" });
+    }
+
+    logger.log(
+      `📊 [FEATURE-HISTORY] fashion-kits: ${data?.length || 0} items, total: ${totalCount}`,
+    );
+    return await buildResponse(
+      res,
+      data,
+      totalCount,
+      parsedPage,
+      parsedLimit,
+      offset,
+      isTeamMember,
+    );
+  } catch (error) {
+    console.error("❌ [FEATURE-HISTORY] fashion-kits error:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal server error" });

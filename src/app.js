@@ -152,6 +152,10 @@ const authRoutes = require("./routes/authRoutes");
 const authRoutesWeb = require("./routes/authRoutesWeb");
 // Generate Product Kit routes import
 const generateProductKitRoutes = require("./routes/generateProductKitRoutes");
+// Generate Product Story routes import
+const generateProductStoryRoutes = require("./routes/generateProductStoryRoutes");
+// Generate Fashion Kit routes import
+const generateFashionKitRoutes = require("./routes/generateFashionKitRoutes");
 // Team routes import
 const teamRoutes = require("./routes/teamRoutes");
 const teamRoutesWeb = require("./routes/teamRoutesWeb");
@@ -400,6 +404,16 @@ app.use("/api", modelPosesRoutesWeb);
 
 // Generate Product Kit routes
 app.use("/api", generateProductKitRoutes);
+
+// Generate Product Story routes
+app.use("/api", generateProductStoryRoutes);
+
+// Generate Fashion Kit routes
+app.use("/api", generateFashionKitRoutes);
+
+// Support routes
+const supportRoutes = require("./routes/supportRoutes");
+app.use("/api/support", requireBrowser, requireAuth, supportRoutes);
 
 // Team routes
 app.use("/api/teams", teamRoutes);

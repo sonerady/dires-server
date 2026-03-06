@@ -558,10 +558,104 @@ function getTeamInvitationTemplate(inviterName, inviterCompany, acceptUrl, decli
   `;
 }
 
+/**
+ * Get support request email template
+ * @param {string} userEmail - User's email address
+ * @param {string} subject - Support subject/category
+ * @param {string} message - User's message
+ * @param {string} userId - User's backend ID (optional)
+ * @returns {string} HTML email template
+ */
+function getSupportEmailTemplate(userEmail, subject, message, userId = '') {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Support Request</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background-color: #f5f5f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; padding: 48px 40px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+
+          <!-- Logo -->
+          <tr>
+            <td align="left" style="padding-bottom: 40px;">
+              <span style="font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.5px;">
+                Diress<span style="color: #ef4444;">.</span> Support
+              </span>
+            </td>
+          </tr>
+
+          <!-- Heading -->
+          <tr>
+            <td style="padding-bottom: 24px;">
+              <h1 style="font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0; line-height: 1.3;">
+                New Support Request
+              </h1>
+            </td>
+          </tr>
+
+          <!-- User Info Box -->
+          <tr>
+            <td style="padding-bottom: 24px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fafafa; border: 1px solid #e5e5e5; border-radius: 12px;">
+                <tr>
+                  <td style="padding: 20px;">
+                    <p style="font-family: 'Poppins', sans-serif; font-size: 13px; color: #6b7280; margin: 0 0 8px;">
+                      <strong style="color: #1a1a1a;">From:</strong> ${userEmail}
+                    </p>
+                    <p style="font-family: 'Poppins', sans-serif; font-size: 13px; color: #6b7280; margin: 0 0 8px;">
+                      <strong style="color: #1a1a1a;">Subject:</strong> ${subject}
+                    </p>
+                    ${userId ? `<p style="font-family: 'Poppins', sans-serif; font-size: 13px; color: #6b7280; margin: 0;">
+                      <strong style="color: #1a1a1a;">User ID:</strong> ${userId}
+                    </p>` : ''}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Message -->
+          <tr>
+            <td style="padding-bottom: 32px;">
+              <p style="font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; color: #1a1a1a; margin: 0 0 12px;">
+                Message
+              </p>
+              <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px;">
+                <p style="font-family: 'Poppins', sans-serif; font-size: 14px; color: #374151; line-height: 1.6; margin: 0; white-space: pre-wrap;">${message}</p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding-top: 24px; border-top: 1px solid #f3f4f6;">
+              <p style="font-family: 'Poppins', sans-serif; font-size: 12px; color: #d1d5db; margin: 0;">
+                Sent from Diress Web App &middot; ${new Date().toISOString()}
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+}
+
 module.exports = {
   getVerificationEmailTemplate,
   getMobileVerificationEmailTemplate,
   getWelcomeEmailTemplate,
   getPasswordResetTemplate,
   getTeamInvitationTemplate,
+  getSupportEmailTemplate,
 };

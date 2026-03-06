@@ -16,6 +16,7 @@ const catalogRateLimiter = rateLimit({
         code: 'RATE_LIMIT_EXCEEDED',
     },
     keyGenerator: getClientIp,
+    validate: false,
 });
 
 // Browser detection middleware
