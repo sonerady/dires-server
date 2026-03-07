@@ -4828,11 +4828,11 @@ router.post("/generate", async (req, res) => {
           ? "v1"
           : settings?.qualityVersion || settings?.quality_version || "v1";
         const isV2 = qualityVersion === "v2";
-        // For fal.ai, we use nano-banana/edit for v1 and nano-banana-pro/edit for v2
-        // Back side analysis modunda her zaman nano-banana-pro kullan
+        // For fal.ai, we use nano-banana/edit for v1 and nano-banana-2/edit for v2
+        // Back side analysis modunda her zaman nano-banana-2 kullan
         const falModel =
           isV2 || req.body.isBackSideAnalysis
-            ? "fal-ai/nano-banana-pro/edit"
+            ? "fal-ai/nano-banana-2/edit"
             : "fal-ai/nano-banana/edit";
 
         logger.log(
@@ -4867,7 +4867,7 @@ router.post("/generate", async (req, res) => {
             aspect_ratio: aspectRatioForRequest,
             num_images: 1,
             resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
-            ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
+            safety_tolerance: "6",
           };
           logger.log(
             `🕺 [POSE_CHANGE] fal.ai ${falModel} request body hazırlandı`
@@ -4885,7 +4885,7 @@ router.post("/generate", async (req, res) => {
             aspect_ratio: aspectRatioForRequest,
             num_images: 1,
             resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
-            ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
+            safety_tolerance: "6",
           };
         }
 
@@ -5218,7 +5218,7 @@ router.post("/generate", async (req, res) => {
             aspect_ratio: formattedRatio || "9:16",
             num_images: 1,
             resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
-            ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
+            safety_tolerance: "6",
           };
 
           logger.log(

@@ -240,6 +240,47 @@ const resolvePoseIds = async (data) => {
 /**
  * Shared response builder
  */
+// Enrich items that have no stories in reference_results by checking product_stories table
+const enrichStoryCounts = async (items) => {
+  if (!Array.isArray(items) || items.length === 0) return items;
+
+  // Find items with generation_id that have no stories
+  const needsStories = items.filter(
+    (item) => item.generation_id && (!item.stories || (Array.isArray(item.stories) && item.stories.length === 0))
+  );
+  if (needsStories.length === 0) return items;
+
+  const genIds = needsStories.map((item) => item.generation_id);
+
+  try {
+    const { data: storyRows, error } = await supabase
+      .from("product_stories")
+      .select("generation_id, story_images")
+      .in("generation_id", genIds);
+
+    if (error || !storyRows || storyRows.length === 0) return items;
+
+    const storyMap = {};
+    storyRows.forEach((row) => {
+      if (row.generation_id && row.story_images) {
+        const imgs = Array.isArray(row.story_images) ? row.story_images : [];
+        // story_images is [{url, type, ...}] — extract just URLs for count
+        storyMap[row.generation_id] = imgs.map((s) => (typeof s === "string" ? s : s?.url)).filter(Boolean);
+      }
+    });
+
+    return items.map((item) => {
+      if (item.generation_id && storyMap[item.generation_id] && (!item.stories || (Array.isArray(item.stories) && item.stories.length === 0))) {
+        return { ...item, stories: storyMap[item.generation_id] };
+      }
+      return item;
+    });
+  } catch (e) {
+    console.warn("⚠️ [FEATURE-HISTORY] enrichStoryCounts error:", e.message);
+    return items;
+  }
+};
+
 const buildResponse = async (
   res,
   data,
@@ -254,6 +295,8 @@ const buildResponse = async (
   // Resolve location_ids and pose_ids for items
   let enrichedData = await resolveLocationIds(data || []);
   enrichedData = await resolvePoseIds(enrichedData);
+  // Enrich stories from product_stories if reference_results.stories is empty
+  enrichedData = await enrichStoryCounts(enrichedData);
 
   return res.json({
     success: true,
@@ -313,7 +356,7 @@ router.get("/virtual-model/:userId", async (req, res) => {
       supabase
         .from("reference_results")
         .select(
-          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories`,
+          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
@@ -391,7 +434,7 @@ router.get("/pose-change/:userId", async (req, res) => {
       supabase
         .from("reference_results")
         .select(
-          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, pose_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories`,
+          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, pose_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
@@ -470,7 +513,7 @@ router.get("/color-change/:userId", async (req, res) => {
       supabase
         .from("reference_results")
         .select(
-          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories`,
+          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
@@ -548,7 +591,7 @@ router.get("/back-side/:userId", async (req, res) => {
       supabase
         .from("reference_results")
         .select(
-          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories`,
+          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
@@ -623,7 +666,7 @@ router.get("/refiner/:userId", async (req, res) => {
       supabase
         .from("reference_results")
         .select(
-          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories`,
+          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])

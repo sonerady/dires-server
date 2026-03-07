@@ -125,7 +125,8 @@ router.get("/user/:userId", async (req, res) => {
           settings,
           quality_version,
           kits,
-          stories
+          stories,
+          unboxing_stories
         `
         )
         .in("user_id", memberIds)
@@ -158,7 +159,8 @@ router.get("/user/:userId", async (req, res) => {
             settings,
             quality_version,
             kits,
-            stories
+            stories,
+            unboxing_stories
           `
           )
           .in("user_id", memberIds)
@@ -558,6 +560,77 @@ router.get("/fashion-kits/:generationId", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ [HISTORY_FASHION] Unexpected error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+});
+
+/**
+ * GET /api/history/unboxing-stories/:generationId
+ * Get unboxing_stories array for a specific generation
+ */
+router.get("/unboxing-stories/:generationId", async (req, res) => {
+  try {
+    const { generationId } = req.params;
+
+    logger.log(`📦 [HISTORY_UNBOXING] Fetching unboxing stories for generation: ${generationId}`);
+
+    if (!generationId) {
+      return res.status(400).json({
+        success: false,
+        message: "Generation ID required",
+      });
+    }
+
+    const { data: generationData, error: fetchError } = await supabase
+      .from("reference_results")
+      .select("unboxing_stories")
+      .eq("generation_id", generationId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error("❌ [HISTORY_UNBOXING] Query error:", fetchError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch unboxing stories data",
+        error: fetchError.message
+      });
+    }
+
+    if (!generationData) {
+      return res.status(404).json({
+        success: false,
+        message: "Generation not found",
+      });
+    }
+
+    let unboxingArray = [];
+    if (generationData.unboxing_stories) {
+      try {
+        unboxingArray = Array.isArray(generationData.unboxing_stories)
+          ? generationData.unboxing_stories
+          : JSON.parse(generationData.unboxing_stories || "[]");
+      } catch (e) {
+        console.warn("Unboxing stories parse error:", e);
+        unboxingArray = [];
+      }
+    }
+
+    logger.log(`✅ [HISTORY_UNBOXING] Retrieved ${unboxingArray.length} unboxing stories for generation: ${generationId}`);
+
+    return res.json({
+      success: true,
+      data: {
+        unboxing_stories: unboxingArray,
+        count: unboxingArray.length,
+      },
+    });
+  } catch (error) {
+    console.error("❌ [HISTORY_UNBOXING] Unexpected error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",

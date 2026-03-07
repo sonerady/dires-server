@@ -313,7 +313,7 @@ router.get("/virtual-model/:userId", async (req, res) => {
       supabase
         .from("reference_results")
         .select(
-          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories`,
+          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
@@ -391,7 +391,7 @@ router.get("/pose-change/:userId", async (req, res) => {
       supabase
         .from("reference_results")
         .select(
-          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, pose_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories`,
+          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, pose_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
@@ -470,7 +470,7 @@ router.get("/color-change/:userId", async (req, res) => {
       supabase
         .from("reference_results")
         .select(
-          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories`,
+          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
@@ -548,7 +548,7 @@ router.get("/back-side/:userId", async (req, res) => {
       supabase
         .from("reference_results")
         .select(
-          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories`,
+          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
@@ -623,7 +623,7 @@ router.get("/refiner/:userId", async (req, res) => {
       supabase
         .from("reference_results")
         .select(
-          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories`,
+          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])

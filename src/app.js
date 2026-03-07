@@ -152,10 +152,13 @@ const authRoutes = require("./routes/authRoutes");
 const authRoutesWeb = require("./routes/authRoutesWeb");
 // Generate Product Kit routes import
 const generateProductKitRoutes = require("./routes/generateProductKitRoutes");
+const generateProductKitRoutesV2 = require("./routes/generateProductKitRoutesV2");
 // Generate Product Story routes import
 const generateProductStoryRoutes = require("./routes/generateProductStoryRoutes");
 // Generate Fashion Kit routes import
 const generateFashionKitRoutes = require("./routes/generateFashionKitRoutes");
+// Generate Unboxing Story routes import
+const generateUnboxingStoryRoutes = require("./routes/generateUnboxingStoryRoutes");
 // Team routes import
 const teamRoutes = require("./routes/teamRoutes");
 const teamRoutesWeb = require("./routes/teamRoutesWeb");
@@ -404,12 +407,16 @@ app.use("/api", modelPosesRoutesWeb);
 
 // Generate Product Kit routes
 app.use("/api", generateProductKitRoutes);
+app.use("/api", generateProductKitRoutesV2);
 
 // Generate Product Story routes
 app.use("/api", generateProductStoryRoutes);
 
 // Generate Fashion Kit routes
 app.use("/api", generateFashionKitRoutes);
+
+// Generate Unboxing Story routes
+app.use("/api", generateUnboxingStoryRoutes);
 
 // Support routes
 const supportRoutes = require("./routes/supportRoutes");

@@ -416,8 +416,8 @@ IMPORTANT: Output ONLY the enhanced prompt text, nothing else. No explanations, 
     timings.geminiEnd = Date.now();
     console.log(`✨ [CHAT-EDIT] Enhanced prompt: "${enhancedPrompt.substring(0, 200)}..."`);
 
-    // ── 6. Call fal.ai nano-banana-pro API ──
-    console.log("🎯 [CHAT-EDIT] Calling fal.ai nano-banana-pro...");
+    // ── 6. Call fal.ai nano-banana-2 API ──
+    console.log("🎯 [CHAT-EDIT] Calling fal.ai nano-banana-2...");
     timings.falStart = Date.now();
 
     const qualitySuffix = " Render in ultra-high 4K resolution with maximum detail, sharp textures, and photorealistic quality.";
@@ -434,7 +434,7 @@ IMPORTANT: Output ONLY the enhanced prompt text, nothing else. No explanations, 
       aspect_ratio: aspectRatio || "9:16",
       num_images: 1,
       resolution: "2K",
-      quality: "2K",
+      safety_tolerance: "6",
     };
 
     let resultImageUrl = null;
@@ -447,7 +447,7 @@ IMPORTANT: Output ONLY the enhanced prompt text, nothing else. No explanations, 
         );
 
         const falResponse = await axios.post(
-          "https://fal.run/fal-ai/nano-banana-pro/edit",
+          "https://fal.run/fal-ai/nano-banana-2/edit",
           falRequestBody,
           {
             headers: {

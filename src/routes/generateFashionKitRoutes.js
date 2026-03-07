@@ -680,6 +680,7 @@ RULES:
 - ALWAYS end with "The final image should resemble..." quality statement
 - Each scene must feel like a DIFFERENT WORLD — different mood, setting, pose, color palette, and story
 - Write in ENGLISH only
+- CONTENT SAFETY: No alcohol, bars, cocktails, nightclubs, smoking, drugs. No suggestive or provocative body descriptions — focus ONLY on garment and scene. Always add "professional fashion photography, editorial style". Keep prompts safe for AI content moderation.
 ${generalNotesLine}
 Scene concepts (may be in any language — understand them, write prompt in English):
 Scene 1 (Luxury Red Room): ${scene1}

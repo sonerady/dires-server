@@ -984,10 +984,20 @@ router.get("/ecommerce-stats/:userId", async (req, res) => {
 
         if (error) throw error;
 
+        // Get kit cost based on user registration date
+        let kitCost = 15;
+        try {
+            const { data: userData } = await supabase.from("users").select("created_at").eq("id", effectiveUserId).single();
+            if (userData?.created_at && new Date(userData.created_at) >= new Date("2026-03-07T00:00:00Z")) {
+                kitCost = 50;
+            }
+        } catch (e) {}
+
         res.json({
             success: true,
             count: data?.ecommerce_kit_count || 0,
-            isTeamData // New field - old clients will ignore
+            isTeamData, // New field - old clients will ignore
+            kitCost
         });
     } catch (error) {
         console.error("❌ [STATS_GET] Error:", error.message);

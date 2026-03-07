@@ -169,8 +169,8 @@ async function getOptimizedImageUrl(imageUrl) {
     }
 }
 
-// Replicate GPT Image 1.5 Edit API call
-async function callReplicateGptImageEdit(prompt, resultImageUrl, referenceImageUrl, maxRetries = 3, imageSize = "1024x1536") {
+// Replicate Nano Banana Pro (Google Gemini 3 Pro Image) API call
+async function callReplicateNanoBananaPro(prompt, resultImageUrl, referenceImageUrl, maxRetries = 3, imageSize = "1024x1536") {
     const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 
     if (!REPLICATE_API_TOKEN) {
@@ -179,22 +179,24 @@ async function callReplicateGptImageEdit(prompt, resultImageUrl, referenceImageU
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-            console.log(`🎨 [STORY_REPLICATE] Image generation attempt ${attempt}/${maxRetries}`);
-            console.log(`🎨 [STORY_REPLICATE] Prompt: ${prompt.substring(0, 100)}...`);
+            console.log(`🍌 [STORY_BANANA] Image generation attempt ${attempt}/${maxRetries}`);
+            console.log(`🍌 [STORY_BANANA] Prompt: ${prompt.substring(0, 100)}...`);
 
-            // Map size format to Replicate aspect_ratio
-            const sizeToAspectRatio = { "1024x1024": "1:1", "1536x1024": "3:2", "1024x1536": "2:3" };
-            const aspectRatio = sizeToAspectRatio[imageSize] || "2:3";
+            // Pass aspect ratio directly (Nano Banana Pro format: "1:1", "2:3", "9:16", etc.)
+            // Support legacy format for backward compatibility
+            const legacyMap = { "1024x1024": "1:1", "1536x1024": "3:2", "1024x1536": "2:3" };
+            const aspectRatio = legacyMap[imageSize] || imageSize || "9:16";
 
             const response = await axios.post(
-                "https://api.replicate.com/v1/models/openai/gpt-image-1.5/predictions",
+                "https://api.replicate.com/v1/models/google/nano-banana-2/predictions",
                 {
                     input: {
                         prompt: prompt,
-                        input_images: [resultImageUrl, referenceImageUrl],
+                        image_input: [resultImageUrl, referenceImageUrl],
                         aspect_ratio: aspectRatio,
-                        quality: "low",
-                        number_of_images: 1,
+                        resolution: "1K",
+                        output_format: "jpg",
+                        safety_filter_level: "block_only_high",
                     }
                 },
                 {
@@ -212,9 +214,9 @@ async function callReplicateGptImageEdit(prompt, resultImageUrl, referenceImageU
                 throw new Error("Replicate did not return a prediction ID");
             }
 
-            console.log(`⏳ [STORY_REPLICATE] Prediction created, id: ${prediction.id}`);
+            console.log(`⏳ [STORY_BANANA] Prediction created, id: ${prediction.id}`);
 
-            let maxPolls = 60;
+            let maxPolls = 90;
             for (let poll = 0; poll < maxPolls; poll++) {
                 const statusResponse = await axios.get(
                     `https://api.replicate.com/v1/predictions/${prediction.id}`,
@@ -223,19 +225,20 @@ async function callReplicateGptImageEdit(prompt, resultImageUrl, referenceImageU
                             "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
                             "Content-Type": "application/json",
                         },
-                        timeout: 15000,
+                        timeout: 30000,
                     }
                 );
 
                 const result = statusResponse.data;
-                console.log(`⏳ [STORY_REPLICATE] Poll ${poll + 1}/${maxPolls}, status: ${result.status}`);
+                console.log(`⏳ [STORY_BANANA] Poll ${poll + 1}/${maxPolls}, status: ${result.status}`);
 
                 if (result.status === "succeeded") {
                     const output = result.output;
                     if (output) {
+                        // Nano Banana Pro returns a single URI string
                         const imageUrl = Array.isArray(output) ? output[0] : output;
                         if (imageUrl) {
-                            console.log(`✅ [STORY_REPLICATE] Image generated successfully`);
+                            console.log(`✅ [STORY_BANANA] Image generated successfully`);
                             return imageUrl;
                         }
                     }
@@ -249,10 +252,10 @@ async function callReplicateGptImageEdit(prompt, resultImageUrl, referenceImageU
                 await new Promise(resolve => setTimeout(resolve, 2000));
             }
 
-            throw new Error("Replicate GPT Image polling timeout");
+            throw new Error("Replicate Nano Banana Pro polling timeout");
 
         } catch (error) {
-            console.error(`❌ [STORY_REPLICATE] Attempt ${attempt} failed:`, error.message);
+            console.error(`❌ [STORY_BANANA] Attempt ${attempt} failed:`, error.message);
 
             if (attempt === maxRetries) {
                 throw error;
@@ -312,7 +315,8 @@ function parseStoryPrompts(geminiResponse) {
         coffeeDate: null,
         friendsNight: null,
         streetStyle: null,
-        weekendVibes: null
+        weekendVibes: null,
+        friendsGroup: null
     };
 
     try {
@@ -328,15 +332,19 @@ function parseStoryPrompts(geminiResponse) {
         const scene4Match = geminiResponse.match(/Scene_4:\s*(.+?)(?=\nScene_5:|$)/is);
         if (scene4Match) prompts.streetStyle = scene4Match[1].trim();
 
-        const scene5Match = geminiResponse.match(/Scene_5:\s*(.+?)$/is);
+        const scene5Match = geminiResponse.match(/Scene_5:\s*(.+?)(?=\nScene_6:|$)/is);
         if (scene5Match) prompts.weekendVibes = scene5Match[1].trim();
+
+        const scene6Match = geminiResponse.match(/Scene_6:\s*(.+?)$/is);
+        if (scene6Match) prompts.friendsGroup = scene6Match[1].trim();
 
         console.log("📝 [STORY_PARSE] Parsed prompts:", {
             scene1: !!prompts.mirrorSelfie,
             scene2: !!prompts.coffeeDate,
             scene3: !!prompts.friendsNight,
             scene4: !!prompts.streetStyle,
-            scene5: !!prompts.weekendVibes
+            scene5: !!prompts.weekendVibes,
+            scene6: !!prompts.friendsGroup
         });
 
     } catch (error) {
@@ -392,6 +400,36 @@ async function updateStoriesForRecord(recordId, storyImages) {
         console.error("❌ [STORIES] Error:", error.message);
         return null;
     }
+}
+
+// Append a single story image URL to reference_results.stories (progressive save)
+async function appendStoryToRecord(recordId, imageUrl, sceneIndex) {
+    const { data: existing, error: findError } = await supabase
+        .from("reference_results")
+        .select("id, stories")
+        .eq("generation_id", recordId)
+        .maybeSingle();
+
+    if (findError || !existing) return null;
+
+    let currentStories = Array.isArray(existing.stories) ? [...existing.stories] : [];
+
+    if (sceneIndex !== undefined && sceneIndex !== null) {
+        // Position-preserved: place at correct slot
+        while (currentStories.length <= sceneIndex) currentStories.push(null);
+        currentStories[sceneIndex] = imageUrl;
+    } else {
+        // Legacy fallback: append
+        if (currentStories.includes(imageUrl)) return null;
+        currentStories.push(imageUrl);
+    }
+
+    await supabase
+        .from("reference_results")
+        .update({ stories: currentStories })
+        .eq("id", existing.id);
+
+    return currentStories;
 }
 
 // Save product story to database (product_stories table)
@@ -551,7 +589,7 @@ async function getUserStoryCount(userId) {
 // ═══════════════════════════════════════════════════════
 router.post("/generate-product-story", async (req, res) => {
     const startTime = Date.now();
-    const STORY_GENERATION_COST = 20; // 5 scenes = 20 credits
+    const STORY_GENERATION_COST = 80; // 6 scenes = 80 credits
     const FREE_TIER_LIMIT = 3; // First 3 generations free
 
     try {
@@ -633,24 +671,46 @@ router.post("/generate-product-story", async (req, res) => {
 
         // Scene descriptions: user custom or defaults
         const scene1 = up.scene_1_instruction || 'Mirror selfie in a stylish bedroom or fitting room, holding phone, warm indoor light';
-        const scene2 = up.scene_2_instruction || 'Cozy cafe scene, sitting with coffee, natural window light, relaxed lifestyle vibe';
-        const scene3 = up.scene_3_instruction || 'Night out at a trendy bar or restaurant, warm ambient lights, social energetic mood';
-        const scene4 = up.scene_4_instruction || 'Street style city walk, golden hour sunlight, confident mid-stride, urban background';
-        const scene5 = up.scene_5_instruction || 'Weekend leisure outdoors — park, waterfront, or garden, soft natural light, carefree mood';
+        const scene2 = up.scene_2_instruction || 'Tropical poolside scene, standing by a lush green garden pool, golden warm sunlight, sassy spoiled confident pose facing the camera with a big cheerful smile and cheeky playful expression, bold fun body language, resort vacation lifestyle, warm editorial color grading with organic tones';
+        const scene3 = up.scene_3_instruction || 'Elegant dinner at a beautiful restaurant, warm ambient lights, sophisticated evening mood';
+        const scene4 = up.scene_4_instruction || 'Laughing with friends in a car, fun road trip vibes, candid joyful moment';
+        const scene5 = up.scene_5_instruction || 'Standing and chatting with friends, laughing together, casual hangout vibes, natural light';
+        const scene6 = up.scene_6_instruction || '3 different people wearing the exact same garment but in different colors, standing together as friends, warm friendly poses, candid group photo, natural light';
 
-        const geminiPrompt = `You are a fashion photographer and creative director. Analyze the product image and generate 5 AI image edit prompts for Instagram Story scenes.
+        const geminiPrompt = `You are an elite fashion photographer and creative director specializing in real-life editorial fashion photography. Analyze the product image and generate 6 detailed AI image edit prompts for Instagram Story scenes.
 
-TASK: Write 5 "Convert to..." prompts. Each prompt tells an AI image editor how to transform this product photo into a new real-life scene. The model must wear the EXACT same garment — perfectly preserved.
+TASK: Write 6 "Convert to..." prompts. Each prompt tells an AI image editor how to transform this product photo into a new real-life lifestyle scene. The model must wear the EXACT same garment — perfectly preserved.
 
-Each prompt should be 80-120 words, written as one flowing paragraph. Cover these aspects naturally:
-- Setting & environment (specific location details, textures, objects)
-- Lighting (direction, warmth/coolness, sources, shadows)
-- Mood & color tone
-- Model pose & expression (natural, candid, not stiff)
-- Camera angle & depth of field
-- Preserve ALL garment details exactly (color, texture, pattern, fit, fabric)
+CRITICAL FASHION PHOTOGRAPHY RULES — these are non-negotiable:
+1. THE GARMENT IS THE STAR. Every prompt must keep the garment as the central visual focus. The outfit must be clearly visible, well-lit, and occupy a significant portion of the frame.
+2. NO distant wide-angle shots where the person becomes small in the frame. The garment must always be clearly visible and prominent. You are free to choose any framing — full body, three-quarter, medium, close-up — as long as the outfit remains the hero of the image and garment details are not lost.
+3. Think like a real-life fashion editorial — the kind you see in Vogue, Elle, or high-end Instagram fashion influencer content. Natural, aspirational, stylish.
+4. Describe camera framing naturally for each scene — vary it across scenes for visual diversity. Don't always use the same framing.
+5. Every scene must have a distinct color mood, lighting style, and editorial feel. Be very specific about color grading (e.g., "warm golden hour tones with soft amber highlights" or "cool blue-toned evening light with desaturated shadows").
+6. Model poses should be DYNAMIC, CONFIDENT, and EDITORIAL — not stiff catalog poses. Think bold, sassy, playful, fashion-forward. Describe specific pose details (hand placement, body angle, expression, attitude).
+7. Preserve ALL garment details exactly: color, texture, pattern, fit, fabric, stitching, drape.
 
-Start each prompt with "Convert to". Write in ENGLISH only. Make each scene feel completely different.
+PROFESSIONAL CAMERA & TECHNICAL DETAILS — include these in EVERY prompt like a real fashion shoot director:
+- Choose the BEST lens type, focal length, and aperture for each specific scene — you are the expert, pick what works best for the mood and setting
+- Include depth of field description that serves the scene
+- Add shutter speed feel when it enhances the mood (frozen crisp vs dynamic motion)
+- Describe the lighting setup as a fashion photographer would brief their team — be specific about light direction, quality, and sources
+- Choose a fitting film stock, color science, or digital camera aesthetic that matches the scene's mood
+- Set the right white balance tone for the atmosphere
+Do NOT use the same technical choices across scenes — each scene should have its own unique photographic identity.
+
+THERE IS NO WORD LIMIT. Write each prompt as detailed and descriptive as needed — be generous with details about lighting, mood, color grading, pose, expression, camera angle, lens choice, aperture, environment textures, and styling. More detail = better results. Aim for rich, vivid, cinematic descriptions that read like a professional fashion shoot brief.
+
+IMPORTANT CONTENT SAFETY RULES — strictly follow these:
+- No alcohol, bars, cocktails, drinks, wine, beer, nightclubs, or party scenes
+- No smoking, drugs, or any substance references
+- No suggestive, revealing, or provocative descriptions of the model's body
+- Do NOT describe skin, cleavage, legs, or body shape — focus ONLY on the garment and scene
+- Always describe the model as "wearing the garment" — never describe what the garment reveals
+- Keep all scenes family-friendly, professional, and safe for AI image generation content moderation
+- Add "professional fashion photography, editorial style" to every prompt
+
+Start each prompt with "Convert to". Write in ENGLISH only. Make each scene feel completely different in mood, setting, and color palette.
 ${generalNotesLine}
 Scene concepts (may be in any language — understand them, write prompt in English):
 Scene 1: ${scene1}
@@ -658,13 +718,15 @@ Scene 2: ${scene2}
 Scene 3: ${scene3}
 Scene 4: ${scene4}
 Scene 5: ${scene5}
+Scene 6: ${scene6}
 
 Respond EXACTLY in this format:
 Scene_1: [prompt]
 Scene_2: [prompt]
 Scene_3: [prompt]
 Scene_4: [prompt]
-Scene_5: [prompt]`;
+Scene_5: [prompt]
+Scene_6: [prompt]`;
 
         // Optimize image for Gemini (max 1024px, <7MB)
         const optimizedGeminiUrl = await getOptimizedImageUrl(imageUrl);
@@ -699,34 +761,45 @@ Scene_5: [prompt]`;
         }
 
         // Step 3: Generate images with Fal.ai
-        console.log("🎨 [STORY] Step 3: Generating 5 story scenes with Fal.ai...");
+        console.log("🎨 [STORY] Step 3: Generating 6 story scenes...");
 
         const optimizedResultUrl = await getOptimizedImageUrl(imageUrl);
         const optimizedReferenceUrl = await getOptimizedImageUrl(referenceImageUrl);
 
         const generatedImages = [];
-        const sceneTypes = ["mirrorSelfie", "coffeeDate", "friendsNight", "streetStyle", "weekendVibes"];
+        const sceneTypes = ["mirrorSelfie", "coffeeDate", "friendsNight", "streetStyle", "weekendVibes", "friendsGroup"];
 
         const scenePrompts = [
             prompts.mirrorSelfie || "convert to model taking a stylish mirror selfie wearing the garment, full-length mirror in a chic bedroom, holding phone, warm natural indoor lighting, authentic Instagram selfie vibe, preserve all garment details",
             prompts.coffeeDate || "convert to model sitting at a cozy cafe wearing the garment, holding a cappuccino, warm natural light through windows, relaxed effortless style, lifestyle photography, preserve all garment details",
-            prompts.friendsNight || "convert to model laughing with friends at a trendy bar wearing the garment, warm string lights, vibrant social atmosphere, candid fun moment, evening lighting, preserve all garment details",
-            prompts.streetStyle || "convert to model confidently walking down a vibrant city street wearing the garment, candid street style moment, golden hour daylight, fashion editorial feel, preserve all garment details",
-            prompts.weekendVibes || "convert to model wearing the garment enjoying a golden hour sunset walk in a scenic park, relaxed happy expression, soft warm sunlight, effortlessly stylish weekend vibe, preserve all garment details"
+            prompts.friendsNight || "convert to model enjoying an elegant dinner at a beautiful restaurant wearing the garment, warm ambient lighting, candles on table, sophisticated evening atmosphere, candid joyful moment, preserve all garment details",
+            prompts.streetStyle || "convert to model laughing with friends inside a car wearing the garment, fun road trip vibes, candid joyful moment, natural light through car windows, preserve all garment details",
+            prompts.weekendVibes || "convert to model standing and chatting with friends wearing the garment, laughing together in a casual hangout, candid joyful group moment, natural light, preserve all garment details",
+            prompts.friendsGroup || "convert to 3 different people standing together as close friends, each wearing the exact same garment but in a different color variation, warm friendly poses, arms around each other, candid group photo with genuine smiles, natural outdoor light, preserve all garment details exactly"
         ];
 
-        // Generate all 5 scenes in parallel
+        // Generate all 6 scenes in parallel — save each to DB progressively as it completes
         const imageGenerationPromises = scenePrompts.map(async (prompt, index) => {
             try {
                 console.log(`🎨 [STORY] Generating scene ${index + 1} (${sceneTypes[index]})...`);
-                const userImageSize = up.aspect_ratio || "1024x1536";
-                const generatedUrl = await callReplicateGptImageEdit(prompt, optimizedResultUrl, optimizedReferenceUrl, 3, userImageSize);
+                const userImageSize = up.aspect_ratio || "9:16";
+                const generatedUrl = await callReplicateNanoBananaPro(prompt, optimizedResultUrl, optimizedReferenceUrl, 3, userImageSize);
 
                 const savedUrl = await saveGeneratedImageToUserBucket(
                     generatedUrl,
                     userId || "anonymous",
                     sceneTypes[index]
                 );
+
+                // Progressive save: immediately save this scene to DB at correct position
+                if (savedUrl && recordId) {
+                    try {
+                        await appendStoryToRecord(recordId, savedUrl, index);
+                        console.log(`📖 [STORY] Scene ${index + 1} (${sceneTypes[index]}) saved to DB at slot ${index}`);
+                    } catch (e) {
+                        console.warn(`⚠️ [STORY] Progressive save failed for scene ${index + 1}:`, e.message);
+                    }
+                }
 
                 return {
                     type: sceneTypes[index],
@@ -745,6 +818,8 @@ Scene_5: [prompt]`;
 
         const results = await Promise.all(imageGenerationPromises);
 
+        // Build position-preserved array (null for failed scenes)
+        const orderedImages = results.map(result => result.url || null);
         results.forEach(result => {
             if (result.url) {
                 generatedImages.push(result.url);
@@ -753,12 +828,12 @@ Scene_5: [prompt]`;
 
         const processingTime = (Date.now() - startTime) / 1000;
         console.log(`✅ [STORY] Generation completed in ${processingTime.toFixed(1)}s`);
-        console.log(`📊 [STORY] Generated ${generatedImages.length}/5 scenes`);
+        console.log(`📊 [STORY] Generated ${generatedImages.length}/6 scenes`);
 
-        // Step 4: Save story images to reference_results.stories
+        // Step 4: Final save — position-preserved array (null for failed scenes)
         if (generatedImages.length > 0 && recordId) {
-            console.log("📖 [STORY] Step 4: Saving to reference_results.stories...");
-            await updateStoriesForRecord(recordId, generatedImages);
+            console.log("📖 [STORY] Step 4: Final save to reference_results.stories...");
+            await updateStoriesForRecord(recordId, orderedImages);
         }
 
         // Step 4.5: Save to product_stories table
@@ -806,13 +881,14 @@ Scene_5: [prompt]`;
 
         res.json({
             success: true,
-            images: generatedImages,
+            images: orderedImages,
             prompts: {
                 Scene_1_MirrorSelfie_Prompt: prompts.mirrorSelfie || "",
                 Scene_2_CoffeeDate_Prompt: prompts.coffeeDate || "",
                 Scene_3_FriendsNight_Prompt: prompts.friendsNight || "",
                 Scene_4_StreetStyle_Prompt: prompts.streetStyle || "",
-                Scene_5_WeekendVibes_Prompt: prompts.weekendVibes || ""
+                Scene_5_WeekendVibes_Prompt: prompts.weekendVibes || "",
+                Scene_6_FriendsGroup_Prompt: prompts.friendsGroup || ""
             },
             details: results,
             processingTimeSeconds: processingTime
@@ -824,6 +900,140 @@ Scene_5: [prompt]`;
             success: false,
             error: error.message,
             processingTimeSeconds: (Date.now() - startTime) / 1000
+        });
+    }
+});
+
+// ═══════════════════════════════════════════════════════
+// POST /api/retry-story-scene — Retry a single failed scene
+// ═══════════════════════════════════════════════════════
+router.post("/retry-story-scene", async (req, res) => {
+    const startTime = Date.now();
+    try {
+        const { imageUrl, recordId, userId, sceneIndex } = req.body;
+
+        if (!imageUrl || !recordId || sceneIndex === undefined) {
+            return res.status(400).json({ success: false, error: "Missing imageUrl, recordId, or sceneIndex" });
+        }
+
+        const sceneTypes = ["mirrorSelfie", "coffeeDate", "friendsNight", "streetStyle", "weekendVibes", "friendsGroup"];
+        const sceneType = sceneTypes[sceneIndex];
+        if (!sceneType) {
+            return res.status(400).json({ success: false, error: "Invalid sceneIndex" });
+        }
+
+        console.log(`🔄 [STORY_RETRY] Retrying scene ${sceneIndex + 1} (${sceneType}) for record ${recordId}`);
+
+        // Get reference image from reference_results
+        const { data: refResult } = await supabase
+            .from("reference_results")
+            .select("reference_image")
+            .eq("generation_id", recordId)
+            .maybeSingle();
+
+        const referenceImageUrl = refResult?.reference_image || imageUrl;
+
+        // Load user preferences for this scene
+        let scenePrompt = null;
+        if (userId && userId !== "anonymous_user") {
+            const { data: prefs } = await supabase
+                .from("user_story_preferences")
+                .select("*")
+                .eq("user_id", userId)
+                .maybeSingle();
+
+            if (prefs) {
+                const prefKey = `scene_${sceneIndex + 1}_instruction`;
+                if (prefs[prefKey]) {
+                    scenePrompt = prefs[prefKey];
+                }
+            }
+        }
+
+        // Fallback prompts
+        const defaultPrompts = [
+            "convert to model taking a stylish mirror selfie wearing the garment, full-length mirror in a chic bedroom, holding phone, warm natural indoor lighting, authentic Instagram selfie vibe, preserve all garment details",
+            "convert to model sitting at a cozy cafe wearing the garment, holding a cappuccino, warm natural light through windows, relaxed effortless style, lifestyle photography, preserve all garment details",
+            "convert to model enjoying an elegant dinner at a beautiful restaurant wearing the garment, warm ambient lighting, candles on table, sophisticated evening atmosphere, candid joyful moment, preserve all garment details",
+            "convert to model laughing with friends inside a car wearing the garment, fun road trip vibes, candid joyful moment, natural light through car windows, preserve all garment details",
+            "convert to model standing and chatting with friends wearing the garment, laughing together in a casual hangout, candid joyful group moment, natural light, preserve all garment details",
+            "convert to 3 different people standing together as close friends, each wearing the exact same garment but in a different color variation, warm friendly poses, arms around each other, candid group photo with genuine smiles, natural outdoor light, preserve all garment details exactly"
+        ];
+
+        const prompt = scenePrompt || defaultPrompts[sceneIndex];
+
+        // Get aspect ratio from user preferences
+        let aspectRatio = "9:16";
+        if (userId && userId !== "anonymous_user") {
+            const { data: prefs } = await supabase
+                .from("user_story_preferences")
+                .select("aspect_ratio")
+                .eq("user_id", userId)
+                .maybeSingle();
+            if (prefs?.aspect_ratio) {
+                aspectRatio = prefs.aspect_ratio;
+            }
+        }
+
+        const optimizedResultUrl = await getOptimizedImageUrl(imageUrl);
+        const optimizedReferenceUrl = await getOptimizedImageUrl(referenceImageUrl);
+
+        const generatedUrl = await callReplicateNanoBananaPro(prompt, optimizedResultUrl, optimizedReferenceUrl, 3, aspectRatio);
+
+        const savedUrl = await saveGeneratedImageToUserBucket(
+            generatedUrl,
+            userId || "anonymous",
+            sceneType
+        );
+
+        if (!savedUrl) {
+            return res.status(500).json({ success: false, error: "Failed to save generated image" });
+        }
+
+        // Save to reference_results.stories at correct position
+        if (recordId) {
+            await appendStoryToRecord(recordId, savedUrl, sceneIndex);
+        }
+
+        // Also update product_stories table
+        if (userId && userId !== "anonymous_user") {
+            try {
+                const { data: existingStory } = await supabase
+                    .from("product_stories")
+                    .select("id, story_images")
+                    .eq("generation_id", recordId)
+                    .maybeSingle();
+
+                if (existingStory) {
+                    const currentImages = Array.isArray(existingStory.story_images) ? existingStory.story_images : [];
+                    currentImages.push({ type: sceneType, url: savedUrl, prompt: prompt });
+                    await supabase
+                        .from("product_stories")
+                        .update({ story_images: currentImages })
+                        .eq("id", existingStory.id);
+                }
+            } catch (e) {
+                console.warn("⚠️ [STORY_RETRY] product_stories update failed:", e.message);
+            }
+        }
+
+        const processingTime = (Date.now() - startTime) / 1000;
+        console.log(`✅ [STORY_RETRY] Scene ${sceneIndex + 1} retried in ${processingTime.toFixed(1)}s`);
+
+        res.json({
+            success: true,
+            url: savedUrl,
+            sceneIndex: sceneIndex,
+            sceneType: sceneType
+        });
+
+    } catch (error) {
+        console.error("❌ [STORY_RETRY] Error:", error);
+        const isSensitive = error.message && (error.message.includes("flagged") || error.message.includes("sensitive"));
+        res.status(isSensitive ? 422 : 500).json({
+            success: false,
+            error: error.message,
+            errorCode: isSensitive ? "CONTENT_FLAGGED" : "GENERATION_FAILED"
         });
     }
 });
@@ -930,7 +1140,7 @@ router.post("/story-preferences/:userId", async (req, res) => {
         const { userId } = req.params;
         const {
             scene_1_instruction, scene_2_instruction, scene_3_instruction,
-            scene_4_instruction, scene_5_instruction, general_notes, aspect_ratio
+            scene_4_instruction, scene_5_instruction, scene_6_instruction, general_notes, aspect_ratio
         } = req.body;
 
         const { data, error } = await supabase
@@ -942,8 +1152,9 @@ router.post("/story-preferences/:userId", async (req, res) => {
                 scene_3_instruction: scene_3_instruction || '',
                 scene_4_instruction: scene_4_instruction || '',
                 scene_5_instruction: scene_5_instruction || '',
+                scene_6_instruction: scene_6_instruction || '',
                 general_notes: general_notes || '',
-                aspect_ratio: aspect_ratio || '1024x1536',
+                aspect_ratio: aspect_ratio || '9:16',
                 updated_at: new Date().toISOString()
             }, { onConflict: "user_id" })
             .select()
