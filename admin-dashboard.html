@@ -320,6 +320,33 @@
             font-weight: 500;
         }
 
+        /* Story grid in modal */
+        .modal-story-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .modal-story-grid .story-item {
+            text-align: center;
+        }
+
+        .modal-story-grid .story-item img {
+            width: 100%;
+            aspect-ratio: 3/4;
+            object-fit: cover;
+            border-radius: 8px;
+            background: #f5f5f5;
+        }
+
+        .modal-story-grid .story-item .story-label {
+            font-size: 11px;
+            color: #888;
+            margin-top: 4px;
+            text-transform: capitalize;
+        }
+
         /* Loading */
         .loading {
             text-align: center;
@@ -349,6 +376,8 @@
         <button class="sidebar-item" data-feature="chat-edit">AI Edit</button>
         <button class="sidebar-item" data-feature="upscale">Upscale</button>
         <button class="sidebar-item" data-feature="ecommerce-kits">E-commerce Kits</button>
+        <button class="sidebar-item" data-feature="product-stories">Product Stories</button>
+        <button class="sidebar-item" data-feature="unboxing-stories">Unboxing Stories</button>
     </nav>
 
     <!-- Main Content -->
@@ -383,7 +412,7 @@
     <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
         <div class="modal" onclick="event.stopPropagation()">
             <button class="modal-close" onclick="closeModal()">&times;</button>
-            <div class="modal-images">
+            <div class="modal-images" id="modalImages">
                 <div class="modal-image-box">
                     <label>Original</label>
                     <img id="modalOriginal" src="" alt="Original">
@@ -393,6 +422,7 @@
                     <img id="modalResult" src="" alt="Result">
                 </div>
             </div>
+            <div class="modal-story-grid" id="modalStoryGrid" style="display:none;"></div>
             <div class="modal-details" id="modalDetails"></div>
         </div>
     </div>
@@ -412,6 +442,8 @@
             'chat-edit': { label: 'AI Edit', sourceTable: 'chat_edits' },
             'upscale': { label: 'Upscale', sourceTable: 'upscale_generations' },
             'ecommerce-kits': { label: 'E-commerce Kits', sourceTable: 'product_kits' },
+            'product-stories': { label: 'Product Stories', sourceTable: 'product_stories' },
+            'unboxing-stories': { label: 'Unboxing Stories', sourceTable: 'product_unboxing_stories' },
         };
 
         // Read state from URL
@@ -473,6 +505,12 @@
                 if (typeof imgs === 'string') { try { const p = JSON.parse(imgs); return Array.isArray(p) && p.length > 0 ? p[0] : ''; } catch(e) { return ''; } }
                 return '';
             }
+            if (src === 'product_stories' || src === 'product_unboxing_stories') {
+                const imgs = item.story_images;
+                if (Array.isArray(imgs) && imgs.length > 0) return imgs[0]?.url || imgs[0];
+                if (typeof imgs === 'string') { try { const p = JSON.parse(imgs); return Array.isArray(p) && p.length > 0 ? (p[0]?.url || p[0]) : ''; } catch(e) { return ''; } }
+                return '';
+            }
             return item.result_image_url || '';
         }
 
@@ -484,7 +522,7 @@
                 if (typeof refs === 'string') { try { const p = JSON.parse(refs); return Array.isArray(p) && p.length > 0 ? p[0] : ''; } catch(e) { return ''; } }
                 return '';
             }
-            if (src === 'product_kits') {
+            if (src === 'product_kits' || src === 'product_stories' || src === 'product_unboxing_stories') {
                 const photos = item.original_photos;
                 if (Array.isArray(photos) && photos.length > 0) return photos[0];
                 if (typeof photos === 'string') { try { const p = JSON.parse(photos); return Array.isArray(p) && p.length > 0 ? p[0] : ''; } catch(e) { return ''; } }
@@ -620,22 +658,54 @@
 
         function openModal(item) {
             const overlay = document.getElementById('modalOverlay');
-            document.getElementById('modalOriginal').src = cdnUrl(getOriginalUrl(item), { width: 800, height: 1200, quality: 85 });
-            document.getElementById('modalResult').src = cdnUrl(getResultUrl(item), { width: 800, height: 1200, quality: 85 });
+            const modalImages = document.getElementById('modalImages');
+            const storyGrid = document.getElementById('modalStoryGrid');
+            const src = getSourceTable();
+
+            // Story/Unboxing: show all images in grid, hide default two-image layout
+            if ((src === 'product_stories' || src === 'product_unboxing_stories') && Array.isArray(item.story_images) && item.story_images.length > 1) {
+                modalImages.style.display = 'none';
+                storyGrid.style.display = 'grid';
+                storyGrid.innerHTML = item.story_images.map(img => {
+                    const url = img?.url || img;
+                    const label = img?.type || '';
+                    return `<div class="story-item">
+                        <img src="${cdnUrl(url, { width: 500, height: 750, quality: 85 })}" alt="${label}" loading="lazy">
+                        <div class="story-label">${label}</div>
+                    </div>`;
+                }).join('');
+            } else {
+                modalImages.style.display = 'flex';
+                storyGrid.style.display = 'none';
+                storyGrid.innerHTML = '';
+                document.getElementById('modalOriginal').src = cdnUrl(getOriginalUrl(item), { width: 800, height: 1200, quality: 85 });
+                document.getElementById('modalResult').src = cdnUrl(getResultUrl(item), { width: 800, height: 1200, quality: 85 });
+            }
 
             const details = document.getElementById('modalDetails');
             const credits = getCredits(item);
             const ago = timeAgo(item.created_at);
 
-            details.innerHTML = `
+            let detailsHtml = `
                 <div class="modal-detail"><span>Generation ID</span><span>${item.generation_id || '-'}</span></div>
                 <div class="modal-detail"><span>Created</span><span>${ago}</span></div>
                 <div class="modal-detail"><span>Status</span><span>${item.status || '-'}</span></div>
                 <div class="modal-detail"><span>Credits</span><span>${credits || '-'}</span></div>
-                <div class="modal-detail"><span>Aspect Ratio</span><span>${item.aspect_ratio || '-'}</span></div>
-                <div class="modal-detail"><span>Quality</span><span>${item.quality_version || '-'}</span></div>
-                <div class="modal-detail"><span>User ID</span><span>${item.user_id ? item.user_id.slice(0, 8) + '...' : '-'}</span></div>
             `;
+            if (src === 'product_stories' || src === 'product_unboxing_stories' || src === 'product_kits') {
+                detailsHtml += `
+                    <div class="modal-detail"><span>Total Images</span><span>${item.total_images_generated || '-'}</span></div>
+                    <div class="modal-detail"><span>Processing Time</span><span>${item.processing_time_seconds ? item.processing_time_seconds + 's' : '-'}</span></div>
+                    <div class="modal-detail"><span>Free Tier</span><span>${item.is_free_tier != null ? (item.is_free_tier ? 'Yes' : 'No') : '-'}</span></div>
+                `;
+            } else {
+                detailsHtml += `
+                    <div class="modal-detail"><span>Aspect Ratio</span><span>${item.aspect_ratio || '-'}</span></div>
+                    <div class="modal-detail"><span>Quality</span><span>${item.quality_version || '-'}</span></div>
+                `;
+            }
+            detailsHtml += `<div class="modal-detail"><span>User ID</span><span>${item.user_id ? item.user_id.slice(0, 8) + '...' : '-'}</span></div>`;
+            details.innerHTML = detailsHtml;
 
             overlay.classList.add('active');
             document.body.style.overflow = 'hidden';

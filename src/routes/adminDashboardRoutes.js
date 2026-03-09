@@ -61,6 +61,18 @@ const FEATURE_CONFIG = {
       "id, user_id, generation_id, original_photos, kit_images, processing_time_seconds, total_images_generated, credits_used, is_free_tier, created_at",
     applyFilter: null,
   },
+  "product-stories": {
+    table: "product_stories",
+    select:
+      "id, user_id, generation_id, original_photos, story_images, processing_time_seconds, total_images_generated, credits_used, is_free_tier, created_at",
+    applyFilter: null,
+  },
+  "unboxing-stories": {
+    table: "product_unboxing_stories",
+    select:
+      "id, user_id, generation_id, original_photos, story_images, processing_time_seconds, total_images_generated, credits_used, is_free_tier, created_at",
+    applyFilter: null,
+  },
 };
 
 router.get("/generations", async (req, res) => {
@@ -93,7 +105,9 @@ router.get("/generations", async (req, res) => {
       .range(offset, offset + limitNum - 1);
 
     if (config.applyFilter) query = config.applyFilter(query);
-    if (status && status !== "all") {
+    // Skip status filter for tables that don't have a status column
+    const noStatusTables = ["product_stories", "product_unboxing_stories"];
+    if (status && status !== "all" && !noStatusTables.includes(config.table)) {
       query = query.eq("status", status);
     }
 
