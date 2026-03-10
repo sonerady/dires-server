@@ -880,4 +880,154 @@ router.get("/ecommerce-kits/:userId", async (req, res) => {
   }
 });
 
+/**
+ * GET /api/feature-historyWeb/stories/:userId
+ * Story (Real Life) kits history from product_stories table
+ */
+router.get("/stories/:userId", async (req, res) => {
+  try {
+    const setup = await setupRequest(req);
+    if (setup.error)
+      return res.status(400).json({ success: false, message: setup.error });
+
+    const { userId, parsedLimit, parsedPage, offset, memberIds, isTeamMember, ascending } =
+      setup;
+
+    logger.log(
+      `📊 [FEATURE-HISTORY-WEB] Fetching stories history for user: ${userId}`,
+    );
+
+    const { count: totalCount, error: countError } = await retryQuery(() =>
+      supabase
+        .from("product_stories")
+        .select("*", { count: "exact", head: true })
+        .in("user_id", memberIds),
+    );
+
+    if (countError) {
+      console.error(
+        "❌ [FEATURE-HISTORY-WEB] stories count error:",
+        countError,
+      );
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch count" });
+    }
+
+    const { data, error } = await retryQuery(() =>
+      supabase
+        .from("product_stories")
+        .select(
+          `id, user_id, generation_id, original_photos, story_images, processing_time_seconds, total_images_generated, credits_used, is_free_tier, created_at`,
+        )
+        .in("user_id", memberIds)
+        .order("created_at", { ascending })
+        .range(offset, offset + parsedLimit - 1),
+    );
+
+    if (error) {
+      console.error(
+        "❌ [FEATURE-HISTORY-WEB] stories query error:",
+        error,
+      );
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch data" });
+    }
+
+    logger.log(
+      `📊 [FEATURE-HISTORY-WEB] stories: ${data?.length || 0} items, total: ${totalCount}`,
+    );
+    return await buildResponse(
+      res,
+      data,
+      totalCount,
+      parsedPage,
+      parsedLimit,
+      offset,
+      isTeamMember,
+    );
+  } catch (error) {
+    console.error("❌ [FEATURE-HISTORY-WEB] stories error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+});
+
+/**
+ * GET /api/feature-historyWeb/unboxing-stories/:userId
+ * Unboxing stories history from product_unboxing_stories table
+ */
+router.get("/unboxing-stories/:userId", async (req, res) => {
+  try {
+    const setup = await setupRequest(req);
+    if (setup.error)
+      return res.status(400).json({ success: false, message: setup.error });
+
+    const { userId, parsedLimit, parsedPage, offset, memberIds, isTeamMember, ascending } =
+      setup;
+
+    logger.log(
+      `📊 [FEATURE-HISTORY-WEB] Fetching unboxing-stories history for user: ${userId}`,
+    );
+
+    const { count: totalCount, error: countError } = await retryQuery(() =>
+      supabase
+        .from("product_unboxing_stories")
+        .select("*", { count: "exact", head: true })
+        .in("user_id", memberIds),
+    );
+
+    if (countError) {
+      console.error(
+        "❌ [FEATURE-HISTORY-WEB] unboxing-stories count error:",
+        countError,
+      );
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch count" });
+    }
+
+    const { data, error } = await retryQuery(() =>
+      supabase
+        .from("product_unboxing_stories")
+        .select(
+          `id, user_id, generation_id, original_photos, story_images, processing_time_seconds, total_images_generated, credits_used, is_free_tier, created_at`,
+        )
+        .in("user_id", memberIds)
+        .order("created_at", { ascending })
+        .range(offset, offset + parsedLimit - 1),
+    );
+
+    if (error) {
+      console.error(
+        "❌ [FEATURE-HISTORY-WEB] unboxing-stories query error:",
+        error,
+      );
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch data" });
+    }
+
+    logger.log(
+      `📊 [FEATURE-HISTORY-WEB] unboxing-stories: ${data?.length || 0} items, total: ${totalCount}`,
+    );
+    return await buildResponse(
+      res,
+      data,
+      totalCount,
+      parsedPage,
+      parsedLimit,
+      offset,
+      isTeamMember,
+    );
+  } catch (error) {
+    console.error("❌ [FEATURE-HISTORY-WEB] unboxing-stories error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+});
+
 module.exports = router;

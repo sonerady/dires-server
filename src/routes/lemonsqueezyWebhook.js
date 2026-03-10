@@ -333,6 +333,12 @@ router.post("/webhook", verifyWebhookSignature, async (req, res) => {
         return res.status(400).json({ error: `Unknown product: ${productId}` });
       }
 
+      // Skip subscription products in order_created — credits will be added by subscription_created event
+      if (productInfo.type === "subscription") {
+        console.log(`ℹ️ Skipping order_created for subscription product: ${productId} (handled by subscription_created)`);
+        return res.status(200).json({ success: true, message: "Subscription order - credits handled by subscription_created" });
+      }
+
       // Resolve target user (team-aware)
       const { userId: targetUserId, isTeamPurchase, teamOwnerId } = await resolveTargetUser(userId);
 
@@ -422,6 +428,17 @@ router.post("/webhook", verifyWebhookSignature, async (req, res) => {
       if (status !== "active") {
         console.log(`ℹ️ Subscription status '${status}' - no credits to add`);
         return res.status(200).json({ success: true, message: "Status noted, no action" });
+      }
+
+      // Skip if this is the initial subscription_updated (fired right after subscription_created)
+      // Credits were already added by subscription_created handler
+      const createdAt = attrs.created_at;
+      if (createdAt && updatedAt) {
+        const diffMs = Math.abs(new Date(updatedAt).getTime() - new Date(createdAt).getTime());
+        if (diffMs < 60000) { // Less than 60 seconds difference = initial creation, not renewal
+          console.log(`ℹ️ Skipping initial subscription_updated (created_at ≈ updated_at, diff: ${diffMs}ms)`);
+          return res.status(200).json({ success: true, message: "Initial update skipped, handled by subscription_created" });
+        }
       }
 
       const productInfo = PRODUCT_MAP[productId];
