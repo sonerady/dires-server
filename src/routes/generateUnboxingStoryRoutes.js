@@ -359,37 +359,51 @@ function parseUnboxingPrompts(geminiResponse) {
         readyToGo: null
     };
 
+    const sceneMap = { scene_1: "packageArrived", scene_2: "unboxing", scene_3: "firstTryOn", scene_4: "ootdShot", scene_5: "closeUpDetail", scene_6: "readyToGo" };
+
     try {
-        const scene1Match = geminiResponse.match(/Scene_1:\s*(.+?)(?=\nScene_2:|$)/is);
-        if (scene1Match) prompts.packageArrived = scene1Match[1].trim();
+        let cleaned = geminiResponse.trim();
+        cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
 
-        const scene2Match = geminiResponse.match(/Scene_2:\s*(.+?)(?=\nScene_3:|$)/is);
-        if (scene2Match) prompts.unboxing = scene2Match[1].trim();
-
-        const scene3Match = geminiResponse.match(/Scene_3:\s*(.+?)(?=\nScene_4:|$)/is);
-        if (scene3Match) prompts.firstTryOn = scene3Match[1].trim();
-
-        const scene4Match = geminiResponse.match(/Scene_4:\s*(.+?)(?=\nScene_5:|$)/is);
-        if (scene4Match) prompts.ootdShot = scene4Match[1].trim();
-
-        const scene5Match = geminiResponse.match(/Scene_5:\s*(.+?)(?=\nScene_6:|$)/is);
-        if (scene5Match) prompts.closeUpDetail = scene5Match[1].trim();
-
-        const scene6Match = geminiResponse.match(/Scene_6:\s*(.+?)$/is);
-        if (scene6Match) prompts.readyToGo = scene6Match[1].trim();
-
-        console.log("📝 [UNBOXING_PARSE] Parsed prompts:", {
-            scene1: !!prompts.packageArrived,
-            scene2: !!prompts.unboxing,
-            scene3: !!prompts.firstTryOn,
-            scene4: !!prompts.ootdShot,
-            scene5: !!prompts.closeUpDetail,
-            scene6: !!prompts.readyToGo
-        });
-
-    } catch (error) {
-        console.error("❌ [UNBOXING_PARSE] Error parsing prompts:", error);
+        const json = JSON.parse(cleaned);
+        for (const [key, field] of Object.entries(sceneMap)) {
+            if (json[key]) prompts[field] = json[key];
+        }
+        console.log("✅ [UNBOXING_PARSE] JSON parsed successfully");
+    } catch (jsonError) {
+        console.warn("⚠️ [UNBOXING_PARSE] JSON parse failed, trying fallback:", jsonError.message);
+        try {
+            const jsonMatch = geminiResponse.match(/\{[\s\S]*"scene_1"[\s\S]*\}/);
+            if (jsonMatch) {
+                const json = JSON.parse(jsonMatch[0]);
+                for (const [key, field] of Object.entries(sceneMap)) {
+                    if (json[key]) prompts[field] = json[key];
+                }
+                console.log("✅ [UNBOXING_PARSE] JSON extracted from text");
+            } else {
+                const s1 = geminiResponse.match(/\*?\*?Scene_1:?\*?\*?\s*(.+?)(?=\n\*?\*?Scene_2|$)/is);
+                if (s1) prompts.packageArrived = s1[1].trim();
+                const s2 = geminiResponse.match(/\*?\*?Scene_2:?\*?\*?\s*(.+?)(?=\n\*?\*?Scene_3|$)/is);
+                if (s2) prompts.unboxing = s2[1].trim();
+                const s3 = geminiResponse.match(/\*?\*?Scene_3:?\*?\*?\s*(.+?)(?=\n\*?\*?Scene_4|$)/is);
+                if (s3) prompts.firstTryOn = s3[1].trim();
+                const s4 = geminiResponse.match(/\*?\*?Scene_4:?\*?\*?\s*(.+?)(?=\n\*?\*?Scene_5|$)/is);
+                if (s4) prompts.ootdShot = s4[1].trim();
+                const s5 = geminiResponse.match(/\*?\*?Scene_5:?\*?\*?\s*(.+?)(?=\n\*?\*?Scene_6|$)/is);
+                if (s5) prompts.closeUpDetail = s5[1].trim();
+                const s6 = geminiResponse.match(/\*?\*?Scene_6:?\*?\*?\s*(.+?)$/is);
+                if (s6) prompts.readyToGo = s6[1].trim();
+                console.log("✅ [UNBOXING_PARSE] Regex fallback used");
+            }
+        } catch (fallbackError) {
+            console.error("❌ [UNBOXING_PARSE] All parsing failed:", fallbackError.message);
+        }
     }
+
+    console.log("📝 [UNBOXING_PARSE] Parsed prompts:", {
+        scene1: !!prompts.packageArrived, scene2: !!prompts.unboxing, scene3: !!prompts.firstTryOn,
+        scene4: !!prompts.ootdShot, scene5: !!prompts.closeUpDetail, scene6: !!prompts.readyToGo
+    });
 
     return prompts;
 }
@@ -766,13 +780,10 @@ Scene 4: ${scene4}
 Scene 5: ${scene5} — MUST include a cute handwritten-style text overlay on the photo saying: "${scene5TextOverlay}"
 Scene 6: ${scene6} — MUST include a cute handwritten-style text overlay on the photo saying: "${scene6TextOverlay}"
 
-Respond EXACTLY in this format:
-Scene_1: [prompt]
-Scene_2: [prompt]
-Scene_3: [prompt]
-Scene_4: [prompt]
-Scene_5: [prompt]
-Scene_6: [prompt]`;
+Start each prompt with "transform".
+
+CRITICAL: Respond ONLY with a valid JSON object. No markdown, no code blocks, no extra text. Just pure JSON in this EXACT structure:
+{"scene_1":"transform ...","scene_2":"transform ...","scene_3":"transform ...","scene_4":"transform ...","scene_5":"transform ...","scene_6":"transform ..."}`;
 
         // Optimize image for Gemini (max 1024px, <7MB)
         const optimizedGeminiUrl = await getOptimizedImageUrl(imageUrl);

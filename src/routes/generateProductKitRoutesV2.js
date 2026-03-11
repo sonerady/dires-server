@@ -338,7 +338,7 @@ async function appendKitToRecord(recordId, imageUrl, sceneIndex) {
     }
 }
 
-// ─── Parse Gemini response to extract prompts ───
+// ─── Parse Gemini response to extract prompts (JSON format) ───
 function parseGeminiPrompts(geminiResponse) {
     const prompts = {
         changePose1: null, changePose2: null, detailShot: null,
@@ -346,25 +346,54 @@ function parseGeminiPrompts(geminiResponse) {
     };
 
     try {
-        const changePose1Match = geminiResponse.match(/Change_Pose_1_Prompt:\s*(.+?)(?=\nChange_Pose_2_Prompt:|$)/is);
-        if (changePose1Match) prompts.changePose1 = changePose1Match[1].trim();
+        // Strip markdown code blocks if Gemini wraps in ```json ... ```
+        let cleaned = geminiResponse.trim();
+        cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
 
-        const changePose2Match = geminiResponse.match(/Change_Pose_2_Prompt:\s*(.+?)(?=\nDetail_Shot_Prompt:|$)/is);
-        if (changePose2Match) prompts.changePose2 = changePose2Match[1].trim();
+        // Try JSON parse first
+        const json = JSON.parse(cleaned);
+        prompts.changePose1 = json.change_pose_1 || null;
+        prompts.changePose2 = json.change_pose_2 || null;
+        prompts.detailShot = json.detail_shot || null;
+        prompts.studio1 = json.studio_1 || null;
+        prompts.studio2 = json.studio_2 || null;
+        prompts.ghostMannequin = json.ghost_mannequin || null;
 
-        const detailMatch = geminiResponse.match(/Detail_Shot_Prompt:\s*(.+?)(?=\nStudio_1_Prompt:|$)/is);
-        if (detailMatch) prompts.detailShot = detailMatch[1].trim();
+        console.log("✅ [KIT_V2_PARSE] JSON parsed successfully");
+    } catch (jsonError) {
+        console.warn("⚠️ [KIT_V2_PARSE] JSON parse failed, trying regex fallback:", jsonError.message);
 
-        const studio1Match = geminiResponse.match(/Studio_1_Prompt:\s*(.+?)(?=\nStudio_2_Prompt:|$)/is);
-        if (studio1Match) prompts.studio1 = studio1Match[1].trim();
-
-        const studio2Match = geminiResponse.match(/Studio_2_Prompt:\s*(.+?)(?=\nGhost_Mannequin_Prompt:|$)/is);
-        if (studio2Match) prompts.studio2 = studio2Match[1].trim();
-
-        const ghostMatch = geminiResponse.match(/Ghost_Mannequin_Prompt:\s*(.+?)$/is);
-        if (ghostMatch) prompts.ghostMannequin = ghostMatch[1].trim();
-    } catch (error) {
-        console.error("❌ [KIT_V2_PARSE] Error:", error);
+        // Fallback: try to extract JSON from response text
+        try {
+            const jsonMatch = geminiResponse.match(/\{[\s\S]*"change_pose_1"[\s\S]*\}/);
+            if (jsonMatch) {
+                const json = JSON.parse(jsonMatch[0]);
+                prompts.changePose1 = json.change_pose_1 || null;
+                prompts.changePose2 = json.change_pose_2 || null;
+                prompts.detailShot = json.detail_shot || null;
+                prompts.studio1 = json.studio_1 || null;
+                prompts.studio2 = json.studio_2 || null;
+                prompts.ghostMannequin = json.ghost_mannequin || null;
+                console.log("✅ [KIT_V2_PARSE] JSON extracted from text successfully");
+            } else {
+                // Last resort: old regex parsing with ** markdown support
+                const cp1 = geminiResponse.match(/\*?\*?Change_Pose_1_Prompt:?\*?\*?\s*(.+?)(?=\n\*?\*?Change_Pose_2|$)/is);
+                if (cp1) prompts.changePose1 = cp1[1].trim();
+                const cp2 = geminiResponse.match(/\*?\*?Change_Pose_2_Prompt:?\*?\*?\s*(.+?)(?=\n\*?\*?Detail_Shot|$)/is);
+                if (cp2) prompts.changePose2 = cp2[1].trim();
+                const det = geminiResponse.match(/\*?\*?Detail_Shot_Prompt:?\*?\*?\s*(.+?)(?=\n\*?\*?Studio_1|$)/is);
+                if (det) prompts.detailShot = det[1].trim();
+                const st1 = geminiResponse.match(/\*?\*?Studio_1_Prompt:?\*?\*?\s*(.+?)(?=\n\*?\*?Studio_2|$)/is);
+                if (st1) prompts.studio1 = st1[1].trim();
+                const st2 = geminiResponse.match(/\*?\*?Studio_2_Prompt:?\*?\*?\s*(.+?)(?=\n\*?\*?Ghost_Mannequin|$)/is);
+                if (st2) prompts.studio2 = st2[1].trim();
+                const gh = geminiResponse.match(/\*?\*?Ghost_Mannequin_Prompt:?\*?\*?\s*(.+?)$/is);
+                if (gh) prompts.ghostMannequin = gh[1].trim();
+                console.log("✅ [KIT_V2_PARSE] Regex fallback used");
+            }
+        } catch (fallbackError) {
+            console.error("❌ [KIT_V2_PARSE] All parsing failed:", fallbackError.message);
+        }
     }
 
     return prompts;
@@ -456,12 +485,12 @@ async function getUserKitCount(userId) {
 
 // ─── Default prompts (fallbacks) ───
 const defaultPrompts = {
-    changePose1: "convert to dynamic high-fashion pose with energetic movement, natural lively stance, preserve all garment details. Apply a clean editorial color preset with natural tones, balanced contrast, soft highlights, accurate whites, and professional fashion color grading. Avoid heavy filters, oversaturation, or stylized effects.",
-    changePose2: "convert to different energetic model pose, vibrant dynamic movement, fashion-forward stance, preserve garment details. Apply a clean editorial color preset with natural tones, balanced contrast, soft highlights, accurate whites, and professional fashion color grading. Avoid heavy filters, oversaturation, or stylized effects.",
-    studio1: "convert to professional standing studio shot, pure white background #FFFFFF, professional indoor studio lighting - remove outdoor natural light completely, soft diffused artificial studio lights, high-fashion e-commerce style. Apply a clean editorial color preset with natural tones.",
-    studio2: "convert to close-up medium shot on pure white background #FFFFFF, model actively showcasing a specific garment detail — pulling fabric to show stretch, adjusting a zipper, holding a collar, or demonstrating a feature. Camera zoomed in tight on the torso/detail area. Professional studio lighting, product feature demonstration style like Organic Basics or Lululemon close-ups.",
-    detailShot: "convert to extreme macro fabric detail shot of the EXACT SAME product — preserve the original color, pattern, texture, design, and every detail identically. Frame entirely filled with the product texture, no background visible. Camera pressed close, full-bleed composition. Do NOT alter or redesign the product in any way. Apply natural lighting only, no color filters.",
-    ghostMannequin: "convert to professional ghost mannequin product photo: completely remove all human parts - no model visible, create invisible mannequin effect with realistic internal garment structure, clean hollow neckline showing interior, preserve all fabric details and texture, pure white background #FFFFFF no shadows, centered, Amazon e-commerce catalog standard. Apply a clean editorial color preset with natural tones, balanced contrast, soft highlights, accurate whites, and professional fashion color grading. Avoid heavy filters, oversaturation, or stylized effects."
+    changePose1: "transform to dynamic high-fashion pose with energetic movement, natural lively stance, preserve all garment details. Apply a clean editorial color preset with natural tones, balanced contrast, soft highlights, accurate whites, and professional fashion color grading. Avoid heavy filters, oversaturation, or stylized effects.",
+    changePose2: "transform to different energetic model pose, vibrant dynamic movement, fashion-forward stance, preserve garment details. Apply a clean editorial color preset with natural tones, balanced contrast, soft highlights, accurate whites, and professional fashion color grading. Avoid heavy filters, oversaturation, or stylized effects.",
+    studio1: "transform to professional standing studio shot, pure white background #FFFFFF, professional indoor studio lighting - remove outdoor natural light completely, soft diffused artificial studio lights, high-fashion e-commerce style. Apply a clean editorial color preset with natural tones.",
+    studio2: "transform to close-up medium shot on pure white background #FFFFFF, model actively showcasing a specific garment detail — pulling fabric to show stretch, adjusting a zipper, holding a collar, or demonstrating a feature. Camera zoomed in tight on the torso/detail area. Professional studio lighting, product feature demonstration style like Organic Basics or Lululemon close-ups.",
+    detailShot: "transform to extreme macro fabric detail shot of the EXACT SAME product — preserve the original color, pattern, texture, design, and every detail identically. Frame entirely filled with the product texture, no background visible. Camera pressed close, full-bleed composition. Do NOT alter or redesign the product in any way. Apply natural lighting only, no color filters.",
+    ghostMannequin: "transform to professional ghost mannequin product photo: completely remove all human parts - no model visible, create invisible mannequin effect with realistic internal garment structure, clean hollow neckline showing interior, preserve all fabric details and texture, pure white background #FFFFFF no shadows, centered, Amazon e-commerce catalog standard. Apply a clean editorial color preset with natural tones, balanced contrast, soft highlights, accurate whites, and professional fashion color grading. Avoid heavy filters, oversaturation, or stylized effects."
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -606,13 +635,10 @@ Professional AMAZON-STYLE ghost mannequin (invisible mannequin).
 - Centered, catalog-ready, Amazon e-commerce standard
 - Even, diffused studio lighting for clean product photography
 
-Start each prompt with "convert". Respond in this EXACT format:
-Change_Pose_1_Prompt: [your generated prompt]
-Change_Pose_2_Prompt: [your generated prompt]
-Detail_Shot_Prompt: [your generated prompt]
-Studio_1_Prompt: [your generated prompt]
-Studio_2_Prompt: [your generated prompt]
-Ghost_Mannequin_Prompt: [your generated prompt]
+Start each prompt with "transform".
+
+CRITICAL: Respond ONLY with a valid JSON object. No markdown, no code blocks, no extra text. Just pure JSON in this EXACT structure:
+{"change_pose_1":"transform ...","change_pose_2":"transform ...","detail_shot":"transform ...","studio_1":"transform ...","studio_2":"transform ...","ghost_mannequin":"transform ..."}
 `;
 
                 // Optimize image before sending to Gemini (compress if > 7MB)
