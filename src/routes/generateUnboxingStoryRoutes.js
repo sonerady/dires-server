@@ -732,6 +732,8 @@ router.post("/generate-unboxing-story", async (req, res) => {
         if (brandLogoUrl) brandLine += `\nA brand logo image is provided (labeled "BRAND LOGO"). Use this logo design on the package box in packaging scenes.\n`;
         if (customPackageUrl) brandLine += `\nA custom package box image is provided (labeled "CUSTOM PACKAGE BOX"). Use this exact package box design in scenes that show the packaging. The box in the generated images should match this design.\n`;
         if (brandLogoUrl || customPackageUrl) brandLine += `\nIMPORTANT: Use this brand packaging design in scenes that show the delivery box.\n`;
+        if (brandLogoUrl) brandLine += `CRITICAL: The brand logo design, colors, typography, and layout MUST be preserved EXACTLY as provided. Do NOT alter, simplify, redesign, or reimagine the logo in any way. It must look identical to the original.\n`;
+        if (customPackageUrl) brandLine += `CRITICAL: The custom package box design, colors, shape, patterns, and branding MUST be preserved EXACTLY as provided. Do NOT alter, simplify, redesign, or reimagine the package. It must look identical to the original box image.\n`;
 
         // Scene descriptions: user custom or defaults
         const scene1 = up.scene_1_instruction || 'Hands holding a clothing package box at home on the couch or bed, excited unboxing moment, cozy indoor setting';
