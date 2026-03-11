@@ -478,7 +478,7 @@ const defaultPrompts = {
     changePose2: "convert to different energetic model pose, vibrant dynamic movement, fashion-forward stance, preserve garment details. Apply a clean editorial color preset with natural tones, balanced contrast, soft highlights, accurate whites, and professional fashion color grading. Avoid heavy filters, oversaturation, or stylized effects.",
     studio1: "convert to professional standing studio shot, pure white background #FFFFFF, professional indoor studio lighting - remove outdoor natural light completely, soft diffused artificial studio lights, high-fashion e-commerce style. Apply a clean editorial color preset with natural tones.",
     studio2: "convert to close-up medium shot on pure white background #FFFFFF, model actively showcasing a specific garment detail — pulling fabric to show stretch, adjusting a zipper, holding a collar, or demonstrating a feature. Camera zoomed in tight on the torso/detail area. Professional studio lighting, product feature demonstration style like Organic Basics or Lululemon close-ups.",
-    detailShot: "convert to extreme macro fabric detail shot, frame entirely filled with texture, no background. Apply a clean editorial color preset with natural tones, balanced contrast, soft highlights, accurate whites, and professional fashion color grading. Avoid heavy filters, oversaturation, or stylized effects.",
+    detailShot: "convert to extreme macro fabric detail shot of the EXACT SAME product — preserve the original color, pattern, texture, design, and every detail identically. Frame entirely filled with the product texture, no background visible. Camera pressed close, full-bleed composition. Do NOT alter or redesign the product in any way. Apply natural lighting only, no color filters.",
     ghostMannequin: "convert to professional ghost mannequin product photo: completely remove all human parts - no model visible, create invisible mannequin effect with realistic internal garment structure, clean hollow neckline showing interior, preserve all fabric details and texture, pure white background #FFFFFF no shadows, centered, Amazon e-commerce catalog standard. Apply a clean editorial color preset with natural tones, balanced contrast, soft highlights, accurate whites, and professional fashion color grading. Avoid heavy filters, oversaturation, or stylized effects."
 };
 
@@ -597,13 +597,13 @@ Generate 2 distinct ENERGETIC editorial pose prompts with dynamic movement.
 
 3) Product Detail Shot (Full-Frame Macro) – 1 Prompt:
 An extreme close-up detail shot where the ENTIRE frame is filled with the product's fabric and details — ZERO background visible.
+- CRITICAL: PRESERVE THE EXACT ORIGINAL PRODUCT. The garment's color, pattern, texture, stitching, design, logo, and every visual detail MUST remain 100% identical to the source image. DO NOT alter, reinterpret, redesign, or reimagine ANY aspect of the product. This is a PHOTO of the SAME product, just zoomed in.
 - THE ENTIRE CAMERA FRAME MUST BE 100% COVERED BY THE PRODUCT. No white space, no studio background, no surface, no edges, no gaps — NOTHING except the garment's material filling every pixel of the image.
 - FULL-BLEED composition: the fabric/textile must extend beyond all four edges of the frame, as if the camera is pressed right against the product
-- Show the richness of the material: weave pattern, thread texture, stitching quality, fabric grain, button details, zipper teeth, label embossing, seam construction
+- Show the richness of the EXISTING material exactly as it is: weave pattern, thread texture, stitching quality, fabric grain, button details, zipper teeth, label embossing, seam construction — all EXACTLY matching the original product
 - Macro lens photography: 100mm macro lens, f/2.8-f/4, extremely shallow depth of field with tack-sharp focus on texture details
 - Professional textile photography lighting: soft directional side-lighting to reveal fabric dimension and surface texture
-- Color accuracy is CRITICAL — true-to-life product color as seen in premium e-commerce (Shopify, ASOS, Net-a-Porter)
-- Think extreme close-up fabric swatches used in luxury fashion product pages
+- Color accuracy is CRITICAL — the EXACT same color as the original product, true-to-life, no color shift, no filter
 - NO background, NO surface, NO negative space — the product texture IS the entire image
 
 4, 5) Studio Poses (White Background) – 2 Prompts:
