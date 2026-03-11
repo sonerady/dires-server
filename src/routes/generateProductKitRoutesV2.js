@@ -607,10 +607,10 @@ An extreme close-up detail shot where the ENTIRE frame is filled with the produc
 - NO background, NO surface, NO negative space — the product texture IS the entire image
 
 4, 5) Studio Poses (White Background) – 2 Prompts:
-Generate 2 full-body white studio prompts. Each prompt must produce EXACTLY ONE single photo of ONE person — NEVER a collage, grid, multi-panel, split-screen, or multiple views. ONE image, ONE pose, ONE person.
+Generate 2 white studio prompts. Each prompt must produce EXACTLY ONE single photo of ONE person — NEVER a collage, grid, multi-panel, split-screen, or multiple views. ONE image, ONE pose, ONE person.
 - Pure white background (#FFFFFF), PROFESSIONAL STUDIO LIGHTING only
-- Studio_1: Classic standing high-fashion pose with editorial attitude
-- Studio_2: A different pose (seated, walking, or dynamic 3/4 turn). Must include a "Fujifilm/VSCO film preset" look with organic tones
+- Studio_1: Classic standing full-body high-fashion pose with editorial attitude
+- Studio_2: CLOSE-UP / MEDIUM CLOSE-UP product detail showcase — the model is actively showing off or highlighting a specific feature of the garment (pulling fabric to show stretch, adjusting a zipper, holding a collar, tugging a hem, flipping a pocket, touching a button, demonstrating a hidden compartment). Camera zoomed in tight on the torso/waist/detail area. The model's hands and the garment detail are the hero of the shot — like a product feature demonstration photo. Think: Organic Basics, Girlfriend Collective, or Lululemon product feature close-ups where models show fabric quality, hidden pockets, adjustable straps, etc.
 - REMOVE all outdoor/natural daylight. Indoor studio lighting only.
 - Describe the studio lighting setup in detail (key light, fill, rim, reflectors)
 - CRITICAL: Each prompt generates a SINGLE photograph — NOT a mood board, NOT a lookbook page, NOT multiple angles side by side
