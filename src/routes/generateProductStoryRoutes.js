@@ -177,49 +177,32 @@ async function callReplicateNanoBananaPro(prompt, resultImageUrl, referenceImage
         throw new Error("REPLICATE_API_TOKEN environment variable is not set");
     }
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            console.log(`🍌 [STORY_BANANA] Image generation attempt ${attempt}/${maxRetries}`);
-            console.log(`🍌 [STORY_BANANA] Prompt: ${prompt.substring(0, 100)}...`);
+    const legacyMap = { "1024x1024": "1:1", "1536x1024": "3:2", "1024x1536": "2:3" };
+    const aspectRatio = legacyMap[imageSize] || imageSize || "9:16";
 
-            // Pass aspect ratio directly (Nano Banana Pro format: "1:1", "2:3", "9:16", etc.)
-            // Support legacy format for backward compatibility
-            const legacyMap = { "1024x1024": "1:1", "1536x1024": "3:2", "1024x1536": "2:3" };
-            const aspectRatio = legacyMap[imageSize] || imageSize || "9:16";
+    const models = [
+        { name: "nano-banana-2", url: "https://api.replicate.com/v1/models/google/nano-banana-2/predictions" },
+        { name: "nano-banana-pro", url: "https://api.replicate.com/v1/models/google/nano-banana-pro/predictions" },
+    ];
 
-            const response = await axios.post(
-                "https://api.replicate.com/v1/models/google/nano-banana-2/predictions",
-                {
-                    input: {
-                        prompt: prompt,
-                        image_input: [resultImageUrl, referenceImageUrl],
-                        aspect_ratio: aspectRatio,
-                        resolution: "1K",
-                        output_format: "jpg",
-                        safety_filter_level: "block_only_high",
-                    }
-                },
-                {
-                    headers: {
-                        "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
-                        "Content-Type": "application/json",
+    for (const model of models) {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                console.log(`🍌 [STORY_BANANA] ${model.name} attempt ${attempt}/${maxRetries}`);
+                console.log(`🍌 [STORY_BANANA] Prompt: ${prompt.substring(0, 100)}...`);
+
+                const response = await axios.post(
+                    model.url,
+                    {
+                        input: {
+                            prompt: prompt,
+                            image_input: [resultImageUrl, referenceImageUrl],
+                            aspect_ratio: aspectRatio,
+                            resolution: "1K",
+                            output_format: "jpg",
+                            safety_filter_level: "block_only_high",
+                        }
                     },
-                    timeout: 30000,
-                }
-            );
-
-            const prediction = response.data;
-
-            if (!prediction.id) {
-                throw new Error("Replicate did not return a prediction ID");
-            }
-
-            console.log(`⏳ [STORY_BANANA] Prediction created, id: ${prediction.id}`);
-
-            let maxPolls = 90;
-            for (let poll = 0; poll < maxPolls; poll++) {
-                const statusResponse = await axios.get(
-                    `https://api.replicate.com/v1/predictions/${prediction.id}`,
                     {
                         headers: {
                             "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
@@ -229,42 +212,61 @@ async function callReplicateNanoBananaPro(prompt, resultImageUrl, referenceImage
                     }
                 );
 
-                const result = statusResponse.data;
-                console.log(`⏳ [STORY_BANANA] Poll ${poll + 1}/${maxPolls}, status: ${result.status}`);
+                const prediction = response.data;
+                if (!prediction.id) throw new Error("Replicate did not return a prediction ID");
 
-                if (result.status === "succeeded") {
-                    const output = result.output;
-                    if (output) {
-                        // Nano Banana Pro returns a single URI string
-                        const imageUrl = Array.isArray(output) ? output[0] : output;
-                        if (imageUrl) {
-                            console.log(`✅ [STORY_BANANA] Image generated successfully`);
-                            return imageUrl;
+                console.log(`⏳ [STORY_BANANA] ${model.name} prediction created, id: ${prediction.id}`);
+
+                let maxPolls = 90;
+                for (let poll = 0; poll < maxPolls; poll++) {
+                    const statusResponse = await axios.get(
+                        `https://api.replicate.com/v1/predictions/${prediction.id}`,
+                        {
+                            headers: {
+                                "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
+                                "Content-Type": "application/json",
+                            },
+                            timeout: 30000,
                         }
+                    );
+
+                    const result = statusResponse.data;
+                    if (result.status === "succeeded") {
+                        const output = result.output;
+                        if (output) {
+                            const imageUrl = Array.isArray(output) ? output[0] : output;
+                            if (imageUrl) {
+                                console.log(`✅ [STORY_BANANA] ${model.name} image generated successfully`);
+                                return imageUrl;
+                            }
+                        }
+                        throw new Error("No image URL in succeeded result");
                     }
-                    throw new Error("No image URL in succeeded result");
+
+                    if (result.status === "failed" || result.status === "canceled") {
+                        throw new Error(`Replicate prediction ${result.status}: ${result.error || "unknown error"}`);
+                    }
+
+                    await new Promise(resolve => setTimeout(resolve, 2000));
                 }
 
-                if (result.status === "failed" || result.status === "canceled") {
-                    throw new Error(`Replicate prediction ${result.status}: ${result.error || "unknown error"}`);
+                throw new Error(`${model.name} polling timeout`);
+            } catch (error) {
+                console.error(`❌ [STORY_BANANA] ${model.name} attempt ${attempt} failed:`, error.message);
+                const isCapacityError = error.message && (error.message.includes("E003") || error.message.includes("unavailable due to high demand"));
+                if (isCapacityError) {
+                    console.log(`⚡ [STORY_BANANA] ${model.name} capacity error, skipping to fallback immediately`);
+                    break;
                 }
-
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                if (attempt === maxRetries) break;
+                const waitTime = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
+                await new Promise(resolve => setTimeout(resolve, waitTime));
             }
-
-            throw new Error("Replicate Nano Banana Pro polling timeout");
-
-        } catch (error) {
-            console.error(`❌ [STORY_BANANA] Attempt ${attempt} failed:`, error.message);
-
-            if (attempt === maxRetries) {
-                throw error;
-            }
-
-            const waitTime = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
-            await new Promise(resolve => setTimeout(resolve, waitTime));
         }
+        console.log(`⚠️ [STORY_BANANA] ${model.name} failed, trying next model...`);
     }
+
+    throw new Error("All Nano Banana models failed (nano-banana-2 and nano-banana-pro)");
 }
 
 // Save generated image to user bucket
