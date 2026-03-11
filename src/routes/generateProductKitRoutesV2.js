@@ -615,7 +615,9 @@ Studio_2_Prompt: [your generated prompt]
 Ghost_Mannequin_Prompt: [your generated prompt]
 `;
 
-                const geminiResponse = await callReplicateGeminiFlash(geminiPrompt, [imageUrl]);
+                // Optimize image before sending to Gemini (compress if > 7MB)
+                const geminiImageUrl = await getOptimizedImageUrl(imageUrl);
+                const geminiResponse = await callReplicateGeminiFlash(geminiPrompt, [geminiImageUrl]);
                 console.log("✅ [KIT_V2] Gemini response received");
 
                 const prompts = parseGeminiPrompts(geminiResponse);
