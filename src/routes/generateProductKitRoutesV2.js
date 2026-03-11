@@ -22,7 +22,7 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 const KIT_GENERATION_COST_OLD = 15;  // Users registered before cutoff date
 const KIT_GENERATION_COST_NEW = 50;  // Users registered on/after cutoff date
 const NEW_PRICING_CUTOFF = new Date("2026-03-07T00:00:00Z");
-const FREE_TIER_LIMIT = 5;
+const FREE_TIER_LIMIT = 2;
 const sceneTypes = ["pose1", "pose2", "studio1", "studio2", "detail", "ghost"];
 
 // ─── Get kit cost based on user registration date ───
@@ -209,8 +209,8 @@ async function callReplicateGptImageEdit(prompt, resultImageUrl, referenceImageU
     }
 }
 
-// ─── Replicate Nano Banana Pro API call (for editorial & studio scenes) ───
-async function callReplicateNanoBananaPro(prompt, resultImageUrl, referenceImageUrl, maxRetries = 3, aspectRatio = "9:16") {
+// ─── Replicate Nano Banana 2 API call (for editorial & studio scenes) ───
+async function callReplicateNanoBanana2(prompt, resultImageUrl, referenceImageUrl, maxRetries = 3, aspectRatio = "9:16") {
     const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
     if (!REPLICATE_API_TOKEN) throw new Error("REPLICATE_API_TOKEN environment variable is not set");
 
@@ -223,7 +223,7 @@ async function callReplicateNanoBananaPro(prompt, resultImageUrl, referenceImage
             console.log(`🍌 [KIT_V2_BANANA] Image generation attempt ${attempt}/${maxRetries}`);
 
             const response = await axios.post(
-                "https://api.replicate.com/v1/models/google/nano-banana-pro/predictions",
+                "https://api.replicate.com/v1/models/google/nano-banana-2/predictions",
                 {
                     input: {
                         prompt: prompt,
@@ -281,7 +281,7 @@ async function callReplicateNanoBananaPro(prompt, resultImageUrl, referenceImage
                 await new Promise(resolve => setTimeout(resolve, 2000));
             }
 
-            throw new Error("Replicate Nano Banana Pro polling timeout");
+            throw new Error("Replicate Nano Banana 2 polling timeout");
         } catch (error) {
             console.error(`❌ [KIT_V2_BANANA] Attempt ${attempt} failed:`, error.message);
             if (attempt === maxRetries) throw error;
@@ -291,9 +291,9 @@ async function callReplicateNanoBananaPro(prompt, resultImageUrl, referenceImage
     }
 }
 
-// Scenes that use Nano Banana Pro (editorial poses + white studio)
-const nanaBananaScenes = new Set([0, 1, 2, 3]); // pose1, pose2, studio1, studio2
-// Scenes that use GPT Image (detail + ghost mannequin): indices 4, 5
+// Scenes that use Nano Banana 2 (editorial poses + studio + detail)
+const nanoBanana2Scenes = new Set([0, 1, 2, 3, 4]); // pose1, pose2, studio1, studio2, detail
+// Scene 5 (ghost mannequin) uses GPT Image 1.5
 
 // ─── Save generated image to user bucket ───
 async function saveGeneratedImageToUserBucket(imageUrl, userId, imageType) {
@@ -595,10 +595,16 @@ Generate 2 distinct ENERGETIC editorial pose prompts with dynamic movement.
 - Include professional fashion color grading
 - CRITICAL: PRESERVE the original environment/location/background from the source image. The model's surroundings, setting, and backdrop must remain the same — only the pose changes. Do NOT invent a new location or background.
 
-3) Product Detail Shot (Macro) – 1 Prompt:
-A professional macro detail shot focusing on texture, craftsmanship, and fabric structure.
-- Frame must be entirely filled with the textile. No background visible.
-- Describe the macro lens choice and lighting for fabric detail photography
+3) Product Detail Shot (Full-Frame Macro) – 1 Prompt:
+An extreme close-up detail shot where the ENTIRE frame is filled with the product's fabric and details — ZERO background visible.
+- THE ENTIRE CAMERA FRAME MUST BE 100% COVERED BY THE PRODUCT. No white space, no studio background, no surface, no edges, no gaps — NOTHING except the garment's material filling every pixel of the image.
+- FULL-BLEED composition: the fabric/textile must extend beyond all four edges of the frame, as if the camera is pressed right against the product
+- Show the richness of the material: weave pattern, thread texture, stitching quality, fabric grain, button details, zipper teeth, label embossing, seam construction
+- Macro lens photography: 100mm macro lens, f/2.8-f/4, extremely shallow depth of field with tack-sharp focus on texture details
+- Professional textile photography lighting: soft directional side-lighting to reveal fabric dimension and surface texture
+- Color accuracy is CRITICAL — true-to-life product color as seen in premium e-commerce (Shopify, ASOS, Net-a-Porter)
+- Think extreme close-up fabric swatches used in luxury fashion product pages
+- NO background, NO surface, NO negative space — the product texture IS the entire image
 
 4, 5) Studio Poses (White Background) – 2 Prompts:
 Generate 2 full-body white studio prompts. Each prompt must produce EXACTLY ONE single photo of ONE person — NEVER a collage, grid, multi-panel, split-screen, or multiple views. ONE image, ONE pose, ONE person.
@@ -662,10 +668,10 @@ Ghost_Mannequin_Prompt: [your generated prompt]
 
                 const imageGenerationPromises = imagePrompts.map(async (prompt, index) => {
                     try {
-                        const useNanoBanana = nanaBananaScenes.has(index);
-                        console.log(`🎨 [KIT_V2] Generating ${sceneTypes[index]} via ${useNanoBanana ? 'Nano Banana' : 'GPT'}...`);
+                        const useNanoBanana = nanoBanana2Scenes.has(index);
+                        console.log(`🎨 [KIT_V2] Generating ${sceneTypes[index]} via ${useNanoBanana ? 'Nano Banana 2' : 'GPT'}...`);
                         const generatedUrl = useNanoBanana
-                            ? await callReplicateNanoBananaPro(prompt, optimizedResultUrl, optimizedReferenceUrl)
+                            ? await callReplicateNanoBanana2(prompt, optimizedResultUrl, optimizedReferenceUrl)
                             : await callReplicateGptImageEdit(prompt, optimizedResultUrl, optimizedReferenceUrl);
 
                         const savedUrl = await saveGeneratedImageToUserBucket(
@@ -784,11 +790,11 @@ router.post("/retry-kit-scene", async (req, res) => {
         };
         const prompt = promptMap[sceneIndex] || defaultPrompts.changePose1;
 
-        // Generate the image (Nano Banana for editorial/studio, GPT for detail/ghost)
-        const useNanoBanana = nanaBananaScenes.has(sceneIndex);
-        console.log(`🔄 [KIT_V2_RETRY] Using ${useNanoBanana ? 'Nano Banana' : 'GPT'} for scene ${sceneIndex} (${sceneType})`);
+        // Generate the image (Nano Banana 2 for editorial/studio/detail, GPT for ghost)
+        const useNanoBanana = nanoBanana2Scenes.has(sceneIndex);
+        console.log(`🔄 [KIT_V2_RETRY] Using ${useNanoBanana ? 'Nano Banana 2' : 'GPT'} for scene ${sceneIndex} (${sceneType})`);
         const generatedUrl = useNanoBanana
-            ? await callReplicateNanoBananaPro(prompt, optimizedResultUrl, optimizedReferenceUrl)
+            ? await callReplicateNanoBanana2(prompt, optimizedResultUrl, optimizedReferenceUrl)
             : await callReplicateGptImageEdit(prompt, optimizedResultUrl, optimizedReferenceUrl);
         const savedUrl = await saveGeneratedImageToUserBucket(generatedUrl, userId || "anonymous", sceneType);
 

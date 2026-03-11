@@ -13,6 +13,7 @@ const USE_CLOUDFLARE = true;
 
 // Cloudflare proxied domain (cdn-cgi/image/ bu domain üzerinden çalışır)
 // api.diress.ai DNS only olduğu için, proxied olan diress.ai kullanılmalı
+
 const CLOUDFLARE_CDN_DOMAIN = "https://diress.ai";
 
 // Supabase direct domain → custom domain dönüşümü

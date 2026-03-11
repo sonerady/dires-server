@@ -12,13 +12,10 @@ const FEATURE_CONFIG = {
       query.not("settings->gender", "is", null).eq("visibility", true),
   },
   refiner: {
-    table: "reference_results",
+    table: "refiner_generations",
     select:
-      "id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits",
-    applyFilter: (query) =>
-      query
-        .contains("settings", { isRefinerMode: true })
-        .eq("visibility", true),
+      "id, user_id, generation_id, status, original_prompt, enhanced_prompt, original_image_url, result_image_url, settings, aspect_ratio, quality_version, credits_used, processing_time_seconds, created_at",
+    applyFilter: null,
   },
   "pose-change": {
     table: "reference_results",
@@ -119,9 +116,50 @@ router.get("/generations", async (req, res) => {
 
     console.log("[Admin] Success - rows:", data?.length, "total:", count);
 
+    // Enrich with user info (email, credit_balance) for all features
+    let enrichedData = data || [];
+    if (enrichedData.length > 0) {
+      const userIds = [...new Set(enrichedData.map(d => d.user_id).filter(Boolean))];
+      if (userIds.length > 0) {
+        const { data: users } = await db
+          .from("users")
+          .select("id, email, credit_balance")
+          .in("id", userIds);
+
+        const userMap = {};
+        (users || []).forEach(u => { userMap[u.id] = u; });
+
+        // For unboxing-stories, also fetch brand preferences
+        let unboxingPrefsMap = {};
+        if (feature === "unboxing-stories") {
+          const { data: prefs } = await db
+            .from("user_unboxing_preferences")
+            .select("user_id, brand_name, brand_logo_url, custom_package_url")
+            .in("user_id", userIds);
+          (prefs || []).forEach(p => { unboxingPrefsMap[p.user_id] = p; });
+        }
+
+        enrichedData = enrichedData.map(item => {
+          const user = userMap[item.user_id] || {};
+          const result = {
+            ...item,
+            user_email: user.email || null,
+            user_credit_balance: user.credit_balance ?? null,
+          };
+          if (feature === "unboxing-stories") {
+            const pref = unboxingPrefsMap[item.user_id] || {};
+            result.brand_name = pref.brand_name || null;
+            result.brand_logo_url = pref.brand_logo_url || null;
+            result.custom_package_url = pref.custom_package_url || null;
+          }
+          return result;
+        });
+      }
+    }
+
     res.json({
       success: true,
-      data: data || [],
+      data: enrichedData,
       total: count || 0,
       page: pageNum,
       totalPages: Math.ceil((count || 0) / limitNum),

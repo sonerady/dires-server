@@ -494,6 +494,7 @@ router.get("/stories/:generationId", async (req, res) => {
   }
 });
 
+
 /**
  * GET /api/history/debug/user-counts
  * Debug endpoint to check actual per-user record counts WITHOUT team logic

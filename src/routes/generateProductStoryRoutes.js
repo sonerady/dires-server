@@ -590,7 +590,7 @@ async function getUserStoryCount(userId) {
 router.post("/generate-product-story", async (req, res) => {
     const startTime = Date.now();
     const STORY_GENERATION_COST = 80; // 6 scenes = 80 credits
-    const FREE_TIER_LIMIT = 3; // First 3 generations free
+    const FREE_TIER_LIMIT = 2; // First 2 generations free
 
     try {
         const { imageUrl, recordId, userId, teamAware } = req.body;

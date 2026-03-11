@@ -179,6 +179,58 @@
             color: #aaa;
         }
 
+        .card-user {
+            padding: 0 12px 10px;
+            font-size: 11px;
+            color: #999;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-user-email {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 160px;
+        }
+
+        .card-user-credits {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .brand-assets {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #eee;
+        }
+
+        .brand-asset-box {
+            text-align: center;
+        }
+
+        .brand-asset-box label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: #aaa;
+            margin-bottom: 6px;
+        }
+
+        .brand-asset-box img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            border-radius: 8px;
+            background: #f5f5f5;
+            border: 1px solid #eee;
+        }
+
         /* Pagination */
         .pagination {
             display: flex;
@@ -435,7 +487,7 @@
 
         const FEATURES = {
             'virtual-model': { label: 'Virtual Model', sourceTable: 'reference_results' },
-            'refiner': { label: 'Refiner', sourceTable: 'reference_results' },
+            'refiner': { label: 'Refiner', sourceTable: 'refiner_generations' },
             'pose-change': { label: 'Pose Change', sourceTable: 'reference_results' },
             'color-change': { label: 'Color Change', sourceTable: 'reference_results' },
             'back-side': { label: 'Back Side', sourceTable: 'reference_results' },
@@ -499,6 +551,9 @@
 
         function getResultUrl(item) {
             const src = getSourceTable();
+            if (src === 'refiner_generations') {
+                return item.result_image_url || '';
+            }
             if (src === 'product_kits') {
                 const imgs = item.kit_images;
                 if (Array.isArray(imgs) && imgs.length > 0) return imgs[0];
@@ -622,6 +677,9 @@
                     const cardResultUrl = cdnUrl(resultUrl, { width: 400, height: 600, quality: 75 });
                     const cardOriginalUrl = cdnUrl(originalUrl, { width: 96, height: 96, quality: 70 });
 
+                    const userEmail = item.user_email || '';
+                    const userCredits = item.user_credit_balance != null ? item.user_credit_balance : '';
+
                     card.innerHTML = `
                         <div class="card-image-container">
                             ${resultUrl ? `<img class="card-image" src="${cardResultUrl}" alt="Result" loading="lazy" onerror="this.style.display='none'">` : ''}
@@ -634,6 +692,10 @@
                                 ${credits ? `<span class="card-credits">${credits} cr</span>` : ''}
                             </div>
                         </div>
+                        ${userEmail ? `<div class="card-user">
+                            <span class="card-user-email" title="${userEmail}">${userEmail}</span>
+                            ${userCredits !== '' ? `<span class="card-user-credits">${userCredits} cr</span>` : ''}
+                        </div>` : ''}
                     `;
                     grid.appendChild(card);
                 });
@@ -705,6 +767,26 @@
                 `;
             }
             detailsHtml += `<div class="modal-detail"><span>User ID</span><span>${item.user_id ? item.user_id.slice(0, 8) + '...' : '-'}</span></div>`;
+            detailsHtml += `<div class="modal-detail"><span>Email</span><span>${item.user_email || '-'}</span></div>`;
+            detailsHtml += `<div class="modal-detail"><span>User Credits</span><span>${item.user_credit_balance != null ? item.user_credit_balance : '-'}</span></div>`;
+
+            // Brand assets for unboxing stories
+            if (src === 'product_unboxing_stories') {
+                if (item.brand_name) {
+                    detailsHtml += `<div class="modal-detail"><span>Brand Name</span><span>${item.brand_name}</span></div>`;
+                }
+                let brandHtml = '';
+                if (item.brand_logo_url) {
+                    brandHtml += `<div class="brand-asset-box"><label>Brand Logo</label><img src="${cdnUrl(item.brand_logo_url, { width: 160, height: 160, quality: 85, fit: 'contain' })}" alt="Logo" onerror="this.style.display='none'"></div>`;
+                }
+                if (item.custom_package_url) {
+                    brandHtml += `<div class="brand-asset-box"><label>Custom Package</label><img src="${cdnUrl(item.custom_package_url, { width: 160, height: 160, quality: 85, fit: 'contain' })}" alt="Package" onerror="this.style.display='none'"></div>`;
+                }
+                if (brandHtml) {
+                    detailsHtml += `</div><div class="brand-assets">${brandHtml}`;
+                }
+            }
+
             details.innerHTML = detailsHtml;
 
             overlay.classList.add('active');

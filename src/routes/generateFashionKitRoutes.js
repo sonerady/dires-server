@@ -566,7 +566,7 @@ async function getUserFashionCount(userId) {
 router.post("/generate-fashion-kit", async (req, res) => {
     const startTime = Date.now();
     const FASHION_GENERATION_COST = 20; // 5 scenes = 20 credits
-    const FREE_TIER_LIMIT = 3; // First 3 generations free
+    const FREE_TIER_LIMIT = 2; // First 2 generations free
 
     try {
         const { imageUrl, recordId, userId, teamAware } = req.body;

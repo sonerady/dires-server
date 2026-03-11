@@ -418,6 +418,10 @@ app.use("/api", generateFashionKitRoutes);
 // Generate Unboxing Story routes
 app.use("/api", generateUnboxingStoryRoutes);
 
+// Campaign Kit routes
+const campaignKitRoutes = require("./routes/campaignKitRoutes");
+app.use("/api/campaign-kit", campaignKitRoutes);
+
 // Support routes
 const supportRoutes = require("./routes/supportRoutes");
 app.use("/api/support", requireBrowser, requireAuth, supportRoutes);

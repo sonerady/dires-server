@@ -660,7 +660,7 @@ async function getUserUnboxingCount(userId) {
 router.post("/generate-unboxing-story", async (req, res) => {
     const startTime = Date.now();
     const UNBOXING_GENERATION_COST = 80; // 6 scenes = 80 credits
-    const FREE_TIER_LIMIT = 3; // First 3 generations free
+    const FREE_TIER_LIMIT = 2; // First 2 generations free
 
     try {
         const { imageUrl, recordId, userId, teamAware } = req.body;
