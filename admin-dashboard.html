@@ -556,8 +556,11 @@
             }
             if (src === 'product_kits') {
                 const imgs = item.kit_images;
-                if (Array.isArray(imgs) && imgs.length > 0) return imgs[0];
-                if (typeof imgs === 'string') { try { const p = JSON.parse(imgs); return Array.isArray(p) && p.length > 0 ? p[0] : ''; } catch(e) { return ''; } }
+                if (Array.isArray(imgs) && imgs.length > 0) {
+                    const first = imgs[0];
+                    return (first && typeof first === 'object') ? (first.url || '') : (first || '');
+                }
+                if (typeof imgs === 'string') { try { const p = JSON.parse(imgs); if (Array.isArray(p) && p.length > 0) { const f = p[0]; return (f && typeof f === 'object') ? (f.url || '') : (f || ''); } } catch(e) {} }
                 return '';
             }
             if (src === 'product_stories' || src === 'product_unboxing_stories') {
@@ -784,6 +787,24 @@
                 }
                 if (brandHtml) {
                     detailsHtml += `</div><div class="brand-assets">${brandHtml}`;
+                }
+            }
+
+            // Kit images grid for ecommerce-kits
+            if (src === 'product_kits') {
+                let kitImgs = item.kit_images;
+                if (typeof kitImgs === 'string') { try { kitImgs = JSON.parse(kitImgs); } catch(e) { kitImgs = []; } }
+                if (Array.isArray(kitImgs) && kitImgs.length > 0) {
+                    let gridHtml = '</div><div style="margin-top:12px"><label style="font-weight:600;font-size:13px;color:#444;margin-bottom:6px;display:block">All Kit Images (' + kitImgs.length + ')</label><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">';
+                    kitImgs.forEach((img, i) => {
+                        const url = (img && typeof img === 'object') ? (img.url || '') : (img || '');
+                        const type = (img && typeof img === 'object') ? (img.type || '') : '';
+                        if (url) {
+                            gridHtml += `<div style="text-align:center"><img src="${cdnUrl(url, { width: 300, height: 450, quality: 80 })}" style="width:100%;border-radius:6px;cursor:pointer" onclick="window.open('${url}','_blank')" onerror="this.style.display='none'"><div style="font-size:10px;color:#888;margin-top:2px">${type || 'scene ' + (i+1)}</div></div>`;
+                        }
+                    });
+                    gridHtml += '</div>';
+                    detailsHtml += gridHtml;
                 }
             }
 

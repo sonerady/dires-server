@@ -103,7 +103,7 @@ router.get("/generations", async (req, res) => {
 
     if (config.applyFilter) query = config.applyFilter(query);
     // Skip status filter for tables that don't have a status column
-    const noStatusTables = ["product_stories", "product_unboxing_stories"];
+    const noStatusTables = ["product_stories", "product_unboxing_stories", "product_kits"];
     if (status && status !== "all" && !noStatusTables.includes(config.table)) {
       query = query.eq("status", status);
     }
