@@ -7,7 +7,7 @@ const SUBSCRIPTION_PRODUCTS = [
   {
     ids: [
       "standard_weekly_600",
-      "com.diress.standard.weekly.600",
+      "com.producter.standard.weekly.600",
       "com.monailisa.pro_weekly600",
     ],
     label: "Standard Weekly 600",
@@ -18,7 +18,7 @@ const SUBSCRIPTION_PRODUCTS = [
   {
     ids: [
       "standard_monthly_2400",
-      "com.diress.standard.monthly.2400",
+      "com.producter.standard.monthly.2400",
       "com.monailisa.pro_monthly2400",
     ],
     label: "Standard Monthly 2400",
@@ -27,28 +27,28 @@ const SUBSCRIPTION_PRODUCTS = [
     credits: 2400,
   },
   {
-    ids: ["plus_weekly_1200", "com.diress.plus.weekly.1200"],
+    ids: ["plus_weekly_1200", "com.producter.plus.weekly.1200"],
     label: "Plus Weekly 1200",
     planType: "plus",
     cadence: "weekly",
     credits: 1200,
   },
   {
-    ids: ["plus_monthly_4800", "com.diress.plus.monthly.4800"],
+    ids: ["plus_monthly_4800", "com.producter.plus.monthly.4800"],
     label: "Plus Monthly 4800",
     planType: "plus",
     cadence: "monthly",
     credits: 4800,
   },
   {
-    ids: ["premium_weekly_2400", "com.diress.premium.weekly.2400"],
+    ids: ["premium_weekly_2400", "com.producter.premium.weekly.2400"],
     label: "Premium Weekly 2400",
     planType: "premium",
     cadence: "weekly",
     credits: 2400,
   },
   {
-    ids: ["premium_monthly_9600", "com.diress.premium.monthly.9600"],
+    ids: ["premium_monthly_9600", "com.producter.premium.monthly.9600"],
     label: "Premium Monthly 9600",
     planType: "premium",
     cadence: "monthly",
@@ -58,36 +58,32 @@ const SUBSCRIPTION_PRODUCTS = [
 
 const COIN_PRODUCTS = [
   {
-    ids: ["micro_1000", "com.micro.diress", "com.diress.micro.1000"],
+    ids: ["micro_1000", "com.micro.producter.app"],
     label: "Micro Pack 1000",
     credits: 1000,
   },
   {
-    ids: ["small_2500", "com.small.diress", "com.diress.small.2500"],
+    ids: ["small_2500", "com.small.producter.app"],
     label: "Small Pack 2500",
     credits: 2500,
   },
   {
-    ids: ["boost_5000", "com.boost.diress", "com.diress.boost.5000"],
+    ids: ["boost_5000", "com.boost.producter.app"],
     label: "Boost Pack 5000",
     credits: 5000,
   },
   {
-    ids: ["growth_10000", "com.growth.diress", "com.diress.growth.10000"],
+    ids: ["growth_10000", "com.growth.producter.app"],
     label: "Growth Pack 10000",
     credits: 10000,
   },
   {
-    ids: ["pro_15000", "com.pro.diress", "com.diress.pro.15000"],
+    ids: ["pro_15000", "com.pro.producter.app"],
     label: "Pro Pack 15000",
     credits: 15000,
   },
   {
-    ids: [
-      "enterprise_20000",
-      "com.enterprise.diress",
-      "com.diress.enterprise.20000",
-    ],
+    ids: ["enterprise_20000", "com.enterprise.producter.app"],
     label: "Enterprise Pack 20000",
     credits: 20000,
   },

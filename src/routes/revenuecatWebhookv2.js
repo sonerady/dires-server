@@ -35,12 +35,12 @@ const getCreditsForPackage = (productId) => {
     premium_monthly_9600: 9600,
 
     // Subscription paketleri - RevenueCat gerçek product ID'leri
-    "com.diress.standard.weekly.600": 600,
-    "com.diress.standard.monthly.2400": 2400,
-    "com.diress.plus.weekly.1200": 1200,
-    "com.diress.plus.monthly.4800": 4800,
-    "com.diress.premium.weekly.2400": 2400,
-    "com.diress.premium.monthly.9600": 9600,
+    "com.producter.standard.weekly.600": 600,
+    "com.producter.standard.monthly.2400": 2400,
+    "com.producter.plus.weekly.1200": 1200,
+    "com.producter.plus.monthly.4800": 4800,
+    "com.producter.premium.weekly.2400": 2400,
+    "com.producter.premium.monthly.9600": 9600,
 
     // Legacy subscription paketleri (revenuecatWebhook.js'ten)
     "com.monailisa.pro_weekly600": 600,
@@ -54,21 +54,13 @@ const getCreditsForPackage = (productId) => {
     pro_15000: 15000,
     enterprise_20000: 20000,
 
-    // Coin paketleri - RevenueCat gerçek product ID'leri (yeni format)
-    "com.micro.diress": 1000,
-    "com.small.diress": 2500,
-    "com.boost.diress": 5000,
-    "com.growth.diress": 10000,
-    "com.pro.diress": 15000,
-    "com.enterprise.diress": 20000,
-
-    // Coin paketleri - Eski format (compat)
-    "com.diress.micro.1000": 1000,
-    "com.diress.small.2500": 2500,
-    "com.diress.boost.5000": 5000,
-    "com.diress.growth.10000": 10000,
-    "com.diress.pro.15000": 15000,
-    "com.diress.enterprise.20000": 20000,
+    // Coin paketleri - RevenueCat gerçek product ID'leri
+    "com.micro.producter.app": 1000,
+    "com.small.producter.app": 2500,
+    "com.boost.producter.app": 5000,
+    "com.growth.producter.app": 10000,
+    "com.pro.producter.app": 15000,
+    "com.enterprise.producter.app": 20000,
 
     // Legacy coin paketleri (revenuecatWebhook.js'ten)
     "com.monailisa.creditpack5000": 5000,
