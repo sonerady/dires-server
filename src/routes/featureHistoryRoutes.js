@@ -703,6 +703,241 @@ router.get("/refiner/:userId", async (req, res) => {
   }
 });
 
+// ============================================================
+// Listing Feature History Endpoints
+// ============================================================
+
+/**
+ * GET /api/feature-history/lifestyle/:userId
+ */
+router.get("/lifestyle/:userId", async (req, res) => {
+  try {
+    const setup = await setupRequest(req);
+    if (setup.error) return res.status(400).json({ success: false, message: setup.error });
+    const { userId, parsedLimit, parsedPage, offset, memberIds, isTeamMember, ascending } = setup;
+
+    const { count: totalCount, error: countError } = await retryQuery(() =>
+      supabase.from("reference_results").select("*", { count: "exact", head: true })
+        .in("user_id", memberIds).in("status", ["completed", "failed"]).eq("visibility", true)
+        .filter("settings", "cs", '{"isLifestyleMode":true}')
+    );
+    if (countError) return res.status(500).json({ success: false, message: "Failed to fetch count" });
+
+    const { data, error } = await retryQuery(() =>
+      supabase.from("reference_results")
+        .select(`id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`)
+        .in("user_id", memberIds).in("status", ["completed", "failed"]).eq("visibility", true)
+        .filter("settings", "cs", '{"isLifestyleMode":true}')
+        .order("created_at", { ascending }).range(offset, offset + parsedLimit - 1)
+    );
+    if (error) return res.status(500).json({ success: false, message: "Failed to fetch data" });
+
+    logger.log(`📊 [FEATURE-HISTORY] lifestyle: ${data?.length || 0} items, total: ${totalCount}`);
+    return await buildResponse(res, data, totalCount, parsedPage, parsedLimit, offset, isTeamMember);
+  } catch (error) {
+    console.error("❌ [FEATURE-HISTORY] lifestyle error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
+/**
+ * GET /api/feature-history/infographic/:userId
+ */
+router.get("/infographic/:userId", async (req, res) => {
+  try {
+    const setup = await setupRequest(req);
+    if (setup.error) return res.status(400).json({ success: false, message: setup.error });
+    const { userId, parsedLimit, parsedPage, offset, memberIds, isTeamMember, ascending } = setup;
+
+    const { count: totalCount, error: countError } = await retryQuery(() =>
+      supabase.from("reference_results").select("*", { count: "exact", head: true })
+        .in("user_id", memberIds).in("status", ["completed", "failed"]).eq("visibility", true)
+        .filter("settings", "cs", '{"isInfographicMode":true}')
+    );
+    if (countError) return res.status(500).json({ success: false, message: "Failed to fetch count" });
+
+    const { data, error } = await retryQuery(() =>
+      supabase.from("reference_results")
+        .select(`id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`)
+        .in("user_id", memberIds).in("status", ["completed", "failed"]).eq("visibility", true)
+        .filter("settings", "cs", '{"isInfographicMode":true}')
+        .order("created_at", { ascending }).range(offset, offset + parsedLimit - 1)
+    );
+    if (error) return res.status(500).json({ success: false, message: "Failed to fetch data" });
+
+    logger.log(`📊 [FEATURE-HISTORY] infographic: ${data?.length || 0} items, total: ${totalCount}`);
+    return await buildResponse(res, data, totalCount, parsedPage, parsedLimit, offset, isTeamMember);
+  } catch (error) {
+    console.error("❌ [FEATURE-HISTORY] infographic error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
+/**
+ * GET /api/feature-history/detail-closeup/:userId
+ */
+router.get("/detail-closeup/:userId", async (req, res) => {
+  try {
+    const setup = await setupRequest(req);
+    if (setup.error) return res.status(400).json({ success: false, message: setup.error });
+    const { userId, parsedLimit, parsedPage, offset, memberIds, isTeamMember, ascending } = setup;
+
+    const { count: totalCount, error: countError } = await retryQuery(() =>
+      supabase.from("reference_results").select("*", { count: "exact", head: true })
+        .in("user_id", memberIds).in("status", ["completed", "failed"]).eq("visibility", true)
+        .filter("settings", "cs", '{"isDetailCloseupMode":true}')
+    );
+    if (countError) return res.status(500).json({ success: false, message: "Failed to fetch count" });
+
+    const { data, error } = await retryQuery(() =>
+      supabase.from("reference_results")
+        .select(`id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`)
+        .in("user_id", memberIds).in("status", ["completed", "failed"]).eq("visibility", true)
+        .filter("settings", "cs", '{"isDetailCloseupMode":true}')
+        .order("created_at", { ascending }).range(offset, offset + parsedLimit - 1)
+    );
+    if (error) return res.status(500).json({ success: false, message: "Failed to fetch data" });
+
+    logger.log(`📊 [FEATURE-HISTORY] detail-closeup: ${data?.length || 0} items, total: ${totalCount}`);
+    return await buildResponse(res, data, totalCount, parsedPage, parsedLimit, offset, isTeamMember);
+  } catch (error) {
+    console.error("❌ [FEATURE-HISTORY] detail-closeup error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
+/**
+ * GET /api/feature-history/problem-solution/:userId
+ */
+router.get("/problem-solution/:userId", async (req, res) => {
+  try {
+    const setup = await setupRequest(req);
+    if (setup.error) return res.status(400).json({ success: false, message: setup.error });
+    const { userId, parsedLimit, parsedPage, offset, memberIds, isTeamMember, ascending } = setup;
+
+    const { count: totalCount, error: countError } = await retryQuery(() =>
+      supabase.from("reference_results").select("*", { count: "exact", head: true })
+        .in("user_id", memberIds).in("status", ["completed", "failed"]).eq("visibility", true)
+        .filter("settings", "cs", '{"isProblemSolutionMode":true}')
+    );
+    if (countError) return res.status(500).json({ success: false, message: "Failed to fetch count" });
+
+    const { data, error } = await retryQuery(() =>
+      supabase.from("reference_results")
+        .select(`id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`)
+        .in("user_id", memberIds).in("status", ["completed", "failed"]).eq("visibility", true)
+        .filter("settings", "cs", '{"isProblemSolutionMode":true}')
+        .order("created_at", { ascending }).range(offset, offset + parsedLimit - 1)
+    );
+    if (error) return res.status(500).json({ success: false, message: "Failed to fetch data" });
+
+    logger.log(`📊 [FEATURE-HISTORY] problem-solution: ${data?.length || 0} items, total: ${totalCount}`);
+    return await buildResponse(res, data, totalCount, parsedPage, parsedLimit, offset, isTeamMember);
+  } catch (error) {
+    console.error("❌ [FEATURE-HISTORY] problem-solution error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
+/**
+ * GET /api/feature-history/comparison/:userId
+ */
+router.get("/comparison/:userId", async (req, res) => {
+  try {
+    const setup = await setupRequest(req);
+    if (setup.error) return res.status(400).json({ success: false, message: setup.error });
+    const { userId, parsedLimit, parsedPage, offset, memberIds, isTeamMember, ascending } = setup;
+
+    const { count: totalCount, error: countError } = await retryQuery(() =>
+      supabase.from("reference_results").select("*", { count: "exact", head: true })
+        .in("user_id", memberIds).in("status", ["completed", "failed"]).eq("visibility", true)
+        .filter("settings", "cs", '{"isComparisonMode":true}')
+    );
+    if (countError) return res.status(500).json({ success: false, message: "Failed to fetch count" });
+
+    const { data, error } = await retryQuery(() =>
+      supabase.from("reference_results")
+        .select(`id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`)
+        .in("user_id", memberIds).in("status", ["completed", "failed"]).eq("visibility", true)
+        .filter("settings", "cs", '{"isComparisonMode":true}')
+        .order("created_at", { ascending }).range(offset, offset + parsedLimit - 1)
+    );
+    if (error) return res.status(500).json({ success: false, message: "Failed to fetch data" });
+
+    logger.log(`📊 [FEATURE-HISTORY] comparison: ${data?.length || 0} items, total: ${totalCount}`);
+    return await buildResponse(res, data, totalCount, parsedPage, parsedLimit, offset, isTeamMember);
+  } catch (error) {
+    console.error("❌ [FEATURE-HISTORY] comparison error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
+/**
+ * GET /api/feature-history/size-dimension/:userId
+ */
+router.get("/size-dimension/:userId", async (req, res) => {
+  try {
+    const setup = await setupRequest(req);
+    if (setup.error) return res.status(400).json({ success: false, message: setup.error });
+    const { userId, parsedLimit, parsedPage, offset, memberIds, isTeamMember, ascending } = setup;
+
+    const { count: totalCount, error: countError } = await retryQuery(() =>
+      supabase.from("reference_results").select("*", { count: "exact", head: true })
+        .in("user_id", memberIds).in("status", ["completed", "failed"]).eq("visibility", true)
+        .filter("settings", "cs", '{"isSizeDimensionMode":true}')
+    );
+    if (countError) return res.status(500).json({ success: false, message: "Failed to fetch count" });
+
+    const { data, error } = await retryQuery(() =>
+      supabase.from("reference_results")
+        .select(`id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`)
+        .in("user_id", memberIds).in("status", ["completed", "failed"]).eq("visibility", true)
+        .filter("settings", "cs", '{"isSizeDimensionMode":true}')
+        .order("created_at", { ascending }).range(offset, offset + parsedLimit - 1)
+    );
+    if (error) return res.status(500).json({ success: false, message: "Failed to fetch data" });
+
+    logger.log(`📊 [FEATURE-HISTORY] size-dimension: ${data?.length || 0} items, total: ${totalCount}`);
+    return await buildResponse(res, data, totalCount, parsedPage, parsedLimit, offset, isTeamMember);
+  } catch (error) {
+    console.error("❌ [FEATURE-HISTORY] size-dimension error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
+/**
+ * GET /api/feature-history/before-after/:userId
+ */
+router.get("/before-after/:userId", async (req, res) => {
+  try {
+    const setup = await setupRequest(req);
+    if (setup.error) return res.status(400).json({ success: false, message: setup.error });
+    const { userId, parsedLimit, parsedPage, offset, memberIds, isTeamMember, ascending } = setup;
+
+    const { count: totalCount, error: countError } = await retryQuery(() =>
+      supabase.from("reference_results").select("*", { count: "exact", head: true })
+        .in("user_id", memberIds).in("status", ["completed", "failed"]).eq("visibility", true)
+        .filter("settings", "cs", '{"isBeforeAfterMode":true}')
+    );
+    if (countError) return res.status(500).json({ success: false, message: "Failed to fetch count" });
+
+    const { data, error } = await retryQuery(() =>
+      supabase.from("reference_results")
+        .select(`id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`)
+        .in("user_id", memberIds).in("status", ["completed", "failed"]).eq("visibility", true)
+        .filter("settings", "cs", '{"isBeforeAfterMode":true}')
+        .order("created_at", { ascending }).range(offset, offset + parsedLimit - 1)
+    );
+    if (error) return res.status(500).json({ success: false, message: "Failed to fetch data" });
+
+    logger.log(`📊 [FEATURE-HISTORY] before-after: ${data?.length || 0} items, total: ${totalCount}`);
+    return await buildResponse(res, data, totalCount, parsedPage, parsedLimit, offset, isTeamMember);
+  } catch (error) {
+    console.error("❌ [FEATURE-HISTORY] before-after error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
 /**
  * GET /api/feature-history/chat-edit/:userId
  * Chat edit history from chat_edits
