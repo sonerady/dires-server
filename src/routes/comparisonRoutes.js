@@ -912,7 +912,7 @@ async function deductCreditOnSuccess(generationId, userId) {
       existingGen?.settings?.qualityVersion ||
       existingGen?.settings?.quality_version ||
       "v1";
-    const CREDIT_COST = qualityVersion === "v2" ? 35 : 10; // v2 için 35, v1 için 10 kredi
+    const CREDIT_COST = 15;
 
     logger.log(
       `💳 [CREDIT] Kalite versiyonu: ${qualityVersion}, Kredi maliyeti: ${CREDIT_COST}`
@@ -1181,7 +1181,7 @@ async function updateGenerationStatus(
 
 // Aspect ratio formatını düzelten yardımcı fonksiyon
 function formatAspectRatio(ratioStr) {
-  const validRatios = ["1:1", "4:3", "3:4", "16:9", "9:16", "21:9"];
+  const validRatios = ["1:1", "4:3", "3:4", "3:2", "2:3", "16:9", "9:16", "21:9"];
 
   try {
     // "original" veya tanımsız değerler için varsayılan oran
@@ -1306,7 +1306,24 @@ async function enhancePromptWithGemini(
   isInfographicMode = false, // İnfografik modu mu?
   productFeatures = null, // Kullanıcının girdiği ürün özellikleri (opsiyonel)
   isLifestyleMode = false, // Lifestyle modu mu?
-  lifestyleScene = null // Kullanıcının girdiği sahne açıklaması (opsiyonel)
+  lifestyleScene = null, // Kullanıcının girdiği sahne açıklaması (opsiyonel)
+  lifestyleLayout = "single", // "single" = tek sahne, "multi" = çoklu tema yan yana
+  addTextOverlay = false, // görselde yazı olsun mu
+  isDetailCloseupMode = false, // Detail/Close-up modu mu?
+  detailFocus = null, // Kullanıcının odaklanmak istediği detay (opsiyonel)
+  detailLayout = "single", // "single" = tek detay, "multi" = çoklu detay grid
+  detailLightingStyle = "soft", // "soft" = yumuşak ışık, "dramatic" = dramatik yan ışık
+  detailBackgroundStyle = "bokeh", // "bokeh" = bulanık arka plan, "white" = temiz beyaz
+  isSizeDimensionMode = false, // Size/Dimension modu mu?
+  sizeComparisonType = "hand", // "hand" = el ile karşılaştırma, "objects" = günlük objeler, "ruler" = cetvel/ölçü
+  productDimensions = null, // Kullanıcının girdiği boyut bilgisi (opsiyonel, "15x10x5 cm" gibi)
+  sizeLayout = "single", // "single" = tek görsel, "multi" = çoklu karşılaştırma grid
+  isComparisonMode = false, // Comparison Image modu mu?
+  comparisonType = "side_by_side", // "side_by_side" = yan yana, "table" = tablo grid
+  competitorInfo = null, // Rakip ürün bilgisi (opsiyonel, kullanıcının girdiği)
+  comparisonFeatures = null, // Karşılaştırılacak özellikler (opsiyonel)
+  comparisonLayout = "single", // "single" = tek görsel, "multi" = çoklu karşılaştırma
+  comparisonBackground = "scenic" // "scenic" = sahneli, "plain" = sade beyaz
 ) {
   try {
     logger.log(
@@ -2197,10 +2214,559 @@ FINAL QUALITY STANDARDS:
 Generate ONLY the final transformation prompt. Do NOT include these instructions, category labels, or commentary. Just the prompt text.
 REMEMBER: Use ENGLISH for all color names in your output, even if the user provided them in another language.
 `;
+    } else if (isComparisonMode) {
+      // COMPARISON IMAGE MODE - "Our Product vs Others" karşılaştırma görseli oluşturma
+      const comparisonStyleSection = comparisonType === "table" ? `
+📊 TABLE/GRID COMPARISON LAYOUT:
+- Create a clean COMPARISON TABLE or GRID showing "Ours vs Others"
+- Left column or top row: Feature names/categories
+- "OURS" column: GREEN checkmarks, positive highlights, superior specs
+- "OTHERS" column: RED X marks, inferior specs, missing features
+- Use a clear header row: "OURS" (with product image) vs "OTHERS" (generic/blurred)
+- Feature rows should include 4-6 key comparison points:
+  - Material quality (Premium vs Standard)
+  - Durability / Build quality
+  - Design / Craftsmanship
+  - Key specifications (size, weight, capacity, etc.)
+  - Value for money
+  - Customer satisfaction indicators
+- Clean, professional table design with alternating row colors
+- "OURS" side should be visually prominent — slightly larger, brighter, with a subtle green/gold highlight
+- "OTHERS" side should be subtly desaturated or gray-toned
+` : `
+🆚 SIDE-BY-SIDE COMPARISON LAYOUT:
+- Split the image into TWO clear halves: LEFT = "OURS" / RIGHT = "OTHERS"
+- "OURS" side: The actual product from the reference image — bright, vibrant, premium presentation
+- "OTHERS" side: A GENERIC version of a similar product — slightly desaturated, lower quality appearance
+- Clear visual hierarchy: "OURS" should look obviously superior
+- Add comparison callout arrows/labels pointing to key differences:
+  - "Premium Material" vs "Cheap Material"
+  - "Reinforced Stitching" vs "Loose Threads"
+  - "Solid Construction" vs "Flimsy Build"
+  - "Precise Finish" vs "Rough Edges"
+- The "OTHERS" product should be a REALISTIC but GENERIC competitor — not a specific brand
+- DO NOT copy any real brand or trademarked product for "OTHERS"
+- "OURS" side should have a subtle green/gold border or glow
+- "OTHERS" side should have a subtle red/gray border
+`;
+
+      const competitorSection = competitorInfo ? `
+=== COMPETITOR CONTEXT (FROM USER) ===
+The user provided this context about competitors: "${competitorInfo}"
+Use this information to make the comparison MORE SPECIFIC and RELEVANT:
+- Identify the key weaknesses of competitors mentioned
+- Highlight where the user's product excels compared to these competitors
+- Create realistic but generic "Others" representation based on this info
+- DO NOT use any specific brand names or logos — keep "Others" generic
+` : `
+=== AUTO-DETECT COMPARISON POINTS ===
+Since no specific competitor info was provided:
+- Analyze the product image to identify its category (fashion, electronics, home goods, etc.)
+- Determine the most common complaints/weaknesses for this product category on Amazon/Etsy
+- Create comparison points that highlight typical quality differences:
+  - Material quality (premium vs budget)
+  - Construction/craftsmanship (detailed vs rough)
+  - Design elements (refined vs generic)
+  - Durability indicators (reinforced vs basic)
+  - Finish/polish (premium vs mediocre)
+`;
+
+      const featuresSection = comparisonFeatures ? `
+=== USER-SPECIFIED COMPARISON FEATURES ===
+The user wants to highlight these specific features: "${comparisonFeatures}"
+Make these the PRIMARY comparison points in the image.
+Each feature should have a clear "Ours: Superior" vs "Others: Inferior" visual treatment.
+` : `
+=== AUTO-SELECT COMPARISON FEATURES ===
+Choose the 4-6 most impactful comparison features based on the product category:
+- For Fashion: material quality, stitching, fit, fabric weight, color fastness
+- For Electronics: build quality, components, safety certifications, performance specs
+- For Home Goods: material durability, finish quality, weight/sturdiness, design detail
+- For Accessories: craftsmanship, hardware quality, material grade, longevity
+- For Beauty/Personal Care: ingredients quality, packaging, formulation, effectiveness
+`;
+
+      const layoutSection = comparisonLayout === "multi" ? `
+=== MULTI-VIEW COMPARISON (CRITICAL) ===
+- Create a GRID with 2-3 different comparison views:
+  - Overall product comparison (side by side)
+  - Detail/close-up comparison (material quality zoom)
+  - Feature table/checklist comparison
+- Clean white dividing lines between sections
+- Each section should have a clear "OURS vs OTHERS" distinction
+- Consistent visual language across all comparison views
+` : `
+=== SINGLE VIEW COMPARISON ===
+- ONE powerful comparison image
+- Clear split between "OURS" and "OTHERS"
+- All comparison elements in a single clean composition
+- Maximum visual impact in one frame
+`;
+
+      const textSection = addTextOverlay ? `
+🔴 TEXT OVERLAY (MUST INCLUDE):
+- Professional comparison text callouts
+- Feature labels with checkmark/X symbols
+- "OURS" and "OTHERS" header labels
+- Key advantage text (e.g., "2X More Durable", "Premium Materials", "Handcrafted Quality")
+- Clean, modern typography that doesn't overwhelm the images
+` : `
+🔴 MINIMAL TEXT:
+- Include only "OURS" and "OTHERS" labels
+- Checkmark and X symbols for feature comparison
+- Keep text minimal — let the visual quality difference speak for itself
+`;
+
+      const outputStyle = comparisonType === "table" ? "Use a clean table/grid format with checkmarks and X marks." : "Use a side-by-side split layout with clear visual quality difference.";
+      const outputLayout = comparisonLayout === "multi" ? "Create a multi-view comparison grid." : "Create a single powerful comparison composition.";
+      const outputText = addTextOverlay ? "Include professional comparison text callouts and feature labels." : "Keep text minimal with only essential labels.";
+      const userContext = originalPrompt ? "Additional context from user: " + originalPrompt : "";
+
+      promptForGemini = `
+You are a world-class Amazon/Etsy product marketing designer specializing in COMPARISON IMAGES — the "Our Product vs Others" style visuals that top sellers use to demonstrate competitive advantages. Your task is to analyze the product image provided and generate a SINGLE comprehensive image generation prompt that creates a professional, persuasive comparison image.
+
+⚠️ ABSOLUTE CRITICAL RULE - DO NOT CHANGE THE PRODUCT:
+- The "OURS" product in the generated image MUST be EXACTLY the same as the reference image
+- DO NOT change the product's color, shape, design, brand, or any visual aspect
+- You are creating a COMPARISON CONTEXT around the UNCHANGED product
+- The product must remain IDENTICAL — same color, same material, same everything
+
+🔴🔴🔴 WHY COMPARISON IMAGES ARE CRITICAL FOR AMAZON/ETSY 🔴🔴🔴
+- Comparison images are the #1 most effective listing image type for conversion
+- They immediately answer the buyer's question: "Why should I choose THIS product over others?"
+- Top Amazon sellers use comparison images to highlight quality, features, and value
+- These images reduce decision fatigue and increase Add-to-Cart rates by 30-50%
+- Etsy buyers especially respond to "handmade quality vs mass-produced" comparisons
+- Amazon A+ Content featuring comparison images consistently outperforms other formats
+
+=== COMPARISON STYLE ===
+${comparisonStyleSection}
+${competitorSection}
+${featuresSection}
+${layoutSection}
+
+=== BACKGROUND & SCENE ===
+${comparisonBackground === "plain" ? `
+🔴 PLAIN WHITE BACKGROUND:
+- Pure white (#FFFFFF) or very light neutral background
+- Clean, minimal, Amazon-style product listing aesthetic
+- No environmental elements, no distractions
+- Professional studio-shot feel with even lighting
+- Focus entirely on the product comparison itself
+` : `
+🔴 SCENIC BACKGROUND (AUTO-DETECT BEST SCENE):
+- Analyze the product category and AUTO-SELECT the most relevant, compelling scene:
+  - Fashion/Clothing → stylish lifestyle setting (living room, street, store display)
+  - Electronics/Tech → modern workspace or desk setup
+  - Kitchen/Home → beautiful kitchen counter or dining area
+  - Outdoor/Sports → natural outdoor environment (park, trail, beach)
+  - Beauty/Skincare → elegant bathroom vanity or marble surface
+  - Jewelry/Accessories → luxurious display with soft fabric or marble
+  - Furniture/Decor → well-designed room interior
+  - Toys/Kids → playful, colorful kids room or play area
+- Place both products in the SAME realistic scene for fair comparison
+- The scene should feel natural — as if the products are being used/displayed in real life
+- Warm, inviting atmosphere with natural or premium lighting
+- Scene enhances the comparison by showing products in real-world context
+- Props and environmental elements should complement the product category
+- DO NOT let the scene distract from the comparison — products remain the focus
+`}
+
+=== VISUAL STYLE REQUIREMENTS ===
+
+🔴 HEADER:
+- Bold header text: "OURS vs OTHERS" or "Why Choose Us?" — professional, modern typography
+- Header should be prominent but not overwhelming
+- Use a clean, premium font style
+
+🔴 "OURS" PRESENTATION:
+- Product shown in its BEST light — bright, vibrant, premium
+- Subtle GREEN or GOLD accent color for positive highlights
+- Checkmark symbols for features
+- Labels like "Premium", "Superior", "Professional Grade"
+- The product photo should be high-quality and well-lit
+
+🔴 "OTHERS" PRESENTATION:
+- Generic competitor product — NOT a specific real brand
+- Slightly desaturated, less vibrant appearance
+- Subtle RED or GRAY accent color for negative highlights
+- X mark symbols for inferior features
+- Labels like "Standard", "Basic", "Budget"
+- Should look realistic but clearly inferior
+
+🔴 TYPOGRAPHY:
+- Clean, modern sans-serif font
+- High contrast text for readability on mobile
+- Feature labels should be concise and impactful
+- All text in ENGLISH
+
+🔴 COMPOSITION:
+- Clear visual hierarchy — the eye should naturally go to "OURS" first
+- Balanced layout but with subtle bias toward "OURS" (slightly larger, brighter, more prominent)
+- Enough white space for a premium, professional feel
+- Mobile-optimized — readable on smartphone screens
+
+${textSection}
+
+🔴 WHAT MAKES COMPARISON IMAGES SELL ON AMAZON/ETSY:
+- The #1 goal: make the buyer think "clearly THIS one is better"
+- Show, don't just tell — visual quality difference is more powerful than text
+- Keep it honest but persuasive — exaggerate presentation, not facts
+- The comparison should feel fair but clearly favor "OURS"
+- Top sellers report 25-50% conversion increase with good comparison images
+- Amazon's algorithm rewards listings with diverse image types including comparisons
+
+=== OUTPUT ===
+Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST create a professional "Ours vs Others" comparison image that clearly demonstrates why the user's product is superior. The product must match the reference image EXACTLY for the "OURS" side. ${outputStyle} ${outputLayout} ${outputText} The "OTHERS" side should show a GENERIC competitor — never a specific real brand.
+
+${userContext}
+`;
+    } else if (isSizeDimensionMode) {
+      // SIZE/DIMENSION MODE - Ürün boyut/ölçü karşılaştırma görseli oluşturma
+      promptForGemini = `
+You are a world-class Amazon/Etsy product photographer and infographic designer specializing in SIZE and DIMENSION visualization images. Your task is to analyze the product image provided and generate a SINGLE comprehensive image generation prompt that will create a clear, professional size/dimension reference image that helps customers understand the EXACT size of the product.
+
+⚠️ ABSOLUTE CRITICAL RULE - DO NOT CHANGE THE PRODUCT:
+- The product in the generated image MUST be EXACTLY the same as the reference image
+- DO NOT change the product's color, shape, design, brand, or any visual aspect
+- You are ONLY placing the product in a SIZE COMPARISON context
+- The product must remain IDENTICAL — same color, same material, same everything
+
+🔴🔴🔴 WHY SIZE IMAGES ARE CRITICAL FOR AMAZON/ETSY 🔴🔴🔴
+- The #1 customer complaint on Amazon: "It was smaller/bigger than I expected"
+- Size confusion causes 20-30% of returns on Amazon
+- Clear size reference images reduce returns dramatically and increase buyer confidence
+- Amazon's Style Guide RECOMMENDS size comparison images
+- Etsy buyers especially need size context for handmade/unique items
+
+=== SIZE COMPARISON TYPE ===
+
+${sizeComparisonType === "hand" ? `
+🤚 HAND COMPARISON MODE:
+- Show the product being HELD in a human hand or hands to demonstrate real-world scale
+- The hand(s) should be clean, well-groomed, neutral skin tone — professional model hands
+- Natural, relaxed grip — not squeezing or awkwardly holding
+- The product-to-hand ratio must be REALISTIC and ACCURATE
+- Show the product from an angle where both the product shape AND the hand gripping it are clearly visible
+- If the product is too large to hold in one hand, show two hands or show the product next to a hand for scale
+- If the product is tiny (jewelry, small electronics), show it on an open palm or pinched between fingers
+- The hand provides IMMEDIATE intuitive understanding of product size
+` : sizeComparisonType === "objects" ? `
+📏 EVERYDAY OBJECTS COMPARISON MODE:
+- Place the product NEXT TO common, universally recognized everyday objects for instant size reference
+- Choose comparison objects that are similar in size to the product for meaningful comparison
+- UNIVERSAL reference objects by size category:
+  - TINY products (< 5cm): coin, AA battery, SD card, key, paper clip, USB drive
+  - SMALL products (5-15cm): smartphone (iPhone), credit card, pen, tennis ball, coffee mug
+  - MEDIUM products (15-40cm): laptop, A4/letter paper, ruler, basketball, shoe, water bottle
+  - LARGE products (40-100cm): guitar, suitcase, chair, yoga mat, skateboard
+  - VERY LARGE products (> 100cm): human silhouette, door frame, bicycle, sofa
+- Place 2-3 reference objects at varying positions for clear comparison
+- Objects should be placed on the SAME surface, at the SAME depth, with consistent scale
+- Use common objects that EVERYONE recognizes regardless of culture or country
+` : `
+📐 DIMENSIONS ONLY MODE (NO COMPARISON OBJECT):
+- Show the product ALONE on a clean white background — NO hand, NO comparison objects
+- Focus purely on DIMENSIONAL ANNOTATIONS: measurement lines, arrows, and cm/metric labels
+- Add clean, professional dimension lines showing length, width, and height/depth
+- Measurement lines with arrows pointing to the edges of the product
+- Numbers and units must be clearly legible — large enough to read on a phone screen
+- Think: a product specification diagram or technical drawing with real product photo
+- The product should be cleanly lit and centered, with dimension annotations around it
+`}
+
+${productDimensions ? `
+=== USER-PROVIDED DIMENSIONS (MUST DISPLAY) ===
+The user specified these dimensions: "${productDimensions}"
+You MUST prominently display these measurements on or near the product using:
+- Clean measurement lines with arrows
+- Clear, readable dimension text (e.g., "32 cm", "12.5 inches")
+- Professional infographic-style dimension annotations
+- Place measurements along the appropriate edges of the product
+` : `
+=== AUTO-ESTIMATE DIMENSIONS ===
+Since the user didn't provide specific dimensions, estimate the product's approximate size from the image and:
+- Show the product in a context that makes its size immediately obvious
+- Use the selected comparison method to provide intuitive size reference
+- The viewer should instantly understand "oh, it's about THIS big"
+`}
+
+${sizeLayout === "multi" ? `
+=== MULTI-VIEW SIZE LAYOUT (CRITICAL) ===
+- Create a GRID or COLLAGE showing the product from MULTIPLE angles with size references
+- Include 2-4 different views:
+  - Front view with width/height measurements
+  - Side/profile view with depth measurement
+  - Top-down view showing footprint/base dimensions
+  - A scale comparison view (hand, object, or ruler depending on mode)
+- Clean white dividing lines between sections
+- Each view should have relevant dimension annotations
+- Think: Amazon A+ Content multi-angle dimension infographic
+- All views must show the SAME product with consistent lighting
+` : `
+=== SINGLE VIEW SIZE LAYOUT ===
+- ONE clear, powerful size reference image
+- The product and size reference (hand/objects/ruler) in a single clean composition
+- Clean, uncluttered — the focus is PURELY on communicating SIZE
+- Dimension annotations if applicable
+- Professional, clean studio look
+`}
+
+=== VISUAL STYLE REQUIREMENTS ===
+
+🔴 BACKGROUND:
+- CLEAN WHITE or very light neutral background — this is a SIZE REFERENCE image, not a lifestyle photo
+- No distracting elements — pure focus on the product and its size context
+- Professional studio lighting — even, bright, no harsh shadows
+
+🔴 LIGHTING:
+- Even, bright studio lighting that clearly shows the product and comparison reference
+- No dramatic shadows that could distort perceived size
+- True-to-life color accuracy
+- Both the product and the reference object must be well-lit and clearly visible
+
+🔴 DIMENSION ANNOTATIONS (ALWAYS INCLUDE):
+- Add clean measurement lines with arrows showing key dimensions
+- Use professional infographic-style annotations
+- Text must be: clear, readable, modern sans-serif font
+- Include METRIC measurements (cm or m)
+- Dimension lines should be thin, clean, and professional — not cluttered
+- Place dimension text outside the product silhouette when possible
+- Use a contrasting color for dimension lines/text (dark gray or black on white bg)
+
+🔴 COMPOSITION:
+- Product CENTERED with comparison reference appropriately positioned
+- Enough white space around edges for a clean, professional look
+- The product must be the HERO — comparison objects are supporting elements
+- Scale must be ACCURATE and REALISTIC — do not exaggerate or minimize
+- Camera angle: slightly elevated (30°) for 3/4 view, or straight-on for flat products
+
+${addTextOverlay ? `
+🔴 TEXT OVERLAY (MUST INCLUDE):
+- Add professional Amazon/Etsy style text labels
+- Include product name/title at top
+- Feature callouts with dimensions: "32 cm wide", "Fits in your pocket", "King Size: 180x200 cm"
+- Use clean, modern typography
+- Maximum 3-4 text elements — don't overcrowd
+- Text should HELP communicate size, not just decorate
+` : `
+🔴 DIMENSION TEXT ONLY:
+- Include dimension measurements and measurement lines/arrows
+- But do NOT add marketing text, product titles, or feature callouts
+- Keep it clean and technical — like a product specification diagram
+`}
+
+🔴 WHAT MAKES SIZE IMAGES SELL ON AMAZON/ETSY:
+- Customers need to INSTANTLY understand the product's real-world size
+- Reduce "it was smaller than expected" returns by showing honest scale
+- Professional size reference images increase buyer confidence by 25%+
+- Amazon's algorithm favors listings with comprehensive image sets including size references
+- The image should answer: "How big is this? Will it fit? Is it the right size for me?"
+
+=== OUTPUT ===
+Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST create a professional size/dimension reference image that clearly communicates the product's real-world size. The product must match the reference image EXACTLY. Include dimension annotations with metric measurements. ${sizeComparisonType === "hand" ? "Show the product held in or compared with a human hand." : sizeComparisonType === "objects" ? "Show the product next to universally recognized everyday objects for scale." : "Show the product alone with only dimension annotations — no comparison objects."} ${sizeLayout === "multi" ? "Create a multi-view grid showing different angles with measurements." : "Create a single clean size reference composition."} ${addTextOverlay ? "Include professional text callouts about dimensions." : "Include only dimension measurements, no marketing text."}
+
+${originalPrompt ? `Additional context from user: ${originalPrompt}` : ""}
+`;
+    } else if (isDetailCloseupMode) {
+      // DETAIL CLOSEUP MODE - Makro/close-up ürün detay fotoğrafı oluşturma
+      promptForGemini = `
+You are a world-class macro and close-up product photographer specializing in e-commerce detail photography for Amazon, Etsy, Shopify, and premium D2C brands. Your task is to analyze the product image provided and generate a SINGLE comprehensive image generation prompt that will create a stunning, professional detail/close-up macro shot that highlights the product's material quality, craftsmanship, and construction details.
+
+⚠️ ABSOLUTE CRITICAL RULE - DO NOT CHANGE THE PRODUCT:
+- The product in the generated close-up photo MUST be EXACTLY the same as the reference image
+- DO NOT change the product's color, shape, design, brand, or any visual aspect
+- DO NOT modify textures, patterns, or any part of the product
+- You are ONLY creating a MACRO/CLOSE-UP perspective of the UNCHANGED product
+- The close-up must show the REAL details of the ACTUAL product — same color, same material, same everything
+
+IMPORTANT: Analyze the product image carefully to understand:
+1. What type of product it is (clothing, leather goods, electronics, jewelry, footwear, home goods, etc.)
+2. The EXACT materials visible (leather, fabric, metal, wood, ceramic, rubber, glass, etc.)
+3. Construction details (stitching, seams, joints, welds, adhesives)
+4. Hardware components (zippers, buttons, clasps, hinges, screws, snaps, buckles, rivets)
+5. Branding elements (logos, labels, tags, embossing, engraving)
+6. Surface finish (polish, matte, brushed, hammered, patina, gloss, satin)
+
+=== DETAIL FOCUS AREAS BY PRODUCT CATEGORY (MUST FOLLOW) ===
+
+Analyze the product type and choose the MOST compelling detail area to photograph up close:
+
+🔍 Fashion/Clothing:
+- Stitching patterns and thread quality — show individual stitches, double-stitching, reinforced seams
+- Fabric weave and texture — show the individual fibers, knit patterns, woven structure
+- Button details — material, attachment method, finish quality
+- Zipper pulls — metal quality, teeth alignment, slider mechanism
+- Label/tag — brand label stitching, care instructions, material composition tag
+- Hem finish — folded edges, blind hem stitching, serged edges
+- Collar/cuff construction — structured lining, bone inserts, reinforcement
+
+🔍 Leather Goods (Bags, Wallets, Belts):
+- Leather grain texture — full-grain pores, pebble texture, smooth surface quality
+- Edge finishing — burnished edges, painted edges, raw cut edges
+- Hardware — brass/nickel buckles, clasps, D-rings, rivets, snap closures
+- Embossed/debossed logos — depth of impression, clarity
+- Stitching — saddle stitch, lock stitch, thread thickness, stitch spacing
+- Lining — interior material quality, pocket construction
+
+🔍 Jewelry & Watches:
+- Stone setting — prong quality, bezel setting, pavé detail
+- Clasp mechanism — spring ring, lobster claw, toggle, box clasp
+- Engraving — text clarity, depth, decorative patterns
+- Metal finish — high polish, brushed, hammered, oxidized
+- Chain link detail — link shape, solder quality, movement
+- Hallmark/stamp — purity stamp, maker's mark
+
+🔍 Electronics & Gadgets:
+- Build quality — material junction, panel gaps, fit and finish
+- Port/connector detail — USB-C, charging port, headphone jack precision
+- Button/switch texture — tactile feedback indicators, labeling
+- Logo engraving — laser etching quality, depth
+- Ventilation grille — pattern, precision cutting
+- Screen bezel — edge-to-edge transition, curvature
+
+🔍 Footwear:
+- Sole tread pattern — grip texture, rubber compound quality
+- Stitching — welt construction, Blake stitch, Goodyear welt
+- Eyelet detail — metal grommets, reinforced holes
+- Insole branding — embossed logo, printed details
+- Material transition areas — where leather meets rubber, fabric meets sole
+- Tongue construction — padding, logo tag attachment
+
+🔍 Home Goods & Kitchenware:
+- Material texture — wood grain, ceramic glaze, metal finish, glass clarity
+- Joint/assembly quality — dovetail joints, mortise and tenon, welded seams
+- Handle/grip detail — ergonomic shape, material wrapping, attachment method
+- Surface treatment — non-stick coating, seasoning patina, anodized finish
+- Brand marking — stamped logo, etched mark, applied badge
+
+${detailFocus ? `
+=== USER-SPECIFIED DETAIL FOCUS (MUST FOLLOW) ===
+The user wants to specifically focus on: "${detailFocus}"
+You MUST prioritize this detail area in the close-up composition. Create the macro shot centered on this specific detail.
+` : `
+=== AUTO-DETECT BEST DETAIL ===
+Since the user didn't specify a focus area, you MUST identify the MOST visually compelling and commercially valuable detail of this specific product and create the close-up around it. Choose the detail that would most impress a potential buyer and build confidence in the product's quality.
+`}
+
+=== MACRO PHOTOGRAPHY TECHNICAL REQUIREMENTS (CRITICAL) ===
+
+🔴 DEPTH OF FIELD (CRITICAL):
+- Very shallow DOF equivalent to f/2.8 or wider
+- The detail area MUST be razor-sharp while surrounding areas have smooth, creamy bokeh
+${detailBackgroundStyle === "bokeh" ? `- Background should be the blurred continuation of the product itself — smooth, creamy bokeh with beautiful color transitions
+- The transition from sharp to blurred must be gradual and pleasing` : `- Background MUST be CLEAN WHITE / neutral white studio background
+- Product detail is isolated on pure white, like Apple product detail pages
+- No environmental context — pure clinical white isolation to maximize detail visibility`}
+
+🔴 FOCUS & SHARPNESS (CRITICAL):
+- Tack-sharp focus on the detail area — every thread, grain, or texture element must be individually visible
+- At macro distance: show individual stitches, leather pores, metal scratches, fabric fibers
+- Zero motion blur, zero camera shake — absolute crispness
+- The level of detail should be BEYOND what the naked eye can see
+
+🔴 CAMERA DISTANCE & LENS (CRITICAL):
+- True macro distance — close enough to see individual stitches, grain patterns, or surface micro-textures
+- Simulate 100mm macro lens characteristics: flat field, minimal distortion, beautiful bokeh rendering
+- The detail area should fill 60-80% of the frame
+- Maintain enough context to understand what part of the product is being shown
+
+🔴 LIGHTING FOR MACRO (MOST CRITICAL):
+${detailLightingStyle === "dramatic" ? `- DRAMATIC SIDE LIGHTING: Use strong directional side light at 30-45° angle to REVEAL texture depth
+  - Every bump, weave, grain, and stitch should cast defined micro-shadows
+  - This is what separates amateur close-ups from professional macro photography
+  - High contrast between lit and shadowed areas to emphasize 3D texture
+- RIM LIGHT: Strong rim/edge light from behind to create dramatic edge separation and halo effect
+- FILL LIGHT: Minimal fill — let shadows stay deep and dramatic for maximum texture revelation
+- SPECULAR HIGHLIGHTS: For metal hardware, show bold specular highlights that reveal polish, brushing marks, and finish quality
+- Mood: Dramatic, high-contrast, textural — think luxury watch advertisements or Hermès leather detail shots` : `- SOFT LIGHTING: Even, diffused lighting from multiple soft sources for clean, flattering illumination
+  - Soft directional light at 45-60° angle to gently reveal texture without harsh shadows
+  - Beautiful, smooth gradients across the surface
+- RIM LIGHT: Subtle rim/edge light from behind to define edges and create gentle separation
+- FILL LIGHT: Strong fill from opposite side to minimize shadow contrast while maintaining some depth
+- SPECULAR HIGHLIGHTS: For metal hardware, show controlled, soft specular highlights
+- Mood: Clean, premium, approachable — think Apple product photography or Everlane detail shots`}
+- AVOID: Flat overhead lighting that eliminates texture. Macro photography REQUIRES directional light to reveal surface detail
+
+🔴 CAMERA ANGLES FOR DIFFERENT DETAILS:
+- Stitching/seams → 30-45° angle to show thread depth and shadow in stitch holes
+- Logos/embossing → Straight-on OR raking angle to show depth of impression
+- Fabric texture → 20-30° angle to reveal weave pattern and fiber direction
+- Hardware (zippers, buckles) → 15-30° low angle to show dimension and weight
+- Surface finish (metal, leather) → Various angles to capture reflections and texture
+- Engravings → Raking light at extreme angle to make text pop with shadow
+
+${detailLayout === "multi" ? `🔴 MULTI-DETAIL LAYOUT (CRITICAL):
+- Create a GRID or COLLAGE showing MULTIPLE detail angles of the same product
+- Show 3-4 different detail areas: one main large detail shot + 2-3 smaller supporting detail views
+- Arrange as a professional product detail grid — like a luxury brand product page
+- Each detail view should highlight a DIFFERENT aspect: material texture, stitching, hardware, branding, construction
+- Clean dividing lines or white spacing between sections
+- All shots maintain consistent lighting style and color temperature
+- Think: Apple's "Designed by Apple" detail grids or luxury watch multi-angle detail layouts` : `🔴 SINGLE DETAIL COMPOSITION (CRITICAL):
+- ONE focused, powerful detail shot — the MOST compelling detail area
+- Detail area fills 60-80% of the frame — large enough to show micro-details
+- Product context visible but blurred in the background (the viewer should still understand what product this is)
+- Use negative space intentionally for a clean, professional look
+- The viewer's eye is IMMEDIATELY drawn to the sharp detail area
+- NO busy backgrounds, NO lifestyle props — this is PURELY about the PRODUCT DETAIL`}
+
+🔴 COLOR & MOOD:
+- True-to-life color accuracy — detail shots MUST show exact material colors as they really are
+- Professional, clean aesthetic — think Apple product pages, luxury brand detail photography
+- Slight warmth in lighting to make materials look premium and inviting
+- Rich, saturated material colors without oversaturation
+
+${addTextOverlay ? `🔴 TEXT OVERLAY (MUST INCLUDE):
+- Add professional Amazon/Etsy style text callouts highlighting the detail features
+- Use clean, modern typography — thin sans-serif fonts
+- Text should describe the detail: "Premium Full-Grain Leather", "Hand-Stitched Double Seam", "Solid Brass Hardware", etc.
+- Use thin lines/arrows pointing from text to specific detail areas
+- Maximum 2-3 text callouts — don't overcrowd
+- Text color: white with subtle drop shadow on dark backgrounds, dark gray on light backgrounds
+- Keep text minimal, professional, and informative — like premium Amazon A+ content
+- Text MUST be relevant to the actual visible detail in the shot` : `🔴 NO TEXT OVERLAY:
+- Do NOT add any text, labels, callouts, or typography on the image
+- The detail photo should be PURELY visual — let the craftsmanship speak for itself
+- Clean, uncluttered composition without any overlaid text elements`}
+
+🔴 WHAT MAKES DETAIL PHOTOS SELL ON AMAZON/ETSY:
+- Detail photos BUILD BUYER CONFIDENCE — they prove the product is well-made
+- Customers zoom into detail shots to check quality before purchasing
+- Show the product is PREMIUM, not cheap — every visible detail should scream quality
+- The close-up should answer: "Is this product well-constructed? Is the material good? Will this last?"
+- Professional detail shots can increase conversion rates by 15-25% on Amazon listings
+- Think: the quality level of detail shots on Apple.com, luxury fashion houses, or premium watch brands
+
+=== OUTPUT ===
+Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST create a professional macro/close-up product photo that showcases material quality, craftsmanship, and construction details at a level that builds buyer confidence. The product's colors and appearance must match the reference image EXACTLY. Use ${detailLightingStyle === "dramatic" ? "dramatic side lighting to reveal texture depth" : "soft, diffused lighting for a clean premium look"} and ${detailBackgroundStyle === "bokeh" ? "very shallow depth of field for professional bokeh" : "clean white studio background for clinical detail isolation"}. ${detailLayout === "multi" ? "Create a multi-detail grid/collage showing several detail angles." : "Create a single focused macro shot."} ${addTextOverlay ? "Include professional text callouts highlighting key detail features." : "No text overlay — purely visual."}
+
+${originalPrompt ? `Additional context from user: ${originalPrompt}` : ""}
+`;
     } else if (isLifestyleMode) {
       // LIFESTYLE MODE - Lifestyle ürün fotoğrafı oluşturma
       promptForGemini = `
-You are a professional lifestyle product photographer and art director. Your task is to analyze the product image provided and generate a SINGLE comprehensive image generation prompt that will create a stunning lifestyle product photo.
+You are a world-class lifestyle product photographer, art director, and e-commerce visual strategist specializing in Amazon, Etsy, Shopify, and premium D2C brand imagery. Your task is to analyze the product image provided and generate a SINGLE comprehensive image generation prompt that will create a stunning, high-converting lifestyle product photo.
+
+🔴🔴🔴 #1 PRIORITY — PERSON USING THE PRODUCT (MOST IMPORTANT RULE) 🔴🔴🔴
+The lifestyle photo MUST predominantly show a REAL PERSON actively USING the product. Do NOT just place the product on a surface or in a scene by itself. A human must be interacting with, holding, wearing, or using the product in a natural, authentic way. This is the SINGLE MOST IMPORTANT factor for lifestyle photos that convert on Amazon/Etsy.
+
+Examples of what we WANT:
+✅ Blanket → A person wrapped in it on a couch, reading a book with a cup of tea
+✅ Kitchen torch → A person's hand holding it, caramelizing crème brûlée
+✅ Sponge → A person scrubbing dishes at a kitchen sink
+✅ Backpack → Someone wearing it while walking through a city or trail
+✅ Skincare → A person applying it to their face in a bathroom mirror
+✅ Headphones → A person wearing them while working or commuting
+✅ Water bottle → A person drinking from it during a workout or hike
+
+Examples of what we DO NOT WANT:
+❌ Blanket just lying folded on a bed — NO PERSON
+❌ Kitchen torch sitting on a counter — NO ONE USING IT
+❌ Sponge placed next to a sink — NOT IN ACTION
+❌ Backpack sitting on a chair — NOT BEING WORN
+
+The person should look natural, authentic, and aspirational. Their face can be partially visible, fully visible, or cropped out — but their BODY and HANDS must be clearly interacting with the product. The person's styling (clothing, grooming) should match the product's brand positioning.
 
 ⚠️ ABSOLUTE CRITICAL RULE - DO NOT CHANGE THE PRODUCT:
 - The product in the generated lifestyle photo MUST be EXACTLY the same as the reference image
@@ -2208,55 +2774,207 @@ You are a professional lifestyle product photographer and art director. Your tas
 - DO NOT modify textures, patterns, or any part of the product
 - The product must appear IDENTICAL to the original reference photo
 - You are ONLY placing the unchanged product into a lifestyle scene/environment
+- While you MUST fix amateur photo quality issues (lighting, sharpness, dust), the product itself (color, design, shape, brand) must stay IDENTICAL
 
 IMPORTANT: Analyze the product image carefully to understand:
-1. What type of product it is
+1. What type of product it is (clothing, skincare, electronics, food, home decor, jewelry, etc.)
 2. The EXACT colors, patterns, and appearance - describe them accurately
 3. The product's size, shape, and proportions
+4. The product's target audience and market positioning
 
 Then generate a prompt for creating a PROFESSIONAL LIFESTYLE PRODUCT PHOTO:
 
-=== LIFESTYLE PHOTO REQUIREMENTS ===
+=== CRITICAL: AMATEUR-TO-PROFESSIONAL TRANSFORMATION ===
 
-PRODUCT PRESERVATION (MOST IMPORTANT):
-- The product MUST remain EXACTLY as shown in the reference image - same colors, same design
-- Describe the product's ACTUAL appearance accurately
+The input image is likely an AMATEUR photo. Your generated prompt MUST fix ALL amateur photography problems:
 
-SCENE & ENVIRONMENT:
-- Create a natural, aesthetically pleasing lifestyle setting appropriate for the product
-- The scene should tell a story and evoke emotion
-- Use complementary props that enhance but don't overshadow the product
-- Natural lighting (golden hour, soft daylight, window light)
-- Depth of field to keep product sharp while background has pleasant bokeh
+🔴 LIGHTING TRANSFORMATION (CRITICAL):
+- REPLACE harsh phone flash or uneven indoor lighting with beautiful, natural lifestyle lighting
+- Use golden hour warmth, soft window light, or dappled sunlight filtering through leaves — whichever suits the product best
+- Create natural light and shadow interplay that adds depth, dimension, and a premium feel
+- Ensure the product is well-lit and the hero of the scene — no dark or underexposed product areas
+- Light should feel organic and real, NEVER artificial or studio-flat in a lifestyle context
 
-COMPOSITION:
-- Product should be the clear focal point
-- Rule of thirds or centered composition
-- Natural, unstaged feeling while maintaining professional quality
-- Props arranged organically around the product
+🔴 PRODUCT CLEANUP (CRITICAL):
+- REMOVE all imperfections: dust, lint, fingerprints, smudges, scratches, stains, price tags, stickers, barcodes
+- FIX wrinkles, creases, sagging — product must look pristine, brand-new, and premium
+- CORRECT any color casts — ensure true-to-life color accuracy
+- SHARPEN soft/blurry areas — product must be crisp and detailed
+- ENHANCE material textures: show fabric weave, leather grain, metal sheen, glass clarity at their absolute best
 
-STYLE REFERENCES:
-- Instagram-worthy lifestyle photography
-- Pinterest-style flat lays or styled scenes
-- Editorial product photography for lifestyle brands
-- Think: the kind of photos you see on premium D2C brand websites
+🔴 BACKGROUND & ENVIRONMENT REPLACEMENT (CRITICAL):
+- COMPLETELY REMOVE the original amateur background (messy desk, bed, floor, hand, etc.)
+- REPLACE with a carefully curated lifestyle scene that makes the product irresistible
+- The environment must feel REAL, LIVED-IN, and ASPIRATIONAL — not fake or overly staged
 
-MOOD & ATMOSPHERE:
-- Warm, inviting, aspirational
-- Clean but not sterile - lived-in luxury feel
-- Colors that complement the product naturally
+=== LIFESTYLE SCENE DESIGN (CRITICAL) ===
+
+🔴 SCENE SELECTION BY PRODUCT CATEGORY (MUST FOLLOW):
+Analyze the product type and choose the MOST EFFECTIVE lifestyle scene based on what top Amazon/Etsy sellers and premium brands actually use:
+
+• Skincare/Beauty → Marble bathroom counter, spa setting with eucalyptus and candles, minimalist vanity with mirror, morning routine flat lay
+• Coffee/Tea/Food → Rustic wooden table with morning light, cozy kitchen counter, café setting, breakfast scene with steam
+• Clothing/Fashion → Casually draped on a linen sofa, hanging on a vintage rack, flat lay on white bedding, styled on a wooden chair
+• Jewelry/Watches → Velvet tray with soft bokeh, marble surface with gold accents, morning light on a nightstand, elegant flat lay with dried flowers
+• Electronics/Gadgets → Clean desk setup, modern workspace, leather pad on wooden desk, travel bag context
+• Home Decor → Styled on a shelf with books and plants, cozy living room corner, Scandinavian interior, bedside table vignette
+• Fitness/Sports → Gym bag context, outdoor trail setting, yoga mat scene, post-workout flat lay
+• Kids/Baby Products → Soft nursery setting, playful pastel background, cozy blanket scene, natural outdoor setting
+• Candles/Fragrances → Evening ambiance with warm glow, bathtub edge with flowers, reading nook with blanket, windowsill at sunset
+• Bags/Accessories → Café table scene, travel flat lay with passport and sunglasses, styled entry table, outdoor urban setting
+• Kitchen/Cooking → Granite counter with fresh ingredients, styled dinner table, cooking-in-progress scene, organized pantry shelf
+• Pet Products → Happy pet interaction scene, cozy pet bed setting, outdoor park context, playful indoor scene
+• Stationery/Art → Creative desk setup, inspiration board context, organized workspace, artist studio vibe
+• Plants/Garden → Sunny windowsill, boho shelf with terracotta, outdoor patio garden, greenhouse setting
+
+🔴 PRODUCT IN-USE / IN-ACTION SCENE (MOST CRITICAL - THIS IS WHAT SELLS):
+The lifestyle photo MUST show the product being ACTIVELY USED BY A PERSON. This is the #1 factor that converts browsers into buyers on Amazon/Etsy. Do NOT just place the product on a pretty surface — show a REAL PERSON using it IN ACTION.
+
+REMEMBER: A person MUST be present in the scene, actively interacting with the product. The person's hands, arms, or body must be visible holding, wearing, touching, or using the product.
+
+Analyze the product and determine its PRIMARY USE CASE, then create a scene that captures a PERSON using the product at that exact moment:
+
+• Kitchen torch/Blowtorch → A hand holding it, caramelizing the sugar crust on a crème brûlée, with the blue flame visible and the dessert golden-brown
+• Dish sponge/Scrubber → A hand scrubbing a pan or dish in a beautiful kitchen sink, with soap suds and running water, clean dishes drying nearby
+• Chef's knife → Mid-slice through fresh vegetables on a wooden cutting board, with colorful ingredients scattered around
+• Coffee maker/French press → Pouring freshly brewed coffee into a ceramic mug, with steam rising, morning light streaming in
+• Candle → Lit and glowing warmly on a nightstand or bath edge, with soft ambient light and cozy textures around
+• Skincare/Cream → Being applied to skin, or squeezed onto fingertips, with a dewy fresh-faced look
+• Water bottle → Being held during a hike/workout, or placed on a gym bench with a towel
+• Pen/Notebook → Mid-writing on a beautiful page, with a cup of coffee nearby, creative workspace setting
+• Plant pot → With a thriving green plant inside, on a sunny windowsill or styled shelf
+• Phone case → On a phone being held casually, or placed on a café table next to a latte
+• Backpack/Bag → Being worn casually or opened showing organized contents, in an outdoor/travel context
+• Blanket/Throw → A person wrapped in it on a couch, legs curled up, holding a mug of hot drink, reading a book — the ultimate cozy evening scene
+• Cleaning product → In the middle of cleaning a sparkling surface, showing the before/after effect
+• Tool/Gadget → Being used for its intended purpose, hands visible, showing the product solving a real problem
+• Yoga mat → Unrolled with someone in a yoga pose, peaceful studio or outdoor setting
+• Headphones → Being worn while working, commuting, or exercising — showing the lifestyle context
+• Sunglasses → Being worn outdoors, or placed on a beach towel/café table with a summer vibe
+• Cookware/Pan → On a stove with food being cooked, steam rising, kitchen action shot
+
+CRITICAL RULES FOR IN-USE SCENES:
+- A PERSON MUST BE PRESENT in every lifestyle photo — this is NON-NEGOTIABLE
+- The product must be the STAR — even in action, it must be clearly visible, well-lit, and sharp
+- The person should look natural, authentic, well-groomed, and aspirational — they enhance the scene, not distract from the product
+- Show the person's hands, arms, or body ACTIVELY using the product — not just standing near it
+- The action should be frozen at the most VISUALLY APPEALING moment (mid-pour, mid-slice, mid-application, mid-wrap)
+- Show the RESULT and JOY of using the product when possible (cozy comfort, clean result, delicious food)
+- The scene must answer: "THIS is what MY life looks like when I use this product"
+- The person's styling (clothing, grooming, accessories) should match the product's brand positioning and target demographic
+- If the product is wearable (clothing, jewelry, accessories, headphones), show someone WEARING it
+- If the product is a tool/utensil, show someone USING it for its purpose
+- If the product is home goods (blanket, pillow, decor), show someone ENJOYING it in a living space
+
+🔴 PROPS & STYLING (CRITICAL):
+- Choose 3-5 complementary props that ENHANCE the product story without competing for attention
+- Props must be contextually relevant — they should make sense in the scene (coffee cup near a book, not random objects)
+- Use props that signal quality and lifestyle: fresh flowers, artisan ceramics, natural fabrics, organic textures
+- Color-coordinate props to complement (not clash with) the product's actual colors
+- NEVER let props overshadow or obstruct the product — the product is ALWAYS the hero
+- Include subtle "human touch" elements: a hand reaching, a cup with steam, a page mid-turn — to create connection
+
+🔴 COMPOSITION & FRAMING (CRITICAL):
+- Product must occupy 40-60% of the frame — large enough to see details, with enough scene for context
+- Use the rule of thirds — place the product at a power point, not dead center (unless it's a deliberate symmetrical flat lay)
+- Create visual depth with foreground blur elements, mid-ground product focus, and soft background layers
+- For flat lays: overhead shot (90°) with organized but organic arrangement
+- For styled scenes: 30-45° angle that shows both the product and the environment
+- For "in-use" context: eye-level or slight above, as if the viewer is about to use the product
+- Leave intentional negative space for potential text overlay (Amazon/Etsy sellers often add text to lifestyle images)
+- Guide the viewer's eye naturally toward the product using leading lines, color contrast, or light direction
+
+🔴 MOOD, COLOR & ATMOSPHERE (CRITICAL):
+- Create a specific MOOD that matches the product's brand positioning:
+  • Premium/Luxury → Moody, rich tones, deep shadows, gold accents, velvet textures
+  • Fresh/Natural → Bright, airy, whites and greens, natural materials, morning light
+  • Cozy/Warm → Warm amber tones, soft textures, candlelight, blankets, autumn vibes
+  • Modern/Minimal → Clean lines, neutral palette, geometric elements, crisp shadows
+  • Playful/Fun → Vibrant pops of color, dynamic arrangements, energetic compositions
+  • Bohemian/Artisan → Earth tones, handmade textures, macramé, dried flowers, natural wood
+- Color palette must be COHESIVE — the product, props, and background should work as a unified color story
+- Avoid harsh or neon colors that look cheap — everything should feel curated and intentional
+
+🔴 LIGHTING STYLE FOR LIFESTYLE (CRITICAL):
+- GOLDEN HOUR: Warm directional light with long soft shadows — perfect for outdoor and window scenes
+- SOFT DAYLIGHT: Even, diffused natural light — ideal for flat lays and bright, airy compositions
+- WINDOW LIGHT: Dramatic side lighting with gentle falloff — great for moody product stories
+- DAPPLED LIGHT: Filtered through leaves or blinds — adds organic texture and interest to the scene
+- WARM AMBIENT: Soft warm glow from candles or lamps — for evening/cozy atmospheres
+- Choose the lighting that BEST SERVES the product category and mood
+
+🔴 WHAT MAKES LIFESTYLE PHOTOS SELL ON AMAZON/ETSY (CRITICAL):
+- The photo must answer the customer's question: "What will my life look like with this product?"
+- Show the product IN CONTEXT of daily life — not isolated on white, but integrated into an aspirational scene
+- Create EMOTIONAL CONNECTION — the viewer should WANT to be in this scene
+- The overall quality must match what you see on the best-selling Amazon listings and featured Etsy shops
+- Think: the hero images on brands like Anthropologie, West Elm, Glossier, Aesop — polished but authentic
+- The image should stop a scrolling customer and make them click — it must be THUMB-STOPPING quality
+
+🔴 PERSPECTIVE & CAMERA ANGLE (CRITICAL):
+Analyze the product and choose the perspective that lifestyle photographers actually use for this category:
+• Flat lay items (stationery, food, jewelry) → Overhead 90° bird's eye view
+• Bottles/Skincare/Candles → 30-45° angle showing label and scene context
+• Clothing/Textiles → 45° angle draped naturally in scene, or flat lay
+• Electronics/Gadgets → Slight hero angle (10-20° below eye level) on a styled desk
+• Home Decor → Eye-level or slight above, showing the item in its natural habitat
+• Bags/Shoes → 3/4 angle at ground/table level in a lifestyle context
+• Food/Drinks → 45° angle or overhead, capturing the full scene arrangement
 
 ${lifestyleScene ? `
 === USER-PROVIDED SCENE DESCRIPTION (MUST FOLLOW) ===
-The user has described the following scene/environment. You MUST incorporate this into the lifestyle photo:
+The user has described the following scene/environment. You MUST incorporate this into the lifestyle photo as the PRIMARY scene direction:
 
 "${lifestyleScene}"
 
-Use this description as the primary guide for the scene setting, props, and atmosphere.
+Use this description as the primary guide for the scene setting, props, and atmosphere. Adapt the styling advice above to match the user's vision.
 ` : ""}
 
+${lifestyleLayout === "multi" ? `
+=== 🔴 MULTI-SCENE LAYOUT MODE (CRITICAL) ===
+The user has selected MULTI-SCENE layout. You MUST create a SINGLE image that contains MULTIPLE different lifestyle scenes/themes of the SAME product arranged SIDE BY SIDE in a grid or collage layout within ONE frame.
+
+RULES FOR MULTI-SCENE LAYOUT:
+- Create 2-4 different lifestyle usage scenarios of the product, all within ONE image
+- Each scene should show the product in a DIFFERENT context/environment/use-case
+- Arrange the scenes in a clean grid layout (2x1, 2x2, or 1x3 depending on the image ratio)
+- Each scene should have its own distinct color palette, lighting, and props
+- Use subtle dividers or natural spacing between scenes
+- Each scene must still look professional and high-quality
+- The product must remain UNCHANGED across all scenes — same color, shape, design
+- Think of it like a "mood board" or "lifestyle collage" that shows versatility
+
+EXAMPLE: For a kitchen torch:
+Scene 1: Torch caramelizing crème brûlée on a marble countertop
+Scene 2: Torch searing steak on a cutting board with herbs
+Scene 3: Torch melting cheese on French onion soup
+
+EXAMPLE: For a water bottle:
+Scene 1: On a gym bench with towel and headphones
+Scene 2: On a hiking trail rock with mountain backdrop
+Scene 3: On an office desk with laptop and plant
+` : `
+=== SINGLE-SCENE LAYOUT MODE ===
+Create ONE cohesive lifestyle scene with the product as the hero. The entire image should be a single, unified composition — one environment, one mood, one story.
+`}
+
+${addTextOverlay ? `
+=== 🔴 TEXT OVERLAY ON IMAGE (ENABLED) ===
+The user wants Amazon/Etsy style TEXT OVERLAYS on the lifestyle image. You MUST include text elements in your prompt:
+- Add 2-4 short, punchy marketing text callouts directly on the image
+- Text should describe the scene, product benefits, or usage context (e.g., "Perfect for Weekend Brunch", "Professional Grade", "Effortless Cleaning", "Made for Outdoor Adventures")
+- Use clean, modern sans-serif typography
+- Text should be placed in non-obstructive areas (corners, top/bottom bars, or semi-transparent overlay strips)
+- Text color should contrast well with the background for readability
+- Keep text minimal and elegant — NOT cluttered. Think premium Amazon A+ Content or Etsy listing hero images
+- The text must be relevant to the specific lifestyle scene being shown
+` : `
+=== 🔴 NO TEXT ON IMAGE ===
+Do NOT add ANY text, typography, labels, callouts, watermarks, or written content on the image. The lifestyle photo must be PURELY visual — only the product in its lifestyle scene with NO text elements whatsoever.
+`}
+
 === OUTPUT ===
-Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST describe the product with its ORIGINAL colors and appearance from the reference image placed in a beautiful lifestyle setting.${lifestyleScene ? " Follow the user's scene description." : ""}
+Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST describe the product with its ORIGINAL colors and appearance from the reference image placed in a beautiful, high-converting lifestyle setting.${lifestyleScene ? " Follow the user's scene description." : ""}${lifestyleLayout === "multi" ? " The image MUST contain multiple different lifestyle scenes arranged in a grid/collage layout within a single frame." : ""}${addTextOverlay ? " Include Amazon/Etsy style marketing text overlays on the image." : " Do NOT include any text or typography on the image."} The result must be indistinguishable from a professional lifestyle photo shoot by a top e-commerce photographer.
 
 ${originalPrompt ? `Additional context from user: ${originalPrompt}` : ""}
 `;
@@ -3195,12 +3913,41 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
             ? "professionally presented"
             : "to float cleanly"
           }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
+      } else if (isComparisonMode) {
+        // Comparison mode için fallback prompt
+        logger.log(
+          "🆚 [CATCH-COMPARISON] Gemini başarısız, comparison fallback prompt kullanılıyor"
+        );
+        const bgText = comparisonBackground === "plain"
+          ? "Clean white background, professional studio-shot feel."
+          : "Place both products in a realistic scenic background relevant to the product category — auto-detect the best scene (lifestyle, workspace, outdoor, etc.). Both products in the same scene.";
+        enhancedPrompt = comparisonLayout === "multi"
+          ? `Create a multi-view "Ours vs Others" comparison grid. Include overall product comparison, detail quality comparison, and feature checklist. ${comparisonFeatures ? `Compare: ${comparisonFeatures}. ` : "Compare material quality, construction, durability, design. "}"OURS" side bright and premium with green accents, "OTHERS" side desaturated with red accents. ${competitorInfo ? `Context: ${competitorInfo}. ` : ""}${addTextOverlay ? "Include comparison text callouts. " : ""}${bgText} Product must match reference exactly. Professional Amazon/Etsy quality.`
+          : `Create a professional "Ours vs Others" comparison image. ${comparisonType === "table" ? "Clean table format with checkmarks for OURS and X marks for OTHERS." : "Side-by-side split — OURS bright and premium on left, OTHERS generic and desaturated on right."} ${comparisonFeatures ? `Compare: ${comparisonFeatures}. ` : "Compare material quality, construction, durability. "}${competitorInfo ? `Context: ${competitorInfo}. ` : ""}${bgText} Product must match reference exactly. ${addTextOverlay ? "Include comparison labels. " : ""}Professional Amazon/Etsy quality.`;
+      } else if (isSizeDimensionMode) {
+        // Size/Dimension mode için fallback prompt
+        logger.log(
+          "📐 [CATCH-SIZE] Gemini başarısız, size/dimension fallback prompt kullanılıyor"
+        );
+        enhancedPrompt = sizeLayout === "multi"
+          ? `Create a multi-view grid showing the product from multiple angles with size/dimension measurements. Include front view with width/height, side view with depth, and a ${sizeComparisonType === "hand" ? "hand holding the product for scale" : sizeComparisonType === "objects" ? "comparison with everyday objects (phone, pen, coin) for scale" : "dimension annotations only, no comparison objects"}. ${productDimensions ? `Product dimensions: ${productDimensions}. ` : ""}Add clean measurement lines with arrows and metric (cm) annotations. Clean white background, professional studio lighting. The product must remain exactly as shown in the reference. ${addTextOverlay ? "Include professional text callouts about dimensions and features. " : ""}Professional Amazon/Etsy size reference image quality.`
+          : `Create a professional size/dimension reference image. Show the product ${sizeComparisonType === "hand" ? "being held in a human hand to demonstrate real-world scale" : sizeComparisonType === "objects" ? "next to common everyday objects (smartphone, pen, coin) for instant size comparison" : "alone on white background with only dimension measurement annotations"}. ${productDimensions ? `Product dimensions: ${productDimensions}. ` : ""}Add clean measurement lines with metric (cm) annotations showing key dimensions. Clean white background, professional studio lighting. The product must remain exactly as shown in the reference. ${addTextOverlay ? "Include professional text callouts about dimensions. " : ""}Professional Amazon/Etsy size reference image quality.`;
+      } else if (isDetailCloseupMode) {
+        // Detail closeup mode için fallback prompt
+        logger.log(
+          "🔍 [CATCH-DETAIL] Gemini başarısız, detail closeup fallback prompt kullanılıyor"
+        );
+        enhancedPrompt = detailLayout === "multi"
+          ? `Create a single image containing a grid/collage of 3-4 different macro/close-up detail shots of the same product. Each detail view highlights a DIFFERENT aspect: material texture, stitching, hardware, branding, construction. ${detailFocus ? `Primary focus on: ${detailFocus}. ` : "Focus on the most visually compelling details. "}${detailLightingStyle === "dramatic" ? "Dramatic side lighting at 30-45 degrees with bold shadows to reveal texture depth. " : "Soft, diffused lighting for clean, premium detail visibility. "}${detailBackgroundStyle === "white" ? "Clean white studio background. " : "Very shallow depth of field with smooth bokeh. "}The product must remain exactly as shown in the reference - same colors, design, and appearance. ${addTextOverlay ? "Include professional text callouts highlighting key detail features like material type, construction quality. " : ""}Professional macro photography quality suitable for premium e-commerce listings.`
+          : `Create a professional macro/close-up product photo. ${detailFocus ? `Focus on: ${detailFocus}. ` : "Focus on the most visually compelling detail of the product. "}Show extreme close-up of material texture, stitching, hardware, or construction details. ${detailLightingStyle === "dramatic" ? "Dramatic side lighting at 30-45 degrees with bold micro-shadows to reveal surface texture depth. " : "Soft, even diffused lighting for clean, premium detail visibility. "}${detailBackgroundStyle === "white" ? "Clean white studio background for clinical detail isolation. " : "Very shallow depth of field with the detail area razor-sharp and background smoothly blurred. "}The product must remain exactly as shown in the reference - same colors, design, and appearance. ${addTextOverlay ? "Include professional Amazon/Etsy style text callouts highlighting the detail features. " : ""}Professional macro photography quality suitable for premium e-commerce listings.`;
       } else if (isLifestyleMode) {
         // Lifestyle mode için fallback prompt
         logger.log(
           "🌿 [CATCH-LIFESTYLE] Gemini başarısız, lifestyle fallback prompt kullanılıyor"
         );
-        enhancedPrompt = `Create a professional lifestyle product photo. Place the product from the reference image in a beautiful, natural setting with warm lighting. ${lifestyleScene ? `Scene: ${lifestyleScene}. ` : "Use a cozy, aesthetic environment with complementary props. "}The product must remain exactly as shown in the reference - same colors, design, and appearance. Soft natural daylight, shallow depth of field with the product in sharp focus. Instagram-worthy composition with organic prop arrangement. Warm, inviting, aspirational mood. Premium lifestyle brand photography quality.`;
+        enhancedPrompt = lifestyleLayout === "multi"
+          ? `Create a single image containing 2-3 different lifestyle scenes arranged in a clean grid layout. Each scene shows a REAL PERSON actively USING the SAME product from the reference image in a DIFFERENT context. ${lifestyleScene ? `Scene direction: ${lifestyleScene}. ` : ""}The product must remain exactly as shown in the reference - same colors, design, and appearance. A person must be present in each scene, holding, wearing, or using the product. Professional lifestyle photography quality, premium e-commerce standard.`
+          : `Create a professional lifestyle product photo showing a REAL PERSON actively using the product from the reference image. ${lifestyleScene ? `Scene: ${lifestyleScene}. ` : "Show the person in a cozy, aesthetic environment naturally interacting with the product. "}The product must remain exactly as shown in the reference - same colors, design, and appearance. The person should look natural and aspirational, with their hands or body clearly using the product. Soft natural daylight, shallow depth of field with the product in sharp focus. Warm, inviting, aspirational mood. Premium lifestyle brand photography quality.`;
       } else if (isInfographicMode) {
         // Infographic mode için fallback prompt
         logger.log(
@@ -3287,12 +4034,44 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
         return refinerFallbackPrompt;
       }
 
+      // 🆚 COMPARISON MODE için özel fallback prompt
+      if (isComparisonMode) {
+        logger.log(
+          "🆚 [FALLBACK-COMPARISON] Comparison mode fallback prompt kullanılıyor"
+        );
+        return comparisonLayout === "multi"
+          ? `Create a multi-view comparison grid showing "Ours vs Others". Include an overall side-by-side product comparison, a detail/close-up quality comparison, and a feature checklist with checkmarks and X marks. ${comparisonFeatures ? `Highlight these features: ${comparisonFeatures}. ` : "Compare material quality, construction, durability, and design. "}"OURS" side shows the product from reference image — bright, premium, with green/gold accents. "OTHERS" shows a generic inferior competitor — desaturated, with red/gray accents. ${competitorInfo ? `Competitor context: ${competitorInfo}. ` : ""}${addTextOverlay ? "Include professional comparison text callouts and feature labels. " : "Keep text minimal with only essential labels. "}Clean white background, professional Amazon/Etsy listing quality.`
+          : `Create a professional "Ours vs Others" comparison image. ${comparisonType === "table" ? "Use a clean table/grid format with feature rows, green checkmarks for OURS and red X marks for OTHERS." : "Split the image into two halves — LEFT shows OURS (bright, premium, vibrant) and RIGHT shows OTHERS (generic, desaturated, inferior)."} ${comparisonFeatures ? `Compare these features: ${comparisonFeatures}. ` : "Compare material quality, construction, durability, and design. "}${competitorInfo ? `Competitor context: ${competitorInfo}. ` : ""}The OURS product must match the reference image exactly. OTHERS should be a generic competitor — never a specific real brand. ${addTextOverlay ? "Include comparison text callouts and feature labels. " : "Keep text minimal. "}Professional Amazon/Etsy quality.`;
+      }
+
+      // 📐 SIZE/DIMENSION MODE için özel fallback prompt
+      if (isSizeDimensionMode) {
+        logger.log(
+          "📐 [FALLBACK-SIZE] Size/Dimension mode fallback prompt kullanılıyor"
+        );
+        return sizeLayout === "multi"
+          ? `Create a multi-view grid showing the product from multiple angles with size/dimension measurements. Include front view with width/height, side view with depth, and a ${sizeComparisonType === "hand" ? "hand holding the product for scale" : sizeComparisonType === "objects" ? "comparison with everyday objects for scale" : "dimension annotations only"}. ${productDimensions ? `Dimensions: ${productDimensions}. ` : ""}Add measurement lines with metric annotations. Clean white background. The product must match the reference exactly. ${addTextOverlay ? "Include text callouts about dimensions. " : ""}Professional size reference image.`
+          : `Create a professional size reference image showing the product ${sizeComparisonType === "hand" ? "held in a human hand" : sizeComparisonType === "objects" ? "next to everyday objects (phone, pen, coin)" : "alone with only dimension measurement annotations"}. ${productDimensions ? `Dimensions: ${productDimensions}. ` : ""}Add measurement annotations in cm. Clean white background, studio lighting. Product must match reference exactly. ${addTextOverlay ? "Include dimension text callouts. " : ""}Professional Amazon/Etsy quality.`;
+      }
+
+      // 🔍 DETAIL CLOSEUP MODE için özel fallback prompt
+      if (isDetailCloseupMode) {
+        logger.log(
+          "🔍 [FALLBACK-DETAIL] Detail closeup mode fallback prompt kullanılıyor"
+        );
+        return detailLayout === "multi"
+          ? `Create a single image containing a grid/collage of 3-4 different macro/close-up detail shots of the same product. Each detail view highlights a DIFFERENT aspect: material texture, stitching, hardware, branding, construction. ${detailFocus ? `Primary focus on: ${detailFocus}. ` : "Focus on the most visually compelling details. "}${lightingStyle === "dramatic" ? "Dramatic side lighting at 30-45 degrees with bold shadows to reveal texture depth. " : "Soft, diffused lighting for clean, premium detail visibility. "}${backgroundStyle === "white" ? "Clean white studio background. " : "Very shallow depth of field with smooth bokeh. "}The product must remain exactly as shown in the reference - same colors, design, and appearance. ${addTextOverlay ? "Include professional text callouts highlighting key detail features. " : ""}Professional macro photography quality suitable for premium e-commerce listings.`
+          : `Create a professional macro/close-up product photo. ${detailFocus ? `Focus on: ${detailFocus}. ` : "Focus on the most visually compelling detail of the product. "}Show extreme close-up of material texture, stitching, hardware, or construction details. ${lightingStyle === "dramatic" ? "Dramatic side lighting at 30-45 degrees with bold micro-shadows to reveal surface texture depth. " : "Soft, even diffused lighting for clean, premium detail visibility. "}${backgroundStyle === "white" ? "Clean white studio background for clinical detail isolation. " : "Very shallow depth of field with the detail area razor-sharp and background smoothly blurred. "}The product must remain exactly as shown in the reference - same colors, design, and appearance. ${addTextOverlay ? "Include professional Amazon/Etsy style text callouts. " : ""}Professional macro photography quality suitable for premium e-commerce listings.`;
+      }
+
       // 🌿 LIFESTYLE MODE için özel fallback prompt
       if (isLifestyleMode) {
         logger.log(
           "🌿 [FALLBACK-LIFESTYLE] Lifestyle mode fallback prompt kullanılıyor"
         );
-        return `Create a professional lifestyle product photo. Place the product from the reference image in a beautiful, natural setting with warm lighting. ${lifestyleScene ? `Scene: ${lifestyleScene}. ` : "Use a cozy, aesthetic environment with complementary props. "}The product must remain exactly as shown in the reference - same colors, design, and appearance. Soft natural daylight, shallow depth of field with the product in sharp focus. Instagram-worthy composition with organic prop arrangement. Warm, inviting, aspirational mood. Premium lifestyle brand photography quality.`;
+        return lifestyleLayout === "multi"
+          ? `Create a single image containing 2-3 different lifestyle scenes arranged in a clean grid layout. Each scene shows a REAL PERSON actively USING the SAME product from the reference image in a DIFFERENT context. ${lifestyleScene ? `Scene direction: ${lifestyleScene}. ` : ""}The product must remain exactly as shown in the reference - same colors, design, and appearance. A person must be present in each scene, holding, wearing, or using the product. Professional lifestyle photography quality, premium e-commerce standard.`
+          : `Create a professional lifestyle product photo showing a REAL PERSON actively using the product from the reference image. ${lifestyleScene ? `Scene: ${lifestyleScene}. ` : "Show the person in a cozy, aesthetic environment naturally interacting with the product. "}The product must remain exactly as shown in the reference - same colors, design, and appearance. The person should look natural and aspirational, with their hands or body clearly using the product. Soft natural daylight, shallow depth of field with the product in sharp focus. Warm, inviting, aspirational mood. Premium lifestyle brand photography quality.`;
       }
 
       // 📊 INFOGRAPHIC MODE için özel fallback prompt
@@ -4020,7 +4799,7 @@ async function pollReplicateResultWithRetry(predictionId, maxRetries = 3) {
 router.post("/generate", async (req, res) => {
   // Kredi kontrolü ve düşme (kalite versiyonuna göre dinamik)
   let creditDeducted = false;
-  let actualCreditDeducted = 10; // Default v1 için 10 kredi
+  let actualCreditDeducted = 15;
   let userId; // Scope için önceden tanımla
   let finalGenerationId = null; // Scope için önceden tanımla
   let temporaryFiles = []; // Silinecek geçici dosyalar
@@ -4056,6 +4835,26 @@ router.post("/generate", async (req, res) => {
       // Lifestyle mode specific parameters (LifestyleGenerator)
       isLifestyleMode = false, // Bu bir lifestyle fotoğraf oluşturma işlemi mi?
       lifestyleScene = null, // Kullanıcının girdiği sahne açıklaması (opsiyonel)
+      lifestyleLayout = "single", // "single" = tek sahne, "multi" = çoklu tema yan yana
+      addTextOverlay = false, // görselde Amazon/Etsy tarzı yazılar olsun mu
+      // Detail/Close-up mode specific parameters
+      isDetailCloseupMode = false, // Detail/Close-up modu mu?
+      detailFocus = null, // Kullanıcının odaklanmak istediği detay (opsiyonel)
+      detailLayout = "single", // "single" = tek detay, "multi" = çoklu detay grid
+      lightingStyle = "soft", // "soft" = yumuşak, "dramatic" = dramatik
+      backgroundStyle = "bokeh", // "bokeh" = bulanık, "white" = beyaz
+      // Size/Dimension mode specific parameters
+      isSizeDimensionMode = false, // Size/Dimension modu mu?
+      sizeComparisonType = "hand", // "hand" = el, "objects" = günlük objeler, "ruler" = cetvel
+      productDimensions = null, // Kullanıcının girdiği boyut bilgisi
+      sizeLayout = "single", // "single" = tek görsel, "multi" = çoklu grid
+      // Comparison mode specific parameters
+      isComparisonMode = false, // Comparison Image modu mu?
+      comparisonType = "side_by_side", // "side_by_side" = yan yana, "table" = tablo grid
+      competitorInfo = null, // Rakip ürün bilgisi (opsiyonel)
+      comparisonFeatures = null, // Karşılaştırılacak özellikler (opsiyonel)
+      comparisonLayout = "single", // "single" = tek görsel, "multi" = çoklu
+      comparisonBackground = "scenic", // "scenic" = sahneli, "plain" = sade beyaz
       // Session deduplication
       sessionId = null, // Aynı batch request'leri tanımlıyor
       modelPhoto = null,
@@ -4065,7 +4864,7 @@ router.post("/generate", async (req, res) => {
     const qualityVersion = isRefinerMode
       ? "v1"
       : settings?.qualityVersion || settings?.quality_version || "v1";
-    const CREDIT_COST = qualityVersion === "v2" ? 35 : 10; // v2 için 35, v1 için 10 kredi
+    const CREDIT_COST = 15;
     actualCreditDeducted = CREDIT_COST;
 
     logger.log(
@@ -4173,6 +4972,23 @@ router.post("/generate", async (req, res) => {
     if (productFeatures) logger.log("📊 [BACKEND] productFeatures:", productFeatures);
     logger.log("🌿 [BACKEND] isLifestyleMode:", isLifestyleMode);
     if (lifestyleScene) logger.log("🌿 [BACKEND] lifestyleScene:", lifestyleScene);
+    logger.log("🌿 [BACKEND] lifestyleLayout:", lifestyleLayout);
+    logger.log("🌿 [BACKEND] addTextOverlay:", addTextOverlay);
+    logger.log("🔍 [BACKEND] isDetailCloseupMode:", isDetailCloseupMode);
+    if (detailFocus) logger.log("🔍 [BACKEND] detailFocus:", detailFocus);
+    if (isDetailCloseupMode) {
+      logger.log("🔍 [BACKEND] detailLayout:", detailLayout);
+      logger.log("🔍 [BACKEND] lightingStyle:", lightingStyle);
+      logger.log("🔍 [BACKEND] backgroundStyle:", backgroundStyle);
+      logger.log("🔍 [BACKEND] addTextOverlay:", addTextOverlay);
+    }
+    logger.log("📐 [BACKEND] isSizeDimensionMode:", isSizeDimensionMode);
+    if (isSizeDimensionMode) {
+      logger.log("📐 [BACKEND] sizeComparisonType:", sizeComparisonType);
+      logger.log("📐 [BACKEND] sizeLayout:", sizeLayout);
+      logger.log("📐 [BACKEND] addTextOverlay:", addTextOverlay);
+      if (productDimensions) logger.log("📐 [BACKEND] productDimensions:", productDimensions);
+    }
     const incomingReferenceCount = referenceImages?.length || 0;
     const totalReferenceCount =
       incomingReferenceCount + (modelReferenceImage ? 1 : 0);
@@ -4405,6 +5221,7 @@ router.post("/generate", async (req, res) => {
       totalGenerations: totalGenerations, // Pay-on-success için gerekli
       ...(sessionId && { sessionId: sessionId }),
       ...(isColorChange && { isColorChange: true }), // Color change flag'i kaydet
+      ...(isComparisonMode && { isComparisonMode: true }),
     };
 
     // Kalite versiyonunu ayrı bir değişken olarak al
@@ -4632,9 +5449,137 @@ router.post("/generate", async (req, res) => {
 
     let enhancedPrompt, backgroundRemovedImage;
 
-    if (isLifestyleMode || isInfographicMode || isColorChange || isPoseChange || isRefinerMode) {
-      // 🌿 LIFESTYLE MODE, 📊 INFOGRAPHIC MODE, 🎨 COLOR CHANGE MODE, 🕺 POSE CHANGE MODE veya 🔧 REFINER MODE
-      if (isLifestyleMode) {
+    if (isComparisonMode || isSizeDimensionMode || isDetailCloseupMode || isLifestyleMode || isInfographicMode || isColorChange || isPoseChange || isRefinerMode) {
+      // 🆚 COMPARISON MODE, 📐 SIZE/DIMENSION MODE, 🔍 DETAIL CLOSEUP MODE, 🌿 LIFESTYLE MODE, 📊 INFOGRAPHIC MODE, 🎨 COLOR CHANGE MODE, 🕺 POSE CHANGE MODE veya 🔧 REFINER MODE
+      if (isComparisonMode) {
+        logger.log(
+          "🆚 Comparison mode: Gemini ile karşılaştırma görseli prompt'u oluşturuluyor"
+        );
+
+        enhancedPrompt = await enhancePromptWithGemini(
+          promptText ||
+            "Create a professional 'Ours vs Others' comparison image showing why this product is superior to competitors",
+          finalImage,
+          settings || {},
+          locationImage,
+          poseImage,
+          hairStyleImage,
+          isMultipleProducts,
+          false, // isColorChange
+          null, // targetColor
+          false, // isPoseChange
+          null, // customDetail
+          false, // isEditMode
+          null, // editPrompt
+          false, // isRefinerMode
+          false, // isBackSideAnalysis
+          referenceImages,
+          false, // isMultipleImages
+          userId,
+          originalBase64ForGemini,
+          false, // isInfographicMode
+          null, // productFeatures
+          false, // isLifestyleMode
+          null, // lifestyleScene
+          "single", // lifestyleLayout
+          addTextOverlay, // görselde yazılar olsun mu
+          false, // isDetailCloseupMode
+          null, // detailFocus
+          "single", // detailLayout
+          "soft", // detailLightingStyle
+          "white", // detailBackgroundStyle
+          false, // isSizeDimensionMode
+          "hand", // sizeComparisonType
+          null, // productDimensions
+          "single", // sizeLayout
+          true, // isComparisonMode
+          comparisonType, // "side_by_side" veya "table"
+          competitorInfo, // rakip ürün bilgisi
+          comparisonFeatures, // karşılaştırılacak özellikler
+          comparisonLayout, // "single" veya "multi"
+          comparisonBackground // "scenic" veya "plain"
+        );
+      } else if (isSizeDimensionMode) {
+        logger.log(
+          "📐 Size/Dimension mode: Gemini ile boyut/ölçü karşılaştırma prompt'u oluşturuluyor"
+        );
+
+        enhancedPrompt = await enhancePromptWithGemini(
+          promptText ||
+            "Create a professional size/dimension reference image showing the product's real-world scale with measurements",
+          finalImage,
+          settings || {},
+          locationImage,
+          poseImage,
+          hairStyleImage,
+          isMultipleProducts,
+          false, // isColorChange
+          null, // targetColor
+          false, // isPoseChange
+          null, // customDetail
+          false, // isEditMode
+          null, // editPrompt
+          false, // isRefinerMode
+          false, // isBackSideAnalysis
+          referenceImages,
+          false, // isMultipleImages
+          userId,
+          originalBase64ForGemini,
+          false, // isInfographicMode
+          null, // productFeatures
+          false, // isLifestyleMode
+          null, // lifestyleScene
+          "single", // lifestyleLayout
+          addTextOverlay, // görselde yazılar olsun mu
+          false, // isDetailCloseupMode
+          null, // detailFocus
+          "single", // detailLayout
+          "soft", // detailLightingStyle
+          "white", // detailBackgroundStyle
+          true, // isSizeDimensionMode
+          sizeComparisonType, // "hand", "objects", "ruler"
+          productDimensions, // kullanıcının girdiği boyut bilgisi
+          sizeLayout // "single" veya "multi"
+        );
+      } else if (isDetailCloseupMode) {
+        logger.log(
+          "🔍 Detail/Close-up mode: Gemini ile makro/close-up fotoğraf prompt'u oluşturuluyor"
+        );
+
+        enhancedPrompt = await enhancePromptWithGemini(
+          promptText ||
+            "Create a professional detail/close-up macro product photo highlighting material quality and construction details",
+          finalImage,
+          settings || {},
+          locationImage,
+          poseImage,
+          hairStyleImage,
+          isMultipleProducts,
+          false, // isColorChange
+          null, // targetColor
+          false, // isPoseChange
+          null, // customDetail
+          false, // isEditMode
+          null, // editPrompt
+          false, // isRefinerMode
+          false, // isBackSideAnalysis
+          referenceImages,
+          false, // isMultipleImages
+          userId,
+          originalBase64ForGemini,
+          false, // isInfographicMode
+          null, // productFeatures
+          false, // isLifestyleMode
+          null, // lifestyleScene
+          "single", // lifestyleLayout
+          addTextOverlay, // görselde Amazon/Etsy tarzı yazılar olsun mu
+          true, // isDetailCloseupMode
+          detailFocus, // Kullanıcının odaklanmak istediği detay
+          detailLayout, // "single" veya "multi"
+          lightingStyle, // "soft" veya "dramatic"
+          backgroundStyle // "bokeh" veya "white"
+        );
+      } else if (isLifestyleMode) {
         logger.log(
           "🌿 Lifestyle mode: Gemini ile lifestyle fotoğraf prompt'u oluşturuluyor"
         );
@@ -4663,7 +5608,9 @@ router.post("/generate", async (req, res) => {
           false, // isInfographicMode
           null, // productFeatures
           true, // isLifestyleMode
-          lifestyleScene // Kullanıcının girdiği sahne açıklaması
+          lifestyleScene, // Kullanıcının girdiği sahne açıklaması
+          lifestyleLayout, // "single" veya "multi"
+          addTextOverlay // görselde yazı olsun mu
         );
       } else if (isInfographicMode) {
         logger.log(
@@ -4817,15 +5764,17 @@ router.post("/generate", async (req, res) => {
       }
       backgroundRemovedImage = finalImage; // Orijinal image'ı kullan, arkaplan silme yok
       logger.log(
-        isLifestyleMode
-          ? "🌿 Lifestyle prompt:"
-          : isInfographicMode
-            ? "📊 Infographic prompt:"
-            : isColorChange
-              ? "🎨 Color change prompt:"
-              : isRefinerMode
-                ? "🔧 Refiner prompt:"
-                : "🕺 Pose change prompt:",
+        isComparisonMode
+          ? "🆚 Comparison prompt:"
+          : isLifestyleMode
+            ? "🌿 Lifestyle prompt:"
+            : isInfographicMode
+              ? "📊 Infographic prompt:"
+              : isColorChange
+                ? "🎨 Color change prompt:"
+                : isRefinerMode
+                  ? "🔧 Refiner prompt:"
+                  : "🕺 Pose change prompt:",
         enhancedPrompt
       );
     } else if (!isPoseChange) {
@@ -5141,10 +6090,7 @@ router.post("/generate", async (req, res) => {
         const isV2 = qualityVersion === "v2";
         // For fal.ai, we use nano-banana/edit for v1 and nano-banana-2/edit for v2
         // Back side analysis modunda her zaman nano-banana-2 kullan
-        const falModel =
-          isV2 || req.body.isBackSideAnalysis
-            ? "fal-ai/nano-banana-2/edit"
-            : "fal-ai/nano-banana/edit";
+        const falModel = "fal-ai/nano-banana-2/edit";
 
         logger.log(
           `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model: ${falModel}`
@@ -5197,6 +6143,11 @@ router.post("/generate", async (req, res) => {
             num_images: 1,
             resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
             safety_tolerance: "6",
+            // Lifestyle mode: web search aktif
+            ...(isLifestyleMode && {
+              enable_web_search: true, // Ürün ve sahne bilgilerini web'den zenginleştir
+              thinking_level: "minimal",
+            }),
           };
         }
 
@@ -5528,8 +6479,12 @@ router.post("/generate", async (req, res) => {
             output_format: "png",
             aspect_ratio: formattedRatio || "9:16",
             num_images: 1,
-            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
+            resolution: "2K",
             safety_tolerance: "6",
+            ...(isLifestyleMode && {
+              enable_web_search: true,
+              thinking_level: "minimal",
+            }),
           };
 
           logger.log(

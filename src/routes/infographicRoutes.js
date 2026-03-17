@@ -912,7 +912,7 @@ async function deductCreditOnSuccess(generationId, userId) {
       existingGen?.settings?.qualityVersion ||
       existingGen?.settings?.quality_version ||
       "v1";
-    const CREDIT_COST = qualityVersion === "v2" ? 35 : 10; // v2 için 35, v1 için 10 kredi
+    const CREDIT_COST = 15;
 
     logger.log(
       `💳 [CREDIT] Kalite versiyonu: ${qualityVersion}, Kredi maliyeti: ${CREDIT_COST}`
@@ -1181,7 +1181,7 @@ async function updateGenerationStatus(
 
 // Aspect ratio formatını düzelten yardımcı fonksiyon
 function formatAspectRatio(ratioStr) {
-  const validRatios = ["1:1", "4:3", "3:4", "16:9", "9:16", "21:9"];
+  const validRatios = ["1:1", "4:3", "3:4", "3:2", "2:3", "16:9", "9:16", "21:9"];
 
   try {
     // "original" veya tanımsız değerler için varsayılan oran
@@ -1305,6 +1305,7 @@ async function enhancePromptWithGemini(
   originalBase64Data = null, // Orijinal base64 verisi - URL'den tekrar indirmemek için
   isInfographicMode = false, // İnfografik modu mu?
   productFeatures = null, // Kullanıcının girdiği ürün özellikleri (opsiyonel)
+  infographicBackground = "white", // "white" veya "contextual"
   isLifestyleMode = false, // Lifestyle modu mu?
   lifestyleScene = null // Kullanıcının girdiği sahne açıklaması (opsiyonel)
 ) {
@@ -2390,8 +2391,22 @@ The user has provided the following product features/specifications. You MUST us
 Translate these features to English if they are in another language, and use them as the primary callout content in the infographic layout.
 ` : ""}
 
+${infographicBackground === "contextual" ? `
+=== 🔴 CONTEXTUAL BACKGROUND MODE (CRITICAL) ===
+Instead of a plain white background, place the product in a CONTEXTUAL ENVIRONMENT that is relevant to the product's category and usage:
+- Analyze the product type and choose a natural, lifestyle-inspired background that makes sense
+- Examples: kitchen counter for cooking tools, bathroom shelf for skincare, desk for office supplies, outdoor scene for sports gear, cozy living room for home decor
+- The background should be slightly blurred or softened (shallow depth of field) so the product and infographic elements remain the hero
+- The scene should enhance the product's appeal — think premium Amazon A+ Content with lifestyle backgrounds
+- Infographic callouts and text must remain highly readable against the contextual background (use semi-transparent overlay strips or contrast-enhanced text if needed)
+- The overall feel should be "lifestyle infographic" — combining the information-rich layout of an infographic with the aspirational quality of a lifestyle photo
+` : `
+=== WHITE BACKGROUND MODE ===
+Use a clean, pure white or very light professional background. The product must appear as if photographed in a professional studio with proper isolation. This is the classic Amazon/Etsy product infographic style.
+`}
+
 === OUTPUT ===
-Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST describe the product with its ORIGINAL colors and appearance from the reference image. DO NOT invent new colors or modify the product in any way.${productFeatures ? " Use the user-provided product features as the callout sections." : ""}
+Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST describe the product with its ORIGINAL colors and appearance from the reference image. DO NOT invent new colors or modify the product in any way.${productFeatures ? " Use the user-provided product features as the callout sections." : ""}${infographicBackground === "contextual" ? " Use a contextual lifestyle background relevant to the product category instead of white." : ""}
 
 ${originalPrompt ? `Additional context from user: ${originalPrompt}` : ""}
 `;
@@ -3206,7 +3221,9 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
         logger.log(
           "📊 [CATCH-INFOGRAPHIC] Gemini başarısız, infographic fallback prompt kullanılıyor"
         );
-        enhancedPrompt = `Create a professional Amazon/Etsy style product infographic image. The product from the reference image should be prominently displayed in the center. Surround it with 4-6 clean callout sections highlighting key features, materials, and benefits. Use a white background, modern sans-serif typography, clean connector lines from callouts to product areas, and small icons next to each feature point. Include a product title at the top in bold text. The design should be clean, minimalist, and professional - suitable for Amazon A+ Content or Etsy product listings. High contrast, readable text, organized hierarchy of information. Professional e-commerce infographic quality.`;
+        enhancedPrompt = infographicBackground === "contextual"
+          ? `Create a professional Amazon/Etsy style product infographic image. The product from the reference image should be prominently displayed in the center, placed in a contextual lifestyle background relevant to the product category. Surround it with 4-6 clean callout sections highlighting key features, materials, and benefits. Use modern sans-serif typography, clean connector lines from callouts to product areas, and small icons next to each feature point. Include a product title at the top in bold text. The background should be a blurred lifestyle scene that matches the product's usage context. High contrast, readable text, organized hierarchy of information. Professional e-commerce infographic quality.`
+          : `Create a professional Amazon/Etsy style product infographic image. The product from the reference image should be prominently displayed in the center. Surround it with 4-6 clean callout sections highlighting key features, materials, and benefits. Use a white background, modern sans-serif typography, clean connector lines from callouts to product areas, and small icons next to each feature point. Include a product title at the top in bold text. The design should be clean, minimalist, and professional - suitable for Amazon A+ Content or Etsy product listings. High contrast, readable text, organized hierarchy of information. Professional e-commerce infographic quality.`;
       } else {
         // Normal mode için fallback - statik kuralları ekle
         const staticRules = `
@@ -3300,7 +3317,9 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
         logger.log(
           "📊 [FALLBACK-INFOGRAPHIC] Infographic mode fallback prompt kullanılıyor"
         );
-        return `Create a professional Amazon/Etsy style product infographic image. The product from the reference image should be prominently displayed in the center. Surround it with 4-6 clean callout sections highlighting key features, materials, and benefits. Use a white background, modern sans-serif typography, clean connector lines from callouts to product areas, and small icons next to each feature point. Include a product title at the top in bold text. The design should be clean, minimalist, and professional - suitable for Amazon A+ Content or Etsy product listings. High contrast, readable text, organized hierarchy of information. Professional e-commerce infographic quality.`;
+        return infographicBackground === "contextual"
+          ? `Create a professional Amazon/Etsy style product infographic image. The product from the reference image should be prominently displayed in the center, placed in a contextual lifestyle background relevant to the product category. Surround it with 4-6 clean callout sections highlighting key features, materials, and benefits. Use modern sans-serif typography, clean connector lines from callouts to product areas, and small icons next to each feature point. Include a product title at the top in bold text. The background should be a blurred lifestyle scene that matches the product's usage context. High contrast, readable text, organized hierarchy of information. Professional e-commerce infographic quality.`
+          : `Create a professional Amazon/Etsy style product infographic image. The product from the reference image should be prominently displayed in the center. Surround it with 4-6 clean callout sections highlighting key features, materials, and benefits. Use a white background, modern sans-serif typography, clean connector lines from callouts to product areas, and small icons next to each feature point. Include a product title at the top in bold text. The design should be clean, minimalist, and professional - suitable for Amazon A+ Content or Etsy product listings. High contrast, readable text, organized hierarchy of information. Professional e-commerce infographic quality.`;
       }
 
       // Settings'ten bilgileri çıkar
@@ -4020,7 +4039,7 @@ async function pollReplicateResultWithRetry(predictionId, maxRetries = 3) {
 router.post("/generate", async (req, res) => {
   // Kredi kontrolü ve düşme (kalite versiyonuna göre dinamik)
   let creditDeducted = false;
-  let actualCreditDeducted = 10; // Default v1 için 10 kredi
+  let actualCreditDeducted = 15;
   let userId; // Scope için önceden tanımla
   let finalGenerationId = null; // Scope için önceden tanımla
   let temporaryFiles = []; // Silinecek geçici dosyalar
@@ -4053,6 +4072,7 @@ router.post("/generate", async (req, res) => {
       // Infographic mode specific parameters (InfographicGenerator)
       isInfographicMode = false, // Bu bir infografik oluşturma işlemi mi?
       productFeatures = null, // Kullanıcının girdiği ürün özellikleri (opsiyonel)
+      infographicBackground = "white", // "white" = beyaz arkaplan, "contextual" = ürüne göre ortam
       // Lifestyle mode specific parameters (LifestyleGenerator)
       isLifestyleMode = false, // Bu bir lifestyle fotoğraf oluşturma işlemi mi?
       lifestyleScene = null, // Kullanıcının girdiği sahne açıklaması (opsiyonel)
@@ -4065,7 +4085,7 @@ router.post("/generate", async (req, res) => {
     const qualityVersion = isRefinerMode
       ? "v1"
       : settings?.qualityVersion || settings?.quality_version || "v1";
-    const CREDIT_COST = qualityVersion === "v2" ? 35 : 10; // v2 için 35, v1 için 10 kredi
+    const CREDIT_COST = 15;
     actualCreditDeducted = CREDIT_COST;
 
     logger.log(
@@ -4171,6 +4191,7 @@ router.post("/generate", async (req, res) => {
     logger.log("🔧 [BACKEND] isRefinerMode:", isRefinerMode);
     logger.log("📊 [BACKEND] isInfographicMode:", isInfographicMode);
     if (productFeatures) logger.log("📊 [BACKEND] productFeatures:", productFeatures);
+    logger.log("📊 [BACKEND] infographicBackground:", infographicBackground);
     logger.log("🌿 [BACKEND] isLifestyleMode:", isLifestyleMode);
     if (lifestyleScene) logger.log("🌿 [BACKEND] lifestyleScene:", lifestyleScene);
     const incomingReferenceCount = referenceImages?.length || 0;
@@ -4405,6 +4426,7 @@ router.post("/generate", async (req, res) => {
       totalGenerations: totalGenerations, // Pay-on-success için gerekli
       ...(sessionId && { sessionId: sessionId }),
       ...(isColorChange && { isColorChange: true }), // Color change flag'i kaydet
+      ...(isInfographicMode && { isInfographicMode: true }),
     };
 
     // Kalite versiyonunu ayrı bir değişken olarak al
@@ -4693,7 +4715,8 @@ router.post("/generate", async (req, res) => {
           userId,
           originalBase64ForGemini,
           true, // isInfographicMode - yeni parametre
-          productFeatures // Kullanıcının girdiği ürün özellikleri
+          productFeatures, // Kullanıcının girdiği ürün özellikleri
+          infographicBackground // "white" veya "contextual"
         );
       } else if (isColorChange) {
         logger.log(
@@ -5141,10 +5164,7 @@ router.post("/generate", async (req, res) => {
         const isV2 = qualityVersion === "v2";
         // For fal.ai, we use nano-banana/edit for v1 and nano-banana-2/edit for v2
         // Back side analysis modunda her zaman nano-banana-2 kullan
-        const falModel =
-          isV2 || req.body.isBackSideAnalysis
-            ? "fal-ai/nano-banana-2/edit"
-            : "fal-ai/nano-banana/edit";
+        const falModel = "fal-ai/nano-banana-2/edit";
 
         logger.log(
           `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model: ${falModel}`
@@ -5197,6 +5217,11 @@ router.post("/generate", async (req, res) => {
             num_images: 1,
             resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
             safety_tolerance: "6",
+            // Infographic mode: web search ve thinking aktif
+            ...(isInfographicMode && {
+              enable_web_search: true, // Ürün bilgilerini web'den zenginleştir
+              thinking_level: "minimal", // Daha detaylı düşünme - infografik kalitesi için
+            }),
           };
         }
 
@@ -5530,6 +5555,11 @@ router.post("/generate", async (req, res) => {
             num_images: 1,
             resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
             safety_tolerance: "6",
+            // Infographic mode: web search ve thinking aktif
+            ...(isInfographicMode && {
+              enable_web_search: true,
+              thinking_level: "minimal",
+            }),
           };
 
           logger.log(

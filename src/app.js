@@ -305,6 +305,20 @@ app.use("/api/createRefinerWeb", requireBrowser, requireAuth, createRefinerWeb);
 
 app.use("/api/changeProductColor", changeProductColor);
 app.use("/api/changeProductColorWeb", requireBrowser, requireAuth, changeProductColorWeb);
+const lifestyleGenerator = require("./routes/lifestyleGenerator");
+app.use("/api/lifestyle", lifestyleGenerator);
+const infographicGenerator = require("./routes/infographicGenerator");
+app.use("/api/infographic", infographicGenerator);
+const detailCloseupGenerator = require("./routes/detailCloseupGenerator");
+app.use("/api/detail-closeup", detailCloseupGenerator);
+const sizeDimensionGenerator = require("./routes/sizeDimensionGenerator");
+app.use("/api/size-dimension", sizeDimensionGenerator);
+const comparisonGenerator = require("./routes/comparisonGenerator");
+app.use("/api/comparison", comparisonGenerator);
+const problemSolutionGenerator = require("./routes/problemSolutionGenerator");
+app.use("/api/problem-solution", problemSolutionGenerator);
+const beforeAfterGenerator = require("./routes/beforeAfterGenerator");
+app.use("/api/before-after", beforeAfterGenerator);
 app.use("/api/backSideCloset", backSideCloset);
 app.use("/api/backSideClosetWeb", requireBrowser, requireAuth, backSideClosetWeb);
 

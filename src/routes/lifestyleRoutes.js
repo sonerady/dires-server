@@ -912,7 +912,7 @@ async function deductCreditOnSuccess(generationId, userId) {
       existingGen?.settings?.qualityVersion ||
       existingGen?.settings?.quality_version ||
       "v1";
-    const CREDIT_COST = qualityVersion === "v2" ? 35 : 10; // v2 için 35, v1 için 10 kredi
+    const CREDIT_COST = 15;
 
     logger.log(
       `💳 [CREDIT] Kalite versiyonu: ${qualityVersion}, Kredi maliyeti: ${CREDIT_COST}`
@@ -1181,7 +1181,7 @@ async function updateGenerationStatus(
 
 // Aspect ratio formatını düzelten yardımcı fonksiyon
 function formatAspectRatio(ratioStr) {
-  const validRatios = ["1:1", "4:3", "3:4", "16:9", "9:16", "21:9"];
+  const validRatios = ["1:1", "4:3", "3:4", "3:2", "2:3", "16:9", "9:16", "21:9"];
 
   try {
     // "original" veya tanımsız değerler için varsayılan oran
@@ -1306,7 +1306,9 @@ async function enhancePromptWithGemini(
   isInfographicMode = false, // İnfografik modu mu?
   productFeatures = null, // Kullanıcının girdiği ürün özellikleri (opsiyonel)
   isLifestyleMode = false, // Lifestyle modu mu?
-  lifestyleScene = null // Kullanıcının girdiği sahne açıklaması (opsiyonel)
+  lifestyleScene = null, // Kullanıcının girdiği sahne açıklaması (opsiyonel)
+  lifestyleLayout = "single", // "single" = tek sahne, "multi" = çoklu tema yan yana
+  addTextOverlay = false // görselde yazı olsun mu
 ) {
   try {
     logger.log(
@@ -2200,7 +2202,27 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
     } else if (isLifestyleMode) {
       // LIFESTYLE MODE - Lifestyle ürün fotoğrafı oluşturma
       promptForGemini = `
-You are a professional lifestyle product photographer and art director. Your task is to analyze the product image provided and generate a SINGLE comprehensive image generation prompt that will create a stunning lifestyle product photo.
+You are a world-class lifestyle product photographer, art director, and e-commerce visual strategist specializing in Amazon, Etsy, Shopify, and premium D2C brand imagery. Your task is to analyze the product image provided and generate a SINGLE comprehensive image generation prompt that will create a stunning, high-converting lifestyle product photo.
+
+🔴🔴🔴 #1 PRIORITY — PERSON USING THE PRODUCT (MOST IMPORTANT RULE) 🔴🔴🔴
+The lifestyle photo MUST predominantly show a REAL PERSON actively USING the product. Do NOT just place the product on a surface or in a scene by itself. A human must be interacting with, holding, wearing, or using the product in a natural, authentic way. This is the SINGLE MOST IMPORTANT factor for lifestyle photos that convert on Amazon/Etsy.
+
+Examples of what we WANT:
+✅ Blanket → A person wrapped in it on a couch, reading a book with a cup of tea
+✅ Kitchen torch → A person's hand holding it, caramelizing crème brûlée
+✅ Sponge → A person scrubbing dishes at a kitchen sink
+✅ Backpack → Someone wearing it while walking through a city or trail
+✅ Skincare → A person applying it to their face in a bathroom mirror
+✅ Headphones → A person wearing them while working or commuting
+✅ Water bottle → A person drinking from it during a workout or hike
+
+Examples of what we DO NOT WANT:
+❌ Blanket just lying folded on a bed — NO PERSON
+❌ Kitchen torch sitting on a counter — NO ONE USING IT
+❌ Sponge placed next to a sink — NOT IN ACTION
+❌ Backpack sitting on a chair — NOT BEING WORN
+
+The person should look natural, authentic, and aspirational. Their face can be partially visible, fully visible, or cropped out — but their BODY and HANDS must be clearly interacting with the product. The person's styling (clothing, grooming) should match the product's brand positioning.
 
 ⚠️ ABSOLUTE CRITICAL RULE - DO NOT CHANGE THE PRODUCT:
 - The product in the generated lifestyle photo MUST be EXACTLY the same as the reference image
@@ -2208,55 +2230,207 @@ You are a professional lifestyle product photographer and art director. Your tas
 - DO NOT modify textures, patterns, or any part of the product
 - The product must appear IDENTICAL to the original reference photo
 - You are ONLY placing the unchanged product into a lifestyle scene/environment
+- While you MUST fix amateur photo quality issues (lighting, sharpness, dust), the product itself (color, design, shape, brand) must stay IDENTICAL
 
 IMPORTANT: Analyze the product image carefully to understand:
-1. What type of product it is
+1. What type of product it is (clothing, skincare, electronics, food, home decor, jewelry, etc.)
 2. The EXACT colors, patterns, and appearance - describe them accurately
 3. The product's size, shape, and proportions
+4. The product's target audience and market positioning
 
 Then generate a prompt for creating a PROFESSIONAL LIFESTYLE PRODUCT PHOTO:
 
-=== LIFESTYLE PHOTO REQUIREMENTS ===
+=== CRITICAL: AMATEUR-TO-PROFESSIONAL TRANSFORMATION ===
 
-PRODUCT PRESERVATION (MOST IMPORTANT):
-- The product MUST remain EXACTLY as shown in the reference image - same colors, same design
-- Describe the product's ACTUAL appearance accurately
+The input image is likely an AMATEUR photo. Your generated prompt MUST fix ALL amateur photography problems:
 
-SCENE & ENVIRONMENT:
-- Create a natural, aesthetically pleasing lifestyle setting appropriate for the product
-- The scene should tell a story and evoke emotion
-- Use complementary props that enhance but don't overshadow the product
-- Natural lighting (golden hour, soft daylight, window light)
-- Depth of field to keep product sharp while background has pleasant bokeh
+🔴 LIGHTING TRANSFORMATION (CRITICAL):
+- REPLACE harsh phone flash or uneven indoor lighting with beautiful, natural lifestyle lighting
+- Use golden hour warmth, soft window light, or dappled sunlight filtering through leaves — whichever suits the product best
+- Create natural light and shadow interplay that adds depth, dimension, and a premium feel
+- Ensure the product is well-lit and the hero of the scene — no dark or underexposed product areas
+- Light should feel organic and real, NEVER artificial or studio-flat in a lifestyle context
 
-COMPOSITION:
-- Product should be the clear focal point
-- Rule of thirds or centered composition
-- Natural, unstaged feeling while maintaining professional quality
-- Props arranged organically around the product
+🔴 PRODUCT CLEANUP (CRITICAL):
+- REMOVE all imperfections: dust, lint, fingerprints, smudges, scratches, stains, price tags, stickers, barcodes
+- FIX wrinkles, creases, sagging — product must look pristine, brand-new, and premium
+- CORRECT any color casts — ensure true-to-life color accuracy
+- SHARPEN soft/blurry areas — product must be crisp and detailed
+- ENHANCE material textures: show fabric weave, leather grain, metal sheen, glass clarity at their absolute best
 
-STYLE REFERENCES:
-- Instagram-worthy lifestyle photography
-- Pinterest-style flat lays or styled scenes
-- Editorial product photography for lifestyle brands
-- Think: the kind of photos you see on premium D2C brand websites
+🔴 BACKGROUND & ENVIRONMENT REPLACEMENT (CRITICAL):
+- COMPLETELY REMOVE the original amateur background (messy desk, bed, floor, hand, etc.)
+- REPLACE with a carefully curated lifestyle scene that makes the product irresistible
+- The environment must feel REAL, LIVED-IN, and ASPIRATIONAL — not fake or overly staged
 
-MOOD & ATMOSPHERE:
-- Warm, inviting, aspirational
-- Clean but not sterile - lived-in luxury feel
-- Colors that complement the product naturally
+=== LIFESTYLE SCENE DESIGN (CRITICAL) ===
+
+🔴 SCENE SELECTION BY PRODUCT CATEGORY (MUST FOLLOW):
+Analyze the product type and choose the MOST EFFECTIVE lifestyle scene based on what top Amazon/Etsy sellers and premium brands actually use:
+
+• Skincare/Beauty → Marble bathroom counter, spa setting with eucalyptus and candles, minimalist vanity with mirror, morning routine flat lay
+• Coffee/Tea/Food → Rustic wooden table with morning light, cozy kitchen counter, café setting, breakfast scene with steam
+• Clothing/Fashion → Casually draped on a linen sofa, hanging on a vintage rack, flat lay on white bedding, styled on a wooden chair
+• Jewelry/Watches → Velvet tray with soft bokeh, marble surface with gold accents, morning light on a nightstand, elegant flat lay with dried flowers
+• Electronics/Gadgets → Clean desk setup, modern workspace, leather pad on wooden desk, travel bag context
+• Home Decor → Styled on a shelf with books and plants, cozy living room corner, Scandinavian interior, bedside table vignette
+• Fitness/Sports → Gym bag context, outdoor trail setting, yoga mat scene, post-workout flat lay
+• Kids/Baby Products → Soft nursery setting, playful pastel background, cozy blanket scene, natural outdoor setting
+• Candles/Fragrances → Evening ambiance with warm glow, bathtub edge with flowers, reading nook with blanket, windowsill at sunset
+• Bags/Accessories → Café table scene, travel flat lay with passport and sunglasses, styled entry table, outdoor urban setting
+• Kitchen/Cooking → Granite counter with fresh ingredients, styled dinner table, cooking-in-progress scene, organized pantry shelf
+• Pet Products → Happy pet interaction scene, cozy pet bed setting, outdoor park context, playful indoor scene
+• Stationery/Art → Creative desk setup, inspiration board context, organized workspace, artist studio vibe
+• Plants/Garden → Sunny windowsill, boho shelf with terracotta, outdoor patio garden, greenhouse setting
+
+🔴 PRODUCT IN-USE / IN-ACTION SCENE (MOST CRITICAL - THIS IS WHAT SELLS):
+The lifestyle photo MUST show the product being ACTIVELY USED BY A PERSON. This is the #1 factor that converts browsers into buyers on Amazon/Etsy. Do NOT just place the product on a pretty surface — show a REAL PERSON using it IN ACTION.
+
+REMEMBER: A person MUST be present in the scene, actively interacting with the product. The person's hands, arms, or body must be visible holding, wearing, touching, or using the product.
+
+Analyze the product and determine its PRIMARY USE CASE, then create a scene that captures a PERSON using the product at that exact moment:
+
+• Kitchen torch/Blowtorch → A hand holding it, caramelizing the sugar crust on a crème brûlée, with the blue flame visible and the dessert golden-brown
+• Dish sponge/Scrubber → A hand scrubbing a pan or dish in a beautiful kitchen sink, with soap suds and running water, clean dishes drying nearby
+• Chef's knife → Mid-slice through fresh vegetables on a wooden cutting board, with colorful ingredients scattered around
+• Coffee maker/French press → Pouring freshly brewed coffee into a ceramic mug, with steam rising, morning light streaming in
+• Candle → Lit and glowing warmly on a nightstand or bath edge, with soft ambient light and cozy textures around
+• Skincare/Cream → Being applied to skin, or squeezed onto fingertips, with a dewy fresh-faced look
+• Water bottle → Being held during a hike/workout, or placed on a gym bench with a towel
+• Pen/Notebook → Mid-writing on a beautiful page, with a cup of coffee nearby, creative workspace setting
+• Plant pot → With a thriving green plant inside, on a sunny windowsill or styled shelf
+• Phone case → On a phone being held casually, or placed on a café table next to a latte
+• Backpack/Bag → Being worn casually or opened showing organized contents, in an outdoor/travel context
+• Blanket/Throw → A person wrapped in it on a couch, legs curled up, holding a mug of hot drink, reading a book — the ultimate cozy evening scene
+• Cleaning product → In the middle of cleaning a sparkling surface, showing the before/after effect
+• Tool/Gadget → Being used for its intended purpose, hands visible, showing the product solving a real problem
+• Yoga mat → Unrolled with someone in a yoga pose, peaceful studio or outdoor setting
+• Headphones → Being worn while working, commuting, or exercising — showing the lifestyle context
+• Sunglasses → Being worn outdoors, or placed on a beach towel/café table with a summer vibe
+• Cookware/Pan → On a stove with food being cooked, steam rising, kitchen action shot
+
+CRITICAL RULES FOR IN-USE SCENES:
+- A PERSON MUST BE PRESENT in every lifestyle photo — this is NON-NEGOTIABLE
+- The product must be the STAR — even in action, it must be clearly visible, well-lit, and sharp
+- The person should look natural, authentic, well-groomed, and aspirational — they enhance the scene, not distract from the product
+- Show the person's hands, arms, or body ACTIVELY using the product — not just standing near it
+- The action should be frozen at the most VISUALLY APPEALING moment (mid-pour, mid-slice, mid-application, mid-wrap)
+- Show the RESULT and JOY of using the product when possible (cozy comfort, clean result, delicious food)
+- The scene must answer: "THIS is what MY life looks like when I use this product"
+- The person's styling (clothing, grooming, accessories) should match the product's brand positioning and target demographic
+- If the product is wearable (clothing, jewelry, accessories, headphones), show someone WEARING it
+- If the product is a tool/utensil, show someone USING it for its purpose
+- If the product is home goods (blanket, pillow, decor), show someone ENJOYING it in a living space
+
+🔴 PROPS & STYLING (CRITICAL):
+- Choose 3-5 complementary props that ENHANCE the product story without competing for attention
+- Props must be contextually relevant — they should make sense in the scene (coffee cup near a book, not random objects)
+- Use props that signal quality and lifestyle: fresh flowers, artisan ceramics, natural fabrics, organic textures
+- Color-coordinate props to complement (not clash with) the product's actual colors
+- NEVER let props overshadow or obstruct the product — the product is ALWAYS the hero
+- Include subtle "human touch" elements: a hand reaching, a cup with steam, a page mid-turn — to create connection
+
+🔴 COMPOSITION & FRAMING (CRITICAL):
+- Product must occupy 40-60% of the frame — large enough to see details, with enough scene for context
+- Use the rule of thirds — place the product at a power point, not dead center (unless it's a deliberate symmetrical flat lay)
+- Create visual depth with foreground blur elements, mid-ground product focus, and soft background layers
+- For flat lays: overhead shot (90°) with organized but organic arrangement
+- For styled scenes: 30-45° angle that shows both the product and the environment
+- For "in-use" context: eye-level or slight above, as if the viewer is about to use the product
+- Leave intentional negative space for potential text overlay (Amazon/Etsy sellers often add text to lifestyle images)
+- Guide the viewer's eye naturally toward the product using leading lines, color contrast, or light direction
+
+🔴 MOOD, COLOR & ATMOSPHERE (CRITICAL):
+- Create a specific MOOD that matches the product's brand positioning:
+  • Premium/Luxury → Moody, rich tones, deep shadows, gold accents, velvet textures
+  • Fresh/Natural → Bright, airy, whites and greens, natural materials, morning light
+  • Cozy/Warm → Warm amber tones, soft textures, candlelight, blankets, autumn vibes
+  • Modern/Minimal → Clean lines, neutral palette, geometric elements, crisp shadows
+  • Playful/Fun → Vibrant pops of color, dynamic arrangements, energetic compositions
+  • Bohemian/Artisan → Earth tones, handmade textures, macramé, dried flowers, natural wood
+- Color palette must be COHESIVE — the product, props, and background should work as a unified color story
+- Avoid harsh or neon colors that look cheap — everything should feel curated and intentional
+
+🔴 LIGHTING STYLE FOR LIFESTYLE (CRITICAL):
+- GOLDEN HOUR: Warm directional light with long soft shadows — perfect for outdoor and window scenes
+- SOFT DAYLIGHT: Even, diffused natural light — ideal for flat lays and bright, airy compositions
+- WINDOW LIGHT: Dramatic side lighting with gentle falloff — great for moody product stories
+- DAPPLED LIGHT: Filtered through leaves or blinds — adds organic texture and interest to the scene
+- WARM AMBIENT: Soft warm glow from candles or lamps — for evening/cozy atmospheres
+- Choose the lighting that BEST SERVES the product category and mood
+
+🔴 WHAT MAKES LIFESTYLE PHOTOS SELL ON AMAZON/ETSY (CRITICAL):
+- The photo must answer the customer's question: "What will my life look like with this product?"
+- Show the product IN CONTEXT of daily life — not isolated on white, but integrated into an aspirational scene
+- Create EMOTIONAL CONNECTION — the viewer should WANT to be in this scene
+- The overall quality must match what you see on the best-selling Amazon listings and featured Etsy shops
+- Think: the hero images on brands like Anthropologie, West Elm, Glossier, Aesop — polished but authentic
+- The image should stop a scrolling customer and make them click — it must be THUMB-STOPPING quality
+
+🔴 PERSPECTIVE & CAMERA ANGLE (CRITICAL):
+Analyze the product and choose the perspective that lifestyle photographers actually use for this category:
+• Flat lay items (stationery, food, jewelry) → Overhead 90° bird's eye view
+• Bottles/Skincare/Candles → 30-45° angle showing label and scene context
+• Clothing/Textiles → 45° angle draped naturally in scene, or flat lay
+• Electronics/Gadgets → Slight hero angle (10-20° below eye level) on a styled desk
+• Home Decor → Eye-level or slight above, showing the item in its natural habitat
+• Bags/Shoes → 3/4 angle at ground/table level in a lifestyle context
+• Food/Drinks → 45° angle or overhead, capturing the full scene arrangement
 
 ${lifestyleScene ? `
 === USER-PROVIDED SCENE DESCRIPTION (MUST FOLLOW) ===
-The user has described the following scene/environment. You MUST incorporate this into the lifestyle photo:
+The user has described the following scene/environment. You MUST incorporate this into the lifestyle photo as the PRIMARY scene direction:
 
 "${lifestyleScene}"
 
-Use this description as the primary guide for the scene setting, props, and atmosphere.
+Use this description as the primary guide for the scene setting, props, and atmosphere. Adapt the styling advice above to match the user's vision.
 ` : ""}
 
+${lifestyleLayout === "multi" ? `
+=== 🔴 MULTI-SCENE LAYOUT MODE (CRITICAL) ===
+The user has selected MULTI-SCENE layout. You MUST create a SINGLE image that contains MULTIPLE different lifestyle scenes/themes of the SAME product arranged SIDE BY SIDE in a grid or collage layout within ONE frame.
+
+RULES FOR MULTI-SCENE LAYOUT:
+- Create 2-4 different lifestyle usage scenarios of the product, all within ONE image
+- Each scene should show the product in a DIFFERENT context/environment/use-case
+- Arrange the scenes in a clean grid layout (2x1, 2x2, or 1x3 depending on the image ratio)
+- Each scene should have its own distinct color palette, lighting, and props
+- Use subtle dividers or natural spacing between scenes
+- Each scene must still look professional and high-quality
+- The product must remain UNCHANGED across all scenes — same color, shape, design
+- Think of it like a "mood board" or "lifestyle collage" that shows versatility
+
+EXAMPLE: For a kitchen torch:
+Scene 1: Torch caramelizing crème brûlée on a marble countertop
+Scene 2: Torch searing steak on a cutting board with herbs
+Scene 3: Torch melting cheese on French onion soup
+
+EXAMPLE: For a water bottle:
+Scene 1: On a gym bench with towel and headphones
+Scene 2: On a hiking trail rock with mountain backdrop
+Scene 3: On an office desk with laptop and plant
+` : `
+=== SINGLE-SCENE LAYOUT MODE ===
+Create ONE cohesive lifestyle scene with the product as the hero. The entire image should be a single, unified composition — one environment, one mood, one story.
+`}
+
+${addTextOverlay ? `
+=== 🔴 TEXT OVERLAY ON IMAGE (ENABLED) ===
+The user wants Amazon/Etsy style TEXT OVERLAYS on the lifestyle image. You MUST include text elements in your prompt:
+- Add 2-4 short, punchy marketing text callouts directly on the image
+- Text should describe the scene, product benefits, or usage context (e.g., "Perfect for Weekend Brunch", "Professional Grade", "Effortless Cleaning", "Made for Outdoor Adventures")
+- Use clean, modern sans-serif typography
+- Text should be placed in non-obstructive areas (corners, top/bottom bars, or semi-transparent overlay strips)
+- Text color should contrast well with the background for readability
+- Keep text minimal and elegant — NOT cluttered. Think premium Amazon A+ Content or Etsy listing hero images
+- The text must be relevant to the specific lifestyle scene being shown
+` : `
+=== 🔴 NO TEXT ON IMAGE ===
+Do NOT add ANY text, typography, labels, callouts, watermarks, or written content on the image. The lifestyle photo must be PURELY visual — only the product in its lifestyle scene with NO text elements whatsoever.
+`}
+
 === OUTPUT ===
-Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST describe the product with its ORIGINAL colors and appearance from the reference image placed in a beautiful lifestyle setting.${lifestyleScene ? " Follow the user's scene description." : ""}
+Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST describe the product with its ORIGINAL colors and appearance from the reference image placed in a beautiful, high-converting lifestyle setting.${lifestyleScene ? " Follow the user's scene description." : ""}${lifestyleLayout === "multi" ? " The image MUST contain multiple different lifestyle scenes arranged in a grid/collage layout within a single frame." : ""}${addTextOverlay ? " Include Amazon/Etsy style marketing text overlays on the image." : " Do NOT include any text or typography on the image."} The result must be indistinguishable from a professional lifestyle photo shoot by a top e-commerce photographer.
 
 ${originalPrompt ? `Additional context from user: ${originalPrompt}` : ""}
 `;
@@ -3200,7 +3374,9 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
         logger.log(
           "🌿 [CATCH-LIFESTYLE] Gemini başarısız, lifestyle fallback prompt kullanılıyor"
         );
-        enhancedPrompt = `Create a professional lifestyle product photo. Place the product from the reference image in a beautiful, natural setting with warm lighting. ${lifestyleScene ? `Scene: ${lifestyleScene}. ` : "Use a cozy, aesthetic environment with complementary props. "}The product must remain exactly as shown in the reference - same colors, design, and appearance. Soft natural daylight, shallow depth of field with the product in sharp focus. Instagram-worthy composition with organic prop arrangement. Warm, inviting, aspirational mood. Premium lifestyle brand photography quality.`;
+        enhancedPrompt = lifestyleLayout === "multi"
+          ? `Create a single image containing 2-3 different lifestyle scenes arranged in a clean grid layout. Each scene shows a REAL PERSON actively USING the SAME product from the reference image in a DIFFERENT context. ${lifestyleScene ? `Scene direction: ${lifestyleScene}. ` : ""}The product must remain exactly as shown in the reference - same colors, design, and appearance. A person must be present in each scene, holding, wearing, or using the product. Professional lifestyle photography quality, premium e-commerce standard.`
+          : `Create a professional lifestyle product photo showing a REAL PERSON actively using the product from the reference image. ${lifestyleScene ? `Scene: ${lifestyleScene}. ` : "Show the person in a cozy, aesthetic environment naturally interacting with the product. "}The product must remain exactly as shown in the reference - same colors, design, and appearance. The person should look natural and aspirational, with their hands or body clearly using the product. Soft natural daylight, shallow depth of field with the product in sharp focus. Warm, inviting, aspirational mood. Premium lifestyle brand photography quality.`;
       } else if (isInfographicMode) {
         // Infographic mode için fallback prompt
         logger.log(
@@ -3292,7 +3468,9 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
         logger.log(
           "🌿 [FALLBACK-LIFESTYLE] Lifestyle mode fallback prompt kullanılıyor"
         );
-        return `Create a professional lifestyle product photo. Place the product from the reference image in a beautiful, natural setting with warm lighting. ${lifestyleScene ? `Scene: ${lifestyleScene}. ` : "Use a cozy, aesthetic environment with complementary props. "}The product must remain exactly as shown in the reference - same colors, design, and appearance. Soft natural daylight, shallow depth of field with the product in sharp focus. Instagram-worthy composition with organic prop arrangement. Warm, inviting, aspirational mood. Premium lifestyle brand photography quality.`;
+        return lifestyleLayout === "multi"
+          ? `Create a single image containing 2-3 different lifestyle scenes arranged in a clean grid layout. Each scene shows a REAL PERSON actively USING the SAME product from the reference image in a DIFFERENT context. ${lifestyleScene ? `Scene direction: ${lifestyleScene}. ` : ""}The product must remain exactly as shown in the reference - same colors, design, and appearance. A person must be present in each scene, holding, wearing, or using the product. Professional lifestyle photography quality, premium e-commerce standard.`
+          : `Create a professional lifestyle product photo showing a REAL PERSON actively using the product from the reference image. ${lifestyleScene ? `Scene: ${lifestyleScene}. ` : "Show the person in a cozy, aesthetic environment naturally interacting with the product. "}The product must remain exactly as shown in the reference - same colors, design, and appearance. The person should look natural and aspirational, with their hands or body clearly using the product. Soft natural daylight, shallow depth of field with the product in sharp focus. Warm, inviting, aspirational mood. Premium lifestyle brand photography quality.`;
       }
 
       // 📊 INFOGRAPHIC MODE için özel fallback prompt
@@ -4020,7 +4198,7 @@ async function pollReplicateResultWithRetry(predictionId, maxRetries = 3) {
 router.post("/generate", async (req, res) => {
   // Kredi kontrolü ve düşme (kalite versiyonuna göre dinamik)
   let creditDeducted = false;
-  let actualCreditDeducted = 10; // Default v1 için 10 kredi
+  let actualCreditDeducted = 15;
   let userId; // Scope için önceden tanımla
   let finalGenerationId = null; // Scope için önceden tanımla
   let temporaryFiles = []; // Silinecek geçici dosyalar
@@ -4056,6 +4234,8 @@ router.post("/generate", async (req, res) => {
       // Lifestyle mode specific parameters (LifestyleGenerator)
       isLifestyleMode = false, // Bu bir lifestyle fotoğraf oluşturma işlemi mi?
       lifestyleScene = null, // Kullanıcının girdiği sahne açıklaması (opsiyonel)
+      lifestyleLayout = "single", // "single" = tek sahne, "multi" = çoklu tema yan yana
+      addTextOverlay = false, // görselde Amazon/Etsy tarzı yazılar olsun mu
       // Session deduplication
       sessionId = null, // Aynı batch request'leri tanımlıyor
       modelPhoto = null,
@@ -4065,7 +4245,7 @@ router.post("/generate", async (req, res) => {
     const qualityVersion = isRefinerMode
       ? "v1"
       : settings?.qualityVersion || settings?.quality_version || "v1";
-    const CREDIT_COST = qualityVersion === "v2" ? 35 : 10; // v2 için 35, v1 için 10 kredi
+    const CREDIT_COST = 15;
     actualCreditDeducted = CREDIT_COST;
 
     logger.log(
@@ -4173,6 +4353,8 @@ router.post("/generate", async (req, res) => {
     if (productFeatures) logger.log("📊 [BACKEND] productFeatures:", productFeatures);
     logger.log("🌿 [BACKEND] isLifestyleMode:", isLifestyleMode);
     if (lifestyleScene) logger.log("🌿 [BACKEND] lifestyleScene:", lifestyleScene);
+    logger.log("🌿 [BACKEND] lifestyleLayout:", lifestyleLayout);
+    logger.log("🌿 [BACKEND] addTextOverlay:", addTextOverlay);
     const incomingReferenceCount = referenceImages?.length || 0;
     const totalReferenceCount =
       incomingReferenceCount + (modelReferenceImage ? 1 : 0);
@@ -4405,6 +4587,7 @@ router.post("/generate", async (req, res) => {
       totalGenerations: totalGenerations, // Pay-on-success için gerekli
       ...(sessionId && { sessionId: sessionId }),
       ...(isColorChange && { isColorChange: true }), // Color change flag'i kaydet
+      ...(isLifestyleMode && { isLifestyleMode: true }),
     };
 
     // Kalite versiyonunu ayrı bir değişken olarak al
@@ -4663,7 +4846,9 @@ router.post("/generate", async (req, res) => {
           false, // isInfographicMode
           null, // productFeatures
           true, // isLifestyleMode
-          lifestyleScene // Kullanıcının girdiği sahne açıklaması
+          lifestyleScene, // Kullanıcının girdiği sahne açıklaması
+          lifestyleLayout, // "single" veya "multi"
+          addTextOverlay // görselde yazı olsun mu
         );
       } else if (isInfographicMode) {
         logger.log(
@@ -5141,10 +5326,7 @@ router.post("/generate", async (req, res) => {
         const isV2 = qualityVersion === "v2";
         // For fal.ai, we use nano-banana/edit for v1 and nano-banana-2/edit for v2
         // Back side analysis modunda her zaman nano-banana-2 kullan
-        const falModel =
-          isV2 || req.body.isBackSideAnalysis
-            ? "fal-ai/nano-banana-2/edit"
-            : "fal-ai/nano-banana/edit";
+        const falModel = "fal-ai/nano-banana-2/edit";
 
         logger.log(
           `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model: ${falModel}`
@@ -5197,6 +5379,11 @@ router.post("/generate", async (req, res) => {
             num_images: 1,
             resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
             safety_tolerance: "6",
+            // Lifestyle mode: web search aktif
+            ...(isLifestyleMode && {
+              enable_web_search: true, // Ürün ve sahne bilgilerini web'den zenginleştir
+              thinking_level: "minimal",
+            }),
           };
         }
 
@@ -5528,8 +5715,12 @@ router.post("/generate", async (req, res) => {
             output_format: "png",
             aspect_ratio: formattedRatio || "9:16",
             num_images: 1,
-            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
+            resolution: "2K",
             safety_tolerance: "6",
+            ...(isLifestyleMode && {
+              enable_web_search: true,
+              thinking_level: "minimal",
+            }),
           };
 
           logger.log(
