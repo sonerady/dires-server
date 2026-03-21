@@ -29,4 +29,14 @@ if (supabaseServiceKey) {
     });
 }
 
-module.exports = { supabase, supabaseAdmin };
+// Service Role Key varsa tüm işlemlerde admin client kullan (RLS bypass)
+// Böylece tüm route'lar otomatik olarak admin client ile çalışır
+const effectiveClient = supabaseAdmin || supabase;
+
+if (supabaseAdmin) {
+    console.log('✅ [Supabase] All routes will use Admin client (RLS bypassed)');
+} else {
+    console.log('⚠️ [Supabase] No Service Role Key - using Anon client (RLS active)');
+}
+
+module.exports = { supabase: effectiveClient, supabaseAdmin };
