@@ -10,33 +10,25 @@ console.log('🌐 [Supabase] Initializing clients...');
 console.log('   URL:', supabaseUrl ? 'Set' : 'MISSING');
 console.log('   Anon Key:', supabaseKey ? 'Set' : 'MISSING');
 
-// Supabase client oluştur
+// Supabase anon client (RLS policy'leri ile çalışır)
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Admin client (Service Role Key varsa)
+// Admin client (Service Role Key varsa - sadece auth admin işlemleri için)
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 console.log('   Service Role Key:', supabaseServiceKey ? 'Set' : 'MISSING');
 
 let supabaseAdmin = null;
 
 if (supabaseServiceKey) {
-    console.log('🚀 [Supabase] Creating Admin client...');
     supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
         auth: {
             autoRefreshToken: false,
             persistSession: false
         }
     });
+    console.log('✅ [Supabase] Admin client ready (for auth admin ops)');
 }
 
-// Service Role Key varsa tüm işlemlerde admin client kullan (RLS bypass)
-// Böylece tüm route'lar otomatik olarak admin client ile çalışır
-const effectiveClient = supabaseAdmin || supabase;
+console.log('✅ [Supabase] Anon client ready (RLS policies manage access)');
 
-if (supabaseAdmin) {
-    console.log('✅ [Supabase] All routes will use Admin client (RLS bypassed)');
-} else {
-    console.log('⚠️ [Supabase] No Service Role Key - using Anon client (RLS active)');
-}
-
-module.exports = { supabase: effectiveClient, supabaseAdmin };
+module.exports = { supabase, supabaseAdmin };
