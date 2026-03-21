@@ -166,6 +166,7 @@ const teamRoutesWeb = require("./routes/teamRoutesWeb");
 const notificationRoutesWeb = require("./routes/notificationRoutesWeb");
 // What's New routes import
 const whatsNewRoutes = require("./routes/whatsNewRoutes");
+const uiTranslateRoutes = require("./routes/uiTranslateRoutes");
 // Generation Status routes import
 
 const app = express();
@@ -319,6 +320,8 @@ const problemSolutionGenerator = require("./routes/problemSolutionGenerator");
 app.use("/api/problem-solution", problemSolutionGenerator);
 const beforeAfterGenerator = require("./routes/beforeAfterGenerator");
 app.use("/api/before-after", beforeAfterGenerator);
+const listingRoutes = require("./routes/listingRoutes");
+app.use("/api/listing", listingRoutes);
 app.use("/api/backSideCloset", backSideCloset);
 app.use("/api/backSideClosetWeb", requireBrowser, requireAuth, backSideClosetWeb);
 
@@ -446,6 +449,7 @@ app.use("/api/teamsWeb", requireBrowser, requireAuth, teamRoutesWeb);
 
 // What's New routes
 app.use("/api/whats-new", whatsNewRoutes);
+app.use("/api", uiTranslateRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, "0.0.0.0", () => {

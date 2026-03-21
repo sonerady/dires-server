@@ -648,7 +648,7 @@
             pagination.style.display = 'none';
 
             try {
-                const url = `/api/admin-dashboard/generations?feature=${currentFeature}&page=${currentPage}&limit=${limit}&status=${status}`;
+                const url = `https://dires-server-production.up.railway.app/api/admin-dashboard/generations?feature=${currentFeature}&page=${currentPage}&limit=${limit}&status=${status}`;
                 const res = await fetch(url);
                 const json = await res.json();
 

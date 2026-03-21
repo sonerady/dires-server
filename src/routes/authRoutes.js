@@ -438,7 +438,7 @@ router.post("/sync-user", async (req, res) => {
     const insertData = {
       id: newUserId,
       supabase_user_id: supabaseUserId,
-      credit_balance: shouldReceiveCredit ? 40 : 0, // Cihaz daha önce kredi aldıysa 0, almadıysa 40
+      credit_balance: shouldReceiveCredit ? 150 : 0, // Cihaz daha önce kredi aldıysa 0, almadıysa 40
       received_initial_credit: shouldReceiveCredit,
       initial_credit_date: shouldReceiveCredit ? new Date().toISOString() : null,
       created_at: new Date().toISOString(),
@@ -1689,7 +1689,7 @@ async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, p
   const insertData = {
     id: newUserId,
     supabase_user_id: supabaseUserId,
-    credit_balance: shouldReceiveCredit ? 40 : 0,
+    credit_balance: shouldReceiveCredit ? 150 : 0,
     received_initial_credit: shouldReceiveCredit,
     initial_credit_date: shouldReceiveCredit ? new Date().toISOString() : null,
     created_at: new Date().toISOString(),

@@ -9,7 +9,7 @@
  */
 
 // Cloudflare Image Resizing aktif mi? (false yapılırsa eski Supabase render kullanılır - rollback için)
-const USE_CLOUDFLARE = true;
+const USE_CLOUDFLARE = false; // Producter için geçici olarak kapalı — CNAME doğrulanınca true yapılacak
 
 // Cloudflare proxied domain (cdn-cgi/image/ bu domain üzerinden çalışır)
 // api.diress.ai DNS only olduğu için, proxied olan diress.ai kullanılmalı
@@ -20,8 +20,8 @@ const CLOUDFLARE_CDN_DOMAIN = "https://diress.ai";
 // Cloudflare Image Resizing varsayılan olarak sadece aynı zone'daki URL'leri resize eder.
 // egpfenrpripkjpemjxtg.supabase.co harici domain olduğu için çalışmaz,
 // api.diress.ai ise diress.ai zone'unda olduğu için çalışır.
-const SUPABASE_DIRECT_DOMAIN = "https://egpfenrpripkjpemjxtg.supabase.co";
-const SUPABASE_CUSTOM_DOMAIN = "https://api.diress.ai";
+const SUPABASE_DIRECT_DOMAIN = "https://vxhrlkavqqwesobhbuln.supabase.co";
+const SUPABASE_CUSTOM_DOMAIN = "https://api-producter.diress.ai";
 
 /**
  * Supabase storage URL'sinden orijinal (transform'suz) URL'yi çıkarır.

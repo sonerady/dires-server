@@ -1309,6 +1309,7 @@ async function enhancePromptWithGemini(
   lifestyleScene = null, // Kullanıcının girdiği sahne açıklaması (opsiyonel)
   lifestyleLayout = "single", // "single" = tek sahne, "multi" = çoklu tema yan yana
   addTextOverlay = false, // görselde yazı olsun mu
+  textLanguage = "en", // görseldeki yazıların dili
   isDetailCloseupMode = false, // Detail/Close-up modu mu?
   detailFocus = null, // Kullanıcının odaklanmak istediği detay (opsiyonel)
   detailLayout = "single", // "single" = tek detay, "multi" = çoklu detay grid
@@ -2380,7 +2381,7 @@ ${addTextOverlay ? `🔴 TEXT OVERLAY (MUST INCLUDE):
 - Think: the quality level of detail shots on Apple.com, luxury fashion houses, or premium watch brands
 
 === OUTPUT ===
-Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST create a professional macro/close-up product photo that showcases material quality, craftsmanship, and construction details at a level that builds buyer confidence. The product's colors and appearance must match the reference image EXACTLY. Use ${detailLightingStyle === "dramatic" ? "dramatic side lighting to reveal texture depth" : "soft, diffused lighting for a clean premium look"} and ${detailBackgroundStyle === "bokeh" ? "very shallow depth of field for professional bokeh" : "clean white studio background for clinical detail isolation"}. ${detailLayout === "multi" ? "Create a multi-detail grid/collage showing several detail angles." : "Create a single focused macro shot."} ${addTextOverlay ? "Include professional text callouts highlighting key detail features." : "No text overlay — purely visual."}
+Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST create a professional macro/close-up product photo that showcases material quality, craftsmanship, and construction details at a level that builds buyer confidence. The product's colors and appearance must match the reference image EXACTLY. Use ${detailLightingStyle === "dramatic" ? "dramatic side lighting to reveal texture depth" : "soft, diffused lighting for a clean premium look"} and ${detailBackgroundStyle === "bokeh" ? "very shallow depth of field for professional bokeh" : "clean white studio background for clinical detail isolation"}. ${detailLayout === "multi" ? "Create a multi-detail grid/collage showing several detail angles." : "Create a single focused macro shot."} ${addTextOverlay ? `Include professional text callouts highlighting key detail features. All text MUST be in ${{"tr":"Turkish","de":"German","es":"Spanish","fr":"French","it":"Italian","ja":"Japanese","ko":"Korean","pt":"Portuguese","ru":"Russian","zh":"Chinese","en":"English"}[textLanguage] || textLanguage || "English"}.` : "No text overlay — purely visual."}
 
 ${originalPrompt ? `Additional context from user: ${originalPrompt}` : ""}
 `;
@@ -2400,6 +2401,28 @@ IMPORTANT: Analyze the product image carefully to understand:
 2. What PROBLEM this product solves in daily life
 3. What the FRUSTRATING "before" scenario looks like WITHOUT this product
 4. What the SATISFYING "after" scenario looks like WITH this product
+
+🔴🔴🔴 CRITICAL — CREATIVE VARIETY & UNIQUE SCENARIOS 🔴🔴🔴
+You MUST generate a UNIQUE, CREATIVE, and PRODUCT-SPECIFIC problem/solution scenario every time. DO NOT use generic or repetitive themes.
+
+Rules for creative variety:
+- DEEPLY ANALYZE the specific product — what is it? What exact problem does it solve? Who uses it? In what context?
+- Create a SPECIFIC, REALISTIC scenario that is UNIQUE to THIS product — not a generic "messy vs clean" or "frustrated vs happy" template
+- Think about the REAL daily life situations where someone would desperately need this product
+- The problem scenario must be BELIEVABLE and RELATABLE — something that actually happens to real people
+- The solution scenario must show the product being used in a NATURAL, AUTHENTIC way
+- VARY the setting, context, time of day, activity, and emotional tone based on the product category
+- DO NOT default to the same "cluttered desk vs organized desk" or "tangled vs untangled" pattern
+- Each generation should feel like a DIFFERENT creative director designed it
+- Think like a top Amazon brand photographer who creates SCROLL-STOPPING imagery
+
+Examples of GOOD creative variety for a water bottle:
+- Scenario A: Person hiking in hot weather, dehydrated and exhausted → Same person refreshed, drinking from the insulated bottle with condensation visible
+- Scenario B: Office worker surrounded by disposable plastic cups and bottles → Same desk clean with just the reusable bottle, eco-friendly vibe
+- Scenario C: Parent at a playground, child crying for water with no drink available → Parent handing the child the bottle with a built-in straw, both smiling
+- Scenario D: Gym scene with a cheap bottle leaking in a gym bag → Premium bottle securely closed in the bag, no leaks
+
+Each of these tells a DIFFERENT story about the SAME product. This is the level of variety expected.
 
 === PROBLEM/SOLUTION IMAGE STRUCTURE (MUST FOLLOW) ===
 
@@ -2427,10 +2450,17 @@ The user has described the specific problem: "${problemText}"
 You MUST use this problem scenario for the left side and show how the product solves it on the right side.
 ` : `
 === AUTO-DETECT PROBLEM (MUST FOLLOW) ===
-Since the user didn't specify a problem, you MUST identify the MOST relatable and commercially compelling problem this product solves. Choose the problem that:
-- Is universally experienced by the target audience
-- Creates an immediate emotional "I've been there" reaction
+Since the user didn't specify a problem, you MUST identify a UNIQUE, CREATIVE, and COMMERCIALLY COMPELLING problem this product solves.
+
+CRITICAL: Do NOT always pick the most obvious problem. Instead:
+- Think of UNEXPECTED but relatable angles — a problem people experience but rarely see visualized
+- Consider different USER PERSONAS (parent, professional, athlete, student, traveler, elderly person, etc.)
+- Consider different CONTEXTS (home, office, outdoors, travel, gym, kitchen, commute, etc.)
+- Consider different TIMES (morning rush, late night, weekend, holiday, seasonal, etc.)
+- Pick a scenario that creates an immediate emotional "I've been there" reaction
+- The scenario should feel FRESH and ORIGINAL — as if a creative agency brainstormed it
 - Makes the solution (the product) feel like a must-have
+- RANDOMIZE your creative approach — do NOT fall into a pattern of always choosing the same type of problem
 `}
 
 === VISUAL COMPOSITION REQUIREMENTS ===
@@ -2443,14 +2473,22 @@ ${splitDirection === "horizontal" ? `- Clear HORIZONTAL split — TOP half is th
 - Both sides should be in the SAME environment/context for direct comparison
 - The split should feel like a magazine ad or premium Amazon A+ content
 
-${addTextOverlay ? `🔴 TEXT OVERLAYS (CRITICAL FOR E-COMMERCE):
-- Include bold, clean text callouts:
-  ${splitDirection === "horizontal" ? `- Top: "WITHOUT [Product]" or "BEFORE" or "The Problem" with ❌ icon
-  - Bottom: "WITH [Product]" or "AFTER" or "The Solution" with ✅ icon` : `- Left side: "WITHOUT [Product]" or "BEFORE" or "The Problem" with ❌ icon
-  - Right side: "WITH [Product]" or "AFTER" or "The Solution" with ✅ icon`}
-- Text should be large, readable, and use clean sans-serif fonts
-- Use contrasting colors: red/dark tones for problem, green/bright tones for solution
-- Optional: Add small bullet points highlighting 2-3 key pain points vs. benefits` : `🔴 NO TEXT OVERLAYS:
+${addTextOverlay ? `🔴 TEXT OVERLAYS — MODERN TYPOGRAPHIC DESIGN (CRITICAL):
+- Use MODERN, ELEGANT typography — think premium brand design, NOT generic stock photo text
+- Font style: Clean, thin, modern sans-serif fonts (like Helvetica Neue Light, Montserrat, Futura, or similar premium typefaces)
+- Text must be SMALL to MEDIUM sized — NOT oversized or dominating the image. The product and scene are the hero, text is supplementary
+- Text layout must be CLEAN, WELL-ORGANIZED, and BALANCED — proper spacing, alignment, and visual hierarchy
+- Use subtle, refined text placement — corners, edges, or thin banners. NOT slapped across the center
+- Include concise text callouts:
+  ${splitDirection === "horizontal" ? `- Top section: Short label like "WITHOUT" or "BEFORE" or "The Problem" — small, elegant, with subtle ❌ icon
+  - Bottom section: Short label like "WITH" or "AFTER" or "The Solution" — small, elegant, with subtle ✅ icon` : `- Left side: Short label like "WITHOUT" or "BEFORE" or "The Problem" — small, elegant, with subtle ❌ icon
+  - Right side: Short label like "WITH" or "AFTER" or "The Solution" — small, elegant, with subtle ✅ icon`}
+- Color palette for text: Use muted, sophisticated tones — soft red/coral for problem side, soft green/teal for solution side. NO harsh neon or oversaturated colors
+- Text weight: Use LIGHT or REGULAR weight, not bold or extra-bold. Thin, refined strokes
+- Optional: 2-3 very short bullet points (max 3-4 words each) highlighting key pain points vs. benefits — styled as minimal, elegant list items
+- Spacing: Generous whitespace around text elements — never cramped or cluttered
+- Overall feel: Premium e-commerce infographic quality — like Apple, Dyson, or luxury brand product pages
+- ⚠️ CRITICAL: ALL text on the image MUST be written in ${{"tr":"Turkish","de":"German","es":"Spanish","fr":"French","it":"Italian","ja":"Japanese","ko":"Korean","pt":"Portuguese","ru":"Russian","zh":"Chinese","en":"English"}[textLanguage] || textLanguage || "English"}. Do NOT use any other language for the text.` : `🔴 NO TEXT OVERLAYS:
 - Do NOT include any text, labels, icons (❌/✅), or written callouts on the image
 - The comparison should be purely visual — let the imagery tell the story
 - The contrast between problem and solution should be obvious without text`}
@@ -2510,7 +2548,7 @@ ${sceneType === "studio" ? `- Use a CLEAN STUDIO environment for both sides
 - They answer the #1 buyer question: "Why do I need this?"
 
 === OUTPUT ===
-Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST create a professional ${splitDirection === "horizontal" ? "horizontal (top/bottom)" : "vertical (left/right)"} split-composition problem/solution image with clear BEFORE (problem without product) and AFTER (solution with product) sides. ${addTextOverlay ? "Include text overlays with ❌/✅ indicators." : "Do NOT include any text or labels on the image."} Use ${contrastLevel === "subtle" ? "subtle, refined" : "dramatic, impactful"} contrasting color tones. ${sceneType === "studio" ? "Use a clean studio environment." : "Use a realistic lifestyle environment."} The product's appearance must match the reference image EXACTLY.
+Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST create a professional ${splitDirection === "horizontal" ? "horizontal (top/bottom)" : "vertical (left/right)"} split-composition problem/solution image with clear BEFORE (problem without product) and AFTER (solution with product) sides. ${addTextOverlay ? `Include text overlays with ❌/✅ indicators. All text MUST be in ${{"tr":"Turkish","de":"German","es":"Spanish","fr":"French","it":"Italian","ja":"Japanese","ko":"Korean","pt":"Portuguese","ru":"Russian","zh":"Chinese","en":"English"}[textLanguage] || textLanguage || "English"}.` : "Do NOT include any text or labels on the image."} Use ${contrastLevel === "subtle" ? "subtle, refined" : "dramatic, impactful"} contrasting color tones. ${sceneType === "studio" ? "Use a clean studio environment." : "Use a realistic lifestyle environment."} If appropriate for the product category, subtly incorporate refined premium-retail visual cues such as elegant quality markers, tasteful material tabs, understated craftsmanship seals, luxury merchandising labels, or small guarantee-style icons that strengthen the premium feel. These cues must be believable, minimal, and secondary to the core before/after story. Never invent real certifications, country-of-origin claims, awards, or branded marks unless they are already present in the source image. The product's appearance must match the reference image EXACTLY.
 
 ${originalPrompt ? `Additional context from user: ${originalPrompt}` : ""}
 `;
@@ -3797,7 +3835,7 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
         logger.log(
           "❌✅ [FALLBACK-PROBLEM] Problem/Solution mode fallback prompt kullanılıyor"
         );
-        return `Create a professional ${splitDirection === "horizontal" ? "horizontal (top/bottom)" : "vertical (left/right)"} split-composition product image showing PROBLEM vs SOLUTION. ${splitDirection === "horizontal" ? "Top" : "Left side"} (❌ BEFORE/WITHOUT): Show a frustrating scenario without the product - ${contrastLevel === "subtle" ? "slightly cooler tones" : "desaturated, cooler tones"}. ${problemText ? `Problem: ${problemText}. ` : "Show the most relatable problem this product solves. "}${splitDirection === "horizontal" ? "Bottom" : "Right side"} (✅ AFTER/WITH): Show the satisfying result with the product - ${contrastLevel === "subtle" ? "slightly warmer tones" : "warm, bright tones"}. ${addTextOverlay ? "Include bold text overlays with ❌/✅ indicators." : "No text overlays."} ${sceneType === "studio" ? "Clean studio environment." : "Realistic lifestyle environment."} The product must match the reference exactly. Professional e-commerce quality.`;
+        return `Create a professional ${splitDirection === "horizontal" ? "horizontal (top/bottom)" : "vertical (left/right)"} split-composition product image showing PROBLEM vs SOLUTION. ${splitDirection === "horizontal" ? "Top" : "Left side"} (❌ BEFORE/WITHOUT): Show a frustrating scenario without the product - ${contrastLevel === "subtle" ? "slightly cooler tones" : "desaturated, cooler tones"}. ${problemText ? `Problem: ${problemText}. ` : "Show the most relatable problem this product solves. "}${splitDirection === "horizontal" ? "Bottom" : "Right side"} (✅ AFTER/WITH): Show the satisfying result with the product - ${contrastLevel === "subtle" ? "slightly warmer tones" : "warm, bright tones"}. ${addTextOverlay ? "Include bold text overlays with ❌/✅ indicators." : "No text overlays."} ${sceneType === "studio" ? "Clean studio environment." : "Realistic lifestyle environment."} If suitable for the product, add subtle premium-retail cues such as elegant quality markers, tasteful material tabs, understated craftsmanship seals, or luxury merchandising labels. Keep them believable, minimal, and never invent real certifications or brand-specific claims. The product must match the reference exactly. Professional e-commerce quality.`;
       }
 
       // 🔍 DETAIL CLOSEUP MODE için özel fallback prompt
@@ -4595,6 +4633,7 @@ router.post("/generate", async (req, res) => {
       splitDirection = "vertical", // "vertical" = sol-sağ, "horizontal" = üst-alt
       contrastLevel = "dramatic", // "subtle" = hafif, "dramatic" = güçlü renk kontrastı
       sceneType = "lifestyle", // "lifestyle" = gerçekçi ortam, "studio" = stüdyo arka plan
+      textLanguage = "en", // görseldeki yazıların dili
       // Session deduplication
       sessionId = null, // Aynı batch request'leri tanımlıyor
       modelPhoto = null,
@@ -5216,6 +5255,7 @@ router.post("/generate", async (req, res) => {
           null, // lifestyleScene
           "single", // lifestyleLayout
           addTextOverlay, // addTextOverlay - user configurable
+          textLanguage, // yazı dili
           false, // isDetailCloseupMode
           null, // detailFocus
           "single", // detailLayout
@@ -5259,6 +5299,7 @@ router.post("/generate", async (req, res) => {
           null, // lifestyleScene
           "single", // lifestyleLayout
           addTextOverlay, // görselde Amazon/Etsy tarzı yazılar olsun mu
+          textLanguage, // yazı dili
           true, // isDetailCloseupMode
           detailFocus, // Kullanıcının odaklanmak istediği detay
           detailLayout, // "single" veya "multi"
@@ -5296,7 +5337,8 @@ router.post("/generate", async (req, res) => {
           true, // isLifestyleMode
           lifestyleScene, // Kullanıcının girdiği sahne açıklaması
           lifestyleLayout, // "single" veya "multi"
-          addTextOverlay // görselde yazı olsun mu
+          addTextOverlay, // görselde yazı olsun mu
+          textLanguage // yazı dili
         );
       } else if (isInfographicMode) {
         logger.log(

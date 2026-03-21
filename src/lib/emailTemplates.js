@@ -178,7 +178,7 @@ function getMobileVerificationEmailTemplate(verificationCode, userName = '') {
  * @param {number} initialCredits - Initial credit amount
  * @returns {string} HTML email template
  */
-function getWelcomeEmailTemplate(userName = '', initialCredits = 40) {
+function getWelcomeEmailTemplate(userName = '', initialCredits = 150) {
   return `
 <!DOCTYPE html>
 <html lang="en">

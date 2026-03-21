@@ -1309,6 +1309,7 @@ async function enhancePromptWithGemini(
   lifestyleScene = null, // Kullanıcının girdiği sahne açıklaması (opsiyonel)
   lifestyleLayout = "single", // "single" = tek sahne, "multi" = çoklu tema yan yana
   addTextOverlay = false, // görselde yazı olsun mu
+  textLanguage = "en", // görseldeki yazıların dili
   isDetailCloseupMode = false, // Detail/Close-up modu mu?
   detailFocus = null, // Kullanıcının odaklanmak istediği detay (opsiyonel)
   detailLayout = "single", // "single" = tek detay, "multi" = çoklu detay grid
@@ -2351,6 +2352,7 @@ ${addTextOverlay ? `
 - Use clean, modern typography
 - Maximum 3-4 text elements — don't overcrowd
 - Text should HELP communicate size, not just decorate
+- ⚠️ CRITICAL: ALL text on the image MUST be written in ${{"tr":"Turkish","de":"German","es":"Spanish","fr":"French","it":"Italian","ja":"Japanese","ko":"Korean","pt":"Portuguese","ru":"Russian","zh":"Chinese","en":"English"}[textLanguage] || textLanguage || "English"}. Do NOT use any other language for the text.
 ` : `
 🔴 DIMENSION TEXT ONLY:
 - Include dimension measurements and measurement lines/arrows
@@ -2366,7 +2368,7 @@ ${addTextOverlay ? `
 - The image should answer: "How big is this? Will it fit? Is it the right size for me?"
 
 === OUTPUT ===
-Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST create a professional size/dimension reference image that clearly communicates the product's real-world size. The product must match the reference image EXACTLY. Include dimension annotations with metric measurements. ${sizeComparisonType === "hand" ? "Show the product held in or compared with a human hand." : sizeComparisonType === "objects" ? "Show the product next to universally recognized everyday objects for scale." : "Show the product alone with only dimension annotations — no comparison objects."} ${sizeLayout === "multi" ? "Create a multi-view grid showing different angles with measurements." : "Create a single clean size reference composition."} ${addTextOverlay ? "Include professional text callouts about dimensions." : "Include only dimension measurements, no marketing text."}
+Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST create a professional size/dimension reference image that clearly communicates the product's real-world size. The product must match the reference image EXACTLY. Include dimension annotations with metric measurements. ${sizeComparisonType === "hand" ? "Show the product held in or compared with a human hand." : sizeComparisonType === "objects" ? "Show the product next to universally recognized everyday objects for scale." : "Show the product alone with only dimension annotations — no comparison objects."} ${sizeLayout === "multi" ? "Create a multi-view grid showing different angles with measurements." : "Create a single clean size reference composition."} ${addTextOverlay ? `Include professional text callouts about dimensions. All text MUST be in ${{"tr":"Turkish","de":"German","es":"Spanish","fr":"French","it":"Italian","ja":"Japanese","ko":"Korean","pt":"Portuguese","ru":"Russian","zh":"Chinese","en":"English"}[textLanguage] || textLanguage || "English"}.` : "Include only dimension measurements, no marketing text."}
 
 ${originalPrompt ? `Additional context from user: ${originalPrompt}` : ""}
 `;
@@ -4630,6 +4632,7 @@ router.post("/generate", async (req, res) => {
       productDimensions = null, // Kullanıcının girdiği boyut bilgisi
       sizeLayout = "single", // "single" = tek görsel, "multi" = çoklu grid
       sceneType = "lifestyle", // "lifestyle" = gerçekçi ortam, "studio" = stüdyo
+      textLanguage = "en", // görseldeki yazıların dili
       // Session deduplication
       sessionId = null, // Aynı batch request'leri tanımlıyor
       modelPhoto = null,
@@ -5259,6 +5262,7 @@ router.post("/generate", async (req, res) => {
           null, // lifestyleScene
           "single", // lifestyleLayout
           addTextOverlay, // görselde yazılar olsun mu
+          textLanguage, // yazı dili
           false, // isDetailCloseupMode
           null, // detailFocus
           "single", // detailLayout
@@ -5302,6 +5306,7 @@ router.post("/generate", async (req, res) => {
           null, // lifestyleScene
           "single", // lifestyleLayout
           addTextOverlay, // görselde Amazon/Etsy tarzı yazılar olsun mu
+          textLanguage, // yazı dili
           true, // isDetailCloseupMode
           detailFocus, // Kullanıcının odaklanmak istediği detay
           detailLayout, // "single" veya "multi"
@@ -5339,7 +5344,8 @@ router.post("/generate", async (req, res) => {
           true, // isLifestyleMode
           lifestyleScene, // Kullanıcının girdiği sahne açıklaması
           lifestyleLayout, // "single" veya "multi"
-          addTextOverlay // görselde yazı olsun mu
+          addTextOverlay, // görselde yazı olsun mu
+          textLanguage // yazı dili
         );
       } else if (isInfographicMode) {
         logger.log(

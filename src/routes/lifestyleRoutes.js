@@ -1308,7 +1308,8 @@ async function enhancePromptWithGemini(
   isLifestyleMode = false, // Lifestyle modu mu?
   lifestyleScene = null, // Kullanıcının girdiği sahne açıklaması (opsiyonel)
   lifestyleLayout = "single", // "single" = tek sahne, "multi" = çoklu tema yan yana
-  addTextOverlay = false // görselde yazı olsun mu
+  addTextOverlay = false, // görselde yazı olsun mu
+  textLanguage = "en" // görseldeki yazıların dili
 ) {
   try {
     logger.log(
@@ -2418,19 +2419,20 @@ ${addTextOverlay ? `
 === 🔴 TEXT OVERLAY ON IMAGE (ENABLED) ===
 The user wants Amazon/Etsy style TEXT OVERLAYS on the lifestyle image. You MUST include text elements in your prompt:
 - Add 2-4 short, punchy marketing text callouts directly on the image
-- Text should describe the scene, product benefits, or usage context (e.g., "Perfect for Weekend Brunch", "Professional Grade", "Effortless Cleaning", "Made for Outdoor Adventures")
+- Text should describe the scene, product benefits, or usage context
 - Use clean, modern sans-serif typography
 - Text should be placed in non-obstructive areas (corners, top/bottom bars, or semi-transparent overlay strips)
 - Text color should contrast well with the background for readability
 - Keep text minimal and elegant — NOT cluttered. Think premium Amazon A+ Content or Etsy listing hero images
 - The text must be relevant to the specific lifestyle scene being shown
+- ⚠️ CRITICAL: ALL text on the image MUST be written in ${{"tr":"Turkish (Türkçe)","de":"German (Deutsch)","es":"Spanish (Español)","fr":"French (Français)","it":"Italian (Italiano)","ja":"Japanese (日本語)","ko":"Korean (한국어)","pt":"Portuguese (Português)","ru":"Russian (Русский)","zh":"Chinese (中文)","en":"English"}[textLanguage] || textLanguage || "English"}. Do NOT use any other language for the text overlays.
 ` : `
 === 🔴 NO TEXT ON IMAGE ===
 Do NOT add ANY text, typography, labels, callouts, watermarks, or written content on the image. The lifestyle photo must be PURELY visual — only the product in its lifestyle scene with NO text elements whatsoever.
 `}
 
 === OUTPUT ===
-Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST describe the product with its ORIGINAL colors and appearance from the reference image placed in a beautiful, high-converting lifestyle setting.${lifestyleScene ? " Follow the user's scene description." : ""}${lifestyleLayout === "multi" ? " The image MUST contain multiple different lifestyle scenes arranged in a grid/collage layout within a single frame." : ""}${addTextOverlay ? " Include Amazon/Etsy style marketing text overlays on the image." : " Do NOT include any text or typography on the image."} The result must be indistinguishable from a professional lifestyle photo shoot by a top e-commerce photographer.
+Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST describe the product with its ORIGINAL colors and appearance from the reference image placed in a beautiful, high-converting lifestyle setting.${lifestyleScene ? " Follow the user's scene description." : ""}${lifestyleLayout === "multi" ? " The image MUST contain multiple different lifestyle scenes arranged in a grid/collage layout within a single frame." : ""}${addTextOverlay ? ` Include Amazon/Etsy style marketing text overlays on the image. All text MUST be in ${{"tr":"Turkish","de":"German","es":"Spanish","fr":"French","it":"Italian","ja":"Japanese","ko":"Korean","pt":"Portuguese","ru":"Russian","zh":"Chinese","en":"English"}[textLanguage] || textLanguage || "English"}.` : " Do NOT include any text or typography on the image."} If it feels natural for the product and scene, you may subtly incorporate refined premium-retail visual cues such as elegant quality markers, tasteful material tabs, understated craftsmanship seals, luxury merchandising labels, or small guarantee-style icons to elevate perceived value. These details must remain minimal, believable, and secondary to the product. Never invent real certifications, country-of-origin claims, awards, or brand-specific marks unless they are already present in the source image. The result must be indistinguishable from a professional lifestyle photo shoot by a top e-commerce photographer.
 
 ${originalPrompt ? `Additional context from user: ${originalPrompt}` : ""}
 `;
@@ -3375,8 +3377,8 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
           "🌿 [CATCH-LIFESTYLE] Gemini başarısız, lifestyle fallback prompt kullanılıyor"
         );
         enhancedPrompt = lifestyleLayout === "multi"
-          ? `Create a single image containing 2-3 different lifestyle scenes arranged in a clean grid layout. Each scene shows a REAL PERSON actively USING the SAME product from the reference image in a DIFFERENT context. ${lifestyleScene ? `Scene direction: ${lifestyleScene}. ` : ""}The product must remain exactly as shown in the reference - same colors, design, and appearance. A person must be present in each scene, holding, wearing, or using the product. Professional lifestyle photography quality, premium e-commerce standard.`
-          : `Create a professional lifestyle product photo showing a REAL PERSON actively using the product from the reference image. ${lifestyleScene ? `Scene: ${lifestyleScene}. ` : "Show the person in a cozy, aesthetic environment naturally interacting with the product. "}The product must remain exactly as shown in the reference - same colors, design, and appearance. The person should look natural and aspirational, with their hands or body clearly using the product. Soft natural daylight, shallow depth of field with the product in sharp focus. Warm, inviting, aspirational mood. Premium lifestyle brand photography quality.`;
+          ? `Create a single image containing 2-3 different lifestyle scenes arranged in a clean grid layout. Each scene shows a REAL PERSON actively USING the SAME product from the reference image in a DIFFERENT context. ${lifestyleScene ? `Scene direction: ${lifestyleScene}. ` : ""}The product must remain exactly as shown in the reference - same colors, design, and appearance. A person must be present in each scene, holding, wearing, or using the product. If natural for the product, add subtle premium-retail cues such as elegant quality markers, tasteful material tabs, understated craftsmanship seals, or luxury merchandising labels. Keep them minimal and never invent real certifications or brand-specific claims. Professional lifestyle photography quality, premium e-commerce standard.`
+          : `Create a professional lifestyle product photo showing a REAL PERSON actively using the product from the reference image. ${lifestyleScene ? `Scene: ${lifestyleScene}. ` : "Show the person in a cozy, aesthetic environment naturally interacting with the product. "}The product must remain exactly as shown in the reference - same colors, design, and appearance. The person should look natural and aspirational, with their hands or body clearly using the product. Soft natural daylight, shallow depth of field with the product in sharp focus. Warm, inviting, aspirational mood. If natural for the product, add subtle premium-retail cues such as elegant quality markers, tasteful material tabs, understated craftsmanship seals, or luxury merchandising labels. Keep them minimal and never invent real certifications or brand-specific claims. Premium lifestyle brand photography quality.`;
       } else if (isInfographicMode) {
         // Infographic mode için fallback prompt
         logger.log(
@@ -4236,6 +4238,7 @@ router.post("/generate", async (req, res) => {
       lifestyleScene = null, // Kullanıcının girdiği sahne açıklaması (opsiyonel)
       lifestyleLayout = "single", // "single" = tek sahne, "multi" = çoklu tema yan yana
       addTextOverlay = false, // görselde Amazon/Etsy tarzı yazılar olsun mu
+      textLanguage = "en", // görseldeki yazıların dili
       // Session deduplication
       sessionId = null, // Aynı batch request'leri tanımlıyor
       modelPhoto = null,
@@ -4848,7 +4851,8 @@ router.post("/generate", async (req, res) => {
           true, // isLifestyleMode
           lifestyleScene, // Kullanıcının girdiği sahne açıklaması
           lifestyleLayout, // "single" veya "multi"
-          addTextOverlay // görselde yazı olsun mu
+          addTextOverlay, // görselde yazı olsun mu
+          textLanguage // yazı dili
         );
       } else if (isInfographicMode) {
         logger.log(

@@ -85,7 +85,7 @@ router.post("/registerAnonymousUser", async (req, res) => {
           .insert([
             {
               id: userId,
-              credit_balance: 40, // 🎁 YENİ KULLANICI HEDİYESİ: 40 KREDİ
+              credit_balance: 150, // 🎁 YENİ KULLANICI HEDİYESİ: 150 KREDİ
               device_id: deviceId || null,
               received_initial_credit: true, // 🎯 Bu kullanıcı initial kredi aldı
               initial_credit_date: new Date().toISOString(), // 📅 Kredi alım tarihi
@@ -139,7 +139,7 @@ router.post("/registerAnonymousUser", async (req, res) => {
       const { data, error } = await supabase.from("users").insert([
         {
           id: userId,
-          credit_balance: 40, // 🎁 YENİ KULLANICI HEDİYESİ: 40 KREDİ
+          credit_balance: 150, // 🎁 YENİ KULLANICI HEDİYESİ: 150 KREDİ
           device_id: deviceId || null,
           received_initial_credit: true, // 🎯 Bu kullanıcı initial kredi aldı
           initial_credit_date: new Date().toISOString(), // 📅 Kredi alım tarihi

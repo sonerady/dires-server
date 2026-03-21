@@ -1309,6 +1309,7 @@ async function enhancePromptWithGemini(
   lifestyleScene = null, // Kullanıcının girdiği sahne açıklaması (opsiyonel)
   lifestyleLayout = "single", // "single" = tek sahne, "multi" = çoklu tema yan yana
   addTextOverlay = false, // görselde yazı olsun mu
+  textLanguage = "en", // görseldeki yazıların dili
   isDetailCloseupMode = false, // Detail/Close-up modu mu?
   detailFocus = null, // Kullanıcının odaklanmak istediği detay (opsiyonel)
   detailLayout = "single", // "single" = tek detay, "multi" = çoklu detay grid
@@ -2310,6 +2311,7 @@ Choose the 4-6 most impactful comparison features based on the product category:
 - "OURS" and "OTHERS" header labels
 - Key advantage text (e.g., "2X More Durable", "Premium Materials", "Handcrafted Quality")
 - Clean, modern typography that doesn't overwhelm the images
+- ⚠️ CRITICAL: ALL text on the image MUST be written in ${{"tr":"Turkish","de":"German","es":"Spanish","fr":"French","it":"Italian","ja":"Japanese","ko":"Korean","pt":"Portuguese","ru":"Russian","zh":"Chinese","en":"English"}[textLanguage] || textLanguage || "English"}. Do NOT use any other language for the text.
 ` : `
 🔴 MINIMAL TEXT:
 - Include only "OURS" and "OTHERS" labels
@@ -2319,7 +2321,7 @@ Choose the 4-6 most impactful comparison features based on the product category:
 
       const outputStyle = comparisonType === "table" ? "Use a clean table/grid format with checkmarks and X marks." : "Use a side-by-side split layout with clear visual quality difference.";
       const outputLayout = comparisonLayout === "multi" ? "Create a multi-view comparison grid." : "Create a single powerful comparison composition.";
-      const outputText = addTextOverlay ? "Include professional comparison text callouts and feature labels." : "Keep text minimal with only essential labels.";
+      const outputText = addTextOverlay ? `Include professional comparison text callouts and feature labels. All text MUST be in ${{"tr":"Turkish","de":"German","es":"Spanish","fr":"French","it":"Italian","ja":"Japanese","ko":"Korean","pt":"Portuguese","ru":"Russian","zh":"Chinese","en":"English"}[textLanguage] || textLanguage || "English"}.` : "Keep text minimal with only essential labels.";
       const userContext = originalPrompt ? "Additional context from user: " + originalPrompt : "";
 
       promptForGemini = `
@@ -2417,7 +2419,7 @@ ${textSection}
 - Amazon's algorithm rewards listings with diverse image types including comparisons
 
 === OUTPUT ===
-Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST create a professional "Ours vs Others" comparison image that clearly demonstrates why the user's product is superior. The product must match the reference image EXACTLY for the "OURS" side. ${outputStyle} ${outputLayout} ${outputText} The "OTHERS" side should show a GENERIC competitor — never a specific real brand.
+Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST create a professional "Ours vs Others" comparison image that clearly demonstrates why the user's product is superior. The product must match the reference image EXACTLY for the "OURS" side. ${outputStyle} ${outputLayout} ${outputText} If appropriate for the product category, subtly incorporate refined premium-retail visual cues such as elegant quality markers, tasteful material tabs, understated craftsmanship seals, warranty-style icons, or luxury merchandising labels that enhance perceived value without becoming the main subject. These elements must feel believable, minimal, and secondary to the product itself. Never invent real certifications, country-of-origin claims, awards, or specific branded marks unless they are already visible in the source image. The "OTHERS" side should show a GENERIC competitor — never a specific real brand.
 
 ${userContext}
 `;
@@ -2974,7 +2976,7 @@ Do NOT add ANY text, typography, labels, callouts, watermarks, or written conten
 `}
 
 === OUTPUT ===
-Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST describe the product with its ORIGINAL colors and appearance from the reference image placed in a beautiful, high-converting lifestyle setting.${lifestyleScene ? " Follow the user's scene description." : ""}${lifestyleLayout === "multi" ? " The image MUST contain multiple different lifestyle scenes arranged in a grid/collage layout within a single frame." : ""}${addTextOverlay ? " Include Amazon/Etsy style marketing text overlays on the image." : " Do NOT include any text or typography on the image."} The result must be indistinguishable from a professional lifestyle photo shoot by a top e-commerce photographer.
+Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST describe the product with its ORIGINAL colors and appearance from the reference image placed in a beautiful, high-converting lifestyle setting.${lifestyleScene ? " Follow the user's scene description." : ""}${lifestyleLayout === "multi" ? " The image MUST contain multiple different lifestyle scenes arranged in a grid/collage layout within a single frame." : ""}${addTextOverlay ? " Include Amazon/Etsy style marketing text overlays on the image." : " Do NOT include any text or typography on the image."} If natural for the product and scene, subtly incorporate refined premium-retail visual cues such as elegant quality markers, tasteful material tabs, understated craftsmanship seals, luxury merchandising labels, or small guarantee-style icons. These should remain believable, minimal, and secondary to the main product story. Never invent real certifications, country-of-origin claims, awards, or brand-specific marks unless they are already present in the source image. The result must be indistinguishable from a professional lifestyle photo shoot by a top e-commerce photographer.
 
 ${originalPrompt ? `Additional context from user: ${originalPrompt}` : ""}
 `;
@@ -3946,8 +3948,8 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
           "🌿 [CATCH-LIFESTYLE] Gemini başarısız, lifestyle fallback prompt kullanılıyor"
         );
         enhancedPrompt = lifestyleLayout === "multi"
-          ? `Create a single image containing 2-3 different lifestyle scenes arranged in a clean grid layout. Each scene shows a REAL PERSON actively USING the SAME product from the reference image in a DIFFERENT context. ${lifestyleScene ? `Scene direction: ${lifestyleScene}. ` : ""}The product must remain exactly as shown in the reference - same colors, design, and appearance. A person must be present in each scene, holding, wearing, or using the product. Professional lifestyle photography quality, premium e-commerce standard.`
-          : `Create a professional lifestyle product photo showing a REAL PERSON actively using the product from the reference image. ${lifestyleScene ? `Scene: ${lifestyleScene}. ` : "Show the person in a cozy, aesthetic environment naturally interacting with the product. "}The product must remain exactly as shown in the reference - same colors, design, and appearance. The person should look natural and aspirational, with their hands or body clearly using the product. Soft natural daylight, shallow depth of field with the product in sharp focus. Warm, inviting, aspirational mood. Premium lifestyle brand photography quality.`;
+          ? `Create a single image containing 2-3 different lifestyle scenes arranged in a clean grid layout. Each scene shows a REAL PERSON actively USING the SAME product from the reference image in a DIFFERENT context. ${lifestyleScene ? `Scene direction: ${lifestyleScene}. ` : ""}The product must remain exactly as shown in the reference - same colors, design, and appearance. A person must be present in each scene, holding, wearing, or using the product. If natural for the product, add subtle premium-retail cues such as elegant quality markers, tasteful material tabs, understated craftsmanship seals, or luxury merchandising labels. Keep them minimal and never invent real certifications or brand-specific claims. Professional lifestyle photography quality, premium e-commerce standard.`
+          : `Create a professional lifestyle product photo showing a REAL PERSON actively using the product from the reference image. ${lifestyleScene ? `Scene: ${lifestyleScene}. ` : "Show the person in a cozy, aesthetic environment naturally interacting with the product. "}The product must remain exactly as shown in the reference - same colors, design, and appearance. The person should look natural and aspirational, with their hands or body clearly using the product. Soft natural daylight, shallow depth of field with the product in sharp focus. Warm, inviting, aspirational mood. If natural for the product, add subtle premium-retail cues such as elegant quality markers, tasteful material tabs, understated craftsmanship seals, or luxury merchandising labels. Keep them minimal and never invent real certifications or brand-specific claims. Premium lifestyle brand photography quality.`;
       } else if (isInfographicMode) {
         // Infographic mode için fallback prompt
         logger.log(
@@ -4040,8 +4042,8 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
           "🆚 [FALLBACK-COMPARISON] Comparison mode fallback prompt kullanılıyor"
         );
         return comparisonLayout === "multi"
-          ? `Create a multi-view comparison grid showing "Ours vs Others". Include an overall side-by-side product comparison, a detail/close-up quality comparison, and a feature checklist with checkmarks and X marks. ${comparisonFeatures ? `Highlight these features: ${comparisonFeatures}. ` : "Compare material quality, construction, durability, and design. "}"OURS" side shows the product from reference image — bright, premium, with green/gold accents. "OTHERS" shows a generic inferior competitor — desaturated, with red/gray accents. ${competitorInfo ? `Competitor context: ${competitorInfo}. ` : ""}${addTextOverlay ? "Include professional comparison text callouts and feature labels. " : "Keep text minimal with only essential labels. "}Clean white background, professional Amazon/Etsy listing quality.`
-          : `Create a professional "Ours vs Others" comparison image. ${comparisonType === "table" ? "Use a clean table/grid format with feature rows, green checkmarks for OURS and red X marks for OTHERS." : "Split the image into two halves — LEFT shows OURS (bright, premium, vibrant) and RIGHT shows OTHERS (generic, desaturated, inferior)."} ${comparisonFeatures ? `Compare these features: ${comparisonFeatures}. ` : "Compare material quality, construction, durability, and design. "}${competitorInfo ? `Competitor context: ${competitorInfo}. ` : ""}The OURS product must match the reference image exactly. OTHERS should be a generic competitor — never a specific real brand. ${addTextOverlay ? "Include comparison text callouts and feature labels. " : "Keep text minimal. "}Professional Amazon/Etsy quality.`;
+          ? `Create a multi-view comparison grid showing "Ours vs Others". Include an overall side-by-side product comparison, a detail/close-up quality comparison, and a feature checklist with checkmarks and X marks. ${comparisonFeatures ? `Highlight these features: ${comparisonFeatures}. ` : "Compare material quality, construction, durability, and design. "}"OURS" side shows the product from reference image — bright, premium, with green/gold accents. "OTHERS" shows a generic inferior competitor — desaturated, with red/gray accents. ${competitorInfo ? `Competitor context: ${competitorInfo}. ` : ""}${addTextOverlay ? "Include professional comparison text callouts and feature labels. " : "Keep text minimal with only essential labels. "}If suitable for the product, add understated premium-retail cues such as elegant quality markers, tasteful material tabs, subtle craftsmanship seals, or luxury merchandising labels. Keep them believable, secondary, and never invent real certifications, country claims, or brand-specific marks. Clean white background, professional Amazon/Etsy listing quality.`
+          : `Create a professional "Ours vs Others" comparison image. ${comparisonType === "table" ? "Use a clean table/grid format with feature rows, green checkmarks for OURS and red X marks for OTHERS." : "Split the image into two halves — LEFT shows OURS (bright, premium, vibrant) and RIGHT shows OTHERS (generic, desaturated, inferior)."} ${comparisonFeatures ? `Compare these features: ${comparisonFeatures}. ` : "Compare material quality, construction, durability, and design. "}${competitorInfo ? `Competitor context: ${competitorInfo}. ` : ""}The OURS product must match the reference image exactly. OTHERS should be a generic competitor — never a specific real brand. ${addTextOverlay ? "Include comparison text callouts and feature labels. " : "Keep text minimal. "}If suitable for the product, add understated premium-retail cues such as elegant quality markers, tasteful material tabs, subtle craftsmanship seals, or luxury merchandising labels. Keep them believable, secondary, and never invent real certifications, country claims, or brand-specific marks. Professional Amazon/Etsy quality.`;
       }
 
       // 📐 SIZE/DIMENSION MODE için özel fallback prompt
@@ -4855,6 +4857,7 @@ router.post("/generate", async (req, res) => {
       comparisonFeatures = null, // Karşılaştırılacak özellikler (opsiyonel)
       comparisonLayout = "single", // "single" = tek görsel, "multi" = çoklu
       comparisonBackground = "scenic", // "scenic" = sahneli, "plain" = sade beyaz
+      textLanguage = "en", // görseldeki yazıların dili
       // Session deduplication
       sessionId = null, // Aynı batch request'leri tanımlıyor
       modelPhoto = null,
@@ -5483,6 +5486,7 @@ router.post("/generate", async (req, res) => {
           null, // lifestyleScene
           "single", // lifestyleLayout
           addTextOverlay, // görselde yazılar olsun mu
+          textLanguage, // yazı dili
           false, // isDetailCloseupMode
           null, // detailFocus
           "single", // detailLayout
@@ -5531,6 +5535,7 @@ router.post("/generate", async (req, res) => {
           null, // lifestyleScene
           "single", // lifestyleLayout
           addTextOverlay, // görselde yazılar olsun mu
+          textLanguage, // yazı dili
           false, // isDetailCloseupMode
           null, // detailFocus
           "single", // detailLayout
@@ -5573,6 +5578,7 @@ router.post("/generate", async (req, res) => {
           null, // lifestyleScene
           "single", // lifestyleLayout
           addTextOverlay, // görselde Amazon/Etsy tarzı yazılar olsun mu
+          textLanguage, // yazı dili
           true, // isDetailCloseupMode
           detailFocus, // Kullanıcının odaklanmak istediği detay
           detailLayout, // "single" veya "multi"
@@ -5610,7 +5616,8 @@ router.post("/generate", async (req, res) => {
           true, // isLifestyleMode
           lifestyleScene, // Kullanıcının girdiği sahne açıklaması
           lifestyleLayout, // "single" veya "multi"
-          addTextOverlay // görselde yazı olsun mu
+          addTextOverlay, // görselde yazı olsun mu
+          textLanguage // yazı dili
         );
       } else if (isInfographicMode) {
         logger.log(

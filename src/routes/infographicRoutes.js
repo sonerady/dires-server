@@ -1307,7 +1307,8 @@ async function enhancePromptWithGemini(
   productFeatures = null, // Kullanıcının girdiği ürün özellikleri (opsiyonel)
   infographicBackground = "white", // "white" veya "contextual"
   isLifestyleMode = false, // Lifestyle modu mu?
-  lifestyleScene = null // Kullanıcının girdiği sahne açıklaması (opsiyonel)
+  lifestyleScene = null, // Kullanıcının girdiği sahne açıklaması (opsiyonel)
+  textLanguage = "en" // görseldeki yazıların dili
 ) {
   try {
     logger.log(
@@ -2359,6 +2360,7 @@ TEXT ELEMENTS:
 - Feature callouts with short, punchy descriptions (2-5 words each)
 - Small icons or symbols next to each feature point
 - Clean, organized hierarchy of information
+- ⚠️ CRITICAL: ALL text on the image MUST be written in ${{"tr":"Turkish","de":"German","es":"Spanish","fr":"French","it":"Italian","ja":"Japanese","ko":"Korean","pt":"Portuguese","ru":"Russian","zh":"Chinese","en":"English"}[textLanguage] || textLanguage || "English"}. Do NOT use any other language for the text.
 
 STYLE REFERENCE:
 - Amazon A+ Content / Enhanced Brand Content style
@@ -2406,7 +2408,7 @@ Use a clean, pure white or very light professional background. The product must 
 `}
 
 === OUTPUT ===
-Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST describe the product with its ORIGINAL colors and appearance from the reference image. DO NOT invent new colors or modify the product in any way.${productFeatures ? " Use the user-provided product features as the callout sections." : ""}${infographicBackground === "contextual" ? " Use a contextual lifestyle background relevant to the product category instead of white." : ""}
+Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST describe the product with its ORIGINAL colors and appearance from the reference image. DO NOT invent new colors or modify the product in any way.${productFeatures ? " Use the user-provided product features as the callout sections." : ""}${infographicBackground === "contextual" ? " Use a contextual lifestyle background relevant to the product category instead of white." : ""} All text on the infographic MUST be in ${{"tr":"Turkish","de":"German","es":"Spanish","fr":"French","it":"Italian","ja":"Japanese","ko":"Korean","pt":"Portuguese","ru":"Russian","zh":"Chinese","en":"English"}[textLanguage] || textLanguage || "English"}.
 
 ${originalPrompt ? `Additional context from user: ${originalPrompt}` : ""}
 `;
@@ -4076,6 +4078,7 @@ router.post("/generate", async (req, res) => {
       // Lifestyle mode specific parameters (LifestyleGenerator)
       isLifestyleMode = false, // Bu bir lifestyle fotoğraf oluşturma işlemi mi?
       lifestyleScene = null, // Kullanıcının girdiği sahne açıklaması (opsiyonel)
+      textLanguage = "en", // görseldeki yazıların dili
       // Session deduplication
       sessionId = null, // Aynı batch request'leri tanımlıyor
       modelPhoto = null,
@@ -4716,7 +4719,10 @@ router.post("/generate", async (req, res) => {
           originalBase64ForGemini,
           true, // isInfographicMode - yeni parametre
           productFeatures, // Kullanıcının girdiği ürün özellikleri
-          infographicBackground // "white" veya "contextual"
+          infographicBackground, // "white" veya "contextual"
+          false, // isLifestyleMode
+          null, // lifestyleScene
+          textLanguage // yazı dili
         );
       } else if (isColorChange) {
         logger.log(

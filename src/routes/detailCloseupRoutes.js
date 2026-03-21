@@ -1309,11 +1309,12 @@ async function enhancePromptWithGemini(
   lifestyleScene = null, // Kullanıcının girdiği sahne açıklaması (opsiyonel)
   lifestyleLayout = "single", // "single" = tek sahne, "multi" = çoklu tema yan yana
   addTextOverlay = false, // görselde yazı olsun mu
+  textLanguage = "en", // görseldeki yazıların dili
   isDetailCloseupMode = false, // Detail/Close-up modu mu?
   detailFocus = null, // Kullanıcının odaklanmak istediği detay (opsiyonel)
   detailLayout = "single", // "single" = tek detay, "multi" = çoklu detay grid
-  detailLightingStyle = "soft", // "soft" = yumuşak ışık, "dramatic" = dramatik yan ışık
-  detailBackgroundStyle = "bokeh" // "bokeh" = bulanık arka plan, "white" = temiz beyaz
+  detailLightingStyle = "auto", // "auto" = AI karar verir, "soft" = yumuşak ışık, "dramatic" = dramatik yan ışık
+  detailBackgroundStyle = "auto" // "auto" = AI karar verir, "bokeh" = bulanık arka plan, "white" = temiz beyaz
 ) {
   try {
     logger.log(
@@ -2290,7 +2291,11 @@ Since the user didn't specify a focus area, you MUST identify the MOST visually 
 🔴 DEPTH OF FIELD (CRITICAL):
 - Very shallow DOF equivalent to f/2.8 or wider
 - The detail area MUST be razor-sharp while surrounding areas have smooth, creamy bokeh
-${detailBackgroundStyle === "bokeh" ? `- Background should be the blurred continuation of the product itself — smooth, creamy bokeh with beautiful color transitions
+${detailBackgroundStyle === "auto" ? `- YOU DECIDE the best background style for this product based on its category, material, and what sells best on e-commerce platforms
+- For luxury/premium products: use creamy bokeh background with beautiful color transitions
+- For everyday/utility products: use clean white studio background for maximum clarity
+- For textured/artisan products: use soft bokeh that complements the material colors
+- Choose whichever background style makes this specific product look most professional and appealing for online sales` : detailBackgroundStyle === "bokeh" ? `- Background should be the blurred continuation of the product itself — smooth, creamy bokeh with beautiful color transitions
 - The transition from sharp to blurred must be gradual and pleasing` : `- Background MUST be CLEAN WHITE / neutral white studio background
 - Product detail is isolated on pure white, like Apple product detail pages
 - No environmental context — pure clinical white isolation to maximize detail visibility`}
@@ -2308,7 +2313,13 @@ ${detailBackgroundStyle === "bokeh" ? `- Background should be the blurred contin
 - Maintain enough context to understand what part of the product is being shown
 
 🔴 LIGHTING FOR MACRO (MOST CRITICAL):
-${detailLightingStyle === "dramatic" ? `- DRAMATIC SIDE LIGHTING: Use strong directional side light at 30-45° angle to REVEAL texture depth
+${detailLightingStyle === "auto" ? `- YOU DECIDE the best lighting style for this product based on its material, texture, and category
+- For leather, metal, textured surfaces: use dramatic side lighting (30-45° angle) to reveal texture depth, micro-shadows, and surface detail
+- For fabric, soft goods, everyday items: use soft diffused lighting for clean, flattering illumination
+- For jewelry, watches, premium hardware: use dramatic lighting with bold specular highlights
+- For clothing, accessories, home goods: use soft lighting with gentle rim light
+- Choose the lighting that makes THIS specific product's details look most impressive and professional for e-commerce
+- The goal is to make the product sell — pick whichever lighting best showcases its unique qualities` : detailLightingStyle === "dramatic" ? `- DRAMATIC SIDE LIGHTING: Use strong directional side light at 30-45° angle to REVEAL texture depth
   - Every bump, weave, grain, and stitch should cast defined micro-shadows
   - This is what separates amateur close-ups from professional macro photography
   - High contrast between lit and shadowed areas to emphasize 3D texture
@@ -2361,7 +2372,8 @@ ${addTextOverlay ? `🔴 TEXT OVERLAY (MUST INCLUDE):
 - Maximum 2-3 text callouts — don't overcrowd
 - Text color: white with subtle drop shadow on dark backgrounds, dark gray on light backgrounds
 - Keep text minimal, professional, and informative — like premium Amazon A+ content
-- Text MUST be relevant to the actual visible detail in the shot` : `🔴 NO TEXT OVERLAY:
+- Text MUST be relevant to the actual visible detail in the shot
+- ⚠️ CRITICAL: ALL text on the image MUST be written in ${{"tr":"Turkish","de":"German","es":"Spanish","fr":"French","it":"Italian","ja":"Japanese","ko":"Korean","pt":"Portuguese","ru":"Russian","zh":"Chinese","en":"English"}[textLanguage] || textLanguage || "English"}. Do NOT use any other language for the text.` : `🔴 NO TEXT OVERLAY:
 - Do NOT add any text, labels, callouts, or typography on the image
 - The detail photo should be PURELY visual — let the craftsmanship speak for itself
 - Clean, uncluttered composition without any overlaid text elements`}
@@ -2375,7 +2387,7 @@ ${addTextOverlay ? `🔴 TEXT OVERLAY (MUST INCLUDE):
 - Think: the quality level of detail shots on Apple.com, luxury fashion houses, or premium watch brands
 
 === OUTPUT ===
-Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST create a professional macro/close-up product photo that showcases material quality, craftsmanship, and construction details at a level that builds buyer confidence. The product's colors and appearance must match the reference image EXACTLY. Use ${detailLightingStyle === "dramatic" ? "dramatic side lighting to reveal texture depth" : "soft, diffused lighting for a clean premium look"} and ${detailBackgroundStyle === "bokeh" ? "very shallow depth of field for professional bokeh" : "clean white studio background for clinical detail isolation"}. ${detailLayout === "multi" ? "Create a multi-detail grid/collage showing several detail angles." : "Create a single focused macro shot."} ${addTextOverlay ? "Include professional text callouts highlighting key detail features." : "No text overlay — purely visual."}
+Generate ONLY the final image generation prompt. Do NOT include these instructions or commentary. The prompt MUST create a professional macro/close-up product photo that showcases material quality, craftsmanship, and construction details at a level that builds buyer confidence. The product's colors and appearance must match the reference image EXACTLY. Use ${detailLightingStyle === "dramatic" ? "dramatic side lighting to reveal texture depth" : "soft, diffused lighting for a clean premium look"} and ${detailBackgroundStyle === "bokeh" ? "very shallow depth of field for professional bokeh" : "clean white studio background for clinical detail isolation"}. ${detailLayout === "multi" ? "Create a multi-detail grid/collage showing several detail angles." : "Create a single focused macro shot."} ${addTextOverlay ? `Include professional text callouts highlighting key detail features. All text MUST be in ${{"tr":"Turkish","de":"German","es":"Spanish","fr":"French","it":"Italian","ja":"Japanese","ko":"Korean","pt":"Portuguese","ru":"Russian","zh":"Chinese","en":"English"}[textLanguage] || textLanguage || "English"}.` : "No text overlay — purely visual."}
 
 ${originalPrompt ? `Additional context from user: ${originalPrompt}` : ""}
 `;
@@ -4438,8 +4450,9 @@ router.post("/generate", async (req, res) => {
       isDetailCloseupMode = false, // Detail/Close-up modu mu?
       detailFocus = null, // Kullanıcının odaklanmak istediği detay (opsiyonel)
       detailLayout = "single", // "single" = tek detay, "multi" = çoklu detay grid
-      lightingStyle = "soft", // "soft" = yumuşak, "dramatic" = dramatik
-      backgroundStyle = "bokeh", // "bokeh" = bulanık, "white" = beyaz
+      lightingStyle = "auto", // "auto" = AI karar verir, "soft" = yumuşak, "dramatic" = dramatik
+      backgroundStyle = "auto", // "auto" = AI karar verir, "bokeh" = bulanık, "white" = beyaz
+      textLanguage = "en", // görseldeki yazıların dili
       // Session deduplication
       sessionId = null, // Aynı batch request'leri tanımlıyor
       modelPhoto = null,
@@ -5061,6 +5074,7 @@ router.post("/generate", async (req, res) => {
           null, // lifestyleScene
           "single", // lifestyleLayout
           addTextOverlay, // görselde Amazon/Etsy tarzı yazılar olsun mu
+          textLanguage, // yazı dili
           true, // isDetailCloseupMode
           detailFocus, // Kullanıcının odaklanmak istediği detay
           detailLayout, // "single" veya "multi"
@@ -5098,7 +5112,8 @@ router.post("/generate", async (req, res) => {
           true, // isLifestyleMode
           lifestyleScene, // Kullanıcının girdiği sahne açıklaması
           lifestyleLayout, // "single" veya "multi"
-          addTextOverlay // görselde yazı olsun mu
+          addTextOverlay, // görselde yazı olsun mu
+          textLanguage // yazı dili
         );
       } else if (isInfographicMode) {
         logger.log(
