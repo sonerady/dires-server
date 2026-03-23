@@ -2,34 +2,11 @@ const express = require("express");
 const router = express.Router();
 const axios = require("axios");
 const sharp = require("sharp");
-const Replicate = require("replicate");
 const { createCanvas, loadImage } = require("canvas");
 const { v4: uuidv4 } = require("uuid");
 const { supabase } = require("../supabaseClient");
 
-// Replicate client initialization
-const replicate = new Replicate({
-    auth: process.env.REPLICATE_API_TOKEN,
-});
-
-// Helper function to wait for Replicate prediction
-async function waitForPrediction(predictionId, timeout = 60000, interval = 2000) {
-    const startTime = Date.now();
-    console.log(`⏳ [REFINER-DL] Waiting for prediction ${predictionId}...`);
-
-    while (Date.now() - startTime < timeout) {
-        const prediction = await replicate.predictions.get(predictionId);
-
-        if (prediction.status === "succeeded") {
-            return prediction;
-        } else if (prediction.status === "failed" || prediction.status === "canceled") {
-            throw new Error(`Prediction failed: ${prediction.error || prediction.status}`);
-        }
-
-        await new Promise(resolve => setTimeout(resolve, interval));
-    }
-    throw new Error("Prediction timed out");
-}
+const FAL_ENDPOINT = "https://fal.run/pixelcut/background-removal";
 
 // Test endpoint
 router.get("/test", (req, res) => {
@@ -60,26 +37,39 @@ router.post("/download", async (req, res) => {
         if (format === "png") {
             // PNG Type kontrolü: transparent ise arkaplan sil, rgba ise sadece format dönüştür
             if (pngType === "transparent") {
-                // Transparent: Arkaplanı kaldır (Replicate kullanarak)
-                console.log("🖼️ [REFINER-DL] Format is PNG (Transparent) - Removing background via Replicate...");
+                // Transparent: Arkaplanı kaldır (fal.ai pixelcut kullanarak)
+                console.log("🖼️ [REFINER-DL] Format is PNG (Transparent) - Removing background via fal.ai pixelcut...");
 
                 try {
-                    const prediction = await replicate.predictions.create({
-                        version: "a029dff38972b5fda4ec5d75d7d1cd25aeff621d2cf4946a41055d7db66b80bc", // rembg 1.4
-                        input: {
-                            image: imageUrl,
-                            format: "png",
-                            reverse: false,
-                            threshold: 0,
-                            background_type: "rgba"
+                    const falResponse = await axios.post(
+                        FAL_ENDPOINT,
+                        { image_url: imageUrl },
+                        {
+                            headers: {
+                                Authorization: `Key ${process.env.FAL_API_KEY}`,
+                                "Content-Type": "application/json",
+                            },
+                            timeout: 180000,
                         }
-                    });
+                    );
 
-                    const completedPrediction = await waitForPrediction(prediction.id);
-                    const outputUrl = completedPrediction.output;
+                    // fal.ai çıktısını parse et
+                    const output = falResponse.data;
+                    let resultImageUrl = null;
+                    if (output.image && output.image.url) {
+                        resultImageUrl = output.image.url;
+                    } else if (output.images && Array.isArray(output.images) && output.images.length > 0) {
+                        resultImageUrl = output.images[0].url;
+                    } else {
+                        resultImageUrl = output.url || null;
+                    }
 
-                    console.log("✅ [REFINER-DL] Background removed. Downloading result:", outputUrl);
-                    const bgRemovedResponse = await axios.get(outputUrl, { responseType: "arraybuffer" });
+                    if (!resultImageUrl) {
+                        throw new Error("fal.ai response did not contain a valid image URL");
+                    }
+
+                    console.log("✅ [REFINER-DL] Background removed. Downloading result:", resultImageUrl);
+                    const bgRemovedResponse = await axios.get(resultImageUrl, { responseType: "arraybuffer", timeout: 30000 });
                     imageBuffer = Buffer.from(bgRemovedResponse.data);
 
                     // Sharp ile transparent pixelleri trim et (spacing kaldır)
