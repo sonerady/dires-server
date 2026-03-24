@@ -122,10 +122,23 @@ const optimizeForThumbnail = (imageUrl) => {
 
 /**
  * Orijinal boyutu döndürür (transform yok, sadece clean URL).
- * History modal görüntüleme için kullanılır.
+ * Harici API'lere gönderirken kullanılır (fal.ai, Replicate vb.).
  */
 const getOriginalForModal = (imageUrl) => {
   return getOriginalUrl(imageUrl);
+};
+
+/**
+ * Modal görüntüleme için optimize edilmiş URL (1200x1200, quality 85).
+ * Supabase render API ile hızlı yüklenir.
+ */
+const optimizeForModal = (imageUrl) => {
+  return optimizeImageUrl(imageUrl, {
+    width: 4096,
+    height: 4096,
+    quality: 100,
+    fit: "contain",
+  });
 };
 
 /**
@@ -151,7 +164,7 @@ const optimizeHistoryImages = (historyItems) => {
       optimizedItem.result_image_url_thumbnail = optimizeForThumbnail(
         optimizedItem.result_image_url,
       );
-      optimizedItem.result_image_url_original = getOriginalForModal(
+      optimizedItem.result_image_url_original = optimizeForModal(
         optimizedItem.result_image_url,
       );
     }
@@ -166,7 +179,7 @@ const optimizeHistoryImages = (historyItems) => {
         optimizedItem.reference_images_thumbnail =
           referenceImages.map(optimizeForThumbnail);
         optimizedItem.reference_images_original =
-          referenceImages.map(getOriginalForModal);
+          referenceImages.map(optimizeForModal);
 
         optimizedItem.reference_images = referenceImages;
       } catch (e) {
@@ -182,7 +195,7 @@ const optimizeHistoryImages = (historyItems) => {
       optimizedItem.location_image_thumbnail = optimizeForThumbnail(
         optimizedItem.location_image,
       );
-      optimizedItem.location_image_original = getOriginalForModal(
+      optimizedItem.location_image_original = optimizeForModal(
         optimizedItem.location_image,
       );
     }
@@ -192,7 +205,7 @@ const optimizeHistoryImages = (historyItems) => {
       optimizedItem.pose_image_thumbnail = optimizeForThumbnail(
         optimizedItem.pose_image,
       );
-      optimizedItem.pose_image_original = getOriginalForModal(
+      optimizedItem.pose_image_original = optimizeForModal(
         optimizedItem.pose_image,
       );
     }
@@ -202,7 +215,7 @@ const optimizeHistoryImages = (historyItems) => {
       optimizedItem.hair_style_image_thumbnail = optimizeForThumbnail(
         optimizedItem.hair_style_image,
       );
-      optimizedItem.hair_style_image_original = getOriginalForModal(
+      optimizedItem.hair_style_image_original = optimizeForModal(
         optimizedItem.hair_style_image,
       );
     }
@@ -212,7 +225,7 @@ const optimizeHistoryImages = (historyItems) => {
       optimizedItem.original_image_url_thumbnail = optimizeForThumbnail(
         optimizedItem.original_image_url,
       );
-      optimizedItem.original_image_url_original = getOriginalForModal(
+      optimizedItem.original_image_url_original = optimizeForModal(
         optimizedItem.original_image_url,
       );
     }
@@ -222,7 +235,7 @@ const optimizeHistoryImages = (historyItems) => {
       optimizedItem.back_image_url_thumbnail = optimizeForThumbnail(
         optimizedItem.back_image_url,
       );
-      optimizedItem.back_image_url_original = getOriginalForModal(
+      optimizedItem.back_image_url_original = optimizeForModal(
         optimizedItem.back_image_url,
       );
     }
@@ -232,7 +245,7 @@ const optimizeHistoryImages = (historyItems) => {
       optimizedItem.pose_image_url_thumbnail = optimizeForThumbnail(
         optimizedItem.pose_image_url,
       );
-      optimizedItem.pose_image_url_original = getOriginalForModal(
+      optimizedItem.pose_image_url_original = optimizeForModal(
         optimizedItem.pose_image_url,
       );
     }
@@ -242,7 +255,7 @@ const optimizeHistoryImages = (historyItems) => {
       optimizedItem.masked_image_url_thumbnail = optimizeForThumbnail(
         optimizedItem.masked_image_url,
       );
-      optimizedItem.masked_image_url_original = getOriginalForModal(
+      optimizedItem.masked_image_url_original = optimizeForModal(
         optimizedItem.masked_image_url,
       );
     }
@@ -339,6 +352,7 @@ const _supabaseRenderFallback = (imageUrl, { width, height, quality }) => {
 module.exports = {
   optimizeImageUrl,
   optimizeForThumbnail,
+  optimizeForModal,
   getOriginalUrl,
   getOriginalForModal,
   cleanImageUrlForApi,
