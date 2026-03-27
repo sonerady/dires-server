@@ -5995,7 +5995,7 @@ router.post("/generate", async (req, res) => {
             safety_tolerance: "6",
             // Lifestyle mode: web search aktif
             ...(isLifestyleMode && {
-              enable_web_search: true, // Ürün ve sahne bilgilerini web'den zenginleştir
+              enable_web_search: false, // Ürün ve sahne bilgilerini web'den zenginleştir
               thinking_level: "minimal",
             }),
           };
@@ -6332,7 +6332,7 @@ router.post("/generate", async (req, res) => {
             resolution: "2K",
             safety_tolerance: "6",
             ...(isLifestyleMode && {
-              enable_web_search: true,
+              enable_web_search: false,
               thinking_level: "minimal",
             }),
           };

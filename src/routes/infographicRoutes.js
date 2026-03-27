@@ -5225,7 +5225,7 @@ router.post("/generate", async (req, res) => {
             safety_tolerance: "6",
             // Infographic mode: web search ve thinking aktif
             ...(isInfographicMode && {
-              enable_web_search: true, // Ürün bilgilerini web'den zenginleştir
+              enable_web_search: false, // Ürün bilgilerini web'den zenginleştir
               thinking_level: "minimal", // Daha detaylı düşünme - infografik kalitesi için
             }),
           };
@@ -5563,7 +5563,7 @@ router.post("/generate", async (req, res) => {
             safety_tolerance: "6",
             // Infographic mode: web search ve thinking aktif
             ...(isInfographicMode && {
-              enable_web_search: true,
+              enable_web_search: false,
               thinking_level: "minimal",
             }),
           };
