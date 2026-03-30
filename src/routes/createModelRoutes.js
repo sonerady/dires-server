@@ -35,7 +35,7 @@ async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) 
           videos: [],
           temperature: 1,
           thinking_level: "low",
-          max_output_tokens: 65535
+          max_output_tokens: 2048
         }
       };
 
@@ -1277,32 +1277,40 @@ router.post("/analyze-image", async (req, res) => {
       });
     }
 
-    // 1. Upload edilen resmi Supabase'e yükle
-    let uploadedImageUrl;
-    try {
-      uploadedImageUrl = await uploadImageToSupabase(
-        selectedImage.uri,
-        actualUserId || "temp"
-      );
-      logger.log("✅ Resim Supabase'e yüklendi:", uploadedImageUrl);
-    } catch (uploadError) {
-      console.error("❌ Image upload hatası:", uploadError);
-      return res.status(500).json({
-        success: false,
-        error: "Image upload failed",
-        details: uploadError.message,
-      });
+    // Görsel URL'ini belirle - HTTP URL ise direkt kullan, base64 ise upload et
+    let imageUrl;
+    if (selectedImage.uri.startsWith("http://") || selectedImage.uri.startsWith("https://")) {
+      // Direkt URL — upload atla, Gemini zaten URL'den okuyabilir
+      imageUrl = selectedImage.uri;
+      logger.log("⚡ [ANALYZE_IMAGE] Using image URL directly (skipping upload):", imageUrl.substring(0, 80));
+    } else {
+      // Base64 — upload gerekli
+      try {
+        imageUrl = await uploadImageToSupabase(
+          selectedImage.uri,
+          actualUserId || "temp"
+        );
+        logger.log("✅ Resim Supabase'e yüklendi:", imageUrl);
+      } catch (uploadError) {
+        console.error("❌ Image upload hatası:", uploadError);
+        return res.status(500).json({
+          success: false,
+          error: "Image upload failed",
+          details: uploadError.message,
+        });
+      }
     }
 
-    // 2. Kullanıcının mevcut modellerini çek (eğer userId varsa)
-    let existingModelNames = [];
-    if (actualUserId) {
-      existingModelNames = await getUserExistingModelNames(actualUserId);
-    }
+    // Kullanıcı model isimlerini ve Gemini analizini paralel çalıştır
+    const existingModelNamesPromise = actualUserId
+      ? getUserExistingModelNames(actualUserId)
+      : Promise.resolve([]);
 
-    // 3. Gemini ile resmi analiz et
+    const existingModelNames = await existingModelNamesPromise;
+
+    // Gemini ile resmi analiz et
     const analysisResult = await analyzeImageAndGeneratePrompt(
-      uploadedImageUrl,
+      imageUrl,
       null, // modelName yok, analiz sonucunda önerilecek
       languageCode,
       regionCode,

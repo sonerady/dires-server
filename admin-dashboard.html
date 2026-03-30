@@ -413,9 +413,34 @@
             color: #bbb;
             font-size: 14px;
         }
+
+        /* file:// ile açılırsa: fetch('/api/...') çalışmaz — sunucu URL'si gerekir */
+        .file-protocol-banner {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            background: #fef3c7;
+            border-bottom: 1px solid #f59e0b;
+            color: #78350f;
+            padding: 12px 16px;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+        .file-protocol-banner code { background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px; }
+        body.has-file-banner .sidebar { top: 56px; height: calc(100vh - 56px); }
+        body.has-file-banner .main { margin-top: 56px; }
     </style>
 </head>
 <body>
+
+    <div id="fileProtocolBanner" class="file-protocol-banner" role="alert">
+        <strong>API bağlanamıyor:</strong> Bu sayfa <code>file://</code> ile açıldı. <code>fetch('/api/…')</code> yalnızca Express üzerinden yüklendiğinde çalışır.
+        <code>server</code> klasöründe <code>npm start</code> çalıştırıp tarayıcıda
+        <code>http://localhost:3001/admin-dashboard.html</code> açın (PORT farklıysa .env / konsoldaki porta göre düzeltin).
+    </div>
 
     <!-- Sidebar -->
     <nav class="sidebar">
@@ -480,6 +505,14 @@
     </div>
 
     <script>
+        (function showFileProtocolBanner() {
+            if (window.location.protocol === 'file:') {
+                const el = document.getElementById('fileProtocolBanner');
+                if (el) el.style.display = 'block';
+                document.body.classList.add('has-file-banner');
+            }
+        })();
+
         let currentFeature = 'virtual-model';
         let currentPage = 1;
         let totalPages = 1;
@@ -640,6 +673,16 @@
             const empty = document.getElementById('empty');
             const pagination = document.getElementById('pagination');
             const status = document.getElementById('statusFilter').value;
+
+            if (window.location.protocol === 'file:') {
+                grid.innerHTML = '';
+                loading.style.display = 'none';
+                empty.style.display = 'block';
+                empty.textContent = 'Sayfa dosyadan açıldığı için API kullanılamaz. Sunucuyu başlatıp http://localhost:PORT/admin-dashboard.html adresini açın.';
+                pagination.style.display = 'none';
+                document.getElementById('statsText').textContent = '';
+                return;
+            }
 
             updateUrl();
             grid.innerHTML = '';

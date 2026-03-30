@@ -109,6 +109,8 @@ const poseFavoritesRoutesWeb = require("./routes/poseFavoritesRoutesWeb");
 // Hair Style Favorites routes import
 const hairStyleFavoritesRoutes = require("./routes/hairStyleFavoritesRoutes");
 const hairStyleFavoritesRoutesWeb = require("./routes/hairStyleFavoritesRoutesWeb");
+// Marketing Banner routes import
+const marketingBannerRoutes = require("./routes/marketingBannerRoutes");
 // Canvas Combine routes import
 const canvasCombineRoutes = require("./routes/canvasCombineRoutes");
 // Icon Generator routes import
@@ -142,6 +144,8 @@ const adminDashboardRoutes = require("./routes/adminDashboardRoutes");
 const userVisibilityRoutes = require("./routes/userVisibilityRoutes");
 // Push Notification routes import
 const pushNotificationRoutes = require("./routes/pushNotificationRoutes");
+// Banner AI Fill route import
+const bannerAiFillRouter = require("./routes/bannerAiFill");
 const { startScheduler } = require("./services/schedulerService");
 
 // Start the daily notification scheduler
@@ -285,6 +289,7 @@ const downloadRoutes = require("./routes/downloadRoutes");
 app.use("/api/download", downloadRoutes);
 app.use("/api/hairstyles", botDetection, catalogRateLimiter, hairStyleRoutes);
 app.use("/api/haircolors", botDetection, catalogRateLimiter, hairColorRoutes);
+app.use("/api/banner-ai-fill", bannerAiFillRouter);
 app.use("/api", geminiImageProcessRouter);
 app.use("/api", imageClarityProcessRouter);
 app.use("/api", geminiImageEditRouter);
@@ -326,6 +331,7 @@ app.use("/api/user", infoModalRoutes);
 app.use("/api/editRoom", editRoomRoutes);
 app.use("/api/chat-edit", chatEditRoutes);
 app.use("/api/canvas", canvasCombineRoutes);
+app.use("/api/marketing-banner", marketingBannerRoutes);
 // ESKİ WEBHOOK DEVRE DIŞI - Duplicate kredi sorunu yüzünden kapatıldı
 // app.use("/revenuecat", revenuecatWebhookRouter);
 app.use("/revenuecatv2", revenuecatWebhookRouterv2);
