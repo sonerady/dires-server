@@ -801,9 +801,16 @@ router.post('/resend-verification', async (req, res) => {
             }
             user = userData.user;
         } else {
-            // Find by email
-            const { data: users } = await supabaseAdmin.auth.admin.listUsers();
-            user = users?.users?.find(u => u.email === email);
+            // Find by email - users tablosundan ara, sonra auth user'a eriş
+            const { data: dbUserRow } = await supabase
+                .from('users')
+                .select('supabase_user_id')
+                .eq('email', email)
+                .single();
+            if (dbUserRow?.supabase_user_id) {
+                const { data: userData } = await supabaseAdmin.auth.admin.getUserById(dbUserRow.supabase_user_id);
+                user = userData?.user || null;
+            }
             if (!user) {
                 return res.status(404).json({ success: false, error: "User not found" });
             }
@@ -888,9 +895,20 @@ router.post('/forgot-password', async (req, res) => {
 
         console.log(`🔐 [Forgot Password] Request for: ${trimmedEmail}`);
 
-        // Find user by email
-        const { data: users } = await supabaseAdmin.auth.admin.listUsers();
-        const user = users?.users?.find(u => u.email === trimmedEmail);
+        // Find user by email - önce users tablosunda ara, sonra auth user'a eriş
+        // NOT: listUsers() sadece ilk 50 kullanıcıyı döndürür, bu yüzden DB'den arama yapılmalı
+        // ilike kullan: email case-insensitive olmalı (Google vs manual farklı case olabilir)
+        const { data: dbUser } = await supabase
+            .from('users')
+            .select('supabase_user_id, email')
+            .ilike('email', trimmedEmail)
+            .single();
+
+        let user = null;
+        if (dbUser?.supabase_user_id) {
+            const { data: userData } = await supabaseAdmin.auth.admin.getUserById(dbUser.supabase_user_id);
+            user = userData?.user || null;
+        }
 
         if (!user) {
             // Don't reveal if email exists or not for security
@@ -918,12 +936,19 @@ router.post('/forgot-password', async (req, res) => {
         const resetUrl = `https://app.diress.ai/reset-password?token=${resetToken}&userId=${user.id}`;
         const userName = user.user_metadata?.company_name || user.user_metadata?.full_name || trimmedEmail.split('@')[0];
 
-        await resend.emails.send({
+        const { data: emailData, error: emailError } = await resend.emails.send({
             from: 'Diress <noreply@diress.ai>',
             to: [trimmedEmail],
             subject: 'Reset your password - Diress',
             html: getPasswordResetTemplate(resetUrl, userName)
         });
+
+        if (emailError) {
+            console.error(`❌ [Forgot Password] Resend API Error:`, emailError);
+            return res.status(500).json({ success: false, error: "Failed to send reset email. Please try again." });
+        }
+
+        console.log(`📧 [Forgot Password] Resend email ID: ${emailData?.id}`);
 
         // Update rate limit
         rateLimitStore.set(rateLimitKey, now);
