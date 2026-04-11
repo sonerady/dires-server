@@ -2134,6 +2134,14 @@ EARRING PAIRING RULE (CRITICAL):
     * Position them symmetrically, slightly angled towards each other for elegant presentation
     * Both earrings should have identical styling, lighting, and quality
   - If both earrings of a pair are already visible, keep them as they are
+NECKLACE RETOUCH (CRITICAL — if product is a necklace/pendant):
+  - CHAIN: Every individual chain link must be razor-sharp, clearly defined, no blur or smudging. Thin chains must remain crisp and continuous from clasp to pendant — no broken or faded sections.
+  - PENDANT: Enhance all surface details — engravings, bezels, stone settings must be pixel-sharp. Metal surfaces must show clean, controlled reflections with no overblown highlights.
+  - BACKGROUND: Pure, seamless, flat white (or user-selected color). Remove ALL background texture, gradients, dust particles, and uneven tones — must be 100% uniform.
+  - METAL SURFACE: Professional jewelry-grade polish — warm golden glow for gold, bright mirror finish for silver/platinum. Remove ALL fingerprints, smudges, micro-scratches, tarnish spots.
+  - LIGHTING: Simulate professional jewelry lightbox — even, diffused illumination with controlled specular highlights. No harsh shadows, no dark spots, no uneven exposure.
+  - CHAIN HANGING: Chain must hang naturally with realistic drape and gravity. No floating, no unnatural bends, no digitally stretched sections.
+  - OUTPUT: The result must look like a professional jewelry catalog photo ready for luxury e-commerce listings.
 Gemstone Enhancement (CRITICAL):
   - Maximum clarity and sparkle for all gemstones (diamonds, rubies, emeralds, etc.)
   - Natural brilliance with precise light reflections - gems must SHINE and SPARKLE
