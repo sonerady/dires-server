@@ -54,6 +54,7 @@ const getBalance = require("./routes/getBalance");
 const generatePredictionsRouter = require("./routes/generatePredictions");
 const generateImgToVidRouter = require("./routes/generateImgToVid");
 const generateImgToVidv2Router = require("./routes/generateImgToVidv2"); // Kling 2.6
+const generateImgToVidv3Router = require("./routes/generateImgToVidv3"); // Veo 3.1 Fast
 const generateImgToVidWebRouter = require("./routes/generateImgToVidWeb");
 const getPredictionsRouter = require("./routes/getPredictions");
 const registerAnonymousUserRouter = require("./routes/registerAnonymousUser");
@@ -273,6 +274,7 @@ app.use("/api/v2", registerAnonymousUserRouterV2);
 app.use("/api/v3", registerAnonymousUserRouterV3);
 app.use("/api", generateImgToVidRouter);
 app.use("/api", generateImgToVidv2Router); // Kling 2.6
+app.use("/api", generateImgToVidv3Router); // Veo 3.1 Fast
 app.use("/api", generateImgToVidWebRouter);
 app.use("/api", posesRouter);
 app.use("/api", generateImagesJsonRouter);

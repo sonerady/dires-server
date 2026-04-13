@@ -27,18 +27,34 @@ const getCreditsForPackage = (productId) => {
     // Subscription paketleri - Kısa format
     standard_weekly_600: 600,
     standard_monthly_2400: 2400,
+    standard_weekly_regular: 600,
+    standard_monthly_regular: 2400,
     plus_weekly_1200: 1200,
     plus_monthly_4800: 4800,
+    plus_weekly_regular: 1200,
+    plus_monthly_regular: 4800,
     premium_weekly_2400: 2400,
     premium_monthly_9600: 9600,
+    premium_weekly_regular: 2400,
+    premium_monthly_regular: 9600,
+    pro_weekly_regular: 600,
+    pro_monthly_regular: 2400,
 
     // Subscription paketleri - RevenueCat gerçek product ID'leri
     "com.diress.standard.weekly.600": 600,
     "com.diress.standard.monthly.2400": 2400,
+    "com.diress.standard.weekly.regular": 600,
+    "com.diress.standard.monthly.regular": 2400,
     "com.diress.plus.weekly.1200": 1200,
     "com.diress.plus.monthly.4800": 4800,
+    "com.diress.plus.weekly.regular": 1200,
+    "com.diress.plus.monthly.regular": 4800,
     "com.diress.premium.weekly.2400": 2400,
     "com.diress.premium.monthly.9600": 9600,
+    "com.diress.premium.weekly.regular": 2400,
+    "com.diress.premium.monthly.regular": 9600,
+    "com.diress.pro.weekly.regular": 600,
+    "com.diress.pro.monthly.regular": 2400,
 
     // Legacy subscription paketleri (revenuecatWebhook.js'ten)
     "com.monailisa.pro_weekly600": 600,
@@ -566,7 +582,8 @@ router.post("/webhookv3", async (req, res) => {
     // Standard paketler (hem kısa hem uzun format)
     if (
       baseProductId.startsWith("standard_") ||
-      baseProductId.includes(".standard.")
+      baseProductId.includes(".standard.") ||
+      baseProductId.includes(".pro.")
     ) {
       planType = "standard";
       isPro = true;
