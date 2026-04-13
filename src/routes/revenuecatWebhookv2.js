@@ -24,23 +24,38 @@ const isTeamPackage = (productId) => {
 };
 
 // Paket ID'sine göre kredi miktarlarını belirle
-const getCreditsForPackage = (productId) => {
-  const packageCredits = {
+const KNOWN_PACKAGE_CREDITS = {
     // Subscription paketleri - Kısa format
     standard_weekly_600: 600,
     standard_monthly_2400: 2400,
+    standard_weekly_regular: 600,
+    standard_monthly_regular: 2400,
     plus_weekly_1200: 1200,
     plus_monthly_4800: 4800,
+    plus_weekly_regular: 1200,
+    plus_monthly_regular: 4800,
     premium_weekly_2400: 2400,
     premium_monthly_9600: 9600,
+    premium_weekly_regular: 2400,
+    premium_monthly_regular: 9600,
+    pro_weekly_regular: 600,
+    pro_monthly_regular: 2400,
 
     // Subscription paketleri - RevenueCat gerçek product ID'leri
     "com.diress.standard.weekly.600": 600,
     "com.diress.standard.monthly.2400": 2400,
+    "com.diress.standard.weekly.regular": 600,
+    "com.diress.standard.monthly.regular": 2400,
     "com.diress.plus.weekly.1200": 1200,
     "com.diress.plus.monthly.4800": 4800,
+    "com.diress.plus.weekly.regular": 1200,
+    "com.diress.plus.monthly.regular": 4800,
     "com.diress.premium.weekly.2400": 2400,
     "com.diress.premium.monthly.9600": 9600,
+    "com.diress.premium.weekly.regular": 2400,
+    "com.diress.premium.monthly.regular": 9600,
+    "com.diress.pro.weekly.regular": 600,
+    "com.diress.pro.monthly.regular": 2400,
 
     // Legacy subscription paketleri (revenuecatWebhook.js'ten)
     "com.monailisa.pro_weekly600": 600,
@@ -78,9 +93,18 @@ const getCreditsForPackage = (productId) => {
 
     // Test paketleri (RevenueCat test webhook'ları için)
     test_product: 1000, // Test için 1000 kredi
-  };
+};
 
-  return packageCredits[productId] || 0;
+const normalizeRevenueCatProductId = (productId) =>
+  String(productId || "")
+    .trim()
+    .replace(/^["']|["']$/g, "")
+    .split(":")[0]
+    .toLowerCase();
+
+const getCreditsForPackage = (productId) => {
+  const normalizedProductId = normalizeRevenueCatProductId(productId);
+  return KNOWN_PACKAGE_CREDITS[normalizedProductId] || 0;
 };
 
 // RevenueCat Webhook endpoint v2
@@ -179,8 +203,10 @@ router.post("/webhookv2", async (req, res) => {
       }
 
       // Team paketi iptal mi kontrol et
-      if (isTeamPackage(product_id)) {
-        console.log(`👥 TEAM SUBSCRIPTION CANCELLATION: ${product_id}`);
+      const cancelBaseProductId = normalizeRevenueCatProductId(product_id);
+
+      if (isTeamPackage(cancelBaseProductId)) {
+        console.log(`👥 TEAM SUBSCRIPTION CANCELLATION: ${cancelBaseProductId}`);
 
         // Team subscription'ı deaktive et
         const { data: teamCancelData, error: teamCancelError } = await supabase
@@ -476,13 +502,16 @@ router.post("/webhookv2", async (req, res) => {
     }
 
     // ===== TEAM PAKETİ KONTROLÜ =====
-    if (isTeamPackage(product_id)) {
-      const teamMembers = getTeamMembersForPackage(product_id);
-      console.log(`👥 TEAM PACKAGE DETECTED: ${product_id} - ${teamMembers} members`);
+    const baseProductId = normalizeRevenueCatProductId(product_id);
+    console.log(`🔧 Normalized Product ID: ${baseProductId} (Original: ${product_id})`);
+
+    if (isTeamPackage(baseProductId)) {
+      const teamMembers = getTeamMembersForPackage(baseProductId);
+      console.log(`👥 TEAM PACKAGE DETECTED: ${baseProductId} - ${teamMembers} members`);
 
       if (teamMembers === 0) {
-        console.error(`❌ Unknown team package: ${product_id}`);
-        return res.status(400).json({ error: `Unknown team package: ${product_id}` });
+        console.error(`❌ Unknown team package: ${baseProductId}`);
+        return res.status(400).json({ error: `Unknown team package: ${baseProductId}` });
       }
 
       // Kullanıcının team_max_members alanını güncelle
@@ -552,11 +581,23 @@ router.post("/webhookv2", async (req, res) => {
 
     // ===== NORMAL KREDİ PAKETİ İŞLEMİ =====
     // Product ID'den kredi miktarını belirle
-    const creditsToAdd = getCreditsForPackage(product_id);
+    const creditsToAdd = getCreditsForPackage(baseProductId);
+    const packageMapHit = Object.prototype.hasOwnProperty.call(
+      KNOWN_PACKAGE_CREDITS,
+      baseProductId,
+    );
+
+    console.log("🧪 [RC_WEBHOOK_V2] Product mapping debug:", {
+      originalProductId: product_id,
+      normalizedProductId: baseProductId,
+      packageMapHit,
+      creditsToAdd,
+      knownKeyCount: Object.keys(KNOWN_PACKAGE_CREDITS).length,
+    });
 
     if (creditsToAdd === 0) {
-      console.error(`❌ Unknown product ID: ${product_id}`);
-      return res.status(400).json({ error: `Unknown product: ${product_id}` });
+      console.error(`❌ Unknown product ID: ${baseProductId}`);
+      return res.status(400).json({ error: `Unknown product: ${baseProductId}` });
     }
 
     console.log(`💰 Adding ${creditsToAdd} credits to user ${userId}`);
@@ -567,29 +608,30 @@ router.post("/webhookv2", async (req, res) => {
 
     // Standard paketler (hem kısa hem uzun format)
     if (
-      product_id.startsWith("standard_") ||
-      product_id.includes(".standard.")
+      baseProductId.startsWith("standard_") ||
+      baseProductId.includes(".standard.") ||
+      baseProductId.includes(".pro.")
     ) {
       planType = "standard";
       isPro = true;
     }
     // Plus paketler (hem kısa hem uzun format)
-    else if (product_id.startsWith("plus_") || product_id.includes(".plus.")) {
+    else if (baseProductId.startsWith("plus_") || baseProductId.includes(".plus.")) {
       planType = "plus";
       isPro = true;
     }
     // Premium paketler (hem kısa hem uzun format)
     else if (
-      product_id.startsWith("premium_") ||
-      product_id.includes(".premium.")
+      baseProductId.startsWith("premium_") ||
+      baseProductId.includes(".premium.")
     ) {
       planType = "premium";
       isPro = true;
     }
     // Legacy subscription paketleri (revenuecatWebhook.js'ten)
     else if (
-      product_id === "com.monailisa.pro_weekly600" ||
-      product_id === "com.monailisa.pro_monthly2400"
+      baseProductId === "com.monailisa.pro_weekly600" ||
+      baseProductId === "com.monailisa.pro_monthly2400"
     ) {
       planType = "standard"; // Legacy paketleri standard olarak kabul et
       isPro = true;
@@ -617,14 +659,14 @@ router.post("/webhookv2", async (req, res) => {
         "com.monailisa.creditpack1000",
         "com.monailisa.creditpack300",
         "com.monailisa.100coin",
-      ].includes(product_id) ||
+      ].includes(baseProductId) ||
       // Eski uzun formatlar (compat)
-      product_id.includes(".micro.") ||
-      product_id.includes(".small.") ||
-      product_id.includes(".boost.") ||
-      product_id.includes(".growth.") ||
-      product_id.includes(".pro.") ||
-      product_id.includes(".enterprise.")
+      baseProductId.includes(".micro.") ||
+      baseProductId.includes(".small.") ||
+      baseProductId.includes(".boost.") ||
+      baseProductId.includes(".growth.") ||
+      baseProductId.includes(".pro.") ||
+      baseProductId.includes(".enterprise.")
     ) {
       planType = null; // Coin paketleri plan tipi vermiyor
       isPro = true; // Ama kullanıcıyı PRO yapıyor

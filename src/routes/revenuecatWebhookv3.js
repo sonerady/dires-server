@@ -22,85 +22,87 @@ const isTeamPackage = (productId) => {
 };
 
 // Paket ID'sine göre kredi miktarlarını belirle
-const getCreditsForPackage = (productId) => {
-  const normalizedProductId = String(productId || "")
+const KNOWN_PACKAGE_CREDITS = {
+  // Subscription paketleri - Kısa format
+  standard_weekly_600: 600,
+  standard_monthly_2400: 2400,
+  standard_weekly_regular: 600,
+  standard_monthly_regular: 2400,
+  plus_weekly_1200: 1200,
+  plus_monthly_4800: 4800,
+  plus_weekly_regular: 1200,
+  plus_monthly_regular: 4800,
+  premium_weekly_2400: 2400,
+  premium_monthly_9600: 9600,
+  premium_weekly_regular: 2400,
+  premium_monthly_regular: 9600,
+  pro_weekly_regular: 600,
+  pro_monthly_regular: 2400,
+
+  // Subscription paketleri - RevenueCat gerçek product ID'leri
+  "com.diress.standard.weekly.600": 600,
+  "com.diress.standard.monthly.2400": 2400,
+  "com.diress.standard.weekly.regular": 600,
+  "com.diress.standard.monthly.regular": 2400,
+  "com.diress.plus.weekly.1200": 1200,
+  "com.diress.plus.monthly.4800": 4800,
+  "com.diress.plus.weekly.regular": 1200,
+  "com.diress.plus.monthly.regular": 4800,
+  "com.diress.premium.weekly.2400": 2400,
+  "com.diress.premium.monthly.9600": 9600,
+  "com.diress.premium.weekly.regular": 2400,
+  "com.diress.premium.monthly.regular": 9600,
+  "com.diress.pro.weekly.regular": 600,
+  "com.diress.pro.monthly.regular": 2400,
+
+  // Legacy subscription paketleri
+  "com.monailisa.pro_weekly600": 600,
+  "com.monailisa.pro_monthly2400": 2400,
+
+  // Coin paketleri - Kısa format
+  micro_1000: 1000,
+  small_2500: 2500,
+  boost_5000: 5000,
+  growth_10000: 10000,
+  pro_15000: 15000,
+  enterprise_20000: 20000,
+
+  // Coin paketleri - RevenueCat gerçek product ID'leri
+  "com.micro.diress": 1000,
+  "com.small.diress": 2500,
+  "com.boost.diress": 5000,
+  "com.growth.diress": 10000,
+  "com.pro.diress": 15000,
+  "com.enterprise.diress": 20000,
+
+  // Coin paketleri - Eski format
+  "com.diress.micro.1000": 1000,
+  "com.diress.small.2500": 2500,
+  "com.diress.boost.5000": 5000,
+  "com.diress.growth.10000": 10000,
+  "com.diress.pro.15000": 15000,
+  "com.diress.enterprise.20000": 20000,
+
+  // Legacy coin paketleri
+  "com.monailisa.creditpack5000": 5000,
+  "com.monailisa.creditpack1000": 1000,
+  "com.monailisa.creditpack300": 300,
+  "com.monailisa.100coin": 100,
+
+  // Test
+  test_product: 1000,
+};
+
+const normalizeRevenueCatProductId = (productId) =>
+  String(productId || "")
     .trim()
     .replace(/^["']|["']$/g, "")
     .split(":")[0]
     .toLowerCase();
 
-  const packageCredits = {
-    // Subscription paketleri - Kısa format
-    standard_weekly_600: 600,
-    standard_monthly_2400: 2400,
-    standard_weekly_regular: 600,
-    standard_monthly_regular: 2400,
-    plus_weekly_1200: 1200,
-    plus_monthly_4800: 4800,
-    plus_weekly_regular: 1200,
-    plus_monthly_regular: 4800,
-    premium_weekly_2400: 2400,
-    premium_monthly_9600: 9600,
-    premium_weekly_regular: 2400,
-    premium_monthly_regular: 9600,
-    pro_weekly_regular: 600,
-    pro_monthly_regular: 2400,
-
-    // Subscription paketleri - RevenueCat gerçek product ID'leri
-    "com.diress.standard.weekly.600": 600,
-    "com.diress.standard.monthly.2400": 2400,
-    "com.diress.standard.weekly.regular": 600,
-    "com.diress.standard.monthly.regular": 2400,
-    "com.diress.plus.weekly.1200": 1200,
-    "com.diress.plus.monthly.4800": 4800,
-    "com.diress.plus.weekly.regular": 1200,
-    "com.diress.plus.monthly.regular": 4800,
-    "com.diress.premium.weekly.2400": 2400,
-    "com.diress.premium.monthly.9600": 9600,
-    "com.diress.premium.weekly.regular": 2400,
-    "com.diress.premium.monthly.regular": 9600,
-    "com.diress.pro.weekly.regular": 600,
-    "com.diress.pro.monthly.regular": 2400,
-
-    // Legacy subscription paketleri (revenuecatWebhook.js'ten)
-    "com.monailisa.pro_weekly600": 600,
-    "com.monailisa.pro_monthly2400": 2400,
-
-    // Coin paketleri - Kısa format (one-time purchases)
-    micro_1000: 1000,
-    small_2500: 2500,
-    boost_5000: 5000,
-    growth_10000: 10000,
-    pro_15000: 15000,
-    enterprise_20000: 20000,
-
-    // Coin paketleri - RevenueCat gerçek product ID'leri (yeni format)
-    "com.micro.diress": 1000,
-    "com.small.diress": 2500,
-    "com.boost.diress": 5000,
-    "com.growth.diress": 10000,
-    "com.pro.diress": 15000,
-    "com.enterprise.diress": 20000,
-
-    // Coin paketleri - Eski format (compat)
-    "com.diress.micro.1000": 1000,
-    "com.diress.small.2500": 2500,
-    "com.diress.boost.5000": 5000,
-    "com.diress.growth.10000": 10000,
-    "com.diress.pro.15000": 15000,
-    "com.diress.enterprise.20000": 20000,
-
-    // Legacy coin paketleri (revenuecatWebhook.js'ten)
-    "com.monailisa.creditpack5000": 5000,
-    "com.monailisa.creditpack1000": 1000,
-    "com.monailisa.creditpack300": 300,
-    "com.monailisa.100coin": 100,
-
-    // Test paketleri (RevenueCat test webhook'ları için)
-    test_product: 1000, // Test için 1000 kredi
-  };
-
-  return packageCredits[normalizedProductId] || 0;
+const getCreditsForPackage = (productId) => {
+  const normalizedProductId = normalizeRevenueCatProductId(productId);
+  return KNOWN_PACKAGE_CREDITS[normalizedProductId] || 0;
 };
 
 // RevenueCat Webhook endpoint v3
@@ -493,7 +495,7 @@ router.post("/webhookv3", async (req, res) => {
     }
 
     // Android base plan desteği: Product ID'den suffix'i temizle (örn: com.diress...:2400 -> com.diress...)
-    const baseProductId = product_id.split(':')[0];
+    const baseProductId = normalizeRevenueCatProductId(product_id);
     console.log(`🔧 Normalized Product ID: ${baseProductId} (Original: ${product_id})`);
 
     // ===== TEAM PAKETİ KONTROLÜ =====
@@ -573,6 +575,18 @@ router.post("/webhookv3", async (req, res) => {
     // ===== NORMAL KREDİ PAKETİ İŞLEMİ =====
     // Product ID'den kredi miktarını belirle (base ID kullanarak)
     const creditsToAdd = getCreditsForPackage(baseProductId);
+    const packageMapHit = Object.prototype.hasOwnProperty.call(
+      KNOWN_PACKAGE_CREDITS,
+      baseProductId,
+    );
+
+    console.log("🧪 [RC_WEBHOOK_V3] Product mapping debug:", {
+      originalProductId: product_id,
+      normalizedProductId: baseProductId,
+      packageMapHit,
+      creditsToAdd,
+      knownKeyCount: Object.keys(KNOWN_PACKAGE_CREDITS).length,
+    });
 
     if (creditsToAdd === 0) {
       console.error(`❌ Unknown product ID: ${baseProductId}`);
