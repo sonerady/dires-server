@@ -23,6 +23,12 @@ const isTeamPackage = (productId) => {
 
 // Paket ID'sine göre kredi miktarlarını belirle
 const getCreditsForPackage = (productId) => {
+  const normalizedProductId = String(productId || "")
+    .trim()
+    .replace(/^["']|["']$/g, "")
+    .split(":")[0]
+    .toLowerCase();
+
   const packageCredits = {
     // Subscription paketleri - Kısa format
     standard_weekly_600: 600,
@@ -94,7 +100,7 @@ const getCreditsForPackage = (productId) => {
     test_product: 1000, // Test için 1000 kredi
   };
 
-  return packageCredits[productId] || 0;
+  return packageCredits[normalizedProductId] || 0;
 };
 
 // RevenueCat Webhook endpoint v3

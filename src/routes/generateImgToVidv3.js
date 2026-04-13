@@ -76,17 +76,23 @@ async function generateVideoPrompt(imageUrl, userPrompt, editMode = false) {
     const editModeInstructions = editMode ? `
 
     IMPORTANT - CINEMATIC EDIT MODE ENABLED:
-    Carefully analyze the image — the model's outfit, fabric texture, setting, and mood — then craft post-production editing effects that specifically complement what you see. The examples below are just starting points; choose, adapt, or invent effects that best suit THIS particular look:
+    Carefully analyze the image — the model's outfit, fabric texture, setting, visible lighting, and mood — then craft post-production editing effects that specifically complement what you actually see.
 
-    Examples (pick and customize based on the image):
+    CRITICAL RULE:
+    The effect ideas below are examples only. They are NOT required instructions, NOT a default style, and must NOT be copied blindly. Use them only if they naturally fit the actual image and the user's request.
+
+    NEVER invent outdoor sunlight, golden hour, sun rays, lens flare, daylight, sky, or open-air atmosphere unless those elements are clearly visible in the image or explicitly requested by the user.
+    If the image is indoors, studio-lit, dark, neutral, flat-lit, or does not contain sunlight, keep the lighting treatment consistent with that reality.
+
+    Example effect ideas (adapt only when relevant):
     - Camera cuts & transitions tailored to the outfit (e.g., whip pan to reveal flowing fabric, match cut on accessories)
-    - Lighting effects that enhance the garment (e.g., golden hour lens flare for warm-toned outfits, cool light leaks for minimalist looks)
+    - Lighting effects that enhance the garment when appropriate to the real scene
     - Color grading that amplifies the outfit's palette (e.g., desaturated tones for monochrome, rich warm tones for earthy fabrics)
     - Slow-motion on the most compelling detail (e.g., fabric drape, jewelry shimmer, texture close-up)
     - Focus pulls and depth transitions that draw attention to key design elements
     - Rhythm and pacing that match the outfit's energy (e.g., slow elegance for evening wear, upbeat cuts for streetwear)
 
-    Do NOT use all effects — select the 3-4 that would make this specific outfit and setting look most cinematic and commercially polished.
+    Do NOT use all effects. Select only the 3-4 effects that genuinely fit this specific image and setting. If a listed example does not fit, ignore it completely and invent a better-fitting effect.
     ` : "";
 
     const promptForGemini = `
@@ -105,6 +111,8 @@ async function generateVideoPrompt(imageUrl, userPrompt, editMode = false) {
     - Output ONLY the generated prompt text.
     - Keep under 2300 characters.
     - If user request is very short, generate a standard luxury fashion look based on the image.
+    - Do not treat any example as mandatory. Examples are illustrative only.
+    - Do not add sunlight, outdoor atmosphere, sky, golden hour, or lens flare unless the input image or user request supports it.
     `;
 
     const imageUrls = imageUrl && imageUrl.startsWith("http") ? [imageUrl] : [];
