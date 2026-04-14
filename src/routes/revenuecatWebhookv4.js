@@ -184,7 +184,7 @@ const getActiveRevenueCatProducts = (subscriber) => {
 };
 
 // RevenueCat Webhook endpoint v3
-router.post("/webhookv3", async (req, res) => {
+router.post("/webhookv4", async (req, res) => {
   try {
     console.log("🔗 RevenueCat Webhook Received!");
     console.log("Headers:", req.headers);
