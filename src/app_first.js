@@ -73,6 +73,7 @@ const modalContentsRoutes = require("./routes/modalContentsRoutes");
 const modelPosesRoutes = require("./routes/modelPosesRoutes"); // Yeni eklenen route
 // RevenueCat webhook route import
 const revenuecatWebhookRouterv2 = require("./routes/revenuecatWebhookv2");
+const revenuecatWebhookRouterv4 = require("./routes/revenuecatWebhookv4");
 // const revenuecatWebhookRouter = require("./routes/revenuecatWebhook"); // ESKİ WEBHOOK DEVRE DIŞI
 // Custom Pose routes import
 const customPoseRoutes = require("./routes/customPoseRoutes");
@@ -248,6 +249,7 @@ app.use("/api/canvas", canvasCombineRoutes);
 app.use("/revenuecatv2", revenuecatWebhookRouterv2);
 const revenuecatWebhookRouterv3 = require("./routes/revenuecatWebhookv3");
 app.use("/revenuecatv3", revenuecatWebhookRouterv3);
+app.use("/revenuecatv4", revenuecatWebhookRouterv4);
 
 app.use("/purchase", purchaseRoutes);
 app.use("/api/purchase-summary", purchaseSummaryRoutes);
