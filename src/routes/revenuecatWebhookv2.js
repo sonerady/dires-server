@@ -42,16 +42,26 @@ const KNOWN_PACKAGE_CREDITS = {
     pro_monthly_regular: 2400,
 
     // Subscription paketleri - RevenueCat gerçek product ID'leri
+    // (iOS App Store + Google Play için aynı ID'ler kullanılıyor)
+    // --- Discounted (indirimli) paketler ---
     "com.diress.standard.weekly.600": 600,
     "com.diress.standard.monthly.2400": 2400,
-    "com.diress.standard.weekly.regular": 600,
-    "com.diress.standard.monthly.regular": 2400,
     "com.diress.plus.weekly.1200": 1200,
     "com.diress.plus.monthly.4800": 4800,
-    "com.diress.plus.weekly.regular": 1200,
-    "com.diress.plus.monthly.regular": 4800,
     "com.diress.premium.weekly.2400": 2400,
     "com.diress.premium.monthly.9600": 9600,
+    // --- Regular (tam fiyat) paketler — discounted ile aynı kalıp, "regular" segmenti + kredi sonda ---
+    "com.diress.standard.weekly.regular.600": 600,
+    "com.diress.standard.monthly.regular.2400": 2400,
+    "com.diress.plus.weekly.regular.1200": 1200,
+    "com.diress.plus.monthly.regular.4800": 4800,
+    "com.diress.premium.weekly.regular.2400": 2400,
+    "com.diress.premium.monthly.regular.9600": 9600,
+    // --- Legacy regular aliases (geriye uyumluluk için) ---
+    "com.diress.standard.weekly.regular": 600,
+    "com.diress.standard.monthly.regular": 2400,
+    "com.diress.plus.weekly.regular": 1200,
+    "com.diress.plus.monthly.regular": 4800,
     "com.diress.premium.weekly.regular": 2400,
     "com.diress.premium.monthly.regular": 9600,
     "com.diress.pro.weekly.regular": 600,
