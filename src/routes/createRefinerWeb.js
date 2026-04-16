@@ -2063,7 +2063,7 @@ ${creationSettingsInstruction}
 === STEP 1: PRODUCT IDENTIFICATION (CRITICAL) ===
 First, carefully analyze the image and identify the product category:
 - CLOTHING (shirts, dresses, jackets, pants, coats, etc.)
-- JEWELRY (rings, necklaces, bracelets, earrings, watches)
+- JEWELRY (rings, bracelets, earrings, watches)
 - FOOTWEAR (shoes, sneakers, boots, sandals, heels)
 - EYEWEAR (sunglasses, prescription glasses)
 - BAGS & ACCESSORIES (handbags, wallets, belts, hats, scarves)
@@ -2114,7 +2114,7 @@ Fabric Enhancement:
 Positioning: Perfectly centered, shoulders level, hemline balanced, symmetrical presentation
 Lighting: Even, bright, professional studio lighting - no harsh shadows, no blown highlights
 
-▶ FOR JEWELRY (Rings, Necklaces, Bracelets, Earrings):
+▶ FOR JEWELRY (Rings, Bracelets, Earrings):
 Background: Pure flat ${
         colorInputMode === "hex" ? backgroundColor : backgroundColor
       } background (solid, uniform color) ${
@@ -2134,24 +2134,6 @@ EARRING PAIRING RULE (CRITICAL):
     * Position them symmetrically, slightly angled towards each other for elegant presentation
     * Both earrings should have identical styling, lighting, and quality
   - If both earrings of a pair are already visible, keep them as they are
-NECKLACE / BRACELET / ANKLET RETOUCH (CRITICAL — if product is a necklace, pendant, bracelet, or anklet):
-  - COMPOSITION FIX (MOST IMPORTANT): Do NOT keep the original messy/crooked positioning. RECOMPOSE the jewelry into a professional e-commerce catalog layout:
-    * Necklaces WITH pendant/charm: The PENDANT is the HERO of the photo — it must be the largest, most prominent, most detailed element in the frame. Crop and compose so the pendant occupies the lower-center of the image in sharp close-up detail. The chain should form a clean, elegant U-shape or V-shape ABOVE the pendant, visible but secondary — do NOT show the entire chain fully stretched out. The focus and sharpness priority is on the pendant design.
-    * Necklaces WITHOUT pendant (plain chain): Show the full chain in a clean symmetrical U-shape or gentle arc, centered in frame.
-    * Bracelets/Anklets: Must form a clean circular or oval shape — evenly laid out, symmetrical, no overlapping links
-    * All charms, pendants, stones, and decorative elements must hang downward naturally with gravity — never sideways or upward
-    * The piece must be perfectly centered and balanced in the frame with equal spacing on all sides
-    * Straighten any crooked, tangled, bunched, or unevenly spread sections
-    * Clasp should be positioned at the top or hidden — never prominent in the main view
-  - CHAIN: Every individual chain link must be razor-sharp, clearly defined, no blur or smudging. Thin chains must remain crisp and continuous — no broken or faded sections.
-  - PENDANT/CHARMS: Enhance all surface details — engravings, bezels, stone settings must be pixel-sharp. Metal surfaces must show clean, controlled reflections with no overblown highlights.
-  - BACKGROUND: Pure, seamless, flat white (or user-selected color). Remove ALL background texture, gradients, dust particles, and uneven tones — must be 100% uniform.
-  - METAL SURFACE: Professional jewelry-grade polish — warm golden glow for gold, bright mirror finish for silver/platinum. Remove ALL fingerprints, smudges, micro-scratches, tarnish spots.
-  - LIGHTING: Simulate professional jewelry lightbox — even, diffused illumination with controlled specular highlights. No harsh shadows, no dark spots, no uneven exposure.
-  - SHADOW RULE (CRITICAL): Do NOT add shadow under the entire length of the chain or across the full product. The ONLY acceptable shadow is a very subtle, tiny, soft drop shadow at the very bottom tip of the pendant/charm/lowest point of the jewelry — just a faint hint of depth at the lowest edge. The rest of the product (chain, links, upper sections) must have ZERO shadow beneath them. The background must remain pure, flat, and uniform everywhere except that tiny bottom-tip shadow. Do NOT create a floor/surface shadow effect that makes the product look like it is lying on a table.
-  - CAMERA ANGLE (CRITICAL): The product must be shot from a perfectly FLAT, straight-on, top-down perspective — as if the camera is directly above looking straight down at the jewelry on a flat surface. The product must NOT look like it is sitting on a table or floor with perspective/depth. NO 3D perspective, NO angled view, NO surface shadow that implies a floor. The jewelry must appear as a flat-lay catalog shot facing the camera directly.
-  - DETAIL PRESERVATION (CRITICAL): Preserve ALL original product details exactly — every engraving, logo, brand tag, gemstone, charm shape, chain link pattern, clasp design, and decorative element must remain identical to the original. Do NOT redesign, simplify, or alter any part of the jewelry. The enhanced photo must be recognizably the same product.
-  - OUTPUT: The result must look like a professional jewelry catalog photo — perfectly composed, symmetrical, and ready for luxury e-commerce listings.
 Gemstone Enhancement (CRITICAL):
   - Maximum clarity and sparkle for all gemstones (diamonds, rubies, emeralds, etc.)
   - Natural brilliance with precise light reflections - gems must SHINE and SPARKLE

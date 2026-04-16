@@ -255,6 +255,8 @@ app.use("/api", getRequests);
 app.use("/api", addProductRouter);
 app.use("/api", getUserProductRouter);
 app.use("/api", removeBgRouter);
+const removeBgPixelcutRouter = require("./routes/removeBgPixelcut");
+app.use("/api", removeBgPixelcutRouter);
 app.use("/api", generatePredictionsRouter);
 app.use("/api", getPredictionsRouter);
 app.use("/api", getBalance);
