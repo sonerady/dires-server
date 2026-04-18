@@ -43,6 +43,7 @@ const referenceBrowserRoutesV3 = require("./routes/referenceBrowserRoutesV3");
 const referenceBrowserRoutesV4 = require("./routes/referenceBrowserRoutesV4");
 const referenceBrowserRoutesV5 = require("./routes/referenceBrowserRoutesV5");
 const referenceBrowserRoutesV6 = require("./routes/referenceBrowserRoutesV6");
+const referenceBrowserRoutesV7 = require("./routes/referenceBrowserRoutesV7");
 const referenceJewelryBrowserRoutesV4 = require("./routes/referenceJewelryBrowserRoutesV4");
 const referenceJewelryBrowserRoutesWeb = require("./routes/referenceJewelryBrowserRoutesWeb");
 
@@ -53,7 +54,7 @@ const getRequests = require("./routes/getRequests");
 const getBalance = require("./routes/getBalance");
 const generatePredictionsRouter = require("./routes/generatePredictions");
 const generateImgToVidRouter = require("./routes/generateImgToVid");
-const generateImgToVidv2Router = require("./routes/generateImgToVidv2"); // Kling 2.6
+const generateImgToVidv2Router = require("./routes/generateImgToVidv2"); // Seedance 2.0
 const generateImgToVidv3Router = require("./routes/generateImgToVidv3"); // Veo 3.1 Fast
 const generateImgToVidWebRouter = require("./routes/generateImgToVidWeb");
 const getPredictionsRouter = require("./routes/getPredictions");
@@ -276,7 +277,7 @@ app.use("/api", registerAnonymousUserRouter);
 app.use("/api/v2", registerAnonymousUserRouterV2);
 app.use("/api/v3", registerAnonymousUserRouterV3);
 app.use("/api", generateImgToVidRouter);
-app.use("/api", generateImgToVidv2Router); // Kling 2.6
+app.use("/api", generateImgToVidv2Router); // Seedance 2.0
 app.use("/api", generateImgToVidv3Router); // Veo 3.1 Fast
 app.use("/api", generateImgToVidWebRouter);
 app.use("/api", posesRouter);
@@ -307,6 +308,7 @@ app.use("/api/referenceBrowserV3", referenceBrowserRoutesV3);
 app.use("/api/referenceBrowserV4", referenceBrowserRoutesV4);
 app.use("/api/referenceBrowserV5", referenceBrowserRoutesV5);
 app.use("/api/referenceBrowserV6", referenceBrowserRoutesV6);
+app.use("/api/referenceBrowserV7", referenceBrowserRoutesV7);
 app.use("/api/referenceBrowserWeb", requireBrowser, requireAuth, referenceBrowserRoutesWeb);
 app.use("/api/changePose", changePose);
 app.use("/api/changePoseWeb", requireBrowser, requireAuth, changePoseWeb);
