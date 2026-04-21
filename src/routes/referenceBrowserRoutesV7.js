@@ -285,11 +285,11 @@ function mapRatioToGptImage2Size(ratio) {
 
 // GPT Image 2'ye giden input resimleri 3:1 aspect ratio limitine uydur.
 // GPT Image 2 hata verir: "Image aspect ratio X:Y exceeds the maximum allowed ratio of 3:1"
-// Oranı aşan resimleri beyaz padding ile 2.8:1'e kadar genişletip Supabase'e upload eder.
-// NOT: Target 3:1 değil 2.8:1 — rounding/float hassasiyet için safety buffer
+// NOT: fal.ai tam 3:1'e çok yakın oranlarda (ör. 2.997) bile reddediyor (rounding/integer math).
+// O yüzden trigger eşiğini 2.9'a çektik, padding hedefi 2.5 (sağlam safety buffer).
 async function ensureMaxAspectRatio3to1ForInput(imageUrls, userId) {
-  const MAX_RATIO = 3.0; // Tetikleme eşiği (fal.ai limiti)
-  const TARGET_RATIO = 2.8; // Padding sonrası hedef oran (safety buffer)
+  const TRIGGER_RATIO = 2.9; // Bu oranı geçen resimlere padding uygula (sınıra yakın da dahil)
+  const TARGET_RATIO = 2.5; // Padding sonrası hedef oran (3.0'dan iyi uzak)
   const processedUrls = [];
 
   for (const url of imageUrls || []) {
@@ -315,13 +315,13 @@ async function ensureMaxAspectRatio3to1ForInput(imageUrls, userId) {
 
       const ratio = W >= H ? W / H : H / W;
 
-      if (ratio <= MAX_RATIO) {
-        processedUrls.push(url); // Zaten uygun
+      if (ratio <= TRIGGER_RATIO) {
+        processedUrls.push(url); // Zaten güvenli bölgede
         continue;
       }
 
       logger.log(
-        `📐 [GPT2_ASPECT] ${W}x${H} (ratio ${ratio.toFixed(3)}:1) > ${MAX_RATIO}:1, padding uygulanıyor (hedef ${TARGET_RATIO}:1)...`
+        `📐 [GPT2_ASPECT] ${W}x${H} (ratio ${ratio.toFixed(3)}:1) > ${TRIGGER_RATIO}:1, padding uygulanıyor (hedef ${TARGET_RATIO}:1)...`
       );
 
       // Kısa kenarı büyüt, uzun kenara dokunma. Hedef oran 2.8:1 (3.0'ın altında buffer).
