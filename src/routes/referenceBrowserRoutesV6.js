@@ -253,6 +253,255 @@ async function callFalAiGptImageEditForRefiner(
   }
 }
 
+// Client'tan gelen aspect ratio'yu fal.ai GPT Image 2 image_size enum'una dönüştür
+// Results.js'deki tüm ratio seçenekleri: 21:9, 16:9, 3:2, 4:3, 5:4, 1:1, 4:5, 3:4, 2:3, 9:16
+// GPT Image 2 enum: landscape_16_9, landscape_4_3, square_hd, square, portrait_4_3, portrait_16_9
+// Enum'u olmayan ratio'lar aspect oran bazlı EN YAKIN enum'a eşlenir:
+//   21:9 (2.33) ve 16:9 (1.78) → landscape_16_9
+//   3:2 (1.50), 4:3 (1.33), 5:4 (1.25) → landscape_4_3
+//   1:1 (1.00) → square_hd
+//   4:5 (0.80), 3:4 (0.75), 2:3 (0.67) → portrait_4_3
+//   9:16 (0.56) → portrait_16_9
+function mapRatioToGptImage2Size(ratio) {
+  const mapping = {
+    // Ultra-wide + widescreen landscape → landscape_16_9
+    "21:9": "landscape_16_9",
+    "16:9": "landscape_16_9",
+    // Standard / klasik landscape → landscape_4_3
+    "3:2": "landscape_4_3",
+    "4:3": "landscape_4_3",
+    "5:4": "landscape_4_3",
+    // Kare
+    "1:1": "square_hd",
+    // Standard / klasik portrait → portrait_4_3
+    "4:5": "portrait_4_3",
+    "3:4": "portrait_4_3",
+    "2:3": "portrait_4_3",
+    // Widescreen portrait → portrait_16_9
+    "9:16": "portrait_16_9",
+  };
+  return mapping[ratio] || "portrait_4_3"; // fallback: 3:4 portrait
+}
+
+// GPT Image 2'ye giden input resimleri 3:1 aspect ratio limitine uydur.
+// GPT Image 2 hata verir: "Image aspect ratio X:Y exceeds the maximum allowed ratio of 3:1"
+// NOT: fal.ai tam 3:1'e çok yakın oranlarda (ör. 2.997) bile reddediyor (rounding/integer math).
+// O yüzden trigger eşiğini 2.9'a çektik, padding hedefi 2.5 (sağlam safety buffer).
+async function ensureMaxAspectRatio3to1ForInput(imageUrls, userId) {
+  const TRIGGER_RATIO = 2.9; // Bu oranı geçen resimlere padding uygula (sınıra yakın da dahil)
+  const TARGET_RATIO = 2.5; // Padding sonrası hedef oran (3.0'dan iyi uzak)
+  const processedUrls = [];
+
+  for (const url of imageUrls || []) {
+    if (!url || typeof url !== "string") {
+      processedUrls.push(url);
+      continue;
+    }
+    try {
+      const response = await axios.get(url, {
+        responseType: "arraybuffer",
+        timeout: 20000,
+      });
+      const buf = Buffer.from(response.data);
+
+      const meta = await sharp(buf).metadata();
+      const W = meta.width || 0;
+      const H = meta.height || 0;
+
+      if (!W || !H) {
+        processedUrls.push(url); // Metadata okunamadı → orijinali kullan
+        continue;
+      }
+
+      const ratio = W >= H ? W / H : H / W;
+
+      if (ratio <= TRIGGER_RATIO) {
+        processedUrls.push(url); // Zaten güvenli bölgede
+        continue;
+      }
+
+      logger.log(
+        `📐 [GPT2_ASPECT] ${W}x${H} (ratio ${ratio.toFixed(3)}:1) > ${TRIGGER_RATIO}:1, padding uygulanıyor (hedef ${TARGET_RATIO}:1)...`
+      );
+
+      // Kısa kenarı büyüt, uzun kenara dokunma. Hedef oran 2.8:1 (3.0'ın altında buffer).
+      let padTop = 0,
+        padBottom = 0,
+        padLeft = 0,
+        padRight = 0;
+      let newW = W,
+        newH = H;
+
+      if (W > H) {
+        // Yatay resim → height'ı artır (W/TARGET_RATIO'a denk getir)
+        newH = Math.ceil(W / TARGET_RATIO);
+        const totalPadV = newH - H;
+        padTop = Math.floor(totalPadV / 2);
+        padBottom = totalPadV - padTop;
+      } else {
+        // Dikey resim → width'i artır (H/TARGET_RATIO'a denk getir)
+        newW = Math.ceil(H / TARGET_RATIO);
+        const totalPadH = newW - W;
+        padLeft = Math.floor(totalPadH / 2);
+        padRight = totalPadH - padLeft;
+      }
+
+      const padded = await sharp(buf)
+        .extend({
+          top: padTop,
+          bottom: padBottom,
+          left: padLeft,
+          right: padRight,
+          background: { r: 255, g: 255, b: 255 },
+        })
+        .jpeg({ quality: 90 })
+        .toBuffer();
+
+      // Padding sonrası metadata doğrulama (debug)
+      const paddedMeta = await sharp(padded).metadata();
+      const finalRatio =
+        (paddedMeta.width || newW) >= (paddedMeta.height || newH)
+          ? (paddedMeta.width || newW) / (paddedMeta.height || newH)
+          : (paddedMeta.height || newH) / (paddedMeta.width || newW);
+      logger.log(
+        `🔬 [GPT2_ASPECT] Padding sonrası: ${paddedMeta.width}x${paddedMeta.height}, ratio: ${finalRatio.toFixed(3)}:1`
+      );
+
+      const timestamp = Date.now();
+      const randomId = uuidv4().substring(0, 8);
+      const fileName = `temp_${timestamp}_gpt2_pad_${userId || "anonymous"}_${randomId}.jpg`;
+
+      const { error: upErr } = await supabase.storage
+        .from("reference")
+        .upload(fileName, padded, {
+          contentType: "image/jpeg",
+        });
+
+      if (upErr) {
+        logger.warn(
+          `❌ [GPT2_ASPECT] Supabase upload failed, orijinali kullan:`,
+          upErr.message
+        );
+        processedUrls.push(url);
+        continue;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("reference")
+        .getPublicUrl(fileName);
+
+      logger.log(
+        `✅ [GPT2_ASPECT] Padded: ${newW}x${newH}, URL: ${urlData.publicUrl}`
+      );
+      processedUrls.push(urlData.publicUrl);
+    } catch (err) {
+      logger.warn(
+        `⚠️ [GPT2_ASPECT] Preprocess error for ${url.substring(0, 60)}:`,
+        err.message
+      );
+      processedUrls.push(url); // Hata → orijinali kullan
+    }
+  }
+
+  return processedUrls;
+}
+
+// Fal.ai GPT Image 2 Edit API call - V1 mode (non-refiner, non-backSide) için
+// Birden fazla image_url kabul eder, aspect_ratio mapping ile image_size parametresi alır
+async function callFalAiGptImage2Edit(
+  prompt,
+  imageUrls,
+  imageSize = "portrait_4_3",
+  maxRetries = 3
+) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      logger.log(
+        `🎨 [FAL_AI_GPT2_V1] attempt ${attempt}/${maxRetries}, image_size: ${imageSize}, images: ${imageUrls?.length || 0}`
+      );
+      logger.log(
+        `🎨 [FAL_AI_GPT2_V1] Prompt: ${prompt.substring(0, 100)}...`
+      );
+
+      const { request_id } = await fal.queue.submit(
+        "openai/gpt-image-2/edit",
+        {
+          input: {
+            prompt: prompt,
+            image_urls: imageUrls,
+            image_size: imageSize,
+            quality: "medium", // low/medium/high
+            num_images: 1,
+            output_format: "jpeg",
+          },
+        }
+      );
+
+      if (!request_id) {
+        throw new Error("Fal.ai did not return a request_id");
+      }
+
+      logger.log(
+        `⏳ [FAL_AI_GPT2_V1] Request submitted, request_id: ${request_id}`
+      );
+
+      const maxPolls = 60;
+      for (let poll = 0; poll < maxPolls; poll++) {
+        const statusResult = await fal.queue.status(
+          "openai/gpt-image-2/edit",
+          {
+            requestId: request_id,
+            logs: false,
+          }
+        );
+
+        logger.log(
+          `⏳ [FAL_AI_GPT2_V1] Poll ${poll + 1}/${maxPolls}, status: ${statusResult.status}`
+        );
+
+        if (statusResult.status === "COMPLETED") {
+          const finalResult = await fal.queue.result(
+            "openai/gpt-image-2/edit",
+            {
+              requestId: request_id,
+            }
+          );
+
+          if (
+            finalResult.data &&
+            finalResult.data.images &&
+            finalResult.data.images.length > 0
+          ) {
+            logger.log(`✅ [FAL_AI_GPT2_V1] Image generated successfully`);
+            return finalResult.data.images[0].url;
+          }
+          throw new Error("No images in completed result");
+        }
+
+        if (statusResult.status === "FAILED") {
+          throw new Error("Fal.ai GPT Image 2 generation failed");
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+
+      throw new Error("Fal.ai GPT Image 2 polling timeout");
+    } catch (error) {
+      console.error(
+        `❌ [FAL_AI_GPT2_V1] Attempt ${attempt} failed:`,
+        error.message
+      );
+
+      if (attempt === maxRetries) {
+        throw error;
+      }
+
+      const waitTime = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+    }
+  }
+}
+
 // Görüntülerin geçici olarak saklanacağı klasörü oluştur
 const tempDir = path.join(__dirname, "../../temp");
 if (!fs.existsSync(tempDir)) {
@@ -4701,14 +4950,13 @@ router.post("/generate", async (req, res) => {
           ? "v1"
           : settings?.qualityVersion || settings?.quality_version || "v1";
         const isV2 = qualityVersion === "v2";
-        // For fal.ai, we use nano-banana/edit for v1 and nano-banana-2/edit for v2
-        const falModel =
-          isV2 || req.body.isBackSideAnalysis
-            ? "fal-ai/nano-banana-2/edit"
-            : "fal-ai/nano-banana/edit";
+        // Model seçimi:
+        //   v1 (default)    → openai/gpt-image-2/edit (aşağıdaki branch'te handle edilir)
+        //   v2 veya backSide → fal-ai/nano-banana-pro/edit
+        const falModel = "fal-ai/nano-banana-pro/edit"; // v2/backSide için
 
         logger.log(
-          `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model: ${falModel}`
+          `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model (v2/backSide fallback): ${falModel}`
         );
 
         let requestBody;
@@ -4726,6 +4974,53 @@ router.post("/generate", async (req, res) => {
         }
         logger.log(`📋 [FAL_PROMPT] Fal.ai'ya giden prompt (${truncatedPrompt.length} karakter):`, truncatedPrompt);
 
+        // 🎨 V1 MODE → GPT Image 2'yi kullan (nano-banana yerine)
+        // v2 veya backSide analysis için nano-banana akışı aşağıda devam eder
+        if (!isV2 && !req.body.isBackSideAnalysis) {
+          const gptImageSize = mapRatioToGptImage2Size(aspectRatioForRequest);
+
+          // 🛡️ GPT Image 2 input resim constraint: aspect ratio ≤ 3:1
+          // Grid/composite resimler 3:1'i aşıyorsa beyaz padding ile düzeltilir
+          logger.log(
+            `🛡️ [V1 GPT2] Input aspect kontrolü başlıyor (${imageInputArray?.length || 0} resim)...`
+          );
+          const sanitizedImageUrls = await ensureMaxAspectRatio3to1ForInput(
+            imageInputArray,
+            userId
+          );
+
+          logger.log(
+            `🎨 [V1 GPT2] Ratio: ${aspectRatioForRequest} → image_size: ${gptImageSize}, images: ${sanitizedImageUrls?.length || 0}`
+          );
+
+          const gptResultUrl = await callFalAiGptImage2Edit(
+            truncatedPrompt,
+            sanitizedImageUrls,
+            gptImageSize
+          );
+
+          // Sonucu Replicate formatına dönüştür (downstream kod uyumluluğu için)
+          replicateResponse = {
+            data: {
+              id: `gpt2-${uuidv4()}`,
+              status: "succeeded",
+              output: [gptResultUrl],
+              urls: {
+                get: null,
+              },
+            },
+          };
+
+          logger.log(
+            `✅ [V1 GPT2] Başarılı, retry loop'tan çıkılıyor (attempt ${attempt})`
+          );
+          break; // GPT 2 başarılı → retry loop'tan çık
+        }
+
+        // Back side analysis veya v2 modunda quality "2K" olarak ayarla (nano-banana-pro için)
+        const qualityParam =
+          isV2 || req.body.isBackSideAnalysis ? "2K" : undefined;
+
         if (isPoseChange) {
           // POSE CHANGE MODE - Farklı input parametreleri
           requestBody = {
@@ -4735,6 +5030,7 @@ router.post("/generate", async (req, res) => {
             aspect_ratio: aspectRatioForRequest,
             num_images: 1,
             resolution: "2K",
+            ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
             ...(isV2 || req.body.isBackSideAnalysis ? { safety_tolerance: "6" } : {}),
           };
           logger.log(
@@ -4753,6 +5049,7 @@ router.post("/generate", async (req, res) => {
             aspect_ratio: aspectRatioForRequest,
             num_images: 1,
             resolution: "2K",
+            ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
             ...(isV2 || req.body.isBackSideAnalysis ? { safety_tolerance: "6" } : {}),
           };
         }
