@@ -4,8 +4,14 @@ const axios = require("axios");
 const { createClient } = require("@supabase/supabase-js");
 const { v4: uuidv4 } = require("uuid");
 const sharp = require("sharp");
+const { fal } = require("@fal-ai/client");
 const teamService = require("../services/teamService");
 const { optimizeKitImages } = require("../utils/imageOptimizer");
+
+// Fal.ai client config (detail + ghost sahneleri için GPT Image 2 queue SDK)
+fal.config({
+  credentials: process.env.FAL_API_KEY,
+});
 
 // Supabase client
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -132,6 +138,153 @@ async function getOptimizedImageUrl(imageUrl) {
     } catch (error) {
         console.error(`❌ [KIT_V2_OPTIMIZE] Error:`, error.message);
         return imageUrl;
+    }
+}
+
+// ─── GPT Image 2: aspect ratio sanitizer (3:1 limitini aşan input resimleri pad'ler) ───
+// fal.ai 3:1'e çok yakın oranlarda bile (ör. 2.997) reddedebiliyor — trigger 2.9, hedef 2.5.
+async function ensureMaxAspectRatio3to1ForKitInput(imageUrls, userId) {
+    const TRIGGER_RATIO = 2.9;
+    const TARGET_RATIO = 2.5;
+    const processedUrls = [];
+
+    for (const url of imageUrls || []) {
+        if (!url || typeof url !== "string") {
+            processedUrls.push(url);
+            continue;
+        }
+        try {
+            const response = await axios.get(url, {
+                responseType: "arraybuffer",
+                timeout: 20000,
+            });
+            const buf = Buffer.from(response.data);
+
+            const meta = await sharp(buf).metadata();
+            const W = meta.width || 0;
+            const H = meta.height || 0;
+            if (!W || !H) {
+                processedUrls.push(url);
+                continue;
+            }
+
+            const ratio = W >= H ? W / H : H / W;
+            if (ratio <= TRIGGER_RATIO) {
+                processedUrls.push(url);
+                continue;
+            }
+
+            console.log(`📐 [KIT_V2_GPT2_ASPECT] ${W}x${H} (ratio ${ratio.toFixed(3)}:1) > ${TRIGGER_RATIO}:1, padding uygulanıyor (hedef ${TARGET_RATIO}:1)...`);
+
+            let padTop = 0, padBottom = 0, padLeft = 0, padRight = 0;
+            let newW = W, newH = H;
+            if (W > H) {
+                newH = Math.ceil(W / TARGET_RATIO);
+                const totalPadV = newH - H;
+                padTop = Math.floor(totalPadV / 2);
+                padBottom = totalPadV - padTop;
+            } else {
+                newW = Math.ceil(H / TARGET_RATIO);
+                const totalPadH = newW - W;
+                padLeft = Math.floor(totalPadH / 2);
+                padRight = totalPadH - padLeft;
+            }
+
+            const padded = await sharp(buf)
+                .extend({
+                    top: padTop,
+                    bottom: padBottom,
+                    left: padLeft,
+                    right: padRight,
+                    background: { r: 255, g: 255, b: 255 },
+                })
+                .jpeg({ quality: 90 })
+                .toBuffer();
+
+            const timestamp = Date.now();
+            const randomId = uuidv4().substring(0, 8);
+            const fileName = `temp_${timestamp}_kit_gpt2_pad_${userId || "anonymous"}_${randomId}.jpg`;
+
+            const { error: upErr } = await supabase.storage
+                .from("reference")
+                .upload(fileName, padded, { contentType: "image/jpeg" });
+
+            if (upErr) {
+                console.warn(`❌ [KIT_V2_GPT2_ASPECT] Supabase upload failed:`, upErr.message);
+                processedUrls.push(url);
+                continue;
+            }
+
+            const { data: urlData } = supabase.storage.from("reference").getPublicUrl(fileName);
+            console.log(`✅ [KIT_V2_GPT2_ASPECT] Padded: ${newW}x${newH}, URL: ${urlData.publicUrl}`);
+            processedUrls.push(urlData.publicUrl);
+        } catch (err) {
+            console.warn(`⚠️ [KIT_V2_GPT2_ASPECT] Preprocess error:`, err.message);
+            processedUrls.push(url);
+        }
+    }
+
+    return processedUrls;
+}
+
+// ─── Fal.ai GPT Image 2 Edit API call (detail + ghost sahneleri için) ───
+async function callFalAiGptImage2ForKit(prompt, resultImageUrl, referenceImageUrl, userId, maxRetries = 2) {
+    // GPT Image 2'nin 3:1 aspect constraint'i — input resimleri pad'le
+    const sanitizedUrls = await ensureMaxAspectRatio3to1ForKitInput(
+        [resultImageUrl, referenceImageUrl],
+        userId
+    );
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            console.log(`🎨 [KIT_V2_GPT2] attempt ${attempt}/${maxRetries}, images: ${sanitizedUrls.length}`);
+
+            const { request_id } = await fal.queue.submit("openai/gpt-image-2/edit", {
+                input: {
+                    prompt: prompt,
+                    image_urls: sanitizedUrls,
+                    image_size: "portrait_16_9", // 9:16 dikey (detail + ghost default)
+                    quality: "medium",
+                    num_images: 1,
+                    output_format: "jpeg",
+                },
+            });
+
+            if (!request_id) throw new Error("Fal.ai did not return a request_id");
+            console.log(`⏳ [KIT_V2_GPT2] Request submitted, request_id: ${request_id}`);
+
+            const maxPolls = 60;
+            for (let poll = 0; poll < maxPolls; poll++) {
+                const statusResult = await fal.queue.status("openai/gpt-image-2/edit", {
+                    requestId: request_id,
+                    logs: false,
+                });
+
+                if (statusResult.status === "COMPLETED") {
+                    const finalResult = await fal.queue.result("openai/gpt-image-2/edit", {
+                        requestId: request_id,
+                    });
+                    if (finalResult.data?.images?.length > 0) {
+                        console.log(`✅ [KIT_V2_GPT2] Image generated successfully`);
+                        return finalResult.data.images[0].url;
+                    }
+                    throw new Error("No images in completed result");
+                }
+
+                if (statusResult.status === "FAILED") {
+                    throw new Error("Fal.ai GPT Image 2 generation failed");
+                }
+
+                await new Promise((resolve) => setTimeout(resolve, 2000));
+            }
+
+            throw new Error("Fal.ai GPT Image 2 polling timeout");
+        } catch (error) {
+            console.error(`❌ [KIT_V2_GPT2] Attempt ${attempt} failed:`, error.message);
+            if (attempt === maxRetries) throw error;
+            const waitTime = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
+            await new Promise((resolve) => setTimeout(resolve, waitTime));
+        }
     }
 }
 
@@ -273,9 +426,10 @@ async function callNanoBanana2(prompt, resultImageUrl, referenceImageUrl, maxRet
     throw new Error("All Nano Banana models failed on Fal.ai (nano-banana-2 and nano-banana-pro)");
 }
 
-// Scenes that use Nano Banana 2 (editorial poses + studio + detail)
-const nanoBanana2Scenes = new Set([0, 1, 2, 3, 4]); // pose1, pose2, studio1, studio2, detail
-// Scene 5 (ghost mannequin) uses GPT Image 1.5
+// Scene dağılımı:
+//   0, 1 (pose1, pose2), 2, 3 (studio1, studio2) → Nano Banana 2 (fal.ai)
+//   4 (detail), 5 (ghost) → GPT Image 2 (fal.ai)
+const nanoBanana2Scenes = new Set([0, 1, 2, 3]); // pose1, pose2, studio1, studio2
 
 // ─── Save generated image to user bucket ───
 async function saveGeneratedImageToUserBucket(imageUrl, userId, imageType) {
@@ -679,10 +833,10 @@ CRITICAL: Respond ONLY with a valid JSON object. No markdown, no code blocks, no
                 const imageGenerationPromises = imagePrompts.map(async (prompt, index) => {
                     try {
                         const useNanoBanana = nanoBanana2Scenes.has(index);
-                        console.log(`🎨 [KIT_V2] Generating ${sceneTypes[index]} via ${useNanoBanana ? 'Nano Banana 2' : 'GPT'}...`);
+                        console.log(`🎨 [KIT_V2] Generating ${sceneTypes[index]} via ${useNanoBanana ? 'Nano Banana 2' : 'GPT Image 2 (fal.ai, 9:16)'}...`);
                         const generatedUrl = useNanoBanana
                             ? await callNanoBanana2(prompt, optimizedResultUrl, optimizedReferenceUrl)
-                            : await callReplicateGptImageEdit(prompt, optimizedResultUrl, optimizedReferenceUrl);
+                            : await callFalAiGptImage2ForKit(prompt, optimizedResultUrl, optimizedReferenceUrl, userId);
 
                         const savedUrl = await saveGeneratedImageToUserBucket(
                             generatedUrl,
@@ -800,12 +954,12 @@ router.post("/retry-kit-scene", async (req, res) => {
         };
         const prompt = promptMap[sceneIndex] || defaultPrompts.changePose1;
 
-        // Generate the image (Nano Banana 2 for editorial/studio/detail, GPT for ghost)
+        // Generate the image — pose1/pose2/studio1/studio2 → Nano Banana 2, detail/ghost → GPT Image 2 (fal.ai, 9:16)
         const useNanoBanana = nanoBanana2Scenes.has(sceneIndex);
-        console.log(`🔄 [KIT_V2_RETRY] Using ${useNanoBanana ? 'Nano Banana 2' : 'GPT'} for scene ${sceneIndex} (${sceneType})`);
+        console.log(`🔄 [KIT_V2_RETRY] Using ${useNanoBanana ? 'Nano Banana 2' : 'GPT Image 2 (fal.ai, 9:16)'} for scene ${sceneIndex} (${sceneType})`);
         const generatedUrl = useNanoBanana
             ? await callNanoBanana2(prompt, optimizedResultUrl, optimizedReferenceUrl)
-            : await callReplicateGptImageEdit(prompt, optimizedResultUrl, optimizedReferenceUrl);
+            : await callFalAiGptImage2ForKit(prompt, optimizedResultUrl, optimizedReferenceUrl, userId);
         const savedUrl = await saveGeneratedImageToUserBucket(generatedUrl, userId || "anonymous", sceneType);
 
         // Save to reference_results.kits at correct position
