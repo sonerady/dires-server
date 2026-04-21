@@ -253,6 +253,132 @@ async function callFalAiGptImageEditForRefiner(
   }
 }
 
+// Client'tan gelen aspect ratio'yu fal.ai GPT Image 2 image_size enum'una dönüştür
+// Results.js'deki tüm ratio seçenekleri: 21:9, 16:9, 3:2, 4:3, 5:4, 1:1, 4:5, 3:4, 2:3, 9:16
+// GPT Image 2 enum: landscape_16_9, landscape_4_3, square_hd, square, portrait_4_3, portrait_16_9
+// Enum'u olmayan ratio'lar aspect oran bazlı EN YAKIN enum'a eşlenir:
+//   21:9 (2.33) ve 16:9 (1.78) → landscape_16_9
+//   3:2 (1.50), 4:3 (1.33), 5:4 (1.25) → landscape_4_3
+//   1:1 (1.00) → square_hd
+//   4:5 (0.80), 3:4 (0.75), 2:3 (0.67) → portrait_4_3
+//   9:16 (0.56) → portrait_16_9
+function mapRatioToGptImage2Size(ratio) {
+  const mapping = {
+    // Ultra-wide + widescreen landscape → landscape_16_9
+    "21:9": "landscape_16_9",
+    "16:9": "landscape_16_9",
+    // Standard / klasik landscape → landscape_4_3
+    "3:2": "landscape_4_3",
+    "4:3": "landscape_4_3",
+    "5:4": "landscape_4_3",
+    // Kare
+    "1:1": "square_hd",
+    // Standard / klasik portrait → portrait_4_3
+    "4:5": "portrait_4_3",
+    "3:4": "portrait_4_3",
+    "2:3": "portrait_4_3",
+    // Widescreen portrait → portrait_16_9
+    "9:16": "portrait_16_9",
+  };
+  return mapping[ratio] || "portrait_4_3"; // fallback: 3:4 portrait
+}
+
+// Fal.ai GPT Image 2 Edit API call - V1 mode (non-refiner, non-backSide) için
+// Birden fazla image_url kabul eder, aspect_ratio mapping ile image_size parametresi alır
+async function callFalAiGptImage2Edit(
+  prompt,
+  imageUrls,
+  imageSize = "portrait_4_3",
+  maxRetries = 3
+) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      logger.log(
+        `🎨 [FAL_AI_GPT2_V1] attempt ${attempt}/${maxRetries}, image_size: ${imageSize}, images: ${imageUrls?.length || 0}`
+      );
+      logger.log(
+        `🎨 [FAL_AI_GPT2_V1] Prompt: ${prompt.substring(0, 100)}...`
+      );
+
+      const { request_id } = await fal.queue.submit(
+        "openai/gpt-image-2/edit",
+        {
+          input: {
+            prompt: prompt,
+            image_urls: imageUrls,
+            image_size: imageSize,
+            quality: "medium", // low/medium/high
+            num_images: 1,
+            output_format: "jpeg",
+          },
+        }
+      );
+
+      if (!request_id) {
+        throw new Error("Fal.ai did not return a request_id");
+      }
+
+      logger.log(
+        `⏳ [FAL_AI_GPT2_V1] Request submitted, request_id: ${request_id}`
+      );
+
+      const maxPolls = 60;
+      for (let poll = 0; poll < maxPolls; poll++) {
+        const statusResult = await fal.queue.status(
+          "openai/gpt-image-2/edit",
+          {
+            requestId: request_id,
+            logs: false,
+          }
+        );
+
+        logger.log(
+          `⏳ [FAL_AI_GPT2_V1] Poll ${poll + 1}/${maxPolls}, status: ${statusResult.status}`
+        );
+
+        if (statusResult.status === "COMPLETED") {
+          const finalResult = await fal.queue.result(
+            "openai/gpt-image-2/edit",
+            {
+              requestId: request_id,
+            }
+          );
+
+          if (
+            finalResult.data &&
+            finalResult.data.images &&
+            finalResult.data.images.length > 0
+          ) {
+            logger.log(`✅ [FAL_AI_GPT2_V1] Image generated successfully`);
+            return finalResult.data.images[0].url;
+          }
+          throw new Error("No images in completed result");
+        }
+
+        if (statusResult.status === "FAILED") {
+          throw new Error("Fal.ai GPT Image 2 generation failed");
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+
+      throw new Error("Fal.ai GPT Image 2 polling timeout");
+    } catch (error) {
+      console.error(
+        `❌ [FAL_AI_GPT2_V1] Attempt ${attempt} failed:`,
+        error.message
+      );
+
+      if (attempt === maxRetries) {
+        throw error;
+      }
+
+      const waitTime = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+    }
+  }
+}
+
 // Görüntülerin geçici olarak saklanacağı klasörü oluştur
 const tempDir = path.join(__dirname, "../../temp");
 if (!fs.existsSync(tempDir)) {
@@ -4990,15 +5116,13 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
           ? "v1"
           : settings?.qualityVersion || settings?.quality_version || "v1";
         const isV2 = qualityVersion === "v2";
-        // For fal.ai, we use nano-banana/edit for v1 and nano-banana-pro/edit for v2
-        // Back side analysis modunda her zaman nano-banana-pro kullan
-        const falModel =
-          isV2 || req.body.isBackSideAnalysis
-            ? "fal-ai/nano-banana-pro/edit"
-            : "fal-ai/nano-banana/edit";
+        // Model seçimi:
+        //   v1 (default)    → openai/gpt-image-2/edit (aşağıdaki branch'te handle edilir)
+        //   v2 veya backSide → fal-ai/nano-banana-pro/edit
+        const falModel = "fal-ai/nano-banana-pro/edit"; // v2/backSide için
 
         logger.log(
-          `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model: ${falModel}`
+          `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model (v2/backSide fallback): ${falModel}`
         );
 
         let requestBody;
@@ -5015,6 +5139,38 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
           truncatedPrompt = enhancedPrompt.substring(0, maxPromptLength);
         }
         logger.log(`📋 [FAL_PROMPT] Fal.ai'ya giden prompt (${truncatedPrompt.length} karakter):`, truncatedPrompt);
+
+        // 🎨 V1 MODE → GPT Image 2'yi kullan (nano-banana yerine)
+        // v2 veya backSide analysis için nano-banana-pro akışı devam eder
+        if (!isV2 && !req.body.isBackSideAnalysis) {
+          const gptImageSize = mapRatioToGptImage2Size(aspectRatioForRequest);
+          logger.log(
+            `🎨 [V1 GPT2] Ratio: ${aspectRatioForRequest} → image_size: ${gptImageSize}, images: ${imageInputArray?.length || 0}`
+          );
+
+          const gptResultUrl = await callFalAiGptImage2Edit(
+            truncatedPrompt,
+            imageInputArray,
+            gptImageSize
+          );
+
+          // Sonucu Replicate formatına dönüştür (downstream kod uyumluluğu için)
+          replicateResponse = {
+            data: {
+              id: `gpt2-${uuidv4()}`,
+              status: "succeeded",
+              output: [gptResultUrl],
+              urls: {
+                get: null,
+              },
+            },
+          };
+
+          logger.log(
+            `✅ [V1 GPT2] Başarılı, retry loop'tan çıkılıyor (attempt ${attempt})`
+          );
+          break; // GPT 2 başarılı → retry loop'tan çık
+        }
 
         // Back side analysis veya v2 modunda quality "2K" olarak ayarla (nano-banana-pro için)
         const qualityParam =
