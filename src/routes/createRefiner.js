@@ -145,13 +145,13 @@ async function callReplicateGeminiFlash(
   }
 }
 
-// @fal-ai/client import for GPT Image 1.5
+// @fal-ai/client import for GPT Image 2
 const { fal } = require("@fal-ai/client");
 fal.config({
   credentials: process.env.FAL_API_KEY,
 });
 
-// Fal.ai GPT Image 1.5 Edit API call using SDK (for Refiner mode - Ghost Mannequin style)
+// Fal.ai GPT Image 2 Edit API call using SDK (for Refiner mode - Ghost Mannequin style)
 async function callFalAiGptImageEditForRefiner(
   prompt,
   imageUrl,
@@ -166,18 +166,18 @@ async function callFalAiGptImageEditForRefiner(
         `🎨 [FAL_AI_GPT_REFINER] Prompt: ${prompt.substring(0, 100)}...`,
       );
 
-      // fal.queue.submit ile GPT Image 1.5'e istek gönder
+      // fal.queue.submit ile GPT Image 2'ye istek gönder
+      // NOT: GPT Image 2'de input_fidelity parametresi kaldırıldı (1.5'te vardı)
       const { request_id } = await fal.queue.submit(
-        "fal-ai/gpt-image-1.5/edit",
+        "openai/gpt-image-2/edit",
         {
           input: {
             prompt: prompt,
             image_urls: [imageUrl], // Single image for refiner
-            image_size: "1024x1536", // Portrait size for e-commerce - ALWAYS fixed regardless of user ratio
-            quality: "medium", // medium for balanced quality/speed
-            input_fidelity: "high", // preserve product details
+            image_size: "portrait_4_3", // 3:4 portrait — fal.ai GPT Image 2 enum (auto/square_hd/square/portrait_4_3/portrait_16_9/landscape_4_3/landscape_16_9)
+            quality: "medium", // low/medium/high — medium balanced quality/speed
             num_images: 1,
-            output_format: "jpeg",
+            output_format: "jpeg", // jpeg/png/webp
           },
         },
       );
@@ -194,7 +194,7 @@ async function callFalAiGptImageEditForRefiner(
       let maxPolls = 60;
       for (let poll = 0; poll < maxPolls; poll++) {
         const statusResult = await fal.queue.status(
-          "fal-ai/gpt-image-1.5/edit",
+          "openai/gpt-image-2/edit",
           {
             requestId: request_id,
             logs: false,
@@ -210,7 +210,7 @@ async function callFalAiGptImageEditForRefiner(
         if (statusResult.status === "COMPLETED") {
           // Get the final result
           const finalResult = await fal.queue.result(
-            "fal-ai/gpt-image-1.5/edit",
+            "openai/gpt-image-2/edit",
             {
               requestId: request_id,
             },
@@ -4740,19 +4740,19 @@ router.post("/generate", async (req, res) => {
     logger.log("📝 [BACKEND MAIN] Original prompt:", promptText);
     logger.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
 
-    // 🔧 REFINER MODE: Use GPT Image 1.5 instead of nano-banana
+    // 🔧 REFINER MODE: Use GPT Image 2 instead of nano-banana
     if (isRefinerMode) {
-      logger.log("🔧 [REFINER MODE] GPT Image 1.5 API kullanılacak...");
+      logger.log("🔧 [REFINER MODE] GPT Image 2 API kullanılacak...");
       logger.log("🔧 [REFINER MODE] Final Image URL:", finalImage);
 
       try {
-        // GPT Image 1.5 ile görsel oluştur
+        // GPT Image 2 ile görsel oluştur
         const gptImageResult = await callFalAiGptImageEditForRefiner(
           enhancedPrompt,
           finalImage,
         );
 
-        logger.log("✅ [REFINER MODE] GPT Image 1.5 başarılı:", gptImageResult);
+        logger.log("✅ [REFINER MODE] GPT Image 2 başarılı:", gptImageResult);
 
         // Generation'ı completed olarak güncelle (result_image_url ile - updateGenerationStatus içinde Supabase'e kaydediliyor)
         await updateGenerationStatus(finalGenerationId, userId, "completed", {
@@ -4771,12 +4771,12 @@ router.post("/generate", async (req, res) => {
             prompt: enhancedPrompt,
             generationId: finalGenerationId,
             isRefinerMode: true,
-            apiUsed: "gpt-image-1.5",
+            apiUsed: "gpt-image-2",
           },
         });
       } catch (refinerError) {
         console.error(
-          "❌ [REFINER MODE] GPT Image 1.5 hatası:",
+          "❌ [REFINER MODE] GPT Image 2 hatası:",
           refinerError.message,
         );
 
