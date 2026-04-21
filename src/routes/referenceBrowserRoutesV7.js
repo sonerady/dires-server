@@ -285,9 +285,11 @@ function mapRatioToGptImage2Size(ratio) {
 
 // GPT Image 2'ye giden input resimleri 3:1 aspect ratio limitine uydur.
 // GPT Image 2 hata verir: "Image aspect ratio X:Y exceeds the maximum allowed ratio of 3:1"
-// Oranı aşan resimleri beyaz padding ile 3:1'e kadar genişletip Supabase'e upload eder.
+// Oranı aşan resimleri beyaz padding ile 2.8:1'e kadar genişletip Supabase'e upload eder.
+// NOT: Target 3:1 değil 2.8:1 — rounding/float hassasiyet için safety buffer
 async function ensureMaxAspectRatio3to1ForInput(imageUrls, userId) {
-  const MAX_RATIO = 3.0;
+  const MAX_RATIO = 3.0; // Tetikleme eşiği (fal.ai limiti)
+  const TARGET_RATIO = 2.8; // Padding sonrası hedef oran (safety buffer)
   const processedUrls = [];
 
   for (const url of imageUrls || []) {
@@ -319,10 +321,10 @@ async function ensureMaxAspectRatio3to1ForInput(imageUrls, userId) {
       }
 
       logger.log(
-        `📐 [GPT2_ASPECT] ${W}x${H} (ratio ${ratio.toFixed(2)}:1) > 3:1, padding uygulanıyor...`
+        `📐 [GPT2_ASPECT] ${W}x${H} (ratio ${ratio.toFixed(3)}:1) > ${MAX_RATIO}:1, padding uygulanıyor (hedef ${TARGET_RATIO}:1)...`
       );
 
-      // Kısa kenarı büyüt, uzun kenara dokunma
+      // Kısa kenarı büyüt, uzun kenara dokunma. Hedef oran 2.8:1 (3.0'ın altında buffer).
       let padTop = 0,
         padBottom = 0,
         padLeft = 0,
@@ -331,14 +333,14 @@ async function ensureMaxAspectRatio3to1ForInput(imageUrls, userId) {
         newH = H;
 
       if (W > H) {
-        // Yatay resim → height'ı artır (W/3'e denk getir)
-        newH = Math.ceil(W / MAX_RATIO);
+        // Yatay resim → height'ı artır (W/TARGET_RATIO'a denk getir)
+        newH = Math.ceil(W / TARGET_RATIO);
         const totalPadV = newH - H;
         padTop = Math.floor(totalPadV / 2);
         padBottom = totalPadV - padTop;
       } else {
-        // Dikey resim → width'i artır (H/3'e denk getir)
-        newW = Math.ceil(H / MAX_RATIO);
+        // Dikey resim → width'i artır (H/TARGET_RATIO'a denk getir)
+        newW = Math.ceil(H / TARGET_RATIO);
         const totalPadH = newW - W;
         padLeft = Math.floor(totalPadH / 2);
         padRight = totalPadH - padLeft;
@@ -354,6 +356,16 @@ async function ensureMaxAspectRatio3to1ForInput(imageUrls, userId) {
         })
         .jpeg({ quality: 90 })
         .toBuffer();
+
+      // Padding sonrası metadata doğrulama (debug)
+      const paddedMeta = await sharp(padded).metadata();
+      const finalRatio =
+        (paddedMeta.width || newW) >= (paddedMeta.height || newH)
+          ? (paddedMeta.width || newW) / (paddedMeta.height || newH)
+          : (paddedMeta.height || newH) / (paddedMeta.width || newW);
+      logger.log(
+        `🔬 [GPT2_ASPECT] Padding sonrası: ${paddedMeta.width}x${paddedMeta.height}, ratio: ${finalRatio.toFixed(3)}:1`
+      );
 
       const timestamp = Date.now();
       const randomId = uuidv4().substring(0, 8);
