@@ -4990,10 +4990,11 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
           ? "v1"
           : settings?.qualityVersion || settings?.quality_version || "v1";
         const isV2 = qualityVersion === "v2";
-        // For fal.ai, we use nano-banana/edit for v1 and nano-banana-2/edit for v2
+        // For fal.ai, we use nano-banana/edit for v1 and nano-banana-pro/edit for v2
+        // Back side analysis modunda her zaman nano-banana-pro kullan
         const falModel =
           isV2 || req.body.isBackSideAnalysis
-            ? "fal-ai/nano-banana-2/edit"
+            ? "fal-ai/nano-banana-pro/edit"
             : "fal-ai/nano-banana/edit";
 
         logger.log(
@@ -5015,6 +5016,10 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
         }
         logger.log(`📋 [FAL_PROMPT] Fal.ai'ya giden prompt (${truncatedPrompt.length} karakter):`, truncatedPrompt);
 
+        // Back side analysis veya v2 modunda quality "2K" olarak ayarla (nano-banana-pro için)
+        const qualityParam =
+          isV2 || req.body.isBackSideAnalysis ? "2K" : undefined;
+
         if (isPoseChange) {
           // POSE CHANGE MODE - Farklı input parametreleri
           requestBody = {
@@ -5024,6 +5029,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
             aspect_ratio: aspectRatioForRequest,
             num_images: 1,
             resolution: "2K",
+            ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
             ...(isV2 || req.body.isBackSideAnalysis ? { safety_tolerance: "6" } : {}),
           };
           logger.log(
@@ -5042,6 +5048,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
             aspect_ratio: aspectRatioForRequest,
             num_images: 1,
             resolution: "2K",
+            ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
             ...(isV2 || req.body.isBackSideAnalysis ? { safety_tolerance: "6" } : {}),
           };
         }
