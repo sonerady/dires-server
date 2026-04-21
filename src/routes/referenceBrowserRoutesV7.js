@@ -283,6 +283,117 @@ function mapRatioToGptImage2Size(ratio) {
   return mapping[ratio] || "portrait_4_3"; // fallback: 3:4 portrait
 }
 
+// GPT Image 2'ye giden input resimleri 3:1 aspect ratio limitine uydur.
+// GPT Image 2 hata verir: "Image aspect ratio X:Y exceeds the maximum allowed ratio of 3:1"
+// Oranı aşan resimleri beyaz padding ile 3:1'e kadar genişletip Supabase'e upload eder.
+async function ensureMaxAspectRatio3to1ForInput(imageUrls, userId) {
+  const MAX_RATIO = 3.0;
+  const processedUrls = [];
+
+  for (const url of imageUrls || []) {
+    if (!url || typeof url !== "string") {
+      processedUrls.push(url);
+      continue;
+    }
+    try {
+      const response = await axios.get(url, {
+        responseType: "arraybuffer",
+        timeout: 20000,
+      });
+      const buf = Buffer.from(response.data);
+
+      const meta = await sharp(buf).metadata();
+      const W = meta.width || 0;
+      const H = meta.height || 0;
+
+      if (!W || !H) {
+        processedUrls.push(url); // Metadata okunamadı → orijinali kullan
+        continue;
+      }
+
+      const ratio = W >= H ? W / H : H / W;
+
+      if (ratio <= MAX_RATIO) {
+        processedUrls.push(url); // Zaten uygun
+        continue;
+      }
+
+      logger.log(
+        `📐 [GPT2_ASPECT] ${W}x${H} (ratio ${ratio.toFixed(2)}:1) > 3:1, padding uygulanıyor...`
+      );
+
+      // Kısa kenarı büyüt, uzun kenara dokunma
+      let padTop = 0,
+        padBottom = 0,
+        padLeft = 0,
+        padRight = 0;
+      let newW = W,
+        newH = H;
+
+      if (W > H) {
+        // Yatay resim → height'ı artır (W/3'e denk getir)
+        newH = Math.ceil(W / MAX_RATIO);
+        const totalPadV = newH - H;
+        padTop = Math.floor(totalPadV / 2);
+        padBottom = totalPadV - padTop;
+      } else {
+        // Dikey resim → width'i artır (H/3'e denk getir)
+        newW = Math.ceil(H / MAX_RATIO);
+        const totalPadH = newW - W;
+        padLeft = Math.floor(totalPadH / 2);
+        padRight = totalPadH - padLeft;
+      }
+
+      const padded = await sharp(buf)
+        .extend({
+          top: padTop,
+          bottom: padBottom,
+          left: padLeft,
+          right: padRight,
+          background: { r: 255, g: 255, b: 255 },
+        })
+        .jpeg({ quality: 90 })
+        .toBuffer();
+
+      const timestamp = Date.now();
+      const randomId = uuidv4().substring(0, 8);
+      const fileName = `temp_${timestamp}_gpt2_pad_${userId || "anonymous"}_${randomId}.jpg`;
+
+      const { error: upErr } = await supabase.storage
+        .from("reference")
+        .upload(fileName, padded, {
+          contentType: "image/jpeg",
+        });
+
+      if (upErr) {
+        logger.warn(
+          `❌ [GPT2_ASPECT] Supabase upload failed, orijinali kullan:`,
+          upErr.message
+        );
+        processedUrls.push(url);
+        continue;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("reference")
+        .getPublicUrl(fileName);
+
+      logger.log(
+        `✅ [GPT2_ASPECT] Padded: ${newW}x${newH}, URL: ${urlData.publicUrl}`
+      );
+      processedUrls.push(urlData.publicUrl);
+    } catch (err) {
+      logger.warn(
+        `⚠️ [GPT2_ASPECT] Preprocess error for ${url.substring(0, 60)}:`,
+        err.message
+      );
+      processedUrls.push(url); // Hata → orijinali kullan
+    }
+  }
+
+  return processedUrls;
+}
+
 // Fal.ai GPT Image 2 Edit API call - V1 mode (non-refiner, non-backSide) için
 // Birden fazla image_url kabul eder, aspect_ratio mapping ile image_size parametresi alır
 async function callFalAiGptImage2Edit(
@@ -5144,13 +5255,24 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
         // v2 veya backSide analysis için nano-banana-pro akışı devam eder
         if (!isV2 && !req.body.isBackSideAnalysis) {
           const gptImageSize = mapRatioToGptImage2Size(aspectRatioForRequest);
+
+          // 🛡️ GPT Image 2 input resim constraint: aspect ratio ≤ 3:1
+          // Grid/composite resimler 3:1'i aşıyorsa beyaz padding ile düzeltilir
           logger.log(
-            `🎨 [V1 GPT2] Ratio: ${aspectRatioForRequest} → image_size: ${gptImageSize}, images: ${imageInputArray?.length || 0}`
+            `🛡️ [V1 GPT2] Input aspect kontrolü başlıyor (${imageInputArray?.length || 0} resim)...`
+          );
+          const sanitizedImageUrls = await ensureMaxAspectRatio3to1ForInput(
+            imageInputArray,
+            userId
+          );
+
+          logger.log(
+            `🎨 [V1 GPT2] Ratio: ${aspectRatioForRequest} → image_size: ${gptImageSize}, images: ${sanitizedImageUrls?.length || 0}`
           );
 
           const gptResultUrl = await callFalAiGptImage2Edit(
             truncatedPrompt,
-            imageInputArray,
+            sanitizedImageUrls,
             gptImageSize
           );
 
