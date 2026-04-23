@@ -502,6 +502,39 @@ async function callFalAiGptImage2Edit(
   }
 }
 
+// App-level config bayrağı okuma: Supabase `app_config` tablosunda is_gpt = true
+// ise V1 modu GPT Image 2 kullanır, false ise nano-banana-2'ye düşer.
+// İki yaygın schema'yı dener:
+//   1) Direct column: `app_config.is_gpt` (tek satır, boolean kolon)
+//   2) Key/value:     `app_config` rows { key: "is_gpt", value: true }
+// Hata/okunamazsa default olarak GPT açık (true) döner — güvenli fallback.
+async function isGptEnabledForV1() {
+  try {
+    const { data } = await supabase
+      .from("app_config")
+      .select("is_gpt")
+      .limit(1)
+      .maybeSingle();
+    if (data && typeof data.is_gpt === "boolean") return data.is_gpt;
+  } catch (e) {
+    // kolon yoksa PostgREST hata fırlatır — sessizce geç
+  }
+  try {
+    const { data } = await supabase
+      .from("app_config")
+      .select("value")
+      .eq("key", "is_gpt")
+      .maybeSingle();
+    if (data && data.value !== undefined && data.value !== null) {
+      const v = data.value;
+      if (typeof v === "boolean") return v;
+      if (typeof v === "string") return v.toLowerCase() === "true";
+      if (typeof v === "object" && v !== null && "bool" in v) return Boolean(v.bool);
+    }
+  } catch (e) {}
+  return true; // default: GPT açık
+}
+
 // Görüntülerin geçici olarak saklanacağı klasörü oluştur
 const tempDir = path.join(__dirname, "../../temp");
 if (!fs.existsSync(tempDir)) {
@@ -5263,47 +5296,99 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
         }
         logger.log(`📋 [FAL_PROMPT] Fal.ai'ya giden prompt (${truncatedPrompt.length} karakter):`, truncatedPrompt);
 
-        // 🎨 V1 MODE → GPT Image 2'yi kullan (nano-banana yerine)
-        // v2 veya backSide analysis için nano-banana-pro akışı devam eder
+        // 🎨 V1 MODE → app_config.is_gpt bayrağına göre model seç:
+        //   true  → GPT Image 2 (openai/gpt-image-2/edit)
+        //   false → nano-banana-2 (fal-ai/nano-banana-2/edit)
+        // v2 veya backSide analysis için aşağıdaki nano-banana-pro akışı devam eder.
         if (!isV2 && !req.body.isBackSideAnalysis) {
-          const gptImageSize = mapRatioToGptImage2Size(aspectRatioForRequest);
+          const useGpt = await isGptEnabledForV1();
+          logger.log(`⚙️ [V1 MODEL_SWITCH] app_config.is_gpt = ${useGpt} → ${useGpt ? "GPT Image 2" : "nano-banana-2"}`);
 
-          // 🛡️ GPT Image 2 input resim constraint: aspect ratio ≤ 3:1
-          // Grid/composite resimler 3:1'i aşıyorsa beyaz padding ile düzeltilir
-          logger.log(
-            `🛡️ [V1 GPT2] Input aspect kontrolü başlıyor (${imageInputArray?.length || 0} resim)...`
-          );
-          const sanitizedImageUrls = await ensureMaxAspectRatio3to1ForInput(
-            imageInputArray,
-            userId
-          );
+          if (useGpt) {
+            // ── GPT Image 2 yolu ──
+            const gptImageSize = mapRatioToGptImage2Size(aspectRatioForRequest);
 
-          logger.log(
-            `🎨 [V1 GPT2] Ratio: ${aspectRatioForRequest} → image_size: ${gptImageSize}, images: ${sanitizedImageUrls?.length || 0}`
-          );
+            logger.log(
+              `🛡️ [V1 GPT2] Input aspect kontrolü başlıyor (${imageInputArray?.length || 0} resim)...`
+            );
+            const sanitizedImageUrls = await ensureMaxAspectRatio3to1ForInput(
+              imageInputArray,
+              userId
+            );
 
-          const gptResultUrl = await callFalAiGptImage2Edit(
-            truncatedPrompt,
-            sanitizedImageUrls,
-            gptImageSize
-          );
+            logger.log(
+              `🎨 [V1 GPT2] Ratio: ${aspectRatioForRequest} → image_size: ${gptImageSize}, images: ${sanitizedImageUrls?.length || 0}`
+            );
 
-          // Sonucu Replicate formatına dönüştür (downstream kod uyumluluğu için)
-          replicateResponse = {
-            data: {
-              id: `gpt2-${uuidv4()}`,
-              status: "succeeded",
-              output: [gptResultUrl],
-              urls: {
-                get: null,
+            const gptResultUrl = await callFalAiGptImage2Edit(
+              truncatedPrompt,
+              sanitizedImageUrls,
+              gptImageSize
+            );
+
+            replicateResponse = {
+              data: {
+                id: `gpt2-${uuidv4()}`,
+                status: "succeeded",
+                output: [gptResultUrl],
+                urls: { get: null },
               },
-            },
-          };
+            };
 
-          logger.log(
-            `✅ [V1 GPT2] Başarılı, retry loop'tan çıkılıyor (attempt ${attempt})`
-          );
-          break; // GPT 2 başarılı → retry loop'tan çık
+            logger.log(
+              `✅ [V1 GPT2] Başarılı, retry loop'tan çıkılıyor (attempt ${attempt})`
+            );
+            break;
+          } else {
+            // ── nano-banana-2 yolu ──
+            const nanoModel = "fal-ai/nano-banana-2/edit";
+            const nanoRequestBody = {
+              prompt: truncatedPrompt,
+              image_urls: imageInputArray,
+              output_format: "png",
+              aspect_ratio: aspectRatioForRequest,
+              num_images: 1,
+              resolution: "2K",
+            };
+            logger.log(
+              `🍌 [V1 NB2] fal.run/${nanoModel} çağrılıyor — images: ${imageInputArray?.length || 0}, aspect: ${aspectRatioForRequest}`
+            );
+
+            const nanoResponse = await axios.post(
+              `https://fal.run/${nanoModel}`,
+              nanoRequestBody,
+              {
+                headers: {
+                  Authorization: `Key ${process.env.FAL_API_KEY}`,
+                  "Content-Type": "application/json",
+                },
+                timeout: 300000,
+              }
+            );
+
+            if (nanoResponse.data?.images?.length > 0) {
+              const outputUrls = nanoResponse.data.images.map((img) => img.url);
+              replicateResponse = {
+                data: {
+                  id: nanoResponse.data.request_id || `nb2-${uuidv4()}`,
+                  status: "succeeded",
+                  output: outputUrls,
+                  urls: { get: null },
+                },
+              };
+              logger.log(
+                `✅ [V1 NB2] Başarılı, retry loop'tan çıkılıyor (attempt ${attempt})`
+              );
+              break;
+            }
+
+            // Nano-banana-2 başarısız → throw et, retry loop kendi denesin
+            const errMsg =
+              nanoResponse.data?.detail ||
+              nanoResponse.data?.error ||
+              "nano-banana-2 returned no images";
+            throw new Error(`nano-banana-2 failed: ${errMsg}`);
+          }
         }
 
         // Back side analysis veya v2 modunda quality "2K" olarak ayarla (nano-banana-pro için)
