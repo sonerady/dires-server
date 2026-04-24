@@ -2829,10 +2829,11 @@ The main reference image provided is a COMPOSITE GRID showing ${kombinItemCount}
 
 Your enhanced prompt MUST explicitly instruct the generator to:
 1. Identify EACH individual garment cell in the grid (their order in the grid does not dictate styling order — analyze each visually).
-2. Describe how each piece should be worn on the model (upper body vs. lower body, outer layer vs. base layer, footwear, accessories) and how they layer together (e.g. shirt tucked into trousers, jacket open over top, belt over waistband).
-3. For EACH piece separately, preserve the exact color, pattern/print, stitching, fabric texture, trims, buttons, prints, and construction details exactly as shown in its grid cell. Do NOT merge, simplify, or redesign any piece.
-4. Describe the expected complete silhouette of the full outfit on the model once all ${kombinItemCount} pieces are worn together.
-5. Ensure the outfit looks natural, cohesive, and styled as a real editorial fashion look — no floating garments, no missing pieces, no duplicate garments.
+2. Describe how each piece should be worn on the model (upper body vs. lower body, outer layer vs. base layer, footwear, accessories) and how they interact, respecting each garment's own intended fit and silhouette as shown in its grid cell.
+3. TUCKING / LAYERING NEUTRALITY — CRITICAL: Do NOT automatically tuck tops into bottoms. Only tuck a top into a bottom if the top is clearly a formal dress shirt paired with tailored trousers/skirt, OR the flat-lay of the top visibly shows a tucked-in styling. For casual shirts, t-shirts, sweatshirts, knitwear, oversized tops, cropped tops, hoodies, and any top whose intended wear is untucked → leave it fully UNTUCKED, hanging naturally over the waistband of the bottom. When in doubt, default to UNTUCKED. Do not invent tucking, belting, half-tucks, or "French tucks" unless the garment's own design clearly demands it.
+4. For EACH piece separately, preserve the exact color, pattern/print, stitching, fabric texture, trims, buttons, prints, length, hem, and construction details exactly as shown in its grid cell. Do NOT merge, simplify, redesign, shorten, lengthen, or adjust the fit of any piece.
+5. Describe the expected complete silhouette of the full outfit on the model once all ${kombinItemCount} pieces are worn together — but the silhouette must follow from the garments themselves, not from a default styling assumption.
+6. Ensure the outfit looks natural, cohesive, and styled as a real editorial fashion look — no floating garments, no missing pieces, no duplicate garments.
 
 Start your enhanced prompt by explicitly listing what you see in the grid (one short sentence per piece) before the full prompt, so the downstream image generator has per-item grounding.`;
     }
