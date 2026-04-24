@@ -73,10 +73,11 @@ async function callReplicateGeminiFlash(
           videos: [],
           temperature: 1,
           thinking_level: "low",
-          // 🎯 Token limiti: İngilizce çıktı için 1 token ≈ 3.5-4 karakter.
-          //    1400 token → ~4900-5600 karakter aralığında durur.
-          //    Hedef ~5000 karakter; aşarsa substring(0, 5000) güvenlik ağı devreye girer.
-          max_output_tokens: 1400,
+          // 🎯 Token limiti: thinking_level="low" ~400 thinking token + ~1400 output token.
+          //    thinking token'ları max_output_tokens'a dahil olduğu için limit'i geniş tutuyoruz.
+          //    Gemini'ye text içinde "UNDER 5000 characters" instruction'u veriyoruz — o kendini
+          //    karakter olarak sınırlar. Aşarsa substring(0, 5000) güvenlik ağı devreye girer.
+          max_output_tokens: 3000,
         },
       };
 
