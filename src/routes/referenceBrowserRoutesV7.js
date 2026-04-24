@@ -71,10 +71,6 @@ async function callReplicateGeminiFlash(
           videos: [],
           temperature: 1,
           thinking_level: "low",
-          // 🎯 Token limiti: thinking_level="low" ~400 thinking token + ~1400 output token.
-          //    thinking token'ları max_output_tokens'a dahil olduğu için limit'i geniş tutuyoruz.
-          //    Gemini'ye text içinde "UNDER 5000 characters" instruction'u veriyoruz — o kendini
-          //    karakter olarak sınırlar. Aşarsa substring(0, 5000) güvenlik ağı devreye girer.
           max_output_tokens: 65535,
         },
       };
@@ -1536,6 +1532,70 @@ async function enhancePromptWithGemini(
       );
     }
 
+    // 📝 OPENING DIRECTIVES — Skin / Pose / User-Detail direktifleri artık statik
+    // metin olarak prepend edilmiyor. Gemini'ye "bu 3 direktifi kıyafete göre
+    // yorumla, ünlemli başlık formatını koru, 2-3 cümlelik enhanced versiyon
+    // üretip prompt'un EN BAŞINA yaz" talimatı veriliyor. Böylece skin ve pose
+    // blokları kıyafetin kumaşına, rengine ve sahnesine uyarlanmış olarak gider.
+    const directCustomDetail =
+      typeof customDetail === "string" ? customDetail.trim() : "";
+    // Fallback: eski client sürümleri customDetail'i ayrı parametre olarak
+    // göndermiyor — originalPrompt içindeki "Additional details: X" satırından
+    // parse et. Böylece USER DETAIL DIRECTIVE bloğu her koşulda üretilir.
+    let extractedFromOriginal = "";
+    if (!directCustomDetail && typeof originalPrompt === "string") {
+      const match = originalPrompt.match(
+        /Additional\s+details\s*:\s*([^.]*?)(?=\.\s+[A-Z]|\.\s*$|$)/i,
+      );
+      if (match && match[1]) {
+        extractedFromOriginal = match[1].trim().replace(/\.$/, "");
+      }
+    }
+    const trimmedCustomDetail = directCustomDetail || extractedFromOriginal;
+    if (extractedFromOriginal && !directCustomDetail) {
+      logger.log(
+        "📝 [GEMINI] customDetail parametresi boş — originalPrompt'tan extract edildi:",
+        extractedFromOriginal,
+      );
+    }
+    const hasUserPose =
+      (typeof settings?.pose === "string" && settings.pose.trim().length > 0) ||
+      Boolean(poseImage);
+    const includeOpenPoseDirective = !hasUserPose;
+
+    const openingDirectiveItems = [];
+    openingDirectiveItems.push(
+      `"⚠️ NATURAL SKIN DIRECTIVE:" — Intent: the model's face must look like a real, healthy, well-groomed human in a professional fashion photograph (soft natural pores, subtle texture, matte-to-soft finish). Avoid plastic / CGI / doll-like hyper-smooth skin and avoid heavy glossy beauty makeup. Skin must still be CLEAR and HEALTHY — NO acne, pimples, blemishes, red spots, visible scars, enlarged pores, rashes, or unkempt appearance. Think "photoreal editorial model with natural skin", not airbrushed mannequin and not visibly flawed skin. Facial lighting neutral and photographic. → Your task: write a 2-3 sentence ENHANCED version that adapts this intent to THIS specific garment's TYPE / CATEGORY (tailoring, knitwear, activewear, eveningwear, swimwear, streetwear, etc.), its fabric & color palette, the ENVIRONMENT / LOCATION, and the overall ATMOSPHERE / MOOD (e.g. warm golden-hour glow on softly tanned skin for linen on a Mediterranean terrace; cool porcelain complexion with crisp studio key light for structured black eveningwear; fresh, healthy skin with light dew sheen for sportswear in an outdoor morning setting). Keep the exact header "⚠️ NATURAL SKIN DIRECTIVE:" as the first line of this block.`,
+    );
+    if (includeOpenPoseDirective) {
+      openingDirectiveItems.push(
+        `"⚠️ FASHION POSE DIRECTIVE:" — Intent: no specific pose was requested, so a dynamic fashion-editorial pose must be chosen that flatters THIS specific garment. The stiff mannequin default (both arms hanging straight down at the sides, feet parallel, frontal symmetric stance, blank catalog expression) is ABSOLUTELY FORBIDDEN. Hands must not enter pockets unless the garment clearly has visible pockets in the reference image (never invent pockets), and must not obstruct key garment details (neckline, print, stitching, buttons, hem, logo). The pose must feel like a professional lookbook / editorial shoot — natural, expressive, and chosen to showcase fit, drape, and silhouette. → Your task: write a 2-3 sentence ENHANCED version that picks and describes a specific editorial pose tailored to THIS garment's TYPE / CATEGORY, silhouette, cut, fabric behavior, and intended styling — AND that also fits the ENVIRONMENT / LOCATION and ATMOSPHERE / MOOD of the scene (e.g. relaxed contrapposto with a gentle shoulder turn for a flowy summer dress on a cobblestone street; confident wide three-quarter stance with one hand at the waist for a structured tailored blazer in an urban plaza; mid-step walking frame with natural arm swing for sportswear on a running track; seated editorial pose leaning forward for eveningwear in a candlelit interior). Keep the exact header "⚠️ FASHION POSE DIRECTIVE:" as the first line of this block.`,
+      );
+    }
+    if (trimmedCustomDetail) {
+      openingDirectiveItems.push(
+        `"⚠️ USER DETAIL DIRECTIVE:" — Intent: the user has explicitly provided this non-negotiable additional detail that MUST be honored and clearly reflected in the scene: "${trimmedCustomDetail}". Treat this with the same strictness as skin and pose. → Your task: write a 2-3 sentence ENHANCED version that integrates this user detail naturally into the garment + scene context, adapting it to the garment TYPE / CATEGORY, the ENVIRONMENT / LOCATION, and the ATMOSPHERE / MOOD (if it's a background / environment element, describe how it frames the composition with THIS garment and its setting; if it's a styling / mood / prop element, describe how it complements the fabric, color, silhouette, and lighting). The detail must stay recognizable and visible. Keep the exact header "⚠️ USER DETAIL DIRECTIVE:" as the first line of this block.`,
+      );
+    }
+
+    const openingDirectivesInstruction = openingDirectiveItems.length
+      ? `
+⚠️⚠️⚠️ OPENING DIRECTIVES BLOCK — MANDATORY OUTPUT STRUCTURE ⚠️⚠️⚠️
+
+Your enhanced prompt MUST BEGIN with the following ${openingDirectiveItems.length} directive block${openingDirectiveItems.length > 1 ? "s" : ""} in this exact order, each separated by a blank line, BEFORE any other description (before model, garment, environment, lighting paragraphs). For each block you will interpret the intent and write an ENHANCED version (2-3 sentences) tailored to THIS specific shoot — adapting it to the garment TYPE / CATEGORY, its fabric / color / silhouette, the ENVIRONMENT / LOCATION, and the overall ATMOSPHERE / MOOD. Do NOT copy the instruction text verbatim. You MUST keep the exact ⚠️ header line (e.g. "⚠️ NATURAL SKIN DIRECTIVE:") as the first line of each block. Never skip, soften, contradict, or merge these blocks.
+
+${openingDirectiveItems.map((item, idx) => `${idx + 1}. ${item}`).join("\n\n")}
+
+After these directive blocks (separated by a blank line), continue with the rest of the enhanced prompt as usual.
+`
+      : "";
+
+    if (openingDirectivesInstruction) {
+      logger.log(
+        `📝 [GEMINI] Opening directives Gemini'ye gönderiliyor (skin${includeOpenPoseDirective ? " + pose" : ""}${trimmedCustomDetail ? " + user detail" : ""}) — enhanced şekilde başa yazılacak`,
+      );
+    }
+
     // Cinsiyet belirleme - varsayılan olarak kadın
     const gender = settings?.gender || "female";
     const age = settings?.age || "";
@@ -2907,6 +2967,16 @@ Your enhanced prompt MUST explicitly instruct the generator to:
 6. Ensure the outfit looks natural, cohesive, and styled as a real editorial fashion look — no floating garments, no missing pieces, no duplicate garments.
 
 Start your enhanced prompt by explicitly listing what you see in the grid (one short sentence per piece) before the full prompt, so the downstream image generator has per-item grounding.`;
+    }
+
+    // 📝 Opening directives — skin / pose / user-detail direktifleri Gemini
+    // tarafından kıyafete özgü enhanced versiyonlar olarak prompt'un EN BAŞINA
+    // yazılacak. Statik prepend kaldırıldı; Gemini her bloğu ⚠️ başlığıyla
+    // koruyup içeriği bu kıyafete/sahneye göre yorumluyor.
+    if (openingDirectivesInstruction) {
+      promptForGemini = `${openingDirectivesInstruction}
+
+${promptForGemini}`;
     }
 
     // 🎯 Focus area direktifi — EN BAŞA koy ki hem Gemini hem generator'a
@@ -4935,50 +5005,10 @@ ${enhancedPrompt || ""}`;
       }
     }
 
-    // 🧴 Natural skin / no plastic look — yüzün gerçekçi, doğal gözenekli, ince
-    // kusurlu (ben, çil, hafif asimetri) olmasını zorla. Parlak makyaj, cam gibi
-    // pürüzsüz cilt, mankensi/CGI görünüm yasak. Her zaman prompt'un EN BAŞINA koy.
-    {
-      const skinMarker = "⚠️ NATURAL SKIN DIRECTIVE";
-      const trimmedForSkin = (enhancedPrompt || "").trimStart();
-      if (!trimmedForSkin.startsWith(skinMarker)) {
-        const naturalSkinDirective = `${skinMarker}:
-The model's face should look like a real, healthy, well-groomed human in a professional fashion photograph — soft natural pores and subtle texture, matte-to-soft finish. Avoid the plastic / CGI / doll-like hyper-smooth look and avoid heavy glossy beauty makeup. The skin must still be CLEAR and HEALTHY: NO acne, NO pimples, NO blemishes, NO red spots, NO visible scars, NO enlarged pores, NO rashes, NO unkempt appearance. Think "photoreal editorial model with natural skin" — not "airbrushed mannequin" and not "skin with visible flaws". Lighting on the face should be neutral and photographic.`;
-        enhancedPrompt = `${naturalSkinDirective}
-
-${enhancedPrompt || ""}`;
-        logger.log(
-          "🧴 [NATURAL SKIN] Direktif enhancedPrompt'un başına eklendi",
-        );
-      } else {
-        logger.log("🧴 [NATURAL SKIN] Direktif zaten prompt başında — skip");
-      }
-    }
-
-    // 💃 Fashion pose fallback — Kullanıcı pose seçmemişse (ne text ne image)
-    // mankensi duruşu (kollar iki yanda düz, stiff catalog duruşu) yasakla ve
-    // kıyafete yakışan dinamik bir fashion editorial pozu zorla.
-    {
-      const hasPoseTextAtRoute =
-        typeof settings?.pose === "string" && settings.pose.trim().length > 0;
-      const hasPoseImageAtRoute = Boolean(poseImage);
-      if (!hasPoseTextAtRoute && !hasPoseImageAtRoute) {
-        const poseMarker = "⚠️ FASHION POSE DIRECTIVE";
-        const trimmedForPose = (enhancedPrompt || "").trimStart();
-        if (!trimmedForPose.startsWith(poseMarker)) {
-          const fashionPoseDirective = `${poseMarker}:
-No specific pose was requested, so pick a dynamic, fashion-editorial pose that flatters THIS specific garment (e.g. a relaxed hand resting at the hip or waist, a subtle contrapposto / weight shift, arms softly bent at the sides or lightly crossed, a natural walking or mid-step frame, a candid shoulder turn, or a confident three-quarter stance). Absolutely FORBIDDEN: the default stiff mannequin pose with both arms hanging straight down at the sides, feet parallel, frontal symmetric stance, and blank catalog expression. Do NOT place the hands inside pockets unless the garment clearly has visible pockets in the reference image — never invent pockets. Do NOT let the hands obstruct, cover, or fold over important garment details (neckline, print, stitching, buttons, hem, logo). The pose MUST feel like a professional lookbook / editorial shoot — natural, expressive, and chosen to showcase the fit, drape, and silhouette of the garment.`;
-          enhancedPrompt = `${fashionPoseDirective}
-
-${enhancedPrompt || ""}`;
-          logger.log(
-            "💃 [FASHION POSE] Kullanıcı pose seçmemiş — editorial poz direktifi eklendi",
-          );
-        } else {
-          logger.log("💃 [FASHION POSE] Direktif zaten prompt başında — skip");
-        }
-      }
-    }
+    // 🧴💃 Natural skin + Fashion pose direktifleri artık STATIK prepend
+    // edilmiyor. Gemini bunları enhancePromptWithGemini içinde "Opening
+    // Directives" talimatıyla alıyor ve kıyafete / ortama / atmosfere göre
+    // enhanced versiyonlarını ⚠️ başlık formatında prompt'un başına yazıyor.
 
     // 📸 Kombin originals varsa prompt'a ek direktif koy — grid ve tekiller birlikte.
     if (
@@ -5434,23 +5464,9 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
         let requestBody;
         const aspectRatioForRequest = formattedRatio || "9:16";
 
-        // Fal.ai 5000 karakter limiti - sadece gerçekten aşarsa kırp (güvenlik ağı).
-        // Asıl kontrol Gemini max_output_tokens=1400 ile yapılıyor, bu manuel kesim
-        // nadiren devreye girer.
-        const maxPromptLength = 5000;
-        let truncatedPrompt = enhancedPrompt;
         logger.log(
-          `📏 [FAL_PROMPT] Enhanced prompt uzunluğu: ${enhancedPrompt.length} karakter`,
-        );
-        if (enhancedPrompt.length > maxPromptLength) {
-          logger.log(
-            `⚠️ Prompt ${enhancedPrompt.length} karakter, ${maxPromptLength}'e kırpılıyor (nadir güvenlik ağı)...`,
-          );
-          truncatedPrompt = enhancedPrompt.substring(0, maxPromptLength);
-        }
-        logger.log(
-          `📋 [FAL_PROMPT] Fal.ai'ya giden prompt (${truncatedPrompt.length} karakter):`,
-          truncatedPrompt,
+          `📋 [FAL_PROMPT] Fal.ai'ya giden prompt (${enhancedPrompt.length} karakter):`,
+          enhancedPrompt,
         );
 
         // 🎨 V1 MODE → app_config.is_gpt bayrağına göre model seç:
@@ -5480,7 +5496,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
             );
 
             const gptResultUrl = await callFalAiGptImage2Edit(
-              truncatedPrompt,
+              enhancedPrompt,
               sanitizedImageUrls,
               gptImageSize,
             );
@@ -5502,12 +5518,13 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
             // ── nano-banana-2 yolu ──
             const nanoModel = "fal-ai/nano-banana-2/edit";
             const nanoRequestBody = {
-              prompt: truncatedPrompt,
+              prompt: enhancedPrompt,
               image_urls: imageInputArray,
               output_format: "png",
               aspect_ratio: aspectRatioForRequest,
               num_images: 1,
               resolution: "2K",
+              safety_tolerance: "6",
             };
             logger.log(
               `🍌 [V1 NB2] fal.run/${nanoModel} çağrılıyor — images: ${imageInputArray?.length || 0}, aspect: ${aspectRatioForRequest}`,
@@ -5557,7 +5574,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
         if (isPoseChange) {
           // POSE CHANGE MODE - Farklı input parametreleri
           requestBody = {
-            prompt: truncatedPrompt,
+            prompt: enhancedPrompt,
             image_urls: imageInputArray,
             output_format: "png",
             aspect_ratio: aspectRatioForRequest,
@@ -5578,7 +5595,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
         } else {
           // NORMAL MODE
           requestBody = {
-            prompt: truncatedPrompt,
+            prompt: enhancedPrompt,
             image_urls: imageInputArray,
             output_format: "png",
             aspect_ratio: aspectRatioForRequest,
