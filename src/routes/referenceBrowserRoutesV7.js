@@ -5571,10 +5571,29 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
         const qualityParam =
           isV2 || req.body.isBackSideAnalysis ? "2K" : undefined;
 
+        // 📏 nano-banana-pro 50.000 karakter prompt sınırı var. v2 veya
+        // backSide akışında güvenli bir tampon (49.500) bırakıp SONDAN kırp.
+        // Kırpım başı (skin/pose/user-detail ünlemli direktifleri) korur.
+        const NANO_BANANA_PRO_MAX_PROMPT = 49500;
+        let promptForNanoBananaPro = enhancedPrompt;
+        if (
+          (isV2 || req.body.isBackSideAnalysis) &&
+          typeof enhancedPrompt === "string" &&
+          enhancedPrompt.length > NANO_BANANA_PRO_MAX_PROMPT
+        ) {
+          promptForNanoBananaPro = enhancedPrompt.substring(
+            0,
+            NANO_BANANA_PRO_MAX_PROMPT,
+          );
+          logger.log(
+            `✂️ [NB-PRO] Prompt ${enhancedPrompt.length} → ${promptForNanoBananaPro.length} karakter olarak sondan kırpıldı (50k limit)`,
+          );
+        }
+
         if (isPoseChange) {
           // POSE CHANGE MODE - Farklı input parametreleri
           requestBody = {
-            prompt: enhancedPrompt,
+            prompt: promptForNanoBananaPro,
             image_urls: imageInputArray,
             output_format: "png",
             aspect_ratio: aspectRatioForRequest,
@@ -5590,12 +5609,12 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
           );
           logger.log(
             "🕺 [POSE_CHANGE] Prompt:",
-            enhancedPrompt.substring(0, 200) + "...",
+            promptForNanoBananaPro.substring(0, 200) + "...",
           );
         } else {
           // NORMAL MODE
           requestBody = {
-            prompt: enhancedPrompt,
+            prompt: promptForNanoBananaPro,
             image_urls: imageInputArray,
             output_format: "png",
             aspect_ratio: aspectRatioForRequest,
