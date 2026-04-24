@@ -3970,6 +3970,8 @@ router.post("/generate", async (req, res) => {
       // Session deduplication
       sessionId = null, // Aynı batch request'leri tanımlıyor
       modelPhoto = null,
+      sizeReferenceImage = null, // 📏 SizeEditor'dan gelen boyut referans görseli (canvas çıktısı)
+      kombinOriginalImages = null, // 📸 Kombin: grid'e ek olarak orijinal tekil ürün resimleri
     } = req.body;
 
     // Kalite versiyonu kontrolü (settings'ten al) - Refiner modunda v1'e zorla
@@ -4705,6 +4707,25 @@ router.post("/generate", async (req, res) => {
 
     logger.log("✅ Gemini prompt iyileştirme tamamlandı");
 
+    // 📸 Kombin originals varsa prompt'a ek direktif koy — grid ve tekiller birlikte.
+    if (Array.isArray(kombinOriginalImages) && kombinOriginalImages.length > 0) {
+      enhancedPrompt += `
+
+KOMBIN REFERENCE IMAGES: In addition to the main combined grid image, ${kombinOriginalImages.length} individual product photo(s) are attached — each showing one garment separately. Use the grid image to understand how the outfit pieces should appear together on the model, and use the individual photos for faithful per-item detail reproduction (exact colors, prints, stitching, trims, proportions). Do NOT invent or alter any garment detail that is not visible in the individual photos.`;
+      logger.log(
+        `📸 [KOMBİN ORIG] enhancedPrompt'a ${kombinOriginalImages.length} tekil ürün direktifi eklendi`
+      );
+    }
+
+    // 📏 Size reference image varsa, Gemini ve fallback'ten bağımsız olarak
+    // kalibrasyon direktifini enhancedPrompt'a ekle.
+    if (sizeReferenceImage && (sizeReferenceImage.base64 || sizeReferenceImage.uri)) {
+      enhancedPrompt += `
+
+SIZE REFERENCE IMAGE: An additional size/scale reference image is attached alongside the main product photo(s). This reference shows the product placed onto a generic mannequin silhouette — use it PURELY to calibrate how the product should appear on the final model in terms of proportion, vertical coverage on the body, and relative scale (e.g. whether the garment ends at the waist, hip, knee, or ankle). Do NOT replicate the mannequin's shape, pose, background, lighting, or any styling details from this reference. Treat it strictly as a size/placement guide, not a visual style source.`;
+      logger.log("📏 [SIZE REFERENCE] Kalibrasyon direktifi enhancedPrompt'a eklendi");
+    }
+
     // Arkaplan silme kaldırıldı - direkt olarak finalImage kullanılacak
     backgroundRemovedImage = finalImage;
 
@@ -4868,6 +4889,145 @@ router.post("/generate", async (req, res) => {
       }
     }
 
+    // 📸 Kombin originals — tekil ürün resimlerini Supabase'e upload edip nano-banana
+    // image_urls listesine grid resminin yanında ek referans olarak ekleyeceğiz.
+    let kombinOriginalUrls = [];
+    if (Array.isArray(kombinOriginalImages) && kombinOriginalImages.length > 0) {
+      logger.log(
+        `📸 [KOMBİN ORIG] ${kombinOriginalImages.length} tekil ürün nano-banana için upload ediliyor...`
+      );
+      for (let i = 0; i < kombinOriginalImages.length; i++) {
+        const orig = kombinOriginalImages[i];
+        try {
+          let origSource = null;
+          if (orig?.base64) {
+            const cleanB64 = String(orig.base64).replace(
+              /^data:image\/\w+;base64,/,
+              ""
+            );
+            origSource = `data:image/jpeg;base64,${cleanB64}`;
+          } else if (orig?.uri && /^https?:\/\//i.test(orig.uri)) {
+            origSource = orig.uri;
+          }
+          if (!origSource) continue;
+          const origUrl = await uploadReferenceImageToSupabase(
+            origSource,
+            userId
+          );
+          kombinOriginalUrls.push(origUrl);
+          logger.log(
+            `📸 [KOMBİN ORIG] Tekil ürün ${i + 1}/${kombinOriginalImages.length} upload OK:`,
+            origUrl
+          );
+        } catch (origUpErr) {
+          logger.warn(
+            `📸 [KOMBİN ORIG] Tekil ürün ${i + 1} upload hatası:`,
+            origUpErr?.message
+          );
+        }
+      }
+    }
+
+    // 📏 Size reference image — nano-banana için beyaz arka plan üzerine composite edip
+    // altına "SIZE REFERENCE" başlıklı şerit ekleyip Supabase'e upload edip public URL al
+    let sizeReferenceUrl = null;
+    if (sizeReferenceImage && (sizeReferenceImage.base64 || sizeReferenceImage.uri)) {
+      try {
+        // 1) Raw buffer'ı çıkar (base64 veya URL)
+        let rawBuf;
+        if (sizeReferenceImage.base64) {
+          const cleanBase64 = sizeReferenceImage.base64.replace(
+            /^data:image\/\w+;base64,/,
+            ""
+          );
+          rawBuf = Buffer.from(cleanBase64, "base64");
+        } else {
+          const cleanSizeUrl = sanitizeImageUrl(
+            sizeReferenceImage.uri.split("?")[0]
+          );
+          const sizeResp = await axios.get(cleanSizeUrl, {
+            responseType: "arraybuffer",
+            timeout: 15000,
+          });
+          rawBuf = Buffer.from(sizeResp.data);
+        }
+
+        // 2) Şeffaf alanları beyaza flatten et
+        const flattened = await sharp(rawBuf)
+          .rotate() // EXIF
+          .flatten({ background: { r: 255, g: 255, b: 255 } })
+          .toBuffer();
+
+        const meta = await sharp(flattened).metadata();
+        const W = meta.width || 800;
+        const H = meta.height || 1200;
+
+        // 3) Alta şerit ekle (resim yüksekliğinin %10'u, min 90 max 160 px)
+        const LABEL_H = Math.min(160, Math.max(90, Math.round(H * 0.1)));
+        const extendedH = H + LABEL_H;
+
+        const withStrip = await sharp(flattened)
+          .extend({
+            bottom: LABEL_H,
+            background: { r: 255, g: 255, b: 255 },
+          })
+          .toBuffer();
+
+        // 4) SVG metin overlay'i
+        const fontSize = Math.min(72, Math.max(36, Math.round(W / 16)));
+        const labelText = "SIZE REFERENCE";
+        const textY = H + Math.round(LABEL_H / 2) + Math.round(fontSize / 3);
+        const svg = Buffer.from(`
+<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${extendedH}">
+  <text x="${Math.round(W / 2)}" y="${textY}"
+        text-anchor="middle"
+        font-family="Helvetica, Arial, sans-serif"
+        font-size="${fontSize}"
+        font-weight="700"
+        fill="#111827"
+        letter-spacing="2">${labelText}</text>
+</svg>
+`);
+
+        const composited = await sharp(withStrip)
+          .composite([{ input: svg, blend: "over" }])
+          .jpeg({ quality: 90 })
+          .toBuffer();
+
+        // 5) Supabase'e direkt yükle
+        const timestamp = Date.now();
+        const randomId = uuidv4().substring(0, 8);
+        const fileName = `temp_${timestamp}_size_reference_${userId || "anonymous"}_${randomId}.jpg`;
+
+        const { error: upErr } = await supabase.storage
+          .from("reference")
+          .upload(fileName, composited, {
+            contentType: "image/jpeg",
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (upErr) {
+          throw new Error(`Supabase upload error: ${upErr.message}`);
+        }
+
+        const { data: urlData } = supabase.storage
+          .from("reference")
+          .getPublicUrl(fileName);
+
+        sizeReferenceUrl = urlData.publicUrl;
+        logger.log(
+          "📏 [SIZE REFERENCE] Composite (beyaz bg + başlık) upload OK:",
+          sizeReferenceUrl
+        );
+      } catch (sizeUploadErr) {
+        logger.warn(
+          "📏 [SIZE REFERENCE] Composite/upload hatası, nano-banana'ya eklenmiyor:",
+          sizeUploadErr?.message
+        );
+      }
+    }
+
     // Fal.ai nano-banana modeli ile istek gönder (NORMAL MODE - non-refiner)
     let replicateResponse;
     const maxRetries = 3;
@@ -4954,6 +5114,27 @@ router.post("/generate", async (req, res) => {
         } else {
           // Tek resim modu: Birleştirilmiş tek resim
           imageInputArray = [combinedImageForReplicate];
+        }
+
+        // 📸 Kombin originals — tekil ürün URL'lerini grid resminin yanına ek referans olarak ekle
+        if (kombinOriginalUrls && kombinOriginalUrls.length > 0) {
+          imageInputArray = [
+            ...(imageInputArray || []),
+            ...kombinOriginalUrls,
+          ];
+          logger.log(
+            `📸 [KOMBİN ORIG] ${kombinOriginalUrls.length} tekil ürün imageInputArray'e eklendi, toplam:`,
+            imageInputArray.length
+          );
+        }
+
+        // 📏 Size reference image'ı nano-banana'nın image_urls listesine ek referans olarak koy
+        if (sizeReferenceUrl) {
+          imageInputArray = [...(imageInputArray || []), sizeReferenceUrl];
+          logger.log(
+            "📏 [SIZE REFERENCE] imageInputArray'e eklendi, toplam:",
+            imageInputArray.length
+          );
         }
 
         // Kalite versiyonu kontrolü (settings'ten al)

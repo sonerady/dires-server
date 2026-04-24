@@ -73,7 +73,10 @@ async function callReplicateGeminiFlash(
           videos: [],
           temperature: 1,
           thinking_level: "low",
-          max_output_tokens: 65535,
+          // 🎯 Token limiti: İngilizce çıktı için 1 token ≈ 3.5-4 karakter.
+          //    1400 token → ~4900-5600 karakter aralığında durur.
+          //    Hedef ~5000 karakter; aşarsa substring(0, 5000) güvenlik ağı devreye girer.
+          max_output_tokens: 1400,
         },
       };
 
@@ -4835,6 +4838,47 @@ ${enhancedPrompt || ""}`;
       }
     }
 
+    // 🧴 Natural skin / no plastic look — yüzün gerçekçi, doğal gözenekli, ince
+    // kusurlu (ben, çil, hafif asimetri) olmasını zorla. Parlak makyaj, cam gibi
+    // pürüzsüz cilt, mankensi/CGI görünüm yasak. Her zaman prompt'un EN BAŞINA koy.
+    {
+      const skinMarker = "⚠️ NATURAL SKIN DIRECTIVE";
+      const trimmedForSkin = (enhancedPrompt || "").trimStart();
+      if (!trimmedForSkin.startsWith(skinMarker)) {
+        const naturalSkinDirective = `${skinMarker}:
+The model's face should look like a real, healthy, well-groomed human in a professional fashion photograph — soft natural pores and subtle texture, matte-to-soft finish. Avoid the plastic / CGI / doll-like hyper-smooth look and avoid heavy glossy beauty makeup. The skin must still be CLEAR and HEALTHY: NO acne, NO pimples, NO blemishes, NO red spots, NO visible scars, NO enlarged pores, NO rashes, NO unkempt appearance. Think "photoreal editorial model with natural skin" — not "airbrushed mannequin" and not "skin with visible flaws". Lighting on the face should be neutral and photographic.`;
+        enhancedPrompt = `${naturalSkinDirective}
+
+${enhancedPrompt || ""}`;
+        logger.log("🧴 [NATURAL SKIN] Direktif enhancedPrompt'un başına eklendi");
+      } else {
+        logger.log("🧴 [NATURAL SKIN] Direktif zaten prompt başında — skip");
+      }
+    }
+
+    // 💃 Fashion pose fallback — Kullanıcı pose seçmemişse (ne text ne image)
+    // mankensi duruşu (kollar iki yanda düz, stiff catalog duruşu) yasakla ve
+    // kıyafete yakışan dinamik bir fashion editorial pozu zorla.
+    {
+      const hasPoseTextAtRoute =
+        typeof settings?.pose === "string" && settings.pose.trim().length > 0;
+      const hasPoseImageAtRoute = Boolean(poseImage);
+      if (!hasPoseTextAtRoute && !hasPoseImageAtRoute) {
+        const poseMarker = "⚠️ FASHION POSE DIRECTIVE";
+        const trimmedForPose = (enhancedPrompt || "").trimStart();
+        if (!trimmedForPose.startsWith(poseMarker)) {
+          const fashionPoseDirective = `${poseMarker}:
+No specific pose was requested, so pick a dynamic, fashion-editorial pose that flatters THIS specific garment (e.g. a relaxed hand resting at the hip or waist, a subtle contrapposto / weight shift, arms softly bent at the sides or lightly crossed, a natural walking or mid-step frame, a candid shoulder turn, or a confident three-quarter stance). Absolutely FORBIDDEN: the default stiff mannequin pose with both arms hanging straight down at the sides, feet parallel, frontal symmetric stance, and blank catalog expression. Do NOT place the hands inside pockets unless the garment clearly has visible pockets in the reference image — never invent pockets. Do NOT let the hands obstruct, cover, or fold over important garment details (neckline, print, stitching, buttons, hem, logo). The pose MUST feel like a professional lookbook / editorial shoot — natural, expressive, and chosen to showcase the fit, drape, and silhouette of the garment.`;
+          enhancedPrompt = `${fashionPoseDirective}
+
+${enhancedPrompt || ""}`;
+          logger.log("💃 [FASHION POSE] Kullanıcı pose seçmemiş — editorial poz direktifi eklendi");
+        } else {
+          logger.log("💃 [FASHION POSE] Direktif zaten prompt başında — skip");
+        }
+      }
+    }
+
     // 📸 Kombin originals varsa prompt'a ek direktif koy — grid ve tekiller birlikte.
     if (Array.isArray(kombinOriginalImages) && kombinOriginalImages.length > 0) {
       enhancedPrompt += `
@@ -5286,13 +5330,15 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
         let requestBody;
         const aspectRatioForRequest = formattedRatio || "9:16";
 
-        // Fal.ai 5000 karakter limiti - prompt'u kırp
-        const maxPromptLength = 4900;
+        // Fal.ai 5000 karakter limiti - sadece gerçekten aşarsa kırp (güvenlik ağı).
+        // Asıl kontrol Gemini max_output_tokens=1400 ile yapılıyor, bu manuel kesim
+        // nadiren devreye girer.
+        const maxPromptLength = 5000;
         let truncatedPrompt = enhancedPrompt;
         logger.log(`📏 [FAL_PROMPT] Enhanced prompt uzunluğu: ${enhancedPrompt.length} karakter`);
         if (enhancedPrompt.length > maxPromptLength) {
           logger.log(
-            `⚠️ Prompt ${enhancedPrompt.length} karakter, ${maxPromptLength}'e kırpılıyor...`
+            `⚠️ Prompt ${enhancedPrompt.length} karakter, ${maxPromptLength}'e kırpılıyor (nadir güvenlik ağı)...`
           );
           truncatedPrompt = enhancedPrompt.substring(0, maxPromptLength);
         }
