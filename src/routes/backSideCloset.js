@@ -1281,6 +1281,22 @@ function sanitizePoseText(text) {
   }
 }
 
+// 🔄 Back side pose directive ITEM — V7 "Opening Directives" pattern
+// (Gemini tarafından modelin yüzüne + kıyafete + arka tasarıma + sahneye göre
+// enhanced edilir, ⚠️ başlık verbatim korunur).
+function buildBackSidePoseDirectiveItem(customDetail) {
+  const detail =
+    typeof customDetail === "string" && customDetail.trim()
+      ? customDetail.trim()
+      : "";
+
+  const userClause = detail
+    ? `The user has additionally requested: "${detail}". Honor this nuance while keeping the back-view orientation absolute.`
+    : ``;
+
+  return `"⚠️ STRICT BACK SIDE POSE DIRECTIVE:" — Intent: YOUR ONLY TASK IS TO TURN THE MODEL AROUND TO SHOW THE BACK OF THE GARMENT. The model in the FIRST reference image is currently facing the camera; in the output the model MUST be rotated 180° so the BACK is fully visible to the camera. The back design, print, graphic, embroidery, text, pattern, color blocking, seams, label position, and silhouette MUST EXACTLY match what is shown in the SECOND reference image (the flat back-side product photo, "ARKA ÜRÜN") — wrapped naturally onto the model's back with realistic fabric drape, shoulder folds, and curvature. Camera shoots from BEHIND the model; head may face fully away or include a subtle over-shoulder glance — never a frontal pose. ${userClause} ABSOLUTE PRESERVATION (locked, must not change): the model's identity (same face, skin tone, hair, makeup, body type — never a different person, even though the face is now mostly out of frame), the FRONT garment continuity (it is the same physical garment — colors, fabric, fit, length, trims, logos must remain consistent with the front view), the environment / background (exact same scene, props, walls, floor, lighting, atmosphere, time of day — never changed), and the camera framing + photo style. → Your task: write a 2-3 sentence ENHANCED version that interprets this intent for THIS specific garment, model, and scene. Describe the back-turn vividly and concretely (shoulder line, weight shift, foot placement, head angle, how the back design sits across the shoulder blades and lower back) and weave in the locked preservation reminder briefly. Keep the exact header "⚠️ STRICT BACK SIDE POSE DIRECTIVE:" as the first line of this block.`;
+}
+
 async function enhancePromptWithGemini(
   originalPrompt,
   imageUrl,
@@ -2423,6 +2439,28 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       
       Generate a concise prompt focused on showcasing both front and back garment details while maintaining all original design elements. REMEMBER: Your response must START with "Replace" and emphasize back design features.
       `;
+
+      // 🔄 Back side pose directive — V7 "Opening Directives" pattern.
+      // Statik prompt template'inin başına Gemini'ye intent + meta-instruction
+      // veriyoruz; Gemini ⚠️ başlığı verbatim koruyup ALTI'nı bu kıyafete /
+      // modele / arka tasarıma / sahneye göre 2-3 cümle ENHANCED yazacak.
+      const backSideItem = buildBackSidePoseDirectiveItem(customDetail);
+      const backSideOpeningInstruction = `
+⚠️⚠️⚠️ OPENING DIRECTIVE BLOCK — MANDATORY OUTPUT STRUCTURE ⚠️⚠️⚠️
+
+Your enhanced prompt MUST BEGIN with the following directive block, BEFORE any other description or "Replace ..." line. Interpret the intent and write an ENHANCED version (2-3 sentences) tailored to THIS specific garment / model / back design / scene. Do NOT copy the instruction text verbatim. You MUST keep the exact ⚠️ header line ("⚠️ STRICT BACK SIDE POSE DIRECTIVE:") as the first line of the block. Never skip, soften, contradict, or merge this block.
+
+1. ${backSideItem}
+
+After this directive block (separated by a blank line), continue with the rest of the enhanced prompt as usual (the "Replace ..." instruction and all other sections below).
+`;
+      promptForGemini = `${backSideOpeningInstruction}
+
+${promptForGemini}`;
+      logger.log(
+        "🔄 [BACK SIDE DIRECTIVE] Opening directive Gemini'ye gönderiliyor — enhanced şekilde başa yazılacak:",
+        customDetail || "(no extra customDetail)",
+      );
     } else {
       // NORMAL MODE - Standart garment replace
       promptForGemini = `

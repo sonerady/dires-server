@@ -1426,6 +1426,35 @@ function sanitizePoseText(text) {
   }
 }
 
+// 🎯 Focus area direktifi — kullanıcı CreateModelPhotoScreen / LocationNode'de
+// Odak Alanı seçtiyse çekim bölgesini SERT bir talimat olarak prompt'un en
+// başına yerleştirir. V7 route ile birebir aynı fonksiyon.
+function buildFocusAreaDirective(focusArea) {
+  if (!focusArea || typeof focusArea !== "string") return "";
+  const key = focusArea.trim().toLowerCase();
+  if (!key || key === "auto") return "";
+
+  switch (key) {
+    case "upper_body":
+      return `⚠️ STRICT FRAMING DIRECTIVE — UPPER BODY ONLY:
+The final image MUST show ONLY the upper body of the model — from roughly the waist or hips upward (head, shoulders, torso, arms). The lower body (legs, knees, feet, shoes) MUST be cropped out or entirely out of frame. This is a hard, non-negotiable requirement: do NOT produce a full-body shot. Compose the frame as a medium / cowboy shot with the garment's upper portion as the focal subject.`;
+    case "lower_body":
+      return `⚠️ STRICT FRAMING DIRECTIVE — LOWER BODY ONLY:
+The final image MUST show ONLY the lower body of the model — from roughly the waist / hips downward (hips, thighs, knees, calves, feet, footwear). The upper body (face, chest, arms, torso detail) MUST be cropped out or entirely out of frame. This is a hard, non-negotiable requirement: do NOT produce a full-body shot or an upper-body shot. Compose the frame so that the lower-body garment (pants, skirt, shoes, etc.) is the sole focal subject.`;
+    case "close_up":
+      return `⚠️ STRICT FRAMING DIRECTIVE — CLOSE-UP PORTRAIT:
+The final image MUST be a tight close-up on the upper torso / face area of the model (chest, shoulders, neckline, face). Do NOT produce a full-body shot or a wide shot. The composition should feel like an intimate editorial portrait — the upper garment details and facial expression are the main subject.`;
+    case "detail":
+      return `⚠️ STRICT FRAMING DIRECTIVE — EXTREME DETAIL / MACRO:
+The final image MUST be an extreme close-up on a single detail of the garment — fabric texture, stitching, trim, button, seam, print, collar, cuff, or embellishment. Do NOT produce a full-body, upper-body, or lower-body shot. The frame should be dominated by the garment detail with shallow depth of field; the model's body is mostly out of frame or provides minimal contextual background only.`;
+    case "product_only":
+      return `⚠️ STRICT FRAMING DIRECTIVE — PRODUCT-FOCUSED (FACE OUT OF FRAME):
+The garment is still worn on the model, but the model's FACE must be cropped OUT of the frame (above the chin / neck line). The composition centers the garment itself — the model acts purely as a silent wearer to showcase fit and drape. Do NOT show the model's face. Do NOT remove the model entirely (it is not a flat-lay). The final image is a neck-down or shoulder-down product-centric shot.`;
+    default:
+      return "";
+  }
+}
+
 async function enhancePromptWithGemini(
   originalPrompt,
   imageUrl,
@@ -2891,6 +2920,21 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
       promptForGemini = `${openingDirectivesInstruction}
 
 ${promptForGemini}`;
+    }
+
+    // 🎯 Focus area direktifi — en tepeye eklenir (Gemini bu direktifi
+    // rewrite etmemeli, verbatim korumalı).
+    const focusAreaDirective = buildFocusAreaDirective(settings?.focusArea);
+    if (focusAreaDirective) {
+      promptForGemini = `${focusAreaDirective}
+
+(Keep the framing directive above verbatim as the opening of your enhanced prompt — do NOT rewrite, soften, or remove it.)
+
+${promptForGemini}`;
+      logger.log(
+        "🎯 [GEMINI] Focus area direktifi başa eklendi:",
+        settings?.focusArea,
+      );
     }
 
     logger.log("🤖 [GEMINI] Prompt oluşturuluyor:", promptForGemini);
@@ -4874,6 +4918,30 @@ router.post("/generate", async (req, res) => {
     }
 
     logger.log("✅ Gemini prompt iyileştirme tamamlandı");
+
+    // 🎯 Focus area — Gemini rewrite edip kaldırmış olabileceği için
+    // enhancedPrompt'un EN BAŞINA pazarlıksız olarak yeniden yerleştir.
+    // Gemini direktifi zaten ilk satıra kopyaladıysa tekrar eklemiyoruz.
+    {
+      const focusDir = buildFocusAreaDirective(settings?.focusArea);
+      if (focusDir) {
+        const marker = "⚠️ STRICT FRAMING DIRECTIVE";
+        const trimmed = (enhancedPrompt || "").trimStart();
+        if (trimmed.startsWith(marker)) {
+          logger.log(
+            "🎯 [FOCUS AREA] Direktif zaten prompt başında — duplicate eklenmedi",
+          );
+        } else {
+          enhancedPrompt = `${focusDir}
+
+${enhancedPrompt || ""}`;
+          logger.log(
+            "🎯 [FOCUS AREA] enhancedPrompt'un başına sert direktif eklendi:",
+            settings?.focusArea,
+          );
+        }
+      }
+    }
 
     // 📸 Kombin originals varsa prompt'a ek direktif koy — grid ve tekiller birlikte.
     if (

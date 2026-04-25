@@ -1279,6 +1279,24 @@ function sanitizePoseText(text) {
   }
 }
 
+// 🕺 Pose change directive ITEM — V7'deki "Opening Directives" pattern.
+// Gemini bu intent'i okur ve kıyafete + sahneye + kullanıcı pozuna göre
+// 2-3 cümlelik ENHANCED versiyon üretir. ⚠️ başlığı verbatim korunur.
+function buildPoseChangeDirectiveItem(userPose, customDetail) {
+  const pose =
+    typeof userPose === "string" && userPose.trim()
+      ? userPose.trim()
+      : typeof customDetail === "string" && customDetail.trim()
+        ? customDetail.trim()
+        : "";
+
+  const userPoseClause = pose
+    ? `The user has explicitly requested this exact pose: "${pose}". The model MUST adopt EXACTLY this pose — body positioning, weight distribution, head angle, arm placement, hand gestures, foot placement, and overall body language MUST match the user's requested pose precisely. Do NOT approximate, soften, or substitute it with a generic / similar pose.`
+    : `No specific pose was named, so a clearly different and dramatic professional fashion-editorial pose MUST be chosen — one that contrasts strongly with the input photo's stance.`;
+
+  return `"⚠️ STRICT POSE CHANGE DIRECTIVE:" — Intent: YOUR ONLY TASK IS TO CHANGE THE MODEL'S POSE. The pose in the input photo MUST be replaced with a clearly different one. ${userPoseClause} ABSOLUTE PRESERVATION (locked, must not change): the model's identity (same face, skin tone, hair, makeup, body type — never a different person), the product / garment (exact same colors, patterns, textures, stitching, trims, logos, fit, length — never redesigned or recolored), the environment / background (exact same scene, props, walls, floor, lighting, atmosphere, time of day — never changed), and the camera framing + photo style. → Your task: write a 2-3 sentence ENHANCED version that interprets this intent for THIS specific garment, model, and scene. Describe the new pose vividly and concretely (limb placement, weight shift, hand gestures, head angle, foot position) so it visibly differs from the original; weave in the locked preservation reminder briefly. Keep the exact header "⚠️ STRICT POSE CHANGE DIRECTIVE:" as the first line of this block.`;
+}
+
 async function enhancePromptWithGemini(
   originalPrompt,
   imageUrl,
@@ -2600,6 +2618,33 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
       if (!settings?.pose && !poseImage) {
         promptForGemini += `Since no specific pose was provided, use a natural pose that keeps the garment fully visible. The stance may be front-facing or slightly angled, but avoid hiding details. Do not put hands in pockets. Ensure garment features are clearly shown.`;
       }
+    }
+
+    // 🕺 Pose change opening directive — V7 "Opening Directives" pattern.
+    // Gemini intent'i okur, kıyafete/ortama/kullanıcı pozuna göre 2-3 cümle
+    // ENHANCED versiyon üretir. ⚠️ başlık verbatim korunur, alt 2-3 cümle
+    // dinamik olarak kıyafete/sahneye uyarlanır.
+    if (isPoseChange) {
+      const poseItem = buildPoseChangeDirectiveItem(
+        settings?.pose,
+        customDetail,
+      );
+      const poseOpeningInstruction = `
+⚠️⚠️⚠️ OPENING DIRECTIVE BLOCK — MANDATORY OUTPUT STRUCTURE ⚠️⚠️⚠️
+
+Your enhanced prompt MUST BEGIN with the following directive block, BEFORE any other description. Interpret the intent and write an ENHANCED version (2-3 sentences) tailored to THIS specific garment / model / scene. Do NOT copy the instruction text verbatim. You MUST keep the exact ⚠️ header line ("⚠️ STRICT POSE CHANGE DIRECTIVE:") as the first line of the block. Never skip, soften, contradict, or merge this block.
+
+1. ${poseItem}
+
+After this directive block (separated by a blank line), continue with the rest of the enhanced prompt as usual.
+`;
+      promptForGemini = `${poseOpeningInstruction}
+
+${promptForGemini}`;
+      logger.log(
+        "🕺 [POSE DIRECTIVE] Opening directive Gemini'ye gönderiliyor — enhanced şekilde başa yazılacak:",
+        settings?.pose || customDetail || "(no user pose — generic change)",
+      );
     }
 
     logger.log("🤖 [GEMINI] Prompt oluşturuluyor:", promptForGemini);
@@ -4588,6 +4633,10 @@ router.post("/generate", async (req, res) => {
     }
 
     logger.log("✅ Gemini prompt iyileştirme tamamlandı");
+
+    // (Pose directive artık Gemini'ye opening-instruction olarak gönderiliyor —
+    // post-prompt statik reprepend kaldırıldı. Gemini ⚠️ başlığı verbatim
+    // koruyup altına 2-3 cümlelik enhanced versiyon yazıyor.)
 
     // Arkaplan silme kaldırıldı - direkt olarak finalImage kullanılacak
     backgroundRemovedImage = finalImage;
