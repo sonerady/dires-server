@@ -10,6 +10,16 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+const fetchLatestReferenceResultByAnyId = async (lookupId, selectClause) => {
+  return supabase
+    .from("reference_results")
+    .select(selectClause)
+    .or(`generation_id.eq.${lookupId},id.eq.${lookupId}`)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+};
+
 // Retry helper function for Supabase queries
 const retryQuery = async (queryFn, maxRetries = 3, delay = 500) => {
   let lastError = null;
@@ -370,13 +380,8 @@ router.get("/kits/:generationId", async (req, res) => {
 
     // Kits verilerini getir
     // NOTE: generation_id may not be unique if previous attempts failed/retried, so use maybeSingle()
-    const { data: generationData, error: fetchError } = await supabase
-      .from("reference_results")
-      .select("kits")
-      .eq("generation_id", generationId)
-      .order("created_at", { ascending: false }) // En son üretileni al
-      .limit(1)
-      .maybeSingle();
+    const { data: generationData, error: fetchError } =
+      await fetchLatestReferenceResultByAnyId(generationId, "kits");
 
     if (fetchError) {
       console.error("❌ [HISTORY_KITS] Query error:", fetchError);
@@ -442,13 +447,8 @@ router.get("/stories/:generationId", async (req, res) => {
       });
     }
 
-    const { data: generationData, error: fetchError } = await supabase
-      .from("reference_results")
-      .select("stories")
-      .eq("generation_id", generationId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const { data: generationData, error: fetchError } =
+      await fetchLatestReferenceResultByAnyId(generationId, "stories");
 
     if (fetchError) {
       console.error("❌ [HISTORY_STORIES] Query error:", fetchError);
@@ -513,13 +513,8 @@ router.get("/fashion-kits/:generationId", async (req, res) => {
       });
     }
 
-    const { data: generationData, error: fetchError } = await supabase
-      .from("reference_results")
-      .select("fashion_kits")
-      .eq("generation_id", generationId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const { data: generationData, error: fetchError } =
+      await fetchLatestReferenceResultByAnyId(generationId, "fashion_kits");
 
     if (fetchError) {
       console.error("❌ [HISTORY_FASHION] Query error:", fetchError);
@@ -584,13 +579,8 @@ router.get("/unboxing-stories/:generationId", async (req, res) => {
       });
     }
 
-    const { data: generationData, error: fetchError } = await supabase
-      .from("reference_results")
-      .select("unboxing_stories")
-      .eq("generation_id", generationId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const { data: generationData, error: fetchError } =
+      await fetchLatestReferenceResultByAnyId(generationId, "unboxing_stories");
 
     if (fetchError) {
       console.error("❌ [HISTORY_UNBOXING] Query error:", fetchError);

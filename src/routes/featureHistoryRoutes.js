@@ -8,6 +8,7 @@ const router = express.Router();
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
+const MISSING_HISTORY_TABLES = new Set();
 
 // Retry helper function for Supabase queries
 const retryQuery = async (queryFn, maxRetries = 3, delay = 1000) => {
@@ -50,6 +51,108 @@ const retryQuery = async (queryFn, maxRetries = 3, delay = 1000) => {
     count: null,
     error: lastError || { message: "Max retries exceeded" },
   };
+};
+
+const isMissingRelationError = (message = "") =>
+  /relation .* does not exist/i.test(message);
+
+const isMissingColumnError = (message = "", columnName = "") =>
+  !!columnName && new RegExp(`column .*\\.${columnName} .* does not exist`, "i").test(message);
+
+const buildHistorySelect = ({
+  urlField,
+  includeReferenceFields = false,
+  includeSettings = true,
+  includeVariantFields = false,
+}) =>
+  [
+    "id",
+    "generation_id",
+    "user_id",
+    "status",
+    "created_at",
+    includeSettings ? "settings" : null,
+    urlField,
+    includeReferenceFields ? "reference_images" : null,
+    includeReferenceFields ? "location_image" : null,
+    includeReferenceFields ? "visibility" : null,
+    includeVariantFields ? "kits" : null,
+    includeVariantFields ? "stories" : null,
+    includeVariantFields ? "unboxing_stories" : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+const fetchMergedHistoryTable = async ({
+  tableConfig,
+  memberIds,
+  ascending,
+  perTableLimit,
+}) => {
+  if (MISSING_HISTORY_TABLES.has(tableConfig.name)) {
+    return [];
+  }
+
+  const runQuery = async (includeSettings) => {
+    const selectClause = buildHistorySelect({
+      urlField: tableConfig.urlField,
+      includeReferenceFields: tableConfig.name === "reference_results",
+      includeVariantFields: tableConfig.name === "reference_results",
+      includeSettings,
+    });
+
+    return retryQuery(() =>
+      supabase
+        .from(tableConfig.name)
+        .select(selectClause)
+        .in("user_id", memberIds)
+        .in("status", ["completed", "failed"])
+        .order("created_at", { ascending })
+        .limit(perTableLimit),
+    );
+  };
+
+  let { data, error } = await runQuery(true);
+
+  if (error && isMissingRelationError(error.message)) {
+    MISSING_HISTORY_TABLES.add(tableConfig.name);
+    logger.log(`ℹ️ [ALL] ${tableConfig.name} table missing, skipping.`);
+    return [];
+  }
+
+  if (error && isMissingColumnError(error.message, "settings")) {
+    const retryWithoutSettings = await runQuery(false);
+    data = retryWithoutSettings.data;
+    error = retryWithoutSettings.error;
+  }
+
+  if (error) {
+    logger.log(`⚠️ [ALL] ${tableConfig.name} hata:`, error.message);
+    return [];
+  }
+
+  return (data || [])
+    .filter((row) =>
+      tableConfig.name === "reference_results" ? row.visibility !== false : true,
+    )
+    .map((row) => ({
+      id: row.id,
+      generation_id: row.generation_id || null,
+      user_id: row.user_id,
+      status: row.status,
+      created_at: row.created_at,
+      settings: row.settings || null,
+      result_image_url:
+        tableConfig.urlField === "result_image_url" ? row[tableConfig.urlField] : null,
+      result_video_url:
+        tableConfig.urlField === "result_video_url" ? row[tableConfig.urlField] : null,
+      reference_images: row.reference_images || null,
+      location_image: row.location_image || null,
+      kits: row.kits || null,
+      stories: row.stories || null,
+      unboxing_stories: row.unboxing_stories || null,
+      item_type: tableConfig.type,
+    }));
 };
 
 /**
@@ -1228,7 +1331,7 @@ router.get("/unboxing-stories/:userId", async (req, res) => {
  *
  * 7 ana history-bearing tablodan (`reference_results`, `pose_change_generations`,
  * `color_change_generations`, `back_side_generations`, `refiner_generations`,
- * `chat_edit_results`, `video_generations`) `limit + offset` kadar item çekilir,
+ * `chat_edits`, `video_generations`) `limit + offset` kadar item çekilir,
  * `created_at DESC` ile in-memory sort + slice yapılır. Her item'a kaynak tablonun
  * adı `item_type` olarak eklenir (UI badge için: "Pose", "Color", vb.).
  *
@@ -1248,7 +1351,7 @@ router.get("/all/:userId", async (req, res) => {
       { name: "color_change_generations", type: "color_change_generations", urlField: "result_image_url" },
       { name: "back_side_generations", type: "back_side_generations", urlField: "result_image_url" },
       { name: "refiner_generations", type: "refiner_generations", urlField: "result_image_url" },
-      { name: "chat_edit_results", type: "chat_edit_results", urlField: "result_image_url" },
+      { name: "chat_edits", type: "chat_edit_results", urlField: "result_image_url" },
       { name: "video_generations", type: "video_generations", urlField: "result_video_url" },
     ];
 
@@ -1256,46 +1359,14 @@ router.get("/all/:userId", async (req, res) => {
     const perTableLimit = limit + offset;
 
     const results = await Promise.all(
-      tables.map(async (t) => {
-        try {
-          const { data, error } = await retryQuery(() =>
-            supabase
-              .from(t.name)
-              .select(
-                `id, user_id, status, created_at, settings, ${t.urlField}, ${
-                  t.name === "reference_results" ? "reference_images, location_image, visibility" : ""
-                }`.replace(/,\s*$/g, ""),
-              )
-              .in("user_id", memberIds)
-              .in("status", ["completed", "failed"])
-              .order("created_at", { ascending })
-              .limit(perTableLimit),
-          );
-          if (error) {
-            logger.log(`⚠️ [ALL] ${t.name} hata:`, error.message);
-            return [];
-          }
-          return (data || [])
-            .filter((row) =>
-              t.name === "reference_results" ? row.visibility !== false : true,
-            )
-            .map((row) => ({
-              id: row.id,
-              user_id: row.user_id,
-              status: row.status,
-              created_at: row.created_at,
-              settings: row.settings || null,
-              result_image_url: t.urlField === "result_image_url" ? row[t.urlField] : null,
-              result_video_url: t.urlField === "result_video_url" ? row[t.urlField] : null,
-              reference_images: row.reference_images || null,
-              location_image: row.location_image || null,
-              item_type: t.type,
-            }));
-        } catch (e) {
-          logger.log(`❌ [ALL] ${t.name} exception:`, e?.message);
-          return [];
-        }
-      }),
+      tables.map((t) =>
+        fetchMergedHistoryTable({
+          tableConfig: t,
+          memberIds,
+          ascending,
+          perTableLimit,
+        }),
+      ),
     );
 
     // Merge + sort

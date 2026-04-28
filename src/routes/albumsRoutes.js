@@ -19,6 +19,10 @@
 
 const express = require("express");
 const { supabase } = require("../supabaseClient");
+const {
+  optimizeForThumbnail,
+  getOriginalForModal,
+} = require("../utils/imageOptimizer");
 
 const router = express.Router();
 
@@ -102,7 +106,13 @@ router.get("/albums/:userId", async (req, res) => {
           cover = firstItem?.snapshot_result_url || null;
         }
 
-        return { ...alb, item_count: count || 0, cover_image_url: cover };
+        return {
+          ...alb,
+          item_count: count || 0,
+          cover_image_url: cover,
+          cover_image_url_thumbnail: cover ? optimizeForThumbnail(cover) : null,
+          cover_image_url_original: cover ? getOriginalForModal(cover) : null,
+        };
       }),
     );
 
