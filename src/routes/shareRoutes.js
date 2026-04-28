@@ -304,9 +304,24 @@ router.get("/public/share/:token", async (req, res) => {
       .single();
 
     if (tErr || !tokenRow) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Share link not found or revoked" });
+      // Teşhis: token DB'de hiç var mı, yoksa sadece is_active=false mi?
+      const { data: anyRow } = await supabase
+        .from("public_share_tokens")
+        .select("id, is_active, expires_at, created_at, scope")
+        .eq("token", token)
+        .maybeSingle();
+      console.warn(
+        `⚠️ [SHARE] public token lookup miss — token=${token} ` +
+          `tErr=${tErr?.message || "(none)"} ` +
+          `anyRow=${anyRow ? JSON.stringify(anyRow) : "null"} ` +
+          `supabaseUrl=${process.env.SUPABASE_URL || "(unset)"}`,
+      );
+      const reason = anyRow
+        ? anyRow.is_active === false
+          ? "Share link revoked"
+          : "Share link expired or invalid"
+        : "Share link not found";
+      return res.status(404).json({ success: false, message: reason });
     }
     if (tokenRow.expires_at && new Date(tokenRow.expires_at) < new Date()) {
       return res
