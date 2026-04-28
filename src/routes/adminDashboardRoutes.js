@@ -3,6 +3,12 @@ const router = express.Router();
 const { supabaseAdmin, supabase } = require("../supabaseClient");
 const db = supabaseAdmin || supabase;
 
+if (!supabaseAdmin) {
+  console.warn(
+    "⚠️  [AdminDashboard] SUPABASE_SERVICE_ROLE_KEY eksik — anon client kullanılıyor. RLS devrede olduğundan tüm kullanıcıların verileri görünmeyebilir. .env'e SUPABASE_SERVICE_ROLE_KEY ekleyin."
+  );
+}
+
 const FEATURE_CONFIG = {
   "virtual-model": {
     table: "reference_results",
@@ -70,6 +76,12 @@ const FEATURE_CONFIG = {
       "id, user_id, generation_id, original_photos, story_images, processing_time_seconds, total_images_generated, credits_used, is_free_tier, created_at",
     applyFilter: null,
   },
+  "street-icon-kits": {
+    table: "product_street_icon_kits",
+    select:
+      "id, user_id, generation_id, original_photos, story_images, processing_time_seconds, total_images_generated, credits_used, is_free_tier, created_at",
+    applyFilter: null,
+  },
 };
 
 router.get("/generations", async (req, res) => {
@@ -95,17 +107,25 @@ router.get("/generations", async (req, res) => {
     const offset = (pageNum - 1) * limitNum;
 
     // Single query for both data and count
+    // count: "estimated" kullanıyoruz çünkü reference_results gibi büyük tablolarda
+    // settings->gender IS NOT NULL gibi JSON path filter'la "exact" count timeout oluyor (code 57014).
+    // "estimated" Postgres planner tahminini kullanır, milisaniyelerde döner.
     let query = db
       .from(config.table)
-      .select("*", { count: "exact" })
+      .select("*", { count: "estimated" })
       .order("created_at", { ascending: false })
       .range(offset, offset + limitNum - 1);
 
     if (config.applyFilter) query = config.applyFilter(query);
     // Skip status filter for tables that don't have a status column
-    const noStatusTables = ["product_stories", "product_unboxing_stories", "product_kits"];
-    if (status && status !== "all" && !noStatusTables.includes(config.table)) {
-      query = query.eq("status", status);
+    const noStatusTables = ["product_stories", "product_unboxing_stories", "product_kits", "product_street_icon_kits"];
+    if (!noStatusTables.includes(config.table)) {
+      if (status && status !== "all") {
+        query = query.eq("status", status);
+      } else {
+        // "all" → client ile eşleşmek için completed + failed (CreateModelHistoryScreen mantığı)
+        query = query.in("status", ["completed", "failed"]);
+      }
     }
 
     const { data, count, error } = await query;
@@ -167,6 +187,155 @@ router.get("/generations", async (req, res) => {
   } catch (error) {
     console.error("[Admin] Full error:", JSON.stringify(error, null, 2));
     const msg = error.message || error.details || error.hint || error.code || JSON.stringify(error);
+    res.status(500).json({ success: false, error: msg });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// USERS — list + credit adjustment (admin)
+// ─────────────────────────────────────────────────────────────
+
+// GET /api/admin-dashboard/users?page=1&limit=30&search=&sort=created_at
+router.get("/users", async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 30,
+      search = "",
+      sort = "created_at",
+      direction = "desc",
+    } = req.query;
+
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = Math.min(parseInt(limit, 10) || 30, 200);
+    const offset = (pageNum - 1) * limitNum;
+
+    const allowedSort = new Set([
+      "created_at",
+      "email",
+      "credit_balance",
+      "is_pro",
+    ]);
+    const sortCol = allowedSort.has(sort) ? sort : "created_at";
+    const ascending = direction === "asc";
+
+    let query = db
+      .from("users")
+      .select(
+        "id, email, credit_balance, is_pro, subscription_type, supabase_user_id, created_at",
+        { count: "estimated" },
+      )
+      .order(sortCol, { ascending })
+      .range(offset, offset + limitNum - 1);
+
+    const trimmedSearch = String(search || "").trim();
+    if (trimmedSearch) {
+      // email veya id üzerinde partial match
+      query = query.or(
+        `email.ilike.%${trimmedSearch}%,id.eq.${trimmedSearch},supabase_user_id.eq.${trimmedSearch}`,
+      );
+    }
+
+    const { data, count, error } = await query;
+    if (error) {
+      console.error("[Admin/Users] Query error:", JSON.stringify(error, null, 2));
+      throw error;
+    }
+
+    res.json({
+      success: true,
+      data: data || [],
+      total: count || 0,
+      page: pageNum,
+      totalPages: Math.ceil((count || 0) / limitNum),
+    });
+  } catch (error) {
+    console.error("[Admin/Users] Full error:", JSON.stringify(error, null, 2));
+    const msg =
+      error.message ||
+      error.details ||
+      error.hint ||
+      error.code ||
+      JSON.stringify(error);
+    res.status(500).json({ success: false, error: msg });
+  }
+});
+
+// POST /api/admin-dashboard/users/:id/credits
+// Body: { mode: "add" | "subtract" | "set", amount: number, reason?: string }
+router.post("/users/:id/credits", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { mode = "add", amount, reason = "" } = req.body || {};
+
+    const amountNum = Number(amount);
+    if (!Number.isFinite(amountNum) || amountNum < 0) {
+      return res
+        .status(400)
+        .json({ success: false, error: "amount must be a non-negative number" });
+    }
+    if (!["add", "subtract", "set"].includes(mode)) {
+      return res.status(400).json({ success: false, error: "invalid mode" });
+    }
+    if (!id) {
+      return res.status(400).json({ success: false, error: "user id required" });
+    }
+
+    // Fetch current balance
+    const { data: user, error: fetchErr } = await db
+      .from("users")
+      .select("id, email, credit_balance")
+      .eq("id", id)
+      .single();
+
+    if (fetchErr || !user) {
+      return res
+        .status(404)
+        .json({ success: false, error: "User not found" });
+    }
+
+    const current = Number(user.credit_balance) || 0;
+    let newBalance;
+    if (mode === "add") newBalance = current + amountNum;
+    else if (mode === "subtract") newBalance = Math.max(0, current - amountNum);
+    else newBalance = amountNum; // set
+
+    const { data: updated, error: updErr } = await db
+      .from("users")
+      .update({ credit_balance: newBalance })
+      .eq("id", id)
+      .select("id, email, credit_balance, is_pro")
+      .single();
+
+    if (updErr) {
+      console.error("[Admin/Users] Update error:", JSON.stringify(updErr, null, 2));
+      throw updErr;
+    }
+
+    console.log(
+      `💰 [Admin] ${user.email || id} credit ${mode}: ${current} → ${newBalance} (Δ ${mode === "set" ? `=${amountNum}` : `${mode === "add" ? "+" : "-"}${amountNum}`})${reason ? ` — reason: ${reason}` : ""}`,
+    );
+
+    res.json({
+      success: true,
+      user: updated,
+      previous_balance: current,
+      new_balance: newBalance,
+      delta:
+        mode === "set"
+          ? newBalance - current
+          : mode === "add"
+            ? amountNum
+            : -amountNum,
+    });
+  } catch (error) {
+    console.error("[Admin/Users] Credit update error:", JSON.stringify(error, null, 2));
+    const msg =
+      error.message ||
+      error.details ||
+      error.hint ||
+      error.code ||
+      JSON.stringify(error);
     res.status(500).json({ success: false, error: msg });
   }
 });

@@ -121,11 +121,86 @@ function buildFallbackVideoPrompt(userPrompt) {
   );
 }
 
+/**
+ * 🧩 Grid mode — Gemini'ye verilen director template'in 6-cut versiyonu.
+ * Tek-sahne dili (single tracking shot, two-three chained beats, etc.)
+ * BANNED. Gemini sıralı 6 cinematic cut'tan oluşan bir editli klip yazar.
+ */
+function buildGridGeminiPrompt(userPrompt, editModeInstructions = "", hasBackImage = false) {
+  return `
+You are a senior fashion film DIRECTOR + EDITOR writing shot notes for an AI Image-to-Video model. The INPUT IMAGE you receive is NOT a single scene — it is a 2×3 STORYBOARD GRID containing 6 separate scenes (cells) of the same model, same outfit, same environment. Each cell is one beat of a single fashion campaign clip, in this order: top-left → top-right → middle-left → middle-right → bottom-left → bottom-right.
+
+User Theme / Subject: "${userPrompt || ""}" (May be empty. Use as the narrative throughline of the 6-cut sequence; if empty, infer the most fitting fashion narrative from the cells themselves.)
+
+CORE DIRECTION:
+You are NOT designing one continuous take with one camera move and one model performing 2-3 beats. You are designing a 6-CUT EDITED CLIP — six discrete shots cut together at speed, each shot lifted directly from one of the storyboard cells, played in order, transitioning into the next via cinematic cuts (whip-pan, match-cut, speed-ramp, dolly continuation, snap focus). Roughly equal time per cut (~clip_duration / 6 seconds each). The viewer must feel they are watching a campaign edit cut to rhythm, not a single take.
+
+HOW TO READ THE STORYBOARD (silently):
+- Cell 1 = the OPENING beat (entrance, hero stance establishing the subject)
+- Cell 2 = the SECOND beat (dynamic motion that develops the story)
+- Cell 3 = the THIRD beat (strong silhouette / hero frame)
+- Cell 4 = the FOURTH beat (detail / texture / fabric accent)
+- Cell 5 = the FIFTH beat (commanding stance / power moment)
+- Cell 6 = the CLOSING beat (resolution that lands the subject)
+For each cell you describe its specific framing, the model's pose/motion seen in that cell, and the cut that takes us into the next cell.
+
+OUTPUT FORMAT — VERY IMPORTANT:
+Output a SINGLE flowing prose paragraph in English. Walk through the 6 cuts in order, weaving each cell's framing + the cut that transitions out of it. NO headings, NO numbered sections, NO "Cut 1:" labels, NO bullet points. The output is ONE dense, cinematic prose paragraph.
+
+WHAT THE PARAGRAPH MUST COVER (in flowing prose, naturally):
+- The model and outfit painted briefly (fabric, cut, pattern, accents) and the room as a continuous set held across all 6 cuts (same lighting, same scene — only framing/pose changes).
+- For EACH of the 6 cells: a specific framing (lens, angle, distance) + the model's beat from that cell + the cut/transition technique into the next cell. Six discrete shots — never collapse into "two or three chained beats".
+- Lighting that MIRRORS the image's existing direction across all cuts (no invented sunlight, no golden hour unless visibly present).
+- Editor's pass: rhythm of cuts, frame-rate feel, color grade amplifying the outfit's palette, depth-of-field choices that match each shot.
+
+EMBRACE: "cuts to", "match-cuts into", "whip-pans into", "snap focus pull onto", "speed ramp through", "hard cut to", "transitions seamlessly into", "the edit lands on".
+
+BANNED VOCABULARY (do NOT use — they collapse the 6-cut clip into a single take OR cause the grid to appear in the output):
+"a single tracking shot", "one continuous take", "the camera moves through" (singular continuous-take phrasing), "two or three chained beats", "the model performs a, then b, then c" (suggests one continuous take), "preserve the exact setting" (already locked — don't reiterate as if treating the grid as one scene), "slow cinematic push-in", "poised", "minimal movement", "the camera pulls back to reveal the storyboard", "the grid fades into view", "the six cells appear", "split-screen", "picture-in-picture", "we see the grid", "starts on the storyboard", "zooms out from the grid", "transitions through the grid layout".
+
+CRITICAL RENDER RULES (Seedance MUST follow):
+- ⛔ The grid layout itself is NEVER visible in the output video. Frame 0 starts ALREADY ON Cell 1's content as a full-screen 9:16 single shot — the camera does NOT zoom out from one cell to reveal the grid, does NOT linger on the grid composite, does NOT fade through the grid layout. The 6-cell composite is a storyboard reference, never a filmed scene.
+- Each of the 6 cuts renders as a FULL-SCREEN 9:16 single shot of that cell's action — never split-screen, never picture-in-picture, never a multi-cell composite.
+- The grid lines / gutters / borders / cell numbers in the input image are STORYBOARD ANNOTATIONS only — NEVER render them in the output video.
+- Identity, outfit, and environment continuity are LOCKED across all 6 cuts.
+${editModeInstructions}${
+    hasBackImage
+      ? `
+
+⭐ BACK-VIEW IMAGE PROVIDED — a SECOND reference of the back of the outfit. Seedance uses this as the END FRAME. Make the closing cut (Cell 6) resolve naturally to a back-view (180° pivot, walk-out, over-shoulder reveal).`
+      : ""
+  }
+HARD CONSTRAINTS:
+- Output ONLY the generated prompt text.
+- Keep under 2300 characters.
+- Walk through ALL 6 cuts. Never describe just 2-3 beats.
+- Always 9:16 vertical, fashion campaign film grade.
+`;
+}
+
+/**
+ * 🧩 Grid mode — Gemini fail'lerse Seedance'a gönderilecek grid-aware
+ * fallback. Mevcut buildFallbackVideoPrompt tek-sahne dili kullanıyor →
+ * grid modunda kullanılamaz; bu fonksiyon 6-cut akışını anlatır.
+ */
+function buildGridFallbackPrompt(userPrompt) {
+  const hint = (userPrompt || "").trim();
+  const subjectClause = hint
+    ? ` The 6 cuts together narrate the user's subject: "${hint.substring(0, 200)}".`
+    : "";
+  return (
+    "Six-cut fashion campaign edit, 9:16 vertical, derived from the input storyboard grid (2×3, 6 cells, top-left through bottom-right in reading order). The grid layout itself is NEVER visible in the output video — frame zero starts already inside Cell 1's content rendered as a full-screen 9:16 single shot, never a multi-cell composite, never a zoom-out from one cell to the grid, never a slow reveal of the storyboard. Each cut is a discrete full-screen shot taken from one cell, played in sequence with rhythmic cinematic cuts (whip-pan, match-cut, speed-ramp, snap focus pull, hard cut) — roughly equal time per cut (~clip_duration / 6 seconds each)." +
+    subjectClause +
+    " The opening cut establishes the model's entrance and the room (Cell 1 full-screen from frame 0); the second cut catches dynamic motion; the third lands a strong silhouette; the fourth is a detail / texture beat; the fifth holds a commanding stance; the closing cut resolves the narrative (gaze to camera, walk-out, or back-view turn). Identity, outfit, and environment continuity are locked across all 6 cuts — same model, same clothing, same scene, same lighting direction. The grid gutters, cell borders, split-screen layouts, picture-in-picture frames, and any visual annotations from the storyboard input are NEVER rendered in the output video — render only the model, the outfit, and the action depicted in each cell, one cell at a time, full-screen. Ultra-realistic editorial fashion campaign film grade, shallow depth of field, high-frame-rate with deliberate speed ramps at the cut points, color grade amplifying the outfit's tones against the existing room light, runway after-movie × campaign teaser feel, 8k."
+  );
+}
+
 async function generateVideoPrompt(
   imageUrl,
   userPrompt,
   editMode = false,
-  hasBackImage = false
+  hasBackImage = false,
+  isGridPreview = false
 ) {
   try {
     const editModeInstructions = editMode
@@ -141,7 +216,10 @@ async function generateVideoPrompt(
     `
       : "";
 
-    const promptForGemini = `
+    // 🧩 Grid mode: tek-sahne template'i çakışıyor → grid-aware Gemini template kullan
+    const promptForGemini = isGridPreview
+      ? buildGridGeminiPrompt(userPrompt, editModeInstructions, hasBackImage)
+      : `
     You are a senior fashion film DIRECTOR + EDITOR writing shot notes for an AI Image-to-Video model. Your job: READ the input image with care — the outfit's character, the fabric behavior, the environment, the light, the mood — and then design a clip that feels authored, not templated.
 
     User Input: "${userPrompt}" (May be short, empty, or in another language. The image is the primary source of truth; the user input only refines intent.)
@@ -193,17 +271,51 @@ async function generateVideoPrompt(
     }
 
     console.log("🎬 [VIDEO-V2] Enhanced prompt:", `${enhancedPrompt.substring(0, 100)}...`);
+
+    // 🧩 Grid preview akışında, input image bir 6 sahneli storyboard. Seedance'e
+    // grid'i sıralı kesitlerle animasyon yapması talimatını veren HARD direktifi
+    // enhanced prompt'un BAŞINA ekliyoruz.
+    if (isGridPreview) {
+      enhancedPrompt = buildGridStoryboardDirective() + "\n\n" + enhancedPrompt;
+      console.log("🧩 [VIDEO-V2] Grid storyboard direktifi prompt'un başına eklendi.");
+    }
+
     return enhancedPrompt;
   } catch (error) {
     console.error("❌ [VIDEO-V2] Prompt enhancement failed:", error.message);
-    // Gemini tamamen çöktü — ham user prompt yerine fashion-clip template'i kullan
-    // ki Seedance anlamlı bir video üretebilsin.
-    const fallback = buildFallbackVideoPrompt(userPrompt);
+    // Gemini tamamen çöktü — grid mode için grid-aware fallback,
+    // normal mode için klasik fashion-clip fallback.
+    let fallback = isGridPreview
+      ? buildGridFallbackPrompt(userPrompt)
+      : buildFallbackVideoPrompt(userPrompt);
+    if (isGridPreview) {
+      fallback = buildGridStoryboardDirective() + "\n\n" + fallback;
+    }
     console.log(
-      "🛟 [VIDEO-V2] Using fallback fashion-clip template prompt"
+      isGridPreview
+        ? "🛟 [VIDEO-V2] Using GRID fallback template prompt"
+        : "🛟 [VIDEO-V2] Using fallback fashion-clip template prompt"
     );
     return fallback;
   }
+}
+
+// 🧩 Grid preview akışında Seedance'e gönderilen sabit direktif. Input image
+// 2×3 grid (6 sahne) — sıralı animasyon, kesintili cinematic geçişler, hücre
+// metni yok (görsel sahneler).
+function buildGridStoryboardDirective() {
+  return `⚠️ GRID STORYBOARD INPUT — MANDATORY READING:
+The input image is NOT a single scene and NOT the first frame of the video. It is a 2×3 STORYBOARD REFERENCE containing 6 cells (top-left → top-right → middle-left → middle-right → bottom-left → bottom-right). The output video MUST never visually show this grid layout in any frame.
+
+⛔ THE GRID LAYOUT IS NEVER VISIBLE IN THE OUTPUT VIDEO:
+- Frame 0 (the very first frame) is Cell 1's content ALREADY rendered as a full-screen 9:16 single shot — NOT the grid composite, NOT a zoom-out from one cell, NOT a slow reveal of the storyboard.
+- The video MUST NEVER linger on, fade through, pull back to, zoom out from, or reveal the 2×3 grid layout. The grid lines, gutters, cell borders, and the multi-cell composite frame are STRICTLY INVISIBLE in every output frame.
+- Treat the grid input the way a director treats a paper storyboard on the desk: a planning artifact, never something the camera films.
+
+✅ HOW THE 6 CUTS PLAY:
+Play the cells IN ORDER, allocating roughly equal time per cell (~clip_duration / 6 seconds each). Each cell renders as a FULL-SCREEN 9:16 single shot. Transitions between cells are real cinematic cuts (whip pan, match-cut, speed-ramp, dolly continuation, snap focus) — NOT dissolves through the grid, NOT split-screen, NOT picture-in-picture. The viewer feels they are watching ONE seamless campaign edit that flows: Cell-1-fullscreen → cut → Cell-2-fullscreen → cut → … → Cell-6-fullscreen.
+
+Identity, outfit, and environment continuity are LOCKED across all 6 cuts — same model, same clothing, same scene, same lighting direction. Render only the model, the outfit, and the action depicted in each cell — never render the grid, gutters, borders, or any composite frame.`;
 }
 
 async function compressImage(buffer, maxSizeBytes = 9 * 1024 * 1024) {
@@ -811,6 +923,7 @@ router.post("/generateImgToVidv2", async (req, res) => {
       resolution = "720p",
       aspect_ratio = "9:16",
       editMode = false,
+      isGridPreview = false, // 🧩 Storyboard grid mod (input = 6-scene grid)
     } = req.body;
 
     if (!userId || !first_frame_image) {
@@ -901,7 +1014,8 @@ router.post("/generateImgToVidv2", async (req, res) => {
       imageUrl,
       userPrompt,
       editMode,
-      !!backImageUrl
+      !!backImageUrl,
+      !!isGridPreview
     );
 
     const requestId = await submitSeedanceGeneration({

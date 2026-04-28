@@ -3,24 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Diress Admin</title>
     <style>
+        :root {
+            --bg: #fafafa;
+            --surface: #ffffff;
+            --border: #ececec;
+            --border-strong: #e0e0e0;
+            --text-primary: #0a0a0a;
+            --text-secondary: #5a5a5a;
+            --text-tertiary: #999;
+            --hover: #f4f4f4;
+            --active: #f0f0f0;
+            --dot-completed: #22c55e;
+            --dot-failed: #ef4444;
+            --dot-pending: #f59e0b;
+            --dot-processing: #3b82f6;
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+            --header-height: 60px;
+            --sidebar-width: 220px;
+            --main-pad-x: 40px;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        html, body {
+            height: 100%;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f7f7f7;
-            color: #222;
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            font-size: 14px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
             display: flex;
             min-height: 100vh;
         }
 
         /* Sidebar */
         .sidebar {
-            width: 240px;
-            background: #fff;
-            border-right: 1px solid #e5e5e5;
-            padding: 24px 0;
+            width: var(--sidebar-width);
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 0 0 20px;
             position: fixed;
             top: 0;
             left: 0;
@@ -28,101 +59,185 @@
             overflow-y: auto;
         }
 
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            height: var(--header-height);
+            padding: 0 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: var(--text-primary);
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand img {
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
         .sidebar-title {
-            font-size: 14px;
-            font-weight: 700;
+            font-size: 11px;
+            font-weight: 500;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #999;
-            padding: 0 20px;
-            margin-bottom: 16px;
+            letter-spacing: 0.06em;
+            color: var(--text-tertiary);
+            padding: 16px 16px 6px;
         }
 
         .sidebar-item {
             display: block;
-            width: 100%;
-            padding: 10px 20px;
+            width: calc(100% - 16px);
+            padding: 7px 12px;
+            margin: 0 8px;
             border: none;
             background: none;
+            border-radius: var(--radius-sm);
             text-align: left;
-            font-size: 14px;
-            color: #555;
+            font-size: 13.5px;
+            color: var(--text-secondary);
             cursor: pointer;
-            transition: all 0.15s;
+            transition: background 0.15s var(--ease), color 0.15s var(--ease);
+            font-family: inherit;
         }
 
-        .sidebar-item:hover { background: #f5f5f5; color: #222; }
-        .sidebar-item.active { background: #f0f0f0; color: #000; font-weight: 600; border-left: 3px solid #333; }
+        .sidebar-item:hover { background: var(--hover); color: var(--text-primary); }
+        .sidebar-item.active {
+            background: var(--active);
+            color: var(--text-primary);
+            font-weight: 500;
+        }
 
         /* Main content */
         .main {
-            margin-left: 240px;
+            margin-left: var(--sidebar-width);
             flex: 1;
-            padding: 24px;
+            padding: 0 var(--main-pad-x) 40px;
+            min-width: 0;
         }
 
-        /* Header bar */
+        /* Header bar — aligned with sidebar-brand (same height + border-bottom) */
         .header {
+            height: var(--header-height);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 24px;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 0 calc(var(--main-pad-x) * -1) 24px;
+            padding: 0 var(--main-pad-x);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
         }
 
         .header h1 {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            line-height: 1.2;
         }
+
+        .header-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 24px;
+            padding: 0 9px;
+            background: var(--hover);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+        }
+
+        .header-count.empty { display: none; }
 
         .header-controls {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             align-items: center;
         }
 
-        .filter-select {
-            padding: 6px 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 13px;
-            background: #fff;
-            color: #333;
-            outline: none;
+        .header-label {
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-tertiary);
+            margin-right: 2px;
         }
+
+        .filter-select {
+            padding: 6px 28px 6px 12px;
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            background: var(--surface);
+            color: var(--text-primary);
+            outline: none;
+            cursor: pointer;
+            font-family: inherit;
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            transition: border-color 0.15s var(--ease);
+        }
+
+        .filter-select:hover { border-color: #c0c0c0; }
+        .filter-select:focus { border-color: var(--text-primary); }
 
         .stats {
             font-size: 13px;
-            color: #888;
+            color: var(--text-tertiary);
+            font-variant-numeric: tabular-nums;
         }
 
         /* Grid */
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 14px;
         }
 
         /* Card */
         .card {
-            background: #fff;
-            border-radius: 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
             overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
             cursor: pointer;
-            transition: transform 0.15s, box-shadow 0.15s;
+            transition: border-color 0.15s var(--ease), transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
             position: relative;
         }
 
         .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            border-color: var(--border-strong);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
 
         .card-image-container {
             position: relative;
             width: 100%;
-            padding-top: 133%; /* 2:3 aspect ratio */
-            background: #f0f0f0;
+            padding-top: 133%;
+            background: #f5f5f5;
         }
 
         .card-image {
@@ -137,12 +252,12 @@
             position: absolute;
             top: 8px;
             right: 8px;
-            width: 48px;
-            height: 48px;
-            border-radius: 6px;
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-sm);
             object-fit: cover;
-            border: 2px solid #fff;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+            border: 2px solid var(--surface);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         }
 
         .card-info {
@@ -150,42 +265,91 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 8px;
         }
 
         .card-date {
             font-size: 12px;
-            color: #888;
+            color: var(--text-tertiary);
+            font-variant-numeric: tabular-nums;
         }
 
         .card-meta {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
-        .badge {
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 10px;
+        /* Status indicator — renkli dot + text */
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
             font-weight: 500;
         }
 
-        .badge-completed { background: #f0f0f0; color: #555; }
-        .badge-pending { background: #f5f0e0; color: #8a7a50; }
-        .badge-processing { background: #e8f0f8; color: #5070a0; }
+        .status::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-tertiary);
+            flex-shrink: 0;
+        }
+
+        .status-completed::before { background: var(--dot-completed); }
+        .status-failed::before { background: var(--dot-failed); }
+        .status-pending::before { background: var(--dot-pending); }
+        .status-processing::before { background: var(--dot-processing); }
 
         .card-credits {
             font-size: 11px;
-            color: #aaa;
+            color: var(--text-tertiary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Quality version badge — v1 = subtle, v2 = dark (premium) */
+        .quality-badge {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 4px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            line-height: 1.4;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .quality-badge.v1 {
+            background: var(--hover);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .quality-badge.v2 {
+            background: var(--text-primary);
+            color: var(--surface);
+            border: 1px solid var(--text-primary);
+        }
+
+        .quality-badge.free {
+            background: var(--hover);
+            color: var(--text-tertiary);
+            border: 1px dashed var(--border-strong);
         }
 
         .card-user {
             padding: 0 12px 10px;
-            font-size: 11px;
-            color: #999;
+            font-size: 11.5px;
+            color: var(--text-tertiary);
             display: flex;
             align-items: center;
             justify-content: space-between;
+            border-top: 1px solid var(--border);
+            margin: 0 0;
+            padding-top: 8px;
         }
 
         .card-user-email {
@@ -196,8 +360,9 @@
         }
 
         .card-user-credits {
-            font-weight: 600;
-            color: #666;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
         }
 
         .brand-assets {
@@ -205,20 +370,18 @@
             gap: 12px;
             margin-top: 16px;
             padding-top: 16px;
-            border-top: 1px solid #eee;
+            border-top: 1px solid var(--border);
         }
 
-        .brand-asset-box {
-            text-align: center;
-        }
+        .brand-asset-box { text-align: center; }
 
         .brand-asset-box label {
             display: block;
             font-size: 11px;
-            font-weight: 600;
+            font-weight: 500;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
-            color: #aaa;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
             margin-bottom: 6px;
         }
 
@@ -226,9 +389,9 @@
             width: 80px;
             height: 80px;
             object-fit: contain;
-            border-radius: 8px;
-            background: #f5f5f5;
-            border: 1px solid #eee;
+            border-radius: var(--radius-md);
+            background: var(--hover);
+            border: 1px solid var(--border);
         }
 
         /* Pagination */
@@ -236,185 +399,706 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 16px;
-            margin-top: 32px;
-            padding-bottom: 24px;
+            gap: 12px;
+            margin-top: 40px;
+            padding-bottom: 32px;
         }
 
         .pagination button {
-            padding: 8px 20px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            background: #fff;
+            padding: 7px 16px;
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            background: var(--surface);
             font-size: 13px;
             cursor: pointer;
-            color: #333;
-            transition: all 0.15s;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-weight: 500;
+            transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
         }
 
-        .pagination button:hover:not(:disabled) { background: #f5f5f5; }
-        .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .pagination button:hover:not(:disabled) { background: var(--hover); border-color: #c0c0c0; }
+        .pagination button:disabled { opacity: 0.35; cursor: not-allowed; }
 
         .pagination span {
             font-size: 13px;
-            color: #888;
+            color: var(--text-tertiary);
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
+            font-variant-numeric: tabular-nums;
         }
 
         #pageInput {
             width: 48px;
-            padding: 4px 6px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 5px 6px;
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
             font-size: 13px;
             text-align: center;
             outline: none;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-variant-numeric: tabular-nums;
             -moz-appearance: textfield;
+            transition: border-color 0.15s var(--ease);
         }
 
+        #pageInput:focus { border-color: var(--text-primary); }
         #pageInput::-webkit-outer-spin-button,
         #pageInput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-        /* Modal overlay */
+        /* ==========================================================================
+           Modal — Split layout: header / [refs | result] / footer
+           ========================================================================== */
         .modal-overlay {
             display: none;
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.8);
+            inset: 0;
+            background: rgba(10,10,10,0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
             z-index: 1000;
             justify-content: center;
             align-items: center;
-            padding: 40px;
+            padding: 3vh 2vw;
         }
 
         .modal-overlay.active { display: flex; }
 
         .modal {
-            background: #fff;
-            border-radius: 12px;
-            max-width: 1100px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
             width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 24px;
+            max-width: 1600px;
+            height: 94vh;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            overflow: hidden;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.22);
+        }
+
+        /* Header bar */
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            min-height: 56px;
+        }
+
+        .modal-header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .modal-title {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: var(--text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .modal-title-id {
+            font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            background: var(--hover);
+            padding: 3px 8px;
+            border-radius: 5px;
         }
 
         .modal-close {
-            float: right;
             background: none;
             border: none;
-            font-size: 24px;
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            font-size: 22px;
             cursor: pointer;
-            color: #999;
-            padding: 0 4px;
+            color: var(--text-tertiary);
             line-height: 1;
+            transition: background 0.15s var(--ease), color 0.15s var(--ease);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
 
-        .modal-close:hover { color: #333; }
+        .modal-close:hover { background: var(--hover); color: var(--text-primary); }
 
-        .modal-images {
-            display: flex;
-            gap: 16px;
-            margin-top: 16px;
+        /* Body — 2 columns: references | result */
+        .modal-body {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 0;
+            overflow: hidden;
         }
 
-        .modal-image-box {
-            flex: 1;
-            text-align: center;
+        /* Left panel: references */
+        .modal-refs {
+            border-right: 1px solid var(--border);
+            padding: 18px 14px;
+            overflow-y: auto;
+            background: var(--bg);
         }
 
-        .modal-image-box label {
+        .modal-refs.hidden { display: none; }
+
+        .modal-body.no-refs {
+            grid-template-columns: 1fr;
+        }
+
+        .modal-section-label {
             display: block;
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 500;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #999;
-            margin-bottom: 8px;
+            letter-spacing: 0.06em;
+            color: var(--text-tertiary);
+            margin-bottom: 12px;
+            padding-left: 4px;
         }
 
-        .modal-image-box img {
-            width: 100%;
-            max-height: 65vh;
-            object-fit: contain;
-            border-radius: 8px;
-            background: #f5f5f5;
+        .modal-section-label .count {
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-left: 4px;
         }
 
-        .modal-details {
-            display: flex;
-            gap: 24px;
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid #eee;
-            font-size: 13px;
-            color: #666;
-            flex-wrap: wrap;
-        }
-
-        .modal-detail {
+        .modal-refs-list {
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 10px;
         }
 
-        .modal-detail span:first-child {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            color: #aaa;
+        .modal-ref-item {
+            position: relative;
         }
 
-        .modal-detail span:last-child {
-            color: #333;
-            font-weight: 500;
+        .modal-ref-item img {
+            width: 100%;
+            aspect-ratio: 3/4;
+            object-fit: cover;
+            border-radius: var(--radius-md);
+            background: var(--hover);
+            cursor: zoom-in;
+            border: 1px solid var(--border);
+            transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease), border-color 0.15s var(--ease);
+            display: block;
         }
 
-        /* Story grid in modal */
+        .modal-ref-item img:hover {
+            transform: scale(1.015);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-color: var(--border-strong);
+        }
+
+        .modal-ref-index {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(10,10,10,0.72);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.02em;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        /* Right panel: result (dominant) */
+        .modal-result {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            overflow: auto;
+            background:
+                linear-gradient(rgba(250,250,250,0.9), rgba(250,250,250,0.9)),
+                repeating-conic-gradient(#f0f0f0 0% 25%, #ffffff 0% 50%) 50% / 16px 16px;
+        }
+
+        .modal-result img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: var(--radius-md);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+        }
+
+        /* Result as story grid (for product_stories / unboxing_stories) */
+        .modal-result.is-grid {
+            align-items: flex-start;
+            padding: 20px;
+        }
+
         .modal-story-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 12px;
-            margin-top: 16px;
+            width: 100%;
         }
 
-        .modal-story-grid .story-item {
-            text-align: center;
-        }
+        .modal-story-grid .story-item { text-align: left; }
 
         .modal-story-grid .story-item img {
             width: 100%;
             aspect-ratio: 3/4;
             object-fit: cover;
-            border-radius: 8px;
-            background: #f5f5f5;
+            border-radius: var(--radius-md);
+            background: var(--hover);
+            border: 1px solid var(--border);
+            transition: transform 0.15s var(--ease);
+            cursor: zoom-in;
         }
+
+        .modal-story-grid .story-item img:hover { transform: scale(1.015); }
 
         .modal-story-grid .story-item .story-label {
             font-size: 11px;
-            color: #888;
-            margin-top: 4px;
+            color: var(--text-tertiary);
+            margin-top: 6px;
             text-transform: capitalize;
+            font-weight: 500;
         }
 
-        /* Loading */
-        .loading {
-            text-align: center;
-            padding: 60px;
-            color: #aaa;
-            font-size: 14px;
+        /* Footer — metadata grid */
+        .modal-footer {
+            border-top: 1px solid var(--border);
+            padding: 14px 20px;
+            background: var(--surface);
+            max-height: 28vh;
+            overflow-y: auto;
         }
 
-        .empty {
+        .modal-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px 24px;
+            font-size: 13px;
+        }
+
+        .modal-detail {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+
+        .modal-detail-label {
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-tertiary);
+            font-weight: 500;
+        }
+
+        .modal-detail-value {
+            color: var(--text-primary);
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Copyable long values (email, user id, generation id) —
+           tam gösterim, word-break, tıklanabilir */
+        .modal-detail-value.copyable {
+            white-space: normal;
+            word-break: break-all;
+            overflow: visible;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 7px;
+            margin-left: -7px;
+            border-radius: 5px;
+            transition: background 0.15s var(--ease);
+            font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+            font-size: 12.5px;
+            user-select: text;
+            max-width: 100%;
+        }
+
+        .modal-detail-value.copyable:hover {
+            background: var(--hover);
+        }
+
+        .modal-detail-value.copyable::after {
+            content: '⎘';
+            font-size: 12px;
+            color: var(--text-tertiary);
+            flex-shrink: 0;
+            font-family: inherit;
+        }
+
+        .modal-detail-value.copyable.copied {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .modal-detail-value.copyable.copied::after {
+            content: '✓';
+            color: #2e7d32;
+        }
+
+        /* Email/id için 2 sütuna yaydır ki satır atmadan görünsün */
+        .modal-detail.wide {
+            grid-column: span 2;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .modal { height: 96vh; }
+            .modal-body { grid-template-columns: 200px 1fr; }
+            .modal-refs { padding: 12px 10px; }
+        }
+
+        /* ==========================================================================
+           Lightbox — full-screen image viewer (opens on top of modal)
+           ========================================================================== */
+        .lightbox-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.94);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            cursor: zoom-out;
+            animation: lightboxFadeIn 0.18s var(--ease);
+        }
+
+        .lightbox-overlay.active { display: flex; }
+
+        @keyframes lightboxFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .lightbox-image {
+            max-width: 95vw;
+            max-height: 92vh;
+            object-fit: contain;
+            border-radius: var(--radius-md);
+            cursor: default;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+            user-select: none;
+        }
+
+        .lightbox-close {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-size: 22px;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s var(--ease), transform 0.15s var(--ease);
+            line-height: 1;
+            z-index: 2001;
+        }
+
+        .lightbox-close:hover {
+            background: rgba(255, 255, 255, 0.18);
+            transform: scale(1.05);
+        }
+
+        .lightbox-open-new-tab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 9px 14px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            text-decoration: none;
+            font-family: inherit;
+            transition: background 0.15s var(--ease);
+            z-index: 2001;
+        }
+
+        .lightbox-open-new-tab:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* ==========================================================================
+           Users table (Admin feature)
+           ========================================================================== */
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            font-size: 13px;
+        }
+        .users-table thead {
+            background: var(--hover);
+            border-bottom: 1px solid var(--border);
+        }
+        .users-table th {
+            text-align: left;
+            padding: 11px 14px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-tertiary);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .users-table td {
+            padding: 11px 14px;
+            border-top: 1px solid var(--border);
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+        .users-table tbody tr {
+            cursor: pointer;
+            transition: background 0.1s var(--ease);
+        }
+        .users-table tbody tr:hover { background: var(--hover); }
+        .users-table .u-email {
+            font-weight: 500;
+            max-width: 340px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .users-table .u-id {
+            font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+            font-size: 11.5px;
+            color: var(--text-tertiary);
+        }
+        .users-table .u-credits {
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-primary);
+            text-align: right;
+        }
+        .users-table .u-date {
+            color: var(--text-tertiary);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+        .u-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10.5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .u-pill.pro {
+            background: var(--text-primary);
+            color: var(--surface);
+        }
+        .u-pill.free {
+            background: var(--hover);
+            color: var(--text-tertiary);
+            border: 1px solid var(--border);
+        }
+
+        .search-input {
+            padding: 7px 12px;
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            background: var(--surface);
+            color: var(--text-primary);
+            outline: none;
+            font-family: inherit;
+            width: 280px;
+            transition: border-color 0.15s var(--ease);
+        }
+        .search-input:focus { border-color: var(--text-primary); }
+
+        /* Credit modal — small focused dialog */
+        .credit-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(10,10,10,0.55);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 1500;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+        }
+        .credit-modal-overlay.active { display: flex; }
+        .credit-modal {
+            background: var(--surface);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 460px;
+            padding: 22px 24px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.22);
+            border: 1px solid var(--border);
+        }
+        .credit-modal h2 {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            margin-bottom: 4px;
+        }
+        .credit-modal-user {
+            font-size: 12.5px;
+            color: var(--text-tertiary);
+            margin-bottom: 18px;
+            word-break: break-all;
+        }
+        .credit-modal-current {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            padding: 14px 16px;
+            background: var(--hover);
+            border-radius: 8px;
+            margin-bottom: 18px;
+        }
+        .credit-modal-current .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-tertiary);
+        }
+        .credit-modal-current .value {
+            font-size: 20px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            margin-left: auto;
+        }
+        .credit-modal-mode {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        .mode-btn {
+            padding: 8px;
+            border: 1px solid var(--border-strong);
+            background: var(--surface);
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.15s var(--ease);
+        }
+        .mode-btn:hover { background: var(--hover); }
+        .mode-btn.active {
+            background: var(--text-primary);
+            color: var(--surface);
+            border-color: var(--text-primary);
+        }
+        .credit-modal-input {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 16px;
+            border: 1px solid var(--border-strong);
+            border-radius: 6px;
+            outline: none;
+            font-family: inherit;
+            font-variant-numeric: tabular-nums;
+            margin-bottom: 10px;
+            transition: border-color 0.15s var(--ease);
+        }
+        .credit-modal-input:focus { border-color: var(--text-primary); }
+        .credit-modal-reason {
+            width: 100%;
+            padding: 8px 12px;
+            font-size: 13px;
+            border: 1px solid var(--border-strong);
+            border-radius: 6px;
+            outline: none;
+            font-family: inherit;
+            margin-bottom: 18px;
+        }
+        .credit-modal-reason:focus { border-color: var(--text-primary); }
+        .credit-modal-preview {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+            padding: 10px 12px;
+            background: var(--bg);
+            border-radius: 6px;
+            border: 1px dashed var(--border-strong);
+            font-variant-numeric: tabular-nums;
+        }
+        .credit-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-strong);
+            border-radius: 6px;
+            background: var(--surface);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            color: var(--text-primary);
+            transition: all 0.15s var(--ease);
+        }
+        .btn:hover { background: var(--hover); }
+        .btn-primary {
+            background: var(--text-primary);
+            color: var(--surface);
+            border-color: var(--text-primary);
+        }
+        .btn-primary:hover { background: #333; }
+        .btn-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Loading & Empty states */
+        .loading, .empty {
             text-align: center;
             padding: 80px 20px;
-            color: #bbb;
+            color: var(--text-tertiary);
             font-size: 14px;
         }
 
-        /* file:// ile açılırsa: fetch('/api/...') çalışmaz — sunucu URL'si gerekir */
+        /* file:// ile açılırsa: fetch('/api/...') çalışmaz */
         .file-protocol-banner {
             display: none;
             position: fixed;
@@ -422,14 +1106,30 @@
             left: 0;
             right: 0;
             z-index: 9999;
-            background: #fef3c7;
-            border-bottom: 1px solid #f59e0b;
-            color: #78350f;
-            padding: 12px 16px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border-strong);
+            color: var(--text-primary);
+            padding: 12px 20px;
             font-size: 13px;
-            line-height: 1.45;
+            line-height: 1.5;
         }
-        .file-protocol-banner code { background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px; }
+        .file-protocol-banner::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--dot-failed);
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        .file-protocol-banner code {
+            background: var(--hover);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+        }
         body.has-file-banner .sidebar { top: 56px; height: calc(100vh - 56px); }
         body.has-file-banner .main { margin-top: 56px; }
     </style>
@@ -444,7 +1144,11 @@
 
     <!-- Sidebar -->
     <nav class="sidebar">
-        <div class="sidebar-title">Tables</div>
+        <div class="sidebar-brand">
+            <img src="https://www.diress.ai/assets/icon.png" alt="Diress" onerror="this.style.display='none'" />
+            <span>Diress Admin</span>
+        </div>
+        <div class="sidebar-title">Generations</div>
         <button class="sidebar-item active" data-feature="virtual-model">Virtual Model</button>
         <button class="sidebar-item" data-feature="refiner">Refiner</button>
         <button class="sidebar-item" data-feature="pose-change">Pose Change</button>
@@ -455,24 +1159,37 @@
         <button class="sidebar-item" data-feature="ecommerce-kits">E-commerce Kits</button>
         <button class="sidebar-item" data-feature="product-stories">Product Stories</button>
         <button class="sidebar-item" data-feature="unboxing-stories">Unboxing Stories</button>
+        <button class="sidebar-item" data-feature="street-icon-kits">Street Icon Kits</button>
+
+        <div class="sidebar-title">Admin</div>
+        <button class="sidebar-item" data-feature="users">Users</button>
     </nav>
 
     <!-- Main Content -->
     <div class="main">
         <div class="header">
-            <h1 id="pageTitle">Virtual Model</h1>
-            <div class="header-controls">
+            <div class="header-left">
+                <h1 id="pageTitle">Virtual Model</h1>
+                <span class="header-count empty" id="headerCount">0</span>
+            </div>
+            <div class="header-controls" id="headerControlsGenerations">
+                <span class="header-label">Status</span>
                 <select class="filter-select" id="statusFilter">
-                    <option value="all">All Status</option>
-                    <option value="completed" selected>Completed</option>
+                    <option value="all" selected>All (Completed + Failed)</option>
+                    <option value="completed">Completed</option>
+                    <option value="failed">Failed</option>
                     <option value="pending">Pending</option>
                     <option value="processing">Processing</option>
                 </select>
-                <span class="stats" id="statsText"></span>
+            </div>
+            <div class="header-controls" id="headerControlsUsers" style="display:none;">
+                <input type="text" class="search-input" id="userSearch"
+                       placeholder="Email, user ID ile ara..." />
             </div>
         </div>
 
         <div class="grid" id="grid"></div>
+        <div id="usersTableContainer" style="display:none;"></div>
         <div class="loading" id="loading" style="display:none;">Loading...</div>
         <div class="empty" id="empty" style="display:none;">No results found.</div>
 
@@ -488,20 +1205,71 @@
     <!-- Modal -->
     <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
         <div class="modal" onclick="event.stopPropagation()">
-            <button class="modal-close" onclick="closeModal()">&times;</button>
-            <div class="modal-images" id="modalImages">
-                <div class="modal-image-box">
-                    <label>Original</label>
-                    <img id="modalOriginal" src="" alt="Original">
+            <!-- Header -->
+            <div class="modal-header">
+                <div class="modal-header-left">
+                    <span class="modal-title" id="modalTitle">Generation</span>
+                    <span class="status" id="modalStatus"></span>
+                    <span class="modal-title-id" id="modalTitleId"></span>
                 </div>
-                <div class="modal-image-box">
-                    <label>Result</label>
-                    <img id="modalResult" src="" alt="Result">
-                </div>
+                <button class="modal-close" onclick="closeModal()" aria-label="Close">&times;</button>
             </div>
-            <div class="modal-story-grid" id="modalStoryGrid" style="display:none;"></div>
-            <div class="modal-details" id="modalDetails"></div>
+
+            <!-- Body: references | result -->
+            <div class="modal-body" id="modalBody">
+                <aside class="modal-refs" id="modalRefs">
+                    <div class="modal-section-label">
+                        References<span class="count" id="modalRefsCount"></span>
+                    </div>
+                    <div class="modal-refs-list" id="modalRefsList"></div>
+                </aside>
+                <main class="modal-result" id="modalResult"></main>
+            </div>
+
+            <!-- Footer: metadata -->
+            <div class="modal-footer">
+                <div class="modal-details" id="modalDetails"></div>
+            </div>
         </div>
+    </div>
+
+    <!-- Credit Adjustment Modal (Admin users view) -->
+    <div class="credit-modal-overlay" id="creditModalOverlay" onclick="closeCreditModal(event)">
+        <div class="credit-modal" onclick="event.stopPropagation()">
+            <h2 id="creditModalEmail">User</h2>
+            <div class="credit-modal-user" id="creditModalUserId"></div>
+
+            <div class="credit-modal-current">
+                <span class="label">Current Balance</span>
+                <span class="value" id="creditModalCurrent">0</span>
+            </div>
+
+            <div class="credit-modal-mode">
+                <button class="mode-btn active" data-mode="add">+ Add</button>
+                <button class="mode-btn" data-mode="subtract">− Subtract</button>
+                <button class="mode-btn" data-mode="set">= Set</button>
+            </div>
+
+            <input type="number" class="credit-modal-input" id="creditModalAmount"
+                   placeholder="Amount" min="0" step="1" />
+
+            <input type="text" class="credit-modal-reason" id="creditModalReason"
+                   placeholder="Reason (optional, for log)" />
+
+            <div class="credit-modal-preview" id="creditModalPreview">Enter amount to preview</div>
+
+            <div class="credit-modal-actions">
+                <button class="btn" onclick="closeCreditModal()">Cancel</button>
+                <button class="btn btn-primary" id="creditModalApply" onclick="applyCreditChange()">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lightbox (opens when clicking an image inside the modal) -->
+    <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox(event)">
+        <img class="lightbox-image" id="lightboxImage" src="" alt="" onclick="event.stopPropagation()">
+        <button class="lightbox-close" onclick="closeLightbox()" aria-label="Close">&times;</button>
+        <a class="lightbox-open-new-tab" id="lightboxNewTab" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open original ↗</a>
     </div>
 
     <script>
@@ -529,7 +1297,13 @@
             'ecommerce-kits': { label: 'E-commerce Kits', sourceTable: 'product_kits' },
             'product-stories': { label: 'Product Stories', sourceTable: 'product_stories' },
             'unboxing-stories': { label: 'Unboxing Stories', sourceTable: 'product_unboxing_stories' },
+            'street-icon-kits': { label: 'Street Icon Kits', sourceTable: 'product_street_icon_kits' },
+            'users': { label: 'Users', sourceTable: 'users', isAdmin: true },
         };
+
+        const isAdminFeature = () => FEATURES[currentFeature]?.isAdmin === true;
+        let userSearchQuery = '';
+        let userSearchTimer = null;
 
         // Read state from URL
         function readUrlState() {
@@ -596,7 +1370,7 @@
                 if (typeof imgs === 'string') { try { const p = JSON.parse(imgs); if (Array.isArray(p) && p.length > 0) { const f = p[0]; return (f && typeof f === 'object') ? (f.url || '') : (f || ''); } } catch(e) {} }
                 return '';
             }
-            if (src === 'product_stories' || src === 'product_unboxing_stories') {
+            if (src === 'product_stories' || src === 'product_unboxing_stories' || src === 'product_street_icon_kits') {
                 const imgs = item.story_images;
                 if (Array.isArray(imgs) && imgs.length > 0) return imgs[0]?.url || imgs[0];
                 if (typeof imgs === 'string') { try { const p = JSON.parse(imgs); return Array.isArray(p) && p.length > 0 ? (p[0]?.url || p[0]) : ''; } catch(e) { return ''; } }
@@ -605,21 +1379,26 @@
             return item.result_image_url || '';
         }
 
-        function getOriginalUrl(item) {
+        function getOriginalUrls(item) {
             const src = getSourceTable();
             if (src === 'reference_results') {
                 const refs = item.reference_images;
-                if (Array.isArray(refs) && refs.length > 0) return refs[0];
-                if (typeof refs === 'string') { try { const p = JSON.parse(refs); return Array.isArray(p) && p.length > 0 ? p[0] : ''; } catch(e) { return ''; } }
-                return '';
+                if (Array.isArray(refs)) return refs.filter(Boolean);
+                if (typeof refs === 'string') { try { const p = JSON.parse(refs); return Array.isArray(p) ? p.filter(Boolean) : []; } catch(e) { return []; } }
+                return [];
             }
-            if (src === 'product_kits' || src === 'product_stories' || src === 'product_unboxing_stories') {
+            if (src === 'product_kits' || src === 'product_stories' || src === 'product_unboxing_stories' || src === 'product_street_icon_kits') {
                 const photos = item.original_photos;
-                if (Array.isArray(photos) && photos.length > 0) return photos[0];
-                if (typeof photos === 'string') { try { const p = JSON.parse(photos); return Array.isArray(p) && p.length > 0 ? p[0] : ''; } catch(e) { return ''; } }
-                return '';
+                if (Array.isArray(photos)) return photos.filter(Boolean);
+                if (typeof photos === 'string') { try { const p = JSON.parse(photos); return Array.isArray(p) ? p.filter(Boolean) : []; } catch(e) { return []; } }
+                return [];
             }
-            return item.original_image_url || '';
+            return item.original_image_url ? [item.original_image_url] : [];
+        }
+
+        function getOriginalUrl(item) {
+            const urls = getOriginalUrls(item);
+            return urls[0] || '';
         }
 
         function getCredits(item) {
@@ -652,8 +1431,21 @@
                 currentFeature = btn.dataset.feature;
                 document.getElementById('pageTitle').textContent = btn.textContent;
                 currentPage = 1;
+                userSearchQuery = '';
+                const searchEl = document.getElementById('userSearch');
+                if (searchEl) searchEl.value = '';
                 fetchData();
             });
+        });
+
+        // Users search (debounced)
+        document.getElementById('userSearch').addEventListener('input', (e) => {
+            clearTimeout(userSearchTimer);
+            userSearchTimer = setTimeout(() => {
+                userSearchQuery = e.target.value.trim();
+                currentPage = 1;
+                fetchUsers();
+            }, 250);
         });
 
         // Status filter
@@ -667,12 +1459,37 @@
             fetchData();
         }
 
+        // Header controls: swap filter vs. search depending on feature
+        function updateHeaderControls() {
+            const admin = isAdminFeature();
+            document.getElementById('headerControlsGenerations').style.display = admin ? 'none' : '';
+            document.getElementById('headerControlsUsers').style.display = admin ? '' : 'none';
+            document.getElementById('grid').style.display = admin ? 'none' : '';
+            document.getElementById('usersTableContainer').style.display = admin ? '' : 'none';
+        }
+
         async function fetchData() {
+            updateHeaderControls();
+            if (isAdminFeature()) {
+                return fetchUsers();
+            }
+
             const grid = document.getElementById('grid');
             const loading = document.getElementById('loading');
             const empty = document.getElementById('empty');
             const pagination = document.getElementById('pagination');
             const status = document.getElementById('statusFilter').value;
+
+            const headerCount = document.getElementById('headerCount');
+            const setCount = (n) => {
+                if (n == null || n === '' || n === 0) {
+                    headerCount.textContent = '0';
+                    headerCount.classList.add('empty');
+                } else {
+                    headerCount.textContent = Number(n).toLocaleString();
+                    headerCount.classList.remove('empty');
+                }
+            };
 
             if (window.location.protocol === 'file:') {
                 grid.innerHTML = '';
@@ -680,7 +1497,7 @@
                 empty.style.display = 'block';
                 empty.textContent = 'Sayfa dosyadan açıldığı için API kullanılamaz. Sunucuyu başlatıp http://localhost:PORT/admin-dashboard.html adresini açın.';
                 pagination.style.display = 'none';
-                document.getElementById('statsText').textContent = '';
+                setCount(0);
                 return;
             }
 
@@ -699,12 +1516,12 @@
 
                 if (!json.success || !json.data || json.data.length === 0) {
                     empty.style.display = 'block';
-                    document.getElementById('statsText').textContent = '0 results';
+                    setCount(0);
                     return;
                 }
 
                 totalPages = json.totalPages;
-                document.getElementById('statsText').textContent = `${json.total} total`;
+                setCount(json.total);
 
                 json.data.forEach(item => {
                     const card = document.createElement('div');
@@ -714,7 +1531,11 @@
                     const dateStr = timeAgo(item.created_at);
 
                     const statusVal = item.status || '';
-                    const statusClass = statusVal === 'completed' ? 'badge-completed' : statusVal === 'pending' ? 'badge-pending' : 'badge-processing';
+                    const statusClass =
+                        statusVal === 'completed' ? 'status-completed' :
+                        statusVal === 'failed' ? 'status-failed' :
+                        statusVal === 'pending' ? 'status-pending' :
+                        statusVal === 'processing' ? 'status-processing' : '';
 
                     const resultUrl = getResultUrl(item);
                     const originalUrl = getOriginalUrl(item);
@@ -726,6 +1547,24 @@
                     const userEmail = item.user_email || '';
                     const userCredits = item.user_credit_balance != null ? item.user_credit_balance : '';
 
+                    // Bundle feature'lar (stories, unboxing, kits) → kredi miktarı badge'i
+                    // Diğer feature'lar → 35 kredi = v2, diğer = v1 badge
+                    // Kredi yok/0 → FREE badge (hepsinde)
+                    const BUNDLE_FEATURES = ['product-stories', 'unboxing-stories', 'ecommerce-kits'];
+                    const creditNum = Number(credits);
+                    const hasCredits = Number.isFinite(creditNum) && creditNum > 0;
+                    let qualityBadgeHtml = '';
+                    if (hasCredits) {
+                        if (BUNDLE_FEATURES.includes(currentFeature)) {
+                            qualityBadgeHtml = `<span class="quality-badge v1">${creditNum} cr</span>`;
+                        } else {
+                            const ver = creditNum === 35 ? 'v2' : 'v1';
+                            qualityBadgeHtml = `<span class="quality-badge ${ver}">${ver}</span>`;
+                        }
+                    } else {
+                        qualityBadgeHtml = `<span class="quality-badge free">FREE</span>`;
+                    }
+
                     card.innerHTML = `
                         <div class="card-image-container">
                             ${resultUrl ? `<img class="card-image" src="${cardResultUrl}" alt="Result" loading="lazy" onerror="this.style.display='none'">` : ''}
@@ -734,8 +1573,8 @@
                         <div class="card-info">
                             <span class="card-date">${dateStr}</span>
                             <div class="card-meta">
-                                ${statusVal ? `<span class="badge ${statusClass}">${statusVal}</span>` : ''}
-                                ${credits ? `<span class="card-credits">${credits} cr</span>` : ''}
+                                ${statusVal ? `<span class="status ${statusClass}">${statusVal}</span>` : ''}
+                                ${qualityBadgeHtml}
                             </div>
                         </div>
                         ${userEmail ? `<div class="card-user">
@@ -764,94 +1603,400 @@
             }
         }
 
-        function openModal(item) {
-            const overlay = document.getElementById('modalOverlay');
-            const modalImages = document.getElementById('modalImages');
-            const storyGrid = document.getElementById('modalStoryGrid');
-            const src = getSourceTable();
+        function escapeHtml(s) {
+            if (s == null) return '';
+            return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+        }
 
-            // Story/Unboxing: show all images in grid, hide default two-image layout
-            if ((src === 'product_stories' || src === 'product_unboxing_stories') && Array.isArray(item.story_images) && item.story_images.length > 1) {
-                modalImages.style.display = 'none';
-                storyGrid.style.display = 'grid';
-                storyGrid.innerHTML = item.story_images.map(img => {
-                    const url = img?.url || img;
-                    const label = img?.type || '';
-                    return `<div class="story-item">
-                        <img src="${cdnUrl(url, { width: 500, height: 750, quality: 85 })}" alt="${label}" loading="lazy">
-                        <div class="story-label">${label}</div>
-                    </div>`;
-                }).join('');
-            } else {
-                modalImages.style.display = 'flex';
-                storyGrid.style.display = 'none';
-                storyGrid.innerHTML = '';
-                document.getElementById('modalOriginal').src = cdnUrl(getOriginalUrl(item), { width: 800, height: 1200, quality: 85 });
-                document.getElementById('modalResult').src = cdnUrl(getResultUrl(item), { width: 800, height: 1200, quality: 85 });
+        // ─────────────────────────────────────────────────────────────
+        // USERS (Admin)
+        // ─────────────────────────────────────────────────────────────
+        async function fetchUsers() {
+            const container = document.getElementById('usersTableContainer');
+            const loading = document.getElementById('loading');
+            const empty = document.getElementById('empty');
+            const pagination = document.getElementById('pagination');
+            const headerCount = document.getElementById('headerCount');
+
+            if (window.location.protocol === 'file:') {
+                container.innerHTML = '';
+                empty.style.display = 'block';
+                empty.textContent = 'Sayfa dosyadan açıldığı için API kullanılamaz.';
+                pagination.style.display = 'none';
+                headerCount.textContent = '0';
+                headerCount.classList.add('empty');
+                return;
             }
 
-            const details = document.getElementById('modalDetails');
+            updateUrl();
+            container.innerHTML = '';
+            loading.style.display = 'block';
+            empty.style.display = 'none';
+            pagination.style.display = 'none';
+
+            try {
+                const params = new URLSearchParams({
+                    page: currentPage,
+                    limit: 50,
+                });
+                if (userSearchQuery) params.set('search', userSearchQuery);
+                const res = await fetch(`/api/admin-dashboard/users?${params.toString()}`);
+                const json = await res.json();
+
+                loading.style.display = 'none';
+
+                if (!json.success || !json.data || json.data.length === 0) {
+                    empty.style.display = 'block';
+                    empty.textContent = userSearchQuery ? 'Eşleşen kullanıcı bulunamadı.' : 'Kullanıcı yok.';
+                    headerCount.textContent = '0';
+                    headerCount.classList.add('empty');
+                    return;
+                }
+
+                totalPages = json.totalPages;
+                headerCount.textContent = Number(json.total || 0).toLocaleString();
+                headerCount.classList.remove('empty');
+
+                renderUsers(json.data);
+
+                if (totalPages > 1) {
+                    pagination.style.display = 'flex';
+                    document.getElementById('prevBtn').disabled = currentPage <= 1;
+                    document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+                    document.getElementById('pageInput').value = currentPage;
+                    document.getElementById('pageInput').max = totalPages;
+                    document.getElementById('totalPagesText').textContent = totalPages;
+                }
+            } catch (err) {
+                loading.style.display = 'none';
+                empty.style.display = 'block';
+                empty.textContent = 'Users yüklenemedi.';
+                console.error(err);
+            }
+        }
+
+        function renderUsers(users) {
+            const container = document.getElementById('usersTableContainer');
+            const rows = users.map(u => {
+                const created = u.created_at ? timeAgo(u.created_at) : '';
+                const credits = u.credit_balance != null ? Number(u.credit_balance).toLocaleString() : '0';
+                const proPill = u.is_pro
+                    ? `<span class="u-pill pro">${escapeHtml(u.subscription_type || 'PRO')}</span>`
+                    : `<span class="u-pill free">FREE</span>`;
+                const shortId = u.id ? String(u.id).slice(0, 8) : '';
+                return `<tr data-user='${escapeHtml(JSON.stringify(u))}'>
+                    <td class="u-email" title="${escapeHtml(u.email || '')}">${escapeHtml(u.email || '(no email)')}</td>
+                    <td class="u-id" title="${escapeHtml(u.id || '')}">${escapeHtml(shortId)}…</td>
+                    <td>${proPill}</td>
+                    <td class="u-credits">${credits}</td>
+                    <td class="u-date">${created}</td>
+                </tr>`;
+            }).join('');
+
+            container.innerHTML = `
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>User ID</th>
+                            <th>Plan</th>
+                            <th style="text-align:right;">Credits</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            `;
+
+            container.querySelectorAll('tbody tr').forEach(tr => {
+                tr.addEventListener('click', () => {
+                    try {
+                        const user = JSON.parse(tr.getAttribute('data-user'));
+                        openCreditModal(user);
+                    } catch (e) { console.warn(e); }
+                });
+            });
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // CREDIT MODAL
+        // ─────────────────────────────────────────────────────────────
+        let creditModalUser = null;
+        let creditModalMode = 'add';
+
+        function openCreditModal(user) {
+            creditModalUser = user;
+            creditModalMode = 'add';
+            document.getElementById('creditModalEmail').textContent = user.email || '(no email)';
+            document.getElementById('creditModalUserId').textContent = `User ID: ${user.id}`;
+            document.getElementById('creditModalCurrent').textContent =
+                Number(user.credit_balance || 0).toLocaleString();
+            document.getElementById('creditModalAmount').value = '';
+            document.getElementById('creditModalReason').value = '';
+            document.querySelectorAll('.credit-modal-mode .mode-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.mode === 'add');
+            });
+            updateCreditPreview();
+            document.getElementById('creditModalOverlay').classList.add('active');
+            setTimeout(() => document.getElementById('creditModalAmount').focus(), 50);
+        }
+
+        function closeCreditModal(event) {
+            if (event && event.target !== document.getElementById('creditModalOverlay')) return;
+            document.getElementById('creditModalOverlay').classList.remove('active');
+            creditModalUser = null;
+        }
+
+        function updateCreditPreview() {
+            if (!creditModalUser) return;
+            const preview = document.getElementById('creditModalPreview');
+            const raw = document.getElementById('creditModalAmount').value;
+            const amount = Number(raw);
+            const current = Number(creditModalUser.credit_balance || 0);
+            if (!raw || !Number.isFinite(amount) || amount < 0) {
+                preview.textContent = 'Enter amount to preview';
+                return;
+            }
+            let next, label;
+            if (creditModalMode === 'add') { next = current + amount; label = `+${amount}`; }
+            else if (creditModalMode === 'subtract') { next = Math.max(0, current - amount); label = `−${amount}`; }
+            else { next = amount; label = `= ${amount}`; }
+            preview.textContent = `${current.toLocaleString()} → ${next.toLocaleString()} (${label})`;
+        }
+
+        // Mode buttons + amount input
+        document.addEventListener('click', (e) => {
+            const modeBtn = e.target.closest && e.target.closest('.credit-modal-mode .mode-btn');
+            if (!modeBtn) return;
+            creditModalMode = modeBtn.dataset.mode;
+            document.querySelectorAll('.credit-modal-mode .mode-btn').forEach(b => {
+                b.classList.toggle('active', b === modeBtn);
+            });
+            updateCreditPreview();
+        });
+        document.addEventListener('input', (e) => {
+            if (e.target.id === 'creditModalAmount') updateCreditPreview();
+        });
+
+        async function applyCreditChange() {
+            if (!creditModalUser) return;
+            const applyBtn = document.getElementById('creditModalApply');
+            const raw = document.getElementById('creditModalAmount').value;
+            const amount = Number(raw);
+            const reason = document.getElementById('creditModalReason').value.trim();
+            if (!Number.isFinite(amount) || amount < 0) {
+                alert('Geçerli bir miktar gir (0 veya üstü).');
+                return;
+            }
+            applyBtn.disabled = true;
+            applyBtn.textContent = 'Applying…';
+            try {
+                const res = await fetch(`/api/admin-dashboard/users/${encodeURIComponent(creditModalUser.id)}/credits`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: creditModalMode, amount, reason }),
+                });
+                const json = await res.json();
+                if (!json.success) throw new Error(json.error || 'Update failed');
+                closeCreditModal({ target: document.getElementById('creditModalOverlay') });
+                fetchUsers();
+            } catch (err) {
+                alert('Kredi güncellenemedi: ' + err.message);
+                console.error(err);
+            } finally {
+                applyBtn.disabled = false;
+                applyBtn.textContent = 'Apply';
+            }
+        }
+
+        function detailRow(label, value) {
+            return `<div class="modal-detail">
+                <span class="modal-detail-label">${escapeHtml(label)}</span>
+                <span class="modal-detail-value" title="${escapeHtml(value)}">${escapeHtml(value)}</span>
+            </div>`;
+        }
+
+        // Kopyalanabilir tam değer (email, user id, generation id) —
+        // tıklanınca clipboard'a kopyalar, kısa süre "✓" gösterir.
+        function detailRowCopyable(label, value, { wide = false } = {}) {
+            if (value == null || value === '') return '';
+            const v = String(value);
+            return `<div class="modal-detail${wide ? ' wide' : ''}">
+                <span class="modal-detail-label">${escapeHtml(label)}</span>
+                <span class="modal-detail-value copyable"
+                      data-copy="${escapeHtml(v)}"
+                      title="Tıkla — kopyala">${escapeHtml(v)}</span>
+            </div>`;
+        }
+
+        // Click-to-copy — event delegation
+        document.addEventListener('click', async (e) => {
+            const el = e.target.closest && e.target.closest('.modal-detail-value.copyable');
+            if (!el) return;
+            const value = el.getAttribute('data-copy');
+            if (!value) return;
+            e.stopPropagation();
+            try {
+                if (navigator.clipboard?.writeText) {
+                    await navigator.clipboard.writeText(value);
+                } else {
+                    const ta = document.createElement('textarea');
+                    ta.value = value;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                }
+                el.classList.add('copied');
+                setTimeout(() => el.classList.remove('copied'), 1200);
+            } catch (err) {
+                console.warn('Copy failed:', err);
+            }
+        });
+
+        function openModal(item) {
+            const overlay = document.getElementById('modalOverlay');
+            const src = getSourceTable();
+
+            // ---- Header: title + status dot + short ID ----
+            const featureLabel = FEATURES[currentFeature]?.label || 'Generation';
+            document.getElementById('modalTitle').textContent = featureLabel;
+
+            const statusVal = item.status || '';
+            const statusClass =
+                statusVal === 'completed' ? 'status-completed' :
+                statusVal === 'failed' ? 'status-failed' :
+                statusVal === 'pending' ? 'status-pending' :
+                statusVal === 'processing' ? 'status-processing' : '';
+            const statusEl = document.getElementById('modalStatus');
+            if (statusVal) {
+                statusEl.className = 'status ' + statusClass;
+                statusEl.textContent = statusVal;
+                statusEl.style.display = '';
+            } else {
+                statusEl.style.display = 'none';
+            }
+
+            const shortId = item.generation_id || item.id || '';
+            const titleIdEl = document.getElementById('modalTitleId');
+            if (shortId) {
+                titleIdEl.textContent = String(shortId).slice(0, 8);
+                titleIdEl.style.display = '';
+            } else {
+                titleIdEl.style.display = 'none';
+            }
+
+            // ---- Body: references (left) | result (right) ----
+            const body = document.getElementById('modalBody');
+            const refsPanel = document.getElementById('modalRefs');
+            const refsList = document.getElementById('modalRefsList');
+            const refsCount = document.getElementById('modalRefsCount');
+            const resultPanel = document.getElementById('modalResult');
+            resultPanel.classList.remove('is-grid');
+
+            const originalUrls = getOriginalUrls(item);
+
+            if (originalUrls.length > 0) {
+                refsPanel.classList.remove('hidden');
+                body.classList.remove('no-refs');
+                refsCount.textContent = originalUrls.length > 1 ? ` (${originalUrls.length})` : '';
+                refsList.innerHTML = originalUrls.map((u, i) => `
+                    <div class="modal-ref-item">
+                        <img src="${cdnUrl(u, { width: 600, height: 900, quality: 85 })}"
+                             alt="Reference ${i + 1}"
+                             loading="lazy"
+                             data-lightbox="${escapeHtml(u)}"
+                             onerror="this.parentElement.style.display='none'">
+                        ${originalUrls.length > 1 ? `<div class="modal-ref-index">${i + 1}</div>` : ''}
+                    </div>
+                `).join('');
+            } else {
+                refsPanel.classList.add('hidden');
+                body.classList.add('no-refs');
+                refsList.innerHTML = '';
+                refsCount.textContent = '';
+            }
+
+            // Result: story-grid (product/unboxing stories, kits) or single image
+            if ((src === 'product_stories' || src === 'product_unboxing_stories' || src === 'product_street_icon_kits') &&
+                Array.isArray(item.story_images) && item.story_images.length > 1) {
+                resultPanel.classList.add('is-grid');
+                resultPanel.innerHTML = `
+                    <div class="modal-story-grid">
+                        ${item.story_images.map(img => {
+                            const url = img?.url || img;
+                            const label = img?.type || '';
+                            return `<div class="story-item">
+                                <img src="${cdnUrl(url, { width: 500, height: 750, quality: 85 })}"
+                                     alt="${escapeHtml(label)}"
+                                     loading="lazy"
+                                     data-lightbox="${escapeHtml(url)}">
+                                <div class="story-label">${escapeHtml(label)}</div>
+                            </div>`;
+                        }).join('')}
+                    </div>`;
+            } else if (src === 'product_kits') {
+                let kitImgs = item.kit_images;
+                if (typeof kitImgs === 'string') { try { kitImgs = JSON.parse(kitImgs); } catch(e) { kitImgs = []; } }
+                if (Array.isArray(kitImgs) && kitImgs.length > 1) {
+                    resultPanel.classList.add('is-grid');
+                    resultPanel.innerHTML = `
+                        <div class="modal-story-grid">
+                            ${kitImgs.map((img, i) => {
+                                const url = (img && typeof img === 'object') ? (img.url || '') : (img || '');
+                                const type = (img && typeof img === 'object') ? (img.type || '') : '';
+                                if (!url) return '';
+                                return `<div class="story-item">
+                                    <img src="${cdnUrl(url, { width: 500, height: 750, quality: 85 })}"
+                                         alt="${escapeHtml(type)}"
+                                         loading="lazy"
+                                         data-lightbox="${escapeHtml(url)}">
+                                    <div class="story-label">${escapeHtml(type || 'scene ' + (i + 1))}</div>
+                                </div>`;
+                            }).join('')}
+                        </div>`;
+                } else {
+                    const resultUrl = getResultUrl(item);
+                    resultPanel.innerHTML = resultUrl
+                        ? `<img src="${cdnUrl(resultUrl, { width: 1200, height: 1800, quality: 90 })}" alt="Result" data-lightbox="${escapeHtml(resultUrl)}" style="cursor: zoom-in;">`
+                        : `<div style="color: var(--text-tertiary); font-size: 14px;">No result image</div>`;
+                }
+            } else {
+                const resultUrl = getResultUrl(item);
+                resultPanel.innerHTML = resultUrl
+                    ? `<img src="${cdnUrl(resultUrl, { width: 1200, height: 1800, quality: 90 })}" alt="Result" data-lightbox="${escapeHtml(resultUrl)}" style="cursor: zoom-in;">`
+                    : `<div style="color: var(--text-tertiary); font-size: 14px;">No result image</div>`;
+            }
+
+            // ---- Footer: metadata ----
             const credits = getCredits(item);
             const ago = timeAgo(item.created_at);
 
-            let detailsHtml = `
-                <div class="modal-detail"><span>Generation ID</span><span>${item.generation_id || '-'}</span></div>
-                <div class="modal-detail"><span>Created</span><span>${ago}</span></div>
-                <div class="modal-detail"><span>Status</span><span>${item.status || '-'}</span></div>
-                <div class="modal-detail"><span>Credits</span><span>${credits || '-'}</span></div>
-            `;
-            if (src === 'product_stories' || src === 'product_unboxing_stories' || src === 'product_kits') {
-                detailsHtml += `
-                    <div class="modal-detail"><span>Total Images</span><span>${item.total_images_generated || '-'}</span></div>
-                    <div class="modal-detail"><span>Processing Time</span><span>${item.processing_time_seconds ? item.processing_time_seconds + 's' : '-'}</span></div>
-                    <div class="modal-detail"><span>Free Tier</span><span>${item.is_free_tier != null ? (item.is_free_tier ? 'Yes' : 'No') : '-'}</span></div>
-                `;
+            let detailsHtml = '';
+            detailsHtml += detailRow('Created', ago);
+            if (credits) detailsHtml += detailRow('Credits', credits);
+
+            if (src === 'product_stories' || src === 'product_unboxing_stories' || src === 'product_kits' || src === 'product_street_icon_kits') {
+                if (item.total_images_generated != null) detailsHtml += detailRow('Total Images', item.total_images_generated);
+                if (item.processing_time_seconds) detailsHtml += detailRow('Processing', item.processing_time_seconds + 's');
+                if (item.is_free_tier != null) detailsHtml += detailRow('Free Tier', item.is_free_tier ? 'Yes' : 'No');
             } else {
-                detailsHtml += `
-                    <div class="modal-detail"><span>Aspect Ratio</span><span>${item.aspect_ratio || '-'}</span></div>
-                    <div class="modal-detail"><span>Quality</span><span>${item.quality_version || '-'}</span></div>
-                `;
-            }
-            detailsHtml += `<div class="modal-detail"><span>User ID</span><span>${item.user_id ? item.user_id.slice(0, 8) + '...' : '-'}</span></div>`;
-            detailsHtml += `<div class="modal-detail"><span>Email</span><span>${item.user_email || '-'}</span></div>`;
-            detailsHtml += `<div class="modal-detail"><span>User Credits</span><span>${item.user_credit_balance != null ? item.user_credit_balance : '-'}</span></div>`;
-
-            // Brand assets for unboxing stories
-            if (src === 'product_unboxing_stories') {
-                if (item.brand_name) {
-                    detailsHtml += `<div class="modal-detail"><span>Brand Name</span><span>${item.brand_name}</span></div>`;
-                }
-                let brandHtml = '';
-                if (item.brand_logo_url) {
-                    brandHtml += `<div class="brand-asset-box"><label>Brand Logo</label><img src="${cdnUrl(item.brand_logo_url, { width: 160, height: 160, quality: 85, fit: 'contain' })}" alt="Logo" onerror="this.style.display='none'"></div>`;
-                }
-                if (item.custom_package_url) {
-                    brandHtml += `<div class="brand-asset-box"><label>Custom Package</label><img src="${cdnUrl(item.custom_package_url, { width: 160, height: 160, quality: 85, fit: 'contain' })}" alt="Package" onerror="this.style.display='none'"></div>`;
-                }
-                if (brandHtml) {
-                    detailsHtml += `</div><div class="brand-assets">${brandHtml}`;
-                }
+                if (item.aspect_ratio) detailsHtml += detailRow('Aspect Ratio', item.aspect_ratio);
+                if (item.quality_version) detailsHtml += detailRow('Quality', item.quality_version);
             }
 
-            // Kit images grid for ecommerce-kits
-            if (src === 'product_kits') {
-                let kitImgs = item.kit_images;
-                if (typeof kitImgs === 'string') { try { kitImgs = JSON.parse(kitImgs); } catch(e) { kitImgs = []; } }
-                if (Array.isArray(kitImgs) && kitImgs.length > 0) {
-                    let gridHtml = '</div><div style="margin-top:12px"><label style="font-weight:600;font-size:13px;color:#444;margin-bottom:6px;display:block">All Kit Images (' + kitImgs.length + ')</label><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">';
-                    kitImgs.forEach((img, i) => {
-                        const url = (img && typeof img === 'object') ? (img.url || '') : (img || '');
-                        const type = (img && typeof img === 'object') ? (img.type || '') : '';
-                        if (url) {
-                            gridHtml += `<div style="text-align:center"><img src="${cdnUrl(url, { width: 300, height: 450, quality: 80 })}" style="width:100%;border-radius:6px;cursor:pointer" onclick="window.open('${url}','_blank')" onerror="this.style.display='none'"><div style="font-size:10px;color:#888;margin-top:2px">${type || 'scene ' + (i+1)}</div></div>`;
-                        }
-                    });
-                    gridHtml += '</div>';
-                    detailsHtml += gridHtml;
-                }
+            if (item.user_email) detailsHtml += detailRowCopyable('Email', item.user_email, { wide: true });
+            if (item.user_credit_balance != null) detailsHtml += detailRow('User Credits', item.user_credit_balance);
+            if (item.user_id) detailsHtml += detailRowCopyable('User ID', item.user_id, { wide: true });
+            if (item.generation_id) detailsHtml += detailRowCopyable('Generation ID', item.generation_id, { wide: true });
+
+            if (src === 'product_unboxing_stories' && item.brand_name) {
+                detailsHtml += detailRow('Brand', item.brand_name);
             }
 
-            details.innerHTML = detailsHtml;
+            document.getElementById('modalDetails').innerHTML = detailsHtml;
 
             overlay.classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -863,10 +2008,53 @@
             document.body.style.overflow = '';
         }
 
-        // ESC to close
+        // Lightbox (in-page image viewer)
+        function openLightbox(url) {
+            if (!url) return;
+            const overlay = document.getElementById('lightboxOverlay');
+            const img = document.getElementById('lightboxImage');
+            const link = document.getElementById('lightboxNewTab');
+            img.src = url;
+            link.href = url;
+            overlay.classList.add('active');
+        }
+
+        function closeLightbox(event) {
+            if (event && event.target.tagName === 'IMG') return;
+            document.getElementById('lightboxOverlay').classList.remove('active');
+            // src'yi boşaltarak memory temizle (biraz sonra)
+            setTimeout(() => {
+                const img = document.getElementById('lightboxImage');
+                if (!document.getElementById('lightboxOverlay').classList.contains('active')) {
+                    img.src = '';
+                }
+            }, 200);
+        }
+
+        // ESC to close — önce lightbox, sonra credit modal, sonra generation modal
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeModal();
+            if (e.key !== 'Escape') return;
+            const lightbox = document.getElementById('lightboxOverlay');
+            const creditModal = document.getElementById('creditModalOverlay');
+            if (lightbox && lightbox.classList.contains('active')) {
+                closeLightbox();
+            } else if (creditModal && creditModal.classList.contains('active')) {
+                closeCreditModal({ target: creditModal });
+            } else {
+                closeModal();
+            }
         });
+
+        // Event delegation: any <img data-lightbox="..."> click opens lightbox.
+        // Bound on document so it catches every img inside modal, regardless of structure.
+        document.addEventListener('click', (e) => {
+            const img = e.target.closest && e.target.closest('img[data-lightbox]');
+            if (img) {
+                e.stopPropagation();
+                const url = img.getAttribute('data-lightbox');
+                if (url) openLightbox(url);
+            }
+        }, true); // capture phase — runs before any inline onclick on ancestors
 
         // Initial load — read URL state first
         readUrlState();

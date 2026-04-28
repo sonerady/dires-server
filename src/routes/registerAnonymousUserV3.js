@@ -4,9 +4,30 @@ const router = express.Router();
 const { v4: uuidv4 } = require("uuid");
 const { supabase } = require("../supabaseClient"); // Halihazırda BE tarafında supabaseClient.js var
 
+const ALLOWED_PLATFORMS = new Set(["ios", "android", "web"]);
+const ALLOWED_THEMES = new Set(["light", "dark"]);
+
+const sanitizeMetadata = ({ appVersion, platform, themeMode } = {}) => {
+  const out = {};
+  if (typeof appVersion === "string" && appVersion.length > 0 && appVersion.length <= 32) {
+    out.app_version = appVersion;
+  }
+  if (typeof platform === "string" && ALLOWED_PLATFORMS.has(platform)) {
+    out.platform = platform;
+  }
+  if (typeof themeMode === "string" && ALLOWED_THEMES.has(themeMode)) {
+    out.theme_mode = themeMode;
+  }
+  if (Object.keys(out).length > 0) {
+    out.metadata_updated_at = new Date().toISOString();
+  }
+  return out;
+};
+
 router.post("/registerAnonymousUser", async (req, res) => {
   try {
-    let { userId, deviceId } = req.body;
+    let { userId, deviceId, appVersion, platform, themeMode } = req.body;
+    const metadataUpdates = sanitizeMetadata({ appVersion, platform, themeMode });
     console.log("🆔 [REGISTER] userId:", userId, "deviceId:", deviceId);
 
     // 🛡️ GÜVENLIK: Device ID bazlı kredi kontrolü
@@ -91,6 +112,7 @@ router.post("/registerAnonymousUser", async (req, res) => {
               initial_credit_date: new Date().toISOString(), // 📅 Kredi alım tarihi
               created_at: new Date().toISOString(),
               owner: false, // 👤 Owner değil (default false)
+              ...metadataUpdates,
             },
           ]);
 
@@ -123,6 +145,13 @@ router.post("/registerAnonymousUser", async (req, res) => {
           );
         }
 
+        if (Object.keys(metadataUpdates).length > 0) {
+          await supabase
+            .from("users")
+            .update(metadataUpdates)
+            .eq("id", userId);
+        }
+
         console.log(
           `✅ [EXISTING] Mevcut kullanıcı: ${userId} (Kredi: ${user.credit_balance})`
         );
@@ -145,6 +174,7 @@ router.post("/registerAnonymousUser", async (req, res) => {
           initial_credit_date: new Date().toISOString(), // 📅 Kredi alım tarihi
           created_at: new Date().toISOString(),
           owner: false, // 👤 Owner değil (default false)
+          ...metadataUpdates,
         },
       ]);
 

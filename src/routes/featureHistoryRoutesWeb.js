@@ -1030,4 +1030,79 @@ router.get("/unboxing-stories/:userId", async (req, res) => {
   }
 });
 
+/**
+ * GET /api/feature-historyWeb/street-icons/:userId
+ * Street Icon kits history from product_street_icon_kits table
+ */
+router.get("/street-icons/:userId", async (req, res) => {
+  try {
+    const setup = await setupRequest(req);
+    if (setup.error)
+      return res.status(400).json({ success: false, message: setup.error });
+
+    const { userId, parsedLimit, parsedPage, offset, memberIds, isTeamMember, ascending } =
+      setup;
+
+    logger.log(
+      `📊 [FEATURE-HISTORY-WEB] Fetching street-icons history for user: ${userId}`,
+    );
+
+    const { count: totalCount, error: countError } = await retryQuery(() =>
+      supabase
+        .from("product_street_icon_kits")
+        .select("*", { count: "exact", head: true })
+        .in("user_id", memberIds),
+    );
+
+    if (countError) {
+      console.error(
+        "❌ [FEATURE-HISTORY-WEB] street-icons count error:",
+        countError,
+      );
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch count" });
+    }
+
+    const { data, error } = await retryQuery(() =>
+      supabase
+        .from("product_street_icon_kits")
+        .select(
+          `id, user_id, generation_id, original_photos, story_images, processing_time_seconds, total_images_generated, credits_used, is_free_tier, created_at`,
+        )
+        .in("user_id", memberIds)
+        .order("created_at", { ascending })
+        .range(offset, offset + parsedLimit - 1),
+    );
+
+    if (error) {
+      console.error(
+        "❌ [FEATURE-HISTORY-WEB] street-icons query error:",
+        error,
+      );
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch data" });
+    }
+
+    logger.log(
+      `📊 [FEATURE-HISTORY-WEB] street-icons: ${data?.length || 0} items, total: ${totalCount}`,
+    );
+    return await buildResponse(
+      res,
+      data,
+      totalCount,
+      parsedPage,
+      parsedLimit,
+      offset,
+      isTeamMember,
+    );
+  } catch (error) {
+    console.error("❌ [FEATURE-HISTORY-WEB] street-icons error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+});
+
 module.exports = router;

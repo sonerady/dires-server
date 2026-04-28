@@ -620,13 +620,31 @@ router.post("/generate-product-story", async (req, res) => {
             }
         }
 
-        // STEP 0: Clear existing stories if re-generation
+        // STEP 0: Preserve other kits — only strip previous Product Story URLs, keep Street Icon / others.
+        // baseIndex = remaining stories length → new scenes append at the tail.
+        let baseIndex = 0;
         if (recordId) {
-            console.log(`🧹 [STORY] Clearing existing stories for record: ${recordId}`);
-            await supabase
+            console.log(`🧹 [STORY] Filtering previous Product Story URLs for record: ${recordId}`);
+            const { data: existingRec } = await supabase
                 .from("reference_results")
-                .update({ stories: null })
-                .eq("generation_id", recordId);
+                .select("id, stories")
+                .eq("generation_id", recordId)
+                .maybeSingle();
+
+            if (existingRec) {
+                const prior = Array.isArray(existingRec.stories) ? existingRec.stories : [];
+                const filtered = prior.filter(
+                    (url) => !(typeof url === "string" && url.indexOf("_productstory_") !== -1)
+                );
+                if (filtered.length !== prior.length) {
+                    await supabase
+                        .from("reference_results")
+                        .update({ stories: filtered })
+                        .eq("id", existingRec.id);
+                    console.log(`🧹 [STORY] Removed ${prior.length - filtered.length} prior Product Story entries, kept ${filtered.length} other-kit entries`);
+                }
+                baseIndex = filtered.length;
+            }
         }
 
         // Step 0.5: Fetch user story preferences
@@ -774,8 +792,9 @@ CRITICAL: Respond ONLY with a valid JSON object. No markdown, no code blocks, no
                 // Progressive save: immediately save this scene to DB at correct position
                 if (savedUrl && recordId) {
                     try {
-                        await appendStoryToRecord(recordId, savedUrl, index);
-                        console.log(`📖 [STORY] Scene ${index + 1} (${sceneTypes[index]}) saved to DB at slot ${index}`);
+                        const absIndex = baseIndex + index;
+                        await appendStoryToRecord(recordId, savedUrl, absIndex);
+                        console.log(`📖 [STORY] Scene ${index + 1} (${sceneTypes[index]}) saved to DB at slot ${absIndex}`);
                     } catch (e) {
                         console.warn(`⚠️ [STORY] Progressive save failed for scene ${index + 1}:`, e.message);
                     }
@@ -810,10 +829,32 @@ CRITICAL: Respond ONLY with a valid JSON object. No markdown, no code blocks, no
         console.log(`✅ [STORY] Generation completed in ${processingTime.toFixed(1)}s`);
         console.log(`📊 [STORY] Generated ${generatedImages.length}/6 scenes`);
 
-        // Step 4: Final save — position-preserved array (null for failed scenes)
+        // Step 4: Final reconcile — write orderedImages at [baseIndex..baseIndex+5] without clobbering other kits.
+        // Progressive appends already persisted each scene; this is a safety net if any append failed mid-flight.
         if (generatedImages.length > 0 && recordId) {
-            console.log("📖 [STORY] Step 4: Final save to reference_results.stories...");
-            await updateStoriesForRecord(recordId, orderedImages);
+            console.log("📖 [STORY] Step 4: Final reconcile to reference_results.stories (preserve other kits)...");
+            try {
+                const { data: current } = await supabase
+                    .from("reference_results")
+                    .select("id, stories")
+                    .eq("generation_id", recordId)
+                    .maybeSingle();
+
+                if (current) {
+                    const merged = Array.isArray(current.stories) ? [...current.stories] : [];
+                    for (let i = 0; i < orderedImages.length; i++) {
+                        const absIdx = baseIndex + i;
+                        while (merged.length <= absIdx) merged.push(null);
+                        if (orderedImages[i]) merged[absIdx] = orderedImages[i];
+                    }
+                    await supabase
+                        .from("reference_results")
+                        .update({ stories: merged })
+                        .eq("id", current.id);
+                }
+            } catch (e) {
+                console.warn("⚠️ [STORY] Final reconcile failed (non-fatal):", e.message);
+            }
         }
 
         // Step 4.5: Save to product_stories table
@@ -896,13 +937,17 @@ router.post("/retry-story-scene", async (req, res) => {
             return res.status(400).json({ success: false, error: "Missing imageUrl, recordId, or sceneIndex" });
         }
 
+        // sceneIndex is the absolute position in reference_results.stories (may be >5 when kits coexist).
+        // For prompt / prefs / sceneTypes lookup we need the local scene index (0..5) within this kit.
+        const localSceneIndex = ((sceneIndex % 6) + 6) % 6;
+
         const sceneTypes = ["mirrorSelfie", "coffeeDate", "friendsNight", "streetStyle", "weekendVibes", "friendsGroup"];
-        const sceneType = sceneTypes[sceneIndex];
+        const sceneType = sceneTypes[localSceneIndex];
         if (!sceneType) {
             return res.status(400).json({ success: false, error: "Invalid sceneIndex" });
         }
 
-        console.log(`🔄 [STORY_RETRY] Retrying scene ${sceneIndex + 1} (${sceneType}) for record ${recordId}`);
+        console.log(`🔄 [STORY_RETRY] Retrying scene ${localSceneIndex + 1} (${sceneType}) at absolute slot ${sceneIndex} for record ${recordId}`);
 
         // Get reference image from reference_results
         const { data: refResult } = await supabase
@@ -923,7 +968,7 @@ router.post("/retry-story-scene", async (req, res) => {
                 .maybeSingle();
 
             if (prefs) {
-                const prefKey = `scene_${sceneIndex + 1}_instruction`;
+                const prefKey = `scene_${localSceneIndex + 1}_instruction`;
                 if (prefs[prefKey]) {
                     scenePrompt = prefs[prefKey];
                 }
@@ -940,7 +985,7 @@ router.post("/retry-story-scene", async (req, res) => {
             "convert to 3 different people standing together as close friends, each wearing the exact same garment but in a different color variation, warm friendly poses, arms around each other, candid group photo with genuine smiles, natural outdoor light, preserve all garment details exactly"
         ];
 
-        const prompt = scenePrompt || defaultPrompts[sceneIndex];
+        const prompt = scenePrompt || defaultPrompts[localSceneIndex];
 
         // Get aspect ratio from user preferences
         let aspectRatio = "9:16";

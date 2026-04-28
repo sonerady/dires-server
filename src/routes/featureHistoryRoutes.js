@@ -999,6 +999,81 @@ router.get("/stories/:userId", async (req, res) => {
 });
 
 /**
+ * GET /api/feature-history/street-icons/:userId
+ * Street Icon kits history from product_street_icon_kits table
+ */
+router.get("/street-icons/:userId", async (req, res) => {
+  try {
+    const setup = await setupRequest(req);
+    if (setup.error)
+      return res.status(400).json({ success: false, message: setup.error });
+
+    const { userId, parsedLimit, parsedPage, offset, memberIds, isTeamMember, ascending } =
+      setup;
+
+    logger.log(
+      `📊 [FEATURE-HISTORY] Fetching street-icons history for user: ${userId}`,
+    );
+
+    const { count: totalCount, error: countError } = await retryQuery(() =>
+      supabase
+        .from("product_street_icon_kits")
+        .select("*", { count: "exact", head: true })
+        .in("user_id", memberIds),
+    );
+
+    if (countError) {
+      console.error(
+        "❌ [FEATURE-HISTORY] street-icons count error:",
+        countError,
+      );
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch count" });
+    }
+
+    const { data, error } = await retryQuery(() =>
+      supabase
+        .from("product_street_icon_kits")
+        .select(
+          `id, user_id, generation_id, original_photos, story_images, processing_time_seconds, total_images_generated, credits_used, is_free_tier, created_at`,
+        )
+        .in("user_id", memberIds)
+        .order("created_at", { ascending })
+        .range(offset, offset + parsedLimit - 1),
+    );
+
+    if (error) {
+      console.error(
+        "❌ [FEATURE-HISTORY] street-icons query error:",
+        error,
+      );
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch data" });
+    }
+
+    logger.log(
+      `📊 [FEATURE-HISTORY] street-icons: ${data?.length || 0} items, total: ${totalCount}`,
+    );
+    return await buildResponse(
+      res,
+      data,
+      totalCount,
+      parsedPage,
+      parsedLimit,
+      offset,
+      isTeamMember,
+    );
+  } catch (error) {
+    console.error("❌ [FEATURE-HISTORY] street-icons error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+});
+
+/**
  * GET /api/feature-history/fashion-kits/:userId
  * Fashion kits history from product_fashion_kits table
  */
@@ -1142,6 +1217,112 @@ router.get("/unboxing-stories/:userId", async (req, res) => {
     );
   } catch (error) {
     console.error("❌ [FEATURE-HISTORY] unboxing-stories error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+});
+
+/**
+ * GET /all/:userId — TÜM feature tablolarını birleştirip tek listede döner.
+ *
+ * 7 ana history-bearing tablodan (`reference_results`, `pose_change_generations`,
+ * `color_change_generations`, `back_side_generations`, `refiner_generations`,
+ * `chat_edit_results`, `video_generations`) `limit + offset` kadar item çekilir,
+ * `created_at DESC` ile in-memory sort + slice yapılır. Her item'a kaynak tablonun
+ * adı `item_type` olarak eklenir (UI badge için: "Pose", "Color", vb.).
+ *
+ * Query: ?limit=30&page=0&sort=newest|oldest
+ */
+router.get("/all/:userId", async (req, res) => {
+  try {
+    const setup = await setupRequest(req);
+    if (setup.error) {
+      return res.status(400).json({ success: false, message: setup.error });
+    }
+    const { ascending, offset, parsedLimit: limit, memberIds } = setup;
+
+    const tables = [
+      { name: "reference_results", type: "reference_results", urlField: "result_image_url" },
+      { name: "pose_change_generations", type: "pose_change_generations", urlField: "result_image_url" },
+      { name: "color_change_generations", type: "color_change_generations", urlField: "result_image_url" },
+      { name: "back_side_generations", type: "back_side_generations", urlField: "result_image_url" },
+      { name: "refiner_generations", type: "refiner_generations", urlField: "result_image_url" },
+      { name: "chat_edit_results", type: "chat_edit_results", urlField: "result_image_url" },
+      { name: "video_generations", type: "video_generations", urlField: "result_video_url" },
+    ];
+
+    // Her tablodan en yeni N satırı çek (N = limit + offset; merge sonrası doğru sayıda yeni item kalsın)
+    const perTableLimit = limit + offset;
+
+    const results = await Promise.all(
+      tables.map(async (t) => {
+        try {
+          const { data, error } = await retryQuery(() =>
+            supabase
+              .from(t.name)
+              .select(
+                `id, user_id, status, created_at, settings, ${t.urlField}, ${
+                  t.name === "reference_results" ? "reference_images, location_image, visibility" : ""
+                }`.replace(/,\s*$/g, ""),
+              )
+              .in("user_id", memberIds)
+              .in("status", ["completed", "failed"])
+              .order("created_at", { ascending })
+              .limit(perTableLimit),
+          );
+          if (error) {
+            logger.log(`⚠️ [ALL] ${t.name} hata:`, error.message);
+            return [];
+          }
+          return (data || [])
+            .filter((row) =>
+              t.name === "reference_results" ? row.visibility !== false : true,
+            )
+            .map((row) => ({
+              id: row.id,
+              user_id: row.user_id,
+              status: row.status,
+              created_at: row.created_at,
+              settings: row.settings || null,
+              result_image_url: t.urlField === "result_image_url" ? row[t.urlField] : null,
+              result_video_url: t.urlField === "result_video_url" ? row[t.urlField] : null,
+              reference_images: row.reference_images || null,
+              location_image: row.location_image || null,
+              item_type: t.type,
+            }));
+        } catch (e) {
+          logger.log(`❌ [ALL] ${t.name} exception:`, e?.message);
+          return [];
+        }
+      }),
+    );
+
+    // Merge + sort
+    let merged = results.flat().sort((a, b) => {
+      const aT = new Date(a.created_at).getTime();
+      const bT = new Date(b.created_at).getTime();
+      return ascending ? aT - bT : bT - aT;
+    });
+
+    const totalMerged = merged.length;
+    merged = merged.slice(offset, offset + limit);
+
+    // CDN optimize (mevcut helper)
+    const optimized = optimizeHistoryImages(merged);
+
+    return res.json({
+      success: true,
+      data: optimized,
+      pagination: {
+        page: parseInt(req.query.page) || 1,
+        limit,
+        totalCount: totalMerged,
+        hasMore: offset + limit < totalMerged,
+      },
+    });
+  } catch (err) {
+    logger.error("❌ [ALL] error:", err?.message);
     return res
       .status(500)
       .json({ success: false, message: "Internal server error" });

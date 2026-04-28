@@ -57,10 +57,14 @@ const generateImgToVidRouter = require("./routes/generateImgToVid");
 const generateImgToVidv2Router = require("./routes/generateImgToVidv2"); // Seedance 2.0
 const generateImgToVidv3Router = require("./routes/generateImgToVidv3"); // Veo 3.1 Fast
 const generateImgToVidWebRouter = require("./routes/generateImgToVidWeb");
+const videoPreviewGridRouter = require("./routes/videoPreviewGridRoutes"); // 🧩 Storyboard preview (nano-banana 6-scene grid)
+const albumsRouter = require("./routes/albumsRoutes"); // 📁 History albums CRUD
+const shareRouter = require("./routes/shareRoutes"); // 🔗 Public share tokens + /api/public/share/:token
 const getPredictionsRouter = require("./routes/getPredictions");
 const registerAnonymousUserRouter = require("./routes/registerAnonymousUser");
 const registerAnonymousUserRouterV2 = require("./routes/registerAnonymousUserV2");
 const registerAnonymousUserRouterV3 = require("./routes/registerAnonymousUserV3");
+const userMetadataRouter = require("./routes/userMetadataRoutes");
 const posesRouter = require("./routes/posesRoutes");
 const generateImagesJsonRouter = require("./routes/generateImagesJson");
 const locationRoutes = require("./routes/locationRoutes");
@@ -73,6 +77,7 @@ const createAiBackgroundRouter = require("./routes/createAiBackground");
 const imageClarityProcessRouter = require("./routes/imageClarityProcess");
 const referenceBrowserRoutes = require("./routes/referenceBrowserRoutes");
 const referenceBrowserRoutesWeb = require("./routes/referenceBrowserRoutesWeb");
+const imageScraperRoutes = require("./routes/imageScraperRoutes");
 const referencePhotoshootRoutes = require("./routes/referencePhotoshootRoutes");
 const referenceRefinerRoutes = require("./routes/referenceRefinerRoutes");
 const referenceImageRoutes = require("./routes/referenceImageRoutes");
@@ -162,6 +167,8 @@ const generateProductKitRoutes = require("./routes/generateProductKitRoutes");
 const generateProductKitRoutesV2 = require("./routes/generateProductKitRoutesV2");
 // Generate Product Story routes import
 const generateProductStoryRoutes = require("./routes/generateProductStoryRoutes");
+// Generate Street Icon Kit routes import
+const generateStreetIconKitRoutes = require("./routes/generateStreetIconKitRoutes");
 // Generate Fashion Kit routes import
 const generateFashionKitRoutes = require("./routes/generateFashionKitRoutes");
 // Generate Unboxing Story routes import
@@ -276,10 +283,14 @@ app.use("/api/refiner-download", refinerDownloadRoutes);
 app.use("/api", registerAnonymousUserRouter);
 app.use("/api/v2", registerAnonymousUserRouterV2);
 app.use("/api/v3", registerAnonymousUserRouterV3);
+app.use("/api/users", userMetadataRouter);
 app.use("/api", generateImgToVidRouter);
 app.use("/api", generateImgToVidv2Router); // Seedance 2.0
 app.use("/api", generateImgToVidv3Router); // Veo 3.1 Fast
 app.use("/api", generateImgToVidWebRouter);
+app.use("/api", videoPreviewGridRouter); // 🧩 /api/videoPreviewGrid/generate
+app.use("/api", albumsRouter); // 📁 /api/albums/*
+app.use("/api", shareRouter); // 🔗 /api/share/* + /api/public/share/:token (public)
 app.use("/api", posesRouter);
 app.use("/api", generateImagesJsonRouter);
 app.use("/api", locationRoutes);
@@ -310,6 +321,7 @@ app.use("/api/referenceBrowserV5", referenceBrowserRoutesV5);
 app.use("/api/referenceBrowserV6", referenceBrowserRoutesV6);
 app.use("/api/referenceBrowserV7", referenceBrowserRoutesV7);
 app.use("/api/referenceBrowserWeb", requireBrowser, requireAuth, referenceBrowserRoutesWeb);
+app.use("/api/image-scraper", requireBrowser, imageScraperRoutes);
 app.use("/api/changePose", changePose);
 app.use("/api/changePoseWeb", requireBrowser, requireAuth, changePoseWeb);
 app.use("/api/createRefiner", createRefiner);
@@ -425,6 +437,9 @@ app.use("/api", generateProductKitRoutesV2);
 
 // Generate Product Story routes
 app.use("/api", generateProductStoryRoutes);
+
+// Generate Street Icon Kit routes
+app.use("/api", generateStreetIconKitRoutes);
 
 // Generate Fashion Kit routes
 app.use("/api", generateFashionKitRoutes);
