@@ -11,6 +11,7 @@ const { fal } = require("@fal-ai/client");
 
 const { supabase, supabaseAdmin } = require("../supabaseClient");
 const teamService = require("../services/teamService");
+const { generateVideoGridPreview } = require("../utils/videoGridPreview");
 
 fal.config({
   credentials: process.env.FAL_API_KEY,
@@ -909,6 +910,159 @@ async function submitSeedanceGeneration({
   return requestId;
 }
 
+// 🧩 Auto-grid pipeline: kullanıcı önizleme yapmadığında çağrılır.
+// Sırayla:
+//   1) nano-banana-2 ile 6-sahneli storyboard grid üretir (orijinal foto'dan)
+//   2) Üretilen grid URL'ini DB'de original_image_url olarak persist eder
+//   3) Grid-aware enhanced prompt üretir
+//   4) Seedance'a grid resmiyle submit eder, fal_request_id'i DB'ye yazar
+//   5) Mevcut startBackgroundProgression worker'ını başlatır (polling)
+// Grid hata verirse orijinal foto ile fallback yapar (video iptal olmaz).
+async function runGridThenSeedance(generationId, params) {
+  const {
+    userId,
+    originalImageUrl,
+    backImageUrl,
+    userPrompt,
+    normalizedDuration,
+    normalizedAspectRatio,
+    normalizedResolution,
+    editMode,
+  } = params;
+
+  try {
+    // 1) Grid üretimi (orijinal foto + opsiyonel kullanıcı promptu)
+    const gridResult = await generateVideoGridPreview({
+      supabase,
+      sourceUrl: originalImageUrl,
+      userPrompt,
+      logTag: `VIDEO-V2-GRID ${generationId}`,
+    });
+
+    let videoSourceUrl = originalImageUrl;
+    let isGridApplied = false;
+
+    if (gridResult.success && gridResult.gridUrl) {
+      videoSourceUrl = gridResult.gridUrl;
+      isGridApplied = true;
+      // 2) Grid URL'i DB'ye yaz — client polling original_image_url'i grid olarak görür
+      await supabase
+        .from("video_generations")
+        .update({
+          original_image_url: gridResult.gridUrl,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", generationId);
+      console.log(
+        `✅ [VIDEO-V2-GRID] ${generationId} grid hazır, video pipeline başlıyor`,
+      );
+    } else {
+      console.warn(
+        `⚠️ [VIDEO-V2-GRID] ${generationId} grid başarısız (${gridResult.error}), orijinal foto ile devam`,
+      );
+    }
+
+    // 3) Grid-aware enhanced prompt
+    const enhancedPrompt = await generateVideoPrompt(
+      videoSourceUrl,
+      userPrompt,
+      editMode,
+      !!backImageUrl,
+      isGridApplied,
+    );
+
+    // 4) Seedance submit
+    const requestId = await submitSeedanceGeneration({
+      imageUrl: videoSourceUrl,
+      prompt: enhancedPrompt,
+      duration: normalizedDuration,
+      aspectRatio: normalizedAspectRatio,
+      resolution: normalizedResolution,
+      endUserId: String(userId),
+      endImageUrl: backImageUrl,
+    });
+
+    console.log(`✅ [VIDEO-V2-GRID] ${generationId} Seedance request id: ${requestId}`);
+
+    await supabase
+      .from("video_generations")
+      .update({
+        fal_request_id: requestId,
+        enhanced_prompt: enhancedPrompt,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", generationId);
+
+    // predictions row — Seedance request_id ile insert
+    try {
+      await supabase.from("predictions").insert({
+        id: uuidv4(),
+        user_id: userId,
+        product_id: generationId,
+        prediction_id: requestId,
+        categories: "videos",
+      });
+    } catch (predErr) {
+      console.warn(
+        `⚠️ [VIDEO-V2-GRID] ${generationId} predictions insert hata:`,
+        predErr?.message,
+      );
+    }
+
+    // 5) Polling worker
+    startBackgroundProgression(generationId);
+  } catch (err) {
+    console.error(
+      `❌ [VIDEO-V2-GRID] ${generationId} pipeline failed:`,
+      err?.message,
+    );
+
+    // Generation'ı failed olarak işaretle + krediyi iade et
+    try {
+      await supabase
+        .from("video_generations")
+        .update({
+          status: "failed",
+          error_message: err?.message || "Grid+Seedance pipeline failed",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", generationId);
+    } catch (dbErr) {
+      console.error(
+        `❌ [VIDEO-V2-GRID] ${generationId} DB update hata:`,
+        dbErr?.message,
+      );
+    }
+
+    if (params.refundUserId && params.creditCost > 0) {
+      try {
+        const { data: currentUser } = await supabase
+          .from("users")
+          .select("credit_balance")
+          .eq("id", params.refundUserId)
+          .single();
+        if (currentUser) {
+          await supabase
+            .from("users")
+            .update({
+              credit_balance:
+                (currentUser.credit_balance || 0) + params.creditCost,
+            })
+            .eq("id", params.refundUserId);
+          console.log(
+            `💰 [VIDEO-V2-GRID] ${generationId} ${params.creditCost} credits refunded to ${params.refundUserId}`,
+          );
+        }
+      } catch (refundErr) {
+        console.error(
+          `❌ [VIDEO-V2-GRID] ${generationId} refund hata:`,
+          refundErr?.message,
+        );
+      }
+    }
+  }
+}
+
 router.post("/generateImgToVidv2", async (req, res) => {
   let effectiveUserId = null;
   let creditCost = 0;
@@ -1010,6 +1164,85 @@ router.post("/generateImgToVidv2", async (req, res) => {
     const userPrompt =
       prompt ||
       "Model highlights special details of the outfit, smiling while gently turning left and right to showcase product details from both sides.";
+
+    // 🧩 Akış ayrımı:
+    //   isGridPreview=true  → client zaten grid'i first_frame_image olarak gönderdi
+    //                          (kullanıcı "Önizle" butonuna basmış); grid üretimi
+    //                          atlanır, doğrudan Seedance.
+    //   isGridPreview=false → kullanıcı önizlemedi; arka planda nano-banana ile
+    //                          grid üretilir, sonra Seedance grid'i first_frame
+    //                          olarak alır. HTTP yanıtı hemen 202 döner;
+    //                          tüm pipeline runGridThenSeedance içinde.
+    if (!isGridPreview) {
+      const generationId = uuidv4();
+      const insertPayload = {
+        id: generationId,
+        user_id: userId,
+        fal_request_id: null, // grid + seedance bittikten sonra set edilir
+        status: "processing",
+        original_image_url: imageUrl, // önce orijinal foto, grid hazır olunca güncellenecek
+        user_prompt: userPrompt,
+        enhanced_prompt: null,
+        duration: normalizedDuration,
+        aspect_ratio: normalizedAspectRatio,
+        resolution: normalizedResolution,
+        credits_used: creditCost,
+      };
+      if (backImageUrl) insertPayload.back_image_url = backImageUrl;
+
+      let { error: insertError } = await supabase
+        .from("video_generations")
+        .insert(insertPayload);
+
+      if (
+        insertError &&
+        /back_image_url/i.test(insertError.message || "") &&
+        insertPayload.back_image_url
+      ) {
+        console.warn(
+          "⚠️ [VIDEO-V2] back_image_url column missing — inserting without it"
+        );
+        delete insertPayload.back_image_url;
+        const retryInsert = await supabase
+          .from("video_generations")
+          .insert(insertPayload);
+        insertError = retryInsert.error;
+      }
+
+      if (insertError) {
+        console.error("❌ [VIDEO-V2] DB insert error:", insertError);
+        throw insertError;
+      }
+
+      // Fire-and-forget — client'ın HTTP isteği 30-60s nano-banana çağrısını
+      // beklemesin diye 202 hemen dönülür, pipeline arka planda çalışır.
+      runGridThenSeedance(generationId, {
+        userId,
+        originalImageUrl: imageUrl,
+        backImageUrl,
+        userPrompt,
+        normalizedDuration,
+        normalizedAspectRatio,
+        normalizedResolution,
+        editMode,
+        refundUserId: effectiveUserId,
+        creditCost,
+      }).catch((bgErr) => {
+        console.error(
+          `❌ [VIDEO-V2] runGridThenSeedance unhandled rejection (${generationId}):`,
+          bgErr?.message,
+        );
+      });
+
+      return res.status(202).json({
+        success: true,
+        message: "Video generation started (grid preview pipeline)",
+        generationId,
+        predictionId: null,
+      });
+    }
+
+    // 🧩 isGridPreview=true: client'ın gönderdiği grid'i kullan, mevcut akış
     const enhancedPrompt = await generateVideoPrompt(
       imageUrl,
       userPrompt,
@@ -1144,11 +1377,21 @@ router.get("/videoStatusV2/:generationId", async (req, res) => {
       });
     }
 
+    // 🧩 Grid + Seedance pipeline: fal_request_id henüz set edilmemişse
+    // arka planda nano-banana grid üretimi devam ediyordur. Client'a
+    // "processing" döndür; fal API'sini boş requestId ile çağırma.
+    if (!generation.fal_request_id) {
+      return res.status(200).json({
+        success: true,
+        status: "processing",
+        videoUrl: null,
+        generation,
+      });
+    }
+
     // 🧵 Server restart sonrası in-memory worker kayboluyor. Processing durumundaki
     // video için client polling tetiklendiğinde worker'ı yeniden başlat (idempotent dedup).
-    if (generation.fal_request_id) {
-      startBackgroundProgression(generationId);
-    }
+    startBackgroundProgression(generationId);
 
     let status = "processing";
     let videoUrl = null;
