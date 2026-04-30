@@ -383,14 +383,15 @@ router.get("/public/share/:token", async (req, res) => {
 
           let cover = album.cover_image_url;
           if (!cover) {
-            const { data: firstItem } = await supabase
+            // En son eklenen item kapak olur (manuel cover yoksa).
+            const { data: latestItem } = await supabase
               .from("album_items")
               .select("snapshot_result_url")
               .eq("album_id", album.id)
-              .order("added_at", { ascending: true })
+              .order("added_at", { ascending: false })
               .limit(1)
               .maybeSingle();
-            cover = firstItem?.snapshot_result_url || null;
+            cover = latestItem?.snapshot_result_url || null;
           }
 
           let albumToken = null;

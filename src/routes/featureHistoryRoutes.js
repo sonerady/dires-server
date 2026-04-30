@@ -64,10 +64,11 @@ const buildHistorySelect = ({
   includeReferenceFields = false,
   includeSettings = true,
   includeVariantFields = false,
+  includeGenerationId = true,
 }) =>
   [
     "id",
-    "generation_id",
+    includeGenerationId ? "generation_id" : null,
     "user_id",
     "status",
     "created_at",
@@ -93,12 +94,17 @@ const fetchMergedHistoryTable = async ({
     return [];
   }
 
+  // Bazı tablolarda generation_id kolonu yok (chat_edits, video_generations).
+  // tableConfig.hasGenerationId=false ise select'te exclude ederiz.
+  const includeGenerationId = tableConfig.hasGenerationId !== false;
+
   const runQuery = async (includeSettings) => {
     const selectClause = buildHistorySelect({
       urlField: tableConfig.urlField,
       includeReferenceFields: tableConfig.name === "reference_results",
       includeVariantFields: tableConfig.name === "reference_results",
       includeSettings,
+      includeGenerationId,
     });
 
     return retryQuery(() =>
@@ -1351,8 +1357,9 @@ router.get("/all/:userId", async (req, res) => {
       { name: "color_change_generations", type: "color_change_generations", urlField: "result_image_url" },
       { name: "back_side_generations", type: "back_side_generations", urlField: "result_image_url" },
       { name: "refiner_generations", type: "refiner_generations", urlField: "result_image_url" },
-      { name: "chat_edits", type: "chat_edit_results", urlField: "result_image_url" },
-      { name: "video_generations", type: "video_generations", urlField: "result_video_url" },
+      // chat_edits ve video_generations şemasında generation_id kolonu yok — select'ten çıkarılır.
+      { name: "chat_edits", type: "chat_edit_results", urlField: "result_image_url", hasGenerationId: false },
+      { name: "video_generations", type: "video_generations", urlField: "result_video_url", hasGenerationId: false },
     ];
 
     // Her tablodan en yeni N satırı çek (N = limit + offset; merge sonrası doğru sayıda yeni item kalsın)

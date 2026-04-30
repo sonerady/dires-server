@@ -25,8 +25,8 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 });
 
 // ─── Constants ───
-const KIT_GENERATION_COST_OLD = 15;  // Users registered before cutoff date
-const KIT_GENERATION_COST_NEW = 50;  // Users registered on/after cutoff date
+const KIT_GENERATION_COST_OLD = 50;  // Users registered before cutoff date
+const KIT_GENERATION_COST_NEW = 80;  // Users registered on/after cutoff date
 const NEW_PRICING_CUTOFF = new Date("2026-03-07T00:00:00Z");
 const FREE_TIER_LIMIT = 2;
 const sceneTypes = ["pose1", "pose2", "studio1", "studio2", "detail", "ghost"];
@@ -454,6 +454,8 @@ async function saveGeneratedImageToUserBucket(imageUrl, userId, imageType) {
     }
 }
 
+const { resolveCanonicalGenerationId } = require("../utils/canonicalGenerationId");
+
 // ─── Progressive save: append a single kit image URL to reference_results.kits ───
 async function appendKitToRecord(recordId, imageUrl, sceneIndex) {
     try {
@@ -463,7 +465,10 @@ async function appendKitToRecord(recordId, imageUrl, sceneIndex) {
             .eq("generation_id", recordId)
             .maybeSingle();
 
-        if (findError || !existing) return null;
+        if (findError || !existing) {
+            console.warn(`⚠️ [APPEND_KIT] No reference_results row for recordId=${recordId} — kit slot ${sceneIndex} won't be visible to polling`);
+            return null;
+        }
 
         // Maintain position-preserved array (6 slots, null for pending/failed)
         let currentKits = Array.isArray(existing.kits) ? [...existing.kits] : [];
@@ -700,17 +705,25 @@ router.post("/generate-product-kit-v2", async (req, res) => {
             }
         }
 
+        // Album'den açılan item'larda recordId v5 UUID olabiliyor; URL fallback ile
+        // gerçek generation_id'yi resolve ediyoruz, kits her durumda doğru kayda yazılır.
+        const canonicalRecordId = await resolveCanonicalGenerationId(recordId, imageUrl);
+        if (canonicalRecordId !== recordId) {
+            console.log(`🔄 [KIT_V2] Using canonical record ID: ${canonicalRecordId} (was: ${recordId})`);
+        }
+
         // Clear existing kits (set to empty array so client knows generation started)
-        if (recordId) {
-            console.log(`🧹 [KIT_V2] Clearing existing kits for record: ${recordId}`);
+        if (canonicalRecordId) {
+            console.log(`🧹 [KIT_V2] Clearing existing kits for record: ${canonicalRecordId}`);
             await supabase
                 .from("reference_results")
                 .update({ kits: [] })
-                .eq("generation_id", recordId);
+                .eq("generation_id", canonicalRecordId);
         }
 
         // Respond immediately — generation happens in background
-        res.json({ success: true, message: "Kit generation started", generationId: recordId });
+        // generationId döndürürken canonical olanı veriyoruz; client polling'te kullanabilir
+        res.json({ success: true, message: "Kit generation started", generationId: canonicalRecordId, originalRecordId: recordId });
 
         // ─── Background generation ───
         (async () => {
@@ -804,11 +817,11 @@ CRITICAL: Respond ONLY with a valid JSON object. No markdown, no code blocks, no
 
                 // Step 2: Get reference image
                 let referenceImageUrl = imageUrl;
-                if (recordId) {
+                if (canonicalRecordId) {
                     const { data: record } = await supabase
                         .from("reference_results")
                         .select("reference_images")
-                        .eq("generation_id", recordId)
+                        .eq("generation_id", canonicalRecordId)
                         .maybeSingle();
 
                     if (record?.reference_images?.length > 0) {
@@ -845,10 +858,14 @@ CRITICAL: Respond ONLY with a valid JSON object. No markdown, no code blocks, no
                         );
 
                         // Progressive save: immediately save to DB at correct position
-                        if (savedUrl && recordId) {
+                        if (savedUrl && canonicalRecordId) {
                             try {
-                                await appendKitToRecord(recordId, savedUrl, index);
-                                console.log(`📦 [KIT_V2] Scene ${index + 1} (${sceneTypes[index]}) saved progressively at slot ${index}`);
+                                const result = await appendKitToRecord(canonicalRecordId, savedUrl, index);
+                                if (result === null) {
+                                    console.warn(`⚠️ [KIT_V2] Scene ${index + 1} (${sceneTypes[index]}) — no reference_results row matched generation_id=${canonicalRecordId}`);
+                                } else {
+                                    console.log(`📦 [KIT_V2] Scene ${index + 1} (${sceneTypes[index]}) saved progressively at slot ${index}`);
+                                }
                             } catch (e) {
                                 console.warn(`⚠️ [KIT_V2] Progressive save failed for scene ${index + 1}:`, e.message);
                             }
@@ -877,7 +894,7 @@ CRITICAL: Respond ONLY with a valid JSON object. No markdown, no code blocks, no
                     }));
 
                     await saveProductKitToDatabase({
-                        userId, generationId: recordId, originalPhotos,
+                        userId, generationId: canonicalRecordId, originalPhotos,
                         kitImages: kitImagesData, processingTimeSeconds: processingTime,
                         creditsUsed: isFree ? 0 : kitCost, isFreeTier: isFree
                     });

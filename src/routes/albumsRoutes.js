@@ -26,6 +26,94 @@ const {
 
 const router = express.Router();
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Album item'larını orijinal generation_id ile zenginleştirir.
+// Item'ın snapshot_settings.original_generation_id'si varsa onu kullanır; yoksa
+// snapshot_result_url üzerinden reference_results.generation_id'yi tek bulk query
+// ile çeker. Kit/polling endpoint'lerinin doğru kayda ulaşması için kritik.
+async function enrichItemsWithOriginalGenerationId(items) {
+  if (!Array.isArray(items) || items.length === 0) return items;
+
+  // Önce item'ların kendi snapshot_settings'inde varsa al
+  const enriched = items.map((item) => {
+    let settings = item.snapshot_settings;
+    if (typeof settings === "string") {
+      try { settings = JSON.parse(settings); } catch (_) { settings = null; }
+    }
+    const fromSettings = settings?.original_generation_id || null;
+    return { ...item, original_generation_id: fromSettings };
+  });
+
+  // snapshot_result_url'i olan tüm item'lar için bulk lookup (variant count'ları ekleyebilmek için)
+  const allUrls = enriched
+    .filter((it) => it.snapshot_result_url)
+    .map((it) => it.snapshot_result_url);
+
+  if (allUrls.length === 0) return enriched;
+
+  const uniqueUrls = [...new Set(allUrls)];
+
+  try {
+    const { data: refs, error } = await supabase
+      .from("reference_results")
+      .select("result_image_url, generation_id, id, kits, stories, unboxing_stories, fashion_kits")
+      .in("result_image_url", uniqueUrls);
+
+    if (error || !refs) return enriched;
+
+    const urlToRow = new Map();
+    for (const row of refs) {
+      if (row.result_image_url && !urlToRow.has(row.result_image_url)) {
+        urlToRow.set(row.result_image_url, row);
+      }
+    }
+
+    const countArray = (value) => {
+      if (!value) return 0;
+      try {
+        const parsed = Array.isArray(value) ? value : JSON.parse(value || "[]");
+        if (!Array.isArray(parsed)) return 0;
+        // null/undefined slot'ları sayma — sadece dolu olanları
+        return parsed.filter((v) => v !== null && v !== undefined && v !== "").length;
+      } catch (_) {
+        return 0;
+      }
+    };
+
+    return enriched.map((it) => {
+      const row = urlToRow.get(it.snapshot_result_url);
+      let nextItem = it;
+
+      // original_generation_id eksikse doldur
+      if (!nextItem.original_generation_id) {
+        if (row) {
+          nextItem = { ...nextItem, original_generation_id: row.generation_id || row.id };
+        } else if (UUID_REGEX.test(String(it.item_id || ""))) {
+          nextItem = { ...nextItem, original_generation_id: it.item_id };
+        }
+      }
+
+      // Variant count'larını ekle (kit/story/unboxing/fashion array uzunlukları)
+      // History card'larındaki count badge ile aynı mantık.
+      if (row) {
+        nextItem = {
+          ...nextItem,
+          kits_count: countArray(row.kits),
+          stories_count: countArray(row.stories),
+          unboxing_stories_count: countArray(row.unboxing_stories),
+          fashion_kits_count: countArray(row.fashion_kits),
+        };
+      }
+
+      return nextItem;
+    });
+  } catch (e) {
+    console.warn("⚠️ [ALBUMS] enrichment error:", e?.message);
+    return enriched;
+  }
+}
+
 // ─────────────────────────────────────────
 // POST /api/albums — yeni albüm oluştur
 // body: { userId, name, description? }
@@ -86,7 +174,8 @@ router.get("/albums/:userId", async (req, res) => {
       return res.status(500).json({ success: false, message: error.message });
     }
 
-    // Her albüm için item count + ilk item'ın result_url'ini cover olarak ekle
+    // Her albüm için item count + son eklenen item'ın result_url'ini cover olarak ekle
+    // (manuel cover_image_url set edilmişse o öncelikli; aksi halde en yeni item).
     const enriched = await Promise.all(
       (albums || []).map(async (alb) => {
         const { count } = await supabase
@@ -96,14 +185,14 @@ router.get("/albums/:userId", async (req, res) => {
 
         let cover = alb.cover_image_url;
         if (!cover) {
-          const { data: firstItem } = await supabase
+          const { data: latestItem } = await supabase
             .from("album_items")
             .select("snapshot_result_url")
             .eq("album_id", alb.id)
-            .order("added_at", { ascending: true })
+            .order("added_at", { ascending: false })
             .limit(1)
             .maybeSingle();
-          cover = firstItem?.snapshot_result_url || null;
+          cover = latestItem?.snapshot_result_url || null;
         }
 
         return {
@@ -161,7 +250,15 @@ router.get("/albums/detail/:albumId", async (req, res) => {
         .json({ success: false, message: itemsErr.message });
     }
 
-    return res.json({ success: true, album, items: items || [] });
+    // album_items.item_id UUID kolonu olduğu için non-UUID generation_id'ler
+    // (örn ChangeProductColor'ın `${Date.now()}_${i}` formatı) URL'den türetilmiş
+    // v5 UUID olarak saklanıyor. Bu, kits/polling endpoint'lerinin orijinal kayda
+    // ulaşmasını engelliyor. Burada eksik orijinal generation_id'leri reference_results
+    // tablosundan snapshot_result_url üzerinden tek query ile zenginleştiriyoruz —
+    // hem eski hem yeni item'lar için kit özelliği çalışır hâle gelsin diye.
+    const enrichedItems = await enrichItemsWithOriginalGenerationId(items || []);
+
+    return res.json({ success: true, album, items: enrichedItems });
   } catch (err) {
     console.error("❌ [ALBUMS] detail exception:", err?.message);
     return res

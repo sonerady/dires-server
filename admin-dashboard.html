@@ -933,6 +933,207 @@
             border: 1px solid var(--border);
         }
 
+        /* ==========================================================================
+           Albums table (Admin feature) — reuses .users-table tokens
+           ========================================================================== */
+        .albums-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            font-size: 13px;
+        }
+        .albums-table thead {
+            background: var(--hover);
+            border-bottom: 1px solid var(--border);
+        }
+        .albums-table th {
+            text-align: left;
+            padding: 11px 14px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-tertiary);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .albums-table td {
+            padding: 11px 14px;
+            border-top: 1px solid var(--border);
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+        .albums-table tbody tr {
+            cursor: pointer;
+            transition: background 0.1s var(--ease);
+        }
+        .albums-table tbody tr:hover { background: var(--hover); }
+        .album-cover {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: var(--hover);
+            border: 1px solid var(--border);
+            display: block;
+        }
+        .album-cover-empty {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            background: var(--hover);
+            border: 1px dashed var(--border-strong);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-tertiary);
+            font-size: 18px;
+        }
+        .album-name {
+            font-weight: 500;
+            max-width: 260px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .album-owner {
+            color: var(--text-secondary);
+            max-width: 240px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .album-count {
+            font-variant-numeric: tabular-nums;
+            color: var(--text-secondary);
+            text-align: right;
+        }
+        .album-link {
+            font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+            max-width: 280px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .album-link a {
+            color: inherit;
+            text-decoration: none;
+            border-bottom: 1px dashed var(--border-strong);
+        }
+        .album-link a:hover { color: var(--text-primary); border-bottom-color: var(--text-primary); }
+        .album-link-empty {
+            color: var(--text-tertiary);
+            font-size: 12px;
+            font-style: italic;
+        }
+        .album-copy-btn {
+            margin-left: 6px;
+            padding: 2px 7px;
+            font-size: 10.5px;
+            border: 1px solid var(--border-strong);
+            border-radius: 4px;
+            background: var(--surface);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-family: inherit;
+            vertical-align: middle;
+            transition: all 0.15s var(--ease);
+        }
+        .album-copy-btn:hover { background: var(--hover); color: var(--text-primary); }
+        .album-copy-btn.copied {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-color: #c8e6c9;
+        }
+
+        /* Album detail modal — items grid */
+        .album-items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            padding: 4px;
+        }
+        .album-item-card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            background: var(--surface);
+            position: relative;
+        }
+        .album-item-card img {
+            width: 100%;
+            aspect-ratio: 3/4;
+            object-fit: cover;
+            display: block;
+            cursor: zoom-in;
+            background: var(--hover);
+        }
+        .album-item-card .item-meta {
+            padding: 6px 8px;
+            font-size: 10.5px;
+            color: var(--text-tertiary);
+            display: flex;
+            justify-content: space-between;
+            gap: 6px;
+            align-items: center;
+        }
+        .album-item-type {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        .album-tokens-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .album-token-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        .album-token-row .scope-pill {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: var(--hover);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        .album-token-row a {
+            font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+            color: var(--text-secondary);
+            text-decoration: none;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+            min-width: 0;
+        }
+        .album-token-row a:hover { color: var(--text-primary); }
+        .album-token-row .token-meta {
+            font-size: 10.5px;
+            color: var(--text-tertiary);
+            white-space: nowrap;
+        }
+
         .search-input {
             padding: 7px 12px;
             border: 1px solid var(--border-strong);
@@ -1163,6 +1364,7 @@
 
         <div class="sidebar-title">Admin</div>
         <button class="sidebar-item" data-feature="users">Users</button>
+        <button class="sidebar-item" data-feature="albums">Albums</button>
     </nav>
 
     <!-- Main Content -->
@@ -1186,10 +1388,15 @@
                 <input type="text" class="search-input" id="userSearch"
                        placeholder="Email, user ID ile ara..." />
             </div>
+            <div class="header-controls" id="headerControlsAlbums" style="display:none;">
+                <input type="text" class="search-input" id="albumSearch"
+                       placeholder="Albüm adı ile ara..." />
+            </div>
         </div>
 
         <div class="grid" id="grid"></div>
         <div id="usersTableContainer" style="display:none;"></div>
+        <div id="albumsTableContainer" style="display:none;"></div>
         <div class="loading" id="loading" style="display:none;">Loading...</div>
         <div class="empty" id="empty" style="display:none;">No results found.</div>
 
@@ -1299,11 +1506,16 @@
             'unboxing-stories': { label: 'Unboxing Stories', sourceTable: 'product_unboxing_stories' },
             'street-icon-kits': { label: 'Street Icon Kits', sourceTable: 'product_street_icon_kits' },
             'users': { label: 'Users', sourceTable: 'users', isAdmin: true },
+            'albums': { label: 'Albums', sourceTable: 'user_albums', isAdmin: true, isAlbums: true },
         };
 
         const isAdminFeature = () => FEATURES[currentFeature]?.isAdmin === true;
+        const isAlbumsFeature = () => FEATURES[currentFeature]?.isAlbums === true;
+        const isUsersFeature = () => isAdminFeature() && !isAlbumsFeature();
         let userSearchQuery = '';
         let userSearchTimer = null;
+        let albumSearchQuery = '';
+        let albumSearchTimer = null;
 
         // Read state from URL
         function readUrlState() {
@@ -1432,8 +1644,11 @@
                 document.getElementById('pageTitle').textContent = btn.textContent;
                 currentPage = 1;
                 userSearchQuery = '';
-                const searchEl = document.getElementById('userSearch');
-                if (searchEl) searchEl.value = '';
+                albumSearchQuery = '';
+                const userSearchEl = document.getElementById('userSearch');
+                if (userSearchEl) userSearchEl.value = '';
+                const albumSearchEl = document.getElementById('albumSearch');
+                if (albumSearchEl) albumSearchEl.value = '';
                 fetchData();
             });
         });
@@ -1445,6 +1660,16 @@
                 userSearchQuery = e.target.value.trim();
                 currentPage = 1;
                 fetchUsers();
+            }, 250);
+        });
+
+        // Albums search (debounced)
+        document.getElementById('albumSearch').addEventListener('input', (e) => {
+            clearTimeout(albumSearchTimer);
+            albumSearchTimer = setTimeout(() => {
+                albumSearchQuery = e.target.value.trim();
+                currentPage = 1;
+                fetchAlbums();
             }, 250);
         });
 
@@ -1462,14 +1687,21 @@
         // Header controls: swap filter vs. search depending on feature
         function updateHeaderControls() {
             const admin = isAdminFeature();
+            const albums = isAlbumsFeature();
+            const users = isUsersFeature();
             document.getElementById('headerControlsGenerations').style.display = admin ? 'none' : '';
-            document.getElementById('headerControlsUsers').style.display = admin ? '' : 'none';
+            document.getElementById('headerControlsUsers').style.display = users ? '' : 'none';
+            document.getElementById('headerControlsAlbums').style.display = albums ? '' : 'none';
             document.getElementById('grid').style.display = admin ? 'none' : '';
-            document.getElementById('usersTableContainer').style.display = admin ? '' : 'none';
+            document.getElementById('usersTableContainer').style.display = users ? '' : 'none';
+            document.getElementById('albumsTableContainer').style.display = albums ? '' : 'none';
         }
 
         async function fetchData() {
             updateHeaderControls();
+            if (isAlbumsFeature()) {
+                return fetchAlbums();
+            }
             if (isAdminFeature()) {
                 return fetchUsers();
             }
@@ -1716,6 +1948,252 @@
                     } catch (e) { console.warn(e); }
                 });
             });
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // ALBUMS (Admin)
+        // ─────────────────────────────────────────────────────────────
+        async function fetchAlbums() {
+            const container = document.getElementById('albumsTableContainer');
+            const loading = document.getElementById('loading');
+            const empty = document.getElementById('empty');
+            const pagination = document.getElementById('pagination');
+            const headerCount = document.getElementById('headerCount');
+
+            if (window.location.protocol === 'file:') {
+                container.innerHTML = '';
+                empty.style.display = 'block';
+                empty.textContent = 'Sayfa dosyadan açıldığı için API kullanılamaz.';
+                pagination.style.display = 'none';
+                headerCount.textContent = '0';
+                headerCount.classList.add('empty');
+                return;
+            }
+
+            updateUrl();
+            container.innerHTML = '';
+            loading.style.display = 'block';
+            empty.style.display = 'none';
+            pagination.style.display = 'none';
+
+            try {
+                const params = new URLSearchParams({ page: currentPage, limit: 30 });
+                if (albumSearchQuery) params.set('search', albumSearchQuery);
+                const res = await fetch(`/api/admin-dashboard/albums?${params.toString()}`);
+                const json = await res.json();
+
+                loading.style.display = 'none';
+
+                if (!json.success || !json.data || json.data.length === 0) {
+                    empty.style.display = 'block';
+                    empty.textContent = albumSearchQuery ? 'Eşleşen albüm bulunamadı.' : 'Albüm yok.';
+                    headerCount.textContent = '0';
+                    headerCount.classList.add('empty');
+                    return;
+                }
+
+                totalPages = json.totalPages;
+                headerCount.textContent = Number(json.total || 0).toLocaleString();
+                headerCount.classList.remove('empty');
+
+                renderAlbums(json.data);
+
+                if (totalPages > 1) {
+                    pagination.style.display = 'flex';
+                    document.getElementById('prevBtn').disabled = currentPage <= 1;
+                    document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+                    document.getElementById('pageInput').value = currentPage;
+                    document.getElementById('pageInput').max = totalPages;
+                    document.getElementById('totalPagesText').textContent = totalPages;
+                }
+            } catch (err) {
+                loading.style.display = 'none';
+                empty.style.display = 'block';
+                empty.textContent = 'Albümler yüklenemedi.';
+                console.error(err);
+            }
+        }
+
+        function renderAlbums(albums) {
+            const container = document.getElementById('albumsTableContainer');
+            const rows = albums.map(a => {
+                const created = a.created_at ? timeAgo(a.created_at) : '';
+                const cover = a.cover_image_url
+                    ? `<img class="album-cover" src="${cdnUrl(a.cover_image_url, { width: 88, height: 88, quality: 70 })}" alt="cover" loading="lazy" onerror="this.outerHTML='<span class=&quot;album-cover-empty&quot;>◇</span>'">`
+                    : `<span class="album-cover-empty">◇</span>`;
+                const ownerEmail = a.owner_email || '(no email)';
+                const itemCount = Number(a.item_count || 0).toLocaleString();
+                const linkCell = a.latest_share_url
+                    ? `<span class="album-link">
+                          <a href="${escapeHtml(a.latest_share_url)}" target="_blank" rel="noopener" title="${escapeHtml(a.latest_share_url)}">${escapeHtml(a.latest_share_url.replace(/^https?:\/\//, ''))}</a>
+                       </span>
+                       <button class="album-copy-btn" data-copy-url="${escapeHtml(a.latest_share_url)}">Kopyala</button>`
+                    : `<span class="album-link-empty">aktif link yok</span>`;
+                return `<tr data-album='${escapeHtml(JSON.stringify({
+                    id: a.id,
+                    name: a.name,
+                    owner_email: a.owner_email,
+                    user_id: a.user_id,
+                }))}'>
+                    <td>${cover}</td>
+                    <td class="album-name" title="${escapeHtml(a.name || '')}">${escapeHtml(a.name || '(no name)')}</td>
+                    <td class="album-owner" title="${escapeHtml(ownerEmail)}">${escapeHtml(ownerEmail)}</td>
+                    <td class="album-count">${itemCount}</td>
+                    <td>${linkCell}</td>
+                    <td class="u-date">${created}</td>
+                </tr>`;
+            }).join('');
+
+            container.innerHTML = `
+                <table class="albums-table">
+                    <thead>
+                        <tr>
+                            <th style="width:60px;">Cover</th>
+                            <th>Album</th>
+                            <th>Owner</th>
+                            <th style="text-align:right;">Items</th>
+                            <th>Latest Share Link</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            `;
+
+            container.querySelectorAll('tbody tr').forEach(tr => {
+                tr.addEventListener('click', (e) => {
+                    // ignore clicks on the link itself or copy button
+                    if (e.target.closest('a, button')) return;
+                    try {
+                        const meta = JSON.parse(tr.getAttribute('data-album'));
+                        openAlbumDetail(meta.id, meta);
+                    } catch (err) { console.warn(err); }
+                });
+            });
+
+            // copy button handlers
+            container.querySelectorAll('.album-copy-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const url = btn.getAttribute('data-copy-url');
+                    if (!url) return;
+                    try {
+                        if (navigator.clipboard?.writeText) {
+                            await navigator.clipboard.writeText(url);
+                        } else {
+                            const ta = document.createElement('textarea');
+                            ta.value = url;
+                            document.body.appendChild(ta);
+                            ta.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(ta);
+                        }
+                        const orig = btn.textContent;
+                        btn.classList.add('copied');
+                        btn.textContent = '✓ Kopyalandı';
+                        setTimeout(() => {
+                            btn.classList.remove('copied');
+                            btn.textContent = orig;
+                        }, 1200);
+                    } catch (err) {
+                        console.warn('Copy failed:', err);
+                    }
+                });
+            });
+        }
+
+        async function openAlbumDetail(albumId, basicMeta = {}) {
+            const overlay = document.getElementById('modalOverlay');
+            const refsPanel = document.getElementById('modalRefs');
+            const body = document.getElementById('modalBody');
+            const resultPanel = document.getElementById('modalResult');
+
+            // Header
+            document.getElementById('modalTitle').textContent = basicMeta.name || 'Album';
+            const statusEl = document.getElementById('modalStatus');
+            statusEl.style.display = 'none';
+            const titleIdEl = document.getElementById('modalTitleId');
+            titleIdEl.textContent = String(albumId).slice(0, 8);
+            titleIdEl.style.display = '';
+
+            // Hide refs panel; full-width result with grid
+            refsPanel.classList.add('hidden');
+            body.classList.add('no-refs');
+            resultPanel.classList.add('is-grid');
+            resultPanel.innerHTML = `<div style="color: var(--text-tertiary); padding: 40px; text-align:center; width:100%;">Yükleniyor…</div>`;
+            document.getElementById('modalDetails').innerHTML = '';
+
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            try {
+                const res = await fetch(`/api/admin-dashboard/albums/${encodeURIComponent(albumId)}/items`);
+                const json = await res.json();
+                if (!json.success) throw new Error(json.error || 'Yüklenemedi');
+
+                const album = json.album || {};
+                const owner = json.owner || {};
+                const items = json.items || [];
+                const tokens = json.share_tokens || [];
+
+                // Items grid (or empty)
+                if (items.length === 0) {
+                    resultPanel.innerHTML = `<div style="color: var(--text-tertiary); padding: 40px; text-align:center; width:100%;">Bu albümde henüz öğe yok.</div>`;
+                } else {
+                    resultPanel.innerHTML = `
+                        <div class="album-items-grid">
+                            ${items.map(it => {
+                                const url = it.snapshot_image_url || it.snapshot_thumb_url || '';
+                                const thumb = url ? cdnUrl(url, { width: 320, height: 480, quality: 80 }) : '';
+                                const added = it.added_at ? timeAgo(it.added_at) : '';
+                                return `<div class="album-item-card">
+                                    ${thumb ? `<img src="${escapeHtml(thumb)}" alt="" loading="lazy" data-lightbox="${escapeHtml(url)}">` : `<div style="aspect-ratio:3/4;background:var(--hover);"></div>`}
+                                    <div class="item-meta">
+                                        <span class="album-item-type">${escapeHtml(it.item_type || '')}</span>
+                                        <span>${escapeHtml(added)}</span>
+                                    </div>
+                                </div>`;
+                            }).join('')}
+                        </div>`;
+                }
+
+                // Footer details
+                const albumUrl = tokens.find(t => t.scope === 'album' && t.is_active)?.url || null;
+                let detailsHtml = '';
+                detailsHtml += detailRow('Items', items.length);
+                if (album.created_at) detailsHtml += detailRow('Created', timeAgo(album.created_at));
+                if (owner.email) detailsHtml += detailRowCopyable('Owner Email', owner.email, { wide: true });
+                if (album.user_id) detailsHtml += detailRowCopyable('Owner User ID', album.user_id, { wide: true });
+                if (owner.credit_balance != null) detailsHtml += detailRow('Owner Credits', Number(owner.credit_balance).toLocaleString());
+                detailsHtml += detailRow('Plan', owner.is_pro ? 'PRO' : 'FREE');
+                if (album.id) detailsHtml += detailRowCopyable('Album ID', album.id, { wide: true });
+                if (albumUrl) detailsHtml += detailRowCopyable('Album Share URL', albumUrl, { wide: true });
+
+                // Share tokens list (album + item-scope)
+                if (tokens.length > 0) {
+                    const tokensHtml = `
+                        <div class="modal-detail wide">
+                            <span class="modal-detail-label">Share Links (${tokens.length})</span>
+                            <div class="album-tokens-list">
+                                ${tokens.map(t => {
+                                    const created = t.created_at ? timeAgo(t.created_at) : '';
+                                    const access = t.access_count != null ? `${t.access_count} görüntüleme` : '';
+                                    return `<div class="album-token-row">
+                                        <span class="scope-pill">${escapeHtml(t.scope || '')}</span>
+                                        <a href="${escapeHtml(t.url)}" target="_blank" rel="noopener" title="${escapeHtml(t.url)}">${escapeHtml(t.url)}</a>
+                                        <span class="token-meta">${escapeHtml(created)}${access ? ' · ' + escapeHtml(access) : ''}${t.is_active ? '' : ' · revoked'}</span>
+                                    </div>`;
+                                }).join('')}
+                            </div>
+                        </div>`;
+                    detailsHtml += tokensHtml;
+                }
+
+                document.getElementById('modalDetails').innerHTML = detailsHtml;
+            } catch (err) {
+                resultPanel.innerHTML = `<div style="color: var(--dot-failed); padding: 40px; text-align:center; width:100%;">Hata: ${escapeHtml(err.message || 'yüklenemedi')}</div>`;
+                console.error(err);
+            }
         }
 
         // ─────────────────────────────────────────────────────────────

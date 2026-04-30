@@ -30,6 +30,62 @@ async function uploadBase64ToSupabase(base64String) {
   return data.publicUrl;
 }
 
+// 🧵 Background grid generation — POST'tan fire-and-forget olarak çağrılır.
+// Client uygulamadan çıksa bile devam eder; sonuç DB'ye yazılır, GET status
+// endpoint'inden poll edilebilir.
+async function runGridGenerationBackground({ previewId, sourceUrl, userPrompt }) {
+  try {
+    const result = await generateVideoGridPreview({
+      supabase,
+      sourceUrl,
+      userPrompt,
+      logTag: `VIDEO_PREVIEW ${previewId}`,
+    });
+
+    if (!result.success) {
+      await supabase
+        .from("video_preview_generations")
+        .update({
+          status: "failed",
+          error_message: result.error || "grid generation failed",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", previewId);
+      return;
+    }
+
+    await supabase
+      .from("video_preview_generations")
+      .update({
+        status: "completed",
+        source_image_url: sourceUrl,
+        preview_grid_url: result.gridUrl,
+        fal_request_id: result.falRequestId,
+        prompt_used: result.promptUsed,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", previewId);
+  } catch (err) {
+    console.error(`❌ [VIDEO_PREVIEW ${previewId}] background error:`, err?.message);
+    try {
+      await supabase
+        .from("video_preview_generations")
+        .update({
+          status: "failed",
+          error_message: err?.message || "background pipeline failed",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", previewId);
+    } catch (dbErr) {
+      console.error(`❌ [VIDEO_PREVIEW ${previewId}] DB update error:`, dbErr?.message);
+    }
+  }
+}
+
+// POST — async kickoff: row insert + sourceUrl upload + previewId hemen döner.
+// Grid generation arka planda runGridGenerationBackground'ta çalışır;
+// client uygulamadan çıksa bile pipeline tamamlanır. Client status endpoint'i
+// üzerinden poll ederek sonucu öğrenir.
 router.post("/videoPreviewGrid/generate", async (req, res) => {
   try {
     const { userId, first_frame_image, prompt: userPrompt } = req.body;
@@ -41,77 +97,93 @@ router.post("/videoPreviewGrid/generate", async (req, res) => {
       });
     }
 
-    // 1. Insert pending row (history için)
-    let previewId = null;
-    try {
-      const { data: insertRow, error: insertError } = await supabase
-        .from("video_preview_generations")
-        .insert({ user_id: userId, status: "processing" })
-        .select("id")
-        .single();
-      if (insertError) {
-        console.warn("⚠️ [VIDEO_PREVIEW] DB insert hata:", insertError.message);
-      } else {
-        previewId = insertRow?.id || null;
-      }
-    } catch (dbErr) {
-      console.warn("⚠️ [VIDEO_PREVIEW] DB insert exception:", dbErr?.message);
-    }
-
-    // 2. Upload base64 → Supabase URL (URL geldiyse passthrough)
+    // 1. base64 → Supabase URL (URL geldiyse passthrough)
     const sourceUrl = first_frame_image.startsWith("data:image/")
       ? await uploadBase64ToSupabase(first_frame_image)
       : first_frame_image;
 
-    // 3. Ortak grid pipeline — nano-banana-2 + Supabase persist
-    const result = await generateVideoGridPreview({
-      supabase,
-      sourceUrl,
-      userPrompt,
-      logTag: "VIDEO_PREVIEW",
-    });
+    // 2. Pending row insert et — sourceUrl'i de baştan kaydet ki polling
+    // sırasında client önceden bilebilsin.
+    const { data: insertRow, error: insertError } = await supabase
+      .from("video_preview_generations")
+      .insert({
+        user_id: userId,
+        status: "processing",
+        source_image_url: sourceUrl,
+      })
+      .select("id")
+      .single();
 
-    if (!result.success) {
-      if (previewId) {
-        await supabase
-          .from("video_preview_generations")
-          .update({
-            status: "failed",
-            error_message: result.error || "grid generation failed",
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", previewId);
-      }
-      return res.status(502).json({
+    if (insertError || !insertRow?.id) {
+      console.error("❌ [VIDEO_PREVIEW] DB insert hata:", insertError?.message);
+      return res.status(500).json({
         success: false,
-        message: "Grid generation failed",
-        detail: result.error,
+        message: insertError?.message || "DB insert failed",
       });
     }
 
-    // 4. DB row update — completed
-    if (previewId) {
-      await supabase
-        .from("video_preview_generations")
-        .update({
-          status: "completed",
-          source_image_url: sourceUrl,
-          preview_grid_url: result.gridUrl,
-          fal_request_id: result.falRequestId,
-          prompt_used: result.promptUsed,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", previewId);
+    const previewId = insertRow.id;
+
+    // 3. Background grid generation — fire-and-forget. Client uygulamadan
+    // çıksa bile bu callback execute olmaya devam eder (Node process içinde).
+    runGridGenerationBackground({ previewId, sourceUrl, userPrompt }).catch(
+      (err) => {
+        console.error(
+          `❌ [VIDEO_PREVIEW ${previewId}] unhandled background rejection:`,
+          err?.message,
+        );
+      },
+    );
+
+    // 4. Client'a hemen previewId dön — gerisini polling ile takip eder.
+    return res.status(202).json({
+      success: true,
+      previewId,
+      sourceImageUrl: sourceUrl,
+      status: "processing",
+    });
+  } catch (err) {
+    console.error("❌ [VIDEO_PREVIEW] error:", err?.message);
+    return res.status(500).json({
+      success: false,
+      message: err?.message || "Server error",
+    });
+  }
+});
+
+// GET — preview generation durumu poll'u. Client setInterval ile bu endpoint'i
+// çağırarak processing → completed/failed geçişini takip eder.
+router.get("/videoPreviewGrid/status/:previewId", async (req, res) => {
+  try {
+    const { previewId } = req.params;
+    if (!previewId) {
+      return res.status(400).json({ success: false, message: "Missing previewId" });
+    }
+
+    const { data: row, error } = await supabase
+      .from("video_preview_generations")
+      .select("id, status, source_image_url, preview_grid_url, error_message, updated_at")
+      .eq("id", previewId)
+      .maybeSingle();
+
+    if (error) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+    if (!row) {
+      return res.status(404).json({ success: false, message: "Preview not found" });
     }
 
     return res.json({
       success: true,
-      previewId,
-      gridImageUrl: result.gridUrl,
-      sourceImageUrl: sourceUrl,
+      previewId: row.id,
+      status: row.status, // "processing" | "completed" | "failed"
+      gridImageUrl: row.preview_grid_url || null,
+      sourceImageUrl: row.source_image_url || null,
+      errorMessage: row.error_message || null,
+      updatedAt: row.updated_at || null,
     });
   } catch (err) {
-    console.error("❌ [VIDEO_PREVIEW] error:", err?.message);
+    console.error("❌ [VIDEO_PREVIEW] status error:", err?.message);
     return res.status(500).json({
       success: false,
       message: err?.message || "Server error",

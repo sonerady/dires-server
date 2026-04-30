@@ -654,7 +654,7 @@ async function getUserKitCount(userId) {
 
 router.post("/generate-product-kit", async (req, res) => {
     const startTime = Date.now();
-    const KIT_GENERATION_COST = 15; // Cost per kit generation
+    const KIT_GENERATION_COST = 50; // Cost per kit generation
 
     try {
         const { imageUrl, recordId, userId, teamAware } = req.body;
@@ -985,11 +985,11 @@ router.get("/ecommerce-stats/:userId", async (req, res) => {
         if (error) throw error;
 
         // Get kit cost based on user registration date
-        let kitCost = 15;
+        let kitCost = 50;
         try {
             const { data: userData } = await supabase.from("users").select("created_at").eq("id", effectiveUserId).single();
             if (userData?.created_at && new Date(userData.created_at) >= new Date("2026-03-07T00:00:00Z")) {
-                kitCost = 50;
+                kitCost = 80;
             }
         } catch (e) {}
 

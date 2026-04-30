@@ -3,6 +3,10 @@ const { createClient } = require("@supabase/supabase-js");
 const teamService = require("../services/teamService");
 const logger = require("../utils/logger");
 const { optimizeHistoryImages } = require("../utils/imageOptimizer");
+const {
+  resolveCanonicalGenerationId,
+  UUID_REGEX,
+} = require("../utils/canonicalGenerationId");
 const router = express.Router();
 
 // Supabase client'ını import et
@@ -10,11 +14,40 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const fetchLatestReferenceResultByAnyId = async (lookupId, selectClause) => {
+// ID ile bulunamadığında canonical resolver'a delege ediyoruz: URL normalization +
+// path-tail ILIKE fallback'leri orada — tek kaynak doğruluk noktası.
+const fetchLatestReferenceResultByAnyId = async (
+  lookupId,
+  selectClause,
+  fallbackImageUrl = null,
+) => {
+  const isUuid = typeof lookupId === "string" && UUID_REGEX.test(lookupId);
+  const filter = isUuid
+    ? `generation_id.eq.${lookupId},id.eq.${lookupId}`
+    : `generation_id.eq.${lookupId}`;
+  const primary = await supabase
+    .from("reference_results")
+    .select(selectClause)
+    .or(filter)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (primary?.data || !fallbackImageUrl) return primary;
+
+  // ID ile bulunamadı → canonical resolver çözsün, sonra ID ile retry
+  const canonicalId = await resolveCanonicalGenerationId(lookupId, fallbackImageUrl);
+  if (!canonicalId || canonicalId === lookupId) return primary;
+
+  const isCanonicalUuid =
+    typeof canonicalId === "string" && UUID_REGEX.test(canonicalId);
+  const canonicalFilter = isCanonicalUuid
+    ? `generation_id.eq.${canonicalId},id.eq.${canonicalId}`
+    : `generation_id.eq.${canonicalId}`;
   return supabase
     .from("reference_results")
     .select(selectClause)
-    .or(`generation_id.eq.${lookupId},id.eq.${lookupId}`)
+    .or(canonicalFilter)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -367,6 +400,7 @@ router.delete("/delete/:generationId", async (req, res) => {
 router.get("/kits/:generationId", async (req, res) => {
   try {
     const { generationId } = req.params;
+    const { imageUrl } = req.query;
 
     logger.log(`📦 [HISTORY_KITS] Fetching kits for generation: ${generationId}`);
 
@@ -381,7 +415,7 @@ router.get("/kits/:generationId", async (req, res) => {
     // Kits verilerini getir
     // NOTE: generation_id may not be unique if previous attempts failed/retried, so use maybeSingle()
     const { data: generationData, error: fetchError } =
-      await fetchLatestReferenceResultByAnyId(generationId, "kits");
+      await fetchLatestReferenceResultByAnyId(generationId, "kits", imageUrl);
 
     if (fetchError) {
       console.error("❌ [HISTORY_KITS] Query error:", fetchError);
@@ -437,6 +471,7 @@ router.get("/kits/:generationId", async (req, res) => {
 router.get("/stories/:generationId", async (req, res) => {
   try {
     const { generationId } = req.params;
+    const { imageUrl } = req.query;
 
     logger.log(`📖 [HISTORY_STORIES] Fetching stories for generation: ${generationId}`);
 
@@ -448,7 +483,7 @@ router.get("/stories/:generationId", async (req, res) => {
     }
 
     const { data: generationData, error: fetchError } =
-      await fetchLatestReferenceResultByAnyId(generationId, "stories");
+      await fetchLatestReferenceResultByAnyId(generationId, "stories", imageUrl);
 
     if (fetchError) {
       console.error("❌ [HISTORY_STORIES] Query error:", fetchError);
@@ -503,6 +538,7 @@ router.get("/stories/:generationId", async (req, res) => {
 router.get("/fashion-kits/:generationId", async (req, res) => {
   try {
     const { generationId } = req.params;
+    const { imageUrl } = req.query;
 
     logger.log(`👗 [HISTORY_FASHION] Fetching fashion kits for generation: ${generationId}`);
 
@@ -514,7 +550,7 @@ router.get("/fashion-kits/:generationId", async (req, res) => {
     }
 
     const { data: generationData, error: fetchError } =
-      await fetchLatestReferenceResultByAnyId(generationId, "fashion_kits");
+      await fetchLatestReferenceResultByAnyId(generationId, "fashion_kits", imageUrl);
 
     if (fetchError) {
       console.error("❌ [HISTORY_FASHION] Query error:", fetchError);
@@ -569,6 +605,7 @@ router.get("/fashion-kits/:generationId", async (req, res) => {
 router.get("/unboxing-stories/:generationId", async (req, res) => {
   try {
     const { generationId } = req.params;
+    const { imageUrl } = req.query;
 
     logger.log(`📦 [HISTORY_UNBOXING] Fetching unboxing stories for generation: ${generationId}`);
 
@@ -580,7 +617,7 @@ router.get("/unboxing-stories/:generationId", async (req, res) => {
     }
 
     const { data: generationData, error: fetchError } =
-      await fetchLatestReferenceResultByAnyId(generationId, "unboxing_stories");
+      await fetchLatestReferenceResultByAnyId(generationId, "unboxing_stories", imageUrl);
 
     if (fetchError) {
       console.error("❌ [HISTORY_UNBOXING] Query error:", fetchError);

@@ -5,6 +5,7 @@ const { createClient } = require("@supabase/supabase-js");
 const { v4: uuidv4 } = require("uuid");
 const sharp = require("sharp");
 const teamService = require("../services/teamService");
+const { resolveCanonicalGenerationId } = require("../utils/canonicalGenerationId");
 
 // Supabase client
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -569,13 +570,21 @@ router.post("/generate-fashion-kit", async (req, res) => {
     const FREE_TIER_LIMIT = 2; // First 2 generations free
 
     try {
-        const { imageUrl, recordId, userId, teamAware } = req.body;
+        const { imageUrl, userId, teamAware } = req.body;
+        let { recordId } = req.body;
 
         console.log(`👗 [FASHION] Request received for URL: ${imageUrl?.substring(0, 50)}...`);
         console.log(`👗 [FASHION] Record ID: ${recordId}, User ID: ${userId}, teamAware: ${teamAware}`);
 
         if (!imageUrl) {
             return res.status(400).json({ success: false, error: "Missing imageUrl" });
+        }
+
+        // Album'den açılan item'larda recordId v5 UUID olabilir; canonical ID'yi resolve et
+        const originalRecordId = recordId;
+        recordId = await resolveCanonicalGenerationId(recordId, imageUrl);
+        if (recordId !== originalRecordId) {
+            console.log(`🔄 [FASHION] Using canonical record ID: ${recordId} (was: ${originalRecordId})`);
         }
 
         // Determine effective user for credits/stats (team-aware)

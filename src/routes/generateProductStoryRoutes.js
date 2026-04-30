@@ -5,6 +5,7 @@ const { createClient } = require("@supabase/supabase-js");
 const { v4: uuidv4 } = require("uuid");
 const sharp = require("sharp");
 const teamService = require("../services/teamService");
+const { resolveCanonicalGenerationId } = require("../utils/canonicalGenerationId");
 
 // Supabase client
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -393,7 +394,10 @@ async function appendStoryToRecord(recordId, imageUrl, sceneIndex) {
         .eq("generation_id", recordId)
         .maybeSingle();
 
-    if (findError || !existing) return null;
+    if (findError || !existing) {
+        console.warn(`⚠️ [APPEND_STORY] No reference_results row for recordId=${recordId} — story slot ${sceneIndex} won't be visible to polling`);
+        return null;
+    }
 
     let currentStories = Array.isArray(existing.stories) ? [...existing.stories] : [];
 
@@ -576,13 +580,21 @@ router.post("/generate-product-story", async (req, res) => {
     const FREE_TIER_LIMIT = 2; // First 2 generations free
 
     try {
-        const { imageUrl, recordId, userId, teamAware } = req.body;
+        const { imageUrl, userId, teamAware } = req.body;
+        let { recordId } = req.body;
 
         console.log(`📖 [STORY] Request received for URL: ${imageUrl?.substring(0, 50)}...`);
         console.log(`📖 [STORY] Record ID: ${recordId}, User ID: ${userId}, teamAware: ${teamAware}`);
 
         if (!imageUrl) {
             return res.status(400).json({ success: false, error: "Missing imageUrl" });
+        }
+
+        // Album'den açılan item'larda recordId v5 UUID olabilir; canonical ID'yi resolve et
+        const originalRecordId = recordId;
+        recordId = await resolveCanonicalGenerationId(recordId, imageUrl);
+        if (recordId !== originalRecordId) {
+            console.log(`🔄 [STORY] Using canonical record ID: ${recordId} (was: ${originalRecordId})`);
         }
 
         // Determine effective user for credits/stats (team-aware)
@@ -793,8 +805,10 @@ CRITICAL: Respond ONLY with a valid JSON object. No markdown, no code blocks, no
                 if (savedUrl && recordId) {
                     try {
                         const absIndex = baseIndex + index;
-                        await appendStoryToRecord(recordId, savedUrl, absIndex);
-                        console.log(`📖 [STORY] Scene ${index + 1} (${sceneTypes[index]}) saved to DB at slot ${absIndex}`);
+                        const result = await appendStoryToRecord(recordId, savedUrl, absIndex);
+                        if (result !== null) {
+                            console.log(`📖 [STORY] Scene ${index + 1} (${sceneTypes[index]}) saved to DB at slot ${absIndex}`);
+                        }
                     } catch (e) {
                         console.warn(`⚠️ [STORY] Progressive save failed for scene ${index + 1}:`, e.message);
                     }

@@ -261,6 +261,187 @@ router.get("/users", async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────────────────────
+// ALBUMS — list albums with owner email + latest share link
+// ─────────────────────────────────────────────────────────────
+
+const WEB_APP_URL = process.env.WEB_APP_URL || "https://app.diress.ai";
+
+// GET /api/admin-dashboard/albums?page=1&limit=30&search=
+router.get("/albums", async (req, res) => {
+  try {
+    const { page = 1, limit = 30, search = "" } = req.query;
+
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = Math.min(parseInt(limit, 10) || 30, 200);
+    const offset = (pageNum - 1) * limitNum;
+
+    let query = db
+      .from("user_albums")
+      .select("id, user_id, name, description, cover_image_url, created_at", {
+        count: "estimated",
+      })
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limitNum - 1);
+
+    const trimmedSearch = String(search || "").trim();
+    if (trimmedSearch) {
+      query = query.ilike("name", `%${trimmedSearch}%`);
+    }
+
+    const { data: albums, count, error } = await query;
+    if (error) {
+      console.error("[Admin/Albums] Query error:", JSON.stringify(error, null, 2));
+      throw error;
+    }
+
+    const list = albums || [];
+    let enriched = list;
+
+    if (list.length > 0) {
+      const albumIds = list.map((a) => a.id);
+      const userIds = [...new Set(list.map((a) => a.user_id).filter(Boolean))];
+
+      // Owner emails
+      const userMap = {};
+      if (userIds.length > 0) {
+        const { data: users } = await db
+          .from("users")
+          .select("id, email, credit_balance, is_pro")
+          .in("id", userIds);
+        (users || []).forEach((u) => {
+          userMap[u.id] = u;
+        });
+      }
+
+      // Item counts per album (single query, count-by-album done in JS)
+      const itemCountMap = {};
+      const { data: items } = await db
+        .from("album_items")
+        .select("album_id")
+        .in("album_id", albumIds);
+      (items || []).forEach((it) => {
+        itemCountMap[it.album_id] = (itemCountMap[it.album_id] || 0) + 1;
+      });
+
+      // Active album-scope share tokens (latest first); pick first per album
+      const tokenMap = {};
+      const { data: tokens } = await db
+        .from("public_share_tokens")
+        .select("album_id, token, is_active, created_at, expires_at, access_count")
+        .eq("scope", "album")
+        .eq("is_active", true)
+        .in("album_id", albumIds)
+        .order("created_at", { ascending: false });
+      (tokens || []).forEach((t) => {
+        if (!tokenMap[t.album_id]) tokenMap[t.album_id] = t;
+      });
+
+      enriched = list.map((a) => {
+        const owner = userMap[a.user_id] || {};
+        const tok = tokenMap[a.id] || null;
+        return {
+          ...a,
+          owner_email: owner.email || null,
+          owner_credit_balance: owner.credit_balance ?? null,
+          owner_is_pro: owner.is_pro ?? null,
+          item_count: itemCountMap[a.id] || 0,
+          latest_share_token: tok ? tok.token : null,
+          latest_share_url: tok ? `${WEB_APP_URL}/share/${tok.token}` : null,
+          latest_share_created_at: tok ? tok.created_at : null,
+          latest_share_expires_at: tok ? tok.expires_at : null,
+          latest_share_access_count: tok ? tok.access_count : null,
+        };
+      });
+    }
+
+    res.json({
+      success: true,
+      data: enriched,
+      total: count || 0,
+      page: pageNum,
+      totalPages: Math.ceil((count || 0) / limitNum),
+    });
+  } catch (error) {
+    console.error("[Admin/Albums] Full error:", JSON.stringify(error, null, 2));
+    const msg =
+      error.message ||
+      error.details ||
+      error.hint ||
+      error.code ||
+      JSON.stringify(error);
+    res.status(500).json({ success: false, error: msg });
+  }
+});
+
+// GET /api/admin-dashboard/albums/:id/items — list items inside an album
+router.get("/albums/:id/items", async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ success: false, error: "album id required" });
+    }
+
+    const { data: album, error: albumErr } = await db
+      .from("user_albums")
+      .select("id, user_id, name, description, cover_image_url, created_at")
+      .eq("id", id)
+      .single();
+    if (albumErr || !album) {
+      return res.status(404).json({ success: false, error: "album not found" });
+    }
+
+    const { data: items, error: itemsErr } = await db
+      .from("album_items")
+      .select(
+        "id, album_id, item_type, item_id, snapshot_image_url, snapshot_thumb_url, snapshot_meta, sort_order, added_at"
+      )
+      .eq("album_id", id)
+      .order("sort_order", { ascending: true })
+      .order("added_at", { ascending: false });
+
+    if (itemsErr) throw itemsErr;
+
+    const { data: tokens } = await db
+      .from("public_share_tokens")
+      .select("id, scope, item_type, item_id, token, is_active, created_at, expires_at, access_count")
+      .eq("album_id", id)
+      .order("created_at", { ascending: false });
+
+    const shareTokens = (tokens || []).map((t) => ({
+      ...t,
+      url: `${WEB_APP_URL}/share/${t.token}`,
+    }));
+
+    let owner = null;
+    if (album.user_id) {
+      const { data: u } = await db
+        .from("users")
+        .select("id, email, credit_balance, is_pro")
+        .eq("id", album.user_id)
+        .single();
+      owner = u || null;
+    }
+
+    res.json({
+      success: true,
+      album,
+      owner,
+      items: items || [],
+      share_tokens: shareTokens,
+    });
+  } catch (error) {
+    console.error("[Admin/Albums/items] Full error:", JSON.stringify(error, null, 2));
+    const msg =
+      error.message ||
+      error.details ||
+      error.hint ||
+      error.code ||
+      JSON.stringify(error);
+    res.status(500).json({ success: false, error: msg });
+  }
+});
+
 // POST /api/admin-dashboard/users/:id/credits
 // Body: { mode: "add" | "subtract" | "set", amount: number, reason?: string }
 router.post("/users/:id/credits", async (req, res) => {
