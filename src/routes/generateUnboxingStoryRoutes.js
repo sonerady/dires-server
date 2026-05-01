@@ -270,7 +270,7 @@ async function callReplicateNanoBananaPro(prompt, resultImageUrl, referenceImage
                         aspect_ratio: aspectRatio,
                         resolution: "1K",
                         output_format: "jpeg",
-                        safety_tolerance: "4",
+                        safety_tolerance: "6",
                         num_images: 1,
                     },
                     {
