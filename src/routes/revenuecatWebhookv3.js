@@ -55,6 +55,17 @@ const KNOWN_PACKAGE_CREDITS = {
   "com.diress.pro.weekly.regular": 600,
   "com.diress.pro.monthly.regular": 2400,
 
+  // Android base plan suffix'li varyantlar (".regular.<credits>")
+  // Google Play subscription product ID'leri base plan'ı suffix olarak içerir.
+  "com.diress.standard.weekly.regular.600": 600,
+  "com.diress.standard.monthly.regular.2400": 2400,
+  "com.diress.plus.weekly.regular.1200": 1200,
+  "com.diress.plus.monthly.regular.4800": 4800,
+  "com.diress.premium.weekly.regular.2400": 2400,
+  "com.diress.premium.monthly.regular.9600": 9600,
+  "com.diress.pro.weekly.regular.600": 600,
+  "com.diress.pro.monthly.regular.2400": 2400,
+
   // Legacy subscription paketleri
   "com.monailisa.pro_weekly600": 600,
   "com.monailisa.pro_monthly2400": 2400,
@@ -100,9 +111,25 @@ const normalizeRevenueCatProductId = (productId) =>
     .split(":")[0]
     .toLowerCase();
 
+// Android base plan suffix'i strip eder: "...regular.2400" → "...regular"
+// Google Play subscription product ID'lerinin sonunda credit miktarı duruyor;
+// ana eşleşme bulunamadıysa suffix'siz forma fallback yapıyoruz.
+const stripAndroidBasePlanSuffix = (id) => {
+  if (!id) return id;
+  const m = id.match(/^(.*\.regular)\.\d+$/);
+  return m ? m[1] : id;
+};
+
 const getCreditsForPackage = (productId) => {
   const normalizedProductId = normalizeRevenueCatProductId(productId);
-  return KNOWN_PACKAGE_CREDITS[normalizedProductId] || 0;
+  const direct = KNOWN_PACKAGE_CREDITS[normalizedProductId];
+  if (direct) return direct;
+  // Fallback: Android ".regular.<credits>" → ".regular"
+  const stripped = stripAndroidBasePlanSuffix(normalizedProductId);
+  if (stripped !== normalizedProductId && KNOWN_PACKAGE_CREDITS[stripped]) {
+    return KNOWN_PACKAGE_CREDITS[stripped];
+  }
+  return 0;
 };
 
 // RevenueCat Webhook endpoint v3

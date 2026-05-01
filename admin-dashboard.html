@@ -365,6 +365,62 @@
             font-variant-numeric: tabular-nums;
         }
 
+        /* Card meta row — platform, theme, app_version pills (alt satır) */
+        .card-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px 10px;
+            border-top: 1px solid var(--border);
+        }
+        .meta-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 10.5px;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--hover);
+            color: var(--text-secondary);
+            line-height: 1.3;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+        .meta-platform.meta-ios {
+            background: #f0f0f3;
+            color: #1c1c1e;
+            border-color: #d1d1d6;
+        }
+        .meta-platform.meta-android {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-color: #c8e6c9;
+        }
+        .meta-platform.meta-web {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-color: #bbdefb;
+        }
+        .meta-theme-dark {
+            background: #1f2937;
+            color: #fff;
+            border-color: #374151;
+        }
+        .meta-theme-light {
+            background: #fffde7;
+            color: #b45309;
+            border-color: #fde68a;
+        }
+        .meta-version {
+            font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+            font-size: 10px;
+            color: var(--text-tertiary);
+            background: var(--surface);
+        }
+
         .brand-assets {
             display: flex;
             gap: 12px;
@@ -641,6 +697,7 @@
         /* Result as story grid (for product_stories / unboxing_stories) */
         .modal-result.is-grid {
             align-items: flex-start;
+            flex-direction: column;
             padding: 20px;
         }
 
@@ -914,6 +971,10 @@
             font-variant-numeric: tabular-nums;
             white-space: nowrap;
         }
+        .users-table .u-muted {
+            color: var(--text-tertiary);
+            font-size: 12px;
+        }
         .u-pill {
             display: inline-block;
             padding: 2px 8px;
@@ -1051,6 +1112,287 @@
             color: #2e7d32;
             border-color: #c8e6c9;
         }
+
+        /* Video card — play icon overlay + VIDEO badge over thumbnail */
+        .video-card-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.45) 100%);
+            pointer-events: none;
+        }
+        .video-play-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            font-size: 22px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.18);
+            transition: transform 0.15s var(--ease), background 0.15s var(--ease);
+            padding-left: 4px; /* play triangle optical alignment */
+        }
+        .card:hover .video-play-icon {
+            background: rgba(0,0,0,0.78);
+            transform: scale(1.08);
+        }
+        .video-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(10,10,10,0.78);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            letter-spacing: 0.06em;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        /* Modal video player */
+        .modal-video-player {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: var(--radius-md);
+            background: #000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.16);
+        }
+
+        /* Album drill-down — Level 1: User cards grid */
+        .album-user-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 14px;
+        }
+        .album-user-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            cursor: pointer;
+            transition: border-color 0.15s var(--ease), transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+        }
+        .album-user-card:hover {
+            border-color: var(--border-strong);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .album-user-card-cover {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            background: var(--hover);
+            display: block;
+        }
+        .album-user-card-cover-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-tertiary);
+            font-size: 28px;
+        }
+        .album-user-card-body {
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .album-user-card-email {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .album-user-card-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .album-user-card-count {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+        }
+        .album-user-card-date {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Album drill-down — Level 2: Album cards grid (selected user) */
+        .album-back-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            margin-bottom: 14px;
+        }
+        .album-back-btn {
+            background: none;
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            padding: 5px 12px;
+            font-size: 12.5px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s var(--ease), border-color 0.15s var(--ease), color 0.15s var(--ease);
+        }
+        .album-back-btn:hover {
+            background: var(--hover);
+            color: var(--text-primary);
+            border-color: var(--text-primary);
+        }
+        .album-back-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+            min-width: 0;
+        }
+        .album-back-count {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            font-variant-numeric: tabular-nums;
+        }
+        .album-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 14px;
+        }
+        .album-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            cursor: pointer;
+            transition: border-color 0.15s var(--ease), transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+        }
+        .album-card:hover {
+            border-color: var(--border-strong);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .album-card-cover {
+            width: 100%;
+            aspect-ratio: 4/5;
+            object-fit: cover;
+            background: var(--hover);
+            display: block;
+        }
+        .album-card-cover-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-tertiary);
+            font-size: 28px;
+        }
+        .album-card-body {
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .album-card-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .album-card-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .album-card-items {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+        }
+        .album-card-date {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Album list — link indicator next to album name */
+        .album-link-indicator {
+            margin-left: 6px;
+            font-size: 12px;
+            opacity: 0.75;
+            cursor: help;
+            user-select: none;
+        }
+
+        /* Album detail modal — share link banner üstte (item grid'den önce) */
+        .album-link-banner {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .album-link-banner-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+        }
+        .album-link-banner-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .album-link-banner-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        .album-link-banner-row a {
+            font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+            color: var(--text-secondary);
+            text-decoration: none;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+            min-width: 0;
+        }
+        .album-link-banner-row a:hover { color: var(--text-primary); }
 
         /* Album detail modal — items grid */
         .album-items-grid {
@@ -1357,6 +1699,7 @@
         <button class="sidebar-item" data-feature="back-side">Back Side</button>
         <button class="sidebar-item" data-feature="chat-edit">AI Edit</button>
         <button class="sidebar-item" data-feature="upscale">Upscale</button>
+        <button class="sidebar-item" data-feature="videos">Videos</button>
         <button class="sidebar-item" data-feature="ecommerce-kits">E-commerce Kits</button>
         <button class="sidebar-item" data-feature="product-stories">Product Stories</button>
         <button class="sidebar-item" data-feature="unboxing-stories">Unboxing Stories</button>
@@ -1501,6 +1844,7 @@
             'back-side': { label: 'Back Side', sourceTable: 'reference_results' },
             'chat-edit': { label: 'AI Edit', sourceTable: 'chat_edits' },
             'upscale': { label: 'Upscale', sourceTable: 'upscale_generations' },
+            'videos': { label: 'Videos', sourceTable: 'video_generations' },
             'ecommerce-kits': { label: 'E-commerce Kits', sourceTable: 'product_kits' },
             'product-stories': { label: 'Product Stories', sourceTable: 'product_stories' },
             'unboxing-stories': { label: 'Unboxing Stories', sourceTable: 'product_unboxing_stories' },
@@ -1516,6 +1860,11 @@
         let userSearchTimer = null;
         let albumSearchQuery = '';
         let albumSearchTimer = null;
+
+        // Albums drill-down: "users" → kullanıcı kart grid'i; "albums" → seçili
+        // kullanıcının albüm kart grid'i. Modal: detay (mevcut openAlbumDetail).
+        let albumViewLevel = 'users';
+        let selectedAlbumUser = null; // { user_id, email, ... }
 
         // Read state from URL
         function readUrlState() {
@@ -1573,6 +1922,11 @@
             if (src === 'refiner_generations') {
                 return item.result_image_url || '';
             }
+            if (src === 'video_generations') {
+                // Video sonucu: result_video_url. Card thumbnail'i original_image_url'den
+                // (getOriginalUrl ile birleşiyor); bu fonksiyon "result" konumundaki URL'i döner.
+                return item.result_video_url || '';
+            }
             if (src === 'product_kits') {
                 const imgs = item.kit_images;
                 if (Array.isArray(imgs) && imgs.length > 0) {
@@ -1593,6 +1947,9 @@
 
         function getOriginalUrls(item) {
             const src = getSourceTable();
+            if (src === 'video_generations') {
+                return item.original_image_url ? [item.original_image_url] : [];
+            }
             if (src === 'reference_results') {
                 const refs = item.reference_images;
                 if (Array.isArray(refs)) return refs.filter(Boolean);
@@ -1645,6 +2002,9 @@
                 currentPage = 1;
                 userSearchQuery = '';
                 albumSearchQuery = '';
+                // Albums sekmesine her tıklamada drill-down kullanıcı listesine dön
+                albumViewLevel = 'users';
+                selectedAlbumUser = null;
                 const userSearchEl = document.getElementById('userSearch');
                 if (userSearchEl) userSearchEl.value = '';
                 const albumSearchEl = document.getElementById('albumSearch');
@@ -1772,12 +2132,22 @@
                     const resultUrl = getResultUrl(item);
                     const originalUrl = getOriginalUrl(item);
                     const credits = getCredits(item);
+                    const isVideo = currentFeature === 'videos';
 
-                    const cardResultUrl = cdnUrl(resultUrl, { width: 400, height: 600, quality: 75 });
-                    const cardOriginalUrl = cdnUrl(originalUrl, { width: 96, height: 96, quality: 70 });
+                    // Video kartı: thumbnail original_image_url'den (cdnUrl'le 400×600
+                    // resize); video URL'i modal'da oynatılır. Card preview için
+                    // resultUrl yerine originalUrl thumbnail olarak kullanıyoruz.
+                    const thumbnailUrl = isVideo ? originalUrl : resultUrl;
+                    const cardResultUrl = cdnUrl(thumbnailUrl, { width: 400, height: 600, quality: 75 });
+                    const cardOriginalUrl = isVideo
+                        ? '' // video kartında orijinal thumbnail tek başına gösterildiği için sağ üst köşedeki küçük "original" gerekmez
+                        : cdnUrl(originalUrl, { width: 96, height: 96, quality: 70 });
 
                     const userEmail = item.user_email || '';
                     const userCredits = item.user_credit_balance != null ? item.user_credit_balance : '';
+                    const userPlatform = item.user_platform || '';   // 'ios' | 'android' | 'web'
+                    const userTheme = item.user_theme_mode || '';    // 'light' | 'dark'
+                    const userAppVersion = item.user_app_version || '';
 
                     // Bundle feature'lar (stories, unboxing, kits) → kredi miktarı badge'i
                     // Diğer feature'lar → 35 kredi = v2, diğer = v1 badge
@@ -1799,8 +2169,14 @@
 
                     card.innerHTML = `
                         <div class="card-image-container">
-                            ${resultUrl ? `<img class="card-image" src="${cardResultUrl}" alt="Result" loading="lazy" onerror="this.style.display='none'">` : ''}
-                            ${originalUrl ? `<img class="card-original" src="${cardOriginalUrl}" alt="Original" loading="lazy" onerror="this.style.display='none'">` : ''}
+                            ${thumbnailUrl ? `<img class="card-image" src="${cardResultUrl}" alt="${isVideo ? 'Video Source' : 'Result'}" loading="lazy" onerror="this.style.display='none'">` : ''}
+                            ${isVideo ? `
+                                <div class="video-card-overlay" aria-hidden="true">
+                                    <div class="video-play-icon">▶</div>
+                                </div>
+                                <span class="video-badge">VIDEO</span>
+                            ` : ''}
+                            ${!isVideo && originalUrl ? `<img class="card-original" src="${cardOriginalUrl}" alt="Original" loading="lazy" onerror="this.style.display='none'">` : ''}
                         </div>
                         <div class="card-info">
                             <span class="card-date">${dateStr}</span>
@@ -1812,6 +2188,14 @@
                         ${userEmail ? `<div class="card-user">
                             <span class="card-user-email" title="${userEmail}">${userEmail}</span>
                             ${userCredits !== '' ? `<span class="card-user-credits">${userCredits} cr</span>` : ''}
+                        </div>` : ''}
+                        ${(userPlatform || userTheme || userAppVersion) ? `<div class="card-meta-row">
+                            ${userPlatform === 'ios' ? `<span class="meta-pill meta-platform meta-ios" title="iOS"> iOS</span>` : ''}
+                            ${userPlatform === 'android' ? `<span class="meta-pill meta-platform meta-android" title="Android">🤖 Android</span>` : ''}
+                            ${userPlatform === 'web' ? `<span class="meta-pill meta-platform meta-web" title="Web">🌐 Web</span>` : ''}
+                            ${userTheme === 'dark' ? `<span class="meta-pill meta-theme meta-theme-dark" title="Dark Mode">🌙 Dark</span>` : ''}
+                            ${userTheme === 'light' ? `<span class="meta-pill meta-theme meta-theme-light" title="Light Mode">☀️ Light</span>` : ''}
+                            ${userAppVersion ? `<span class="meta-pill meta-version" title="App Version ${escapeHtml(userAppVersion)}">v${escapeHtml(userAppVersion)}</span>` : ''}
                         </div>` : ''}
                     `;
                     grid.appendChild(card);
@@ -1909,6 +2293,21 @@
 
         function renderUsers(users) {
             const container = document.getElementById('usersTableContainer');
+
+            const platformPill = (p) => {
+                if (p === 'ios') return `<span class="meta-pill meta-platform meta-ios"> iOS</span>`;
+                if (p === 'android') return `<span class="meta-pill meta-platform meta-android">🤖 Android</span>`;
+                if (p === 'web') return `<span class="meta-pill meta-platform meta-web">🌐 Web</span>`;
+                return `<span class="u-muted">—</span>`;
+            };
+            const themePill = (t) => {
+                if (t === 'dark') return `<span class="meta-pill meta-theme-dark">🌙 Dark</span>`;
+                if (t === 'light') return `<span class="meta-pill meta-theme-light">☀️ Light</span>`;
+                return `<span class="u-muted">—</span>`;
+            };
+            const versionPill = (v) =>
+                v ? `<span class="meta-pill meta-version">v${escapeHtml(String(v))}</span>` : `<span class="u-muted">—</span>`;
+
             const rows = users.map(u => {
                 const created = u.created_at ? timeAgo(u.created_at) : '';
                 const credits = u.credit_balance != null ? Number(u.credit_balance).toLocaleString() : '0';
@@ -1921,6 +2320,9 @@
                     <td class="u-id" title="${escapeHtml(u.id || '')}">${escapeHtml(shortId)}…</td>
                     <td>${proPill}</td>
                     <td class="u-credits">${credits}</td>
+                    <td>${platformPill(u.platform)}</td>
+                    <td>${themePill(u.theme_mode)}</td>
+                    <td>${versionPill(u.app_version)}</td>
                     <td class="u-date">${created}</td>
                 </tr>`;
             }).join('');
@@ -1933,6 +2335,9 @@
                             <th>User ID</th>
                             <th>Plan</th>
                             <th style="text-align:right;">Credits</th>
+                            <th>Platform</th>
+                            <th>Theme</th>
+                            <th>App Version</th>
                             <th>Created</th>
                         </tr>
                     </thead>
@@ -1951,9 +2356,20 @@
         }
 
         // ─────────────────────────────────────────────────────────────
-        // ALBUMS (Admin)
+        // ALBUMS (Admin) — 2 seviyeli drill-down:
+        //   level "users"  → Kullanıcı kart grid'i (her kart: email + albüm sayısı + son albüm cover)
+        //   level "albums" → Seçili kullanıcının albüm kart grid'i
+        //   tıklayınca mevcut openAlbumDetail modalı açılır
         // ─────────────────────────────────────────────────────────────
         async function fetchAlbums() {
+            // Hangi seviyeye göre route et
+            if (albumViewLevel === 'albums' && selectedAlbumUser) {
+                return fetchAlbumsForSelectedUser();
+            }
+            return fetchAlbumUsers();
+        }
+
+        async function fetchAlbumUsers() {
             const container = document.getElementById('albumsTableContainer');
             const loading = document.getElementById('loading');
             const empty = document.getElementById('empty');
@@ -1979,14 +2395,14 @@
             try {
                 const params = new URLSearchParams({ page: currentPage, limit: 30 });
                 if (albumSearchQuery) params.set('search', albumSearchQuery);
-                const res = await fetch(`/api/admin-dashboard/albums?${params.toString()}`);
+                const res = await fetch(`/api/admin-dashboard/album-users?${params.toString()}`);
                 const json = await res.json();
 
                 loading.style.display = 'none';
 
                 if (!json.success || !json.data || json.data.length === 0) {
                     empty.style.display = 'block';
-                    empty.textContent = albumSearchQuery ? 'Eşleşen albüm bulunamadı.' : 'Albüm yok.';
+                    empty.textContent = albumSearchQuery ? 'Eşleşen kullanıcı bulunamadı.' : 'Albüm sahibi kullanıcı yok.';
                     headerCount.textContent = '0';
                     headerCount.classList.add('empty');
                     return;
@@ -1996,7 +2412,107 @@
                 headerCount.textContent = Number(json.total || 0).toLocaleString();
                 headerCount.classList.remove('empty');
 
-                renderAlbums(json.data);
+                renderAlbumUsers(json.data);
+
+                if (totalPages > 1) {
+                    pagination.style.display = 'flex';
+                    document.getElementById('prevBtn').disabled = currentPage <= 1;
+                    document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+                    document.getElementById('pageInput').value = currentPage;
+                    document.getElementById('pageInput').max = totalPages;
+                    document.getElementById('totalPagesText').textContent = totalPages;
+                }
+            } catch (err) {
+                loading.style.display = 'none';
+                empty.style.display = 'block';
+                empty.textContent = 'Kullanıcılar yüklenemedi.';
+                console.error(err);
+            }
+        }
+
+        function renderAlbumUsers(users) {
+            const container = document.getElementById('albumsTableContainer');
+            const cards = users.map(u => {
+                // Kapak: backend'in hesapladığı display_cover_url (son item URL'i),
+                // yoksa fallback latest_album_cover_url
+                const coverUrl = u.display_cover_url || u.latest_album_cover_url;
+                const cover = coverUrl
+                    ? `<img class="album-user-card-cover" src="${cdnUrl(coverUrl, { width: 400, height: 400, quality: 75 })}" alt="" loading="lazy" onerror="this.style.display='none'">`
+                    : `<div class="album-user-card-cover album-user-card-cover-empty">◇</div>`;
+                const email = u.email || '(no email)';
+                const albumsCount = Number(u.albums_count || 0);
+                const planPill = u.is_pro
+                    ? `<span class="u-pill pro">PRO</span>`
+                    : `<span class="u-pill free">FREE</span>`;
+                const latestAt = u.latest_album_at ? timeAgo(u.latest_album_at) : '';
+                return `<div class="album-user-card" data-user='${escapeHtml(JSON.stringify({
+                    user_id: u.user_id,
+                    email: u.email,
+                }))}'>
+                    ${cover}
+                    <div class="album-user-card-body">
+                        <div class="album-user-card-email" title="${escapeHtml(email)}">${escapeHtml(email)}</div>
+                        <div class="album-user-card-meta">
+                            <span class="album-user-card-count">${albumsCount} albüm</span>
+                            ${planPill}
+                        </div>
+                        ${latestAt ? `<div class="album-user-card-date">Son: ${escapeHtml(latestAt)}</div>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+
+            container.innerHTML = `<div class="album-user-grid">${cards}</div>`;
+
+            container.querySelectorAll('.album-user-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    try {
+                        const meta = JSON.parse(card.getAttribute('data-user'));
+                        selectedAlbumUser = meta;
+                        albumViewLevel = 'albums';
+                        currentPage = 1;
+                        fetchAlbumsForSelectedUser();
+                    } catch (err) { console.warn(err); }
+                });
+            });
+        }
+
+        async function fetchAlbumsForSelectedUser() {
+            const container = document.getElementById('albumsTableContainer');
+            const loading = document.getElementById('loading');
+            const empty = document.getElementById('empty');
+            const pagination = document.getElementById('pagination');
+            const headerCount = document.getElementById('headerCount');
+
+            updateUrl();
+            container.innerHTML = '';
+            loading.style.display = 'block';
+            empty.style.display = 'none';
+            pagination.style.display = 'none';
+
+            try {
+                const params = new URLSearchParams({
+                    page: currentPage,
+                    limit: 30,
+                    user_id: selectedAlbumUser?.user_id || '',
+                });
+                if (albumSearchQuery) params.set('search', albumSearchQuery);
+                const res = await fetch(`/api/admin-dashboard/albums?${params.toString()}`);
+                const json = await res.json();
+
+                loading.style.display = 'none';
+
+                if (!json.success) {
+                    empty.style.display = 'block';
+                    empty.textContent = 'Albümler yüklenemedi.';
+                    return;
+                }
+
+                totalPages = json.totalPages;
+                headerCount.textContent = Number(json.total || 0).toLocaleString();
+                if (json.total > 0) headerCount.classList.remove('empty');
+                else headerCount.classList.add('empty');
+
+                renderAlbumsForUser(json.data || []);
 
                 if (totalPages > 1) {
                     pagination.style.display = 'flex';
@@ -2014,92 +2530,76 @@
             }
         }
 
-        function renderAlbums(albums) {
+        function renderAlbumsForUser(albums) {
             const container = document.getElementById('albumsTableContainer');
-            const rows = albums.map(a => {
+            const userEmail = selectedAlbumUser?.email || '(no email)';
+
+            const headerHtml = `
+                <div class="album-back-bar">
+                    <button class="album-back-btn" onclick="exitAlbumDrillDown()">← Tüm kullanıcılar</button>
+                    <span class="album-back-title">${escapeHtml(userEmail)}</span>
+                    <span class="album-back-count">${albums.length} albüm</span>
+                </div>
+            `;
+
+            if (albums.length === 0) {
+                container.innerHTML = `${headerHtml}
+                    <div style="padding: 40px; text-align:center; color: var(--text-tertiary);">
+                        Bu kullanıcının albümü yok.
+                    </div>`;
+                return;
+            }
+
+            const cards = albums.map(a => {
+                // Kapak: backend'in hesapladığı display_cover_url (manuel cover varsa
+                // o, yoksa albümdeki son item)
+                const coverUrl = a.display_cover_url || a.cover_image_url || a.latest_item_url;
+                const cover = coverUrl
+                    ? `<img class="album-card-cover" src="${cdnUrl(coverUrl, { width: 400, height: 500, quality: 75 })}" alt="" loading="lazy" onerror="this.style.display='none'">`
+                    : `<div class="album-card-cover album-card-cover-empty">◇</div>`;
+                const itemCount = Number(a.item_count || 0);
                 const created = a.created_at ? timeAgo(a.created_at) : '';
-                const cover = a.cover_image_url
-                    ? `<img class="album-cover" src="${cdnUrl(a.cover_image_url, { width: 88, height: 88, quality: 70 })}" alt="cover" loading="lazy" onerror="this.outerHTML='<span class=&quot;album-cover-empty&quot;>◇</span>'">`
-                    : `<span class="album-cover-empty">◇</span>`;
-                const ownerEmail = a.owner_email || '(no email)';
-                const itemCount = Number(a.item_count || 0).toLocaleString();
-                const linkCell = a.latest_share_url
-                    ? `<span class="album-link">
-                          <a href="${escapeHtml(a.latest_share_url)}" target="_blank" rel="noopener" title="${escapeHtml(a.latest_share_url)}">${escapeHtml(a.latest_share_url.replace(/^https?:\/\//, ''))}</a>
-                       </span>
-                       <button class="album-copy-btn" data-copy-url="${escapeHtml(a.latest_share_url)}">Kopyala</button>`
-                    : `<span class="album-link-empty">aktif link yok</span>`;
-                return `<tr data-album='${escapeHtml(JSON.stringify({
+                const linkBadge = a.latest_share_url
+                    ? `<span class="album-link-indicator" title="Aktif paylaşım linki var">🔗</span>`
+                    : "";
+                return `<div class="album-card" data-album='${escapeHtml(JSON.stringify({
                     id: a.id,
                     name: a.name,
                     owner_email: a.owner_email,
                     user_id: a.user_id,
                 }))}'>
-                    <td>${cover}</td>
-                    <td class="album-name" title="${escapeHtml(a.name || '')}">${escapeHtml(a.name || '(no name)')}</td>
-                    <td class="album-owner" title="${escapeHtml(ownerEmail)}">${escapeHtml(ownerEmail)}</td>
-                    <td class="album-count">${itemCount}</td>
-                    <td>${linkCell}</td>
-                    <td class="u-date">${created}</td>
-                </tr>`;
+                    ${cover}
+                    <div class="album-card-body">
+                        <div class="album-card-name" title="${escapeHtml(a.name || '')}">${escapeHtml(a.name || '(no name)')} ${linkBadge}</div>
+                        <div class="album-card-meta">
+                            <span class="album-card-items">${itemCount} öğe</span>
+                            ${created ? `<span class="album-card-date">${escapeHtml(created)}</span>` : ''}
+                        </div>
+                    </div>
+                </div>`;
             }).join('');
 
-            container.innerHTML = `
-                <table class="albums-table">
-                    <thead>
-                        <tr>
-                            <th style="width:60px;">Cover</th>
-                            <th>Album</th>
-                            <th>Owner</th>
-                            <th style="text-align:right;">Items</th>
-                            <th>Latest Share Link</th>
-                            <th>Created</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rows}</tbody>
-                </table>
-            `;
+            container.innerHTML = `${headerHtml}<div class="album-card-grid">${cards}</div>`;
 
-            container.querySelectorAll('tbody tr').forEach(tr => {
-                tr.addEventListener('click', (e) => {
-                    // ignore clicks on the link itself or copy button
-                    if (e.target.closest('a, button')) return;
+            container.querySelectorAll('.album-card').forEach(card => {
+                card.addEventListener('click', () => {
                     try {
-                        const meta = JSON.parse(tr.getAttribute('data-album'));
+                        const meta = JSON.parse(card.getAttribute('data-album'));
                         openAlbumDetail(meta.id, meta);
                     } catch (err) { console.warn(err); }
                 });
             });
+        }
 
-            // copy button handlers
-            container.querySelectorAll('.album-copy-btn').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    e.stopPropagation();
-                    const url = btn.getAttribute('data-copy-url');
-                    if (!url) return;
-                    try {
-                        if (navigator.clipboard?.writeText) {
-                            await navigator.clipboard.writeText(url);
-                        } else {
-                            const ta = document.createElement('textarea');
-                            ta.value = url;
-                            document.body.appendChild(ta);
-                            ta.select();
-                            document.execCommand('copy');
-                            document.body.removeChild(ta);
-                        }
-                        const orig = btn.textContent;
-                        btn.classList.add('copied');
-                        btn.textContent = '✓ Kopyalandı';
-                        setTimeout(() => {
-                            btn.classList.remove('copied');
-                            btn.textContent = orig;
-                        }, 1200);
-                    } catch (err) {
-                        console.warn('Copy failed:', err);
-                    }
-                });
-            });
+        // Drill-down'dan kullanıcı listesine geri dön
+        function exitAlbumDrillDown() {
+            albumViewLevel = 'users';
+            selectedAlbumUser = null;
+            currentPage = 1;
+            albumSearchQuery = '';
+            const albumSearchEl = document.getElementById('albumSearch');
+            if (albumSearchEl) albumSearchEl.value = '';
+            fetchAlbumUsers();
         }
 
         async function openAlbumDetail(albumId, basicMeta = {}) {
@@ -2136,11 +2636,29 @@
                 const items = json.items || [];
                 const tokens = json.share_tokens || [];
 
+                // Üstte share link banner'ı — link varsa görünür, yoksa hiç render edilmez
+                const activeTokens = (tokens || []).filter(t => t.is_active);
+                const linkBannerHtml = activeTokens.length > 0
+                    ? `<div class="album-link-banner">
+                          <span class="album-link-banner-label">🔗 Paylaşım Link${activeTokens.length > 1 ? "leri" : "i"}:</span>
+                          <div class="album-link-banner-list">
+                              ${activeTokens.map(t => `
+                                  <div class="album-link-banner-row">
+                                      <span class="scope-pill">${escapeHtml(t.scope || '')}</span>
+                                      <a href="${escapeHtml(t.url)}" target="_blank" rel="noopener" title="${escapeHtml(t.url)}">${escapeHtml(t.url)}</a>
+                                      <button class="album-copy-btn" data-copy-url="${escapeHtml(t.url)}">Kopyala</button>
+                                  </div>
+                              `).join('')}
+                          </div>
+                       </div>`
+                    : '';
+
                 // Items grid (or empty)
                 if (items.length === 0) {
-                    resultPanel.innerHTML = `<div style="color: var(--text-tertiary); padding: 40px; text-align:center; width:100%;">Bu albümde henüz öğe yok.</div>`;
+                    resultPanel.innerHTML = `${linkBannerHtml}<div style="color: var(--text-tertiary); padding: 40px; text-align:center; width:100%;">Bu albümde henüz öğe yok.</div>`;
                 } else {
                     resultPanel.innerHTML = `
+                        ${linkBannerHtml}
                         <div class="album-items-grid">
                             ${items.map(it => {
                                 const url = it.snapshot_image_url || it.snapshot_thumb_url || '';
@@ -2157,8 +2675,37 @@
                         </div>`;
                 }
 
-                // Footer details
-                const albumUrl = tokens.find(t => t.scope === 'album' && t.is_active)?.url || null;
+                // Link banner'da kopya buton handlers
+                resultPanel.querySelectorAll('.album-copy-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        const url = btn.getAttribute('data-copy-url');
+                        if (!url) return;
+                        try {
+                            if (navigator.clipboard?.writeText) {
+                                await navigator.clipboard.writeText(url);
+                            } else {
+                                const ta = document.createElement('textarea');
+                                ta.value = url;
+                                document.body.appendChild(ta);
+                                ta.select();
+                                document.execCommand('copy');
+                                document.body.removeChild(ta);
+                            }
+                            const orig = btn.textContent;
+                            btn.classList.add('copied');
+                            btn.textContent = '✓ Kopyalandı';
+                            setTimeout(() => {
+                                btn.classList.remove('copied');
+                                btn.textContent = orig;
+                            }, 1200);
+                        } catch (err) {
+                            console.warn('Copy failed:', err);
+                        }
+                    });
+                });
+
+                // Footer details (aktif linkler zaten üst banner'da gösteriliyor)
                 let detailsHtml = '';
                 detailsHtml += detailRow('Items', items.length);
                 if (album.created_at) detailsHtml += detailRow('Created', timeAgo(album.created_at));
@@ -2167,21 +2714,22 @@
                 if (owner.credit_balance != null) detailsHtml += detailRow('Owner Credits', Number(owner.credit_balance).toLocaleString());
                 detailsHtml += detailRow('Plan', owner.is_pro ? 'PRO' : 'FREE');
                 if (album.id) detailsHtml += detailRowCopyable('Album ID', album.id, { wide: true });
-                if (albumUrl) detailsHtml += detailRowCopyable('Album Share URL', albumUrl, { wide: true });
-
-                // Share tokens list (album + item-scope)
-                if (tokens.length > 0) {
+                // Aktif share linkleri zaten üstte banner olarak gösteriliyor — burada
+                // sadece geçmişteki (revoke edilmiş) tokenleri ek bir "history" bölümünde
+                // göster ki audit trail kaybolmasın.
+                const inactiveTokens = (tokens || []).filter(t => !t.is_active);
+                if (inactiveTokens.length > 0) {
                     const tokensHtml = `
                         <div class="modal-detail wide">
-                            <span class="modal-detail-label">Share Links (${tokens.length})</span>
+                            <span class="modal-detail-label">Eski Linkler (${inactiveTokens.length})</span>
                             <div class="album-tokens-list">
-                                ${tokens.map(t => {
+                                ${inactiveTokens.map(t => {
                                     const created = t.created_at ? timeAgo(t.created_at) : '';
                                     const access = t.access_count != null ? `${t.access_count} görüntüleme` : '';
                                     return `<div class="album-token-row">
                                         <span class="scope-pill">${escapeHtml(t.scope || '')}</span>
                                         <a href="${escapeHtml(t.url)}" target="_blank" rel="noopener" title="${escapeHtml(t.url)}">${escapeHtml(t.url)}</a>
-                                        <span class="token-meta">${escapeHtml(created)}${access ? ' · ' + escapeHtml(access) : ''}${t.is_active ? '' : ' · revoked'}</span>
+                                        <span class="token-meta">${escapeHtml(created)}${access ? ' · ' + escapeHtml(access) : ''} · revoked</span>
                                     </div>`;
                                 }).join('')}
                             </div>
@@ -2397,8 +2945,19 @@
                 refsCount.textContent = '';
             }
 
+            // Result: video player (video_generations) → <video controls> ile oynat
+            if (src === 'video_generations') {
+                const videoUrl = item.result_video_url || '';
+                const posterUrl = item.original_image_url ? cdnUrl(item.original_image_url, { width: 800, height: 1200, quality: 80 }) : '';
+                resultPanel.innerHTML = videoUrl
+                    ? `<video class="modal-video-player" controls autoplay muted playsinline preload="auto" ${posterUrl ? `poster="${escapeHtml(posterUrl)}"` : ''}>
+                          <source src="${escapeHtml(videoUrl)}">
+                          Tarayıcınız video etiketini desteklemiyor.
+                       </video>`
+                    : `<div style="color: var(--text-tertiary); font-size: 14px;">${item.status === 'failed' ? 'Video üretimi başarısız oldu.' : 'Video URL henüz hazır değil.'}</div>`;
+            }
             // Result: story-grid (product/unboxing stories, kits) or single image
-            if ((src === 'product_stories' || src === 'product_unboxing_stories' || src === 'product_street_icon_kits') &&
+            else if ((src === 'product_stories' || src === 'product_unboxing_stories' || src === 'product_street_icon_kits') &&
                 Array.isArray(item.story_images) && item.story_images.length > 1) {
                 resultPanel.classList.add('is-grid');
                 resultPanel.innerHTML = `
@@ -2482,6 +3041,11 @@
 
         function closeModal(event) {
             if (event && event.target !== document.getElementById('modalOverlay')) return;
+            // Modal'da çalan video varsa durdur (background'da çalmaya devam etmesin)
+            const playingVideo = document.querySelector('.modal-video-player');
+            if (playingVideo) {
+                try { playingVideo.pause(); } catch (e) {}
+            }
             document.getElementById('modalOverlay').classList.remove('active');
             document.body.style.overflow = '';
         }

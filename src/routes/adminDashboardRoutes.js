@@ -82,6 +82,12 @@ const FEATURE_CONFIG = {
       "id, user_id, generation_id, original_photos, story_images, processing_time_seconds, total_images_generated, credits_used, is_free_tier, created_at",
     applyFilter: null,
   },
+  videos: {
+    table: "video_generations",
+    select:
+      "id, user_id, status, original_image_url, result_video_url, user_prompt, enhanced_prompt, duration, aspect_ratio, credits_used, error_message, processing_time_seconds, created_at",
+    applyFilter: null,
+  },
 };
 
 router.get("/generations", async (req, res) => {
@@ -143,7 +149,7 @@ router.get("/generations", async (req, res) => {
       if (userIds.length > 0) {
         const { data: users } = await db
           .from("users")
-          .select("id, email, credit_balance")
+          .select("id, email, credit_balance, theme_mode, platform, app_version")
           .in("id", userIds);
 
         const userMap = {};
@@ -165,6 +171,9 @@ router.get("/generations", async (req, res) => {
             ...item,
             user_email: user.email || null,
             user_credit_balance: user.credit_balance ?? null,
+            user_theme_mode: user.theme_mode || null,
+            user_platform: user.platform || null,
+            user_app_version: user.app_version || null,
           };
           if (feature === "unboxing-stories") {
             const pref = unboxingPrefsMap[item.user_id] || {};
@@ -222,7 +231,7 @@ router.get("/users", async (req, res) => {
     let query = db
       .from("users")
       .select(
-        "id, email, credit_balance, is_pro, subscription_type, supabase_user_id, created_at",
+        "id, email, credit_balance, is_pro, subscription_type, supabase_user_id, created_at, theme_mode, platform, app_version",
         { count: "estimated" },
       )
       .order(sortCol, { ascending })
@@ -267,10 +276,130 @@ router.get("/users", async (req, res) => {
 
 const WEB_APP_URL = process.env.WEB_APP_URL || "https://app.diress.ai";
 
-// GET /api/admin-dashboard/albums?page=1&limit=30&search=
-router.get("/albums", async (req, res) => {
+// GET /api/admin-dashboard/album-users?page=1&limit=30&search=
+// Albümü olan kullanıcıları kart-grid için döndürür: her kullanıcı için
+// albums_count + latest_album_cover + latest_album_at
+router.get("/album-users", async (req, res) => {
   try {
     const { page = 1, limit = 30, search = "" } = req.query;
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = Math.min(parseInt(limit, 10) || 30, 200);
+    const offset = (pageNum - 1) * limitNum;
+    const trimmedSearch = String(search || "").trim().toLowerCase();
+
+    // Tüm albümleri çek — JS'te user_id'ye göre grupla (admin dashboard için OK).
+    const { data: allAlbums, error: albumsErr } = await db
+      .from("user_albums")
+      .select("id, user_id, cover_image_url, name, created_at")
+      .order("created_at", { ascending: false });
+    if (albumsErr) throw albumsErr;
+
+    // user_id → { albums_count, latest_cover, latest_at, latest_name, latest_album_id }
+    const userMap = {};
+    (allAlbums || []).forEach((a) => {
+      if (!a.user_id) return;
+      if (!userMap[a.user_id]) {
+        userMap[a.user_id] = {
+          user_id: a.user_id,
+          albums_count: 0,
+          latest_album_id: null,
+          latest_album_cover_url: null,
+          latest_album_name: null,
+          latest_album_at: null,
+        };
+      }
+      userMap[a.user_id].albums_count += 1;
+      if (
+        !userMap[a.user_id].latest_album_at ||
+        a.created_at > userMap[a.user_id].latest_album_at
+      ) {
+        userMap[a.user_id].latest_album_at = a.created_at;
+        userMap[a.user_id].latest_album_id = a.id;
+        userMap[a.user_id].latest_album_cover_url = a.cover_image_url;
+        userMap[a.user_id].latest_album_name = a.name;
+      }
+    });
+
+    let users = Object.values(userMap).sort(
+      (a, b) => new Date(b.latest_album_at) - new Date(a.latest_album_at),
+    );
+
+    // Email + plan + credit fetch (gruplanmış user_id'ler için)
+    const allUserIds = users.map((u) => u.user_id);
+    const dbUserMap = {};
+    if (allUserIds.length > 0) {
+      const { data: dbUsers } = await db
+        .from("users")
+        .select("id, email, is_pro, credit_balance")
+        .in("id", allUserIds);
+      (dbUsers || []).forEach((u) => {
+        dbUserMap[u.id] = u;
+      });
+    }
+    users = users.map((u) => ({
+      ...u,
+      email: dbUserMap[u.user_id]?.email || null,
+      is_pro: dbUserMap[u.user_id]?.is_pro ?? null,
+      credit_balance: dbUserMap[u.user_id]?.credit_balance ?? null,
+    }));
+
+    // Search: email VEYA latest_album_name içinde
+    if (trimmedSearch) {
+      users = users.filter((u) => {
+        const email = (u.email || "").toLowerCase();
+        const albumName = (u.latest_album_name || "").toLowerCase();
+        return email.includes(trimmedSearch) || albumName.includes(trimmedSearch);
+      });
+    }
+
+    const total = users.length;
+    let paged = users.slice(offset, offset + limitNum);
+
+    // Sayfalanan kullanıcıların en yeni albümünün son item URL'ini çek;
+    // kullanıcı kartının kapağı: latest_album_item_url || latest_album_cover_url
+    const pagedAlbumIds = paged
+      .map((u) => u.latest_album_id)
+      .filter(Boolean);
+    if (pagedAlbumIds.length > 0) {
+      const { data: latestItems } = await db
+        .from("album_items")
+        .select("album_id, snapshot_result_url, added_at")
+        .in("album_id", pagedAlbumIds)
+        .order("added_at", { ascending: false });
+      const albumLatestItemMap = {};
+      (latestItems || []).forEach((it) => {
+        if (!albumLatestItemMap[it.album_id] && it.snapshot_result_url) {
+          albumLatestItemMap[it.album_id] = it.snapshot_result_url;
+        }
+      });
+      paged = paged.map((u) => ({
+        ...u,
+        latest_album_item_url: albumLatestItemMap[u.latest_album_id] || null,
+        // Kart kapağı: önce son item, yoksa manuel cover
+        display_cover_url:
+          albumLatestItemMap[u.latest_album_id] || u.latest_album_cover_url || null,
+      }));
+    }
+
+    res.json({
+      success: true,
+      data: paged,
+      total,
+      page: pageNum,
+      totalPages: Math.max(1, Math.ceil(total / limitNum)),
+    });
+  } catch (error) {
+    console.error("[Admin/AlbumUsers] Full error:", JSON.stringify(error, null, 2));
+    const msg =
+      error.message || error.details || error.hint || error.code || JSON.stringify(error);
+    res.status(500).json({ success: false, error: msg });
+  }
+});
+
+// GET /api/admin-dashboard/albums?page=1&limit=30&search=&user_id=
+router.get("/albums", async (req, res) => {
+  try {
+    const { page = 1, limit = 30, search = "", user_id = "" } = req.query;
 
     const pageNum = parseInt(page, 10) || 1;
     const limitNum = Math.min(parseInt(limit, 10) || 30, 200);
@@ -287,6 +416,12 @@ router.get("/albums", async (req, res) => {
     const trimmedSearch = String(search || "").trim();
     if (trimmedSearch) {
       query = query.ilike("name", `%${trimmedSearch}%`);
+    }
+
+    // user_id filter — drill-down için (bir kullanıcının tüm albümleri)
+    const trimmedUserId = String(user_id || "").trim();
+    if (trimmedUserId) {
+      query = query.eq("user_id", trimmedUserId);
     }
 
     const { data: albums, count, error } = await query;
@@ -314,14 +449,20 @@ router.get("/albums", async (req, res) => {
         });
       }
 
-      // Item counts per album (single query, count-by-album done in JS)
+      // Item counts + latest item URL per album (kapak için en son eklenen
+      // resim — kullanıcı manuel cover_image_url set etmediyse fallback olur)
       const itemCountMap = {};
+      const latestItemUrlMap = {};
       const { data: items } = await db
         .from("album_items")
-        .select("album_id")
-        .in("album_id", albumIds);
+        .select("album_id, snapshot_result_url, added_at")
+        .in("album_id", albumIds)
+        .order("added_at", { ascending: false });
       (items || []).forEach((it) => {
         itemCountMap[it.album_id] = (itemCountMap[it.album_id] || 0) + 1;
+        if (!latestItemUrlMap[it.album_id] && it.snapshot_result_url) {
+          latestItemUrlMap[it.album_id] = it.snapshot_result_url;
+        }
       });
 
       // Active album-scope share tokens (latest first); pick first per album
@@ -340,12 +481,16 @@ router.get("/albums", async (req, res) => {
       enriched = list.map((a) => {
         const owner = userMap[a.user_id] || {};
         const tok = tokenMap[a.id] || null;
+        const latestItemUrl = latestItemUrlMap[a.id] || null;
         return {
           ...a,
           owner_email: owner.email || null,
           owner_credit_balance: owner.credit_balance ?? null,
           owner_is_pro: owner.is_pro ?? null,
           item_count: itemCountMap[a.id] || 0,
+          latest_item_url: latestItemUrl,
+          // Kapak: önce manuel cover, yoksa son item — frontend tek alanla render edebilir
+          display_cover_url: a.cover_image_url || latestItemUrl,
           latest_share_token: tok ? tok.token : null,
           latest_share_url: tok ? `${WEB_APP_URL}/share/${tok.token}` : null,
           latest_share_created_at: tok ? tok.created_at : null,
@@ -391,16 +536,24 @@ router.get("/albums/:id/items", async (req, res) => {
       return res.status(404).json({ success: false, error: "album not found" });
     }
 
-    const { data: items, error: itemsErr } = await db
+    const { data: rawItems, error: itemsErr } = await db
       .from("album_items")
       .select(
-        "id, album_id, item_type, item_id, snapshot_image_url, snapshot_thumb_url, snapshot_meta, sort_order, added_at"
+        "id, album_id, item_type, item_id, snapshot_result_url, snapshot_reference_url, snapshot_location_url, snapshot_prompt, snapshot_settings, custom_label, sort_order, added_at"
       )
       .eq("album_id", id)
       .order("sort_order", { ascending: true })
       .order("added_at", { ascending: false });
 
     if (itemsErr) throw itemsErr;
+
+    // Frontend uyumluluğu için alias alanlar (snapshot_image_url, snapshot_meta vb.)
+    const items = (rawItems || []).map((it) => ({
+      ...it,
+      snapshot_image_url: it.snapshot_result_url,
+      snapshot_thumb_url: it.snapshot_result_url,
+      snapshot_meta: it.snapshot_settings,
+    }));
 
     const { data: tokens } = await db
       .from("public_share_tokens")
