@@ -113,10 +113,11 @@ async function trackRegistration(userId, ip, deviceFingerprint, email, abuseResu
 /**
  * Helper: Supabase Auth kullanıcısını users tablosuna senkronize et
  * Web login/signup sonrası çağrılır
- * @param creditsToGrant - Yeni kullanıcıya verilecek kredi miktarı (default 40)
+ * @param creditsToGrant - Yeni kullanıcıya verilecek kredi miktarı (HARD PAYWALL: default 0)
  * @param existingUserId - Mobil'den gelen anonim user ID (account linking için)
  */
-async function syncUserToUsersTable(supabaseUserId, email, fullName = null, provider = 'email', companyName = null, creditsToGrant = 40, deviceId = null, existingUserId = null) {
+// 🚫 HARD PAYWALL: 40 kredi hediyesi geçici olarak kapatıldı (eski default: 40)
+async function syncUserToUsersTable(supabaseUserId, email, fullName = null, provider = 'email', companyName = null, creditsToGrant = 0, deviceId = null, existingUserId = null) {
     try {
         console.log(`🔄 [WEB AUTH] Syncing user to users table: ${email}, companyName: ${companyName}, existingUserId: ${existingUserId || '(yok)'}`);
 
@@ -389,7 +390,9 @@ router.post('/signup', async (req, res) => {
 
         // 2. Check for registration abuse BEFORE granting credits
         const abuseResult = await checkRegistrationAbuse(ip, deviceFingerprint, email);
-        let creditsToGrant = abuseResult.isAbuse ? 0 : 40;
+        // 🚫 HARD PAYWALL: 40 kredi hediyesi geçici olarak kapatıldı
+        // let creditsToGrant = abuseResult.isAbuse ? 0 : 40;
+        let creditsToGrant = 0;
 
         if (abuseResult.isAbuse) {
             console.log(`🚨 [Signup] Abuse detected! User ${email} will receive 0 credits. Reasons: ${abuseResult.reasons.join(', ')}`);
@@ -749,7 +752,9 @@ router.post('/verify-email', async (req, res) => {
                 from: 'Diress <noreply@diress.ai>',
                 to: [user.email],
                 subject: 'Welcome to Diress',
-                html: getWelcomeEmailTemplate(userName, 40)
+                // 🚫 HARD PAYWALL: 40 kredi hediyesi geçici olarak kapatıldı
+                // html: getWelcomeEmailTemplate(userName, 40)
+                html: getWelcomeEmailTemplate(userName, 0)
             });
             console.log(`[Verify] Welcome email sent to: ${user.email}`);
         } catch (welcomeErr) {
