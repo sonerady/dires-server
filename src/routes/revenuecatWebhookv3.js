@@ -172,6 +172,7 @@ router.post("/webhookv3", async (req, res) => {
       currency,
       environment,
       store,
+      period_type,
     } = event;
 
     console.log("🎯 Event Details:");
@@ -183,6 +184,7 @@ router.post("/webhookv3", async (req, res) => {
     console.log(`   Price: ${price} ${currency}`);
     console.log(`   Environment: ${environment}`);
     console.log(`   Store: ${store}`);
+    console.log(`   Period Type: ${period_type}`);
 
     // Sadece başarılı satın alma eventleri için kredi ekle
     const creditEvents = [
@@ -601,17 +603,62 @@ router.post("/webhookv3", async (req, res) => {
 
     // ===== NORMAL KREDİ PAKETİ İŞLEMİ =====
     // Product ID'den kredi miktarını belirle (base ID kullanarak)
-    const creditsToAdd = getCreditsForPackage(baseProductId);
+    const packageCredits = getCreditsForPackage(baseProductId);
     const packageMapHit = Object.prototype.hasOwnProperty.call(
       KNOWN_PACKAGE_CREDITS,
       baseProductId,
     );
 
+    // Trial-aware grant: when period_type === 'TRIAL' AND app_config.trial_enabled is true,
+    // grant trial_credits (default 150) instead of full package credits.
+    // RENEWAL events (period_type === 'NORMAL', including trial→paid conversion) fall through
+    // to the package-credits path below, so users top up to the full amount once charged.
+    // If trial_enabled is false (kill-switch), the webhook acts as before regardless of period_type.
+    let creditsToAdd = packageCredits;
+    let isTrialGrant = false;
+    if (period_type === "TRIAL" && type === "INITIAL_PURCHASE") {
+      const configPlatform =
+        store === "PLAY_STORE" || store === "GOOGLE" ? "android" : "ios";
+      try {
+        const { data: trialCfg } = await supabase
+          .from("app_config")
+          .select("trial_enabled, trial_credits")
+          .eq("platform", configPlatform)
+          .order("updated_at", { ascending: false, nullsLast: false })
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (trialCfg?.trial_enabled === true) {
+          const trialCredits = Number.isFinite(trialCfg.trial_credits)
+            ? trialCfg.trial_credits
+            : 150;
+          creditsToAdd = trialCredits;
+          isTrialGrant = true;
+          console.log(
+            `🎁 [RC_WEBHOOK_V3] TRIAL grant: ${trialCredits} credits (platform=${configPlatform}, full_package=${packageCredits})`,
+          );
+        } else {
+          console.log(
+            `⚠️ [RC_WEBHOOK_V3] period_type=TRIAL but trial_enabled=false on ${configPlatform} → granting full package credits (${packageCredits})`,
+          );
+        }
+      } catch (cfgErr) {
+        console.warn(
+          "⚠️ [RC_WEBHOOK_V3] app_config read for trial failed, falling back to full credits:",
+          cfgErr?.message || cfgErr,
+        );
+      }
+    }
+
     console.log("🧪 [RC_WEBHOOK_V3] Product mapping debug:", {
       originalProductId: product_id,
       normalizedProductId: baseProductId,
       packageMapHit,
+      packageCredits,
       creditsToAdd,
+      isTrialGrant,
+      periodType: period_type,
       knownKeyCount: Object.keys(KNOWN_PACKAGE_CREDITS).length,
     });
 
@@ -692,6 +739,17 @@ router.post("/webhookv3", async (req, res) => {
       isPro = true; // Ama kullanıcıyı PRO yapıyor
     }
 
+    // Trial override: in Diress, PRO === watermark removal. Trial users get credits
+    // but keep the watermark — only paid (period_type=NORMAL) users are flipped to PRO.
+    // RENEWAL events with period_type=NORMAL (the trial→paid conversion) restore isPro=true
+    // via this same code path since they aren't TRIAL events.
+    if (isTrialGrant) {
+      isPro = false;
+      console.log(
+        `🚫 [RC_WEBHOOK_V3] Trial grant → forcing is_pro=false (watermark stays on)`,
+      );
+    }
+
     console.log(`🎯 Event type: ${type}`);
     console.log(`📦 Product ID: ${product_id}`);
     console.log(`📦 Plan type: ${planType || "none (coin pack)"}`);
@@ -765,6 +823,16 @@ router.post("/webhookv3", async (req, res) => {
       // Team özelliği aktif mi? (Tüm abonelik tipleri için true - Standard dahil)
       updateFields.team_subscription_active = true;
       console.log(`👥 Setting team_max_members to ${teamMembers}, team_subscription_active to true for ${planType} plan`);
+
+      // Trial override: kullanıcı trial'dayken team özellikleri kapalı.
+      // 1 trial = 1 team member = 2 kullanıcı 150 krediyi paylaşır → suistimal riski.
+      // Trial→paid dönüşümünde (RENEWAL/NORMAL) yukarıdaki blok tekrar çalışıp doğru
+      // team_max_members'ı set edecek.
+      if (isTrialGrant) {
+        updateFields.team_max_members = 0;
+        updateFields.team_subscription_active = false;
+        console.log(`🚫 [RC_WEBHOOK_V3] Trial → team features disabled (will activate on paid conversion)`);
+      }
     }
 
     const { data: updateData, error: updateError } = await supabase
