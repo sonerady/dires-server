@@ -173,7 +173,15 @@ router.post("/webhookv3", async (req, res) => {
       environment,
       store,
       period_type,
+      is_trial_conversion,
     } = event;
+
+    // is_trial_conversion: RevenueCat'in resmi field'ı. Sadece trial→paid dönüşüm
+    // event'inde (dashboard'da "NEW SUB" görünen olay) true olur. Normal aylık
+    // renewal'larda false. Kullanıyoruz çünkü ileride trial conversion'a özel
+    // davranış eklemek istersek (ekstra bonus, retention email, vb.) ayırt etmek
+    // mümkün olsun. Şu an credit logic değişmiyor — yine full package credits veriliyor.
+    const isTrialConversion = is_trial_conversion === true;
 
     console.log("🎯 Event Details:");
     console.log(`   Type: ${type}`);
@@ -185,6 +193,7 @@ router.post("/webhookv3", async (req, res) => {
     console.log(`   Environment: ${environment}`);
     console.log(`   Store: ${store}`);
     console.log(`   Period Type: ${period_type}`);
+    console.log(`   Is Trial Conversion: ${isTrialConversion}`);
 
     // Sadece başarılı satın alma eventleri için kredi ekle
     const creditEvents = [
@@ -649,6 +658,14 @@ router.post("/webhookv3", async (req, res) => {
           cfgErr?.message || cfgErr,
         );
       }
+    } else if (isTrialConversion) {
+      // Trial→Paid dönüşüm event'i (dashboard'da "NEW SUB" görünen olay).
+      // creditsToAdd zaten packageCredits olarak set edildi — full paket kredisini
+      // veriyoruz. Trial başlangıcında verilen ~150 trial bonusunu DÜŞMÜYORUZ,
+      // bonus olarak kalsın (trial'ı tamamlayan kullanıcıya teşekkür jesti).
+      console.log(
+        `🎉 [RC_WEBHOOK_V3] Trial-to-Paid CONVERSION detected (is_trial_conversion=true) → granting full ${packageCredits} credits (trial 150 bonus preserved on top)`,
+      );
     }
 
     console.log("🧪 [RC_WEBHOOK_V3] Product mapping debug:", {
@@ -658,6 +675,7 @@ router.post("/webhookv3", async (req, res) => {
       packageCredits,
       creditsToAdd,
       isTrialGrant,
+      isTrialConversion,
       periodType: period_type,
       knownKeyCount: Object.keys(KNOWN_PACKAGE_CREDITS).length,
     });
