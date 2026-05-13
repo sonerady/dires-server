@@ -200,6 +200,7 @@ router.post("/webhookv3", async (req, res) => {
       "INITIAL_PURCHASE", // İlk satın alma
       "NON_RENEWING_PURCHASE", // Tek seferlik satın alma
       "RENEWAL", // Yenileme
+      "PRODUCT_CHANGE", // Trial→Paid upgrade veya plan değişikliği (aynı subscription group içinde)
       "TEST", // RevenueCat test webhook'ları
     ];
 
@@ -665,6 +666,16 @@ router.post("/webhookv3", async (req, res) => {
       // bonus olarak kalsın (trial'ı tamamlayan kullanıcıya teşekkür jesti).
       console.log(
         `🎉 [RC_WEBHOOK_V3] Trial-to-Paid CONVERSION detected (is_trial_conversion=true) → granting full ${packageCredits} credits (trial 100 bonus preserved on top)`,
+      );
+    } else if (type === "PRODUCT_CHANGE") {
+      // Trial içindeyken "Tam Sürüme Geç" → farklı bir paket satın alma veya
+      // mevcut planı upgrade etme (monthly → yearly vs.) durumunda RevenueCat
+      // PRODUCT_CHANGE fırlatır. Kullanıcı artık tam ücret ödüyor, dolayısıyla:
+      //   - Full package credits eklenir (creditsToAdd zaten packageCredits)
+      //   - is_pro = true olur (isTrialGrant = false olduğu için aşağıda set edilir)
+      //   - Trial bonus (varsa) zaten bakiyede, additive olarak kalır
+      console.log(
+        `🔄 [RC_WEBHOOK_V3] PRODUCT_CHANGE detected → upgrade flow, granting full ${packageCredits} credits + is_pro=true`,
       );
     }
 
