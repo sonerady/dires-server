@@ -101,6 +101,9 @@ router.get("/app-config/version", async (req, res) => {
         metadata: null,
         googleLoginEnabled: true,
         appleLoginEnabled: true,
+        trialEnabled: false,
+        trialCredits: 150,
+        trialDurationDays: 3,
         lang,
         fetchedAt: new Date().toISOString(),
       };
@@ -120,6 +123,9 @@ router.get("/app-config/version", async (req, res) => {
       websiteLaunchDate: data.website_launch_date || null,
       googleLoginEnabled: data.google_login_enabled !== false,
       appleLoginEnabled: data.apple_login_enabled !== false,
+      trialEnabled: data.trial_enabled === true,
+      trialCredits: Number.isFinite(data.trial_credits) ? data.trial_credits : 150,
+      trialDurationDays: Number.isFinite(data.trial_duration_days) ? data.trial_duration_days : 3,
       lang,
       fetchedAt: new Date().toISOString(),
     };

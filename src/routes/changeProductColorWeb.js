@@ -6483,4 +6483,303 @@ router.get("/generation/:generationId/reference-images", async (req, res) => {
   }
 });
 
+// ============================================================================
+// BULK COLOR CHANGE — N resim, her birine ayrı renk (web auth'lu varyant)
+// POST /api/changeProductColorWeb/generate-bulk
+// ============================================================================
+const BULK_MAX_ITEMS = 20;
+
+async function processBulkColorItem({
+  userId,
+  imageUrl,
+  targetColor,
+  qualityVersion,
+  sessionId,
+  index,
+}) {
+  const generationId = uuidv4();
+  const startedAt = Date.now();
+  const isV2 = qualityVersion === "v2";
+  const falModel = isV2
+    ? "fal-ai/nano-banana-2/edit"
+    : "fal-ai/nano-banana/edit";
+  const creditCost = isV2 ? 35 : 10;
+
+  const baseSettings = {
+    qualityVersion,
+    quality_version: qualityVersion,
+    isColorChange: true,
+    bulkBatchSessionId: sessionId,
+    bulkBatchIndex: index,
+    productColor: targetColor,
+    source: "bulk_color_change",
+  };
+
+  try {
+    const sanitizedUrl = sanitizeImageUrl(imageUrl);
+    if (!sanitizedUrl) {
+      throw new Error("INVALID_IMAGE_URL");
+    }
+
+    let referenceUrl = sanitizedUrl;
+    if (
+      sanitizedUrl.startsWith("file://") ||
+      sanitizedUrl.startsWith("data:")
+    ) {
+      referenceUrl = await uploadReferenceImageToSupabase(sanitizedUrl, userId);
+      if (!referenceUrl) {
+        throw new Error("REFERENCE_UPLOAD_FAILED");
+      }
+    }
+
+    await createPendingGeneration(
+      userId,
+      `Bulk color change → ${targetColor}`,
+      [referenceUrl],
+      baseSettings,
+      null,
+      null,
+      null,
+      "9:16",
+      false,
+      false,
+      generationId,
+      qualityVersion
+    );
+
+    await updateGenerationStatus(generationId, userId, "processing");
+
+    await saveToColorChangeGenerations({
+      userId,
+      generationId,
+      status: "processing",
+      originalPrompt: `Bulk color change → ${targetColor}`,
+      originalImageUrl: referenceUrl,
+      targetColor,
+      settings: baseSettings,
+      aspectRatio: "9:16",
+      qualityVersion,
+      creditsUsed: creditCost,
+    });
+
+    const prompt = `Change the main color of the product/item in this image to ${targetColor}. Keep all design details, patterns, textures, and shapes exactly the same. Only change the primary color to ${targetColor}. The result should be photorealistic with natural lighting.`;
+
+    const requestBody = {
+      prompt,
+      image_urls: [referenceUrl],
+      output_format: "png",
+      aspect_ratio: "9:16",
+      num_images: 1,
+      resolution: "2K",
+      safety_tolerance: "6",
+    };
+
+    let falResponse;
+    const maxRetries = 3;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        falResponse = await axios.post(
+          `https://fal.run/${falModel}`,
+          requestBody,
+          {
+            headers: {
+              Authorization: `Key ${process.env.FAL_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            timeout: 300000,
+          }
+        );
+        break;
+      } catch (err) {
+        const retryable =
+          err.code === "ECONNRESET" ||
+          err.code === "ENOTFOUND" ||
+          err.response?.status >= 500;
+        if (attempt < maxRetries && retryable) {
+          await new Promise((r) => setTimeout(r, attempt * 2000));
+          continue;
+        }
+        throw err;
+      }
+    }
+
+    const images = falResponse?.data?.images || [];
+    if (!images.length) {
+      throw new Error(
+        falResponse?.data?.detail ||
+        falResponse?.data?.error ||
+        "FAL_NO_IMAGES"
+      );
+    }
+
+    const resultUrl = images[0].url;
+    const falRequestId = falResponse.data.request_id || null;
+    const processingTime = Math.floor((Date.now() - startedAt) / 1000);
+
+    await updateGenerationStatus(generationId, userId, "completed", {
+      result_image_url: resultUrl,
+      replicate_prediction_id: falRequestId,
+      processing_time_seconds: processingTime,
+    });
+
+    await updateColorChangeGeneration(generationId, userId, {
+      status: "completed",
+      result_image_url: resultUrl,
+      fal_request_id: falRequestId,
+      processing_time_seconds: processingTime,
+    });
+
+    return {
+      index,
+      status: "succeeded",
+      generationId,
+      imageUrl: resultUrl,
+      creditsCharged: creditCost,
+    };
+  } catch (err) {
+    logger.log(
+      `❌ [BULK_COLOR] Item ${index} failed: ${err?.message || err}`
+    );
+    try {
+      await updateGenerationStatus(generationId, userId, "failed", {
+        processing_time_seconds: Math.floor((Date.now() - startedAt) / 1000),
+      });
+      await updateColorChangeGeneration(generationId, userId, {
+        status: "failed",
+      });
+    } catch (_) {
+      // best-effort cleanup
+    }
+    return {
+      index,
+      status: "failed",
+      generationId,
+      error: err?.message || "UNKNOWN_ERROR",
+    };
+  }
+}
+
+router.post("/generate-bulk", async (req, res) => {
+  try {
+    const {
+      userId: bodyUserId,
+      qualityVersion: rawQuality,
+      sessionId: rawSessionId,
+      items,
+    } = req.body || {};
+
+    const userId = req.user?.id || bodyUserId;
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        result: { message: "userId zorunludur" },
+      });
+    }
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        result: { message: "items boş olamaz" },
+      });
+    }
+    if (items.length > BULK_MAX_ITEMS) {
+      return res.status(400).json({
+        success: false,
+        result: {
+          message: `En fazla ${BULK_MAX_ITEMS} resim gönderilebilir`,
+        },
+      });
+    }
+
+    const invalidIdx = items.findIndex(
+      (it) =>
+        !it ||
+        typeof it.imageUrl !== "string" ||
+        !it.imageUrl.trim() ||
+        typeof it.targetColor !== "string" ||
+        !it.targetColor.trim()
+    );
+    if (invalidIdx !== -1) {
+      return res.status(400).json({
+        success: false,
+        result: {
+          message: `Item ${invalidIdx} geçersiz (imageUrl ve targetColor zorunlu)`,
+        },
+      });
+    }
+
+    const qualityVersion = rawQuality === "v2" ? "v2" : "v1";
+    const sessionId = rawSessionId || uuidv4();
+    const costPerItem = qualityVersion === "v2" ? 35 : 10;
+    const requiredCredits = items.length * costPerItem;
+
+    if (userId !== "anonymous_user") {
+      try {
+        const effective = await teamService.getEffectiveCredits(userId);
+        const available =
+          effective?.creditBalance ?? effective?.credit_balance ?? 0;
+        if (available < requiredCredits) {
+          return res.status(402).json({
+            success: false,
+            result: {
+              message: "Yetersiz kredi",
+              required: requiredCredits,
+              available,
+            },
+          });
+        }
+      } catch (creditErr) {
+        logger.log(
+          "⚠️ [BULK_COLOR] Credit precheck atlandı:",
+          creditErr?.message
+        );
+      }
+    }
+
+    logger.log(
+      `🎨 [BULK_COLOR] ${items.length} item paralel işlenecek (${qualityVersion}, sessionId=${sessionId})`
+    );
+
+    const settled = await Promise.allSettled(
+      items.map((it, i) =>
+        processBulkColorItem({
+          userId,
+          imageUrl: it.imageUrl,
+          targetColor: it.targetColor,
+          qualityVersion,
+          sessionId,
+          index: i,
+        })
+      )
+    );
+
+    const results = settled.map((s, i) =>
+      s.status === "fulfilled"
+        ? s.value
+        : {
+          index: i,
+          status: "failed",
+          error: s.reason?.message || "UNHANDLED_REJECTION",
+        }
+    );
+
+    const totalCharged = results
+      .filter((r) => r.status === "succeeded")
+      .reduce((sum, r) => sum + (r.creditsCharged || 0), 0);
+
+    return res.status(200).json({
+      success: true,
+      batchSessionId: sessionId,
+      results,
+      totalCharged,
+    });
+  } catch (error) {
+    console.error("❌ [BULK_COLOR] Endpoint hatası:", error);
+    return res.status(500).json({
+      success: false,
+      result: { message: "Bulk işlem hatası", error: error.message },
+    });
+  }
+});
+
 module.exports = router;

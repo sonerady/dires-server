@@ -178,7 +178,7 @@ function getMobileVerificationEmailTemplate(verificationCode, userName = '') {
  * @param {number} initialCredits - Initial credit amount
  * @returns {string} HTML email template
  */
-function getWelcomeEmailTemplate(userName = '', initialCredits = 40) {
+function getWelcomeEmailTemplate(userName = '', initialCredits = 0) {
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -221,7 +221,8 @@ function getWelcomeEmailTemplate(userName = '', initialCredits = 40) {
             </td>
           </tr>
 
-          <!-- Credit Box - Minimal -->
+          <!-- Credit Box - shown only when an initial credit gift exists -->
+          ${initialCredits > 0 ? `
           <tr>
             <td style="padding-bottom: 40px;">
               <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fafafa; border: 1px solid #e5e5e5; border-radius: 12px;">
@@ -244,6 +245,7 @@ function getWelcomeEmailTemplate(userName = '', initialCredits = 40) {
               </table>
             </td>
           </tr>
+          ` : ''}
 
           <!-- Features Section -->
           <tr>

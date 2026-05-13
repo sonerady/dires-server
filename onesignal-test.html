@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Diress · OneSignal Test Panel</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      background: #0a0a0a;
+      color: #e8e8e8;
+      min-height: 100vh;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 32px 24px 80px; }
+    header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+    h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; margin: 0; }
+    h1 .muted { color: #888; font-weight: 400; }
+    .health { display: flex; gap: 8px; align-items: center; font-size: 12px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #444; }
+    .dot.ok { background: #10b981; }
+    .dot.bad { background: #ef4444; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: #141414;
+      border: 1px solid #1f1f1f;
+      border-radius: 10px;
+      padding: 24px;
+    }
+    .card h2 {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin: 0 0 4px;
+    }
+    .card .sub {
+      font-size: 12px;
+      color: #888;
+      margin: 0 0 20px;
+    }
+    label { display: block; font-size: 11px; font-weight: 500; color: #888; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+    input[type="text"], input[type="number"], select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      background: #0a0a0a;
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      color: #e8e8e8;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #555; }
+    textarea { font-family: inherit; min-height: 60px; resize: vertical; }
+    .field { margin-bottom: 16px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .hint { font-size: 11px; color: #666; margin-top: 6px; line-height: 1.5; }
+    button {
+      width: 100%;
+      padding: 11px 16px;
+      background: #e8e8e8;
+      color: #0a0a0a;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button:hover:not(:disabled) { background: #fff; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    button.danger { background: #b91c1c; color: white; }
+    button.danger:hover:not(:disabled) { background: #dc2626; }
+    button.ghost { background: transparent; color: #aaa; border: 1px solid #2a2a2a; }
+    button.ghost:hover:not(:disabled) { color: #fff; border-color: #444; background: transparent; }
+
+    .result {
+      margin-top: 16px;
+      padding: 14px;
+      background: #0a0a0a;
+      border: 1px solid #1f1f1f;
+      border-radius: 6px;
+      font-family: 'SF Mono', Menlo, monospace;
+      font-size: 11.5px;
+      line-height: 1.55;
+      max-height: 400px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .result.success { border-color: #065f46; background: #042f1d; color: #6ee7b7; }
+    .result.error { border-color: #7f1d1d; background: #2a0a0a; color: #fca5a5; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; background: #1f1f1f; color: #aaa; margin-left: 8px; }
+    .badge.live { background: #7f1d1d; color: #fca5a5; }
+    .badge.test { background: #1e3a8a; color: #bfdbfe; }
+    pre { margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Diress <span class="muted">· OneSignal Test Panel</span></h1>
+      <div class="health" id="healthBar">
+        <span class="dot" id="dotAppId"></span><span>APP_ID</span>
+        <span class="dot" id="dotKey"></span><span>API KEY</span>
+        <span class="dot" id="dotCampaigns"></span><span>Campaigns</span>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- Sol: Spesifik kullanıcıya test push -->
+      <div class="card">
+        <h2>1. Spesifik kullanıcıya test push <span class="badge test">TEST</span></h2>
+        <p class="sub">OneSignal subscription ID veya external user ID ver, hemen gönder.</p>
+
+        <div class="field">
+          <label>Subscription ID(ler) <span style="color:#666; text-transform:none;">— virgülle ayır</span></label>
+          <textarea id="subIds" placeholder="örn. 5fa1b8c2-3d4e-5f6a-7b8c-9d0e1f2a3b4c"></textarea>
+          <div class="hint">OneSignal Dashboard → Audience → Subscriptions → cihaza tıkla → ID kopyala. App.js console'da da görünür ("📬 [OneSignal] Subscription ID:...").</div>
+        </div>
+
+        <div class="field">
+          <label>External User ID(ler) <span style="color:#666; text-transform:none;">— opsiyonel, virgülle ayır</span></label>
+          <textarea id="extIds" placeholder="örn. c56d28ea-b635-4efd-929f-70aa7f2d601b (Supabase userId)"></textarea>
+          <div class="hint">OneSignalService.login(userId) ile set edilen kimlik. Subscription ID veya External ID — biri yeterli.</div>
+        </div>
+
+        <div class="field">
+          <label>Hazır campaign'den içerik al (opsiyonel)</label>
+          <select id="campaignSel">
+            <option value="">— manuel başlık/içerik yaz —</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>Custom başlık</label>
+            <input type="text" id="customTitle" placeholder="Test bildirimi" />
+          </div>
+          <div class="field">
+            <label>Dil (opsiyonel)</label>
+            <input type="text" id="language" placeholder="tr" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Custom içerik</label>
+          <textarea id="customBody" placeholder="Bu bir test bildirimidir"></textarea>
+        </div>
+
+        <div class="field" style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="applyMarketingFilters" />
+          <label for="applyMarketingFilters" style="margin:0;cursor:pointer;">
+            🛡️ Marketing filter uygula <span style="opacity:0.6;font-size:12px;">(is_pro != true AND is_in_trial != true AND has_ever_subscribed != true)</span>
+          </label>
+        </div>
+        <p class="sub" style="margin-top:-6px;font-size:12px;opacity:0.7;">
+          İşaretlersen, hedef cihaz PRO/trial/eski subscriber ise push GİTMEZ (recipients: 0). Filter'ı doğrulamak için kullan.
+        </p>
+
+        <button id="btnTestPush">Test push gönder</button>
+        <div id="resultTestPush" class="result" style="display:none;"></div>
+      </div>
+
+      <!-- Sağ: Tüm Non-Pro segmentine campaign yayını -->
+      <div class="card">
+        <h2>2. Marketing campaign canlı gönder <span class="badge live">CANLI · TÜM NON-PRO</span></h2>
+        <p class="sub">Cron'u beklemeden bir günün kampanyasını <strong>tüm Non-Pro Users segmentine</strong> tetikle. Per-user TZ + dil otomatik.</p>
+
+        <div class="field">
+          <label>Hangi gün?</label>
+          <select id="daySel">
+            <option value="">— bugün (UTC) —</option>
+            <option value="1">Pazartesi</option>
+            <option value="2">Salı</option>
+            <option value="3">Çarşamba</option>
+            <option value="4">Perşembe</option>
+            <option value="5">Cuma</option>
+            <option value="6">Cumartesi</option>
+            <option value="0">Pazar</option>
+          </select>
+          <div class="hint">OneSignal her user'a yerel saat 20:00'da iletir. Bugünden farklı gün seçmek "Pazartesi kampanyasını şimdi tetikle" demek — kullanıcıya hâlâ kendi 20:00'sında varır.</div>
+        </div>
+
+        <button id="btnRunCampaign" class="danger">Canlı kampanyayı tetikle</button>
+        <div id="resultRunCampaign" class="result" style="display:none;"></div>
+
+        <hr style="border: none; border-top: 1px solid #1f1f1f; margin: 24px 0;" />
+
+        <h2 style="margin-top: 0;">3. Kampanya önizleme</h2>
+        <p class="sub">push-campaigns.json'daki bir kampanyayı seçtiğin dilde göster (gönderim yok).</p>
+
+        <div class="row">
+          <div class="field">
+            <label>Campaign</label>
+            <select id="previewCampaign">
+              <option value="">—</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Dil</label>
+            <select id="previewLang">
+              <option value="en">en</option>
+              <option value="tr" selected>tr</option>
+              <option value="de">de</option>
+              <option value="es">es</option>
+              <option value="fr">fr</option>
+              <option value="it">it</option>
+              <option value="ja">ja</option>
+              <option value="ko">ko</option>
+              <option value="pt">pt</option>
+              <option value="ru">ru</option>
+              <option value="zh">zh</option>
+            </select>
+          </div>
+        </div>
+        <div id="resultPreview" class="result" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let campaignsData = null;
+
+    function showResult(elId, data, success) {
+      const el = document.getElementById(elId);
+      el.style.display = "block";
+      el.classList.remove("success", "error");
+      el.classList.add(success ? "success" : "error");
+      el.textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+    }
+
+    async function loadHealth() {
+      try {
+        const r = await fetch("/api/onesignal/health");
+        const d = await r.json();
+        document.getElementById("dotAppId").classList.toggle("ok", !!d.hasAppId);
+        document.getElementById("dotAppId").classList.toggle("bad", !d.hasAppId);
+        document.getElementById("dotKey").classList.toggle("ok", !!d.hasApiKey);
+        document.getElementById("dotKey").classList.toggle("bad", !d.hasApiKey);
+        document.getElementById("dotCampaigns").classList.toggle("ok", !!d.campaignsLoaded);
+        document.getElementById("dotCampaigns").classList.toggle("bad", !d.campaignsLoaded);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function loadCampaigns() {
+      try {
+        const r = await fetch("/api/onesignal/campaigns");
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        campaignsData = await r.json();
+        const opts = (campaignsData.campaigns || [])
+          .map((c) => `<option value="${c.id}">${c.weekday} — ${c.id.replace(/^push_/, "")}</option>`)
+          .join("");
+        document.getElementById("campaignSel").insertAdjacentHTML("beforeend", opts);
+        document.getElementById("previewCampaign").insertAdjacentHTML("beforeend", opts);
+      } catch (e) {
+        console.error("Campaigns load failed", e);
+      }
+    }
+
+    document.getElementById("btnTestPush").addEventListener("click", async () => {
+      const subIds = document
+        .getElementById("subIds")
+        .value.split(/[,\n]/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const extIds = document
+        .getElementById("extIds")
+        .value.split(/[,\n]/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const body = {
+        subscriptionIds: subIds,
+        externalIds: extIds,
+        campaignId: document.getElementById("campaignSel").value || null,
+        customTitle: document.getElementById("customTitle").value || null,
+        customBody: document.getElementById("customBody").value || null,
+        language: document.getElementById("language").value || null,
+        immediate: true,
+        applyMarketingFilters: document.getElementById("applyMarketingFilters").checked,
+      };
+
+      const btn = document.getElementById("btnTestPush");
+      btn.disabled = true;
+      btn.textContent = "Gönderiliyor…";
+      try {
+        const r = await fetch("/api/onesignal/test-push", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data = await r.json();
+        showResult("resultTestPush", data, r.ok && data?.ok !== false);
+      } catch (e) {
+        showResult("resultTestPush", { error: e.message }, false);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Test push gönder";
+      }
+    });
+
+    document.getElementById("btnRunCampaign").addEventListener("click", async () => {
+      const daySel = document.getElementById("daySel").value;
+      const body = daySel === "" ? {} : { dayIndex: Number(daySel) };
+      if (!confirm("Tüm Non-Pro Users segmentine canlı gönderim — emin misin?")) return;
+
+      const btn = document.getElementById("btnRunCampaign");
+      btn.disabled = true;
+      btn.textContent = "Tetikleniyor…";
+      try {
+        const r = await fetch("/api/onesignal/run-campaign", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data = await r.json();
+        showResult("resultRunCampaign", data, r.ok && data?.ok !== false);
+      } catch (e) {
+        showResult("resultRunCampaign", { error: e.message }, false);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Canlı kampanyayı tetikle";
+      }
+    });
+
+    function updatePreview() {
+      const id = document.getElementById("previewCampaign").value;
+      const lang = document.getElementById("previewLang").value || "en";
+      const el = document.getElementById("resultPreview");
+      if (!id || !campaignsData) {
+        el.style.display = "none";
+        return;
+      }
+      const c = campaignsData.campaigns.find((x) => x.id === id);
+      if (!c) {
+        el.style.display = "none";
+        return;
+      }
+      const t = c.translations[lang] || c.translations.en;
+      el.style.display = "block";
+      el.classList.remove("success", "error");
+      el.textContent =
+        `weekday: ${c.weekday}\nid: ${c.id}\nlang: ${lang}\n\n` +
+        `title: ${t.title}\nbody:  ${t.body}`;
+    }
+    document.getElementById("previewCampaign").addEventListener("change", updatePreview);
+    document.getElementById("previewLang").addEventListener("change", updatePreview);
+
+    // boot
+    loadHealth();
+    loadCampaigns();
+    setInterval(loadHealth, 30000);
+  </script>
+</body>
+</html>

@@ -17,6 +17,46 @@ const teamService = require("../services/teamService");
 const logger = require("../utils/logger");
 const { optimizeImageUrl } = require("../utils/imageOptimizer");
 
+// 🎨 varyPoses=true durumunda her color variation için kullanılan statik "güzel poz" havuzu.
+// Gemini'ye gerek yok — fashion-appropriate, doğal, çeşitli pozlar. Index'e göre deterministik
+// (bulk içinde aynı item her zaman aynı poz), index yoksa random fallback.
+const BEAUTIFUL_POSE_VARIATIONS = [
+  "hand resting gently on the hip with weight shifted to one leg, confident gaze toward the camera",
+  "arms softly crossed at the chest, slight natural smile, three-quarter body angle",
+  "one hand running smoothly through the hair, head tilted slightly to one side",
+  "one hand resting at the collarbone area, soft direct gaze",
+  "leaning slightly forward with hands at the sides, shoulders open and natural",
+  "one leg crossed in front of the other, arms loose, full-body editorial pose",
+  "fingers gently brushing the collar or fabric near the chest, looking off-camera",
+  "one arm raised behind the head, opposite hand resting at the waist, dynamic stance",
+  "hands clasped softly at the front, gentle smile, head turned slightly",
+  "side profile pose with gaze turned over the shoulder back to the camera",
+  "subtle walking-step pose mid-stride, arms moving naturally, fluid motion",
+  "one hand near the chin in a thoughtful gesture, contemplative expression",
+  "both arms behind the back, chin lifted, elegant upright stance",
+  "leaning back gently with hands on hips, relaxed open posture",
+  "fingers grazing the chin, eyes glancing softly to one side",
+  "both hands lifted gently to frame the face, soft serene expression",
+  "one hand reaching forward toward the lens in a soft fashion-editorial gesture",
+  "casual hands-on-knees stance with body tilted slightly forward",
+  "arms gracefully extended outward with shoulders back, runway-inspired posture",
+  "one foot slightly in front of the other, hands relaxed, head at a soft three-quarter angle",
+];
+
+const getPoseVariation = (index) => {
+  if (typeof index === "number" && Number.isFinite(index) && index >= 0) {
+    return BEAUTIFUL_POSE_VARIATIONS[index % BEAUTIFUL_POSE_VARIATIONS.length];
+  }
+  return BEAUTIFUL_POSE_VARIATIONS[
+    Math.floor(Math.random() * BEAUTIFUL_POSE_VARIATIONS.length)
+  ];
+};
+
+const buildVaryPoseDirective = (index) => {
+  const pose = getPoseVariation(index);
+  return ` ⚠️ POSE CHANGE FOR THIS VARIATION: ${pose}. CRITICAL: Keep ALL design details, fabric, patterns, prints, textures, accessories, hair, makeup and outfit silhouette EXACTLY identical to the original photo — only the body pose changes. Maintain the same person identity, framing, camera distance, location context and lighting style. The new pose must look natural, professional and consistent with a high-end fashion photoshoot. STRICTLY FORBIDDEN: do NOT place the hands in pockets under any circumstances — hands must always be visible and active in the pose.`;
+};
+
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey =
@@ -3810,6 +3850,7 @@ router.post("/generate", async (req, res) => {
       // Color change specific parameters
       isColorChange = false, // Bu bir renk değiştirme işlemi mi?
       targetColor = null, // Hedef renk bilgisi
+      varyPoses = false, // YENI (opsiyonel, production'da gelmeyebilir): true → her renk için farklı poz, false → orjinal pozu koru (default = mevcut davranış)
       // Pose change specific parameters
       isPoseChange = false, // Bu bir poz değiştirme işlemi mi?
       customDetail = null, // Özel detay bilgisi
@@ -4394,9 +4435,32 @@ router.post("/generate", async (req, res) => {
       // 🎨 COLOR CHANGE MODE, 🕺 POSE CHANGE MODE veya 🔧 REFINER MODE - Özel prompt'lar
       if (isColorChange) {
         logger.log(
-          "🎨 Color change mode: Basit renk değiştirme prompt'u oluşturuluyor"
+          `🎨 Color change mode: Basit renk değiştirme prompt'u oluşturuluyor (varyPoses=${varyPoses})`
         );
-        enhancedPrompt = `Change the main color of the product/item in this image to ${targetColor}. Keep all design details, patterns, textures, and shapes exactly the same. Only change the primary color to ${targetColor}. The result should be photorealistic with natural lighting.`;
+        // varyPoses=true ise statik "güzel poz" havuzundan deterministik seçim;
+        // default false ise orjinal davranış (geriye uyumlu).
+        const poseDirective = varyPoses ? buildVaryPoseDirective() : "";
+        enhancedPrompt = `Recolor the garment in this image to ${targetColor}. Follow these rules STRICTLY:
+
+DOMINANT COLOR DETECTION: First identify the single dominant/primary color of the garment — the color that covers the largest visible surface area. This is the ONLY color you will replace.
+
+MUST RECOLOR (apply ${targetColor} to ALL of these if they share the dominant color):
+• Every fabric panel, every body section, every sleeve, hem, cuff, collar, and lining edge in the dominant color.
+• ALL decorative same-color elements: tassels, fringes, ruffles, pleats, gathers, bows, ties, drawstrings, knit ribbing, mesh inserts, lace overlays, eyelets, embroidery threads — if they originally match the dominant color, recolor them to ${targetColor}.
+• Tonal variations (shadows, highlights, folds) of the dominant color must shift to natural tonal variations of ${targetColor}.
+Treat every surface that originally shared the dominant color as ONE coherent garment color — do not leave any same-color part in its original color.
+
+MUST PRESERVE (keep ORIGINAL colors EXACTLY, do NOT shift toward ${targetColor}):
+• Beads, sequins, rhinestones, pearls, studs, crystals, pom-poms, charms in any DIFFERENT color than the dominant color.
+• Buttons, zippers, snaps, hooks, eyelets, grommets, metallic hardware, chains in a different color.
+• Contrast piping, contrast stitching/topstitching, contrast trim, contrast collars, contrast cuffs, color-block panels in a different color.
+• Prints, patterns, logos, brand labels, tags, graphics, text, illustrations — every color within them is preserved entirely.
+• Embroidery threads in a different color than the dominant color.
+• Skin, hair, model body, background, jewelry, accessories — completely untouched.
+
+CRITICAL: The recoloring is SELECTIVE — only the dominant color is replaced; everything in any other color stays exactly as it was. If white beads sit on red fabric and the target is orange, the fabric becomes orange but the beads stay white.
+
+PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silhouette, model pose, lighting, and composition. Photorealistic result with natural lighting.${poseDirective}`;
       } else if (isRefinerMode) {
         logger.log(
           "🔧 Refiner mode: Profesyonel e-ticaret fotoğraf refiner prompt'u oluşturuluyor"
@@ -6481,6 +6545,591 @@ router.get("/generation/:generationId/reference-images", async (req, res) => {
       },
     });
   }
+});
+
+// ============================================================================
+// BULK COLOR CHANGE — N resim, her birine ayrı renk
+// ----------------------------------------------------------------------------
+// POST /api/changeProductColor/generate-bulk
+// Body: { userId, qualityVersion, sessionId, items: [{ imageUrl, targetColor }] }
+// 1–20 item, paralel Fal.ai çağrısı (Promise.allSettled), credit yalnızca
+// başarılı item'lardan kesilir (deductCreditOnSuccess updateGenerationStatus
+// içinden idempotent çağrılır).
+// ============================================================================
+const BULK_MAX_ITEMS = 20;
+
+// ============================================================================
+// BULK COLOR BATCH STATE — In-memory tracking for async/polling pattern
+// ----------------------------------------------------------------------------
+// Item bittikçe Map'e yazılır; client polling ile durumu öğrenir.
+// 30 dakika sonra eski batches GC edilir.
+// ============================================================================
+const BULK_COLOR_BATCH_TTL_MS = 30 * 60 * 1000;
+const bulkColorBatches = new Map();
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [batchId, batch] of bulkColorBatches) {
+    if (now - batch.createdAt > BULK_COLOR_BATCH_TTL_MS) {
+      bulkColorBatches.delete(batchId);
+    }
+  }
+}, 5 * 60 * 1000);
+
+async function processBulkColorItem({
+  userId,
+  imageUrl,
+  targetColor,
+  qualityVersion,
+  sessionId,
+  index,
+  varyPoses = false, // YENI (opsiyonel): true → her renk için farklı poz, false → orjinal pozu koru
+}) {
+  const generationId = uuidv4();
+  const startedAt = Date.now();
+  const isV2 = qualityVersion === "v2";
+  const falModel = isV2
+    ? "fal-ai/nano-banana-2/edit"
+    : "fal-ai/nano-banana/edit";
+  const creditCost = isV2 ? 35 : 10;
+
+  const baseSettings = {
+    qualityVersion,
+    quality_version: qualityVersion,
+    isColorChange: true,
+    bulkBatchSessionId: sessionId,
+    bulkBatchIndex: index,
+    productColor: targetColor,
+    source: "bulk_color_change",
+  };
+
+  try {
+    const sanitizedUrl = sanitizeImageUrl(imageUrl);
+    if (!sanitizedUrl) {
+      throw new Error("INVALID_IMAGE_URL");
+    }
+
+    // Yerel/data URI gelirse Supabase'e upload, zaten URL ise olduğu gibi
+    let referenceUrl = sanitizedUrl;
+    if (
+      sanitizedUrl.startsWith("file://") ||
+      sanitizedUrl.startsWith("data:")
+    ) {
+      referenceUrl = await uploadReferenceImageToSupabase(sanitizedUrl, userId);
+      if (!referenceUrl) {
+        throw new Error("REFERENCE_UPLOAD_FAILED");
+      }
+    }
+
+    // Pending kayıtlar (reference_results + color_change_generations)
+    await createPendingGeneration(
+      userId,
+      `Bulk color change → ${targetColor}`,
+      [referenceUrl],
+      baseSettings,
+      null,
+      null,
+      null,
+      "9:16",
+      false,
+      false,
+      generationId,
+      qualityVersion
+    );
+
+    await updateGenerationStatus(generationId, userId, "processing");
+
+    await saveToColorChangeGenerations({
+      userId,
+      generationId,
+      status: "processing",
+      originalPrompt: `Bulk color change → ${targetColor}`,
+      originalImageUrl: referenceUrl,
+      targetColor,
+      settings: baseSettings,
+      aspectRatio: "9:16",
+      qualityVersion,
+      creditsUsed: creditCost,
+    });
+
+    // varyPoses=true ise statik "güzel poz" havuzundan bulk index'e göre deterministik seçim
+    // (her item farklı poz alır); default false ise orjinal davranış (geriye uyumlu).
+    const poseDirective = varyPoses ? buildVaryPoseDirective(index) : "";
+    const prompt = `Recolor the garment in this image to ${targetColor}. Follow these rules STRICTLY:
+
+DOMINANT COLOR DETECTION: First identify the single dominant/primary color of the garment — the color that covers the largest visible surface area. This is the ONLY color you will replace.
+
+MUST RECOLOR (apply ${targetColor} to ALL of these if they share the dominant color):
+• Every fabric panel, every body section, every sleeve, hem, cuff, collar, and lining edge in the dominant color.
+• ALL decorative same-color elements: tassels, fringes, ruffles, pleats, gathers, bows, ties, drawstrings, knit ribbing, mesh inserts, lace overlays, eyelets, embroidery threads — if they originally match the dominant color, recolor them to ${targetColor}.
+• Tonal variations (shadows, highlights, folds) of the dominant color must shift to natural tonal variations of ${targetColor}.
+Treat every surface that originally shared the dominant color as ONE coherent garment color — do not leave any same-color part in its original color.
+
+MUST PRESERVE (keep ORIGINAL colors EXACTLY, do NOT shift toward ${targetColor}):
+• Beads, sequins, rhinestones, pearls, studs, crystals, pom-poms, charms in any DIFFERENT color than the dominant color.
+• Buttons, zippers, snaps, hooks, eyelets, grommets, metallic hardware, chains in a different color.
+• Contrast piping, contrast stitching/topstitching, contrast trim, contrast collars, contrast cuffs, color-block panels in a different color.
+• Prints, patterns, logos, brand labels, tags, graphics, text, illustrations — every color within them is preserved entirely.
+• Embroidery threads in a different color than the dominant color.
+• Skin, hair, model body, background, jewelry, accessories — completely untouched.
+
+CRITICAL: The recoloring is SELECTIVE — only the dominant color is replaced; everything in any other color stays exactly as it was. If white beads sit on red fabric and the target is orange, the fabric becomes orange but the beads stay white.
+
+PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silhouette, model pose, lighting, and composition. Photorealistic result with natural lighting.${poseDirective}`;
+
+    const requestBody = {
+      prompt,
+      image_urls: [referenceUrl],
+      output_format: "png",
+      aspect_ratio: "9:16",
+      num_images: 1,
+      resolution: "2K",
+      safety_tolerance: "6",
+    };
+
+    let falResponse;
+    const maxRetries = 3;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        falResponse = await axios.post(
+          `https://fal.run/${falModel}`,
+          requestBody,
+          {
+            headers: {
+              Authorization: `Key ${process.env.FAL_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            timeout: 300000,
+          }
+        );
+        break;
+      } catch (err) {
+        const status = err.response?.status;
+        // FAL 422 (validation) bazen flaky — özellikle aynı bulk batch'te bazı item'lar
+        // başarılı olurken bazıları 422 alabiliyor (transient). Retry listesine eklendi.
+        const retryable =
+          err.code === "ECONNRESET" ||
+          err.code === "ENOTFOUND" ||
+          status >= 500 ||
+          status === 422 ||
+          status === 429; // rate limit
+        if (attempt < maxRetries && retryable) {
+          console.warn(
+            `⚠️ [BULK_COLOR] Item ${index} attempt ${attempt} failed (status=${status}, code=${err.code}), retrying...`
+          );
+          await new Promise((r) => setTimeout(r, attempt * 2000));
+          continue;
+        }
+        throw err;
+      }
+    }
+
+    const images = falResponse?.data?.images || [];
+    if (!images.length) {
+      throw new Error(
+        falResponse?.data?.detail ||
+        falResponse?.data?.error ||
+        "FAL_NO_IMAGES"
+      );
+    }
+
+    const resultUrl = images[0].url;
+    const falRequestId = falResponse.data.request_id || null;
+    const processingTime = Math.floor((Date.now() - startedAt) / 1000);
+
+    // Reference_results → completed (kredi düşürme + Supabase bucket save burada tetikleniyor).
+    // updateGenerationStatus dönen kayıt: result_image_url artık Supabase URL'i (fal.media değil),
+    // bu URL signed-expiry sorunsuz iniyor + frontend'de download çalışıyor.
+    // NOT: bulk-mode columnları (is_bulk_mode/bulk_session_id) artık sadece color_change_generations'a yazılıyor.
+    const updatedRow = await updateGenerationStatus(generationId, userId, "completed", {
+      result_image_url: resultUrl,
+      replicate_prediction_id: falRequestId,
+      processing_time_seconds: processingTime,
+    });
+    const finalImageUrl = updatedRow?.result_image_url || resultUrl;
+
+    // color_change_generations tablosunu Supabase URL + bulk metadata ile senkronize et
+    // (migration: color_change_bulk_columns_migration.sql)
+    await updateColorChangeGeneration(generationId, userId, {
+      status: "completed",
+      result_image_url: finalImageUrl,
+      enhanced_prompt: prompt,
+      fal_request_id: falRequestId,
+      processing_time_seconds: processingTime,
+      is_bulk_mode: true,
+      bulk_session_id: sessionId,
+    });
+
+    return {
+      index,
+      status: "succeeded",
+      generationId,
+      imageUrl: finalImageUrl,
+      imageUrlThumbnail: finalImageUrl
+        ? optimizeImageUrl(finalImageUrl, { width: 500, height: 500, quality: 80 })
+        : null,
+      creditsCharged: creditCost,
+    };
+  } catch (err) {
+    logger.log(
+      `❌ [BULK_COLOR] Item ${index} failed: ${err?.message || err}`
+    );
+    try {
+      await updateGenerationStatus(generationId, userId, "failed", {
+        processing_time_seconds: Math.floor((Date.now() - startedAt) / 1000),
+      });
+      await updateColorChangeGeneration(generationId, userId, {
+        status: "failed",
+      });
+    } catch (_) {
+      // best-effort cleanup
+    }
+    return {
+      index,
+      status: "failed",
+      generationId,
+      error: err?.message || "UNKNOWN_ERROR",
+    };
+  }
+}
+
+router.post("/generate-bulk", async (req, res) => {
+  try {
+    const {
+      userId: bodyUserId,
+      qualityVersion: rawQuality,
+      sessionId: rawSessionId,
+      items,
+      varyPoses: rawVaryPoses, // YENI (opsiyonel, production'da gelmeyebilir)
+    } = req.body || {};
+    const varyPoses = rawVaryPoses === true;
+
+    // Web variant'ı `requireAuth` middleware'i ile mount edildiğinde req.user olur
+    const userId = req.user?.id || bodyUserId;
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        result: { message: "userId zorunludur" },
+      });
+    }
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        result: { message: "items boş olamaz" },
+      });
+    }
+    if (items.length > BULK_MAX_ITEMS) {
+      return res.status(400).json({
+        success: false,
+        result: {
+          message: `En fazla ${BULK_MAX_ITEMS} resim gönderilebilir`,
+        },
+      });
+    }
+
+    const invalidIdx = items.findIndex(
+      (it) =>
+        !it ||
+        typeof it.imageUrl !== "string" ||
+        !it.imageUrl.trim() ||
+        typeof it.targetColor !== "string" ||
+        !it.targetColor.trim()
+    );
+    if (invalidIdx !== -1) {
+      return res.status(400).json({
+        success: false,
+        result: {
+          message: `Item ${invalidIdx} geçersiz (imageUrl ve targetColor zorunlu)`,
+        },
+      });
+    }
+
+    const qualityVersion = rawQuality === "v2" ? "v2" : "v1";
+    const sessionId = rawSessionId || uuidv4();
+    const costPerItem = qualityVersion === "v2" ? 35 : 10;
+    const requiredCredits = items.length * costPerItem;
+
+    // Team-aware effective credits ile front-load kontrol
+    if (userId !== "anonymous_user") {
+      try {
+        const effective = await teamService.getEffectiveCredits(userId);
+        const available =
+          effective?.creditBalance ?? effective?.credit_balance ?? 0;
+        if (available < requiredCredits) {
+          return res.status(402).json({
+            success: false,
+            result: {
+              message: "Yetersiz kredi",
+              required: requiredCredits,
+              available,
+            },
+          });
+        }
+      } catch (creditErr) {
+        logger.log(
+          "⚠️ [BULK_COLOR] Credit precheck atlandı:",
+          creditErr?.message
+        );
+      }
+    }
+
+    logger.log(
+      `🎨 [BULK_COLOR] ${items.length} item paralel işlenecek (${qualityVersion}, sessionId=${sessionId}, varyPoses=${varyPoses})`
+    );
+
+    const settled = await Promise.allSettled(
+      items.map((it, i) =>
+        processBulkColorItem({
+          userId,
+          imageUrl: it.imageUrl,
+          targetColor: it.targetColor,
+          qualityVersion,
+          sessionId,
+          index: i,
+          varyPoses,
+        })
+      )
+    );
+
+    const results = settled.map((s, i) =>
+      s.status === "fulfilled"
+        ? s.value
+        : {
+          index: i,
+          status: "failed",
+          error: s.reason?.message || "UNHANDLED_REJECTION",
+        }
+    );
+
+    const totalCharged = results
+      .filter((r) => r.status === "succeeded")
+      .reduce((sum, r) => sum + (r.creditsCharged || 0), 0);
+
+    return res.status(200).json({
+      success: true,
+      batchSessionId: sessionId,
+      results,
+      totalCharged,
+    });
+  } catch (error) {
+    console.error("❌ [BULK_COLOR] Endpoint hatası:", error);
+    return res.status(500).json({
+      success: false,
+      result: { message: "Bulk işlem hatası", error: error.message },
+    });
+  }
+});
+
+// ============================================================================
+// ASYNC BULK COLOR CHANGE — Polling pattern
+// ----------------------------------------------------------------------------
+// POST /api/changeProductColor/generate-bulk-async
+//   Body: { userId, qualityVersion, sessionId?, items: [{ imageUrl, targetColor }] }
+//   Returns immediately: { success, batchSessionId, items: [{ index, status: "processing" }] }
+//
+// GET /api/changeProductColor/generate-bulk-status/:batchId
+//   Returns: { success, batchSessionId, items, completed, totalCharged }
+//
+// Client polls status every ~2s until `completed: true`.
+// ============================================================================
+router.post("/generate-bulk-async", async (req, res) => {
+  try {
+    const {
+      userId: bodyUserId,
+      qualityVersion: rawQuality,
+      sessionId: rawSessionId,
+      items,
+      varyPoses: rawVaryPoses, // YENI (opsiyonel, production'da gelmeyebilir)
+    } = req.body || {};
+    const varyPoses = rawVaryPoses === true;
+
+    const userId = req.user?.id || bodyUserId;
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        result: { message: "userId zorunludur" },
+      });
+    }
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        result: { message: "items boş olamaz" },
+      });
+    }
+    if (items.length > BULK_MAX_ITEMS) {
+      return res.status(400).json({
+        success: false,
+        result: {
+          message: `En fazla ${BULK_MAX_ITEMS} resim gönderilebilir`,
+        },
+      });
+    }
+
+    const invalidIdx = items.findIndex(
+      (it) =>
+        !it ||
+        typeof it.imageUrl !== "string" ||
+        !it.imageUrl.trim() ||
+        typeof it.targetColor !== "string" ||
+        !it.targetColor.trim()
+    );
+    if (invalidIdx !== -1) {
+      return res.status(400).json({
+        success: false,
+        result: {
+          message: `Item ${invalidIdx} geçersiz (imageUrl ve targetColor zorunlu)`,
+        },
+      });
+    }
+
+    const qualityVersion = rawQuality === "v2" ? "v2" : "v1";
+    const sessionId = rawSessionId || uuidv4();
+    const costPerItem = qualityVersion === "v2" ? 35 : 10;
+    const requiredCredits = items.length * costPerItem;
+
+    // Credit precheck (1 kez)
+    if (userId !== "anonymous_user") {
+      try {
+        const effective = await teamService.getEffectiveCredits(userId);
+        const available =
+          effective?.creditBalance ?? effective?.credit_balance ?? 0;
+        if (available < requiredCredits) {
+          return res.status(402).json({
+            success: false,
+            result: {
+              message: "Yetersiz kredi",
+              required: requiredCredits,
+              available,
+            },
+          });
+        }
+      } catch (creditErr) {
+        logger.log(
+          "⚠️ [BULK_COLOR_ASYNC] Credit precheck atlandı:",
+          creditErr?.message
+        );
+      }
+    }
+
+    // Batch state'i Map'e kaydet
+    bulkColorBatches.set(sessionId, {
+      userId,
+      qualityVersion,
+      items: items.map((it, i) => ({
+        index: i,
+        status: "processing",
+        imageUrl: null,
+        originalImageUrl: it.imageUrl,
+        targetColor: it.targetColor,
+      })),
+      completed: false,
+      createdAt: Date.now(),
+    });
+
+    logger.log(
+      `🎨 [BULK_COLOR_ASYNC] ${items.length} item background'da işlenmeye başladı (${qualityVersion}, batchId=${sessionId}, varyPoses=${varyPoses})`
+    );
+
+    // Hemen response dön
+    res.status(200).json({
+      success: true,
+      batchSessionId: sessionId,
+      items: items.map((_, i) => ({ index: i, status: "processing" })),
+    });
+
+    // Background: paralel processing, item bittikçe Map'e yaz
+    Promise.allSettled(
+      items.map(async (it, i) => {
+        const result = await processBulkColorItem({
+          userId,
+          imageUrl: it.imageUrl,
+          targetColor: it.targetColor,
+          qualityVersion,
+          sessionId,
+          index: i,
+          varyPoses,
+        });
+        const batch = bulkColorBatches.get(sessionId);
+        if (batch) {
+          batch.items[i] = {
+            ...result,
+            originalImageUrl: it.imageUrl,
+            targetColor: it.targetColor,
+          };
+        }
+        return result;
+      })
+    ).then(async () => {
+      const batch = bulkColorBatches.get(sessionId);
+      if (batch) {
+        batch.completed = true;
+        logger.log(
+          `🏁 [BULK_COLOR_ASYNC] Batch ${sessionId} tüm itemları tamamlandı`
+        );
+      }
+
+      // Bulk session tamamlandı → tüm succeeded URL'leri tek bir array'e topla,
+      // session'a ait color_change_generations kayıtlarına bulk_image_urls = [...] update.
+      // Frontend history ekranı tek sorgu ile bulk grid render edebilir.
+      try {
+        const completedUrls = (batch?.items || [])
+          .filter((it) => it.status === "succeeded" && it.imageUrl)
+          .map((it) => it.imageUrl);
+        if (completedUrls.length > 0) {
+          const { error: bulkUpdateErr } = await supabase
+            .from("color_change_generations")
+            .update({ bulk_image_urls: completedUrls })
+            .eq("user_id", userId)
+            .eq("bulk_session_id", sessionId);
+          if (bulkUpdateErr) {
+            console.error(
+              "❌ [BULK_COLOR_ASYNC] bulk_image_urls update hatası:",
+              bulkUpdateErr
+            );
+          } else {
+            logger.log(
+              `📦 [BULK_COLOR_ASYNC] bulk_image_urls update edildi (session=${sessionId}, count=${completedUrls.length})`
+            );
+          }
+        }
+      } catch (bulkUpdateException) {
+        console.error(
+          "❌ [BULK_COLOR_ASYNC] bulk_image_urls update exception:",
+          bulkUpdateException
+        );
+      }
+    });
+  } catch (error) {
+    console.error("❌ [BULK_COLOR_ASYNC] Endpoint hatası:", error);
+    if (!res.headersSent) {
+      return res.status(500).json({
+        success: false,
+        result: { message: "Async bulk başlatma hatası", error: error.message },
+      });
+    }
+  }
+});
+
+router.get("/generate-bulk-status/:batchId", (req, res) => {
+  const { batchId } = req.params;
+  const batch = bulkColorBatches.get(batchId);
+  if (!batch) {
+    return res.status(404).json({
+      success: false,
+      result: { message: "Batch bulunamadı veya süresi dolmuş" },
+    });
+  }
+  const totalCharged = batch.items
+    .filter((it) => it.status === "succeeded")
+    .reduce((sum, it) => sum + (it.creditsCharged || 0), 0);
+  return res.json({
+    success: true,
+    batchSessionId: batchId,
+    items: batch.items,
+    completed: batch.completed,
+    totalCharged,
+  });
 });
 
 module.exports = router;

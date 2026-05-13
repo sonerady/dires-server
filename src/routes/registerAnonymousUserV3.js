@@ -106,10 +106,10 @@ router.post("/registerAnonymousUser", async (req, res) => {
           .insert([
             {
               id: userId,
-              credit_balance: 40, // 🎁 YENİ KULLANICI HEDİYESİ: 40 KREDİ
+              credit_balance: 0, // Kayıtta kredi verilmiyor; kullanıcı krediyi trial veya satın alarak alır
               device_id: deviceId || null,
-              received_initial_credit: true, // 🎯 Bu kullanıcı initial kredi aldı
-              initial_credit_date: new Date().toISOString(), // 📅 Kredi alım tarihi
+              received_initial_credit: false,
+              initial_credit_date: null,
               created_at: new Date().toISOString(),
               owner: false, // 👤 Owner değil (default false)
               ...metadataUpdates,
@@ -125,12 +125,12 @@ router.post("/registerAnonymousUser", async (req, res) => {
         }
 
         console.log(
-          `🎉 [NEW USER] Yeni kullanıcı oluşturuldu: ${userId} (40 kredi hediye)`
+          `🎉 [NEW USER] Yeni kullanıcı oluşturuldu: ${userId} (0 kredi — trial veya satın alma gerekli)`
         );
         return res.status(200).json({
           message: "Yeni anonim kullanıcı oluşturuldu",
           userId,
-          creditBalance: 40,
+          creditBalance: 0,
           isNewUser: true,
         });
       } else {
@@ -163,15 +163,15 @@ router.post("/registerAnonymousUser", async (req, res) => {
         });
       }
     } else {
-      // userId yoksa yeni userId oluştur - 40 kredi ile
+      // userId yoksa yeni userId oluştur - 0 kredi ile (trial veya satın alma gerekli)
       userId = uuidv4();
       const { data, error } = await supabase.from("users").insert([
         {
           id: userId,
-          credit_balance: 40, // 🎁 YENİ KULLANICI HEDİYESİ: 40 KREDİ
+          credit_balance: 0, // Kayıtta kredi verilmiyor; kullanıcı krediyi trial veya satın alarak alır
           device_id: deviceId || null,
-          received_initial_credit: true, // 🎯 Bu kullanıcı initial kredi aldı
-          initial_credit_date: new Date().toISOString(), // 📅 Kredi alım tarihi
+          received_initial_credit: false,
+          initial_credit_date: null,
           created_at: new Date().toISOString(),
           owner: false, // 👤 Owner değil (default false)
           ...metadataUpdates,
@@ -187,12 +187,12 @@ router.post("/registerAnonymousUser", async (req, res) => {
       }
 
       console.log(
-        `🎉 [NEW USER] Yeni kullanıcı oluşturuldu: ${userId} (40 kredi hediye)`
+        `🎉 [NEW USER] Yeni kullanıcı oluşturuldu: ${userId} (0 kredi — trial veya satın alma gerekli)`
       );
       return res.status(200).json({
         message: "Yeni anonim kullanıcı oluşturuldu",
         userId,
-        creditBalance: 40,
+        creditBalance: 0,
         isNewUser: true,
       });
     }

@@ -1,0 +1,132 @@
+{
+  "meta": {
+    "description": "OneSignal weekly marketing push campaigns for non-Pro users (e-commerce sellers).",
+    "audience": "Non-Pro Users (tag is_pro != 'true')",
+    "schedule": "7-day rotation, weekly recurring. Each campaign fires once a week on its assigned weekday at 20:00 user's local timezone.",
+    "languages": ["en", "tr", "de", "es", "fr", "it", "ja", "ko", "pt", "ru", "zh"],
+    "default_language": "en",
+    "tone": "SaaS, factual, dressing/AI generation focused, no promo/discount",
+    "setup_instructions": "In OneSignal Dashboard → Messages → New Push: assign each campaign to its scheduled weekday with 'Repeat: Weekly on [day]' setting. Rotation auto-loops forever."
+  },
+  "campaigns": [
+    {
+      "id": "push_monday_unlimited_models",
+      "weekday": "Monday",
+      "translations": {
+        "en": { "title": "One photo, unlimited models", "body": "Upload your product, get AI-dressed models" },
+        "tr": { "title": "Bir fotoğraf, sınırsız manken", "body": "Ürününü yükle, AI giydirilen modelleri al" },
+        "de": { "title": "Ein Foto, unbegrenzte Modelle", "body": "Lade dein Produkt hoch, erhalte KI-bekleidete Modelle" },
+        "es": { "title": "Una foto, modelos ilimitados", "body": "Sube tu producto, obtén modelos vestidos con IA" },
+        "fr": { "title": "Une photo, mannequins illimités", "body": "Téléverse ton produit, obtiens des mannequins habillés par IA" },
+        "it": { "title": "Una foto, modelli illimitati", "body": "Carica il tuo prodotto, ottieni modelli vestiti dall'IA" },
+        "ja": { "title": "1枚の写真、無制限のモデル", "body": "商品をアップロード、AIが着せたモデルを取得" },
+        "ko": { "title": "사진 한 장, 무제한 모델", "body": "제품을 업로드하면 AI가 입힌 모델을 받으세요" },
+        "pt": { "title": "Uma foto, modelos ilimitados", "body": "Envie seu produto, receba modelos vestidos por IA" },
+        "ru": { "title": "Одно фото, безграничные модели", "body": "Загрузите товар, получите модели, одетые AI" },
+        "zh": { "title": "一张照片，无限模特", "body": "上传产品，获得AI穿衣模特" }
+      }
+    },
+    {
+      "id": "push_tuesday_seconds_dress",
+      "weekday": "Tuesday",
+      "translations": {
+        "en": { "title": "Dress your product in seconds", "body": "No model photoshoot needed" },
+        "tr": { "title": "Ürününü saniyeler içinde giydir", "body": "Manken çekimine ihtiyaç yok" },
+        "de": { "title": "Kleide dein Produkt in Sekunden", "body": "Kein Modell-Fotoshooting nötig" },
+        "es": { "title": "Viste tu producto en segundos", "body": "Sin sesión fotográfica de modelos" },
+        "fr": { "title": "Habille ton produit en secondes", "body": "Pas besoin de séance photo" },
+        "it": { "title": "Vesti il tuo prodotto in secondi", "body": "Nessun servizio fotografico necessario" },
+        "ja": { "title": "数秒で商品を着せる", "body": "モデル撮影は不要" },
+        "ko": { "title": "몇 초 만에 제품 입히기", "body": "모델 촬영 필요 없음" },
+        "pt": { "title": "Vista seu produto em segundos", "body": "Sem sessão de fotos com modelo" },
+        "ru": { "title": "Оденьте товар за секунды", "body": "Фотосессия с моделью не нужна" },
+        "zh": { "title": "几秒钟为产品穿衣", "body": "无需模特拍摄" }
+      }
+    },
+    {
+      "id": "push_wednesday_bulk_20_products",
+      "weekday": "Wednesday",
+      "translations": {
+        "en": { "title": "20 products at once", "body": "Bulk mode — seconds instead of minutes" },
+        "tr": { "title": "20 ürün, tek seferde", "body": "Toplu mod ile dakikalar yerine saniyeler" },
+        "de": { "title": "20 Produkte auf einmal", "body": "Bulk-Modus — Sekunden statt Minuten" },
+        "es": { "title": "20 productos a la vez", "body": "Modo masivo — segundos en vez de minutos" },
+        "fr": { "title": "20 produits d'un coup", "body": "Mode groupé — secondes au lieu de minutes" },
+        "it": { "title": "20 prodotti in una volta", "body": "Modalità batch — secondi invece di minuti" },
+        "ja": { "title": "20商品を一括で", "body": "一括モードで、分単位ではなく秒単位" },
+        "ko": { "title": "20개 제품을 한 번에", "body": "일괄 모드 — 분이 아닌 초" },
+        "pt": { "title": "20 produtos de uma vez", "body": "Modo em lote — segundos em vez de minutos" },
+        "ru": { "title": "20 товаров за раз", "body": "Пакетный режим — секунды вместо минут" },
+        "zh": { "title": "一次处理20个产品", "body": "批量模式 — 秒级而非分钟级" }
+      }
+    },
+    {
+      "id": "push_thursday_no_studio_needed",
+      "weekday": "Thursday",
+      "translations": {
+        "en": { "title": "No model, photographer, or studio", "body": "One upload, professional product shoot" },
+        "tr": { "title": "Manken, fotoğrafçı, stüdyo gerek yok", "body": "Tek upload, profesyonel ürün çekimi" },
+        "de": { "title": "Kein Modell, Fotograf oder Studio", "body": "Ein Upload, professionelles Produktshooting" },
+        "es": { "title": "Sin modelo, fotógrafo ni estudio", "body": "Una subida, sesión profesional de producto" },
+        "fr": { "title": "Ni mannequin, ni photographe, ni studio", "body": "Un upload, séance produit professionnelle" },
+        "it": { "title": "Niente modello, fotografo o studio", "body": "Un upload, servizio prodotto professionale" },
+        "ja": { "title": "モデル、撮影者、スタジオ不要", "body": "1回アップロード、プロ品質の商品撮影" },
+        "ko": { "title": "모델, 사진가, 스튜디오 불필요", "body": "한 번 업로드, 전문 제품 촬영" },
+        "pt": { "title": "Sem modelo, fotógrafo ou estúdio", "body": "Um upload, sessão profissional do produto" },
+        "ru": { "title": "Не нужны модель, фотограф, студия", "body": "Одна загрузка, профессиональная съёмка" },
+        "zh": { "title": "无需模特、摄影师、工作室", "body": "一次上传，专业产品拍摄" }
+      }
+    },
+    {
+      "id": "push_friday_marketplace_ready",
+      "weekday": "Friday",
+      "translations": {
+        "en": { "title": "Marketplace-ready visuals", "body": "Amazon, eBay formats — automatically" },
+        "tr": { "title": "Marketplace görsellerin hazır", "body": "Trendyol, Hepsiburada formatlarında otomatik" },
+        "de": { "title": "Marketplace-fertige Visuals", "body": "Amazon, Zalando, Otto — automatisch" },
+        "es": { "title": "Visuales listos para marketplace", "body": "Amazon, AliExpress — formatos automáticos" },
+        "fr": { "title": "Visuels prêts pour marketplace", "body": "Amazon, Cdiscount — formats automatiques" },
+        "it": { "title": "Visual pronti per marketplace", "body": "Amazon, eBay — formati automatici" },
+        "ja": { "title": "マーケットプレイス対応画像", "body": "楽天、Amazonフォーマットで自動" },
+        "ko": { "title": "마켓플레이스용 비주얼 준비", "body": "쿠팡, G마켓 형식 — 자동으로" },
+        "pt": { "title": "Visuais prontos para marketplace", "body": "Amazon, Mercado Livre — formatos automáticos" },
+        "ru": { "title": "Готовые визуалы для маркетплейсов", "body": "Wildberries, Ozon — форматы автоматически" },
+        "zh": { "title": "电商平台视觉准备就绪", "body": "淘宝、天猫格式 — 自动" }
+      }
+    },
+    {
+      "id": "push_saturday_instant_listing",
+      "weekday": "Saturday",
+      "translations": {
+        "en": { "title": "New product instantly listed", "body": "Your stock goes live the day it arrives" },
+        "tr": { "title": "Yeni ürünün anında listing'de", "body": "Stoğun geldiği gün ürün sahnede" },
+        "de": { "title": "Neues Produkt sofort gelistet", "body": "Dein Lager geht live, sobald es ankommt" },
+        "es": { "title": "Nuevo producto al instante en la tienda", "body": "Tu stock se publica el día que llega" },
+        "fr": { "title": "Nouveau produit listé instantanément", "body": "Ton stock part en ligne dès l'arrivée" },
+        "it": { "title": "Nuovo prodotto subito in listing", "body": "Il tuo stock va online il giorno dell'arrivo" },
+        "ja": { "title": "新商品を即座に出品", "body": "在庫到着当日に商品を公開" },
+        "ko": { "title": "신상품 즉시 등록", "body": "재고 입고 당일 출시" },
+        "pt": { "title": "Novo produto na vitrine instantaneamente", "body": "Seu estoque vai ao ar no dia que chega" },
+        "ru": { "title": "Новый товар сразу в каталоге", "body": "Запас в продаже в день получения" },
+        "zh": { "title": "新品立即上架", "body": "库存到货当天即上线" }
+      }
+    },
+    {
+      "id": "push_sunday_4k_studio_quality",
+      "weekday": "Sunday",
+      "translations": {
+        "en": { "title": "4K studio quality", "body": "Turn one photo into a professional shoot" },
+        "tr": { "title": "4K stüdyo kalitesi", "body": "Tek fotoğrafı profesyonel çekime çevir" },
+        "de": { "title": "4K Studioqualität", "body": "Verwandle ein Foto in ein Profi-Shooting" },
+        "es": { "title": "Calidad de estudio 4K", "body": "Convierte una foto en sesión profesional" },
+        "fr": { "title": "Qualité studio 4K", "body": "Transforme une photo en séance pro" },
+        "it": { "title": "Qualità studio 4K", "body": "Trasforma una foto in un servizio professionale" },
+        "ja": { "title": "4Kスタジオ品質", "body": "1枚の写真をプロ撮影に変換" },
+        "ko": { "title": "4K 스튜디오 품질", "body": "사진 한 장을 전문 촬영으로" },
+        "pt": { "title": "Qualidade de estúdio 4K", "body": "Transforme uma foto em sessão profissional" },
+        "ru": { "title": "Студийное качество 4K", "body": "Превратите одно фото в профессиональную съёмку" },
+        "zh": { "title": "4K工作室品质", "body": "将单张照片变成专业拍摄" }
+      }
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
+const { v4: uuidv4 } = require("uuid");
 const { supabase } = require("../supabaseClient");
 const { getEffectiveCredits } = require("../services/teamService");
 
@@ -267,6 +268,259 @@ router.post("/", async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Failed to enhance image",
+      errorMessage: error.message,
+    });
+  }
+});
+
+// ============================================================================
+// BULK UPSCALE — N resmi paralel netleştir (auth'lu mirror)
+// POST /api/imageEnhancementWeb/generate-bulk
+// ============================================================================
+const BULK_MAX_ITEMS = 20;
+const BULK_CREDIT_COST = 5;
+const BULK_SCALE = 4;
+
+async function processBulkUpscaleItem({ userId, imageUrl, index }) {
+  const startedAt = Date.now();
+
+  try {
+    if (typeof imageUrl !== "string" || !imageUrl.trim()) {
+      throw new Error("INVALID_IMAGE_URL");
+    }
+
+    const falResponse = await axios.post(
+      FAL_ENDPOINT,
+      {
+        image_url: imageUrl,
+        upscaling_factor: BULK_SCALE,
+      },
+      {
+        headers: {
+          Authorization: `Key ${process.env.FAL_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        timeout: 180000,
+      }
+    );
+
+    const output = falResponse.data;
+    let resultUrl = null;
+    if (output?.image?.url) {
+      resultUrl = output.image.url;
+    } else if (Array.isArray(output?.images) && output.images.length > 0) {
+      resultUrl = output.images[0].url;
+    } else if (typeof output === "string" && output.startsWith("http")) {
+      resultUrl = output;
+    } else {
+      resultUrl = output?.url || null;
+    }
+
+    if (!resultUrl) {
+      throw new Error("FAL_NO_OUTPUT_URL");
+    }
+
+    const [originalSize, resultSize] = await Promise.all([
+      getRemoteFileSize(imageUrl),
+      getRemoteFileSize(resultUrl),
+    ]);
+
+    let creditsCharged = 0;
+    let generationId = null;
+    if (userId && userId !== "anonymous_user") {
+      try {
+        const effective = await getEffectiveCredits(userId);
+        const creditOwnerId = effective.creditOwnerId || userId;
+        const currentCredit = effective.creditBalance || 0;
+
+        const { error: deductError } = await supabase.rpc(
+          "deduct_user_credit",
+          { user_id: creditOwnerId, credit_amount: BULK_CREDIT_COST }
+        );
+        if (deductError) {
+          console.error(
+            `❌ [BULK_UPSCALE] Credit deduct failed for ${creditOwnerId}:`,
+            deductError
+          );
+        } else {
+          creditsCharged = BULK_CREDIT_COST;
+        }
+
+        const balanceAfter = currentCredit - creditsCharged;
+
+        const { data: insertData, error: insertError } = await supabase
+          .from("upscale_generations")
+          .insert({
+            user_id: userId,
+            status: "completed",
+            original_image_url: imageUrl,
+            result_image_url: resultUrl,
+            original_size_bytes: originalSize,
+            result_size_bytes: resultSize,
+            scale: BULK_SCALE,
+            credits_cost: creditsCharged,
+            credit_balance_before: currentCredit,
+            credit_balance_after: balanceAfter,
+          })
+          .select("id")
+          .single();
+
+        if (insertError) {
+          console.error(
+            "⚠️ [BULK_UPSCALE] DB insert error (non-blocking):",
+            insertError
+          );
+        } else {
+          generationId = insertData?.id || null;
+        }
+      } catch (creditErr) {
+        console.error(
+          "⚠️ [BULK_UPSCALE] credit/db error (non-blocking):",
+          creditErr?.message
+        );
+      }
+    }
+
+    return {
+      index,
+      status: "succeeded",
+      generationId,
+      imageUrl: resultUrl,
+      originalSize,
+      resultSize,
+      creditsCharged,
+      processingTimeSeconds: Math.floor((Date.now() - startedAt) / 1000),
+    };
+  } catch (err) {
+    const message = err?.message || "UNKNOWN_ERROR";
+    console.error(
+      `❌ [BULK_UPSCALE] Item ${index} failed:`,
+      message,
+      err?.response?.data ? JSON.stringify(err.response.data).slice(0, 200) : ""
+    );
+    if (userId && userId !== "anonymous_user") {
+      try {
+        await supabase.from("upscale_generations").insert({
+          user_id: userId,
+          status: "failed",
+          original_image_url: imageUrl || null,
+          result_image_url: null,
+          scale: BULK_SCALE,
+          credits_cost: 0,
+        });
+      } catch (_) {
+        // best-effort
+      }
+    }
+    return {
+      index,
+      status: "failed",
+      error: message,
+    };
+  }
+}
+
+router.post("/generate-bulk", async (req, res) => {
+  try {
+    const {
+      userId: bodyUserId,
+      sessionId: rawSessionId,
+      items,
+    } = req.body || {};
+
+    const userId = req.user?.id || bodyUserId;
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        error: "userId zorunludur",
+      });
+    }
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "items boş olamaz",
+      });
+    }
+    if (items.length > BULK_MAX_ITEMS) {
+      return res.status(400).json({
+        success: false,
+        error: `En fazla ${BULK_MAX_ITEMS} resim gönderilebilir`,
+      });
+    }
+
+    const invalidIdx = items.findIndex(
+      (it) => !it || typeof it.imageUrl !== "string" || !it.imageUrl.trim()
+    );
+    if (invalidIdx !== -1) {
+      return res.status(400).json({
+        success: false,
+        error: `Item ${invalidIdx} geçersiz (imageUrl zorunlu)`,
+      });
+    }
+
+    const sessionId = rawSessionId || uuidv4();
+    const requiredCredits = items.length * BULK_CREDIT_COST;
+
+    if (userId !== "anonymous_user") {
+      try {
+        const effective = await getEffectiveCredits(userId);
+        const available = effective?.creditBalance ?? 0;
+        if (available < requiredCredits) {
+          return res.status(402).json({
+            success: false,
+            error: "INSUFFICIENT_CREDITS",
+            required: requiredCredits,
+            available,
+          });
+        }
+      } catch (creditErr) {
+        console.warn(
+          "⚠️ [BULK_UPSCALE] Credit precheck atlandı:",
+          creditErr?.message
+        );
+      }
+    }
+
+    console.log(
+      `🚀 [BULK_UPSCALE] ${items.length} item paralel işlenecek (sessionId=${sessionId}, scale=${BULK_SCALE})`
+    );
+
+    const settled = await Promise.allSettled(
+      items.map((it, i) =>
+        processBulkUpscaleItem({
+          userId,
+          imageUrl: it.imageUrl,
+          index: i,
+        })
+      )
+    );
+
+    const results = settled.map((s, i) =>
+      s.status === "fulfilled"
+        ? s.value
+        : {
+          index: i,
+          status: "failed",
+          error: s.reason?.message || "UNHANDLED_REJECTION",
+        }
+    );
+
+    const totalCharged = results
+      .filter((r) => r.status === "succeeded")
+      .reduce((sum, r) => sum + (r.creditsCharged || 0), 0);
+
+    return res.status(200).json({
+      success: true,
+      batchSessionId: sessionId,
+      results,
+      totalCharged,
+    });
+  } catch (error) {
+    console.error("❌ [BULK_UPSCALE] Endpoint hatası:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Bulk işlem hatası",
       errorMessage: error.message,
     });
   }

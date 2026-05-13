@@ -36,6 +36,7 @@ const getUserProductRouter = require("./routes/getUserProduct");
 const editRoomRoutes = require("./routes/editRoomRoutes");
 const chatEditRoutes = require("./routes/chatEditRoutes");
 const removeBgRouter = require("./routes/removeBg");
+const backgroundRemoveRoutes = require("./routes/backgroundRemoveRoutes");
 const uploadImageRouter = require("./routes/uploadImage");
 const generateTrain = require("./routes/generateTrain");
 const referenceBrowserRoutesV2 = require("./routes/referenceBrowserRoutesV2");
@@ -155,9 +156,26 @@ const pushNotificationRoutes = require("./routes/pushNotificationRoutes");
 // Banner AI Fill route import
 const bannerAiFillRouter = require("./routes/bannerAiFill");
 const { startScheduler } = require("./services/schedulerService");
+const {
+  startOneSignalMarketingScheduler,
+} = require("./services/oneSignalMarketingScheduler");
 
-// Start the daily notification scheduler
+// Start the daily notification scheduler (Expo push, low-credit reminders)
 startScheduler();
+
+// Start the OneSignal weekly marketing scheduler (non-Pro retention)
+// Her gün 08:00 UTC → o günün kampanyası → Non-Pro Users segmenti
+// → user'ın kendi dilinde, kendi yerel 20:00'ında teslim
+startOneSignalMarketingScheduler();
+
+// === GEÇİCİ: OneSignal one-shot test scheduler ===
+// Türkiye saati 01:17'de SADECE tek bir subscription ID'ye anında push atar.
+// Test sonrası bu blok'u (require + start çağrısı) sil/yorum yap.
+const {
+  startOneSignalOneShotTestScheduler,
+} = require("./services/oneSignalTestScheduler");
+startOneSignalOneShotTestScheduler();
+// === /GEÇİCİ ===
 
 // Auth routes import
 const authRoutes = require("./routes/authRoutes");
@@ -219,6 +237,11 @@ app.get("/admin-dashboard.html", (req, res) => {
   res.sendFile(path.join(__dirname, "../admin-dashboard.html"));
 });
 
+// OneSignal Test Panel UI'yi serve et
+app.get("/onesignal-test.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "../onesignal-test.html"));
+});
+
 // Basit test endpointi ekle
 app.get("/test", (req, res) => {
   console.log("Test endpoint was called from:", req.ip);
@@ -265,6 +288,7 @@ app.use("/api", getUserProductRouter);
 app.use("/api", removeBgRouter);
 const removeBgPixelcutRouter = require("./routes/removeBgPixelcut");
 app.use("/api", removeBgPixelcutRouter);
+app.use("/api/background-remove", backgroundRemoveRoutes);
 app.use("/api", generatePredictionsRouter);
 app.use("/api", getPredictionsRouter);
 app.use("/api", getBalance);
@@ -301,6 +325,7 @@ app.use("/api/historyWeb", requireBrowser, requireAuth, historyRoutesWeb);
 app.use("/api/feature-history", featureHistoryRoutes);
 app.use("/api/feature-historyWeb", requireBrowser, requireAuth, featureHistoryRoutesWeb);
 app.use("/api/admin-dashboard", adminDashboardRoutes);
+app.use("/api/onesignal", require("./routes/oneSignalTestRoutes"));
 
 const downloadRoutes = require("./routes/downloadRoutes");
 app.use("/api/download", downloadRoutes);

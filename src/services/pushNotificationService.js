@@ -140,53 +140,13 @@ async function sendPushNotification(userId, title, body, data = {}) {
  * @returns {Promise<{success: boolean, error?: string}>}
  */
 async function sendGenerationCompletedNotification(userId, generationId, options = {}) {
-  // Skip push notification for web-generated requests
-  if (options.source === 'web') {
-    console.log(`⏭️ [NOTIFICATION] Skipping push notification for web request: ${generationId?.slice(0, 8)}`);
-    return { success: true, skipped: true };
-  }
-
-  try {
-    // Kullanıcının dil tercihini al
-    const { data: userData, error: userError } = await supabase
-      .from("users")
-      .select("preferred_language")
-      .eq("id", userId)
-      .single();
-
-    const rawLanguage = userData?.preferred_language || "en";
-    // Dil kodunu normalize et (tr-TR -> tr)
-    const language = normalizeLanguageCode(rawLanguage);
-    
-    console.log(`🌐 [NOTIFICATION] Raw language: ${rawLanguage}, Normalized: ${language}`);
-    
-    // Lokalize edilmiş metinleri al
-    const title = getNotificationText(language, "generationCompletedTitle");
-    const body = getNotificationText(language, "generationCompletedBody");
-    
-    // Fallback: Eğer metin bulunamazsa İngilizce kullan
-    const finalTitle = title || "🎉 Your process is complete!";
-    const finalBody = body || "Your model photo is ready. You can view the results.";
-    
-    console.log(`🌐 [NOTIFICATION] Language: ${language}, Title: ${finalTitle.substring(0, 30)}...`);
-    
-    const data = {
-      type: "generation_completed",
-      generationId: generationId,
-    };
-
-    return await sendPushNotification(userId, finalTitle, finalBody, data);
-  } catch (error) {
-    console.error("❌ [NOTIFICATION] sendGenerationCompletedNotification hatası:", error);
-    // Hata durumunda İngilizce fallback kullan
-    const title = "🎉 Your process is complete!";
-    const body = "Your model photo is ready. You can view the results.";
-    const data = {
-      type: "generation_completed",
-      generationId: generationId,
-    };
-    return await sendPushNotification(userId, title, body, data);
-  }
+  // Generation completion push'ları tamamen kapatıldı. Kullanıcı zaten sonucu
+  // uygulama içinde polling ile görüyor — ekstra banner gürültü yaratıyordu.
+  // Bu fonksiyon korunuyor (call site'lar dokunulmasın diye) ama no-op.
+  console.log(
+    `⏭️ [NOTIFICATION] Generation completed push disabled - skipping (gen: ${generationId?.slice(0, 8)}, source: ${options.source || "default"})`,
+  );
+  return { success: true, skipped: true, reason: "disabled" };
 }
 
 module.exports = {
