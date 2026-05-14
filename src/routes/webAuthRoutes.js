@@ -387,13 +387,13 @@ router.post('/signup', async (req, res) => {
 
         console.log(`[Signup] User created and auto-confirmed. ID: ${createdUser.user.id}`);
 
-        // 2. Check for registration abuse BEFORE granting credits (artık tüm kullanıcılar 0 alır,
-        // ama abuse logging için yine de çalıştırılıyor — analytics/sinyal için)
+        // 2. Check for registration abuse BEFORE granting credits
         const abuseResult = await checkRegistrationAbuse(ip, deviceFingerprint, email);
-        let creditsToGrant = 0; // Register'da kredi verilmiyor; trial veya satın alma ile alır
+        let creditsToGrant = 100; // 🎁 YENİ KULLANICI HEDİYESİ: 100 KREDİ
 
         if (abuseResult.isAbuse) {
             console.log(`🚨 [Signup] Abuse detected for ${email}. Reasons: ${abuseResult.reasons.join(', ')}`);
+            creditsToGrant = 0; // Suistimal şüphesi varsa kredi verme
         }
 
         // 🛡️ MOBILE: Device ID bazlı kredi kontrolü (çift kredi engelleme)
