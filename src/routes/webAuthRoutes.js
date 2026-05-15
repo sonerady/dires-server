@@ -389,7 +389,7 @@ router.post('/signup', async (req, res) => {
 
         // 2. Check for registration abuse BEFORE granting credits
         const abuseResult = await checkRegistrationAbuse(ip, deviceFingerprint, email);
-        let creditsToGrant = 100; // 🎁 YENİ KULLANICI HEDİYESİ: 100 KREDİ
+        let creditsToGrant = 0; // Kayıtta kredi hediyesi yok; kullanıcı trial veya satın alma ile kredi alır
 
         if (abuseResult.isAbuse) {
             console.log(`🚨 [Signup] Abuse detected for ${email}. Reasons: ${abuseResult.reasons.join(', ')}`);

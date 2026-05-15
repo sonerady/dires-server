@@ -427,7 +427,7 @@ router.post("/sync-user", async (req, res) => {
           shouldReceiveCredit = false;
           console.log(`🛡️ [AUTH] ⚠️ DEVICE DAHA ÖNCE KREDİ ALDI - YENİ KULLANICI 0 KREDİ ALACAK`);
         } else {
-          console.log(`✅ [AUTH] Device kredi alabilir - yeni kullanıcı 100 kredi alacak`);
+          console.log(`✅ [AUTH] Device kredi alabilir - yeni kullanıcı 0 kredi alacak`);
         }
       }
     } else {
@@ -438,9 +438,9 @@ router.post("/sync-user", async (req, res) => {
     const insertData = {
       id: newUserId,
       supabase_user_id: supabaseUserId,
-      credit_balance: shouldReceiveCredit ? 100 : 0, // 🎁 YENİ KULLANICI HEDİYESİ: 100 KREDİ (device daha önce almışsa 0)
-      received_initial_credit: shouldReceiveCredit,
-      initial_credit_date: shouldReceiveCredit ? new Date().toISOString() : null,
+      credit_balance: 0, // Kayıtta kredi hediyesi yok; kullanıcı trial veya satın alma ile kredi alır
+      received_initial_credit: false,
+      initial_credit_date: null,
       created_at: new Date().toISOString(),
       owner: false,
       device_id: deviceId || null, // Device ID'yi kaydet
@@ -1678,7 +1678,7 @@ async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, p
         shouldReceiveCredit = false;
         console.log(`🛡️ [HELPER] ⚠️ DEVICE DAHA ÖNCE KREDİ ALDI - YENİ KULLANICI 0 KREDİ ALACAK`);
       } else {
-        console.log(`✅ [HELPER] Device kredi alabilir - yeni kullanıcı 100 kredi alacak`);
+        console.log(`✅ [HELPER] Device kredi alabilir - yeni kullanıcı 0 kredi alacak`);
       }
     }
   } else {
@@ -1689,9 +1689,9 @@ async function syncUserToBackend({ supabaseUserId, email, fullName, avatarUrl, p
   const insertData = {
     id: newUserId,
     supabase_user_id: supabaseUserId,
-    credit_balance: shouldReceiveCredit ? 100 : 0, // 🎁 YENİ KULLANICI HEDİYESİ: 100 KREDİ (device daha önce almışsa 0)
-    received_initial_credit: shouldReceiveCredit,
-    initial_credit_date: shouldReceiveCredit ? new Date().toISOString() : null,
+    credit_balance: 0, // Kayıtta kredi hediyesi yok; kullanıcı trial veya satın alma ile kredi alır
+    received_initial_credit: false,
+    initial_credit_date: null,
     created_at: new Date().toISOString(),
     owner: false,
     device_id: deviceId || null,
