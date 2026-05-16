@@ -40,6 +40,9 @@ async function getEffectiveUserData(user, platform = null) {
     isTeamMember: effectiveStatus.isTeamMember,
     ownerInfo: effectiveStatus.ownerInfo || null,
     subscriptionType: effectiveStatus.subscriptionType,
+    // Trial state (kullanıcının kendi kayıtlarından, team member olsa bile)
+    isInTrial: effectiveStatus.isInTrial === true,
+    hasUsedTrial: effectiveStatus.hasUsedTrial === true,
   };
 
   // Include session version based on platform

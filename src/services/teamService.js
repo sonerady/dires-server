@@ -826,9 +826,11 @@ async function getPendingInvitations(userEmail) {
 async function getEffectiveUserStatus(userId) {
     try {
         // Get user with active_team_id
+        // is_in_trial / has_used_trial: kullanıcının trial state'i — TEAM MEMBER olsa bile
+        // owner'dan değil, kullanıcının kendi kayıtlarından döner (trial bireysel bir abonelik).
         const { data: user, error: userError } = await supabase
             .from('users')
-            .select('credit_balance, is_pro, active_team_id, subscription_type')
+            .select('credit_balance, is_pro, active_team_id, subscription_type, is_in_trial, has_used_trial')
             .eq('id', userId)
             .single();
 
@@ -837,7 +839,9 @@ async function getEffectiveUserStatus(userId) {
                 creditBalance: 0,
                 isPro: false,
                 isTeamMember: false,
-                subscriptionType: null
+                subscriptionType: null,
+                isInTrial: false,
+                hasUsedTrial: false,
             };
         }
 
@@ -865,6 +869,9 @@ async function getEffectiveUserStatus(userId) {
                         isPro: owner.is_pro,
                         isTeamMember: true,
                         subscriptionType: owner.subscription_type,
+                        // Trial state kullanıcının kendisinden — owner'a göre değil
+                        isInTrial: user.is_in_trial === true,
+                        hasUsedTrial: user.has_used_trial === true,
                         ownerInfo: {
                             id: owner.id,
                             fullName: owner.full_name,
@@ -880,7 +887,9 @@ async function getEffectiveUserStatus(userId) {
             creditBalance: user.credit_balance,
             isPro: user.is_pro,
             isTeamMember: false,
-            subscriptionType: user.subscription_type
+            subscriptionType: user.subscription_type,
+            isInTrial: user.is_in_trial === true,
+            hasUsedTrial: user.has_used_trial === true,
         };
     } catch (err) {
         console.error('[TeamService] getEffectiveUserStatus error:', err);
@@ -888,6 +897,8 @@ async function getEffectiveUserStatus(userId) {
             creditBalance: 0,
             isPro: false,
             isTeamMember: false,
+            isInTrial: false,
+            hasUsedTrial: false,
             subscriptionType: null
         };
     }

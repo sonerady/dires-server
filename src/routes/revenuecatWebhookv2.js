@@ -320,12 +320,13 @@ router.post("/webhookv2", async (req, res) => {
       }
 
       // Normal subscription iptal işlemi
-      // Kullanıcıyı plan olmayan duruma düşür
+      // Kullanıcıyı plan olmayan duruma düşür ve trial flag'ini sıfırla
       const { data: downgradedData, error: downgradeError } = await supabase
         .from("users")
         .update({
           is_pro: false,
           subscription_type: null, // Planını kaldır
+          is_in_trial: false, // Trial bitti / iptal edildi
         })
         .eq("id", userId)
         .select();
@@ -774,10 +775,10 @@ router.post("/webhookv2", async (req, res) => {
     console.log(`📦 Plan type: ${planType || "none (coin pack)"}`);
     console.log(`✨ Making user PRO: ${isPro}`);
 
-    // Önce kullanıcının mevcut kredi bakiyesini al
+    // Önce kullanıcının mevcut kredi bakiyesini ve trial flag'ini al
     let { data: userData, error: fetchError } = await supabase
       .from("users")
-      .select("credit_balance")
+      .select("credit_balance, is_in_trial")
       .eq("id", userId)
       .single();
 
@@ -792,9 +793,10 @@ router.post("/webhookv2", async (req, res) => {
           id: userId,
           credit_balance: 0,
           is_pro: false,
+          is_in_trial: false,
           created_at: new Date().toISOString(),
         })
-        .select("credit_balance")
+        .select("credit_balance, is_in_trial")
         .single();
 
       if (createError) {
@@ -815,16 +817,47 @@ router.post("/webhookv2", async (req, res) => {
     }
 
     const currentBalance = userData.credit_balance || 0;
-    const newBalance = currentBalance + creditsToAdd;
+    const wasInTrial = userData.is_in_trial === true;
+
+    // Trial→Paid conversion'da (RENEWAL+is_trial_conversion VEYA trial'dayken PRODUCT_CHANGE)
+    // mevcut bakiyeyi SIFIRLA ve sadece paket kredisini yaz. Kullanıcı trial sürecindeki
+    // hediye krediyi kaybeder; tam ücretli aboneye geçtiğinde paketin tam kredisi ile başlar.
+    // Diğer tüm akışlarda (trial başlangıcı, normal RENEWAL, coin pack, normal upgrade)
+    // additive davranışı koru.
+    const isConvertingFromTrial =
+      isTrialConversion === true || (type === "PRODUCT_CHANGE" && wasInTrial);
+    const newBalance = isConvertingFromTrial
+      ? creditsToAdd
+      : currentBalance + creditsToAdd;
 
     console.log(`💳 Current balance: ${currentBalance}`);
-    console.log(`💳 New balance: ${newBalance}`);
+    console.log(`💳 Was in trial: ${wasInTrial}`);
+    console.log(`💳 Converting from trial: ${isConvertingFromTrial}`);
+    console.log(`💳 New balance: ${newBalance}${isConvertingFromTrial ? " (zeroed-out then added package)" : " (additive)"}`);
+
+    // is_in_trial lifecycle:
+    //  - Trial grant (INITIAL_PURCHASE+TRIAL with trial_enabled=true) → true
+    //  - Conversion (RENEWAL+is_trial_conversion VEYA PRODUCT_CHANGE-from-trial) → false
+    //  - Diğer her şey için mevcut değeri koru (defansif).
+    let isInTrialNext = wasInTrial;
+    if (isTrialGrant) {
+      isInTrialNext = true;
+    } else if (isConvertingFromTrial) {
+      isInTrialNext = false;
+    }
 
     // Kullanıcının kredi bakiyesini güncelle ve PRO yap
     const updateFields = {
       credit_balance: newBalance,
       is_pro: isPro,
+      is_in_trial: isInTrialNext,
     };
+
+    // has_used_trial: bir kez true olunca asla false'a dönmez (audit flag).
+    // Trial grant anında set ederiz. Conversion/expiration'da dokunmayız.
+    if (isTrialGrant) {
+      updateFields.has_used_trial = true;
+    }
 
     // Sadece subscription paketleri için plan tipi belirle
     if (planType) {
