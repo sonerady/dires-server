@@ -441,10 +441,14 @@ router.post("/webhookv2", async (req, res) => {
 
     console.log(`🎯 Final credit target: ${userId} (isTeamPurchase: ${isTeamPurchase})`);
 
-    // ✅ GÜÇLÜ DUPLICATE KONTROLÜ - MULTIPLE CHECK
-    // Aynı transaction_id daha önce işlenmiş mi kontrol et
+    // ✅ EVENT-TYPE-AWARE DUPLICATE KONTROLÜ
+    // Aynı transaction_id farklı event_type'larla gelebilir — özellikle Apple
+    // PRODUCT_CHANGE (upgrade) event'i INITIAL_PURCHASE ile AYNI transaction_id
+    // taşıyor (subscription group içinde original_transaction_id sabit kalıyor).
+    // Bu yüzden duplicate guard sadece (transaction_id, event_type) kombinasyonu
+    // aynıysa blokluyor; farklı event_type ise yeni bir lifecycle aşaması olarak işliyor.
     if (transaction_id) {
-      console.log(`🔍 Checking for duplicate transaction: ${transaction_id}`);
+      console.log(`🔍 Checking for duplicate transaction: ${transaction_id} (type=${type})`);
 
       const { data: existingTransaction, error: duplicateError } =
         await supabase
@@ -452,6 +456,7 @@ router.post("/webhookv2", async (req, res) => {
           .select("transaction_id, product_id, event_type, created_at")
           .eq("transaction_id", transaction_id)
           .eq("user_id", userId)
+          .eq("event_type", type) // ← AYNI event_type tekrarı duplicate sayılır
           .limit(1);
 
       if (duplicateError) {
@@ -462,20 +467,20 @@ router.post("/webhookv2", async (req, res) => {
         // Devam et ama log'la
       } else if (existingTransaction && existingTransaction.length > 0) {
         const existing = existingTransaction[0];
-        console.log(`🚫 DUPLICATE TRANSACTION DETECTED: ${transaction_id}`);
-        console.log("❌ This transaction has already been processed:", {
+        console.log(`🚫 DUPLICATE TRANSACTION DETECTED (same type): ${transaction_id} / ${type}`);
+        console.log("❌ This transaction+type combo has already been processed:", {
           existing_transaction_id: existing.transaction_id,
           existing_product_id: existing.product_id,
           existing_event_type: existing.event_type,
           existing_processed_at: existing.created_at,
           current_product_id: product_id,
           current_event_type: type,
-          prevention_level: "STRICT_DUPLICATE_PROTECTION",
+          prevention_level: "EVENT_TYPE_AWARE_DUPLICATE_PROTECTION",
         });
 
         return res.status(200).json({
           success: true,
-          message: "Transaction already processed - duplicate ignored",
+          message: "Transaction+type combo already processed - duplicate ignored",
           transaction_id: transaction_id,
           user_id: userId,
           duplicate: true,
@@ -483,7 +488,7 @@ router.post("/webhookv2", async (req, res) => {
         });
       }
 
-      console.log("✅ Transaction is new - proceeding with processing");
+      console.log(`✅ Transaction+type combo is new (${type}) - proceeding with processing`);
     } else {
       console.log(
         "⚠️ No transaction_id provided - will create unique identifier"
