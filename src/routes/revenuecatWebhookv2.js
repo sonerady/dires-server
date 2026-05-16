@@ -840,12 +840,16 @@ router.post("/webhookv2", async (req, res) => {
     console.log(`💳 Converting from trial: ${isConvertingFromTrial}`);
     console.log(`💳 New balance: ${newBalance}${isConvertingFromTrial ? " (zeroed-out then added package)" : " (additive)"}`);
 
-    // is_in_trial lifecycle:
-    //  - Trial grant (INITIAL_PURCHASE+TRIAL with trial_enabled=true) → true
+    // is_in_trial lifecycle — Apple'ın GERÇEĞİNE göre track edilir, bizim kill-switch'imize değil.
+    // (trial_enabled flag'i sadece trial_credits miktarını kontrol eder, is_in_trial state'ini değil.)
+    //  - Trial başlangıç (period_type=TRIAL && type=INITIAL_PURCHASE) → true
+    //    Not: trial_enabled=false olsa BİLE Apple kullanıcıyı trial'a sokmuşsa is_in_trial=true.
     //  - Conversion (RENEWAL+is_trial_conversion VEYA PRODUCT_CHANGE-from-trial) → false
     //  - Diğer her şey için mevcut değeri koru (defansif).
+    const isTrialStartEvent =
+      period_type === "TRIAL" && type === "INITIAL_PURCHASE";
     let isInTrialNext = wasInTrial;
-    if (isTrialGrant) {
+    if (isTrialStartEvent) {
       isInTrialNext = true;
     } else if (isConvertingFromTrial) {
       isInTrialNext = false;
@@ -859,8 +863,8 @@ router.post("/webhookv2", async (req, res) => {
     };
 
     // has_used_trial: bir kez true olunca asla false'a dönmez (audit flag).
-    // Trial grant anında set ederiz. Conversion/expiration'da dokunmayız.
-    if (isTrialGrant) {
+    // Apple trial başlatmışsa set ederiz — kill-switch'ten bağımsız.
+    if (isTrialStartEvent) {
       updateFields.has_used_trial = true;
     }
 
