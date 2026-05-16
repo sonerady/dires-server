@@ -149,6 +149,7 @@ const hairStylesRoutes = require("./routes/hairStylesRoutes");
 const hairStylesRoutesWeb = require("./routes/hairStylesRoutesWeb");
 // Admin Dashboard routes import
 const adminDashboardRoutes = require("./routes/adminDashboardRoutes");
+const { requireAdmin } = require("./middleware/requireAdmin");
 // User Visibility routes import
 const userVisibilityRoutes = require("./routes/userVisibilityRoutes");
 // Push Notification routes import
@@ -324,7 +325,7 @@ app.use("/api/history", historyRoutes);
 app.use("/api/historyWeb", requireBrowser, requireAuth, historyRoutesWeb);
 app.use("/api/feature-history", featureHistoryRoutes);
 app.use("/api/feature-historyWeb", requireBrowser, requireAuth, featureHistoryRoutesWeb);
-app.use("/api/admin-dashboard", adminDashboardRoutes);
+app.use("/api/admin-dashboard", requireAdmin, adminDashboardRoutes);
 app.use("/api/onesignal", require("./routes/oneSignalTestRoutes"));
 
 const downloadRoutes = require("./routes/downloadRoutes");

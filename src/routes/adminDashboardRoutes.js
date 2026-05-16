@@ -228,12 +228,42 @@ router.get("/users", async (req, res) => {
     const sortCol = allowedSort.has(sort) ? sort : "created_at";
     const ascending = direction === "asc";
 
+    const USER_SELECT = [
+      "id",
+      "supabase_user_id",
+      "email",
+      "full_name",
+      "company_name",
+      "avatar_url",
+      "credit_balance",
+      "is_pro",
+      "subscription_type",
+      "auth_provider",
+      "owner",
+      "device_id",
+      "received_initial_credit",
+      "initial_credit_date",
+      "created_at",
+      "updated_at",
+      "web_session_version",
+      "mobile_session_version",
+      "last_web_login",
+      "last_mobile_login",
+      "is_in_trial",
+      "has_used_trial",
+      "trial_started_at",
+      "active_team_id",
+      "team_max_members",
+      "team_subscription_active",
+      "platform",
+      "app_version",
+      "theme_mode",
+      "metadata_updated_at",
+    ].join(", ");
+
     let query = db
       .from("users")
-      .select(
-        "id, email, credit_balance, is_pro, subscription_type, supabase_user_id, created_at, theme_mode, platform, app_version",
-        { count: "estimated" },
-      )
+      .select(USER_SELECT, { count: "estimated" })
       .order(sortCol, { ascending })
       .range(offset, offset + limitNum - 1);
 
@@ -672,6 +702,84 @@ router.post("/users/:id/credits", async (req, res) => {
       JSON.stringify(error);
     res.status(500).json({ success: false, error: msg });
   }
+});
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/admin-dashboard/users/:id/pro
+// Body: { is_pro: boolean, reason?: string }
+// ─────────────────────────────────────────────────────────────
+router.post("/users/:id/pro", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { is_pro, reason = "" } = req.body || {};
+
+    if (typeof is_pro !== "boolean") {
+      return res
+        .status(400)
+        .json({ success: false, error: "is_pro must be a boolean" });
+    }
+    if (!id) {
+      return res.status(400).json({ success: false, error: "user id required" });
+    }
+
+    const { data: prev, error: fetchErr } = await db
+      .from("users")
+      .select("id, email, is_pro")
+      .eq("id", id)
+      .single();
+
+    if (fetchErr || !prev) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    const { data: updated, error: updErr } = await db
+      .from("users")
+      .update({ is_pro })
+      .eq("id", id)
+      .select("id, email, is_pro, credit_balance, subscription_type")
+      .single();
+
+    if (updErr) {
+      console.error("[Admin/Users] PRO toggle error:", JSON.stringify(updErr, null, 2));
+      throw updErr;
+    }
+
+    const actorEmail = req.adminUser?.email || "unknown-admin";
+    console.log(
+      `👑 [Admin/${actorEmail}] PRO toggled: ${prev.email || id} ${prev.is_pro} → ${is_pro}${reason ? ` — reason: ${reason}` : ""}`,
+    );
+
+    res.json({
+      success: true,
+      user: updated,
+      previous_is_pro: prev.is_pro,
+      new_is_pro: is_pro,
+    });
+  } catch (error) {
+    console.error("[Admin/Users] PRO toggle error:", JSON.stringify(error, null, 2));
+    const msg =
+      error.message || error.details || error.hint || error.code || JSON.stringify(error);
+    res.status(500).json({ success: false, error: msg });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/admin-dashboard/me
+// Returns the authenticated admin user (set by requireAdmin)
+// ─────────────────────────────────────────────────────────────
+router.get("/me", (req, res) => {
+  const admin = req.adminUser;
+  if (!admin) {
+    return res.status(401).json({ success: false, error: "Not authenticated" });
+  }
+  res.json({
+    success: true,
+    user: {
+      id: admin.id,
+      email: admin.email,
+      owner: admin.owner === true,
+    },
+  });
 });
 
 module.exports = router;

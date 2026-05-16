@@ -1528,7 +1528,43 @@ async function enhancePromptWithGemini(
       Boolean(poseImage);
     const includeOpenPoseDirective = !hasUserPose;
 
+    // 📏 MODEL BODY SIZE & HEIGHT DIRECTIVE — kullanıcı client'te belirli bir
+    // bodyShape (örn. "Petite", "Tall", "Plus Size") veya custom measurements
+    // (bust/waist/hips/height/weight) seçtiyse, prompt'un EN BAŞINA bu direktif
+    // konur. Gemini de "⚠️ MODEL BODY DIRECTIVE:" header'ıyla 2-3 cümlelik
+    // enhanced versiyon üretip blok'un başına yazar. Hedef: modelin beden ve
+    // boyu kullanıcı seçimine sadık, gerçekçi proportionlarla çıksın.
+    const bodyShapeText =
+      typeof settings?.bodyShape === "string" ? settings.bodyShape.trim() : "";
+    const hasCustomMeasurements =
+      settings?.type === "custom_measurements" &&
+      settings?.measurements &&
+      typeof settings.measurements === "object";
+    const measurements = hasCustomMeasurements ? settings.measurements : null;
+    const hasModelBodyDirective = Boolean(bodyShapeText) || Boolean(measurements);
+
     const openingDirectiveItems = [];
+
+    if (hasModelBodyDirective) {
+      const measurementsLine = measurements
+        ? `Custom measurements (must be matched realistically): ${[
+            measurements.bust ? `bust ${measurements.bust} cm` : null,
+            measurements.waist ? `waist ${measurements.waist} cm` : null,
+            measurements.hips ? `hips ${measurements.hips} cm` : null,
+            measurements.height ? `height ${measurements.height} cm` : null,
+            measurements.weight ? `weight ${measurements.weight} kg` : null,
+          ]
+            .filter(Boolean)
+            .join(", ")}.`
+        : "";
+      const bodyShapeLine = bodyShapeText
+        ? `Selected body type / size: "${bodyShapeText}".`
+        : "";
+      openingDirectiveItems.push(
+        `"⚠️ MODEL BODY DIRECTIVE:" — Intent: the user has explicitly selected a specific body size / proportions / height for the model that MUST be honored in the final image with strict, photorealistic accuracy. ${bodyShapeLine} ${measurementsLine} The model's silhouette, body proportions, height impression in frame, garment drape, fit, and overall posture MUST all reflect this exact body specification — NOT a generic editorial standard size. Do NOT slim, lengthen, idealize, or substitute with a generic body. Frame the camera and choose a pose that is flattering and natural for THIS specific body type. → Your task: write a 2-3 sentence ENHANCED version that adapts this body specification to THIS specific garment's TYPE / CATEGORY, its fabric behavior on this body, the ENVIRONMENT / LOCATION, and the overall ATMOSPHERE / MOOD — describing how the garment realistically drapes, fits, and moves on a body of these proportions in this scene (e.g. a flowy linen dress softly skimming a curvier silhouette on a Mediterranean terrace; a tailored blazer cleanly structured on a petite frame in an urban plaza; a sweater hugging an athletic build in a mountain setting). The body specification must remain clearly visible and respected. Keep the exact header "⚠️ MODEL BODY DIRECTIVE:" as the first line of this block.`,
+      );
+    }
+
     openingDirectiveItems.push(
       `"⚠️ NATURAL SKIN DIRECTIVE:" — Intent: the model's face must look like a real, healthy, well-groomed human in a professional fashion photograph (soft natural pores, subtle texture, matte-to-soft finish). Avoid plastic / CGI / doll-like hyper-smooth skin and avoid heavy glossy beauty makeup. Skin must still be CLEAR and HEALTHY — NO acne, pimples, blemishes, red spots, visible scars, enlarged pores, rashes, or unkempt appearance. Think "photoreal editorial model with natural skin", not airbrushed mannequin and not visibly flawed skin. Facial lighting neutral and photographic. → Your task: write a 2-3 sentence ENHANCED version that adapts this intent to THIS specific garment's TYPE / CATEGORY (tailoring, knitwear, activewear, eveningwear, swimwear, streetwear, etc.), its fabric & color palette, the ENVIRONMENT / LOCATION, and the overall ATMOSPHERE / MOOD (e.g. warm golden-hour glow on softly tanned skin for linen on a Mediterranean terrace; cool porcelain complexion with crisp studio key light for structured black eveningwear; fresh, healthy skin with light dew sheen for sportswear in an outdoor morning setting). Keep the exact header "⚠️ NATURAL SKIN DIRECTIVE:" as the first line of this block.`,
     );
@@ -1557,8 +1593,14 @@ After these directive blocks (separated by a blank line), continue with the rest
 
     if (openingDirectivesInstruction) {
       logger.log(
-        `📝 [GEMINI] Opening directives Gemini'ye gönderiliyor (skin${includeOpenPoseDirective ? " + pose" : ""}${trimmedCustomDetail ? " + user detail" : ""}) — enhanced şekilde başa yazılacak`,
+        `📝 [GEMINI] Opening directives Gemini'ye gönderiliyor (${hasModelBodyDirective ? "body + " : ""}skin${includeOpenPoseDirective ? " + pose" : ""}${trimmedCustomDetail ? " + user detail" : ""}) — enhanced şekilde başa yazılacak`,
       );
+      if (hasModelBodyDirective) {
+        logger.log(
+          "📏 [GEMINI] Model body directive en başa eklendi:",
+          bodyShapeText || JSON.stringify(measurements),
+        );
+      }
     }
 
     // Cinsiyet belirleme - varsayılan olarak kadın
