@@ -912,10 +912,11 @@ async function getEffectiveUserStatus(userId) {
 async function getEffectiveCredits(userId) {
     try {
         // Get user with active_team_id and team_max_members
-        // is_in_trial / has_used_trial: kullanıcının kendi trial state'i — team membership'ten bağımsız.
+        // is_in_trial / has_used_trial / trial_started_at: kullanıcının kendi trial state'i —
+        // team membership'ten bağımsız. trial_started_at client'ın geri sayım göstermesi için.
         const { data: user, error: userError } = await supabase
             .from('users')
-            .select('credit_balance, active_team_id, is_pro, team_max_members, is_in_trial, has_used_trial')
+            .select('credit_balance, active_team_id, is_pro, team_max_members, is_in_trial, has_used_trial, trial_started_at')
             .eq('id', userId)
             .single();
 
@@ -977,7 +978,8 @@ async function getEffectiveCredits(userId) {
                         teamMaxMembers: owner.team_max_members || 0,
                         // Trial state kullanıcının kendisinden (owner'dan değil)
                         isInTrial: user.is_in_trial === true,
-                        hasUsedTrial: user.has_used_trial === true
+                        hasUsedTrial: user.has_used_trial === true,
+                        trialStartedAt: user.trial_started_at || null
                     };
                 }
             }
@@ -996,7 +998,8 @@ async function getEffectiveCredits(userId) {
             isPro: user.is_pro || false,
             teamMaxMembers: user.team_max_members || 0,
             isInTrial: user.is_in_trial === true,
-            hasUsedTrial: user.has_used_trial === true
+            hasUsedTrial: user.has_used_trial === true,
+            trialStartedAt: user.trial_started_at || null
         };
     } catch (err) {
         console.error('[TeamService] getEffectiveCredits error:', err);
@@ -1007,7 +1010,8 @@ async function getEffectiveCredits(userId) {
             isPro: false,
             teamMaxMembers: 0,
             isInTrial: false,
-            hasUsedTrial: false
+            hasUsedTrial: false,
+            trialStartedAt: null
         };
     }
 }

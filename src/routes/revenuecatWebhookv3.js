@@ -774,16 +774,9 @@ router.post("/webhookv3", async (req, res) => {
       isPro = true; // Ama kullanıcıyı PRO yapıyor
     }
 
-    // Trial override: in Diress, PRO === watermark removal. Trial users get credits
-    // but keep the watermark — only paid (period_type=NORMAL) users are flipped to PRO.
-    // RENEWAL events with period_type=NORMAL (the trial→paid conversion) restore isPro=true
-    // via this same code path since they aren't TRIAL events.
-    if (isTrialGrant) {
-      isPro = false;
-      console.log(
-        `🚫 [RC_WEBHOOK_V3] Trial grant → forcing is_pro=false (watermark stays on)`,
-      );
-    }
+    // NOT: Trial kullanıcıları da is_pro=true olarak işaretlenir (watermark KAPALI).
+    // Eski mantıkta trial sırasında watermark açık tutuluyordu, ama UX kararı değişti:
+    // trial kullanıcısı satın alma yapmış sayılır (Apple charge'layacak), PRO erişim verilir.
 
     console.log(`🎯 Event type: ${type}`);
     console.log(`📦 Product ID: ${product_id}`);
@@ -881,10 +874,11 @@ router.post("/webhookv3", async (req, res) => {
       isInTrialNext = false;
     }
 
-    // is_pro override: kullanıcı hâlâ trial'da ise (continuation dahil) → false (watermark)
+    // NOT: Trial continuation'da artık is_pro override etmiyoruz.
+    // Trial kullanıcıları is_pro=true olarak işaretleniyor (watermark kapalı).
+    // Sadece team özellikleri kapalı kalsın.
     if (isTrialContinuation) {
-      isPro = false;
-      isTrialGrant = true; // team override block'u fire etsin
+      isTrialGrant = true; // team override block'u fire etsin (team_max_members=0)
     }
 
     // Kullanıcının kredi bakiyesini güncelle ve PRO yap
@@ -896,8 +890,10 @@ router.post("/webhookv3", async (req, res) => {
 
     // has_used_trial: bir kez true olunca asla false'a dönmez (audit flag).
     // Apple trial başlatmışsa set ederiz — kill-switch'ten bağımsız.
+    // trial_started_at: client'ın geri sayım göstermesi için trial başlangıç zamanını yaz.
     if (isTrialStartEvent) {
       updateFields.has_used_trial = true;
+      updateFields.trial_started_at = new Date(purchased_at_ms || Date.now()).toISOString();
     }
 
     // Sadece subscription paketleri için plan tipi belirle
