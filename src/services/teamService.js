@@ -912,9 +912,10 @@ async function getEffectiveUserStatus(userId) {
 async function getEffectiveCredits(userId) {
     try {
         // Get user with active_team_id and team_max_members
+        // is_in_trial / has_used_trial: kullanıcının kendi trial state'i — team membership'ten bağımsız.
         const { data: user, error: userError } = await supabase
             .from('users')
-            .select('credit_balance, active_team_id, is_pro, team_max_members')
+            .select('credit_balance, active_team_id, is_pro, team_max_members, is_in_trial, has_used_trial')
             .eq('id', userId)
             .single();
 
@@ -931,7 +932,9 @@ async function getEffectiveCredits(userId) {
                 creditOwnerId: userId,
                 isTeamCredit: false,
                 isPro: false,
-                teamMaxMembers: 0
+                teamMaxMembers: 0,
+                isInTrial: false,
+                hasUsedTrial: false
             };
         }
 
@@ -971,7 +974,10 @@ async function getEffectiveCredits(userId) {
                         creditOwnerId: team.owner_id,
                         isTeamCredit: true,
                         isPro: ownerIsPro,
-                        teamMaxMembers: owner.team_max_members || 0
+                        teamMaxMembers: owner.team_max_members || 0,
+                        // Trial state kullanıcının kendisinden (owner'dan değil)
+                        isInTrial: user.is_in_trial === true,
+                        hasUsedTrial: user.has_used_trial === true
                     };
                 }
             }
@@ -988,7 +994,9 @@ async function getEffectiveCredits(userId) {
             creditOwnerId: userId,
             isTeamCredit: false,
             isPro: user.is_pro || false,
-            teamMaxMembers: user.team_max_members || 0
+            teamMaxMembers: user.team_max_members || 0,
+            isInTrial: user.is_in_trial === true,
+            hasUsedTrial: user.has_used_trial === true
         };
     } catch (err) {
         console.error('[TeamService] getEffectiveCredits error:', err);
@@ -997,7 +1005,9 @@ async function getEffectiveCredits(userId) {
             creditOwnerId: userId,
             isTeamCredit: false,
             isPro: false,
-            teamMaxMembers: 0
+            teamMaxMembers: 0,
+            isInTrial: false,
+            hasUsedTrial: false
         };
     }
 }

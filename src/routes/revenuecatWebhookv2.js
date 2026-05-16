@@ -824,35 +824,67 @@ router.post("/webhookv2", async (req, res) => {
     const currentBalance = userData.credit_balance || 0;
     const wasInTrial = userData.is_in_trial === true;
 
-    // Trial→Paid conversion'da (RENEWAL+is_trial_conversion VEYA trial'dayken PRODUCT_CHANGE)
-    // mevcut bakiyeyi SIFIRLA ve sadece paket kredisini yaz. Kullanıcı trial sürecindeki
-    // hediye krediyi kaybeder; tam ücretli aboneye geçtiğinde paketin tam kredisi ile başlar.
-    // Diğer tüm akışlarda (trial başlangıcı, normal RENEWAL, coin pack, normal upgrade)
-    // additive davranışı koru.
+    // Trial continuation: kullanıcı trial'dayken PRODUCT_CHANGE event'i geldi VE
+    // period_type hâlâ TRIAL → sadece product değişti, trial devam ediyor (ödeme yok).
+    // Sandbox'ta subscription group içinde upgrade'de Apple bunu fırlatabiliyor.
+    // Bu durumda: credit ekleme, zero-out yapma, sadece event'i kaydet.
+    const isTrialContinuation =
+      type === "PRODUCT_CHANGE" && period_type === "TRIAL" && wasInTrial;
+
+    // Trial→Paid conversion: kullanıcı trial'dan ücretli pakete geçti.
+    // Two paths:
+    //   (a) RENEWAL + is_trial_conversion=true (NEW SUB) — trial doğal bitti, paid başladı
+    //   (b) PRODUCT_CHANGE + period_type !== TRIAL — kullanıcı trial'dayken "Tam Sürüme Geç"
+    //       bastı, yeni ürün artık paid (period_type=NORMAL)
+    // Bu durumda mevcut bakiyeyi SIFIRLA + yeni paket kredisi yaz.
     const isConvertingFromTrial =
-      isTrialConversion === true || (type === "PRODUCT_CHANGE" && wasInTrial);
-    const newBalance = isConvertingFromTrial
-      ? creditsToAdd
-      : currentBalance + creditsToAdd;
+      isTrialConversion === true ||
+      (type === "PRODUCT_CHANGE" && wasInTrial && period_type !== "TRIAL");
+
+    // Credit calculation
+    let newBalance;
+    if (isTrialContinuation) {
+      // Trial içinde product değişimi: bakiye dokunulmaz
+      newBalance = currentBalance;
+      creditsToAdd = 0; // purchase_history'ye 0 olarak kaydedilsin
+    } else if (isConvertingFromTrial) {
+      newBalance = creditsToAdd; // zero-out + paket
+    } else {
+      newBalance = currentBalance + creditsToAdd; // additive
+    }
 
     console.log(`💳 Current balance: ${currentBalance}`);
     console.log(`💳 Was in trial: ${wasInTrial}`);
+    console.log(`💳 Trial continuation: ${isTrialContinuation}`);
     console.log(`💳 Converting from trial: ${isConvertingFromTrial}`);
-    console.log(`💳 New balance: ${newBalance}${isConvertingFromTrial ? " (zeroed-out then added package)" : " (additive)"}`);
+    console.log(
+      `💳 New balance: ${newBalance}${
+        isTrialContinuation
+          ? " (trial continuation, no change)"
+          : isConvertingFromTrial
+            ? " (zeroed-out then added package)"
+            : " (additive)"
+      }`,
+    );
 
     // is_in_trial lifecycle — Apple'ın GERÇEĞİNE göre track edilir, bizim kill-switch'imize değil.
-    // (trial_enabled flag'i sadece trial_credits miktarını kontrol eder, is_in_trial state'ini değil.)
-    //  - Trial başlangıç (period_type=TRIAL && type=INITIAL_PURCHASE) → true
-    //    Not: trial_enabled=false olsa BİLE Apple kullanıcıyı trial'a sokmuşsa is_in_trial=true.
-    //  - Conversion (RENEWAL+is_trial_conversion VEYA PRODUCT_CHANGE-from-trial) → false
+    //  - Trial başlangıç (INITIAL_PURCHASE+TRIAL) → true
+    //  - Trial continuation (PRODUCT_CHANGE+TRIAL) → true (devam)
+    //  - Conversion (RENEWAL+is_trial_conversion VEYA PRODUCT_CHANGE+NORMAL-from-trial) → false
     //  - Diğer her şey için mevcut değeri koru (defansif).
     const isTrialStartEvent =
       period_type === "TRIAL" && type === "INITIAL_PURCHASE";
     let isInTrialNext = wasInTrial;
-    if (isTrialStartEvent) {
+    if (isTrialStartEvent || isTrialContinuation) {
       isInTrialNext = true;
     } else if (isConvertingFromTrial) {
       isInTrialNext = false;
+    }
+
+    // is_pro override: kullanıcı hâlâ trial'da ise (continuation dahil) → false (watermark)
+    if (isTrialContinuation) {
+      isPro = false;
+      isTrialGrant = true; // team override block'u da fire etsin (aşağıda)
     }
 
     // Kullanıcının kredi bakiyesini güncelle ve PRO yap
