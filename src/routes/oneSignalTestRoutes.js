@@ -95,11 +95,11 @@ router.post("/test-push", async (req, res) => {
     language,
     immediate = true,
     deliveryTimeOfDay,
-    // Opsiyonel filter desteği — true ise marketing scheduler ile aynı 3 katmanlı filter
-    // uygulanır (is_pro != "true" AND is_in_trial != "true" AND has_ever_subscribed != "true").
+    // Opsiyonel filter desteği — true ise marketing scheduler ile aynı 2 katmanlı filter
+    // uygulanır (is_pro != "true" AND is_in_trial != "true").
     // Bu sayede test-push üzerinden filter mantığının çalışıp çalışmadığını verify edebilirsin:
-    //   - Hedef cihaz PRO/trial/eski subscriber ise → push GİTMEZ (filter dışlar)
-    //   - Hedef cihaz hiç abone olmamışsa → push gider
+    //   - Hedef cihaz PRO veya trial'da ise → push GİTMEZ (recipients=0)
+    //   - Hedef cihaz free ise (trial deneyip iptal edenler dahil) → push gider
     // Default false → eski davranış korunur (direct targeting, filter yok).
     applyMarketingFilters = false,
   } = req.body || {};
@@ -163,8 +163,6 @@ router.post("/test-push", async (req, res) => {
       { field: "tag", key: "is_pro", relation: "!=", value: "true" },
       { operator: "AND" },
       { field: "tag", key: "is_in_trial", relation: "!=", value: "true" },
-      { operator: "AND" },
-      { field: "tag", key: "has_ever_subscribed", relation: "!=", value: "true" },
     ];
   }
 

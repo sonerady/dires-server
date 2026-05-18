@@ -1,5 +1,8 @@
 const express = require("express");
 const { supabase } = require("../supabaseClient");
+const {
+  syncOneSignalTagsFromDb,
+} = require("../services/oneSignalTagSync");
 
 const router = express.Router();
 
@@ -119,6 +122,19 @@ const getCreditsForPackage = (productId) => {
 
 // RevenueCat Webhook endpoint v2
 router.post("/webhookv2", async (req, res) => {
+  // Server-side OneSignal tag sync — fires once the webhook response is
+  // flushed back to RevenueCat. Reads `users.is_pro` / `users.is_in_trial`
+  // (now reflecting the changes this handler made) and pushes to OneSignal.
+  res.on("finish", () => {
+    if (res.statusCode < 200 || res.statusCode >= 300) return;
+    const ev = req.body?.event;
+    const uid = ev?.app_user_id || ev?.original_app_user_id;
+    if (!uid) return;
+    syncOneSignalTagsFromDb(uid).catch((err) =>
+      console.warn("[OS-SYNC v2] error:", err?.message || err),
+    );
+  });
+
   try {
     console.log("🔗 RevenueCat Webhook Received!");
     console.log("Headers:", req.headers);

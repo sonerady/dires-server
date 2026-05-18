@@ -891,15 +891,19 @@ router.post("/email/signup", async (req, res) => {
 
               const { Resend } = require('resend');
               const resend = new Resend(process.env.RESEND_API_KEY);
-              const { getMobileVerificationEmailTemplate } = require('../lib/emailTemplates');
+              const {
+                getMobileVerificationEmailTemplate,
+                getMobileVerificationEmailText,
+              } = require('../lib/emailTemplates');
 
               const userName = existingAuthUser.user_metadata?.company_name || existingAuthUser.user_metadata?.full_name || email.split('@')[0];
 
               await resend.emails.send({
                 from: 'Diress <noreply@diress.ai>',
                 to: [email.trim()],
-                subject: 'Your verification code - Diress',
-                html: getMobileVerificationEmailTemplate(verificationCode, userName)
+                subject: `Your Diress verification code: ${verificationCode}`,
+                html: getMobileVerificationEmailTemplate(verificationCode, userName),
+                text: getMobileVerificationEmailText(verificationCode, userName),
               });
 
               return res.status(200).json({
@@ -948,7 +952,10 @@ router.post("/email/signup", async (req, res) => {
     // Send verification email with CODE (for mobile)
     const { Resend } = require('resend');
     const resend = new Resend(process.env.RESEND_API_KEY);
-    const { getMobileVerificationEmailTemplate } = require('../lib/emailTemplates');
+    const {
+      getMobileVerificationEmailTemplate,
+      getMobileVerificationEmailText,
+    } = require('../lib/emailTemplates');
 
     const userName = companyName || data.user.email?.split("@")[0];
 
@@ -956,8 +963,9 @@ router.post("/email/signup", async (req, res) => {
       await resend.emails.send({
         from: 'Diress <noreply@diress.ai>',
         to: [email.trim()],
-        subject: 'Your verification code - Diress',
-        html: getMobileVerificationEmailTemplate(verificationCode, userName)
+        subject: `Your Diress verification code: ${verificationCode}`,
+        html: getMobileVerificationEmailTemplate(verificationCode, userName),
+        text: getMobileVerificationEmailText(verificationCode, userName),
       });
       console.log(`📧 [AUTH] Mobile verification email sent to: ${email.trim()}`);
     } catch (emailErr) {

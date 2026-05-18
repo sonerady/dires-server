@@ -107,21 +107,19 @@ async function sendCampaign(campaign) {
   const { headings, contents } = buildHeadingsAndContents(campaign.translations);
 
   // Filter-based targeting: dashboard segment'ine bağımlı olmayız, tüm hedefleme
-  // burada explicit. Marketing push'lar yalnızca "hiç paywall'a dokunmamış saf yeni
-  // kullanıcılara" gider — yani:
-  //   - is_pro != "true"           → aktif PRO/trial değil
-  //   - is_in_trial != "true"      → şu an trial dönemindeki kullanıcı değil
-  //   - has_ever_subscribed != "true" → geçmişte herhangi bir abonelik başlatmamış
-  //                                     (trial başlatıp iptal eden, eski PRO vb. hariç)
-  // Üç filter de geçen kullanıcı = aboneliğe hiç dokunmamış, retention'a değer kullanıcı.
+  // burada explicit. Marketing push'lar şu kitleye gider:
+  //   - is_pro != "true"       → aktif PRO değil
+  //   - is_in_trial != "true"  → şu an trial dönemindeki kullanıcı değil
+  // (Trial başlatıp iptal etmiş veya eski PRO olan kullanıcılar dahil — onlara
+  //  da retention amaçlı push gitsin.)
+  // Bu iki tag SERVER tarafından (RC webhook + nightly cron) güncellenir,
+  // see services/oneSignalTagSync.js.
   const body = {
     app_id: appId,
     filters: [
       { field: "tag", key: "is_pro", relation: "!=", value: "true" },
       { operator: "AND" },
       { field: "tag", key: "is_in_trial", relation: "!=", value: "true" },
-      { operator: "AND" },
-      { field: "tag", key: "has_ever_subscribed", relation: "!=", value: "true" },
     ],
     headings,
     contents,

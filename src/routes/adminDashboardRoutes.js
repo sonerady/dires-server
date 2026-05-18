@@ -1,7 +1,50 @@
 const express = require("express");
 const router = express.Router();
 const { supabaseAdmin, supabase } = require("../supabaseClient");
+const {
+  optimizeForThumbnail,
+  getOriginalForModal,
+  optimizeHistoryImages,
+} = require("../utils/imageOptimizer");
 const db = supabaseAdmin || supabase;
+
+// Enrich a kit-style row (product_kits / product_stories / product_unboxing_stories)
+// by transforming each JSONB image array element into { url, thumbnail, original }.
+function enrichKitImageArray(raw) {
+  if (!Array.isArray(raw)) return raw;
+  return raw.map((entry) => {
+    if (typeof entry === "string") {
+      return {
+        url: entry,
+        thumbnail: optimizeForThumbnail(entry),
+        original: getOriginalForModal(entry),
+      };
+    }
+    if (entry && typeof entry === "object") {
+      const obj = entry;
+      const url =
+        obj.url ||
+        obj.image_url ||
+        obj.imageUrl ||
+        obj.uri ||
+        obj.signedUrl ||
+        obj.signed_url ||
+        obj.public_url ||
+        obj.publicUrl ||
+        obj.src ||
+        null;
+      if (url) {
+        return {
+          ...obj,
+          url,
+          thumbnail: optimizeForThumbnail(url),
+          original: getOriginalForModal(url),
+        };
+      }
+    }
+    return entry;
+  });
+}
 
 if (!supabaseAdmin) {
   console.warn(
@@ -97,9 +140,10 @@ router.get("/generations", async (req, res) => {
       page = 1,
       limit = 20,
       status = "all",
+      user_id = "",
     } = req.query;
 
-    console.log("[Admin] Query:", { feature, page, limit, status });
+    console.log("[Admin] Query:", { feature, page, limit, status, user_id });
 
     const config = FEATURE_CONFIG[feature];
     if (!config) {
@@ -123,6 +167,9 @@ router.get("/generations", async (req, res) => {
       .range(offset, offset + limitNum - 1);
 
     if (config.applyFilter) query = config.applyFilter(query);
+    if (user_id) {
+      query = query.eq("user_id", String(user_id));
+    }
     // Skip status filter for tables that don't have a status column
     const noStatusTables = ["product_stories", "product_unboxing_stories", "product_kits", "product_street_icon_kits"];
     if (!noStatusTables.includes(config.table)) {
@@ -180,9 +227,43 @@ router.get("/generations", async (req, res) => {
             result.brand_name = pref.brand_name || null;
             result.brand_logo_url = pref.brand_logo_url || null;
             result.custom_package_url = pref.custom_package_url || null;
+            result.brand_logo_url_thumbnail = optimizeForThumbnail(pref.brand_logo_url);
+            result.custom_package_url_thumbnail = optimizeForThumbnail(pref.custom_package_url);
+          }
+          // Kit-style features carry generated images in JSONB columns —
+          // enrich each entry with .thumbnail/.original so the admin UI
+          // doesn't have to download full-resolution images for cards.
+          if (feature === "ecommerce-kits" && result.kit_images) {
+            result.kit_images = enrichKitImageArray(result.kit_images);
+          }
+          if (
+            (feature === "product-stories" || feature === "unboxing-stories") &&
+            result.story_images
+          ) {
+            result.story_images = enrichKitImageArray(result.story_images);
+          }
+          // original_photos is a text[] of source URLs — wrap with thumbnails too
+          if (Array.isArray(result.original_photos)) {
+            result.original_photos_thumbnails = result.original_photos.map(
+              optimizeForThumbnail,
+            );
           }
           return result;
         });
+      }
+
+      // For non-kit features (virtual-model, pose-change, color-change,
+      // back-side, refiner, chat-edit, upscale, videos) the row has
+      // result_image_url / reference_images / location_image / etc — let
+      // optimizeHistoryImages add the *_thumbnail variants.
+      const kitFeatures = new Set([
+        "ecommerce-kits",
+        "product-stories",
+        "unboxing-stories",
+        "street-icon-kits",
+      ]);
+      if (!kitFeatures.has(feature)) {
+        enrichedData = optimizeHistoryImages(enrichedData);
       }
     }
 
@@ -269,10 +350,27 @@ router.get("/users", async (req, res) => {
 
     const trimmedSearch = String(search || "").trim();
     if (trimmedSearch) {
-      // email veya id üzerinde partial match
-      query = query.or(
-        `email.ilike.%${trimmedSearch}%,id.eq.${trimmedSearch},supabase_user_id.eq.${trimmedSearch}`,
-      );
+      // PostgREST .or() uses commas as separator — strip them so they don't
+      // break the filter. Also: id/supabase_user_id are UUID columns; comparing
+      // them to a non-UUID string throws "invalid input syntax for type uuid"
+      // and fails the whole query. Only include those clauses when the search
+      // string looks like a full UUID.
+      const safe = trimmedSearch.replace(/,/g, "");
+      const isUuid =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          safe,
+        );
+
+      const clauses = [
+        `email.ilike.%${safe}%`,
+        `full_name.ilike.%${safe}%`,
+        `company_name.ilike.%${safe}%`,
+      ];
+      if (isUuid) {
+        clauses.push(`id.eq.${safe}`);
+        clauses.push(`supabase_user_id.eq.${safe}`);
+      }
+      query = query.or(clauses.join(","));
     }
 
     const { data, count, error } = await query;
@@ -512,6 +610,7 @@ router.get("/albums", async (req, res) => {
         const owner = userMap[a.user_id] || {};
         const tok = tokenMap[a.id] || null;
         const latestItemUrl = latestItemUrlMap[a.id] || null;
+        const displayCover = a.cover_image_url || latestItemUrl;
         return {
           ...a,
           owner_email: owner.email || null,
@@ -519,8 +618,11 @@ router.get("/albums", async (req, res) => {
           owner_is_pro: owner.is_pro ?? null,
           item_count: itemCountMap[a.id] || 0,
           latest_item_url: latestItemUrl,
+          latest_item_url_thumbnail: optimizeForThumbnail(latestItemUrl),
+          cover_image_url_thumbnail: optimizeForThumbnail(a.cover_image_url),
           // Kapak: önce manuel cover, yoksa son item — frontend tek alanla render edebilir
-          display_cover_url: a.cover_image_url || latestItemUrl,
+          display_cover_url: displayCover,
+          display_cover_url_thumbnail: optimizeForThumbnail(displayCover),
           latest_share_token: tok ? tok.token : null,
           latest_share_url: tok ? `${WEB_APP_URL}/share/${tok.token}` : null,
           latest_share_created_at: tok ? tok.created_at : null,
@@ -578,10 +680,14 @@ router.get("/albums/:id/items", async (req, res) => {
     if (itemsErr) throw itemsErr;
 
     // Frontend uyumluluğu için alias alanlar (snapshot_image_url, snapshot_meta vb.)
+    // + Cloudflare CDN üzerinden küçük thumbnail URL'leri (kart grid için)
     const items = (rawItems || []).map((it) => ({
       ...it,
       snapshot_image_url: it.snapshot_result_url,
       snapshot_thumb_url: it.snapshot_result_url,
+      snapshot_image_url_thumbnail: optimizeForThumbnail(it.snapshot_result_url),
+      snapshot_reference_url_thumbnail: optimizeForThumbnail(it.snapshot_reference_url),
+      snapshot_location_url_thumbnail: optimizeForThumbnail(it.snapshot_location_url),
       snapshot_meta: it.snapshot_settings,
     }));
 
@@ -761,6 +867,546 @@ router.post("/users/:id/pro", async (req, res) => {
       error.message || error.details || error.hint || error.code || JSON.stringify(error);
     res.status(500).json({ success: false, error: msg });
   }
+});
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/admin-dashboard/color-changes
+// Lists rows from `color_change_generations` with owner info.
+// Query params: page, limit, search, user_id, status
+// ─────────────────────────────────────────────────────────────
+router.get("/color-changes", async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 30,
+      search = "",
+      user_id = "",
+      status = "",
+    } = req.query;
+
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = Math.min(parseInt(limit, 10) || 30, 200);
+    const offset = (pageNum - 1) * limitNum;
+
+    let query = db
+      .from("color_change_generations")
+      .select(
+        "id, user_id, generation_id, status, original_prompt, enhanced_prompt, original_image_url, result_image_url, target_color, aspect_ratio, quality_version, fal_request_id, processing_time_seconds, credits_used, settings, created_at",
+        { count: "estimated" },
+      )
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limitNum - 1);
+
+    if (user_id) {
+      query = query.eq("user_id", String(user_id));
+    }
+
+    if (
+      status &&
+      ["pending", "processing", "completed", "failed"].includes(String(status))
+    ) {
+      query = query.eq("status", String(status));
+    }
+
+    const trimmedSearch = String(search || "").trim();
+    if (trimmedSearch) {
+      // search on generation_id (exact-ish) or fal_request_id
+      query = query.or(
+        `generation_id.ilike.%${trimmedSearch}%,fal_request_id.ilike.%${trimmedSearch}%,target_color.ilike.%${trimmedSearch}%`,
+      );
+    }
+
+    const { data, count, error } = await query;
+    if (error) {
+      console.error("[Admin/ColorChanges] Query error:", JSON.stringify(error, null, 2));
+      throw error;
+    }
+
+    const rows = data || [];
+    const userIds = Array.from(new Set(rows.map((r) => r.user_id).filter(Boolean)));
+    const userMap = new Map();
+    if (userIds.length > 0) {
+      const { data: users } = await db
+        .from("users")
+        .select("id, email, is_pro, credit_balance")
+        .in("id", userIds);
+      (users || []).forEach((u) => userMap.set(u.id, u));
+    }
+
+    const enriched = optimizeHistoryImages(
+      rows.map((r) => {
+        const u = userMap.get(r.user_id);
+        return {
+          ...r,
+          user_email: u?.email ?? null,
+          user_is_pro: u?.is_pro ?? false,
+          user_credit_balance: u?.credit_balance ?? null,
+        };
+      }),
+    );
+
+    res.json({
+      success: true,
+      data: enriched,
+      total: count || 0,
+      page: pageNum,
+      totalPages: Math.ceil((count || 0) / limitNum),
+    });
+  } catch (error) {
+    console.error("[Admin/ColorChanges] Full error:", JSON.stringify(error, null, 2));
+    const msg =
+      error.message || error.details || error.hint || error.code || JSON.stringify(error);
+    res.status(500).json({ success: false, error: msg });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/admin-dashboard/refiner
+// Lists rows from `refiner_generations` with owner info.
+// Query params: page, limit, search, user_id, status
+// ─────────────────────────────────────────────────────────────
+router.get("/refiner", async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 30,
+      search = "",
+      user_id = "",
+      status = "",
+    } = req.query;
+
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = Math.min(parseInt(limit, 10) || 30, 200);
+    const offset = (pageNum - 1) * limitNum;
+
+    let query = db
+      .from("refiner_generations")
+      .select(
+        "id, user_id, generation_id, status, original_prompt, enhanced_prompt, original_image_url, result_image_url, aspect_ratio, quality_version, fal_request_id, processing_time_seconds, credits_used, settings, created_at",
+        { count: "estimated" },
+      )
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limitNum - 1);
+
+    if (user_id) {
+      query = query.eq("user_id", String(user_id));
+    }
+
+    if (
+      status &&
+      ["pending", "processing", "completed", "failed"].includes(String(status))
+    ) {
+      query = query.eq("status", String(status));
+    }
+
+    const trimmedSearch = String(search || "").trim();
+    if (trimmedSearch) {
+      query = query.or(
+        `generation_id.ilike.%${trimmedSearch}%,fal_request_id.ilike.%${trimmedSearch}%`,
+      );
+    }
+
+    const { data, count, error } = await query;
+    if (error) {
+      console.error("[Admin/Refiner] Query error:", JSON.stringify(error, null, 2));
+      throw error;
+    }
+
+    const rows = data || [];
+    const userIds = Array.from(new Set(rows.map((r) => r.user_id).filter(Boolean)));
+    const userMap = new Map();
+    if (userIds.length > 0) {
+      const { data: users } = await db
+        .from("users")
+        .select("id, email, is_pro, credit_balance")
+        .in("id", userIds);
+      (users || []).forEach((u) => userMap.set(u.id, u));
+    }
+
+    const enriched = optimizeHistoryImages(
+      rows.map((r) => {
+        const u = userMap.get(r.user_id);
+        return {
+          ...r,
+          user_email: u?.email ?? null,
+          user_is_pro: u?.is_pro ?? false,
+          user_credit_balance: u?.credit_balance ?? null,
+        };
+      }),
+    );
+
+    res.json({
+      success: true,
+      data: enriched,
+      total: count || 0,
+      page: pageNum,
+      totalPages: Math.ceil((count || 0) / limitNum),
+    });
+  } catch (error) {
+    console.error("[Admin/Refiner] Full error:", JSON.stringify(error, null, 2));
+    const msg =
+      error.message || error.details || error.hint || error.code || JSON.stringify(error);
+    res.status(500).json({ success: false, error: msg });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/admin-dashboard/videos
+// Lists rows from `video_generations` with owner info + thumbnail URLs.
+// Query params: page, limit, search, user_id, status
+// ─────────────────────────────────────────────────────────────
+router.get("/videos", async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 30,
+      search = "",
+      user_id = "",
+      status = "",
+    } = req.query;
+
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = Math.min(parseInt(limit, 10) || 30, 200);
+    const offset = (pageNum - 1) * limitNum;
+
+    let query = db
+      .from("video_generations")
+      .select(
+        "id, user_id, fal_request_id, status, original_image_url, result_video_url, user_prompt, enhanced_prompt, duration, aspect_ratio, credits_used, error_message, processing_time_seconds, created_at",
+        { count: "estimated" },
+      )
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limitNum - 1);
+
+    if (user_id) {
+      query = query.eq("user_id", String(user_id));
+    }
+    if (
+      status &&
+      ["pending", "processing", "completed", "failed"].includes(String(status))
+    ) {
+      query = query.eq("status", String(status));
+    }
+
+    const trimmedSearch = String(search || "").trim();
+    if (trimmedSearch) {
+      query = query.or(
+        `fal_request_id.ilike.%${trimmedSearch}%,user_prompt.ilike.%${trimmedSearch}%`,
+      );
+    }
+
+    const { data, count, error } = await query;
+    if (error) {
+      console.error("[Admin/Videos] Query error:", JSON.stringify(error, null, 2));
+      throw error;
+    }
+
+    const rows = data || [];
+    const userIds = Array.from(new Set(rows.map((r) => r.user_id).filter(Boolean)));
+    const userMap = new Map();
+    if (userIds.length > 0) {
+      const { data: users } = await db
+        .from("users")
+        .select("id, email, is_pro, credit_balance")
+        .in("id", userIds);
+      (users || []).forEach((u) => userMap.set(u.id, u));
+    }
+
+    const enriched = optimizeHistoryImages(
+      rows.map((r) => {
+        const u = userMap.get(r.user_id);
+        return {
+          ...r,
+          user_email: u?.email ?? null,
+          user_is_pro: u?.is_pro ?? false,
+          user_credit_balance: u?.credit_balance ?? null,
+        };
+      }),
+    );
+
+    res.json({
+      success: true,
+      data: enriched,
+      total: count || 0,
+      page: pageNum,
+      totalPages: Math.ceil((count || 0) / limitNum),
+    });
+  } catch (error) {
+    console.error("[Admin/Videos] Full error:", JSON.stringify(error, null, 2));
+    const msg =
+      error.message || error.details || error.hint || error.code || JSON.stringify(error);
+    res.status(500).json({ success: false, error: msg });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// RevenueCat v2 customer helper
+// Calls GET /v2/projects/{project_id}/customers/{app_user_id} and extracts
+// the minimal subset the admin UI needs. Returns { ok, ... } shape so the
+// caller can render gracefully on partial failures.
+// ─────────────────────────────────────────────────────────────
+const RC_PROJECT_ID = process.env.REVENUECAT_PROJECT_ID || "proj2f06e69e";
+const RC_SECRET_KEY =
+  process.env.REVENUECAT_SECRET_API_KEY ||
+  process.env.REVENUECAT_V2_API_KEY ||
+  process.env.REVENUECAT_API_KEY;
+
+async function fetchRevenueCatCustomer(appUserId) {
+  if (!RC_SECRET_KEY) {
+    return { ok: false, error: "REVENUECAT_API_KEY not configured" };
+  }
+  if (!appUserId) {
+    return { ok: false, error: "Missing app_user_id" };
+  }
+  const url = `https://api.revenuecat.com/v2/projects/${RC_PROJECT_ID}/customers/${encodeURIComponent(appUserId)}`;
+  try {
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${RC_SECRET_KEY}`,
+        Accept: "application/json",
+      },
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      return {
+        ok: false,
+        error: `RC ${res.status}: ${text.slice(0, 200) || res.statusText}`,
+      };
+    }
+    const body = await res.json();
+    return { ok: true, raw: body, ...extractRevenueCatLite(body) };
+  } catch (err) {
+    return { ok: false, error: err.message || String(err) };
+  }
+}
+
+function extractRevenueCatLite(customer) {
+  // RC v2 customer response shape (per docs):
+  //   { id, project_id, first_seen_at, last_seen_at, active_entitlements: { items: [...] },
+  //     subscriptions: { items: [{ store, product_identifier, period_type, ... }] }, ... }
+  if (!customer || typeof customer !== "object") return {};
+
+  const entitlements = Array.isArray(customer?.active_entitlements?.items)
+    ? customer.active_entitlements.items.map((e) => e.lookup_key || e.entitlement_id || e.id).filter(Boolean)
+    : [];
+
+  const subscriptionItems = Array.isArray(customer?.subscriptions?.items)
+    ? customer.subscriptions.items
+    : [];
+
+  // Pick the "freshest" subscription (most recent purchase / current period end)
+  const sub =
+    subscriptionItems.find((s) => s.status === "active" || s.status === "in_trial") ||
+    subscriptionItems[0] ||
+    null;
+
+  const periodType = sub?.current_period?.type || sub?.period_type || null;
+  const isInTrial =
+    periodType === "TRIAL" ||
+    periodType === "trial" ||
+    sub?.status === "in_trial";
+
+  return {
+    is_in_trial: Boolean(isInTrial),
+    entitlements,
+    trial_will_renew: sub?.auto_renewal_status === "WILL_RENEW" || sub?.will_renew === true,
+    trial_expires_at:
+      sub?.current_period?.expires_at ||
+      sub?.expires_date ||
+      sub?.expires_at ||
+      null,
+    subscription: sub
+      ? {
+          store: sub.store || null,
+          product_id: sub.product_identifier || sub.product_id || null,
+          status: sub.status || null,
+        }
+      : null,
+  };
+}
+
+// Concurrency-limited Promise.all — runs up to `limit` tasks in parallel.
+async function withConcurrency(items, limit, worker) {
+  const results = new Array(items.length);
+  let cursor = 0;
+  async function runner() {
+    while (true) {
+      const idx = cursor++;
+      if (idx >= items.length) return;
+      try {
+        results[idx] = await worker(items[idx], idx);
+      } catch (err) {
+        results[idx] = { ok: false, error: err.message || String(err) };
+      }
+    }
+  }
+  const runners = Array.from({ length: Math.min(limit, items.length) }, () => runner());
+  await Promise.all(runners);
+  return results;
+}
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/admin-dashboard/trials
+// Returns: { summary, cohorts (last 30 days), active_users (RC-enriched) }
+// ─────────────────────────────────────────────────────────────
+const TRIAL_DURATION_DAYS = 3;
+const COHORT_DAYS = 30;
+
+router.get("/trials", async (req, res) => {
+  try {
+    const now = new Date();
+    const windowStart = new Date(now.getTime() - COHORT_DAYS * 24 * 60 * 60 * 1000);
+
+    // 5 parallel DB queries
+    const [
+      activeCountRes,
+      convertedCountRes,
+      expiredCountRes,
+      allTimeStartedRes,
+      cohortRowsRes,
+      activeListRes,
+    ] = await Promise.all([
+      db.from("users").select("id", { count: "estimated", head: true }).eq("is_in_trial", true),
+      db
+        .from("users")
+        .select("id", { count: "estimated", head: true })
+        .eq("has_used_trial", true)
+        .eq("is_pro", true),
+      db
+        .from("users")
+        .select("id", { count: "estimated", head: true })
+        .eq("has_used_trial", true)
+        .eq("is_pro", false)
+        .eq("is_in_trial", false),
+      db.from("users").select("id", { count: "estimated", head: true }).eq("has_used_trial", true),
+      db
+        .from("users")
+        .select("id, trial_started_at, is_in_trial, is_pro")
+        .gte("trial_started_at", windowStart.toISOString())
+        .order("trial_started_at", { ascending: false })
+        .limit(20000),
+      db
+        .from("users")
+        .select(
+          "id, supabase_user_id, email, trial_started_at, credit_balance, platform, subscription_type",
+        )
+        .eq("is_in_trial", true)
+        .order("trial_started_at", { ascending: true })
+        .limit(200),
+    ]);
+
+    for (const r of [activeCountRes, convertedCountRes, expiredCountRes, allTimeStartedRes, cohortRowsRes, activeListRes]) {
+      if (r.error) throw r.error;
+    }
+
+    const active = activeCountRes.count || 0;
+    const converted = convertedCountRes.count || 0;
+    const expired = expiredCountRes.count || 0;
+    const allTimeStarted = allTimeStartedRes.count || 0;
+    const conversion = allTimeStarted > 0 ? converted / allTimeStarted : 0;
+
+    // Build cohort buckets for last 30 days (newest first)
+    const cohortMap = new Map();
+    const todayKey = ymd(now);
+    for (let d = 0; d < COHORT_DAYS; d++) {
+      const dt = new Date(now.getTime() - d * 24 * 60 * 60 * 1000);
+      cohortMap.set(ymd(dt), {
+        date: ymd(dt),
+        days_ago: d,
+        started: 0,
+        converted: 0,
+        expired_or_canceled: 0,
+        still_active: 0,
+        trial_in_progress: d < TRIAL_DURATION_DAYS,
+      });
+    }
+    (cohortRowsRes.data || []).forEach((u) => {
+      if (!u.trial_started_at) return;
+      const key = ymd(new Date(u.trial_started_at));
+      const bucket = cohortMap.get(key);
+      if (!bucket) return;
+      bucket.started++;
+      if (u.is_pro) bucket.converted++;
+      else if (u.is_in_trial) bucket.still_active++;
+      else bucket.expired_or_canceled++;
+    });
+    const cohorts = Array.from(cohortMap.values()).sort((a, b) => a.days_ago - b.days_ago);
+
+    // Build active_users list with computed time fields
+    const activeRows = (activeListRes.data || []).map((u) => {
+      const startedAtMs = u.trial_started_at ? new Date(u.trial_started_at).getTime() : null;
+      const elapsedHours = startedAtMs
+        ? Math.max(0, Math.floor((now.getTime() - startedAtMs) / (60 * 60 * 1000)))
+        : 0;
+      const remainingHours = Math.max(0, TRIAL_DURATION_DAYS * 24 - elapsedHours);
+      return {
+        id: u.id,
+        supabase_user_id: u.supabase_user_id,
+        email: u.email,
+        trial_started_at: u.trial_started_at,
+        elapsed_hours: elapsedHours,
+        remaining_hours: remainingHours,
+        credit_balance: u.credit_balance,
+        platform: u.platform,
+        subscription_type: u.subscription_type,
+        rc: null,
+      };
+    });
+
+    // RC enrichment (concurrency-limited)
+    if (RC_SECRET_KEY && activeRows.length > 0) {
+      const rcResults = await withConcurrency(activeRows, 5, (u) =>
+        fetchRevenueCatCustomer(u.id),
+      );
+      rcResults.forEach((rc, i) => {
+        if (rc && rc.raw) {
+          const { raw: _raw, ...lite } = rc;
+          activeRows[i].rc = lite;
+        } else {
+          activeRows[i].rc = rc || { ok: false, error: "unknown" };
+        }
+      });
+    }
+
+    res.json({
+      success: true,
+      trial_duration_days: TRIAL_DURATION_DAYS,
+      summary: {
+        active,
+        converted,
+        expired_or_canceled: expired,
+        all_time_started: allTimeStarted,
+        conversion_rate: conversion,
+      },
+      cohorts,
+      active_users: activeRows,
+    });
+    // referenced for clarity but unused after destructure
+    void todayKey;
+  } catch (error) {
+    console.error("[Admin/Trials] Full error:", JSON.stringify(error, null, 2));
+    const msg =
+      error.message || error.details || error.hint || error.code || JSON.stringify(error);
+    res.status(500).json({ success: false, error: msg });
+  }
+});
+
+// Returns "YYYY-MM-DD" in UTC.
+function ymd(d) {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/admin-dashboard/users/:id/revenuecat
+// Per-user RC live state, with the raw response for debugging.
+// ─────────────────────────────────────────────────────────────
+router.get("/users/:id/revenuecat", async (req, res) => {
+  const { id } = req.params;
+  const rc = await fetchRevenueCatCustomer(id);
+  res.json({ success: rc.ok !== false, ...rc });
 });
 
 // ─────────────────────────────────────────────────────────────

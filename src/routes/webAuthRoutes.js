@@ -7,7 +7,9 @@ const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
 const {
     getVerificationEmailTemplate,
+    getVerificationEmailText,
     getMobileVerificationEmailTemplate,
+    getMobileVerificationEmailText,
     getWelcomeEmailTemplate,
     getPasswordResetTemplate
 } = require('../lib/emailTemplates');
@@ -353,16 +355,20 @@ router.post('/signup', async (req, res) => {
 
                             // Choose template based on platform
                             const isMobile = platform === 'mobile';
-                            const emailSubject = isMobile ? 'Your verification code - Diress' : 'Confirm your account - Diress';
+                            const emailSubject = `Your Diress verification code: ${verificationCode}`;
                             const emailHtml = isMobile
                                 ? getMobileVerificationEmailTemplate(verificationCode, userName)
                                 : getVerificationEmailTemplate(verificationCode, verificationUrl, userName);
+                            const emailText = isMobile
+                                ? getMobileVerificationEmailText(verificationCode, userName)
+                                : getVerificationEmailText(verificationCode, userName);
 
                             const { data: resendData, error: resendError } = await resend.emails.send({
                                 from: 'Diress <noreply@diress.ai>',
                                 to: [email],
                                 subject: emailSubject,
-                                html: emailHtml
+                                html: emailHtml,
+                                text: emailText
                             });
 
                             if (resendError) throw resendError;
@@ -467,16 +473,20 @@ router.post('/signup', async (req, res) => {
             console.log(`📧 [Signup] Sending verification email to: ${email}...`);
             // Choose template based on platform
             const isMobile = platform === 'mobile';
-            const emailSubject = isMobile ? 'Your verification code - Diress' : 'Confirm your account - Diress';
+            const emailSubject = `Your Diress verification code: ${verificationCode}`;
             const emailHtml = isMobile
                 ? getMobileVerificationEmailTemplate(verificationCode, userName)
                 : getVerificationEmailTemplate(verificationCode, verificationUrl, userName);
+            const emailText = isMobile
+                ? getMobileVerificationEmailText(verificationCode, userName)
+                : getVerificationEmailText(verificationCode, userName);
 
             const { data: resendData, error: resendError } = await resend.emails.send({
                 from: 'Diress <noreply@diress.ai>',
                 to: [email],
                 subject: emailSubject,
-                html: emailHtml
+                html: emailHtml,
+                text: emailText
             });
 
             if (resendError) {
@@ -847,8 +857,9 @@ router.post('/resend-verification', async (req, res) => {
         await resend.emails.send({
             from: 'Diress <noreply@diress.ai>',
             to: [user.email],
-            subject: '🔐 Email Doğrulama - Diress',
-            html: getVerificationEmailTemplate(verificationCode, verificationUrl, userName)
+            subject: `Your Diress verification code: ${verificationCode}`,
+            html: getVerificationEmailTemplate(verificationCode, verificationUrl, userName),
+            text: getVerificationEmailText(verificationCode, userName)
         });
 
         // Update rate limit

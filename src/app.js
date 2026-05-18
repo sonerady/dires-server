@@ -149,6 +149,7 @@ const hairStylesRoutes = require("./routes/hairStylesRoutes");
 const hairStylesRoutesWeb = require("./routes/hairStylesRoutesWeb");
 // Admin Dashboard routes import
 const adminDashboardRoutes = require("./routes/adminDashboardRoutes");
+const adminAuthRoutes = require("./routes/adminAuthRoutes");
 const { requireAdmin } = require("./middleware/requireAdmin");
 // User Visibility routes import
 const userVisibilityRoutes = require("./routes/userVisibilityRoutes");
@@ -160,6 +161,9 @@ const { startScheduler } = require("./services/schedulerService");
 const {
   startOneSignalMarketingScheduler,
 } = require("./services/oneSignalMarketingScheduler");
+const {
+  startOneSignalTagSyncCron,
+} = require("./services/oneSignalTagSyncCron");
 
 // Start the daily notification scheduler (Expo push, low-credit reminders)
 startScheduler();
@@ -168,6 +172,11 @@ startScheduler();
 // Her gün 08:00 UTC → o günün kampanyası → Non-Pro Users segmenti
 // → user'ın kendi dilinde, kendi yerel 20:00'ında teslim
 startOneSignalMarketingScheduler();
+
+// Daily safety-net: rewrites is_pro / is_in_trial OneSignal tags for ALL
+// users from the canonical `users` table (which RC webhooks keep updated).
+// Real-time path is via webhook res.on('finish') in revenuecatWebhookv2/v3.js.
+startOneSignalTagSyncCron();
 
 // === GEÇİCİ: OneSignal one-shot test scheduler ===
 // Türkiye saati 01:17'de SADECE tek bir subscription ID'ye anında push atar.
@@ -325,6 +334,7 @@ app.use("/api/history", historyRoutes);
 app.use("/api/historyWeb", requireBrowser, requireAuth, historyRoutesWeb);
 app.use("/api/feature-history", featureHistoryRoutes);
 app.use("/api/feature-historyWeb", requireBrowser, requireAuth, featureHistoryRoutesWeb);
+app.use("/api/admin-dashboard", adminAuthRoutes);
 app.use("/api/admin-dashboard", requireAdmin, adminDashboardRoutes);
 app.use("/api/onesignal", require("./routes/oneSignalTestRoutes"));
 

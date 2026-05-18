@@ -109,14 +109,20 @@ const optimizeImageUrl = (
 };
 
 /**
- * Thumbnail optimizasyonu (300x300, quality 70)
+ * Thumbnail optimizasyonu (max 300x300, quality 70, aspect-preserving)
  * History routes'ta thumbnail için kullanılır.
+ *
+ * fit=scale-down: orijinal görsel 300x300'ün içine sığdırılır AMA aspect
+ * korunur — 9:16 bir görsel için çıktı yaklaşık 169x300 olur, kareye
+ * kırpılmaz. CSS tarafında object-cover/object-contain ile istenen
+ * davranış yine sağlanabilir.
  */
 const optimizeForThumbnail = (imageUrl) => {
   return optimizeImageUrl(imageUrl, {
     width: 300,
     height: 300,
     quality: 70,
+    fit: "scale-down",
   });
 };
 
