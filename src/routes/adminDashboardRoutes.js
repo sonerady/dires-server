@@ -196,7 +196,7 @@ router.get("/generations", async (req, res) => {
       if (userIds.length > 0) {
         const { data: users } = await db
           .from("users")
-          .select("id, email, credit_balance, theme_mode, platform, app_version")
+          .select("id, email, is_pro, is_in_trial, trial_started_at, credit_balance, theme_mode, platform, app_version")
           .in("id", userIds);
 
         const userMap = {};
@@ -217,6 +217,9 @@ router.get("/generations", async (req, res) => {
           const result = {
             ...item,
             user_email: user.email || null,
+            user_is_pro: user.is_pro ?? false,
+            user_is_in_trial: user.is_in_trial ?? false,
+            user_trial_started_at: user.trial_started_at || null,
             user_credit_balance: user.credit_balance ?? null,
             user_theme_mode: user.theme_mode || null,
             user_platform: user.platform || null,
@@ -458,7 +461,7 @@ router.get("/album-users", async (req, res) => {
     if (allUserIds.length > 0) {
       const { data: dbUsers } = await db
         .from("users")
-        .select("id, email, is_pro, credit_balance")
+        .select("id, email, is_pro, is_in_trial, trial_started_at, credit_balance")
         .in("id", allUserIds);
       (dbUsers || []).forEach((u) => {
         dbUserMap[u.id] = u;
@@ -928,7 +931,7 @@ router.get("/color-changes", async (req, res) => {
     if (userIds.length > 0) {
       const { data: users } = await db
         .from("users")
-        .select("id, email, is_pro, credit_balance")
+        .select("id, email, is_pro, is_in_trial, trial_started_at, credit_balance")
         .in("id", userIds);
       (users || []).forEach((u) => userMap.set(u.id, u));
     }
@@ -940,6 +943,8 @@ router.get("/color-changes", async (req, res) => {
           ...r,
           user_email: u?.email ?? null,
           user_is_pro: u?.is_pro ?? false,
+          user_is_in_trial: u?.is_in_trial ?? false,
+          user_trial_started_at: u?.trial_started_at || null,
           user_credit_balance: u?.credit_balance ?? null,
         };
       }),
@@ -1018,7 +1023,7 @@ router.get("/refiner", async (req, res) => {
     if (userIds.length > 0) {
       const { data: users } = await db
         .from("users")
-        .select("id, email, is_pro, credit_balance")
+        .select("id, email, is_pro, is_in_trial, trial_started_at, credit_balance")
         .in("id", userIds);
       (users || []).forEach((u) => userMap.set(u.id, u));
     }
@@ -1030,6 +1035,8 @@ router.get("/refiner", async (req, res) => {
           ...r,
           user_email: u?.email ?? null,
           user_is_pro: u?.is_pro ?? false,
+          user_is_in_trial: u?.is_in_trial ?? false,
+          user_trial_started_at: u?.trial_started_at || null,
           user_credit_balance: u?.credit_balance ?? null,
         };
       }),
@@ -1107,7 +1114,7 @@ router.get("/videos", async (req, res) => {
     if (userIds.length > 0) {
       const { data: users } = await db
         .from("users")
-        .select("id, email, is_pro, credit_balance")
+        .select("id, email, is_pro, is_in_trial, trial_started_at, credit_balance")
         .in("id", userIds);
       (users || []).forEach((u) => userMap.set(u.id, u));
     }
@@ -1119,6 +1126,8 @@ router.get("/videos", async (req, res) => {
           ...r,
           user_email: u?.email ?? null,
           user_is_pro: u?.is_pro ?? false,
+          user_is_in_trial: u?.is_in_trial ?? false,
+          user_trial_started_at: u?.trial_started_at || null,
           user_credit_balance: u?.credit_balance ?? null,
         };
       }),

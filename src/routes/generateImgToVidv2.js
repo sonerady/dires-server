@@ -12,6 +12,7 @@ const { fal } = require("@fal-ai/client");
 const { supabase, supabaseAdmin } = require("../supabaseClient");
 const teamService = require("../services/teamService");
 const { generateVideoGridPreview } = require("../utils/videoGridPreview");
+const { enforceTrialVideoLimit } = require("../utils/trialVideoLimit");
 
 fal.config({
   credentials: process.env.FAL_API_KEY,
@@ -1085,6 +1086,13 @@ router.post("/generateImgToVidv2", async (req, res) => {
         success: false,
         message: "Missing required fields: userId and first_frame_image",
       });
+    }
+
+    // Trial-tier cap: 2 videos max per trial window. Enforced before any
+    // credit deduction or Seedance dispatch so blocked requests cost nothing.
+    const trialBlock = await enforceTrialVideoLimit({ supabase, userId });
+    if (trialBlock) {
+      return res.status(trialBlock.status).json(trialBlock.payload);
     }
 
     const normalizedDuration = normalizeDuration(duration);

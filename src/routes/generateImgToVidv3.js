@@ -9,6 +9,8 @@ const sharp = require("sharp");
 const { supabase } = require("../supabaseClient");
 // Team service for team-aware credit operations
 const teamService = require("../services/teamService");
+// Trial video creation cap (production-side, no client change needed)
+const { enforceTrialVideoLimit } = require("../utils/trialVideoLimit");
 
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 const REPLICATE_HEADERS = {
@@ -228,6 +230,13 @@ router.post("/generateImgToVidv3", async (req, res) => {
         success: false,
         message: "Missing required fields: userId and first_frame_image",
       });
+    }
+
+    // Trial-tier cap: 2 videos max per trial window. Enforced before any
+    // credit deduction or Replicate dispatch so blocked requests cost nothing.
+    const trialBlock = await enforceTrialVideoLimit({ supabase, userId });
+    if (trialBlock) {
+      return res.status(trialBlock.status).json(trialBlock.payload);
     }
 
     creditCost = getCreditCost(duration);
