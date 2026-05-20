@@ -632,7 +632,7 @@ router.post("/webhookv2", async (req, res) => {
     );
 
     // Trial-aware grant: when period_type === 'TRIAL' AND app_config.trial_enabled is true,
-    // grant trial_credits (default 5000) instead of the full package credits.
+    // grant trial_credits (default 2000) instead of the full package credits.
     // RENEWAL events (period_type === 'NORMAL', including trial→paid conversion) fall through
     // to the package-credits path below, so users top up to the full amount once charged.
     // If trial_enabled is false (kill-switch), the webhook acts as before regardless of period_type.
@@ -654,7 +654,7 @@ router.post("/webhookv2", async (req, res) => {
         if (trialCfg?.trial_enabled === true) {
           const trialCredits = Number.isFinite(trialCfg.trial_credits)
             ? trialCfg.trial_credits
-            : 5000;
+            : 2000;
           creditsToAdd = trialCredits;
           isTrialGrant = true;
           console.log(
@@ -674,10 +674,10 @@ router.post("/webhookv2", async (req, res) => {
     } else if (isTrialConversion) {
       // Trial→Paid dönüşüm event'i (dashboard'da "NEW SUB" görünen olay).
       // creditsToAdd zaten packageCredits olarak set edildi — full paket kredisini
-      // veriyoruz. Trial başlangıcında verilen ~5000 trial bonusunu DÜŞMÜYORUZ,
+      // veriyoruz. Trial başlangıcında verilen ~2000 trial bonusunu DÜŞMÜYORUZ,
       // bonus olarak kalsın (trial'ı tamamlayan kullanıcıya teşekkür jesti).
       console.log(
-        `🎉 [RC_WEBHOOK_V2] Trial-to-Paid CONVERSION detected (is_trial_conversion=true) → granting full ${packageCredits} credits (trial 5000 bonus preserved on top)`,
+        `🎉 [RC_WEBHOOK_V2] Trial-to-Paid CONVERSION detected (is_trial_conversion=true) → granting full ${packageCredits} credits (trial 2000 bonus preserved on top)`,
       );
     } else if (type === "PRODUCT_CHANGE") {
       // Trial içindeyken "Tam Sürüme Geç" → farklı bir paket satın alma veya
@@ -933,7 +933,7 @@ router.post("/webhookv2", async (req, res) => {
       console.log(`👥 Setting team_max_members to ${teamMembers}, team_subscription_active to true for ${planType} plan`);
 
       // Trial override: kullanıcı trial'dayken team özellikleri kapalı.
-      // 1 trial = 1 team member = 2 kullanıcı 5000 krediyi paylaşır → suistimal riski.
+      // 1 trial = 1 team member = 2 kullanıcı 2000 krediyi paylaşır → suistimal riski.
       // Trial→paid dönüşümünde (RENEWAL/NORMAL) yukarıdaki blok tekrar çalışıp doğru
       // team_max_members'ı set edecek.
       if (isTrialGrant) {
