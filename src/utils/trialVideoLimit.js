@@ -1,19 +1,19 @@
 /**
  * Trial users may only create a limited number of videos.
  *
- * Enforced server-side so production users hit the cap immediately, with
- * no client-side change required. Apply on every video-generation entry
- * point BEFORE charging credits / dispatching to the upstream provider.
+ * Counted via `users.trial_video_count` (single column lookup) instead of
+ * an aggregate on `video_generations`. The counter is incremented from
+ * each video route immediately after the trial check passes, so this
+ * source-of-truth is cheap to read on subsequent attempts and survives
+ * even if a downstream insert/dispatch later fails (we'd rather slightly
+ * over-count and block one extra request than under-count and let trial
+ * users sneak past the cap).
  *
- * Counts only videos created since the user entered their current trial
- * window — pre-trial generations (e.g. a returning user who later started
- * a trial) don't poison the cap.
- *
- * Fails OPEN on transient DB errors. We'd rather let one extra video
+ * Fails OPEN on transient DB errors — better to let one extra video
  * through than block a legitimate paid user because of a flaky lookup.
  */
 
-const TRIAL_VIDEO_LIMIT = 2;
+const TRIAL_VIDEO_LIMIT = 1;
 
 /**
  * @param {object} params
@@ -29,7 +29,7 @@ async function enforceTrialVideoLimit({ supabase, userId }) {
 
   const { data: user, error: userErr } = await supabase
     .from("users")
-    .select("is_in_trial, trial_started_at")
+    .select("is_in_trial, trial_video_count")
     .eq("id", userId)
     .single();
 
@@ -43,26 +43,10 @@ async function enforceTrialVideoLimit({ supabase, userId }) {
 
   if (!user?.is_in_trial) return null;
 
-  let countQuery = supabase
-    .from("video_generations")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", userId);
+  const used = Number.isFinite(user.trial_video_count)
+    ? user.trial_video_count
+    : 0;
 
-  if (user.trial_started_at) {
-    countQuery = countQuery.gte("created_at", user.trial_started_at);
-  }
-
-  const { count, error: countErr } = await countQuery;
-
-  if (countErr) {
-    console.warn(
-      `[trialVideoLimit] count failed for ${userId}; failing open:`,
-      countErr.message,
-    );
-    return null;
-  }
-
-  const used = count ?? 0;
   if (used < TRIAL_VIDEO_LIMIT) return null;
 
   console.log(
@@ -81,4 +65,66 @@ async function enforceTrialVideoLimit({ supabase, userId }) {
   };
 }
 
-module.exports = { enforceTrialVideoLimit, TRIAL_VIDEO_LIMIT };
+/**
+ * Increment `users.trial_video_count` by 1 for trial users.
+ * No-op for non-trial users. Safe to call after the trial check passed —
+ * we read the current value and write back current+1.
+ *
+ * NOT strictly atomic (no SQL UPDATE … SET trial_video_count = trial_video_count + 1
+ * via RPC), but a trial user can't race themselves meaningfully here —
+ * each video request goes through enforceTrialVideoLimit first, which would
+ * have rejected if they were already at the cap.
+ */
+async function incrementTrialVideoCount({ supabase, userId }) {
+  if (!userId) return;
+
+  try {
+    const { data: user, error: readErr } = await supabase
+      .from("users")
+      .select("is_in_trial, trial_video_count")
+      .eq("id", userId)
+      .single();
+
+    if (readErr) {
+      console.warn(
+        `[trialVideoLimit] increment read failed for ${userId}:`,
+        readErr.message,
+      );
+      return;
+    }
+
+    if (!user?.is_in_trial) return;
+
+    const current = Number.isFinite(user.trial_video_count)
+      ? user.trial_video_count
+      : 0;
+
+    const { error: updateErr } = await supabase
+      .from("users")
+      .update({ trial_video_count: current + 1 })
+      .eq("id", userId);
+
+    if (updateErr) {
+      console.warn(
+        `[trialVideoLimit] increment write failed for ${userId}:`,
+        updateErr.message,
+      );
+      return;
+    }
+
+    console.log(
+      `🎬 [trialVideoLimit] ${userId} trial_video_count: ${current} → ${current + 1}`,
+    );
+  } catch (err) {
+    console.warn(
+      `[trialVideoLimit] increment unexpected error for ${userId}:`,
+      err?.message || err,
+    );
+  }
+}
+
+module.exports = {
+  enforceTrialVideoLimit,
+  incrementTrialVideoCount,
+  TRIAL_VIDEO_LIMIT,
+};

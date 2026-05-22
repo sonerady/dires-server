@@ -916,7 +916,7 @@ async function getEffectiveCredits(userId) {
         // team membership'ten bağımsız. trial_started_at client'ın geri sayım göstermesi için.
         const { data: user, error: userError } = await supabase
             .from('users')
-            .select('credit_balance, active_team_id, is_pro, team_max_members, is_in_trial, has_used_trial, trial_started_at')
+            .select('credit_balance, active_team_id, is_pro, team_max_members, is_in_trial, has_used_trial, trial_started_at, trial_video_count')
             .eq('id', userId)
             .single();
 
@@ -979,7 +979,10 @@ async function getEffectiveCredits(userId) {
                         // Trial state kullanıcının kendisinden (owner'dan değil)
                         isInTrial: user.is_in_trial === true,
                         hasUsedTrial: user.has_used_trial === true,
-                        trialStartedAt: user.trial_started_at || null
+                        trialStartedAt: user.trial_started_at || null,
+                        trialVideoCount: Number.isFinite(user.trial_video_count)
+                            ? user.trial_video_count
+                            : 0
                     };
                 }
             }
@@ -999,7 +1002,10 @@ async function getEffectiveCredits(userId) {
             teamMaxMembers: user.team_max_members || 0,
             isInTrial: user.is_in_trial === true,
             hasUsedTrial: user.has_used_trial === true,
-            trialStartedAt: user.trial_started_at || null
+            trialStartedAt: user.trial_started_at || null,
+            trialVideoCount: Number.isFinite(user.trial_video_count)
+                ? user.trial_video_count
+                : 0
         };
     } catch (err) {
         console.error('[TeamService] getEffectiveCredits error:', err);

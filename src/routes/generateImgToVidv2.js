@@ -12,7 +12,10 @@ const { fal } = require("@fal-ai/client");
 const { supabase, supabaseAdmin } = require("../supabaseClient");
 const teamService = require("../services/teamService");
 const { generateVideoGridPreview } = require("../utils/videoGridPreview");
-const { enforceTrialVideoLimit } = require("../utils/trialVideoLimit");
+const {
+  enforceTrialVideoLimit,
+  incrementTrialVideoCount,
+} = require("../utils/trialVideoLimit");
 
 fal.config({
   credentials: process.env.FAL_API_KEY,
@@ -1094,6 +1097,7 @@ router.post("/generateImgToVidv2", async (req, res) => {
     if (trialBlock) {
       return res.status(trialBlock.status).json(trialBlock.payload);
     }
+    await incrementTrialVideoCount({ supabase, userId });
 
     const normalizedDuration = normalizeDuration(duration);
     const normalizedResolution = normalizeResolution(resolution);

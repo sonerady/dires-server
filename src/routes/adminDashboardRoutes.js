@@ -527,6 +527,144 @@ router.get("/album-users", async (req, res) => {
   }
 });
 
+// GET /api/admin-dashboard/albums/users?page=1&limit=30&search=
+// Album sahiplerini tek satırda gruplar: her satır bir kullanıcıdır,
+// kullanıcının kaç albümü olduğu, en son aktivite resmi (latest item across
+// all of their albums), email + PRO bilgisi ile birlikte döner.
+// Search: email ile partial match.
+router.get("/albums/users", async (req, res) => {
+  try {
+    const { page = 1, limit = 30, search = "" } = req.query;
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = Math.min(parseInt(limit, 10) || 30, 200);
+    const offset = (pageNum - 1) * limitNum;
+
+    // 1) Tüm albümleri sadece grouping için gerekli alanlarla çek.
+    //    Admin volume düşük; tüm tabloyu memory'de toplamak güvenli.
+    const { data: allAlbums, error: albumsErr } = await db
+      .from("user_albums")
+      .select("id, user_id, created_at");
+    if (albumsErr) throw albumsErr;
+
+    // 2) user_id bazında grupla, en son album_created_at'i tut.
+    const byUser = new Map();
+    const albumToUser = {};
+    (allAlbums || []).forEach((a) => {
+      if (!a.user_id) return;
+      albumToUser[a.id] = a.user_id;
+      const prev = byUser.get(a.user_id);
+      if (!prev) {
+        byUser.set(a.user_id, {
+          user_id: a.user_id,
+          album_count: 1,
+          album_ids: [a.id],
+          latest_album_at: a.created_at,
+        });
+      } else {
+        prev.album_count += 1;
+        prev.album_ids.push(a.id);
+        if (new Date(a.created_at) > new Date(prev.latest_album_at)) {
+          prev.latest_album_at = a.created_at;
+        }
+      }
+    });
+
+    let userRows = Array.from(byUser.values());
+
+    // 3) Search (email) — full user list'i çek ve filter et.
+    const trimmedSearch = String(search || "").trim();
+    if (trimmedSearch) {
+      // Önce search'e uyan user_id'leri bul, sonra userRows'u filtrele
+      const { data: matchedUsers } = await db
+        .from("users")
+        .select("id")
+        .ilike("email", `%${trimmedSearch}%`);
+      const matchedIds = new Set((matchedUsers || []).map((u) => u.id));
+      userRows = userRows.filter((u) => matchedIds.has(u.user_id));
+    }
+
+    // 4) En yeni aktiviteye göre sırala (üstte en aktifler).
+    userRows.sort(
+      (a, b) => new Date(b.latest_album_at) - new Date(a.latest_album_at)
+    );
+
+    const total = userRows.length;
+    const paged = userRows.slice(offset, offset + limitNum);
+
+    if (paged.length === 0) {
+      return res.json({
+        success: true,
+        data: [],
+        total,
+        page: pageNum,
+        totalPages: Math.ceil(total / limitNum),
+      });
+    }
+
+    // 5) Profiles (email + pro) — sadece sayfa kullanıcılarını çek
+    const pageUserIds = paged.map((u) => u.user_id);
+    const { data: profiles } = await db
+      .from("users")
+      .select("id, email, credit_balance, is_pro")
+      .in("id", pageUserIds);
+    const profileMap = {};
+    (profiles || []).forEach((p) => {
+      profileMap[p.id] = p;
+    });
+
+    // 6) Sayfa kullanıcılarının tüm albümlerindeki son item'ı bul (cross-album latest).
+    const pageAlbumIds = paged.flatMap((u) => u.album_ids);
+    const { data: items } = await db
+      .from("album_items")
+      .select("album_id, snapshot_result_url, added_at")
+      .in("album_id", pageAlbumIds)
+      .order("added_at", { ascending: false });
+
+    const userLatestItem = {};
+    (items || []).forEach((it) => {
+      const uid = albumToUser[it.album_id];
+      if (uid && !userLatestItem[uid] && it.snapshot_result_url) {
+        userLatestItem[uid] = it.snapshot_result_url;
+      }
+    });
+
+    const data = paged.map((u) => {
+      const p = profileMap[u.user_id] || {};
+      const latestUrl = userLatestItem[u.user_id] || null;
+      return {
+        user_id: u.user_id,
+        owner_email: p.email || null,
+        owner_is_pro: p.is_pro ?? null,
+        owner_credit_balance: p.credit_balance ?? null,
+        album_count: u.album_count,
+        latest_album_at: u.latest_album_at,
+        latest_item_url: latestUrl,
+        latest_item_url_thumbnail: optimizeForThumbnail(latestUrl),
+      };
+    });
+
+    res.json({
+      success: true,
+      data,
+      total,
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum),
+    });
+  } catch (error) {
+    console.error(
+      "[Admin/Albums/users] Full error:",
+      JSON.stringify(error, null, 2)
+    );
+    const msg =
+      error.message ||
+      error.details ||
+      error.hint ||
+      error.code ||
+      JSON.stringify(error);
+    res.status(500).json({ success: false, error: msg });
+  }
+});
+
 // GET /api/admin-dashboard/albums?page=1&limit=30&search=&user_id=
 router.get("/albums", async (req, res) => {
   try {
@@ -1255,16 +1393,24 @@ async function withConcurrency(items, limit, worker) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// GET /api/admin-dashboard/trials
-// Returns: { summary, cohorts (last 30 days), active_users (RC-enriched) }
+// GET /api/admin-dashboard/trials?days=3
+// Returns: { summary, cohorts (last N days), active_users (RC-enriched) }
+// `days` clamped to [1, 30]; defaults to 3 (matches TRIAL_DURATION_DAYS so
+// the admin view shows currently in-progress cohorts).
 // ─────────────────────────────────────────────────────────────
 const TRIAL_DURATION_DAYS = 3;
-const COHORT_DAYS = 30;
+const COHORT_DAYS_DEFAULT = 3;
+const COHORT_DAYS_MAX = 30;
 
 router.get("/trials", async (req, res) => {
   try {
+    const requestedDays = parseInt(req.query.days, 10);
+    const cohortDays =
+      Number.isFinite(requestedDays) && requestedDays > 0
+        ? Math.min(requestedDays, COHORT_DAYS_MAX)
+        : COHORT_DAYS_DEFAULT;
     const now = new Date();
-    const windowStart = new Date(now.getTime() - COHORT_DAYS * 24 * 60 * 60 * 1000);
+    const windowStart = new Date(now.getTime() - cohortDays * 24 * 60 * 60 * 1000);
 
     // 5 parallel DB queries
     const [
@@ -1276,11 +1422,14 @@ router.get("/trials", async (req, res) => {
       activeListRes,
     ] = await Promise.all([
       db.from("users").select("id", { count: "estimated", head: true }).eq("is_in_trial", true),
+      // Converted: trial'dan çıkmış (is_in_trial=false) VE PRO. is_in_trial=false
+      // şartı şart — çünkü trial sırasında da is_pro=true (watermark kapalı).
       db
         .from("users")
         .select("id", { count: "estimated", head: true })
         .eq("has_used_trial", true)
-        .eq("is_pro", true),
+        .eq("is_pro", true)
+        .eq("is_in_trial", false),
       db
         .from("users")
         .select("id", { count: "estimated", head: true })
@@ -1290,7 +1439,7 @@ router.get("/trials", async (req, res) => {
       db.from("users").select("id", { count: "estimated", head: true }).eq("has_used_trial", true),
       db
         .from("users")
-        .select("id, trial_started_at, is_in_trial, is_pro")
+        .select("id, trial_started_at, is_in_trial, is_pro, has_used_trial")
         .gte("trial_started_at", windowStart.toISOString())
         .order("trial_started_at", { ascending: false })
         .limit(20000),
@@ -1300,7 +1449,8 @@ router.get("/trials", async (req, res) => {
           "id, supabase_user_id, email, trial_started_at, credit_balance, platform, subscription_type",
         )
         .eq("is_in_trial", true)
-        .order("trial_started_at", { ascending: true })
+        .gte("trial_started_at", windowStart.toISOString())
+        .order("trial_started_at", { ascending: false })
         .limit(200),
     ]);
 
@@ -1314,10 +1464,10 @@ router.get("/trials", async (req, res) => {
     const allTimeStarted = allTimeStartedRes.count || 0;
     const conversion = allTimeStarted > 0 ? converted / allTimeStarted : 0;
 
-    // Build cohort buckets for last 30 days (newest first)
+    // Build cohort buckets for last N days (newest first)
     const cohortMap = new Map();
     const todayKey = ymd(now);
-    for (let d = 0; d < COHORT_DAYS; d++) {
+    for (let d = 0; d < cohortDays; d++) {
       const dt = new Date(now.getTime() - d * 24 * 60 * 60 * 1000);
       cohortMap.set(ymd(dt), {
         date: ymd(dt),
@@ -1329,15 +1479,34 @@ router.get("/trials", async (req, res) => {
         trial_in_progress: d < TRIAL_DURATION_DAYS,
       });
     }
+    // Cohort sayım kuralı (önemli):
+    //
+    // Diress'te TRIAL kullanıcıları da is_pro=true olarak işaretleniyor
+    // (watermark kapalı, PRO erişim — webhook v2/v3 line ~783). Bu yüzden
+    // `is_pro=true` "converted" anlamına gelmiyor. Kullanıcı trial'dan
+    // CIKMIŞ olmalı ve yine ödüyor olmalı.
+    //
+    //   started            = trial_started_at penceredeyse
+    //   still_active       = hâlâ trial içinde (is_in_trial=true)
+    //   converted          = trial bitmiş + is_pro=true + has_used_trial=true
+    //   expired_or_canceled= trial bitmiş + is_pro=false
     (cohortRowsRes.data || []).forEach((u) => {
       if (!u.trial_started_at) return;
       const key = ymd(new Date(u.trial_started_at));
       const bucket = cohortMap.get(key);
       if (!bucket) return;
       bucket.started++;
-      if (u.is_pro) bucket.converted++;
-      else if (u.is_in_trial) bucket.still_active++;
-      else bucket.expired_or_canceled++;
+      if (u.is_in_trial) {
+        bucket.still_active++;
+      } else if (u.is_pro && u.has_used_trial) {
+        bucket.converted++;
+      } else if (u.has_used_trial) {
+        bucket.expired_or_canceled++;
+      } else {
+        // Edge case: trial_started_at set ama has_used_trial=false → veri tutarsız;
+        // güvenli tarafta still_active say (kullanıcı görmeyi tercih ederiz).
+        bucket.still_active++;
+      }
     });
     const cohorts = Array.from(cohortMap.values()).sort((a, b) => a.days_ago - b.days_ago);
 
@@ -1377,15 +1546,24 @@ router.get("/trials", async (req, res) => {
       });
     }
 
+    // RC tarafında trial'i iptal etmiş (auto-renew kapatmış) kullanıcı sayısı —
+    // hâlâ trial'de ama dönüşmeyecek, yenilenmeyecek. `trial_will_renew === false`
+    // sinyalini kullanıyoruz (extractRevenueCatLite içinde set ediliyor).
+    const rcCanceledInWindow = activeRows.filter(
+      (u) => u.rc && u.rc.is_in_trial && u.rc.trial_will_renew === false,
+    ).length;
+
     res.json({
       success: true,
       trial_duration_days: TRIAL_DURATION_DAYS,
+      window_days: cohortDays,
       summary: {
         active,
         converted,
         expired_or_canceled: expired,
         all_time_started: allTimeStarted,
         conversion_rate: conversion,
+        rc_canceled_in_window: rcCanceledInWindow,
       },
       cohorts,
       active_users: activeRows,
