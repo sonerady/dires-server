@@ -196,7 +196,7 @@ router.get("/generations", async (req, res) => {
       if (userIds.length > 0) {
         const { data: users } = await db
           .from("users")
-          .select("id, email, is_pro, is_in_trial, trial_started_at, credit_balance, theme_mode, platform, app_version")
+          .select("id, email, is_pro, is_in_trial, has_used_trial, trial_started_at, credit_balance, theme_mode, platform, app_version")
           .in("id", userIds);
 
         const userMap = {};
@@ -219,6 +219,7 @@ router.get("/generations", async (req, res) => {
             user_email: user.email || null,
             user_is_pro: user.is_pro ?? false,
             user_is_in_trial: user.is_in_trial ?? false,
+            user_has_used_trial: user.has_used_trial ?? false,
             user_trial_started_at: user.trial_started_at || null,
             user_credit_balance: user.credit_balance ?? null,
             user_theme_mode: user.theme_mode || null,
@@ -1585,6 +1586,87 @@ function ymd(d) {
   const day = String(d.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/admin-dashboard/trial-users
+// Active trial users only, sorted by trial_started_at DESC (newest first).
+// RC-enriched (will_renew / canceled detection) for the admin panel.
+// Use the existing POST /users/:id/credits {mode:"set",amount:100} to
+// cap a user's credit balance.
+// ─────────────────────────────────────────────────────────────
+router.get("/trial-users", async (req, res) => {
+  try {
+    const requestedLimit = parseInt(req.query.limit, 10);
+    const limit =
+      Number.isFinite(requestedLimit) && requestedLimit > 0
+        ? Math.min(requestedLimit, 500)
+        : 100;
+
+    const { data: users, error } = await db
+      .from("users")
+      .select(
+        "id, supabase_user_id, email, trial_started_at, credit_balance, platform, subscription_type, is_pro, is_in_trial, has_used_trial",
+      )
+      .eq("is_in_trial", true)
+      .order("trial_started_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+
+    const now = new Date();
+    const rows = (users || []).map((u) => {
+      const startedAtMs = u.trial_started_at
+        ? new Date(u.trial_started_at).getTime()
+        : null;
+      const elapsedHours = startedAtMs
+        ? Math.max(0, Math.floor((now.getTime() - startedAtMs) / (60 * 60 * 1000)))
+        : 0;
+      const remainingHours = Math.max(
+        0,
+        TRIAL_DURATION_DAYS * 24 - elapsedHours,
+      );
+      return {
+        id: u.id,
+        supabase_user_id: u.supabase_user_id,
+        email: u.email,
+        trial_started_at: u.trial_started_at,
+        elapsed_hours: elapsedHours,
+        remaining_hours: remainingHours,
+        credit_balance: u.credit_balance,
+        platform: u.platform,
+        subscription_type: u.subscription_type,
+        is_pro: u.is_pro,
+        has_used_trial: u.has_used_trial,
+        rc: null,
+      };
+    });
+
+    if (RC_SECRET_KEY && rows.length > 0) {
+      const rcResults = await withConcurrency(rows, 5, (u) =>
+        fetchRevenueCatCustomer(u.id),
+      );
+      rcResults.forEach((rc, i) => {
+        if (rc && rc.raw) {
+          const { raw: _raw, ...lite } = rc;
+          rows[i].rc = lite;
+        } else {
+          rows[i].rc = rc || { ok: false, error: "unknown" };
+        }
+      });
+    }
+
+    res.json({
+      success: true,
+      trial_duration_days: TRIAL_DURATION_DAYS,
+      total: rows.length,
+      users: rows,
+    });
+  } catch (error) {
+    console.error("[Admin/TrialUsers] Full error:", JSON.stringify(error, null, 2));
+    const msg =
+      error.message || error.details || error.hint || error.code || JSON.stringify(error);
+    res.status(500).json({ success: false, error: msg });
+  }
+});
 
 // ─────────────────────────────────────────────────────────────
 // GET /api/admin-dashboard/users/:id/revenuecat
