@@ -21,10 +21,19 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
-async function ensureProUser(userId) {
-  if (!userId || userId === "anonymous_user") return false;
+async function ensureProOrHasCredits(userId) {
+  if (!userId || userId === "anonymous_user") {
+    return { allowed: false, reason: "ANONYMOUS" };
+  }
   const effective = await getEffectiveCredits(userId);
-  return effective?.isPro === true;
+  if (effective?.isPro === true) {
+    return { allowed: true, isPro: true, creditBalance: effective?.creditBalance ?? 0 };
+  }
+  const creditBalance = effective?.creditBalance ?? 0;
+  if (creditBalance > 0) {
+    return { allowed: true, isPro: false, creditBalance };
+  }
+  return { allowed: false, reason: "INSUFFICIENT_CREDITS", creditBalance };
 }
 
 async function trimTransparentPixels(imageBuffer) {
@@ -157,12 +166,15 @@ router.post("/generate", async (req, res) => {
       return res.status(400).json({ success: false, error: "imageUrl is required" });
     }
 
-    const isPro = await ensureProUser(userId);
-    if (!isPro) {
+    const access = await ensureProOrHasCredits(userId);
+    if (!access.allowed) {
       return res.status(403).json({
         success: false,
-        error: "PRO_REQUIRED",
-        message: "Background removal is available for Pro users only.",
+        error: access.reason === "ANONYMOUS" ? "AUTH_REQUIRED" : "PAYWALL_REQUIRED",
+        message:
+          access.reason === "ANONYMOUS"
+            ? "Please sign in to use background removal."
+            : "Background removal requires Pro or available credits.",
       });
     }
 
@@ -192,12 +204,15 @@ router.post("/generate-bulk", async (req, res) => {
       });
     }
 
-    const isPro = await ensureProUser(userId);
-    if (!isPro) {
+    const access = await ensureProOrHasCredits(userId);
+    if (!access.allowed) {
       return res.status(403).json({
         success: false,
-        error: "PRO_REQUIRED",
-        message: "Background removal is available for Pro users only.",
+        error: access.reason === "ANONYMOUS" ? "AUTH_REQUIRED" : "PAYWALL_REQUIRED",
+        message:
+          access.reason === "ANONYMOUS"
+            ? "Please sign in to use background removal."
+            : "Background removal requires Pro or available credits.",
       });
     }
 
@@ -254,12 +269,15 @@ router.post("/generate-bulk-async", async (req, res) => {
       });
     }
 
-    const isPro = await ensureProUser(userId);
-    if (!isPro) {
+    const access = await ensureProOrHasCredits(userId);
+    if (!access.allowed) {
       return res.status(403).json({
         success: false,
-        error: "PRO_REQUIRED",
-        message: "Background removal is available for Pro users only.",
+        error: access.reason === "ANONYMOUS" ? "AUTH_REQUIRED" : "PAYWALL_REQUIRED",
+        message:
+          access.reason === "ANONYMOUS"
+            ? "Please sign in to use background removal."
+            : "Background removal requires Pro or available credits.",
       });
     }
 
