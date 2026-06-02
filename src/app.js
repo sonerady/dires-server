@@ -150,6 +150,7 @@ const hairStylesRoutesWeb = require("./routes/hairStylesRoutesWeb");
 // Admin Dashboard routes import
 const adminDashboardRoutes = require("./routes/adminDashboardRoutes");
 const adminAuthRoutes = require("./routes/adminAuthRoutes");
+const adminBulkEmailRoutes = require("./routes/adminBulkEmailRoutes");
 const { requireAdmin } = require("./middleware/requireAdmin");
 // User Visibility routes import
 const userVisibilityRoutes = require("./routes/userVisibilityRoutes");
@@ -166,7 +167,8 @@ const {
 } = require("./services/oneSignalTagSyncCron");
 
 // Start the daily notification scheduler (Expo push, low-credit reminders)
-startScheduler();
+// DISABLED: günlük Expo push bildirimleri kullanıcı isteğiyle kapatıldı.
+// startScheduler();
 
 // Start the OneSignal weekly marketing scheduler (non-Pro retention)
 // Her gün 08:00 UTC → o günün kampanyası → Non-Pro Users segmenti
@@ -336,6 +338,7 @@ app.use("/api/feature-history", featureHistoryRoutes);
 app.use("/api/feature-historyWeb", requireBrowser, requireAuth, featureHistoryRoutesWeb);
 app.use("/api/admin-dashboard", adminAuthRoutes);
 app.use("/api/admin-dashboard", requireAdmin, adminDashboardRoutes);
+app.use("/api/admin-dashboard", requireAdmin, adminBulkEmailRoutes);
 app.use("/api/onesignal", require("./routes/oneSignalTestRoutes"));
 
 const downloadRoutes = require("./routes/downloadRoutes");

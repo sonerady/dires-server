@@ -659,6 +659,57 @@ function getSupportEmailTemplate(userEmail, subject, message, userId = '') {
   `;
 }
 
+/**
+ * Bulk marketing email wrapper — Diress-branded responsive shell around an
+ * admin-supplied HTML body. Used by /api/admin-dashboard/bulk-email/send.
+ *
+ * @param {object} args
+ * @param {string} args.subject - Subject line (also used inside the preheader)
+ * @param {string} args.bodyHtml - Inner HTML content authored in admin panel
+ * @param {string} [args.previewText] - Inbox preview snippet (max ~90 chars)
+ * @returns {string} Full HTML document
+ */
+function getBulkMarketingEmailTemplate({ subject, bodyHtml, previewText = '' }) {
+  const preheader = (previewText || subject || '').slice(0, 140);
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background-color: #f5f5f5;">
+  <div style="display: none; max-height: 0; overflow: hidden; opacity: 0; mso-hide: all;">
+    ${preheader}
+  </div>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; padding: 48px 40px;">
+          <tr>
+            <td align="left" style="padding-bottom: 32px;">
+              <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 22px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.5px;">Diress</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 1.6; color: #333; padding-bottom: 24px;">
+              ${bodyHtml}
+            </td>
+          </tr>
+          <tr>
+            <td style="border-top: 1px solid #eee; padding-top: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 12px; font-weight: 400; color: #888; line-height: 1.5;">
+              Diress · AI Fashion Photoshoot Studio
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
 module.exports = {
   getVerificationEmailTemplate,
   getVerificationEmailText,
@@ -668,4 +719,5 @@ module.exports = {
   getPasswordResetTemplate,
   getTeamInvitationTemplate,
   getSupportEmailTemplate,
+  getBulkMarketingEmailTemplate,
 };
