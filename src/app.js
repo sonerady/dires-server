@@ -173,21 +173,13 @@ const {
 // Start the OneSignal weekly marketing scheduler (non-Pro retention)
 // Her gün 08:00 UTC → o günün kampanyası → Non-Pro Users segmenti
 // → user'ın kendi dilinde, kendi yerel 20:00'ında teslim
-startOneSignalMarketingScheduler();
+// DISABLED: pazarlama bildirimleri kullanıcı isteğiyle kapatıldı.
+// startOneSignalMarketingScheduler();
 
 // Daily safety-net: rewrites is_pro / is_in_trial OneSignal tags for ALL
 // users from the canonical `users` table (which RC webhooks keep updated).
 // Real-time path is via webhook res.on('finish') in revenuecatWebhookv2/v3.js.
 startOneSignalTagSyncCron();
-
-// === GEÇİCİ: OneSignal one-shot test scheduler ===
-// Türkiye saati 01:17'de SADECE tek bir subscription ID'ye anında push atar.
-// Test sonrası bu blok'u (require + start çağrısı) sil/yorum yap.
-const {
-  startOneSignalOneShotTestScheduler,
-} = require("./services/oneSignalTestScheduler");
-startOneSignalOneShotTestScheduler();
-// === /GEÇİCİ ===
 
 // Auth routes import
 const authRoutes = require("./routes/authRoutes");
