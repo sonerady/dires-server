@@ -104,6 +104,7 @@ router.get("/app-config/version", async (req, res) => {
         trialEnabled: false,
         trialCredits: 5000,
         trialDurationDays: 3,
+        paywallPricingVersion: "v1",
         lang,
         fetchedAt: new Date().toISOString(),
       };
@@ -126,6 +127,7 @@ router.get("/app-config/version", async (req, res) => {
       trialEnabled: data.trial_enabled === true,
       trialCredits: Number.isFinite(data.trial_credits) ? data.trial_credits : 5000,
       trialDurationDays: Number.isFinite(data.trial_duration_days) ? data.trial_duration_days : 3,
+      paywallPricingVersion: data.paywall_pricing_version === "v2" ? "v2" : "v1",
       lang,
       fetchedAt: new Date().toISOString(),
     };
