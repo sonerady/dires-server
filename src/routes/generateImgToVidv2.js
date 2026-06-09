@@ -825,16 +825,16 @@ function getCreditCost(duration, resolution = "720p") {
 
   switch (Number(duration)) {
     case 5:
-      baseCost = 150;
+      baseCost = 200;
       break;
     case 8:
-      baseCost = 175;
+      baseCost = 225;
       break;
     case 10:
-      baseCost = 200;
+      baseCost = 250;
       break;
     default:
-      baseCost = 200;
+      baseCost = 250;
       break;
   }
 

@@ -69,6 +69,14 @@ const KNOWN_PACKAGE_CREDITS = {
   "com.diress.pro.weekly.regular.600": 600,
   "com.diress.pro.monthly.regular.2400": 2400,
 
+  // v2 paketler (yeni coğrafi fiyatlama, iOS + Android) — krediler v1 ile aynı
+  "com.diress.standard.weekly.v2.600": 600,
+  "com.diress.standard.monthly.v2.2400": 2400,
+  "com.diress.plus.weekly.v2.1200": 1200,
+  "com.diress.plus.monthly.v2.4800": 4800,
+  "com.diress.premium.weekly.v2.2400": 2400,
+  "com.diress.premium.monthly.v2.9600": 9600,
+
   // Legacy subscription paketleri
   "com.monailisa.pro_weekly600": 600,
   "com.monailisa.pro_monthly2400": 2400,
