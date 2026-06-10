@@ -151,6 +151,8 @@ const hairStylesRoutesWeb = require("./routes/hairStylesRoutesWeb");
 const adminDashboardRoutes = require("./routes/adminDashboardRoutes");
 const adminAuthRoutes = require("./routes/adminAuthRoutes");
 const adminBulkEmailRoutes = require("./routes/adminBulkEmailRoutes");
+const adminAsoRoutes = require("./routes/adminAsoRoutes");
+const { startAsoCron } = require("./services/asoTracker");
 const { requireAdmin } = require("./middleware/requireAdmin");
 // User Visibility routes import
 const userVisibilityRoutes = require("./routes/userVisibilityRoutes");
@@ -331,6 +333,8 @@ app.use("/api/feature-historyWeb", requireBrowser, requireAuth, featureHistoryRo
 app.use("/api/admin-dashboard", adminAuthRoutes);
 app.use("/api/admin-dashboard", requireAdmin, adminDashboardRoutes);
 app.use("/api/admin-dashboard", requireAdmin, adminBulkEmailRoutes);
+app.use("/api/admin-dashboard", requireAdmin, adminAsoRoutes);
+startAsoCron();
 app.use("/api/onesignal", require("./routes/oneSignalTestRoutes"));
 
 const downloadRoutes = require("./routes/downloadRoutes");
