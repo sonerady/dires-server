@@ -213,7 +213,7 @@ app.set('trust proxy', 1); // Trust first proxy (Railway)
 app.use(
   cors({
     origin: "*", // Tüm originlere izin ver
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-User-ID"],
   }),
 );
@@ -335,7 +335,14 @@ app.use("/api/admin-dashboard", requireAdmin, adminDashboardRoutes);
 app.use("/api/admin-dashboard", requireAdmin, adminBulkEmailRoutes);
 app.use("/api/admin-dashboard", requireAdmin, adminAsoRoutes);
 startAsoCron();
+
+// Social Studio — Instagram içerik otomasyonu (admin token ile korunur)
+const socialStudioRoutes = require("./routes/socialStudioRoutes");
+const { startSocialStudioScheduler } = require("./jobs/socialStudioScheduler");
+app.use("/api/social-studio", requireAdmin, socialStudioRoutes);
+startSocialStudioScheduler();
 app.use("/api/onesignal", require("./routes/oneSignalTestRoutes"));
+app.use("/api", require("./routes/contentReportRoutes"));
 
 const downloadRoutes = require("./routes/downloadRoutes");
 app.use("/api/download", downloadRoutes);
