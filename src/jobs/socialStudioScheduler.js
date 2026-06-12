@@ -134,6 +134,20 @@ async function publishDue() {
   if (error || !due?.length) return;
 
   for (const post of due) {
+    // ATOMİK KİLİT: status hâlâ 'scheduled' ise 'publishing'e çevir.
+    // Başka bir process (veya yarışan tick) önce davrandıysa satır dönmez
+    // ve bu post atlanır — çift yayın imkânsız hale gelir.
+    const { data: claimed } = await supabaseAdmin
+      .from("social_posts")
+      .update({ status: "publishing" })
+      .eq("id", post.id)
+      .eq("status", "scheduled")
+      .select("id");
+    if (!claimed || claimed.length === 0) {
+      console.log(`⏭️ [SOCIAL_CRON] Post ${post.id} başka süreç tarafından alınmış, atlanıyor`);
+      continue;
+    }
+
     const { data: account } = await supabaseAdmin
       .from("social_accounts")
       .select("*")
@@ -148,8 +162,6 @@ async function publishDue() {
     }
 
     try {
-      await supabaseAdmin
-        .from("social_posts").update({ status: "publishing" }).eq("id", post.id);
       const mediaId = await publishImagePost({
         igUserId: account.ig_user_id,
         accessToken: account.access_token,

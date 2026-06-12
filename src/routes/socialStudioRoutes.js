@@ -348,7 +348,11 @@ router.post("/posts/:id/publish", async (req, res) => {
     const { data: post } = await supabaseAdmin
       .from("social_posts").select("*").eq("id", req.params.id).single();
     if (!post) throw new Error("Post not found");
-    if (post.status === "published") throw new Error("Already published");
+    // Tekrar yayınlama: kullanıcı IG'den elle sildikten sonra force ile
+    // yeni bir IG postu olarak basılabilir; eski media id meta'da saklanır.
+    const isRepublish = post.status === "published";
+    if (isRepublish && req.body?.force !== true)
+      throw new Error("Already published (tekrar yayınlamak için force gerekli)");
     const { data: account } = await supabaseAdmin
       .from("social_accounts").select("*").eq("id", post.account_id).single();
     if (!account) throw new Error("Account not found");
@@ -358,6 +362,12 @@ router.post("/posts/:id/publish", async (req, res) => {
 
     const { mediaId, storyId, storyError } = await publishPostToInstagram(account, post);
 
+    // Tekrar yayınlamada eski media id'leri kaybolmasın
+    const previousIds = Array.isArray(post.meta?.previous_media_ids)
+      ? post.meta.previous_media_ids
+      : [];
+    if (isRepublish && post.ig_media_id) previousIds.push(post.ig_media_id);
+
     const { data: updated } = await supabaseAdmin
       .from("social_posts")
       .update({
@@ -365,7 +375,12 @@ router.post("/posts/:id/publish", async (req, res) => {
         published_at: new Date().toISOString(),
         ig_media_id: mediaId,
         error: null,
-        meta: { ...post.meta, ig_story_id: storyId, story_error: storyError },
+        meta: {
+          ...post.meta,
+          ig_story_id: storyId,
+          story_error: storyError,
+          previous_media_ids: previousIds,
+        },
       })
       .eq("id", post.id)
       .select("*")

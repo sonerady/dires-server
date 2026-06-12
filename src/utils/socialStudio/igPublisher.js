@@ -39,16 +39,42 @@ async function waitForContainer({ containerId, accessToken, maxWaitMs = 90000 })
 }
 
 async function publishContainer({ igUserId, accessToken, containerId }) {
-  const { data } = await axios.post(
-    `${GRAPH}/${igUserId}/media_publish`,
-    null,
-    {
-      params: { creation_id: containerId, access_token: accessToken },
-      timeout: 60000,
-    },
-  );
-  if (!data.id) throw new Error("No media id returned from media_publish");
-  return data.id;
+  try {
+    const { data } = await axios.post(
+      `${GRAPH}/${igUserId}/media_publish`,
+      null,
+      {
+        params: { creation_id: containerId, access_token: accessToken },
+        timeout: 120000,
+      },
+    );
+    if (!data.id) throw new Error("No media id returned from media_publish");
+    return data.id;
+  } catch (error) {
+    // KRİTİK çift-yayın koruması: media_publish isteği hata/timeout dönse bile
+    // IG yayını gerçekleştirmiş olabilir. Container durumunu kontrol et —
+    // PUBLISHED ise bunu başarı say, asla ikinci kez basma.
+    try {
+      const { data: status } = await axios.get(`${GRAPH}/${containerId}`, {
+        params: { fields: "status_code", access_token: accessToken },
+        timeout: 30000,
+      });
+      if (status.status_code === "PUBLISHED") {
+        console.warn(
+          "⚠️ [SOCIAL_IG] media_publish hata döndü ama container PUBLISHED — başarı sayılıyor, tekrar basılmayacak",
+        );
+        // Yayınlanan medyanın id'sini hesabın son medyasından al
+        const { data: media } = await axios.get(`${GRAPH}/${igUserId}/media`, {
+          params: { fields: "id", limit: 1, access_token: accessToken },
+          timeout: 30000,
+        });
+        return media?.data?.[0]?.id || `published-${containerId}`;
+      }
+    } catch (_) {
+      // durum kontrolü de başarısızsa orijinal hatayı fırlat
+    }
+    throw error;
+  }
 }
 
 function normalizeIgError(error) {
@@ -91,7 +117,7 @@ async function publishImagePost({ igUserId, accessToken, imageUrl, caption }) {
     } catch (error) {
       lastError = normalizeIgError(error);
       console.error(`❌ [SOCIAL_IG] Feed attempt ${attempt}:`, lastError.message);
-      if (!lastError.isTransient && attempt > 1) break;
+      if (!lastError.isTransient) break; // sadece transient hatalar yeniden denenir
       await new Promise((r) => setTimeout(r, 8000));
     }
   }
@@ -119,7 +145,7 @@ async function publishStoryImage({ igUserId, accessToken, imageUrl }) {
     } catch (error) {
       lastError = normalizeIgError(error);
       console.error(`❌ [SOCIAL_IG] Story attempt ${attempt}:`, lastError.message);
-      if (!lastError.isTransient && attempt > 1) break;
+      if (!lastError.isTransient) break; // sadece transient hatalar yeniden denenir
       await new Promise((r) => setTimeout(r, 8000));
     }
   }

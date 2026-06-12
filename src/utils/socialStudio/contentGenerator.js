@@ -163,6 +163,11 @@ ANTI-REPETITION RULES (mandatory):
 - If this feature appeared in the history before, this new post must feel like a completely different campaign for the same feature.`;
 }
 
+// Palet çeşitliliği zorunluluğu — kullanıcı geri bildirimi: AI sürekli
+// "golden hour / warm gold / champagne" tonuna kayıyor. Bunu yasakla, her
+// posta belirgin farklı bir ışık & renk dünyası kurdur.
+const PALETTE_DIVERSITY = `LIGHTING & PALETTE DIVERSITY (mandatory): Do NOT default to golden hour, warm gold tones, champagne or amber palettes — these are overused. Deliberately pick a DISTINCT lighting+color world for this post, varying widely across posts: e.g. crisp cool daylight, bright high-key white studio, moody low-key dramatic shadow, fresh pastel, bold high-contrast color-pop, clean blue-hour twilight, overcast soft grey, vivid editorial saturation. Choose whatever best fits this specific garment and scene — but it must clearly differ from a warm/golden look.`;
+
 // ---------------------------------------------------------------
 // Şablon 1: feature_spotlight (tek atış, 4K) + 9:16 story varyantı
 // ---------------------------------------------------------------
@@ -180,15 +185,16 @@ BRAND: ${account.brand_persona || "Premium AI fashion photoshoot app for e-comme
 ${buildHistoryBlock(history)}
 
 Vary the product, model and scene — be inventive with garments (chic designer pieces only: tailored suits, satin dresses, linen sets, cashmere coats...), locations and palettes.
+${PALETTE_DIVERSITY}
 
 Reply with ONLY a JSON object, no markdown fences, exactly these keys:
 {
-  "HERO_SCENE": "one rich sentence: an elegant female model wearing [specific chic garment] in [specific striking location/setting] with [specific dramatic light], describing fabric behaviour and mood",
+  "HERO_SCENE": "one rich sentence: an elegant female model wearing [specific chic garment] in [specific striking location/setting] with [specific lighting that is NOT golden hour], describing fabric behaviour and mood",
   "MASTHEAD": "the chosen 2-3 word headline in CAPS, e.g. ANY LOCATION",
-  "MASTHEAD_COLOR": "e.g. warm cream / soft ivory — must contrast the scene",
+  "MASTHEAD_COLOR": "a cream/ivory/white/charcoal tone that contrasts the scene",
   "SIDE_CARDS_BLOCK": "ONE complete sentence starting with 'LEFT SIDE:' or 'RIGHT SIDE:' describing the small rounded cards with thin white borders and soft shadows that visualize the feature variants (same model/garment, different [feature variable]), each with tiny clean caps labels — follow the side cards concept above",
   "FOOTER_LINE": "a punchy 4-7 word feature benefit line ending with a period",
-  "PALETTE": "e.g. cohesive warm Mediterranean palette",
+  "PALETTE": "a DISTINCT cohesive palette for THIS post — NOT warm/golden by default (e.g. cool daylight neutrals, high-key white, bold color-pop, moody charcoal, fresh pastel)",
   "caption": "Instagram caption in ${account.language || "en"}: hook first line about this feature, 2-4 short lines, subtle CTA to try the app, then blank line and 8-12 relevant hashtags"
 }`;
 
@@ -239,19 +245,20 @@ ANGLE: ${feature.angle}
 BRAND: ${account.brand_persona || "Premium AI fashion photoshoot app for e-commerce sellers."}
 ${buildHistoryBlock(history)}
 
-Pick a CHIC designer-quality garment (vary it: champagne satin slip dress, emerald tailored suit, camel cashmere coat, ivory linen set, black silk evening dress...) and a fitting editorial scene.
+Pick a CHIC designer-quality garment (vary it widely: emerald tailored suit, scarlet silk dress, ivory linen set, black evening dress, cobalt knit, blush trench...) and a fitting editorial scene.
+${PALETTE_DIVERSITY}
 
 Reply with ONLY a JSON object, no markdown fences, exactly these keys:
 {
-  "CHIC_PRODUCT": "the garment with rich fabric/color/cut detail, e.g. an ELEGANT champagne-gold silk satin slip midi dress with delicate thin straps and a subtle cowl neckline",
+  "CHIC_PRODUCT": "the garment with rich fabric/color/cut detail, e.g. an ELEGANT scarlet red silk-chiffon midi dress with a soft v-neckline and gathered waist",
   "AMATEUR_SCENE": "where the bad photo is taken, e.g. on a wooden hanger hooked over a plain white wardrobe door in an ordinary apartment",
-  "PRODUCT_SHORT": "short product name, e.g. champagne-gold silk satin slip midi dress",
-  "POSE_DIRECTIVE": "a specific dynamic editorial pose tailored to THIS garment showing fabric behaviour, e.g. relaxed contrapposto with a gentle shoulder turn and one arm softly raised, satin fluidly draping along the hip line",
-  "EDITORIAL_SETTING": "studio/location + light scenario, e.g. warm minimalist studio with a sand-toned seamless backdrop, sculptural late-afternoon window light casting one long soft diagonal shadow, golden film-grade color grading",
+  "PRODUCT_SHORT": "short product name, e.g. scarlet red silk-chiffon midi dress",
+  "POSE_DIRECTIVE": "a specific dynamic editorial pose tailored to THIS garment showing fabric behaviour, e.g. relaxed contrapposto with a gentle shoulder turn and one arm softly raised, fabric fluidly draping along the hip line",
+  "EDITORIAL_SETTING": "studio/location + a DISTINCT lighting scenario that is NOT golden hour (vary it: crisp cool daylight, high-key white studio, moody low-key shadow, bright color-pop backdrop...), e.g. a minimalist white seamless studio with clean bright daylight and soft even shadows",
   "MASTHEAD": "2-3 word CAPS headline about the transformation, e.g. AI PHOTOSHOOT",
-  "MASTHEAD_COLOR": "e.g. warm cream",
+  "MASTHEAD_COLOR": "a cream/ivory/white/charcoal tone that contrasts the scene",
   "FOOTER_LINE": "short punchy line, e.g. Your product. Studio quality. 30 seconds.",
-  "PALETTE": "e.g. warm champagne palette",
+  "PALETTE": "a DISTINCT cohesive palette for THIS post — NOT warm/golden by default",
   "caption": "Instagram caption in ${account.language || "en"}: hook about the transformation, 2-4 short lines, subtle CTA, blank line, 8-12 hashtags"
 }`;
 
