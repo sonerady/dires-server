@@ -40,6 +40,12 @@ const genAI = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
+// Prompt enhance için Google AI Studio key'i (ayrı, kısıtsız key).
+// GOOGLE_AISTUDIO_KEY yoksa eski GEMINI_API_KEY'e düşer.
+const googleAiStudio = new GoogleGenAI({
+  apiKey: process.env.GOOGLE_AISTUDIO_KEY || process.env.GEMINI_API_KEY,
+});
+
 // Replicate API üzerinden Gemini 3 Flash çağrısı yapan helper fonksiyon
 // Hata durumunda 3 kez tekrar dener
 async function callReplicateGeminiFlash(
@@ -142,6 +148,145 @@ async function callReplicateGeminiFlash(
       logger.log(`⏳ [REPLICATE-GEMINI] ${waitTime}ms bekleniyor...`);
       await new Promise((resolve) => setTimeout(resolve, waitTime));
     }
+  }
+}
+
+// Google'ın kendi Gemini API'si (yeni @google/genai SDK) üzerinden prompt enhance.
+// Replicate'teki google/gemini-3-flash yerine stabil Gemini 3.5 Flash kullanılıyor.
+const GEMINI_DIRECT_MODEL = "gemini-3.5-flash";
+
+async function callGoogleGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
+  if (!process.env.GOOGLE_AISTUDIO_KEY && !process.env.GEMINI_API_KEY) {
+    throw new Error(
+      "GOOGLE_AISTUDIO_KEY (veya GEMINI_API_KEY) environment variable is not set",
+    );
+  }
+
+  // Görsel URL'lerini indirip base64 inlineData part'larına çevir.
+  // (Google direkt API URL kabul etmez; inline base64 ister.)
+  const imageParts = [];
+  for (const url of imageUrls) {
+    try {
+      const imgResp = await axios.get(url, {
+        responseType: "arraybuffer",
+        timeout: 30000,
+      });
+      const mimeType =
+        imgResp.headers["content-type"]?.split(";")[0]?.trim() || "image/jpeg";
+      imageParts.push({
+        inlineData: {
+          mimeType,
+          data: Buffer.from(imgResp.data).toString("base64"),
+        },
+      });
+    } catch (imgErr) {
+      console.error(
+        `❌ [GOOGLE-GEMINI] Görsel indirilemedi (${url?.substring(0, 80)}):`,
+        imgErr.message,
+      );
+    }
+  }
+
+  const parts = [{ text: prompt }, ...imageParts];
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      logger.log(
+        `🤖 [GOOGLE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries} (model: ${GEMINI_DIRECT_MODEL})`,
+      );
+      logger.log(
+        `🔍 [GOOGLE-GEMINI] Images: ${imageParts.length}, Prompt length: ${prompt.length} chars`,
+      );
+
+      const response = await googleAiStudio.models.generateContent({
+        model: GEMINI_DIRECT_MODEL,
+        contents: [{ role: "user", parts }],
+        config: {
+          temperature: 1,
+          topP: 0.95,
+          maxOutputTokens: 65535,
+        },
+      });
+
+      const outputText = (response.text || "").trim();
+      if (!outputText) {
+        console.error(`❌ [GOOGLE-GEMINI] Empty response`);
+        throw new Error("Google Gemini response is empty");
+      }
+
+      logger.log(
+        `✅ [GOOGLE-GEMINI] Başarılı response alındı (attempt ${attempt})`,
+      );
+      return outputText;
+    } catch (error) {
+      console.error(
+        `❌ [GOOGLE-GEMINI] Attempt ${attempt} failed:`,
+        error.message,
+      );
+
+      if (attempt === maxRetries) {
+        console.error(`❌ [GOOGLE-GEMINI] All ${maxRetries} attempts failed`);
+        throw error;
+      }
+
+      const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      logger.log(`⏳ [GOOGLE-GEMINI] ${waitTime}ms bekleniyor...`);
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+    }
+  }
+}
+
+// Prompt enhance sağlayıcısını app_config'ten oku: "gemini" (Google direkt) | "replicate".
+// Default: "gemini". is_gpt ile aynı esnek okuma: önce kolon, sonra key/value fallback.
+async function getPromptEnhanceProvider() {
+  try {
+    const { data } = await supabase
+      .from("app_config")
+      .select("prompt_enhance_provider")
+      .limit(1)
+      .maybeSingle();
+    if (
+      data &&
+      typeof data.prompt_enhance_provider === "string" &&
+      data.prompt_enhance_provider.trim()
+    ) {
+      return data.prompt_enhance_provider.trim().toLowerCase();
+    }
+  } catch (e) {
+    // kolon yoksa PostgREST hata fırlatır — sessizce geç
+  }
+  try {
+    const { data } = await supabase
+      .from("app_config")
+      .select("value")
+      .eq("key", "prompt_enhance_provider")
+      .maybeSingle();
+    if (data && typeof data.value === "string" && data.value.trim()) {
+      return data.value.trim().toLowerCase();
+    }
+  } catch (e) {}
+  return "gemini"; // default: Google direkt
+}
+
+// Prompt enhance dispatcher — app_config seçimine göre Google direkt veya Replicate.
+// Replicate'i koruyoruz (geri dönülebilir + Google başarısızsa güvenli fallback).
+async function callGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
+  const provider = await getPromptEnhanceProvider();
+
+  if (provider === "replicate") {
+    logger.log("🔀 [PROMPT_ENHANCE] Provider: replicate (Replicate Gemini 3 Flash)");
+    return callReplicateGeminiFlash(prompt, imageUrls, maxRetries);
+  }
+
+  logger.log("🔀 [PROMPT_ENHANCE] Provider: gemini (Google direkt Gemini API)");
+  try {
+    return await callGoogleGeminiFlash(prompt, imageUrls, maxRetries);
+  } catch (err) {
+    console.error(
+      "⚠️ [PROMPT_ENHANCE] Google Gemini başarısız, Replicate'e fallback yapılıyor:",
+      err.message,
+    );
+    return callReplicateGeminiFlash(prompt, imageUrls, maxRetries);
   }
 }
 
@@ -3263,7 +3408,7 @@ ${promptForGemini}`;
       // parts array'indeki text prompt'u al
       const textPrompt = parts.find((p) => p.text)?.text || promptForGemini;
 
-      const geminiGeneratedPrompt = await callReplicateGeminiFlash(
+      const geminiGeneratedPrompt = await callGeminiFlash(
         textPrompt,
         imageUrlsForReplicate,
         3,
@@ -6579,15 +6724,15 @@ async function generatePoseDescriptionWithGemini(
       }
     }
 
-    // Replicate Gemini Flash API çağrısı (3 retry ile)
-    const poseDescription = await callReplicateGeminiFlash(
+    // Prompt enhance (Google direkt veya Replicate — app_config seçimine göre)
+    const poseDescription = await callGeminiFlash(
       posePrompt,
       imageUrlsForPose,
       3,
     );
 
     if (!poseDescription) {
-      throw new Error("Replicate Gemini API response is empty");
+      throw new Error("Gemini API response is empty");
     }
 
     logger.log(
