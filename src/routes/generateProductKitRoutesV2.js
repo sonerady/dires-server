@@ -362,7 +362,7 @@ async function callReplicateGptImageEdit(prompt, resultImageUrl, referenceImageU
     }
 }
 
-// ─── Fal.ai Nano Banana Pro API call (eski nano-banana-2 yerine pro; kredi değişmez) ───
+// ─── Fal.ai Nano Banana 2 API call with fallback (nano-banana-2 → nano-banana-pro) ───
 async function callNanoBanana2(prompt, resultImageUrl, referenceImageUrl, maxRetries = 3, aspectRatio = "9:16") {
     const FAL_API_KEY = process.env.FAL_API_KEY;
     if (!FAL_API_KEY) throw new Error("FAL_API_KEY environment variable is not set");
@@ -371,6 +371,7 @@ async function callNanoBanana2(prompt, resultImageUrl, referenceImageUrl, maxRet
     const resolvedAspectRatio = legacyMap[aspectRatio] || aspectRatio || "2:3";
 
     const models = [
+        { name: "nano-banana-2", url: "https://fal.run/fal-ai/nano-banana-2/edit" },
         { name: "nano-banana-pro", url: "https://fal.run/fal-ai/nano-banana-pro/edit" },
     ];
 
@@ -422,7 +423,7 @@ async function callNanoBanana2(prompt, resultImageUrl, referenceImageUrl, maxRet
         console.log(`⚠️ [KIT_V2_FAL] ${model.name} failed, trying next model...`);
     }
 
-    throw new Error("Nano Banana Pro failed on Fal.ai (nano-banana-pro)");
+    throw new Error("All Nano Banana models failed on Fal.ai (nano-banana-2 and nano-banana-pro)");
 }
 
 // Scene dağılımı:
