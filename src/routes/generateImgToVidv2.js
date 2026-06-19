@@ -16,6 +16,7 @@ const {
   enforceTrialVideoLimit,
   incrementTrialVideoCount,
 } = require("../utils/trialVideoLimit");
+const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
 
 fal.config({
   credentials: process.env.FAL_API_KEY,
@@ -25,88 +26,8 @@ const SEEDANCE_MODEL_ID = "bytedance/seedance-2.0/enterprise/image-to-video";
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 
 async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 5) {
-  if (!REPLICATE_API_TOKEN) {
-    throw new Error("REPLICATE_API_TOKEN environment variable is not set");
-  }
-
-  // Bu pattern'leri gördüğümüzde daha uzun bekleyip tekrar dene
-  const TRANSIENT_PATTERNS = [
-    /E004/i,
-    /temporarily unavailable/i,
-    /rate limit/i,
-    /timeout/i,
-    /502/,
-    /503/,
-    /504/,
-    /ECONNRESET/i,
-    /ETIMEDOUT/i,
-  ];
-
-  for (let attempt = 1; attempt <= maxRetries; attempt += 1) {
-    try {
-      console.log(`🤖 [VIDEO-V2] Gemini Flash attempt ${attempt}/${maxRetries}`);
-
-      const response = await axios.post(
-        "https://api.replicate.com/v1/models/google/gemini-3-flash/predictions",
-        {
-          input: {
-            top_p: 0.95,
-            images: imageUrls,
-            prompt,
-            videos: [],
-            temperature: 1,
-            thinking_level: "low",
-            max_output_tokens: 65535,
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
-            "Content-Type": "application/json",
-            Prefer: "wait",
-          },
-          timeout: 120000,
-        }
-      );
-
-      const data = response.data;
-      if (data.error) throw new Error(data.error);
-      if (data.status !== "succeeded") {
-        throw new Error(`Prediction failed: ${data.status}`);
-      }
-
-      const outputText = Array.isArray(data.output)
-        ? data.output.join("")
-        : data.output || "";
-
-      if (!outputText.trim()) {
-        throw new Error("Empty response");
-      }
-
-      return outputText.trim();
-    } catch (error) {
-      const msg = error?.message || String(error);
-      console.error(`❌ [VIDEO-V2] Gemini attempt ${attempt} failed:`, msg);
-      if (attempt === maxRetries) {
-        throw error;
-      }
-
-      const isTransient = TRANSIENT_PATTERNS.some((p) => p.test(msg));
-      // Transient hatalarda daha uzun bekle: 3s → 6s → 10s → 15s cap
-      // Normal hatalarda klasik: 1s → 2s → 4s → 8s cap
-      const base = isTransient ? 3000 : 1000;
-      const cap = isTransient ? 15000 : 8000;
-      const waitTime = Math.min(base * Math.pow(2, attempt - 1), cap);
-      if (isTransient) {
-        console.log(
-          `⏳ [VIDEO-V2] Transient error, waiting ${waitTime}ms before retry…`
-        );
-      }
-      await new Promise((resolve) => setTimeout(resolve, waitTime));
-    }
-  }
-
-  throw new Error("Gemini prompt generation failed");
+  // Prompt enhance artık merkezi dispatcher'a yönleniyor (app_config: gemini/replicate)
+  return callGeminiFlash(prompt, imageUrls, maxRetries);
 }
 
 /**

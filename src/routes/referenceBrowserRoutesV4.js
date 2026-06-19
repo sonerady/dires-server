@@ -15,6 +15,7 @@ const {
 } = require("../services/pushNotificationService");
 const teamService = require("../services/teamService");
 const logger = require("../utils/logger");
+const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -42,91 +43,8 @@ const genAI = new GoogleGenAI({
 // Replicate API üzerinden Gemini 2.5 Flash çağrısı yapan helper fonksiyon
 // Hata durumunda 3 kez tekrar dener
 async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
-  const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
-
-  if (!REPLICATE_API_TOKEN) {
-    throw new Error("REPLICATE_API_TOKEN environment variable is not set");
-  }
-
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      logger.log(`🤖 [REPLICATE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`);
-
-      // Debug: Request bilgilerini logla
-      logger.log(`🔍 [REPLICATE-GEMINI] Images count: ${imageUrls.length}`);
-      logger.log(`🔍 [REPLICATE-GEMINI] Prompt length: ${prompt.length} chars`);
-
-      const requestBody = {
-        input: {
-          top_p: 0.95,
-          images: imageUrls, // Direkt URL string array olarak gönder
-          prompt: prompt,
-          videos: [],
-          temperature: 1,
-          thinking_level: "low",
-          max_output_tokens: 65535
-        }
-      };
-
-      const response = await axios.post(
-        "https://api.replicate.com/v1/models/google/gemini-3-flash/predictions",
-        requestBody,
-        {
-          headers: {
-            "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
-            "Content-Type": "application/json",
-            "Prefer": "wait"
-          },
-          timeout: 120000 // 2 dakika timeout
-        }
-      );
-
-      const data = response.data;
-
-      // Hata kontrolü
-      if (data.error) {
-        console.error(`❌ [REPLICATE-GEMINI] API error:`, data.error);
-        throw new Error(data.error);
-      }
-
-      // Status kontrolü
-      if (data.status !== "succeeded") {
-        console.error(`❌ [REPLICATE-GEMINI] Prediction failed with status:`, data.status);
-        throw new Error(`Prediction failed with status: ${data.status}`);
-      }
-
-      // Output'u birleştir (array olarak geliyor)
-      let outputText = "";
-      if (Array.isArray(data.output)) {
-        outputText = data.output.join("");
-      } else if (typeof data.output === "string") {
-        outputText = data.output;
-      }
-
-      if (!outputText || outputText.trim() === "") {
-        console.error(`❌ [REPLICATE-GEMINI] Empty response`);
-        throw new Error("Replicate Gemini response is empty");
-      }
-
-      logger.log(`✅ [REPLICATE-GEMINI] Başarılı response alındı (attempt ${attempt})`);
-      logger.log(`📊 [REPLICATE-GEMINI] Metrics:`, data.metrics);
-
-      return outputText.trim();
-
-    } catch (error) {
-      console.error(`❌ [REPLICATE-GEMINI] Attempt ${attempt} failed:`, error.message);
-
-      if (attempt === maxRetries) {
-        console.error(`❌ [REPLICATE-GEMINI] All ${maxRetries} attempts failed`);
-        throw error;
-      }
-
-      // Retry öncesi kısa bekleme (exponential backoff)
-      const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-      logger.log(`⏳ [REPLICATE-GEMINI] ${waitTime}ms bekleniyor...`);
-      await new Promise(resolve => setTimeout(resolve, waitTime));
-    }
-  }
+  // Prompt enhance artık merkezi dispatcher'a yönleniyor (app_config: gemini/replicate)
+  return callGeminiFlash(prompt, imageUrls, maxRetries);
 }
 
 // Görüntülerin geçici olarak saklanacağı klasörü oluştur
