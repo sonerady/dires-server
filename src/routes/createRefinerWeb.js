@@ -52,42 +52,92 @@ async function callReplicateGeminiFlash(
   return callGeminiFlash(prompt, imageUrls, maxRetries);
 }
 
-// @fal-ai/client import for GPT Image 1.5
+// @fal-ai/client import for GPT Image 2
 const { fal } = require("@fal-ai/client");
 fal.config({
   credentials: process.env.FAL_API_KEY,
 });
 
-// Fal.ai GPT Image 1.5 Edit API call using SDK (for Refiner mode - Ghost Mannequin style)
+// App-level config bayrağı: Supabase `app_config` tablosunda is_new = true ise
+// Refiner GPT Image 2 kullanır, false ise eski GPT Image 1.5'e düşer.
+// Hata/kolon yoksa default olarak `true` döner — güvenli fallback (yeni model).
+async function isNewRefinerEnabled() {
+  try {
+    const { data } = await supabase
+      .from("app_config")
+      .select("is_new")
+      .limit(1)
+      .maybeSingle();
+    if (data && typeof data.is_new === "boolean") return data.is_new;
+  } catch (e) {
+    // kolon yoksa PostgREST hata fırlatır — sessizce geç
+  }
+  try {
+    const { data } = await supabase
+      .from("app_config")
+      .select("value")
+      .eq("key", "is_new")
+      .maybeSingle();
+    if (data && data.value !== undefined && data.value !== null) {
+      const v = data.value;
+      if (typeof v === "boolean") return v;
+      if (typeof v === "string") return v.toLowerCase() === "true";
+      if (typeof v === "object" && v !== null && "bool" in v) return Boolean(v.bool);
+    }
+  } catch (e) {}
+  return true; // default: yeni model (GPT Image 2)
+}
+
+// Fal.ai GPT Image Edit API call using SDK (for Refiner mode - Ghost Mannequin style).
+// app_config.is_new bayrağına göre model seçilir:
+//   true  → openai/gpt-image-2/edit  (yeni, image_size enum, input_fidelity yok)
+//   false → fal-ai/gpt-image-1.5/edit (eski, pixel size, input_fidelity var)
 async function callFalAiGptImageEditForRefiner(
   prompt,
   imageUrl,
   maxRetries = 3,
 ) {
+  const useGpt2 = await isNewRefinerEnabled();
+  const modelEndpoint = useGpt2
+    ? "openai/gpt-image-2/edit"
+    : "fal-ai/gpt-image-1.5/edit";
+  const modelLabel = useGpt2 ? "GPT Image 2" : "GPT Image 1.5";
+
+  // GPT 2: image_size enum, input_fidelity kaldırıldı.
+  // GPT 1.5: pixel size + input_fidelity: "high"
+  const input = useGpt2
+    ? {
+        prompt: prompt,
+        image_urls: [imageUrl],
+        image_size: "portrait_4_3",
+        quality: "medium",
+        num_images: 1,
+        output_format: "jpeg",
+      }
+    : {
+        prompt: prompt,
+        image_urls: [imageUrl],
+        image_size: "1024x1536",
+        quality: "medium",
+        input_fidelity: "high",
+        num_images: 1,
+        output_format: "jpeg",
+      };
+
+  logger.log(
+    `⚙️ [REFINER MODEL_SWITCH] app_config.is_new = ${useGpt2} → ${modelLabel} (${modelEndpoint})`,
+  );
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       logger.log(
-        `🎨 [FAL_AI_GPT_REFINER] Image generation attempt ${attempt}/${maxRetries}`,
+        `🎨 [FAL_AI_GPT_REFINER] ${modelLabel} attempt ${attempt}/${maxRetries}`,
       );
       logger.log(
         `🎨 [FAL_AI_GPT_REFINER] Prompt: ${prompt.substring(0, 100)}...`,
       );
 
-      // fal.queue.submit ile GPT Image 1.5'e istek gönder
-      const { request_id } = await fal.queue.submit(
-        "fal-ai/gpt-image-1.5/edit",
-        {
-          input: {
-            prompt: prompt,
-            image_urls: [imageUrl], // Single image for refiner
-            image_size: "1024x1536", // Portrait size for e-commerce - ALWAYS fixed regardless of user ratio
-            quality: "medium", // medium for balanced quality/speed
-            input_fidelity: "high", // preserve product details
-            num_images: 1,
-            output_format: "jpeg",
-          },
-        },
-      );
+      const { request_id } = await fal.queue.submit(modelEndpoint, { input });
 
       if (!request_id) {
         throw new Error("Fal.ai did not return a request_id");
@@ -100,13 +150,10 @@ async function callFalAiGptImageEditForRefiner(
       // Poll for completion
       let maxPolls = 60;
       for (let poll = 0; poll < maxPolls; poll++) {
-        const statusResult = await fal.queue.status(
-          "fal-ai/gpt-image-1.5/edit",
-          {
-            requestId: request_id,
-            logs: false,
-          },
-        );
+        const statusResult = await fal.queue.status(modelEndpoint, {
+          requestId: request_id,
+          logs: false,
+        });
 
         logger.log(
           `⏳ [FAL_AI_GPT_REFINER] Poll ${poll + 1}/${maxPolls}, status: ${
@@ -115,37 +162,34 @@ async function callFalAiGptImageEditForRefiner(
         );
 
         if (statusResult.status === "COMPLETED") {
-          // Get the final result
-          const finalResult = await fal.queue.result(
-            "fal-ai/gpt-image-1.5/edit",
-            {
-              requestId: request_id,
-            },
-          );
+          const finalResult = await fal.queue.result(modelEndpoint, {
+            requestId: request_id,
+          });
 
           if (
             finalResult.data &&
             finalResult.data.images &&
             finalResult.data.images.length > 0
           ) {
-            logger.log(`✅ [FAL_AI_GPT_REFINER] Image generated successfully`);
+            logger.log(
+              `✅ [FAL_AI_GPT_REFINER] ${modelLabel} image generated successfully`,
+            );
             return finalResult.data.images[0].url;
           }
           throw new Error("No images in completed result");
         }
 
         if (statusResult.status === "FAILED") {
-          throw new Error("Fal.ai GPT Image generation failed");
+          throw new Error(`Fal.ai ${modelLabel} generation failed`);
         }
 
-        // Wait before next poll
         await new Promise((resolve) => setTimeout(resolve, 2000));
       }
 
-      throw new Error("Fal.ai GPT Image polling timeout");
+      throw new Error(`Fal.ai ${modelLabel} polling timeout`);
     } catch (error) {
       console.error(
-        `❌ [FAL_AI_GPT_REFINER] Attempt ${attempt} failed:`,
+        `❌ [FAL_AI_GPT_REFINER] ${modelLabel} attempt ${attempt} failed:`,
         error.message,
       );
 
