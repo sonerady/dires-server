@@ -5513,12 +5513,14 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
 
         // 🎨 V1 MODE → app_config.is_gpt bayrağına göre model seç:
         //   true  → GPT Image 2 (openai/gpt-image-2/edit)
-        //   false → nano-banana-2 (fal-ai/nano-banana-2/edit)
+        //   false → nano-banana-pro (fal-ai/nano-banana-pro/edit)
+        // NOT: Eskiden false yolu nano-banana-2 kullanıyordu; artık kalite için
+        // nano-banana-pro'ya gidiyor. Kredi maliyeti yine v1 (qualityVersion="v1" → 10).
         // v2 veya backSide analysis için aşağıdaki nano-banana-pro akışı devam eder.
         if (!isV2 && !req.body.isBackSideAnalysis) {
           const useGpt = await isGptEnabledForV1();
           logger.log(
-            `⚙️ [V1 MODEL_SWITCH] app_config.is_gpt = ${useGpt} → ${useGpt ? "GPT Image 2" : "nano-banana-2"}`,
+            `⚙️ [V1 MODEL_SWITCH] app_config.is_gpt = ${useGpt} → ${useGpt ? "GPT Image 2" : "nano-banana-pro"}`,
           );
 
           if (useGpt) {
@@ -5557,19 +5559,35 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
             );
             break;
           } else {
-            // ── nano-banana-2 yolu ──
-            const nanoModel = "fal-ai/nano-banana-2/edit";
+            // ── nano-banana-pro yolu (eski nano-banana-2 yerine; kredi yine v1) ──
+            const nanoModel = "fal-ai/nano-banana-pro/edit";
+
+            // 📏 nano-banana-pro 50.000 karakter prompt sınırı — güvenli tampon
+            // (49.500) bırakıp SONDAN kırp.
+            const NB_PRO_MAX_PROMPT = 49500;
+            let promptForNbPro = enhancedPrompt;
+            if (
+              typeof enhancedPrompt === "string" &&
+              enhancedPrompt.length > NB_PRO_MAX_PROMPT
+            ) {
+              promptForNbPro = enhancedPrompt.substring(0, NB_PRO_MAX_PROMPT);
+              logger.log(
+                `✂️ [V1 NB-PRO] Prompt ${enhancedPrompt.length} → ${promptForNbPro.length} karakter kırpıldı (50k limit)`,
+              );
+            }
+
             const nanoRequestBody = {
-              prompt: enhancedPrompt,
+              prompt: promptForNbPro,
               image_urls: imageInputArray,
               output_format: "png",
               aspect_ratio: aspectRatioForRequest,
               num_images: 1,
               resolution: "2K",
+              quality: "2K", // nano-banana-pro quality parametresi
               safety_tolerance: "6",
             };
             logger.log(
-              `🍌 [V1 NB2] fal.run/${nanoModel} çağrılıyor — images: ${imageInputArray?.length || 0}, aspect: ${aspectRatioForRequest}`,
+              `🍌 [V1 NB-PRO] fal.run/${nanoModel} çağrılıyor — images: ${imageInputArray?.length || 0}, aspect: ${aspectRatioForRequest}`,
             );
 
             const nanoResponse = await axios.post(
@@ -5588,24 +5606,24 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
               const outputUrls = nanoResponse.data.images.map((img) => img.url);
               replicateResponse = {
                 data: {
-                  id: nanoResponse.data.request_id || `nb2-${uuidv4()}`,
+                  id: nanoResponse.data.request_id || `nbpro-${uuidv4()}`,
                   status: "succeeded",
                   output: outputUrls,
                   urls: { get: null },
                 },
               };
               logger.log(
-                `✅ [V1 NB2] Başarılı, retry loop'tan çıkılıyor (attempt ${attempt})`,
+                `✅ [V1 NB-PRO] Başarılı, retry loop'tan çıkılıyor (attempt ${attempt})`,
               );
               break;
             }
 
-            // Nano-banana-2 başarısız → throw et, retry loop kendi denesin
+            // Nano-banana-pro başarısız → throw et, retry loop kendi denesin
             const errMsg =
               nanoResponse.data?.detail ||
               nanoResponse.data?.error ||
-              "nano-banana-2 returned no images";
-            throw new Error(`nano-banana-2 failed: ${errMsg}`);
+              "nano-banana-pro returned no images";
+            throw new Error(`nano-banana-pro failed: ${errMsg}`);
           }
         }
 
