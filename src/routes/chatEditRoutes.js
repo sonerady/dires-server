@@ -5,6 +5,11 @@ const axios = require("axios");
 const { v4: uuidv4 } = require("uuid");
 const sharp = require("sharp");
 const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
+const {
+  evaluatePrompt: evaluateSafetyPrompt,
+  hardenPrompt: hardenSafetyPrompt,
+  SAFETY_SYSTEM_PROMPT,
+} = require("../utils/nudityGuard");
 
 // Supabase client
 const supabaseUrl =
@@ -120,10 +125,12 @@ router.post("/generate", async (req, res) => {
   let userId;
   let tempFilePaths = [];
   let editRecordId = null;
+  // fal güvenlik toleransı — test hesabında (nodselemen) "1"e çekilir; diğerlerinde "6" (mevcut davranış).
+  let safetyTolerance = "6";
   const timings = { start: Date.now(), geminiStart: 0, geminiEnd: 0, falStart: 0, falEnd: 0, falAttempts: 0 };
 
   try {
-    const {
+    let {
       userId: requestUserId,
       prompt,
       originalImageUrl,
@@ -142,6 +149,36 @@ router.post("/generate", async (req, res) => {
           message: "prompt, originalImageUrl and userId are required.",
         },
       });
+    }
+
+    // 🔒 İÇERİK GÜVENLİĞİ — SADECE test hesabı (nodselemen). Kredi düşmeden ÖNCE çalışır.
+    // Çıplaklık/manipülasyon → 400 (model çağrılmaz, kredi düşmez). Gerçek kullanıcılar ETKİLENMEZ.
+    try {
+      const safety = await evaluateSafetyPrompt(userId, prompt);
+      if (safety.blocked) {
+        console.log(
+          `🔒 [SAFETY][CHAT-EDIT] Engellendi (test hesabı ${userId}): ${safety.reason}`,
+        );
+        return res.status(400).json({
+          success: false,
+          result: {
+            message:
+              "Bu içerik güvenlik politikalarına aykırı olduğu için oluşturulamaz.",
+          },
+        });
+      }
+      if (safety.isTestUser) {
+        prompt = `${SAFETY_SYSTEM_PROMPT}\n\n---\n${hardenSafetyPrompt(prompt)}`;
+        safetyTolerance = "1";
+        console.log(
+          `🔒 [SAFETY][CHAT-EDIT] Test hesabı ${userId}: prompt sertleştirildi + system prompt + safety_tolerance="1".`,
+        );
+      }
+    } catch (safetyErr) {
+      console.log(
+        "⚠️ [SAFETY][CHAT-EDIT] Guard çalışmadı (devam ediliyor):",
+        safetyErr?.message || safetyErr,
+      );
     }
 
     const hasSelections = selections && selections.length > 0;
@@ -359,7 +396,7 @@ IMPORTANT: Output ONLY the enhanced prompt text, nothing else. No explanations, 
       aspect_ratio: aspectRatio || "9:16",
       num_images: 1,
       resolution: "2K",
-      safety_tolerance: "6",
+      safety_tolerance: safetyTolerance,
     };
 
     let resultImageUrl = null;

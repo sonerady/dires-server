@@ -16,6 +16,11 @@ const {
 const teamService = require("../services/teamService");
 const logger = require("../utils/logger");
 const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
+const {
+  evaluatePrompt: evaluateSafetyPrompt,
+  hardenPrompt: hardenSafetyPrompt,
+  SAFETY_SYSTEM_PROMPT,
+} = require("../utils/nudityGuard");
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -2867,6 +2872,8 @@ router.post("/generate", async (req, res) => {
   let userId; // Scope için önceden tanımla
   let finalGenerationId = null; // Scope için önceden tanımla
   let temporaryFiles = []; // Silinecek geçici dosyalar
+  // fal güvenlik toleransı — SADECE test hesabında (nodselemen) "1" gönderilir; gerçek kullanıcıda null.
+  let safetyToleranceOverride = null;
 
   try {
     let {
@@ -2962,6 +2969,45 @@ router.post("/generate", async (req, res) => {
 
     // userId'yi scope için ata
     userId = requestUserId;
+
+    // 🔒 İÇERİK GÜVENLİĞİ — SADECE güvenlik test hesapları için (ör. Google Play inceleme).
+    // Edit modunda kullanıcı girdisi editPrompt; promptText + editPrompt + customDetail denetlenir.
+    // Çıplaklık/manipülasyon → 400 (model çağrılmaz, kredi düşmez). Gerçek kullanıcılar ETKİLENMEZ.
+    try {
+      const safetyCheckText = [promptText, editPrompt, customDetail]
+        .filter(Boolean)
+        .join("\n");
+      const safety = await evaluateSafetyPrompt(userId, safetyCheckText);
+      if (safety.blocked) {
+        logger.log(
+          `🔒 [SAFETY][EDIT] Çıplaklık/manipülasyon promptu engellendi (test hesabı ${userId}): ${safety.reason}`,
+        );
+        return res.status(400).json({
+          success: false,
+          error: "content_policy_violation",
+          message:
+            "Bu içerik güvenlik politikalarına aykırı olduğu için oluşturulamaz.",
+        });
+      }
+      if (safety.isTestUser) {
+        const PRE = `${SAFETY_SYSTEM_PROMPT}\n\n---\n`;
+        if (promptText && promptText.trim()) {
+          promptText = PRE + hardenSafetyPrompt(promptText);
+        }
+        if (editPrompt && editPrompt.trim()) {
+          editPrompt = PRE + hardenSafetyPrompt(editPrompt);
+        }
+        safetyToleranceOverride = "1";
+        logger.log(
+          `🔒 [SAFETY][EDIT] Test hesabı ${userId}: prompt sertleştirildi + system prompt + safety_tolerance="1".`,
+        );
+      }
+    } catch (safetyErr) {
+      logger.log(
+        "⚠️ [SAFETY][EDIT] Guard çalışmadı (devam ediliyor):",
+        safetyErr?.message || safetyErr,
+      );
+    }
 
     if (modelReferenceImage) {
       logger.log(
@@ -3788,6 +3834,10 @@ router.post("/generate", async (req, res) => {
           num_images: 1,
           output_format: "png",
           aspect_ratio: aspectRatioForRequest,
+          // 🔒 Sadece test hesabında (nodselemen) en katı güvenlik toleransı eklenir.
+          ...(safetyToleranceOverride
+            ? { safety_tolerance: safetyToleranceOverride }
+            : {}),
           // İsteğe bağlı parametreler (hız için V5'tekine benzer yapılabilir)
           // guidance_scale, num_inference_steps vs. Fal.ai defaults usually work well
         };

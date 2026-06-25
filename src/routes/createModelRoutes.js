@@ -6,6 +6,11 @@ const axios = require("axios");
 const logger = require("../utils/logger");
 const { optimizeImageUrl } = require("../utils/imageOptimizer");
 const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
+const {
+  evaluatePrompt: evaluateSafetyPrompt,
+  hardenPrompt: hardenSafetyPrompt,
+  SAFETY_SYSTEM_PROMPT,
+} = require("../utils/nudityGuard");
 
 // Gemini API için istemci oluştur
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -906,7 +911,7 @@ async function uploadImageToSupabase(imageUri, userId) {
 // CREATE MODEL ROUTE
 router.post("/create-model", async (req, res) => {
   try {
-    const {
+    let {
       prompt = "",
       modelName = "",
       gender = "woman",
@@ -958,6 +963,36 @@ router.post("/create-model", async (req, res) => {
         error: "Invalid user ID format. UUID required.",
         details: `Received: ${actualUserId}`,
       });
+    }
+
+    // 🔒 İÇERİK GÜVENLİĞİ — SADECE güvenlik test hesapları için (ör. Google Play inceleme).
+    // Çıplaklık/manipülasyon promptu gelirse model oluşturma engellenir. Gerçek kullanıcılar ETKİLENMEZ.
+    try {
+      const safety = await evaluateSafetyPrompt(actualUserId, prompt);
+      if (safety.blocked) {
+        logger.log(
+          `🔒 [SAFETY] Model oluşturma çıplaklık/manipülasyon promptu engellendi (test hesabı ${actualUserId}): ${safety.reason}`,
+        );
+        return res.status(400).json({
+          success: false,
+          error: "content_policy_violation",
+          message:
+            "Bu içerik güvenlik politikalarına aykırı olduğu için oluşturulamaz.",
+        });
+      }
+      // Test hesabı + temiz prompt: enhancer'a (enhanceModelPromptWithGemini2) "uygunsuz/+18
+      // üretme" system prompt'unu önekle + güvenlik talimatını ekle. Gerçek kullanıcılar ETKİLENMEZ.
+      if (safety.isTestUser && prompt && prompt.trim()) {
+        prompt = `${SAFETY_SYSTEM_PROMPT}\n\n---\n${hardenSafetyPrompt(prompt)}`;
+        logger.log(
+          `🔒 [SAFETY] Model oluşturma: test hesabı ${actualUserId} için prompt sertleştirildi + system prompt eklendi.`,
+        );
+      }
+    } catch (safetyErr) {
+      logger.log(
+        "⚠️ [SAFETY] Guard çalışmadı (devam ediliyor):",
+        safetyErr?.message || safetyErr,
+      );
     }
 
     // Validation - customAge varsa age zorunlu değil

@@ -16,6 +16,12 @@ const {
 const teamService = require("../services/teamService");
 const logger = require("../utils/logger");
 const { optimizeImageUrl } = require("../utils/imageOptimizer");
+const {
+  evaluatePrompt: evaluateSafetyPrompt,
+  hardenPrompt: hardenSafetyPrompt,
+  isSafetyTestUser,
+  SAFETY_SYSTEM_PROMPT,
+} = require("../utils/nudityGuard");
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -3406,7 +3412,17 @@ ${promptForGemini}`;
 
     try {
       // parts array'indeki text prompt'u al
-      const textPrompt = parts.find((p) => p.text)?.text || promptForGemini;
+      let textPrompt = parts.find((p) => p.text)?.text || promptForGemini;
+
+      // 🔒 Ek güvenlik katmanı — SADECE test hesabı (nodselemen): enhancer'ın EN BAŞINA
+      // "uygunsuz/+18 istekte o yönde prompt üretme" system prompt'unu ekle. Gerçek
+      // kullanıcılarda bu satır hiç çalışmaz (textPrompt aynen kalır).
+      if (await isSafetyTestUser(userId)) {
+        textPrompt = `${SAFETY_SYSTEM_PROMPT}\n\n---\n${textPrompt}`;
+        logger.log(
+          `🔒 [SAFETY] Enhancer'a güvenlik system prompt'u eklendi (test hesabı ${userId}).`,
+        );
+      }
 
       const geminiGeneratedPrompt = await callGeminiFlash(
         textPrompt,
@@ -4402,6 +4418,9 @@ router.post("/generate", async (req, res) => {
   let userId; // Scope için önceden tanımla
   let finalGenerationId = null; // Scope için önceden tanımla
   let temporaryFiles = []; // Silinecek geçici dosyalar
+  // fal nano-banana güvenlik toleransı: "6" = en gevşek (varsayılan, gerçek kullanıcılar).
+  // Güvenlik test hesabında (nodselemen) "1" = en katı'ya çekilir (çıplaklık üretimini zorlaştırır).
+  let safetyTolerance = "6";
 
   try {
     let {
@@ -4514,6 +4533,39 @@ router.post("/generate", async (req, res) => {
 
     // userId'yi scope için ata
     userId = requestUserId;
+
+    // 🔒 İÇERİK GÜVENLİĞİ — SADECE güvenlik test hesapları için (ör. Google Play inceleme).
+    // Çıplaklık/manipülasyon promptu gelirse sistemden geçirme (model çağrılmaz, kredi düşmez);
+    // bu hesabın diğer isteklerinde promptu sertleştir. Gerçek kullanıcılar ETKİLENMEZ.
+    try {
+      const safetyCheckText = [promptText, editPrompt, customDetail]
+        .filter(Boolean)
+        .join("\n");
+      const safety = await evaluateSafetyPrompt(userId, safetyCheckText);
+      if (safety.blocked) {
+        logger.log(
+          `🔒 [SAFETY] Çıplaklık/manipülasyon promptu engellendi (test hesabı ${userId}): ${safety.reason}`,
+        );
+        return res.status(400).json({
+          success: false,
+          error: "content_policy_violation",
+          message:
+            "Bu içerik güvenlik politikalarına aykırı olduğu için oluşturulamaz.",
+        });
+      }
+      if (safety.isTestUser) {
+        promptText = hardenSafetyPrompt(promptText);
+        safetyTolerance = "1"; // en katı fal güvenlik toleransı
+        logger.log(
+          `🔒 [SAFETY] Test hesabı ${userId} için prompt sertleştirildi + safety_tolerance="1" (en katı).`,
+        );
+      }
+    } catch (safetyErr) {
+      logger.log(
+        "⚠️ [SAFETY] Guard çalışmadı (devam ediliyor):",
+        safetyErr?.message || safetyErr,
+      );
+    }
 
     if (modelReferenceImage) {
       logger.log(
@@ -5711,7 +5763,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
               aspect_ratio: aspectRatioForRequest,
               num_images: 1,
               resolution: "2K",
-              safety_tolerance: "6",
+              safety_tolerance: safetyTolerance,
             };
             logger.log(
               `🍌 [V1 NB2] fal.run/${nanoModel} çağrılıyor — images: ${imageInputArray?.length || 0}, aspect: ${aspectRatioForRequest}`,
@@ -5788,7 +5840,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
             resolution: "2K",
             ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
             ...(isV2 || req.body.isBackSideAnalysis
-              ? { safety_tolerance: "6" }
+              ? { safety_tolerance: safetyTolerance }
               : {}),
           };
           logger.log(
@@ -5809,7 +5861,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
             resolution: "2K",
             ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
             ...(isV2 || req.body.isBackSideAnalysis
-              ? { safety_tolerance: "6" }
+              ? { safety_tolerance: safetyTolerance }
               : {}),
           };
         }
@@ -6142,7 +6194,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
             num_images: 1,
             resolution: "2K",
             ...(isV2 || req.body.isBackSideAnalysis
-              ? { safety_tolerance: "6" }
+              ? { safety_tolerance: safetyTolerance }
               : {}),
           };
 

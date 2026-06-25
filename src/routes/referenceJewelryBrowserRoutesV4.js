@@ -12,6 +12,10 @@ const { createCanvas, loadImage } = require("canvas");
 const teamService = require("../services/teamService");
 const logger = require("../utils/logger");
 const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
+const {
+  evaluatePrompt: evaluateSafetyPrompt,
+  hardenPrompt: hardenSafetyPrompt,
+} = require("../utils/nudityGuard");
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -2694,6 +2698,9 @@ router.post("/generate", async (req, res) => {
   let userId; // Scope için önceden tanımla
   let finalGenerationId = null; // Scope için önceden tanımla
   let temporaryFiles = []; // Silinecek geçici dosyalar
+  // fal güvenlik toleransı — SADECE test hesabında (nodselemen) "1" (en katı) gönderilir.
+  // Gerçek kullanıcılarda null kalır → request body'ye hiç eklenmez (davranış aynı).
+  let safetyToleranceOverride = null;
 
   try {
     let {
@@ -2781,6 +2788,37 @@ router.post("/generate", async (req, res) => {
 
     // userId'yi scope için ata
     userId = requestUserId;
+
+    // 🔒 İÇERİK GÜVENLİĞİ — SADECE güvenlik test hesapları için (ör. Google Play inceleme).
+    // Çıplaklık/manipülasyon promptu gelirse sistemden geçirme (model çağrılmaz, kredi düşmez);
+    // bu hesabın diğer isteklerinde promptu sertleştir. Gerçek kullanıcılar ETKİLENMEZ.
+    try {
+      const safetyCheckText = [promptText, customDetail].filter(Boolean).join("\n");
+      const safety = await evaluateSafetyPrompt(userId, safetyCheckText);
+      if (safety.blocked) {
+        logger.log(
+          `🔒 [SAFETY][JEWELRY] Çıplaklık/manipülasyon promptu engellendi (test hesabı ${userId}): ${safety.reason}`,
+        );
+        return res.status(400).json({
+          success: false,
+          error: "content_policy_violation",
+          message:
+            "Bu içerik güvenlik politikalarına aykırı olduğu için oluşturulamaz.",
+        });
+      }
+      if (safety.isTestUser) {
+        promptText = hardenSafetyPrompt(promptText);
+        safetyToleranceOverride = "1"; // en katı fal güvenlik toleransı (sadece test hesabı)
+        logger.log(
+          `🔒 [SAFETY][JEWELRY] Test hesabı ${userId} için prompt sertleştirildi + safety_tolerance="1".`,
+        );
+      }
+    } catch (safetyErr) {
+      logger.log(
+        "⚠️ [SAFETY][JEWELRY] Guard çalışmadı (devam ediliyor):",
+        safetyErr?.message || safetyErr,
+      );
+    }
 
     if (modelReferenceImage) {
       logger.log(
@@ -3546,7 +3584,7 @@ router.post("/generate", async (req, res) => {
 
         // Kalite versiyonuna göre model URL ve parametreleri güncelle
         // Fal.ai model seçimi
-        let falModel = "fal-ai/nano-banana/edit"; // Model ID for Fal.ai
+        let falModel = "fal-ai/nano-banana-2/edit"; // Model ID for Fal.ai (v1 → nano-banana-2)
 
         if (qualityVersion === "v2") {
           logger.log(
@@ -3578,6 +3616,10 @@ router.post("/generate", async (req, res) => {
           aspect_ratio: aspectRatioForRequest,
           num_images: 1, // İzin ver
           resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
+          // 🔒 Sadece test hesabında (nodselemen) en katı güvenlik toleransı eklenir.
+          ...(safetyToleranceOverride
+            ? { safety_tolerance: safetyToleranceOverride }
+            : {}),
         };
 
         // V2 için ek parametreler
