@@ -17,6 +17,11 @@ const {
   incrementTrialVideoCount,
 } = require("../utils/trialVideoLimit");
 const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
+const {
+  evaluatePrompt: evaluateSafetyPrompt,
+  hardenPrompt: hardenSafetyPrompt,
+  SAFETY_SYSTEM_PROMPT,
+} = require("../utils/nudityGuard");
 
 fal.config({
   credentials: process.env.FAL_API_KEY,
@@ -993,7 +998,7 @@ router.post("/generateImgToVidv2", async (req, res) => {
   let creditCost = 0;
 
   try {
-    const {
+    let {
       userId,
       first_frame_image,
       back_image = null,
@@ -1010,6 +1015,33 @@ router.post("/generateImgToVidv2", async (req, res) => {
         success: false,
         message: "Missing required fields: userId and first_frame_image",
       });
+    }
+
+    // 🔒 İÇERİK GÜVENLİĞİ — SADECE test hesabı (nodselemen). Kredi düşmeden ÖNCE.
+    // Çıplaklık/manipülasyon promptu → 400 (video üretilmez, kredi düşmez). Gerçek kullanıcılar ETKİLENMEZ.
+    try {
+      const safety = await evaluateSafetyPrompt(userId, prompt || "");
+      if (safety.blocked) {
+        console.log(
+          `🔒 [SAFETY][VIDEO] Çıplaklık/manipülasyon promptu engellendi (test hesabı ${userId}): ${safety.reason}`,
+        );
+        return res.status(400).json({
+          success: false,
+          message:
+            "Bu içerik güvenlik politikalarına aykırı olduğu için oluşturulamaz.",
+        });
+      }
+      if (safety.isTestUser && prompt && prompt.trim()) {
+        prompt = `${SAFETY_SYSTEM_PROMPT}\n\n---\n${hardenSafetyPrompt(prompt)}`;
+        console.log(
+          `🔒 [SAFETY][VIDEO] Test hesabı ${userId}: prompt sertleştirildi + system prompt eklendi.`,
+        );
+      }
+    } catch (safetyErr) {
+      console.log(
+        "⚠️ [SAFETY][VIDEO] Guard çalışmadı (devam ediliyor):",
+        safetyErr?.message || safetyErr,
+      );
     }
 
     // Trial-tier cap: 2 videos max per trial window. Enforced before any
