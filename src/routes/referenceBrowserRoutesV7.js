@@ -5708,14 +5708,18 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
           enhancedPrompt,
         );
 
-        // 🎨 V1 MODE → app_config.is_gpt bayrağına göre model seç:
-        //   true  → GPT Image 2 (openai/gpt-image-2/edit)
-        //   false → nano-banana-2 (fal-ai/nano-banana-2/edit)
-        // v2 veya backSide analysis için aşağıdaki nano-banana-pro akışı devam eder.
-        if (!isV2 && !req.body.isBackSideAnalysis) {
-          const useGpt = await isGptEnabledForV1();
+        // 🎨 Model dallanması:
+        //   backSide analysis   → HER ZAMAN GPT Image 2 (v1 + v2, is_gpt bayrağından bağımsız)
+        //   v1 (non-backside)   → app_config.is_gpt: true → GPT Image 2, false → nano-banana-2
+        //   v2 (non-backside)   → aşağıdaki nano-banana-pro akışı devam eder.
+        if (req.body.isBackSideAnalysis || !isV2) {
+          const useGpt = req.body.isBackSideAnalysis
+            ? true
+            : await isGptEnabledForV1();
           logger.log(
-            `⚙️ [V1 MODEL_SWITCH] app_config.is_gpt = ${useGpt} → ${useGpt ? "GPT Image 2" : "nano-banana-2"}`,
+            req.body.isBackSideAnalysis
+              ? `⚙️ [MODEL_SWITCH] backSideAnalysis → GPT Image 2 (zorunlu)`
+              : `⚙️ [V1 MODEL_SWITCH] app_config.is_gpt = ${useGpt} → ${useGpt ? "GPT Image 2" : "nano-banana-2"}`,
           );
 
           if (useGpt) {

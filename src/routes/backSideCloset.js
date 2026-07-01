@@ -58,6 +58,87 @@ fal.config({
   credentials: process.env.FAL_API_KEY,
 });
 
+// Client'tan gelen aspect ratio'yu fal.ai GPT Image 2 image_size enum'una dönüştür
+// (referenceBrowserRoutesV7.js'teki mapping ile aynı)
+function mapRatioToGptImage2Size(ratio) {
+  const mapping = {
+    "21:9": "landscape_16_9",
+    "16:9": "landscape_16_9",
+    "3:2": "landscape_4_3",
+    "4:3": "landscape_4_3",
+    "5:4": "landscape_4_3",
+    "1:1": "square_hd",
+    "4:5": "portrait_4_3",
+    "3:4": "portrait_4_3",
+    "2:3": "portrait_4_3",
+    "9:16": "portrait_16_9",
+  };
+  return mapping[ratio] || "portrait_4_3";
+}
+
+// Fal.ai GPT Image 2 Edit — backside üretimi için (v1 + v2).
+// Birden fazla image_url kabul eder; queue submit + poll ile sonucu döner.
+async function callFalAiGptImage2Edit(
+  prompt,
+  imageUrls,
+  imageSize = "portrait_4_3",
+  maxRetries = 3,
+) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      logger.log(
+        `🎨 [BACKSIDE_GPT2] attempt ${attempt}/${maxRetries}, image_size: ${imageSize}, images: ${imageUrls?.length || 0}`,
+      );
+
+      const { request_id } = await fal.queue.submit("openai/gpt-image-2/edit", {
+        input: {
+          prompt: prompt,
+          image_urls: imageUrls,
+          image_size: imageSize,
+          quality: "medium",
+          num_images: 1,
+          output_format: "jpeg",
+        },
+      });
+
+      if (!request_id) throw new Error("Fal.ai did not return a request_id");
+      logger.log(`⏳ [BACKSIDE_GPT2] Request submitted: ${request_id}`);
+
+      const maxPolls = 60;
+      for (let poll = 0; poll < maxPolls; poll++) {
+        const statusResult = await fal.queue.status("openai/gpt-image-2/edit", {
+          requestId: request_id,
+          logs: false,
+        });
+
+        if (statusResult.status === "COMPLETED") {
+          const finalResult = await fal.queue.result("openai/gpt-image-2/edit", {
+            requestId: request_id,
+          });
+          if (finalResult.data?.images?.length > 0) {
+            logger.log(`✅ [BACKSIDE_GPT2] Image generated successfully`);
+            return finalResult.data.images[0].url;
+          }
+          throw new Error("No images in completed result");
+        }
+        if (statusResult.status === "FAILED") {
+          throw new Error("Fal.ai GPT Image 2 generation failed");
+        }
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+      throw new Error("Fal.ai GPT Image 2 polling timeout");
+    } catch (error) {
+      console.error(
+        `❌ [BACKSIDE_GPT2] Attempt ${attempt} failed:`,
+        error.message,
+      );
+      if (attempt === maxRetries) throw error;
+      const waitTime = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+    }
+  }
+}
+
 // Fal.ai GPT Image 1.5 Edit API call using SDK (for Refiner mode - Ghost Mannequin style)
 async function callFalAiGptImageEditForRefiner(
   prompt,
@@ -4771,15 +4852,12 @@ router.post("/generate", async (req, res) => {
           ? "v1"
           : settings?.qualityVersion || settings?.quality_version || "v1";
         const isV2 = qualityVersion === "v2";
-        // For fal.ai, we use nano-banana/edit for v1 and nano-banana-2/edit for v2
-        // Back side analysis modunda her zaman nano-banana-2 kullan
-        const falModel =
-          isV2 || req.body.isBackSideAnalysis
-            ? "fal-ai/nano-banana-2/edit"
-            : "fal-ai/nano-banana/edit";
+        // 🧠 BACKSIDE: v1 + v2 her zaman GPT Image 2 (openai/gpt-image-2/edit).
+        // nano-banana/nano-banana-2 bu route'ta artık kullanılmıyor.
+        const falModel = "openai/gpt-image-2/edit";
 
         logger.log(
-          `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model: ${falModel}`
+          `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model: ${falModel} (GPT Image 2)`
         );
 
         let requestBody;
@@ -4844,80 +4922,33 @@ router.post("/generate", async (req, res) => {
           aspectRatio: aspectRatioForRequest,
         });
 
-        // Fal.ai API çağrısı
-        const response = await axios.post(
-          `https://fal.run/${falModel}`,
-          requestBody,
-          {
-            headers: {
-              Authorization: `Key ${process.env.FAL_API_KEY}`,
-              "Content-Type": "application/json",
-            },
-            timeout: 300000, // 5 dakika timeout
-          }
+        // 🧠 GPT Image 2 çağrısı (queue + poll). İç retry 1 — dış döngü retry'ı yönetiyor.
+        const gptImageSize = mapRatioToGptImage2Size(aspectRatioForRequest);
+        logger.log(
+          `🎨 [BACKSIDE GPT2] Ratio: ${aspectRatioForRequest} → image_size: ${gptImageSize}, images: ${imageInputArray?.length || 0}`
         );
 
-        logger.log("📋 Fal.ai API Response Status:", response.status);
-        logger.log("📋 Fal.ai API Response Data:", {
-          request_id: response.data.request_id,
-          hasImages: !!response.data.images,
-          imagesCount: response.data.images?.length || 0,
-        });
+        const gptResultUrl = await callFalAiGptImage2Edit(
+          truncatedPrompt,
+          imageInputArray,
+          gptImageSize,
+          1
+        );
 
-        // Fal.ai Response kontrolü - fal.ai returns images array directly
-        if (response.data.images && response.data.images.length > 0) {
-          logger.log(
-            "✅ Fal.ai API başarılı, images alındı:",
-            response.data.images.map((img) => img.url)
-          );
-
-          // Fal.ai response'u Replicate formatına dönüştür (mevcut kod ile uyumluluk için)
-          const outputUrls = response.data.images.map((img) => img.url);
-          replicateResponse = {
-            data: {
-              id: response.data.request_id || `fal-${uuidv4()}`,
-              status: "succeeded",
-              output: outputUrls,
-              urls: {
-                get: null,
-              },
+        // Response'u Replicate formatına dönüştür (mevcut kod ile uyumluluk için)
+        replicateResponse = {
+          data: {
+            id: `gpt2-${uuidv4()}`,
+            status: "succeeded",
+            output: [gptResultUrl],
+            urls: {
+              get: null,
             },
-          };
+          },
+        };
 
-          logger.log(
-            `✅ Fal.ai nano-banana API başarılı (attempt ${attempt})`
-          );
-          break; // Başarılı olursa loop'tan çık
-        } else if (response.data.detail || response.data.error) {
-          // Fal.ai error response
-          const errorMsg = response.data.detail || response.data.error;
-          console.error("❌ Fal.ai API failed:", errorMsg);
-
-          // Geçici hatalar için retry yap
-          if (
-            typeof errorMsg === "string" &&
-            (errorMsg.includes("temporarily unavailable") ||
-              errorMsg.includes("try again later") ||
-              errorMsg.includes("rate limit") ||
-              errorMsg.includes("timeout"))
-          ) {
-            logger.log(
-              `🔄 Geçici fal.ai hatası tespit edildi (attempt ${attempt}), retry yapılacak:`,
-              errorMsg
-            );
-            retryReasons.push(`Attempt ${attempt}: ${errorMsg}`);
-            throw new Error(`RETRYABLE_SERVICE_ERROR: ${errorMsg}`);
-          }
-
-          throw new Error(`Fal.ai API failed: ${errorMsg || "Unknown error"}`);
-        } else {
-          // No images returned - unexpected
-          console.error(
-            "❌ Fal.ai API unexpected response - no images:",
-            response.data
-          );
-          throw new Error(`Fal.ai API returned no images`);
-        }
+        logger.log(`✅ GPT Image 2 API başarılı (attempt ${attempt})`);
+        break; // Başarılı olursa loop'tan çık
       } catch (apiError) {
         console.error(
           `❌ Fal.ai nano-banana API attempt ${attempt} failed:`,
