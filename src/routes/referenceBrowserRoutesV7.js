@@ -2024,7 +2024,7 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
         : ""
     }${
       settings?.productColor && settings.productColor !== "original"
-        ? `\n    \n    🎨 PRODUCT COLOR REQUIREMENT:\n    The user has specifically selected "${settings.productColor}" as the product color. CRITICAL: Ensure the garment/product appears in ${settings.productColor} color in the final image. This color selection must be prominently featured and accurately represented.`
+        ? `\n    \n    🎨 PRODUCT COLOR REQUIREMENT (NON-NEGOTIABLE):\n    The user selected "${settings.productColor}" as the garment color. In your prompt, name this color precisely and repeat it once more when describing the fabric, so the image model locks onto it (if it is a hex code, translate it into its closest natural color name and mention both). The recolor applies to the garment's base fabric while every design element — prints, pattern scale, stitching, trims, hardware, labels, construction — stays exactly as in the reference, and the fabric keeps realistic shading: the ${settings.productColor} surface shows natural tonal variation in highlights and shadow folds rather than one flat uniform fill. Choose scene lighting that renders this color faithfully (neutral white balance, no strong color casts).`
         : ""
     }${
       settings?.framing && settings.framing !== "auto"
@@ -2256,9 +2256,9 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     if (hairStyleImage) {
       hairStylePromptSection = `
     
-    HAIR STYLE REFERENCE: A hair style reference image has been provided to show the desired hairstyle for the ${baseModelText}. Please analyze this hair style image carefully and incorporate the exact hair length, texture, cut, styling, and overall hair appearance into your enhanced prompt. The ${baseModelText} should have this specific hairstyle that complements ${
+    HAIR STYLE REFERENCE: A hair style reference image is provided — it is the source of truth for the ${baseModelText}'s hair. Read it like a session stylist: identify the cut and its shape, exact length, layering, texture (straight / wavy / curly / coily), color and any dimension (balayage, highlights), volume, parting, and finish (glossy blowout, natural air-dry, editorial slick). Reproduce THIS hairstyle faithfully in your prompt using that professional vocabulary, and style it in harmony with ${
       isMultipleProducts ? "the multi-product ensemble" : "the garment"
-    } and overall aesthetic.`;
+    } — falling or pinned so necklines, collars, earrings, and shoulder details of the outfit remain clearly visible.`;
 
       logger.log("💇 [GEMINI] Hair style prompt section eklendi");
     }
@@ -2268,26 +2268,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     if (locationImage) {
       locationPromptSection = `
     
-    LOCATION ENVIRONMENT REFERENCE: A location reference image has been provided to show the desired environment and setting for the fashion photography. Please analyze this location image carefully and create a detailed, comprehensive environment description that includes:
-
-    ENVIRONMENT ANALYSIS REQUIREMENTS:
-    - Analyze the architectural elements, lighting conditions, and atmospheric details visible in the location image
-    - Identify the specific type of environment (indoor/outdoor, studio, urban, natural, etc.)
-    - Describe the lighting characteristics (natural light, artificial lighting, time of day, etc.)
-    - Note any distinctive features, textures, colors, and mood of the location
-    - Identify any props, furniture, or environmental elements that could enhance the fashion shoot
-    - Consider how the environment complements the garment and overall aesthetic
-
-    DETAILED ENVIRONMENT DESCRIPTION:
-    Create a rich, detailed description of the environment that will serve as the backdrop for the fashion photography. Include specific details about:
-    - The physical space and its characteristics
-    - Lighting setup and mood
-    - Color palette and atmosphere
-    - Any distinctive architectural or design elements
-    - How the environment enhances the garment presentation
-    - Professional photography considerations for this specific location
-
-    The environment description should be detailed enough to guide the AI image generation model in creating a photorealistic, professional fashion photograph that seamlessly integrates the model and garment into this specific location setting.`;
+    LOCATION ENVIRONMENT REFERENCE: A location reference image is provided — it defines WHERE this shoot takes place. Read it like a location scout and rebuild it in your prompt's environment paragraph as a vivid, specific scene: the type of space (indoor / outdoor, studio, urban street, coastal, interior), its architecture and materials (weathered stone, polished concrete, warm timber, glass), depth layers from foreground to background, the ambient color palette, and the light already living in the scene (time of day, direction, quality — hard sun, soft window light, overcast diffusion). Then stage the model INSIDE this environment: standing on its actual ground, lit by its actual light, casting believable shadows onto its surfaces — a photograph taken on location, with the scene's atmosphere flattering the garment's fabric and palette. Reproduce this specific location faithfully; do not swap it for a generic backdrop.`;
 
       logger.log("🏞️ [GEMINI] Location prompt section eklendi");
     }
@@ -2297,7 +2278,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     if (settings?.hairStyle) {
       hairStyleTextSection = `
     
-    SPECIFIC HAIR STYLE REQUIREMENT: The user has selected a specific hair style: "${settings.hairStyle}". Please ensure the ${baseModelText} is styled with this exact hair style, matching its length, texture and overall look naturally.`;
+    SPECIFIC HAIR STYLE REQUIREMENT: The user has selected the hair style "${settings.hairStyle}". This may arrive as an internal slug (e.g. "u_cut_layers", "curtain_bangs_wavy") — first translate it into its natural hairdressing name, then describe it in your prompt with professional salon vocabulary: cut shape and length, layering, texture (straight / wavy / coily), volume and movement, parting, and finish (sleek blowout, air-dried, tousled). The ${baseModelText} wears exactly this hairstyle, styled to complement the garment's neckline and the scene's lighting — e.g. hair tucked or swept so it never hides collars, straps, or key design details.`;
       logger.log(
         "💇 [GEMINI] Hair style text section eklendi:",
         settings.hairStyle,
@@ -2358,19 +2339,20 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     BRAND SAFETY: If the input image contains any brand names or logos (e.g., Nike, Adidas, Prada, Gucci, Louis Vuitton, Chanel, Balenciaga, Versace, Dior, Hermès), please refer to them generically (e.g., "brand label", "logo") without naming the specific brand.
     ACCESSORY PRESENTATION: When the hero item is footwear, a handbag, backpack, small leather good, hat, watch, jewelry, eyewear, belt, or any similar fashion accessory, explicitly require modern fashion campaign posing and camera angles that hero the accessory. Specify refined hand/foot/head placement, keep every design detail fully visible, and reference popular e-commerce hero perspectives (runway footwear angles, wrist-level watch close-ups, eye-line eyewear framing, handbag-on-hip hero shot, etc.) while maintaining premium fashion styling.`;
 
-    // Flux Max için genel garment transform talimatları (güvenli flag-safe versiyon)
-    const fluxMaxGarmentTransformationDirectives = `
-    GARMENT TRANSFORMATION REQUIREMENTS:
-    - Generate ONLY ONE SINGLE unified fashion photograph, not multiple images or split views
-    - Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance.
-    - Ensure realistic fabric physics with natural drape, weight, tension, compression, and subtle folds along shoulders, chest/bust, torso, and sleeves. Maintain a clean commercial presentation with minimal distracting wrinkles.
-    - Preserve all original garment details including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning the original garment.
-    - Integrate prints/patterns correctly over the 3D form ensuring patterns curve, stretch, and wrap naturally across body contours. Avoid flat, uniform, or unnaturally straight pattern lines.
-    - For structured details such as knots, pleats, darts, and seams, render functional tension, deep creases, and realistic shadows consistent with real fabric behavior.
-    - Maintain photorealistic integration with the model and scene including correct scale, perspective, lighting, cast shadows, and occlusions that match the camera angle and scene lighting.
-    - Focus on transforming the garment onto the existing model and seamlessly integrating it into the outfit. Avoid introducing new background elements unless a location reference is explicitly provided.
-    - TUCKING / UNTUCKING RULE (APPLIES TO ALL MODES, INCLUDING SINGLE-GARMENT REPLACEMENT): Do NOT tuck the replaced top into the model's existing bottoms (pants, jeans, trousers, skirt, shorts) by default. Preserve the top's natural, intended length and hemline exactly as shown in the flat-lay reference — let the hem fall freely OVER the waistband of the bottoms. Only allow a tucked-in styling if (a) the flat-lay clearly shows the top already styled as tucked in, OR (b) the garment is unambiguously a formal dress shirt / blouse whose design demands tucking. For casual shirts, t-shirts, sweatshirts, hoodies, knitwear, oversized tops, cropped tops, and streetwear tops, the default MUST be UNTUCKED. Do NOT invent half-tucks, French tucks, belted waists, or tucking just to "integrate" the garment — integration must come from realistic draping over the existing bottoms, not from tucking.
-    - OUTPUT: One single professional fashion photograph only`;
+    // Nano-banana-2/Pro için genel garment transform talimatları (güvenli flag-safe versiyon).
+    // Gemini image modelleri anlatı (narrative) tarzı, pozitif çerçeveli, kumaş/kamera
+    // terminolojisi zengin promptlarla en iyi sonucu verir — talimatlar buna göre yazıldı.
+    const garmentTransformationDirectives = `
+    GARMENT TRANSFORMATION REQUIREMENTS (write these as flowing narrative sentences inside your prompt, not as a bullet list):
+    - Single frame: the output is exactly ONE unified fashion photograph — one model, one scene, one camera view.
+    - Dimensional realism: the flat-lay garment becomes a fully three-dimensional worn garment with believable volume — fabric wraps around the body, catches light on raised folds, and falls into soft shadow inside creases. It reads as physically worn cloth, never as a flat graphic layered onto the model.
+    - Fabric physics vocabulary: name the fabric behavior explicitly using textile language the image model understands — how this specific material drapes (fluid, crisp, structured, clinging), its weight class (featherweight chiffon vs. heavy melton wool), where tension gathers (shoulder seams, bust, elbows) and where it releases (hem, sleeve openings). Keep the presentation commercially clean with only natural, intentional folds.
+    - Faithful reproduction: every original garment detail transfers exactly — colorway, prints and pattern scale, weave/knit texture, topstitching, seams, buttons, zippers, trims, labels, hem finish. The garment in the output is the same product a customer would receive, worn instead of flat.
+    - Pattern mapping: prints and patterns follow the body's 3D contours — curving over the bust/chest, compressing at the waist, flowing around sleeves — with realistic continuity at seams. Pattern lines bend with the fabric, never stay ruler-straight.
+    - Construction under tension: knots, pleats, darts, gathers, and seams show functional, load-bearing behavior — real creases, believable pull lines, and contact shadows exactly where fabric works against the body.
+    - Scene integration: the garment shares one light source with the model and environment — matching color temperature, cast shadows, contact occlusion at collar/waist/cuffs, correct scale and perspective for the camera angle. The environment stays as described; introduce new background elements only when a location reference explicitly provides them.
+    - TUCKING / UNTUCKING RULE (APPLIES TO ALL MODES, INCLUDING SINGLE-GARMENT REPLACEMENT): keep the top's natural, intended length and hemline exactly as the flat-lay shows — the hem falls freely OVER the waistband of the bottoms. A tucked-in styling is allowed only if (a) the flat-lay clearly shows the top already tucked, or (b) the garment is unambiguously a formal dress shirt / blouse whose design demands tucking. Casual shirts, t-shirts, sweatshirts, hoodies, knitwear, oversized / cropped / streetwear tops default to UNTUCKED. Integration comes from realistic draping over the bottoms — never from invented half-tucks, French tucks, or added belts.
+    - OUTPUT: one single professional fashion photograph only.`;
 
     // Gemini'ye gönderilecek metin - Edit mode vs Color change vs Normal replace
     let promptForGemini;
@@ -2918,7 +2900,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       
       IMPORTANT: Your generated prompt MUST result in a BACK VIEW of the model, not a front view or side view. The model should be facing AWAY from the camera to show the back design. Output ONLY ONE single image.
 
-      ${fluxMaxGarmentTransformationDirectives}
+      ${garmentTransformationDirectives}
 
       MANDATORY BACK SIDE PROMPT SUFFIX:
       After generating your main prompt, ALWAYS append this exact text to the end:
@@ -2950,70 +2932,38 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       // NORMAL MODE - Standart garment replace
       promptForGemini = `
       MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
-      
-      IMPORTANT: Your generated prompt must be UNDER 5000 characters total. Be concise but descriptive. Focus on the most important details.
-         
-      DEFAULT POSE INSTRUCTION: If no specific pose is provided by the user, you must randomly select an editorial-style fashion pose that best showcases the garment’s unique details, fit, and silhouette. The pose should be confident and photogenic, with body language that emphasizes fabric drape, construction, and design elements, while remaining natural and commercially appealing. Always ensure the garment’s critical features (neckline, sleeves, logos, seams, textures) are clearly visible from the chosen pose.
 
-      After constructing the garment, model, and background descriptions, you must also generate an additional block of at least 200 words that describes a professional editorial fashion photography effect. This effect must always adapt naturally to the specific garment, fabric type, color palette, lighting conditions, and background environment described earlier. Do not use a fixed style for every prompt. Instead, analyze the context and propose an effect that enhances the scene cohesively. Examples might include glossy highlights and refined softness for silk in a studio setting, or natural tones, airy realism, and depth of field for cotton in outdoor daylight. These are only examples, not strict rules — you should always generate an effect description that best matches the unique scene. Your effect description must cover color grading, lighting treatment, texture and fabric physics, background integration, focus and depth of field, and overall editorial polish. Always ensure the tone is professional, realistic, and aligned with the visual language of high-end fashion magazines. The effect description must make the final result feel like a hyper-realistic editorial-quality fashion photograph, seamlessly blending garment, model, and environment into a single cohesive campaign-ready image.
+      LENGTH GUIDANCE: There is no character limit — write as richly and thoroughly as the shoot deserves. Every sentence should add a concrete visual fact (fabric, light, pose, texture) rather than repeating ideas.
 
+      TARGET MODEL CONTEXT: Your output will be sent to Google's nano-banana image model (Gemini image generation), which responds best to flowing NARRATIVE descriptions written like a professional photographer's shoot brief — not keyword lists, not bullet points, not shouted commands. Write rich, specific, connected sentences. Use POSITIVE framing throughout: describe what IS in the frame (e.g. "a clean, uncluttered backdrop") rather than listing what is absent. Hyper-specificity wins: name the exact fabric ("brushed cotton fleece", "fluid silk charmeuse", "structured piqué knit"), the exact light ("late-afternoon window light with a soft silver bounce"), the exact lens behavior ("85mm portrait lens at f/2.8, shallow depth of field").
 
-      When generating fashion photography prompts, you must always structure the text into four separate paragraphs using \n\n line breaks. Do not output one long block of text.
+      IMAGE ROLE GROUNDING: The reference images you receive have distinct roles — the garment/product reference(s) show the EXACT product(s) to be worn (treat them as the immutable source of truth for design, color, pattern and construction), and any model / pose / hair / location references define who wears it, how they stand, how they are styled, and where the scene takes place. In your prompt, make clear that the garment from the reference is the one being worn.
 
-Paragraph 1 → Model Description & Pose
+      DEFAULT POSE INSTRUCTION: If no specific pose is provided by the user, select an editorial-style fashion pose that best showcases this exact garment's details, fit, and silhouette — confident, photogenic body language that puts fabric drape, construction, and design elements on display while staying natural and commercially appealing. Keep the garment's critical features (neckline, sleeves, logos, seams, textures) clearly visible from the chosen pose.
 
-Introduce the model (age, gender, editorial features).
+      OUTPUT STRUCTURE — write the prompt as four flowing paragraphs separated by \n\n line breaks (never one long block):
 
-Describe the pose with confident, fashion-forward language.
+      Paragraph 1 → Model & Pose. Introduce the model (age, gender, editorial presence) with fashion-magazine language, then describe the pose cinematically — weight distribution, shoulder line, hand placement, gaze direction — chosen to flatter THIS garment.
 
-Paragraph 2 → Garment & Fabric Physics
+      Paragraph 2 → Garment & Fabric Physics. This is the heart of the prompt. Identify the garment precisely (category, cut, silhouette) and describe it with textile jargon: fiber and weave/knit, drape class, weight, surface finish, seam and trim work. State that every design element — colorway, prints and their scale, stitching, hardware, labels, hem — matches the reference exactly, then describe how the fabric physically behaves on this body in this pose: where it folds, where it holds structure, where light catches the surface.
 
-Use fashion and textile jargon.
+      Paragraph 3 → Environment & Atmosphere. Describe the setting like a location scout: architecture or landscape, surface textures, depth layers (foreground / midground / background), ambient color palette, and the mood it creates. The environment supports and elevates the garment as an editorial backdrop. The original flat-lay background is fully replaced by this described scene, and only the garment itself carries over from the product photo — the final scene contains no hangers, clips, mannequin forms, or flat-lay artifacts.
 
-Describe fabric drape, weight, tension, folds, stitching.
+      Paragraph 4 → Photography, Light & Grade. Choose the lighting design that genuinely fits THIS scene and fabric — e.g. three-point softbox setup with a crisp key for structured tailoring in studio; golden-hour backlight with warm rim glow for flowy linen outdoors; diffused overcast sky for saturated knitwear on a city street; sculpted chiaroscuro for evening wear in a dim interior. Specify camera and lens language (focal length, aperture, depth of field, angle, framing) and a color grade / film character that completes the editorial look (e.g. "clean high-key commercial grade", "cinematic muted-teal grade", "medium-format film with fine grain"). Adapt every choice to the garment, palette, and environment described above — never reuse one fixed lighting formula. Conclude the paragraph with: "The final result is a single, hyper-realistic, editorial-quality fashion photograph, seamlessly integrating model, garment, and environment at campaign-ready standards."
 
-Keep all design, color, patterns, trims, logos exactly the same as the reference.
+      CRITICAL RULES:
 
-Paragraph 3 → Environment & Ambiance
+      Write in the language of editorial fashion photography — precise industry jargon over plain product description (drape, silhouette, cut, ribbed, pleated, piqué knit, melange, structured detailing, trims, seams, stitchwork).
 
-Describe the setting in editorial tone (minimalist, refined, photogenic).
+      Define the model's appearance with editorial tone (sculpted jawline, refined cheekbones, luminous gaze, poised stance) while keeping it natural and photoreal.
 
-Mention architecture, light play, textures.
+      Compose with fashion-photography vocabulary — rule of thirds, negative space, eye-level or low-angle perspective, foreground depth, polished framing.
 
-Keep it supportive, not distracting.
+      The environment stays photogenic and supportive — sophisticated, refined, contemporary — framing the garment as the hero of the image.
 
-Paragraph 4 → Lighting, Composition & Final Output
+      The final sentence of the prompt always affirms: a single, high-end professional fashion photograph, polished to editorial standards, suitable for premium catalogs and campaigns.
 
-Always describe lighting as “natural daylight blended with studio-grade softness”.
-
-
-Conclude with: “The final result must be a single, hyper-realistic, editorial-quality fashion photograph, seamlessly integrating model, garment, and environment at campaign-ready standards
-
-      
-
-CRITICAL RULES:
-
-Always construct prompts in the language and style of editorial fashion photography. Use precise fashion industry jargon rather than plain product description.
-
-Describe the garment using textile and tailoring terminology (drape, silhouette, cut, ribbed, pleated, piqué knit, melange, structured detailing, trims, seams, stitchwork, etc.).
-
-Define the model’s appearance with editorial tone (sculpted jawline, refined cheekbones, luminous gaze, poised stance).
-
-Lighting must be described in studio-grade fashion terms (diffused daylight, editorial softness, balanced exposure, flattering shadow play, high-definition clarity).
-
-Composition should reference fashion photography language (rule of thirds, depth of field, eye-level perspective, polished framing, editorial atmosphere).
-
-Environment must remain minimalist and photogenic, complementing the garment without distraction. Use words like “sophisticated”, “refined”, “contemporary”, “elevated backdrop”.
-
-Always conclude that the result is a single, high-end professional fashion photograph, polished to editorial standards, suitable for premium catalogs and campaigns.
-
-Do not use plain catalog language. Do not produce technical listing-style descriptions. The tone must always reflect editorial-level fashion shoot aesthetic
-
-Exclude all original flat-lay elements (hanger, frame, shadows, textures, painting, or any other artifacts). Only the garment itself must be transferred.
-
-The original background must be completely replaced with the newly described background. Do not keep or reuse any part of the input photo background.
-
-The output must be hyper-realistic, high-end professional fashion editorial quality, suitable for commercial catalog presentation.
+      The output must be hyper-realistic, high-end professional fashion editorial quality, suitable for commercial catalog presentation.
 
       ${criticalDirectives}
 
@@ -3078,7 +3028,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
           ? "ALL garments/products perfectly fitted and coordinated"
           : "the same garment perfectly fitted"
       } on the ${baseModelText}
-      5. Use natural studio lighting with a clean background
+      5. Light the scene with a professional lighting design chosen to fit the environment and fabric (studio softbox, golden-hour daylight, diffused overcast, etc.) — when no location is specified, default to a refined studio setting with a clean, elevated backdrop
       6. Preserve ALL original details of ${
         isMultipleProducts ? "EACH garment/product" : "the garment"
       }: colors, patterns, textures, hardware, stitching, logos, graphics, and construction elements
@@ -3107,7 +3057,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
           : ""
       }
 
-      ${fluxMaxGarmentTransformationDirectives}
+      ${garmentTransformationDirectives}
 
       LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace".
 
@@ -3430,7 +3380,7 @@ ${promptForGemini}`;
         3,
       );
 
-      // Statik kurallar kaldırıldı - fal.ai 5000 karakter limiti var
+      // Statik kurallar kaldırıldı (not: fal.ai eski 5000 char limiti kalktı — 50k+ kabul ediyor, test edildi Tem 2026)
       // Gemini'nin ürettiği prompt yeterince detaylı
       let staticRules = "";
 
