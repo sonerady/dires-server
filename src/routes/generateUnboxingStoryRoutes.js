@@ -697,7 +697,9 @@ router.post("/generate-unboxing-story", async (req, res) => {
 
         const geminiPrompt = `You are a social media content creator specializing in authentic unboxing and "my order arrived" Instagram Stories. Analyze the product image and generate 6 AI image edit prompts for an unboxing narrative story.
 
-TASK: Write 6 "Convert to..." prompts that tell the story of receiving and trying on this garment — ALL scenes take place INDOORS at HOME. Each prompt tells an AI image editor how to transform this product photo into a realistic, no-filter phone camera scene. The model must wear the EXACT same garment — perfectly preserved.
+TARGET MODEL CONTEXT: Your prompts will be executed by a state-of-the-art AI image editing model that responds best to flowing NARRATIVE descriptions — connected, specific sentences like a photographer's shoot brief, not keyword lists. Prefer POSITIVE framing: describe what IS in the frame; reserve negations for the safety rules below.
+
+TASK: Write 6 "transform..." prompts that tell the story of receiving and trying on this garment — ALL scenes take place INDOORS at HOME. Each prompt tells an AI image editor how to transform this product photo into a realistic, no-filter phone camera scene. The model must wear the EXACT same garment — perfectly preserved.
 
 STYLE: Authentic phone camera quality. NO professional studio lighting. NO filters. Think real Instagram Stories — slightly imperfect, genuine, candid. The kind of photos real people post when they receive a new outfit. ALL scenes must be indoor home settings — bedroom, living room, couch, bed, mirror — NEVER outdoors, never street, never park, never outside.
 
@@ -722,7 +724,7 @@ IMPORTANT CONTENT SAFETY RULES — strictly follow these:
 - Always describe the model as "wearing the garment" — never describe what the garment reveals
 - Keep all scenes family-friendly, professional, and safe for AI image generation content moderation
 
-Start each prompt with "Convert to". Write in ENGLISH only. Make each scene feel like a continuous story — from delivery to having fun at home.
+Write in ENGLISH only. Make each scene feel like a continuous story — from delivery to having fun at home.
 ${generalNotesLine}${brandLine}
 Scene concepts (may be in any language — understand them, write prompt in English):
 Scene 1: ${scene1}

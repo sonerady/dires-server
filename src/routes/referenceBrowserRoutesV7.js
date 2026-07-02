@@ -2285,54 +2285,35 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
       );
     }
 
-    // Dinamik yüz tanımı - çeşitlilik için
-    const faceDescriptorsAdult = [
-      "soft angular jawline with friendly eyes",
-      "gentle oval face and subtle dimples",
-      "defined cheekbones with warm smile",
-      "rounded face with expressive eyebrows",
-      "heart-shaped face and bright eyes",
-      "slightly sharp chin and relaxed expression",
-      "broad forehead with calm gaze",
-    ];
-    const faceDescriptorsChild = [
-      "round cheeks and bright curious eyes",
-      "button nose and playful grin",
-      "soft chubby cheeks with gentle smile",
-      "big innocent eyes and tiny nose",
-      "freckled cheeks and joyful expression",
-    ];
-    const faceDescriptorsNewborn = [
-      "tiny delicate features with soft round cheeks",
-      "peaceful sleeping expression with closed eyes",
-      "gentle newborn face with small button nose",
-      "serene infant features with soft skin",
-      "tender newborn appearance with tiny lips",
-      "calm sleeping baby with peaceful expression",
-    ];
-
-    let faceDescriptor;
-    if (isNewborn) {
-      // Newborn için özel yüz tanımları
-      faceDescriptor =
-        faceDescriptorsNewborn[
-          Math.floor(Math.random() * faceDescriptorsNewborn.length)
-        ];
-    } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
-      faceDescriptor =
-        faceDescriptorsChild[
-          Math.floor(Math.random() * faceDescriptorsChild.length)
-        ];
-    } else {
-      faceDescriptor =
-        faceDescriptorsAdult[
-          Math.floor(Math.random() * faceDescriptorsAdult.length)
-        ];
-    }
+    // Dinamik yüz çeşitliliği — Gemini'yi hazır örnek cümleye DEMİRLEMEMEK için tam
+    // cümle örneği verilmez; her istekte farklı kombinasyonda rastgele "esin eksenleri"
+    // verilir (yüz şekli × göz karakteri × ayırt edici detay × ifade). Gemini bunları
+    // birebir kullanamaz — özgün kompozisyon zorunludur.
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    const faceAxes = isNewborn
+      ? {
+          shape: pick(["softly rounded", "delicately small", "gently full-cheeked"]),
+          eyes: pick(["peacefully closed", "sleepy half-open", "calm and resting"]),
+          detail: pick(["tiny button nose", "soft wisps of newborn hair", "delicate rosebud lips"]),
+          expression: pick(["serene sleep", "peaceful calm", "tender stillness"]),
+        }
+      : !isNaN(parsedAgeInt) && parsedAgeInt <= 12
+        ? {
+            shape: pick(["round", "softly oval", "heart-shaped", "full-cheeked"]),
+            eyes: pick(["big and curious", "bright and lively", "gentle and warm", "sparkling with mischief"]),
+            detail: pick(["light freckles", "a playful dimple", "a button nose", "soft baby hairs at the hairline"]),
+            expression: pick(["joyful grin", "shy soft smile", "curious wonder", "natural candid laugh"]),
+          }
+        : {
+            shape: pick(["oval", "heart-shaped", "square", "round", "diamond", "oblong", "angular"]),
+            eyes: pick(["almond-shaped", "hooded", "wide-set", "deep-set", "upturned", "monolid", "downturned"]),
+            detail: pick(["light freckles across the nose", "a small beauty mark", "soft dimples", "bold natural brows", "high cheekbones", "a gentle cleft chin", "delicate fine features", "a strong defined jawline"]),
+            expression: pick(["calm confidence", "a warm approachable smile", "poised editorial neutrality", "a soft candid smile", "quiet magnetic intensity"]),
+          };
 
     const faceDescriptionSection = `
-    
-    FACE DESCRIPTION GUIDELINE: Below is *one example* of a possible face description → "${faceDescriptor}". This is **only an example**; do NOT reuse it verbatim. Instead, create your own natural-sounding, age-appropriate face description for the ${baseModelText} so that each generation features a unique and photogenic look.`;
+
+    FACE DESCRIPTION (UNIQUENESS REQUIRED): Invent a completely ORIGINAL, photoreal, age-appropriate face for the ${baseModelText} — never a stock, template, or recycled description, and never the same face twice across generations. As loose inspiration ONLY for this generation (recombine, alter, or discard any of them freely): face shape leaning "${faceAxes.shape}", eye character around "${faceAxes.eyes}", a distinctive touch such as "${faceAxes.detail}", and an expression of "${faceAxes.expression}". Do NOT restate these fragments verbatim — compose your own flowing description covering face shape, eyes, brows, nose, lips, jawline, and expression, so every generation features a clearly different, unique, and photogenic human face.`;
 
     // Gemini'ye gönderilecek metin - güvenli flag-safe versiyon
     const criticalDirectives = `
@@ -2935,7 +2916,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
 
       LENGTH GUIDANCE: There is no character limit — write as richly and thoroughly as the shoot deserves. Every sentence should add a concrete visual fact (fabric, light, pose, texture) rather than repeating ideas.
 
-      TARGET MODEL CONTEXT: Your output will be sent to Google's nano-banana image model (Gemini image generation), which responds best to flowing NARRATIVE descriptions written like a professional photographer's shoot brief — not keyword lists, not bullet points, not shouted commands. Write rich, specific, connected sentences. Use POSITIVE framing throughout: describe what IS in the frame (e.g. "a clean, uncluttered backdrop") rather than listing what is absent. Hyper-specificity wins: name the exact fabric ("brushed cotton fleece", "fluid silk charmeuse", "structured piqué knit"), the exact light ("late-afternoon window light with a soft silver bounce"), the exact lens behavior ("85mm portrait lens at f/2.8, shallow depth of field").
+      TARGET MODEL CONTEXT: Your output will be sent to a state-of-the-art AI image editing model, which responds best to flowing NARRATIVE descriptions written like a professional photographer's shoot brief — not keyword lists, not bullet points, not shouted commands. Write rich, specific, connected sentences. Use POSITIVE framing throughout: describe what IS in the frame (e.g. "a clean, uncluttered backdrop") rather than listing what is absent. Hyper-specificity wins: name the exact fabric ("brushed cotton fleece", "fluid silk charmeuse", "structured piqué knit"), the exact light ("late-afternoon window light with a soft silver bounce"), the exact lens behavior ("85mm portrait lens at f/2.8, shallow depth of field").
 
       IMAGE ROLE GROUNDING: The reference images you receive have distinct roles — the garment/product reference(s) show the EXACT product(s) to be worn (treat them as the immutable source of truth for design, color, pattern and construction), and any model / pose / hair / location references define who wears it, how they stand, how they are styled, and where the scene takes place. In your prompt, make clear that the garment from the reference is the one being worn.
 
@@ -3088,7 +3069,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
     if (!originalPrompt || !originalPrompt.includes("Model's pose")) {
       // Eğer poz seçilmemişse akıllı poz seçimi, seçilmişse belirtilen poz
       if (!settings?.pose && !poseImage) {
-        promptForGemini += `Since no specific pose was provided, use a natural pose that keeps the garment fully visible. The stance may be front-facing or slightly angled, but avoid hiding details. Do not put hands in pockets. Ensure garment features are clearly shown.`;
+        promptForGemini += `Since no specific pose was provided, choose a confident, editorial fashion pose that keeps the garment fully visible — front-facing or slightly angled, with expressive but natural body language (weight shifted onto one leg, a relaxed shoulder turn, a poised hand placement that stays clear of key design details). Hands rest naturally at the sides, on the waist, or in gentle motion — inside pockets only if the garment clearly has visible pockets in the reference. Every signature feature of the garment (neckline, sleeves, prints, seams, hem) remains clearly on display.`;
       }
     }
 

@@ -625,7 +625,9 @@ router.post("/generate-product-story", async (req, res) => {
 
         const geminiPrompt = `You are an elite fashion photographer and creative director specializing in real-life editorial fashion photography. Analyze the product image and generate 6 detailed AI image edit prompts for Instagram Story scenes.
 
-TASK: Write 6 "Convert to..." prompts. Each prompt tells an AI image editor how to transform this product photo into a new real-life lifestyle scene. The model must wear the EXACT same garment — perfectly preserved.
+TARGET MODEL CONTEXT: Your prompts will be executed by a state-of-the-art AI image editing model that responds best to flowing NARRATIVE descriptions — connected, specific sentences like a photographer's shoot brief, not keyword lists. Prefer POSITIVE framing: describe what IS in the frame; reserve negations for the safety rules below.
+
+TASK: Write 6 "transform..." prompts. Each prompt tells an AI image editor how to transform this product photo into a new real-life lifestyle scene. The model must wear the EXACT same garment — perfectly preserved.
 
 CRITICAL FASHION PHOTOGRAPHY RULES — these are non-negotiable:
 1. THE GARMENT IS THE STAR. Every prompt must keep the garment as the central visual focus. The outfit must be clearly visible, well-lit, and occupy a significant portion of the frame.
@@ -656,7 +658,7 @@ IMPORTANT CONTENT SAFETY RULES — strictly follow these:
 - Keep all scenes family-friendly, professional, and safe for AI image generation content moderation
 - Add "professional fashion photography, editorial style" to every prompt
 
-Start each prompt with "Convert to". Write in ENGLISH only. Make each scene feel completely different in mood, setting, and color palette.
+Write in ENGLISH only. Make each scene feel completely different in mood, setting, and color palette.
 ${generalNotesLine}
 Scene concepts (may be in any language — understand them, write prompt in English):
 Scene 1: ${scene1}

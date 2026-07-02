@@ -819,6 +819,8 @@ router.post("/generate-product-kit-v2", async (req, res) => {
                 const geminiPrompt = `You are an elite fashion e-commerce photographer and creative director. Analyze the following product image and generate 6 professional prompts for fashion e-commerce photography.
 All prompts MUST be in ENGLISH.
 
+TARGET MODEL CONTEXT: Your prompts will be executed by a state-of-the-art AI image editing model that responds best to flowing NARRATIVE descriptions — connected, specific sentences like a photographer's shoot brief, not keyword lists. Prefer POSITIVE framing: describe what IS in the frame; reserve negations for the safety rules below.
+
 CRITICAL FASHION PHOTOGRAPHY RULES — apply to ALL prompts:
 1. THE GARMENT IS THE STAR. Every prompt must keep the garment as the central visual focus. The outfit must be clearly visible, well-lit, and prominent in the frame.
 2. NO distant wide-angle shots where the garment details are lost. The garment must always be clearly readable. You are free to choose any framing as long as the outfit remains the hero.

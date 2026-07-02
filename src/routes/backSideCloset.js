@@ -1874,17 +1874,18 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     ACCESSORY PRESENTATION: When the hero item is footwear, a handbag, backpack, small leather good, hat, watch, jewelry, eyewear, belt, or any similar fashion accessory, explicitly require modern fashion campaign posing and camera angles that hero the accessory. Specify refined hand/foot/head placement, keep every design detail fully visible, and reference popular e-commerce hero perspectives (runway footwear angles, wrist-level watch close-ups, eye-line eyewear framing, handbag-on-hip hero shot, etc.) while maintaining premium fashion styling.`;
 
     // Flux Max için genel garment transform talimatları (güvenli flag-safe versiyon)
-    const fluxMaxGarmentTransformationDirectives = `
-    GARMENT TRANSFORMATION REQUIREMENTS:
-    - Generate ONLY ONE SINGLE unified fashion photograph, not multiple images or split views
-    - Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance.
-    - Ensure realistic fabric physics with natural drape, weight, tension, compression, and subtle folds along shoulders, chest/bust, torso, and sleeves. Maintain a clean commercial presentation with minimal distracting wrinkles.
-    - Preserve all original garment details including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning the original garment.
-    - Integrate prints/patterns correctly over the 3D form ensuring patterns curve, stretch, and wrap naturally across body contours. Avoid flat, uniform, or unnaturally straight pattern lines.
-    - For structured details such as knots, pleats, darts, and seams, render functional tension, deep creases, and realistic shadows consistent with real fabric behavior.
-    - Maintain photorealistic integration with the model and scene including correct scale, perspective, lighting, cast shadows, and occlusions that match the camera angle and scene lighting.
-    - Focus on transforming the garment onto the existing model and seamlessly integrating it into the outfit. Avoid introducing new background elements unless a location reference is explicitly provided.
-    - OUTPUT: One single professional fashion photograph only`;
+    // GPT Image 2 için genel garment transform talimatları — anlatı tarzı, pozitif
+    // çerçeveli, kumaş/ışık terminolojisi zengin promptlar en iyi sonucu verir.
+    const garmentTransformationDirectives = `
+    GARMENT TRANSFORMATION REQUIREMENTS (weave these into your prompt as flowing narrative sentences, not a bullet list):
+    - Single frame: the output is exactly ONE unified fashion photograph — one model, one scene, one camera view.
+    - Dimensional realism: the garment reads as fully three-dimensional worn cloth with believable volume — wrapping around the body, catching light on raised folds, falling into soft shadow inside creases. It is physically worn fabric, never a flat graphic layered onto the model.
+    - Fabric physics vocabulary: name the fabric behavior explicitly — how this material drapes (fluid, crisp, structured, clinging), its weight class, where tension gathers (shoulder seams, yoke, elbows) and where it releases (hem, sleeve openings). Keep the presentation commercially clean with only natural, intentional folds.
+    - Faithful reproduction: every original garment detail transfers exactly — colorway, prints and pattern scale, weave/knit texture, topstitching, seams, buttons, zippers, trims, labels, hem finish. The garment in the output is the same product a customer would receive.
+    - Pattern mapping: prints and patterns follow the body's 3D contours — curving across the back panel and shoulder blades, compressing at the waist, flowing around sleeves — with realistic continuity at seams. Pattern lines bend with the fabric, never stay ruler-straight.
+    - Construction under tension: knots, pleats, darts, gathers, and seams show functional, load-bearing behavior — real creases, believable pull lines, and contact shadows exactly where fabric works against the body.
+    - Scene integration: the garment shares one light source with the model and environment — matching color temperature, cast shadows, contact occlusion at collar/waist/cuffs, correct scale and perspective for the camera angle. The environment stays as described; introduce new background elements only when a location reference explicitly provides them.
+    - OUTPUT: one single professional fashion photograph only.`;
 
     // Gemini'ye gönderilecek metin - Edit mode vs Color change vs Normal replace
     let promptForGemini;
@@ -2327,38 +2328,25 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       promptForGemini = `
       MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
 
-      🔄 CRITICAL BACK DESIGN SHOWCASE MODE:
-      
-      ANALYSIS REQUIREMENT: You are looking at TWO distinct views of the SAME garment:
-      1. TOP IMAGE: Shows the garment worn on a model from the FRONT
-      2. BOTTOM IMAGE (labeled "ARKA ÜRÜN"): Shows the BACK design of the same garment
-      
-      YOUR MISSION: Transform the TOP image so the model displays the BACK design from the BOTTOM image.
-      
-      🚫 DO NOT CREATE: Generic walking poses, editorial strides, front-facing poses, or standard fashion poses
-      
-      ✅ MANDATORY REQUIREMENTS:
-      1. **BODY POSITIONING**: Model MUST be turned completely around (180 degrees) to show their BACK to the camera
-      2. **BACK DESIGN FOCUS**: The exact back graphic/pattern/design from the "ARKA ÜRÜN" image must be clearly visible on the model's back
-      3. **CAMERA ANGLE**: Shoot from behind the model to capture the back design prominently
-      4. **HEAD POSITION**: Model can either face completely away OR look back over shoulder (choose based on garment style)
-      
-      SPECIFIC BACK POSE EXECUTION:
-      - **Primary View**: Full back view showing the complete back design
-      - **Model Stance**: Natural standing pose with back to camera, may include subtle over-shoulder glance
-      - **Design Visibility**: Ensure the back graphic/pattern from "ARKA ÜRÜN" image is the main focal point
-      - **Garment Fit**: Show how the back design sits on the model's back naturally
-      
-      TECHNICAL REQUIREMENTS:
-      - Camera positioned BEHIND the model
-      - Back design from "ARKA ÜRÜN" clearly showcased
-      - Professional fashion photography lighting
-      - Sharp focus on back design details
-      - Model wearing the exact same garment as shown in both reference images
-      
-      EXAMPLE STRUCTURE: "Replace the front-facing model with a back-facing pose, showing the model turned away from camera to display the [describe specific back design elements you see in ARKA ÜRÜN image] prominently across their back, captured with professional photography lighting..."
-      
-      🎯 FINAL GOAL: Create a back view that matches the "ARKA ÜRÜN" reference but worn on the model from the top image.
+      TARGET MODEL CONTEXT: Your output will be sent to a state-of-the-art AI image editing model, which responds best to flowing NARRATIVE descriptions written like a professional photographer's shoot brief — not keyword lists, not bullet points, not shouted commands. Write rich, specific, connected sentences. Use POSITIVE framing: describe what IS in the frame rather than listing what is absent. Hyper-specificity wins: name the exact fabric, the exact light, the exact camera behavior.
+
+      🔄 BACK DESIGN SHOWCASE MODE — IMAGE ROLE GROUNDING:
+      You are looking at TWO views of the SAME garment:
+      1. TOP IMAGE: the garment worn on a model, seen from the FRONT — this defines the model's identity, the garment's fit, and the scene.
+      2. BOTTOM IMAGE (labeled "ARKA ÜRÜN"): the BACK design of the same garment — this is the immutable source of truth for every back-panel element: graphics, prints, text, pattern placement and scale, yoke seams, back hem.
+
+      YOUR MISSION: Rewrite the scene so the SAME model, wearing the SAME garment, is photographed from BEHIND — turned a full 180 degrees — with the exact back design from the "ARKA ÜRÜN" image displayed across their back as the hero of the frame.
+
+      BACK-VIEW SHOT DESIGN (describe these narratively in your prompt):
+      - Body position: the model stands with their back fully to the camera in a natural, confident stance — weight settled onto one leg, shoulders relaxed, posture elongated. A subtle over-shoulder glance toward the camera is allowed when it suits the garment's character; otherwise the model faces fully away. The pose is a deliberate back-view editorial stance, never a frontal or walking pose.
+      - Back design as focal point: read the "ARKA ÜRÜN" image like a print technician and describe exactly what sits on the back panel — the specific graphic, lettering, artwork or pattern, its position (between the shoulder blades, across the yoke, centered at the spine), its scale relative to the garment, and its colors. This description anchors the entire image.
+      - Camera: positioned directly behind the model at chest height, focus plane locked on the back panel — every detail of the back design rendered tack-sharp. Choose a focal length and framing that keeps the full back design comfortably inside the frame with balanced negative space.
+      - Fit on the body: describe how the back of the garment actually sits on this model — how the fabric spans the shoulder blades, where it skims or drapes at the spine and waist, how the hem falls — so the back design follows the body's real curvature.
+      - Lighting: professional fashion lighting that renders the back design faithfully — an even key across the back panel with soft modeling shadows in the fabric folds, matching the color temperature and direction of the original scene.
+
+      EXAMPLE STRUCTURE: "Replace the front-facing pose with a full back view: the model turns away from the camera, revealing [the exact back design elements you see in the ARKA ÜRÜN image] spread across the back panel between the shoulder blades, rendered tack-sharp under an even editorial key light..."
+
+      🎯 FINAL GOAL: one photograph — the model from the TOP image, turned away from the camera, wearing the same garment, with the "ARKA ÜRÜN" back design reproduced exactly and prominently across their back.
 
       ${criticalDirectives}
 
@@ -2378,27 +2366,13 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
 
       Create a professional fashion photography prompt in English that shows the model from the BACK VIEW wearing the garment, specifically displaying the back design elements visible in the "ARKA ÜRÜN" image.
       
-      🚨 CRITICAL SINGLE OUTPUT REQUIREMENT:
-      - GENERATE ONLY ONE SINGLE RESULT IMAGE showing the back view
-      - DO NOT create multiple separate images, split views, or collages
-      - DO NOT generate both front and back images
-      - DO NOT create flat product photos or extra product shots
-      - FOCUS ONLY on the back view transformation - one unified fashion photograph
-      - RESULT MUST BE: Professional back-view fashion model shot ONLY
-      
-      CRITICAL PROMPT ELEMENTS TO INCLUDE:
-      - "model turned away from camera"
-      - "back view" or "rear view"  
-      - "showing the back of the garment"
-      - "single fashion photograph"
-      - "one unified image"
-      - Description of the specific back design (graphic, pattern, text, etc.) you see in the "ARKA ÜRÜN" image
-      - "professional fashion photography"
-      - "back design prominently displayed"
-      
-      IMPORTANT: Your generated prompt MUST result in a BACK VIEW of the model, not a front view or side view. The model should be facing AWAY from the camera to show the back design. Output ONLY ONE single image.
+      SINGLE OUTPUT REQUIREMENT: The result is exactly ONE unified back-view fashion photograph — a single frame, a single model, a single scene. Your prompt must make this explicit so the image model renders one cohesive shot rather than split views, collages, front+back pairs, or extra flat product shots.
 
-      ${fluxMaxGarmentTransformationDirectives}
+      ANCHOR PHRASES — weave these naturally into your narrative so the image model locks onto the back-view intent: "model turned away from camera", "full back view", "showing the back of the garment", "back design prominently displayed", "single unified fashion photograph", "professional fashion photography" — plus your own precise description of the specific back design (graphic, pattern, text) you see in the "ARKA ÜRÜN" image.
+
+      IMPORTANT: Your generated prompt MUST result in a BACK VIEW — the model facing away from the camera with the back design on full display — as one single image.
+
+      ${garmentTransformationDirectives}
 
       MANDATORY BACK SIDE PROMPT SUFFIX:
       After generating your main prompt, ALWAYS append this exact text to the end:
@@ -2594,7 +2568,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
           : ""
         }
 
-      ${fluxMaxGarmentTransformationDirectives}
+      ${garmentTransformationDirectives}
 
       LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace".
 
