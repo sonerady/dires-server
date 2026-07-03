@@ -146,11 +146,18 @@ router.post("/webhookv2", async (req, res) => {
     console.log("🔗 RevenueCat Webhook Received!");
     console.log("Headers:", req.headers);
 
-    // Authorization header kontrolü (opsiyonel - RevenueCat dashboard'dan ayarlanabilir)
-    const authHeader = req.headers.authorization;
-    if (authHeader) {
-      console.log("📋 Authorization header:", authHeader);
-      // Bu kısmı RevenueCat dashboard'da ayarladığınız authorization header ile karşılaştırabilirsiniz
+    // 🔒 WEBHOOK DOĞRULAMA — REVENUECAT_WEBHOOK_AUTH env tanımlıysa ZORUNLU.
+    // Tanımlı değilse eski davranış (pass-through) korunur → kademeli/güvenli geçiş.
+    // RevenueCat dashboard'da bu değeri Authorization header olarak ayarla; aynısını
+    // Railway/.env'e REVENUECAT_WEBHOOK_AUTH olarak ekleyince koruma devreye girer.
+    const expectedWebhookAuth = process.env.REVENUECAT_WEBHOOK_AUTH;
+    if (expectedWebhookAuth) {
+      if (req.headers.authorization !== expectedWebhookAuth) {
+        console.warn(
+          "🚫 [RC_WEBHOOK_V2] Geçersiz/eksik webhook auth header — istek reddedildi (401).",
+        );
+        return res.status(401).json({ error: "unauthorized" });
+      }
     }
 
     // Request body'yi direkt kullan (express.json() middleware'i tarafından parse edilmiş)

@@ -47,20 +47,11 @@ router.post("/", async (req, res) => {
       }
     );
 
-    // Eğitim başarılı olduktan sonra kredi düşme işlemi
-    if (training.status === "succeeded") {
-      // Krediden 1 düşmek için API'ye istek atılıyor
-      const updatedCreditAmount = credit_amount - 1; // Mevcut krediden 1 kredi çıkarılıyor
-      const updateCreditResponse = await axios.post(
-        "http://localhost:3001/api/update-credit", // Kredi güncelleme API'sinin URL'si
-        {
-          user_id: user_id,
-          credit_amount: updatedCreditAmount,
-        }
-      );
-
-      console.log("Kredi güncelleme cevabı:", updateCreditResponse.data);
-    }
+    // NOT: Güvensiz /update-credit endpoint'i kaldırıldı (arbitrary credit set açığı).
+    // Bu route (generateFirstShoot) client tarafından kullanılmıyor; kredi düşme
+    // devre dışı bırakıldı. Route tekrar aktifleştirilecekse, kredi düşme server-side
+    // atomik olarak (ör. deduct_user_credit RPC) yapılmalı — asla client'tan gelen
+    // credit_amount ile mutlak set edilerek DEĞİL.
 
     res.json({ message: "Training initiated successfully", training });
   } catch (error) {
