@@ -8,19 +8,21 @@ const source = fs.readFileSync(
   "utf8",
 );
 
-test("normal-mode camera guidance is adaptive rather than a fixed recipe", () => {
+test("normal-mode camera guidance offers conditional studio and editorial styles", () => {
   assert.ok(
     source.includes(
       "Choose a camera, lens character, viewpoint, depth of field, lighting approach, and color treatment",
     ),
   );
 
-  for (const fixedRecipe of [
-    "three-point softbox",
-    "85mm f/2.8",
+  for (const conditionalStyle of [
     "clean high-key commercial grade",
-    "medium-format film with fine grain",
+    "balanced three-point softbox lighting",
+    "medium-format film character with subtle fine grain",
+    "Use these only when they genuinely suit the garment, location, and intended mood; never apply them as a default recipe.",
   ]) {
-    assert.ok(!source.includes(fixedRecipe), `remove ${fixedRecipe}`);
+    assert.ok(source.includes(conditionalStyle), `include ${conditionalStyle}`);
   }
+
+  assert.ok(!source.includes("white-background"));
 });
