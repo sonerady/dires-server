@@ -77,6 +77,15 @@ const KNOWN_PACKAGE_CREDITS = {
   "com.diress.premium.weekly.v2.2400": 2400,
   "com.diress.premium.monthly.v2.9600": 9600,
 
+  // v2nt paketler (iOS, trialsiz ikizler) — abonelik geçmişi olan kullanıcılara
+  // gösterilen intro-offer'sız .v2 kopyaları; krediler v2 ile aynı
+  "com.diress.standard.weekly.v2nt.600": 600,
+  "com.diress.standard.monthly.v2nt.2400": 2400,
+  "com.diress.plus.weekly.v2nt.1200": 1200,
+  "com.diress.plus.monthly.v2nt.4800": 4800,
+  "com.diress.premium.weekly.v2nt.2400": 2400,
+  "com.diress.premium.monthly.v2nt.9600": 9600,
+
   // Legacy subscription paketleri
   "com.monailisa.pro_weekly600": 600,
   "com.monailisa.pro_monthly2400": 2400,
@@ -664,37 +673,73 @@ router.post("/webhookv3", async (req, res) => {
     let creditsToAdd = packageCredits;
     let isTrialGrant = false;
     if (period_type === "TRIAL" && type === "INITIAL_PURCHASE") {
-      const configPlatform =
-        store === "PLAY_STORE" || store === "GOOGLE" ? "android" : "ios";
+      // Geri dönen ödemiş abone koruması: kullanıcının geçmişinde ücretli bir
+      // abonelik işlemi varsa (price > 0 + subscription ürünü) trial kredisi
+      // yerine tam paket kredisi ver. Apple'ın intro-offer uygunluğu "grupta
+      // intro kullanmamış olmak" olduğu için, trialsiz v2nt offering'ini
+      // bilmeyen eski client build'lerinde eski aboneler .v2 ürünüyle trial'a
+      // düşebiliyor — Apple ödemeyi 3 gün sonra alsa da kredi/team tarafında
+      // tam abone muamelesi yapıyoruz. (is_in_trial/has_used_trial Apple
+      // gerçeğini izlemeye devam eder.)
+      let hadPaidSubscription = false;
       try {
-        const { data: trialCfg } = await supabase
-          .from("app_config")
-          .select("trial_enabled, trial_credits")
-          .eq("platform", configPlatform)
-          .order("updated_at", { ascending: false, nullsLast: false })
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (trialCfg?.trial_enabled === true) {
-          const trialCredits = Number.isFinite(trialCfg.trial_credits)
-            ? trialCfg.trial_credits
-            : 2000;
-          creditsToAdd = trialCredits;
-          isTrialGrant = true;
-          console.log(
-            `🎁 [RC_WEBHOOK_V3] TRIAL grant: ${trialCredits} credits (platform=${configPlatform}, full_package=${packageCredits})`,
+        const { data: paidRows } = await supabase
+          .from("purchase_history")
+          .select("product_id, price")
+          .eq("user_id", userId)
+          .gt("price", 0)
+          .limit(50);
+        hadPaidSubscription = (paidRows || []).some((row) => {
+          const pid = String(row.product_id || "").toLowerCase();
+          return (
+            /(standard|plus|premium|pro)/.test(pid) &&
+            /(week|month)/.test(pid)
           );
-        } else {
-          console.log(
-            `⚠️ [RC_WEBHOOK_V3] period_type=TRIAL but trial_enabled=false on ${configPlatform} → granting full package credits (${packageCredits})`,
+        });
+      } catch (histErr) {
+        console.warn(
+          "⚠️ [RC_WEBHOOK_V3] purchase_history read for returning-payer check failed:",
+          histErr?.message || histErr,
+        );
+      }
+
+      if (hadPaidSubscription) {
+        console.log(
+          `💎 [RC_WEBHOOK_V3] TRIAL from RETURNING PAYER → granting full package credits (${packageCredits}) instead of trial credits`,
+        );
+      } else {
+        const configPlatform =
+          store === "PLAY_STORE" || store === "GOOGLE" ? "android" : "ios";
+        try {
+          const { data: trialCfg } = await supabase
+            .from("app_config")
+            .select("trial_enabled, trial_credits")
+            .eq("platform", configPlatform)
+            .order("updated_at", { ascending: false, nullsLast: false })
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (trialCfg?.trial_enabled === true) {
+            const trialCredits = Number.isFinite(trialCfg.trial_credits)
+              ? trialCfg.trial_credits
+              : 2000;
+            creditsToAdd = trialCredits;
+            isTrialGrant = true;
+            console.log(
+              `🎁 [RC_WEBHOOK_V3] TRIAL grant: ${trialCredits} credits (platform=${configPlatform}, full_package=${packageCredits})`,
+            );
+          } else {
+            console.log(
+              `⚠️ [RC_WEBHOOK_V3] period_type=TRIAL but trial_enabled=false on ${configPlatform} → granting full package credits (${packageCredits})`,
+            );
+          }
+        } catch (cfgErr) {
+          console.warn(
+            "⚠️ [RC_WEBHOOK_V3] app_config read for trial failed, falling back to full credits:",
+            cfgErr?.message || cfgErr,
           );
         }
-      } catch (cfgErr) {
-        console.warn(
-          "⚠️ [RC_WEBHOOK_V3] app_config read for trial failed, falling back to full credits:",
-          cfgErr?.message || cfgErr,
-        );
       }
     } else if (isTrialConversion) {
       // Trial→Paid dönüşüm event'i (dashboard'da "NEW SUB" görünen olay).
