@@ -18,6 +18,24 @@ const normaliseLanguage = (lang = "") => {
   return lang.toLowerCase();
 };
 
+// Video üretim kredi maliyetleri — app_config.metadata.video_credits ile
+// uzaktan yönetilir. Anahtarlar: süre saniyeleri ("5"/"8"/"10") + 1080p ek
+// ücreti ("hd_surcharge"). Eksik/bozuk değerlerde bu defaultlar geçerli.
+const DEFAULT_VIDEO_CREDITS = { 5: 300, 8: 340, 10: 375, hd_surcharge: 60 };
+
+const normaliseVideoCredits = (metadata) => {
+  const raw =
+    metadata && typeof metadata === "object" ? metadata.video_credits : null;
+  const out = { ...DEFAULT_VIDEO_CREDITS };
+  if (raw && typeof raw === "object") {
+    for (const key of ["5", "8", "10", "hd_surcharge"]) {
+      const value = Number(raw[key]);
+      if (Number.isFinite(value) && value >= 0) out[key] = value;
+    }
+  }
+  return out;
+};
+
 const resolveMessage = (record, lang) => {
   if (!record) return null;
 
@@ -102,9 +120,10 @@ router.get("/app-config/version", async (req, res) => {
         googleLoginEnabled: true,
         appleLoginEnabled: true,
         trialEnabled: false,
-        trialCredits: 5000,
+        trialCredits: 150,
         trialDurationDays: 3,
         paywallPricingVersion: "v1",
+        videoCredits: { ...DEFAULT_VIDEO_CREDITS },
         lang,
         fetchedAt: new Date().toISOString(),
       };
@@ -125,9 +144,10 @@ router.get("/app-config/version", async (req, res) => {
       googleLoginEnabled: data.google_login_enabled !== false,
       appleLoginEnabled: data.apple_login_enabled !== false,
       trialEnabled: data.trial_enabled === true,
-      trialCredits: Number.isFinite(data.trial_credits) ? data.trial_credits : 5000,
+      trialCredits: Number.isFinite(data.trial_credits) ? data.trial_credits : 150,
       trialDurationDays: Number.isFinite(data.trial_duration_days) ? data.trial_duration_days : 3,
       paywallPricingVersion: data.paywall_pricing_version === "v2" ? "v2" : "v1",
+      videoCredits: normaliseVideoCredits(data.metadata),
       lang,
       fetchedAt: new Date().toISOString(),
     };

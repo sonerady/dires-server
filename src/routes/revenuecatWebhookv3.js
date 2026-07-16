@@ -723,7 +723,7 @@ router.post("/webhookv3", async (req, res) => {
           if (trialCfg?.trial_enabled === true) {
             const trialCredits = Number.isFinite(trialCfg.trial_credits)
               ? trialCfg.trial_credits
-              : 2000;
+              : 150;
             creditsToAdd = trialCredits;
             isTrialGrant = true;
             console.log(

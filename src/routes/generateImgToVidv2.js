@@ -746,25 +746,47 @@ async function persistFalVideoToSupabase(videoUrl, userId, generationId) {
   return task;
 }
 
-function getCreditCost(duration, resolution = "720p") {
-  let baseCost;
+// Video kredi maliyetleri UZAKTAN yönetilir: app_config.metadata.video_credits
+// ("5"/"8"/"10" saniye bazları + "hd_surcharge" 1080p ek ücreti). 60 sn'lik
+// in-memory cache ile her istekte DB'ye gidilmez; config okunamazsa ya da
+// migration'sız ortamda DEFAULT tablo devreye girer (mevcut fiyatlar).
+const DEFAULT_VIDEO_CREDITS = { 5: 300, 8: 340, 10: 375, hd_surcharge: 60 };
+let _videoCreditCache = { cfg: { ...DEFAULT_VIDEO_CREDITS }, at: 0 };
 
-  switch (Number(duration)) {
-    case 5:
-      baseCost = 200;
-      break;
-    case 8:
-      baseCost = 225;
-      break;
-    case 10:
-      baseCost = 250;
-      break;
-    default:
-      baseCost = 250;
-      break;
+async function getVideoCreditConfig() {
+  if (Date.now() - _videoCreditCache.at < 60_000) return _videoCreditCache.cfg;
+  try {
+    const { data } = await supabase
+      .from("app_config")
+      .select("metadata")
+      .eq("platform", "ios") // video fiyatı platform bağımsız; ios satırı kanonik kaynak
+      .maybeSingle();
+    const raw = data?.metadata?.video_credits;
+    const cfg = { ...DEFAULT_VIDEO_CREDITS };
+    if (raw && typeof raw === "object") {
+      for (const key of ["5", "8", "10", "hd_surcharge"]) {
+        const value = Number(raw[key]);
+        if (Number.isFinite(value) && value >= 0) cfg[key] = value;
+      }
+    }
+    _videoCreditCache = { cfg, at: Date.now() };
+  } catch (err) {
+    console.warn(
+      "⚠️ [VIDEO-V2] video_credits config okunamadı, cache/default kullanılıyor:",
+      err?.message || err,
+    );
+    _videoCreditCache.at = Date.now(); // hata döngüsünde DB'yi dövme
   }
+  return _videoCreditCache.cfg;
+}
 
-  return resolution === "1080p" ? baseCost + 40 : baseCost;
+function getCreditCost(duration, resolution = "720p", cfg = DEFAULT_VIDEO_CREDITS) {
+  const baseCost =
+    Number(cfg[Number(duration)]) || Number(cfg[10]) || DEFAULT_VIDEO_CREDITS[10];
+  const surcharge = Number(cfg.hd_surcharge);
+  return resolution === "1080p"
+    ? baseCost + (Number.isFinite(surcharge) ? surcharge : 40)
+    : baseCost;
 }
 
 function normalizeDuration(duration) {
@@ -1056,7 +1078,11 @@ router.post("/generateImgToVidv2", async (req, res) => {
     const normalizedResolution = normalizeResolution(resolution);
     const normalizedAspectRatio = normalizeAspectRatio(aspect_ratio);
 
-    creditCost = getCreditCost(normalizedDuration, normalizedResolution);
+    creditCost = getCreditCost(
+      normalizedDuration,
+      normalizedResolution,
+      await getVideoCreditConfig(),
+    );
     effectiveUserId = userId;
 
     let effectiveCreditBalance = 0;
