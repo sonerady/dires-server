@@ -3,6 +3,9 @@ const { supabase } = require("../supabaseClient");
 const {
   syncOneSignalTagsFromDb,
 } = require("../services/oneSignalTagSync");
+const {
+  resolveRevenueCatTrialState,
+} = require("../utils/revenuecatTrialState");
 
 const router = express.Router();
 
@@ -936,19 +939,18 @@ router.post("/webhookv2", async (req, res) => {
       }`,
     );
 
-    // is_in_trial lifecycle — Apple'ın GERÇEĞİNE göre track edilir, bizim kill-switch'imize değil.
-    //  - Trial başlangıç (INITIAL_PURCHASE+TRIAL) → true
-    //  - Trial continuation (PRODUCT_CHANGE+TRIAL) → true (devam)
-    //  - Conversion (RENEWAL+is_trial_conversion VEYA PRODUCT_CHANGE+NORMAL-from-trial) → false
-    //  - Diğer her şey için mevcut değeri koru (defansif).
+    // is_in_trial lifecycle — RevenueCat period_type ve subscription türüne göre
+    // track edilir. Böylece v2nt/Android ücretli INITIAL_PURCHASE event'leri de
+    // trial flag'ini kapatır; coin paketleri mevcut değeri korur.
     const isTrialStartEvent =
       period_type === "TRIAL" && type === "INITIAL_PURCHASE";
-    let isInTrialNext = wasInTrial;
-    if (isTrialStartEvent || isTrialContinuation) {
-      isInTrialNext = true;
-    } else if (isConvertingFromTrial) {
-      isInTrialNext = false;
-    }
+    const isInTrialNext = resolveRevenueCatTrialState({
+      wasInTrial,
+      eventType: type,
+      periodType: period_type,
+      isTrialConversion,
+      isSubscription: Boolean(planType),
+    });
 
     // NOT: Trial continuation'da artık is_pro override etmiyoruz.
     // Trial kullanıcıları is_pro=true olarak işaretleniyor (watermark kapalı, PRO erişim).
