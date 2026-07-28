@@ -4828,6 +4828,13 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
         const qualityParam =
           isV2 || req.body.isBackSideAnalysis ? "2K" : undefined;
 
+        // 🔎 Web search sadece nano-banana-2'de destekleniyor (v1 nano-banana
+        // input şemasında yok). Hedef rengi (örn. marka/moda rengi) web'den
+        // doğrulayıp isabetli üretmesi için açık.
+        const webSearchParam = falModel.includes("nano-banana-2")
+          ? { enable_web_search: true }
+          : {};
+
         if (isPoseChange) {
           // POSE CHANGE MODE - Farklı input parametreleri
           requestBody = {
@@ -4838,6 +4845,7 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
             num_images: 1,
             resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
             safety_tolerance: "6",
+            ...webSearchParam,
           };
           logger.log(
             `🕺 [POSE_CHANGE] fal.ai ${falModel} request body hazırlandı`
@@ -4856,6 +4864,7 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
             num_images: 1,
             resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
             safety_tolerance: "6",
+            ...webSearchParam,
           };
         }
 
@@ -5189,6 +5198,9 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
             num_images: 1,
             resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
             safety_tolerance: "6",
+            ...(falModel.includes("nano-banana-2")
+              ? { enable_web_search: true }
+              : {}),
           };
 
           logger.log(
@@ -6590,6 +6602,9 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
       num_images: 1,
       resolution: "2K",
       safety_tolerance: "6",
+      ...(falModel.includes("nano-banana-2")
+        ? { enable_web_search: true }
+        : {}),
     };
 
     let falResponse;

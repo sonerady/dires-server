@@ -1952,6 +1952,7 @@ async function enhancePromptWithGemini(
   originalBase64Data = null, // Orijinal base64 verisi - URL'den tekrar indirmemek için
   kombinItemCount = 0, // 🛍️ Kombin modunda grid içindeki tekil ürün sayısı (0 = kombin değil)
   multipleAnglesCount = 0, // 📐 Aynı ürünün grid içindeki farklı açı sayısı
+  modelReferenceImageUrl = null, // 👤 Kullanıcı belirli bir model fotoğrafı seçtiyse URL'i (varsa yüz icat edilmez, referanstaki kişi korunur; görsel Gemini'ye de eklenir)
 ) {
   try {
     logger.log("🤖 [GEMINI] Google Gemini ile prompt iyileştirme başlatılıyor");
@@ -2614,9 +2615,22 @@ DEFAULT POSE: No specific pose was provided — you have full creative freedom o
             expression: pick(["calm confidence", "a warm approachable smile", "poised editorial neutrality", "a soft candid smile", "quiet magnetic intensity"]),
           };
 
-    const faceDescriptionSection = `
+    // 👤 Kullanıcı belirli bir model fotoğrafı SEÇTİYSE yüz icat edilmez —
+    // referanstaki kişinin kimliği aynen korunur. Rastgele esin eksenleri
+    // sadece model seçilmediğinde devreye girer.
+    const hasModelReference = Boolean(modelReferenceImageUrl);
+    const faceDescriptionSection = hasModelReference
+      ? `
+
+    MODEL IDENTITY (USER-PROVIDED — PRESERVE EXACTLY): The user has provided a specific model reference image (attached) — THIS exact person is the model who wears the garment. Preserve their face, facial features, identity, skin tone, apparent age, and hair exactly as seen in the model reference image. In your prompt, describe the model faithfully FROM that reference in natural photographic language (face shape, eyes, hair, expression as they actually appear) so the image model reproduces the same person. Do NOT invent, alter, beautify, age, or replace any facial feature — the final photograph must be unmistakably the same person as in the model reference.`
+      : `
 
     FACE DESCRIPTION (UNIQUENESS REQUIRED): Invent a completely ORIGINAL, photoreal, age-appropriate face for the ${baseModelText} — never a stock, template, or recycled description, and never the same face twice across generations. As loose inspiration ONLY for this generation (recombine, alter, or discard any of them freely): face shape leaning "${faceAxes.shape}", eye character around "${faceAxes.eyes}", a distinctive touch such as "${faceAxes.detail}", and an expression of "${faceAxes.expression}". Do NOT restate these fragments verbatim — compose your own flowing description covering face shape, eyes, brows, nose, lips, jawline, and expression, so every generation features a clearly different, unique, and photogenic human face.`;
+    if (hasModelReference) {
+      logger.log(
+        "👤 [GEMINI] Model referansı seçili — yüz randomizasyonu DEVRE DIŞI, kimlik korunacak",
+      );
+    }
 
     // Gemini'ye gönderilecek metin - güvenli flag-safe versiyon
     const criticalDirectives = `
@@ -3539,6 +3553,23 @@ ${promptForGemini}`;
       }
     }
 
+    // 👤 Model referans görselini ekle — Gemini kişiyi görüp kimliğini
+    // sadakatle tarif edebilsin (yüz icat etme kapalıyken zorunlu bağlam)
+    if (modelReferenceImageUrl) {
+      try {
+        const cleanModelRefUrl = sanitizeImageUrl(
+          String(modelReferenceImageUrl).split("?")[0],
+        );
+        const modelRefResponse = await axios.get(cleanModelRefUrl, {
+          responseType: "arraybuffer",
+        });
+        imageBuffers.push(Buffer.from(modelRefResponse.data));
+        logger.log("👤 Model referans görseli Gemini'ye eklendi");
+      } catch (imageError) {
+        console.error("❌ Model referans resmi indirme hatası:", imageError);
+      }
+    }
+
     // Pose image'ını da ekle
     if (poseImage) {
       try {
@@ -3631,6 +3662,20 @@ ${promptForGemini}`;
         cleanImageUrl.startsWith("https://")
       ) {
         imageUrlsForReplicate.push(cleanImageUrl);
+      }
+    }
+
+    // 👤 Model referans görselini de ekle (kimlik koruması için Gemini görmeli)
+    if (modelReferenceImageUrl) {
+      const cleanModelRefUrl = sanitizeImageUrl(
+        String(modelReferenceImageUrl).split("?")[0],
+      );
+      if (
+        cleanModelRefUrl.startsWith("http://") ||
+        cleanModelRefUrl.startsWith("https://")
+      ) {
+        imageUrlsForReplicate.push(cleanModelRefUrl);
+        logger.log("👤 [REPLICATE-GEMINI] Model referans görseli eklendi");
       }
     }
 
@@ -5894,6 +5939,9 @@ Do NOT describe the person's face/identity or the garments. PLAIN TEXT only, 100
         originalBase64ForGemini, // 🚀 Orijinal base64 - URL indirmesi atlanacak
         Array.isArray(kombinOriginalImages) ? kombinOriginalImages.length : 0, // 🛍️ Kombin içindeki tekil ürün sayısı
         isMultipleAnglesMode ? multipleAnglesCount : 0, // 📐 Aynı ürünün farklı açı sayısı
+        modelReferenceImage
+          ? modelReferenceImage.uri || modelReferenceImage.url || null
+          : null, // 👤 Model seçiliyse yüz icat edilmez, kimlik korunur (görsel Gemini'ye de gider)
       );
 
       // ⏳ Sadece Gemini prompt iyileştirme bekle
