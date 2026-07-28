@@ -1077,6 +1077,135 @@ function createStyleProfileRouter({
     }
   });
 
+  // 📊 ADMIN — çekim tarzı kullanım raporu.
+  //
+  // Üç soruyu yanıtlar:
+  //   1) Stil referansı özelliği hiç kullanılıyor mu (yükleme vs kayıtlı tarz)?
+  //   2) Kullanıcılar kendi çekim tarzlarını oluşturuyor mu?
+  //   3) Hangi tarz kaç kez kullanıldı, ürettiği önce/sonra nasıl görünüyor?
+  //
+  // ⚠️ Kullanım sayıları yalnızca izleme migration'ından SONRAKİ üretimleri
+  // kapsar (reference_results.style_profile_id). Öncesi için veri yok; UI bunu
+  // açıkça yazıyor ki sayılar "hiç kullanılmamış" diye okunmasın.
+  router.get("/admin/usage", async (req, res) => {
+    try {
+      const sampleLimit = Math.min(
+        Math.max(parseInt(req.query.samples, 10) || 4, 1),
+        12,
+      );
+
+      // ── Profiller: global ve kullanıcı ayrımıyla ──
+      const { data: profiles, error: profErr } = await supabase
+        .from(TABLE)
+        .select("id, user_id, name, subtitle, category_slug, image_urls, status, created_at")
+        .order("created_at", { ascending: false });
+      if (profErr) throw new Error(profErr.message);
+
+      const globalProfiles = (profiles || []).filter((p) => p.user_id === "global");
+      const userProfiles = (profiles || []).filter((p) => p.user_id !== "global");
+
+      // ── Stil referansı özelliğinin genel kullanımı ──
+      // count-only sorgular: 1.1M satırlık tabloyu satır çekmeden sayar.
+      const countBySource = async (source) => {
+        const q = supabase
+          .from("reference_results")
+          .select("*", { count: "exact", head: true });
+        const { count, error } = source
+          ? await q.eq("style_source", source)
+          : await q.not("style_source", "is", null);
+        if (error) throw new Error(error.message);
+        return count || 0;
+      };
+
+      const [profileRuns, uploadRuns] = await Promise.all([
+        countBySource("profile"),
+        countBySource("upload"),
+      ]);
+
+      // Kaç FARKLI kullanıcı özelliği denedi? Sayfalama yok: yalnızca stil
+      // kullanılan satırlar okunuyor, bunlar toplamın küçük bir dilimi.
+      const { data: usageRows, error: usageErr } = await supabase
+        .from("reference_results")
+        .select("user_id, style_profile_id, style_source, created_at")
+        .not("style_source", "is", null);
+      if (usageErr) throw new Error(usageErr.message);
+
+      const distinctUsers = new Set((usageRows || []).map((r) => r.user_id).filter(Boolean));
+      const runsByProfile = new Map();
+      for (const row of usageRows || []) {
+        if (!row.style_profile_id) continue;
+        runsByProfile.set(
+          row.style_profile_id,
+          (runsByProfile.get(row.style_profile_id) || 0) + 1,
+        );
+      }
+
+      // ── Kullanılan tarzlar: en çoktan aza, her biri için önce/sonra örnekleri
+      const usedProfileIds = [...runsByProfile.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .map(([id]) => id);
+
+      const samplesByProfile = {};
+      // Sıralı değil paralel: her profil için tek, indeksli, küçük sorgu.
+      await Promise.all(
+        usedProfileIds.map(async (profileId) => {
+          const { data: rows } = await supabase
+            .from("reference_results")
+            .select("id, reference_images, result_image_url, result_thumb_url, style_reference_url, created_at")
+            .eq("style_profile_id", profileId)
+            .eq("status", "completed")
+            .not("result_image_url", "is", null)
+            .order("created_at", { ascending: false })
+            .limit(sampleLimit);
+          samplesByProfile[profileId] = (rows || []).map((r) => ({
+            id: r.id,
+            // "Önce" = kullanıcının yüklediği ürün fotoğrafı, "sonra" = sonuç.
+            before: Array.isArray(r.reference_images) ? r.reference_images[0] || null : null,
+            after: r.result_thumb_url || r.result_image_url,
+            styleReferenceUrl: r.style_reference_url || null,
+            createdAt: r.created_at,
+          }));
+        }),
+      );
+
+      const decorate = (list) =>
+        list.map((p) => ({
+          id: p.id,
+          userId: p.user_id,
+          name: p.name,
+          subtitle: p.subtitle,
+          categorySlug: p.category_slug || null,
+          imageUrls: p.image_urls || [],
+          status: p.status,
+          createdAt: p.created_at,
+          runs: runsByProfile.get(p.id) || 0,
+          samples: samplesByProfile[p.id] || [],
+        }));
+
+      // Kendi tarzını oluşturan kullanıcı sayısı — "özellik benimsendi mi"nin
+      // en dolaysız ölçüsü.
+      const creators = new Set(userProfiles.map((p) => p.user_id));
+
+      return res.json({
+        success: true,
+        totals: {
+          globalProfiles: globalProfiles.length,
+          userProfiles: userProfiles.length,
+          profileCreators: creators.size,
+          profileRuns,
+          uploadRuns,
+          totalStyleRuns: profileRuns + uploadRuns,
+          distinctUsers: distinctUsers.size,
+        },
+        globalProfiles: decorate(globalProfiles),
+        userProfiles: decorate(userProfiles),
+      });
+    } catch (err) {
+      console.error("❌ [STYLE_PROFILE] admin usage error:", err?.message);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
   // 🗂️ Kategori sözlüğü — modaldaki yatay bar bunu okur.
   // Sayım istemcide yapılır: profiller zaten category_slug ile geliyor, böylece
   // bar ile listedeki süzme sonucu her zaman birbirini tutar.

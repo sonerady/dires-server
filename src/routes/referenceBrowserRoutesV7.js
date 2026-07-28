@@ -1217,6 +1217,11 @@ async function createPendingGeneration(
   isMultipleProducts = false,
   generationId = null,
   qualityVersion = "v1", // Kalite versiyonu parametresi
+  // 📊 Kullanım izleme: üretim hangi çekim tarzıyla yapıldı?
+  // Bunlar prompt üretiminde zaten elimizde; kaydedilmezse "hangi tarz kaç kez
+  // kullanıldı" sorusu sonradan hiçbir şekilde yanıtlanamıyor.
+  styleProfileId = null,
+  styleSource = null,
 ) {
   try {
     // User ID yoksa veya UUID formatında değilse, UUID oluştur
@@ -1265,6 +1270,8 @@ async function createPendingGeneration(
           generation_id: generationId,
           status: "pending", // Başlangıçta pending
           quality_version: qualityVersion, // Kalite versiyonu kaydediliyor
+          style_profile_id: styleProfileId,
+          style_source: styleSource,
           created_at: new Date().toISOString(),
         },
       ])
@@ -5488,6 +5495,13 @@ router.post("/generate", async (req, res) => {
       isMultipleProducts,
       finalGenerationId,
       qualityVersionForDB, // Kalite versiyonunu parametre olarak geç
+      styleProfileId || null,
+      styleProfileId
+        ? "profile"
+        : styleReferenceImage &&
+            (styleReferenceImage.base64 || styleReferenceImage.uri)
+          ? "upload"
+          : null,
     );
 
     if (!pendingGeneration) {
@@ -5871,6 +5885,25 @@ router.post("/generate", async (req, res) => {
         styleReferenceUrl = null;
         styleProfileMeta = null;
       }
+    }
+
+    // 📊 Kullanım izleme: modele giden stil referansının NİHAİ adresi ancak
+    // burada belli oluyor (yüklemede tek görsel, profilde plakalı grid kolajı).
+    // Best-effort — yazılamazsa üretim etkilenmez, yalnızca rapordaki önizleme
+    // eksik kalır. Satır zaten pending olarak açılmış durumda.
+    if (styleReferenceUrl && pendingGeneration?.id) {
+      supabase
+        .from("reference_results")
+        .update({ style_reference_url: styleReferenceUrl })
+        .eq("id", pendingGeneration.id)
+        .then(({ error: styleUrlErr }) => {
+          if (styleUrlErr) {
+            logger.warn(
+              "📊 [STYLE_USAGE] stil referans adresi yazılamadı:",
+              styleUrlErr.message,
+            );
+          }
+        });
     }
 
     // 🎬 TEKİL STİL REFERANSI TEKNİK ANALİZİ — profil modunda analiz zaten style_prompt'ta;
