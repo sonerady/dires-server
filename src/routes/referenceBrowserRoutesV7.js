@@ -63,8 +63,22 @@ const googleAiStudio = new GoogleGenAI({
   apiKey: process.env.GOOGLE_AISTUDIO_KEY || process.env.GEMINI_API_KEY,
 });
 
-// Replicate API üzerinden Gemini 3 Flash çağrısı yapan helper fonksiyon
+// 🎯 Ortak system instruction — hem Replicate hem Google direkt enhance yolu
+// kullanır. Mode-nötr yazıldı (normal replace, refiner, edit, color-change ve
+// pose-change akışlarının hepsi buradan geçer): görev brief'inin format
+// kurallarına itaat eder, kimlik + kalite çıtasını sabitler.
+const GEMINI_SYSTEM_INSTRUCTION = `You are an elite prompt writer for state-of-the-art AI image generation and editing models (the Gemini image family). Your single output is the final prompt text itself — never commentary, never explanations, never headers, rule labels, bullet lists, warning symbols, or quoted instructions. If the task specifies a required starting word, structure, or format, follow it exactly.
+
+Write in fluent, natural English as flowing narrative prose, like a world-class photographer's shoot brief. Every sentence must add a concrete visual fact — a named fabric, a light source with direction and quality, a lens behavior, a surface texture, a color relationship. Use positive framing only: describe what IS in the frame, never list what is absent or forbidden.
+
+When reference images are involved, treat the product/garment reference as the immutable source of truth — its colors, patterns, construction, proportions and details are reproduced exactly, never redesigned. Translate any raw parameter values you encounter (hex codes, underscore_keys, non-English labels) into natural English photographic language; they must never appear verbatim in your output.
+
+Aim for imagery with genuine editorial character: decisive light, a confident grade, intentional composition — the kind of frame that belongs to a current high-end campaign, never a generic stock photo.`;
+
+// Replicate API üzerinden Gemini Flash çağrısı yapan helper fonksiyon.
+// Model: google/gemini-3.5-flash (gemini-3-flash'tan yükseltildi, Tem 2026).
 // Hata durumunda 3 kez tekrar dener
+const REPLICATE_GEMINI_MODEL = "google/gemini-3.5-flash";
 async function callReplicateGeminiFlash(
   prompt,
   imageUrls = [],
@@ -79,7 +93,7 @@ async function callReplicateGeminiFlash(
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       logger.log(
-        `🤖 [REPLICATE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`,
+        `🤖 [REPLICATE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries} (model: ${REPLICATE_GEMINI_MODEL})`,
       );
 
       // Debug: Request bilgilerini logla
@@ -95,11 +109,12 @@ async function callReplicateGeminiFlash(
           temperature: 1,
           thinking_level: "low",
           max_output_tokens: 65535,
+          system_instruction: GEMINI_SYSTEM_INSTRUCTION,
         },
       };
 
       const response = await axios.post(
-        "https://api.replicate.com/v1/models/google/gemini-3-flash/predictions",
+        `https://api.replicate.com/v1/models/${REPLICATE_GEMINI_MODEL}/predictions`,
         requestBody,
         {
           headers: {
@@ -222,6 +237,7 @@ async function callGoogleGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
           temperature: 1,
           topP: 0.95,
           maxOutputTokens: 65535,
+          systemInstruction: GEMINI_SYSTEM_INSTRUCTION,
         },
       });
 
@@ -1750,6 +1766,170 @@ The final image MUST show the model's complete body from the top of the head to 
   }
 }
 
+// 📸 Perspektif normalizasyonu — client stabil id ("low_angle") gönderir ama
+// eski sürümler / kayıtlı profiller lokalize ad ("Alttan Açı") gönderebiliyor.
+// Ham değer prompta sızmasın diye bilinen id + TR adları doğal İngilizce
+// fotoğrafçılık terimine çevrilir; bilinmeyen değer olduğu gibi döner
+// (meta-prompt'taki çeviri talimatı son güvenlik ağıdır).
+const PERSPECTIVE_LABELS = {
+  eye_level: "eye-level angle",
+  high_angle: "high angle — camera above the model, looking down",
+  low_angle: "low angle — camera below eye level, looking up",
+  three_quarter: "three-quarter angle",
+  over_shoulder: "over-the-shoulder framing",
+  top_down: "top-down view",
+  worms_eye: "worm's-eye view — near ground level, looking up",
+  profile_shot: "side profile",
+  "göz hizası": "eye-level angle",
+  "yukarıdan açı": "high angle — camera above the model, looking down",
+  "alttan açı": "low angle — camera below eye level, looking up",
+  "¾ perspektif": "three-quarter angle",
+  "omuz arkası": "over-the-shoulder framing",
+  "tepeden bakış": "top-down view",
+  "yerden yukarı": "worm's-eye view — near ground level, looking up",
+  "yan profil": "side profile",
+};
+
+function normalizePerspective(value) {
+  if (!value || typeof value !== "string") return value;
+  const key = value.trim().toLowerCase();
+  return PERSPECTIVE_LABELS[key] || value;
+}
+
+// 🧵 Narratif fallback prompt — Gemini enhance tamamen başarısız olduğunda
+// kullanılır. Kullanıcı ayarlarını virgülle zincirlenmiş ham parametre dökümü
+// yerine akıcı, fotoğrafçı-brief tarzı 4 paragraflık cümlelere dönüştürür.
+// (Nano-banana narrative promptlarla en iyi sonucu verir; parametre yığını
+// stok/yapay görünüm üretir.)
+function buildNarrativeFallbackPrompt(settings = {}, isMultipleProducts = false) {
+  const s = settings || {};
+  const genderLower = (s.gender || "female").toLowerCase();
+  const isMale = genderLower === "male" || genderLower === "man";
+  const ageStr = s.age ? String(s.age) : "";
+  const isNewborn =
+    ageStr.toLowerCase() === "newborn" ||
+    ageStr.toLowerCase() === "yenidoğan" ||
+    ageStr === "0";
+  let parsedAgeInt = null;
+  if (isNewborn) {
+    parsedAgeInt = 0;
+  } else if (ageStr) {
+    const m = ageStr.match(/(\d+)/);
+    if (m) parsedAgeInt = parseInt(m[1], 10);
+    else if (/baby|bebek/i.test(ageStr)) parsedAgeInt = 1;
+    else if (/child|çocuk/i.test(ageStr)) parsedAgeInt = 5;
+    else if (/young|genç/i.test(ageStr)) parsedAgeInt = 22;
+    else if (/adult|yetişkin/i.test(ageStr)) parsedAgeInt = 45;
+  }
+
+  let modelNoun;
+  if (parsedAgeInt === 0) {
+    modelNoun = `newborn baby ${isMale ? "boy" : "girl"} (0 months old, infant)`;
+  } else if (parsedAgeInt !== null && parsedAgeInt <= 12) {
+    modelNoun = `child model (${isMale ? "male" : "female"})`;
+  } else if (parsedAgeInt !== null && parsedAgeInt <= 16) {
+    modelNoun = `teenage model (${isMale ? "male" : "female"})`;
+  } else {
+    modelNoun = isMale ? "adult male model" : "adult female model";
+  }
+
+  const garmentPhrase = isMultipleProducts
+    ? "flat-lay garments from the reference images"
+    : "flat-lay garment from the reference image";
+
+  // Paragraf 1 — model & poz
+  const traits = [];
+  if (s.ethnicity) traits.push(`of ${s.ethnicity} heritage`);
+  if (s.skinTone)
+    traits.push(`with ${s.skinTone} skin carrying a healthy, natural finish`);
+  if (s.hairColor && s.hairStyle)
+    traits.push(`with ${s.hairColor} hair styled as ${s.hairStyle}`);
+  else if (s.hairColor) traits.push(`with ${s.hairColor} hair`);
+  else if (s.hairStyle) traits.push(`with hair styled as ${s.hairStyle}`);
+  if (s.bodyShape)
+    traits.push(`with a ${s.bodyShape} body shape that the garment fits naturally`);
+
+  const an = (phrase) => (/^[aeiou]/i.test(phrase) ? "an" : "a");
+  let p1 = `Replace the ${garmentPhrase} so that the exact same ${
+    isMultipleProducts ? "garments are" : "garment is"
+  } worn by ${an(modelNoun)} ${modelNoun}${traits.length ? " " + traits.join(", ") : ""}, photographed for professional fashion photography.`;
+  p1 += s.pose
+    ? ` The model holds a ${s.pose} pose`
+    : ` The model stands in a relaxed, confident editorial pose, weight shifted naturally onto one leg with expressive but believable body language`;
+  p1 += s.mood ? `, carrying a ${s.mood} expression.` : ".";
+  if (s.accessories) p1 += ` The look is styled with ${s.accessories}.`;
+
+  // Paragraf 2 — kıyafet sadakati & kumaş fiziği
+  let p2 = `${
+    isMultipleProducts
+      ? "Every garment appears exactly as in its reference image"
+      : "The garment appears exactly as in the reference image"
+  } — identical colorway, prints and pattern scale, weave and knit texture, stitching, hardware, trims, labels, and hem finish — now worn as fully three-dimensional cloth with believable volume: the fabric wraps the body, catches light on raised folds, and settles into soft shadow inside creases, with all hangers, clips, tags, and flat-lay artifacts gone.`;
+  if (s.productColor && s.productColor !== "original") {
+    p2 += ` The garment is presented in ${s.productColor}.`;
+  }
+  if (isMultipleProducts) {
+    p2 += ` All pieces work together as one coordinated ensemble with natural layering and each item's own intended fit respected.`;
+  }
+  p2 += ` Prints and patterns follow the body's contours — curving, compressing, and flowing with the fabric in realistic continuity across seams.`;
+
+  // Paragraf 3 — ortam
+  const env =
+    (s.locationEnhancedPrompt && s.locationEnhancedPrompt.trim()) || s.location;
+  let p3 = env
+    ? `The scene takes place in ${env}`
+    : `The scene is a refined, contemporary studio with a clean, elevated backdrop`;
+  if (s.weather) p3 += `, during ${s.weather} weather`;
+  p3 += `. The environment reads with real depth — a tactile foreground, the model mid-frame, and a softly held background — its palette and mood supporting the garment as the hero of the image.`;
+
+  // Paragraf 4 — fotoğraf, ışık, grade
+  const normalizedPerspective = normalizePerspective(s.perspective);
+  let p4 = normalizedPerspective
+    ? `The photograph is composed from ${an(normalizedPerspective)} ${normalizedPerspective} viewpoint, `
+    : `The photograph is composed at eye level with polished editorial framing, `;
+  p4 += `lit by a professional lighting design suited to the setting, with one clear key light direction, natural falloff, and true contact shadows. The color grade is confident — dense blacks, accurate whites, honest saturation — with crisp focus on the garment and lifelike skin and fabric texture. The final result is a single, hyper-realistic, high-end professional fashion photograph, polished to editorial standards and suitable for premium catalogs and campaigns.`;
+
+  if (parsedAgeInt === 0) {
+    p4 += ` This is professional newborn fashion photography: the newborn rests in a safe, gentle, supported position, softly and evenly lit, framed in an intimate close-up that emphasizes the baby's delicate features and the garment's details in a tender, serene atmosphere.`;
+  }
+
+  return [p1, p2, p3, p4].join("\n\n");
+}
+
+// 🔁 Basitleştirilmiş ikinci enhance denemesi — tam meta-prompt başarısız
+// olduğunda çok daha kısa bir talimatla Gemini'ye bir şans daha verir.
+// Başarısızsa null döner; çağıran narratif statik şablona düşer.
+async function attemptSimplifiedEnhance(settings, isMultipleProducts, imageUrl) {
+  try {
+    const narrativeSeed = buildNarrativeFallbackPrompt(
+      settings,
+      isMultipleProducts,
+    );
+    const simplifiedInstruction = `You are a fashion photography prompt writer. Rewrite and enrich the draft prompt below into one flowing, vivid, positively-framed prompt for an AI image editing model, keeping every factual requirement (model, garment fidelity, setting, camera) intact and adding concrete fabric, light, and pose detail based on the attached garment image. Output ONLY the final prompt text, in English, with no headers, lists, or commentary.
+
+DRAFT PROMPT:
+${narrativeSeed}`;
+    const imageUrls = imageUrl ? [sanitizeImageUrl(imageUrl)] : [];
+    const simplified = await callGeminiFlash(
+      simplifiedInstruction,
+      imageUrls,
+      1,
+    );
+    if (simplified && simplified.trim().length > 200) {
+      logger.log(
+        "🔁 [FALLBACK] Basitleştirilmiş ikinci Gemini denemesi başarılı",
+      );
+      return simplified.trim();
+    }
+  } catch (retryErr) {
+    console.error(
+      "🔁 [FALLBACK] Basitleştirilmiş ikinci deneme de başarısız:",
+      retryErr.message,
+    );
+  }
+  return null;
+}
+
 async function enhancePromptWithGemini(
   originalPrompt,
   imageUrl,
@@ -1806,11 +1986,11 @@ async function enhancePromptWithGemini(
       );
     }
 
-    // 📝 OPENING DIRECTIVES — Skin / Pose / User-Detail direktifleri artık statik
-    // metin olarak prepend edilmiyor. Gemini'ye "bu 3 direktifi kıyafete göre
-    // yorumla, ünlemli başlık formatını koru, 2-3 cümlelik enhanced versiyon
-    // üretip prompt'un EN BAŞINA yaz" talimatı veriliyor. Böylece skin ve pose
-    // blokları kıyafetin kumaşına, rengine ve sahnesine uyarlanmış olarak gider.
+    // 📝 OPENING NARRATIVE — Skin / Pose / User-Detail intent'leri statik metin
+    // olarak prepend edilmiyor. Gemini'ye "bu intent'leri kıyafete göre yorumla,
+    // 2-3 cümlelik pozitif anlatı olarak (başlıksız, ⚠️'siz) prompt'un EN BAŞINA
+    // yaz" talimatı veriliyor. Böylece skin ve pose cümleleri kıyafetin kumaşına,
+    // rengine ve sahnesine uyarlanmış akıcı brief dili olarak gider.
     const directCustomDetail =
       typeof customDetail === "string" ? customDetail.trim() : "";
     // Fallback: eski client sürümleri customDetail'i ayrı parametre olarak
@@ -1837,12 +2017,11 @@ async function enhancePromptWithGemini(
       Boolean(poseImage);
     const includeOpenPoseDirective = !hasUserPose;
 
-    // 📏 MODEL BODY SIZE & HEIGHT DIRECTIVE — kullanıcı client'te belirli bir
+    // 📏 MODEL BODY SIZE & HEIGHT — kullanıcı client'te belirli bir
     // bodyShape (örn. "Petite", "Tall", "Plus Size") veya custom measurements
-    // (bust/waist/hips/height/weight) seçtiyse, prompt'un EN BAŞINA bu direktif
-    // konur. Gemini de "⚠️ MODEL BODY DIRECTIVE:" header'ıyla 2-3 cümlelik
-    // enhanced versiyon üretip blok'un başına yazar. Hedef: modelin beden ve
-    // boyu kullanıcı seçimine sadık, gerçekçi proportionlarla çıksın.
+    // (bust/waist/hips/height/weight) seçtiyse, Gemini bu intent'i başlıksız
+    // pozitif anlatı cümleleri olarak prompt'un EN BAŞINA işler. Hedef: modelin
+    // beden ve boyu kullanıcı seçimine sadık, gerçekçi proportionlarla çıksın.
     const bodyShapeText =
       typeof settings?.bodyShape === "string" ? settings.bodyShape.trim() : "";
     const hasCustomMeasurements =
@@ -1870,33 +2049,33 @@ async function enhancePromptWithGemini(
         ? `Selected body type / size: "${bodyShapeText}".`
         : "";
       openingDirectiveItems.push(
-        `"⚠️ MODEL BODY DIRECTIVE:" — Intent: the user has explicitly selected a specific body size / proportions / height for the model that MUST be honored in the final image with strict, photorealistic accuracy. ${bodyShapeLine} ${measurementsLine} The model's silhouette, body proportions, height impression in frame, garment drape, fit, and overall posture MUST all reflect this exact body specification — NOT a generic editorial standard size. Do NOT slim, lengthen, idealize, or substitute with a generic body. Frame the camera and choose a pose that is flattering and natural for THIS specific body type. → Your task: write a 2-3 sentence ENHANCED version that adapts this body specification to THIS specific garment's TYPE / CATEGORY, its fabric behavior on this body, the ENVIRONMENT / LOCATION, and the overall ATMOSPHERE / MOOD — describing how the garment realistically drapes, fits, and moves on a body of these proportions in this scene (e.g. a flowy linen dress softly skimming a curvier silhouette on a Mediterranean terrace; a tailored blazer cleanly structured on a petite frame in an urban plaza; a sweater hugging an athletic build in a mountain setting). The body specification must remain clearly visible and respected. Keep the exact header "⚠️ MODEL BODY DIRECTIVE:" as the first line of this block.`,
+        `MODEL BODY — Intent: the user has explicitly selected a specific body size / proportions / height for the model that MUST be honored in the final image with strict, photorealistic accuracy. ${bodyShapeLine} ${measurementsLine} The model's silhouette, body proportions, height impression in frame, garment drape, fit, and overall posture MUST all reflect this exact body specification, staying true to these proportions rather than a generic editorial standard size. Frame the camera and choose a pose that is flattering and natural for THIS specific body type. → Your task: write 2-3 flowing sentences that adapt this body specification to THIS specific garment's TYPE / CATEGORY, its fabric behavior on this body, the ENVIRONMENT / LOCATION, and the overall ATMOSPHERE / MOOD — describing how the garment realistically drapes, fits, and moves on a body of these proportions in this scene (e.g. a flowy linen dress softly skimming a curvier silhouette on a Mediterranean terrace; a tailored blazer cleanly structured on a petite frame in an urban plaza; a sweater hugging an athletic build in a mountain setting). The body specification must remain clearly visible and respected in your prose.`,
       );
     }
 
     openingDirectiveItems.push(
-      `"⚠️ NATURAL SKIN DIRECTIVE:" — Intent: the model's face must look like a real, healthy, well-groomed human in a professional fashion photograph (soft natural pores, subtle texture, matte-to-soft finish). Avoid plastic / CGI / doll-like hyper-smooth skin and avoid heavy glossy beauty makeup. Skin must still be CLEAR and HEALTHY — NO acne, pimples, blemishes, red spots, visible scars, enlarged pores, rashes, or unkempt appearance. Think "photoreal editorial model with natural skin", not airbrushed mannequin and not visibly flawed skin. Facial lighting neutral and photographic. → Your task: write a 2-3 sentence ENHANCED version that adapts this intent to THIS specific garment's TYPE / CATEGORY (tailoring, knitwear, activewear, eveningwear, swimwear, streetwear, etc.), its fabric & color palette, the ENVIRONMENT / LOCATION, and the overall ATMOSPHERE / MOOD (e.g. warm golden-hour glow on softly tanned skin for linen on a Mediterranean terrace; cool porcelain complexion with crisp studio key light for structured black eveningwear; fresh, healthy skin with light dew sheen for sportswear in an outdoor morning setting). Keep the exact header "⚠️ NATURAL SKIN DIRECTIVE:" as the first line of this block.`,
+      `NATURAL SKIN — Intent: the model's face must look like a real, healthy, well-groomed human in a professional fashion photograph — soft natural pores, subtle authentic skin texture, a matte-to-soft finish, clear and even-toned, with light natural makeup at most. Think "photoreal editorial model photographed in high resolution", the kind of honest, living skin seen in premium fashion campaigns. Facial lighting neutral and photographic. → Your task: write 2-3 flowing sentences that adapt this intent to THIS specific garment's TYPE / CATEGORY (tailoring, knitwear, activewear, eveningwear, swimwear, streetwear, etc.), its fabric & color palette, the ENVIRONMENT / LOCATION, and the overall ATMOSPHERE / MOOD (e.g. warm late-day glow on softly tanned skin for linen on a Mediterranean terrace; cool porcelain complexion with crisp studio key light for structured black eveningwear; fresh, healthy skin with light dew sheen for sportswear in an outdoor morning setting). Describe the skin the camera actually sees — positive, concrete, photographic.`,
     );
     if (includeOpenPoseDirective) {
       openingDirectiveItems.push(
-        `"⚠️ FASHION POSE DIRECTIVE:" — Intent: no specific pose was requested, so a dynamic fashion-editorial pose must be chosen that flatters THIS specific garment. The stiff mannequin default (both arms hanging straight down at the sides, feet parallel, frontal symmetric stance, blank catalog expression) is ABSOLUTELY FORBIDDEN. Hands must not enter pockets unless the garment clearly has visible pockets in the reference image (never invent pockets), and must not obstruct key garment details (neckline, print, stitching, buttons, hem, logo). The pose must feel like a professional lookbook / editorial shoot — natural, expressive, and chosen to showcase fit, drape, and silhouette. → Your task: write a 2-3 sentence ENHANCED version that picks and describes a specific editorial pose tailored to THIS garment's TYPE / CATEGORY, silhouette, cut, fabric behavior, and intended styling — AND that also fits the ENVIRONMENT / LOCATION and ATMOSPHERE / MOOD of the scene (e.g. relaxed contrapposto with a gentle shoulder turn for a flowy summer dress on a cobblestone street; confident wide three-quarter stance with one hand at the waist for a structured tailored blazer in an urban plaza; mid-step walking frame with natural arm swing for sportswear on a running track; seated editorial pose leaning forward for eveningwear in a candlelit interior). Keep the exact header "⚠️ FASHION POSE DIRECTIVE:" as the first line of this block.`,
+        `FASHION POSE — Intent: no specific pose was requested, so a dynamic fashion-editorial pose must be chosen that flatters THIS specific garment — never the stiff mannequin default (both arms hanging straight down at the sides, feet parallel, frontal symmetric stance, blank catalog expression). Hands enter pockets only if the garment clearly has visible pockets in the reference image, and hand placement always keeps key garment details (neckline, print, stitching, buttons, hem, logo) fully visible. The pose must feel like a professional lookbook / editorial shoot — natural, expressive, with believable weight and motion, chosen to showcase fit, drape, and silhouette. → Your task: write 2-3 flowing sentences that pick and describe ONE specific editorial pose tailored to THIS garment's TYPE / CATEGORY, silhouette, cut, fabric behavior, and intended styling — AND that also fits the ENVIRONMENT / LOCATION and ATMOSPHERE / MOOD of the scene (e.g. relaxed contrapposto with a gentle shoulder turn for a flowy summer dress on a cobblestone street; confident wide three-quarter stance with one hand at the waist for a structured tailored blazer in an urban plaza; mid-step walking frame with natural arm swing for sportswear on a running track; seated editorial pose leaning forward for eveningwear in a candlelit interior). Describe the pose in positive photographic prose — what the body IS doing.`,
       );
     }
     if (trimmedCustomDetail) {
       openingDirectiveItems.push(
-        `"⚠️ USER DETAIL DIRECTIVE:" — Intent: the user has explicitly provided this non-negotiable additional detail that MUST be honored and clearly reflected in the scene: "${trimmedCustomDetail}". Treat this with the same strictness as skin and pose. → Your task: write a 2-3 sentence ENHANCED version that integrates this user detail naturally into the garment + scene context, adapting it to the garment TYPE / CATEGORY, the ENVIRONMENT / LOCATION, and the ATMOSPHERE / MOOD (if it's a background / environment element, describe how it frames the composition with THIS garment and its setting; if it's a styling / mood / prop element, describe how it complements the fabric, color, silhouette, and lighting). The detail must stay recognizable and visible. Keep the exact header "⚠️ USER DETAIL DIRECTIVE:" as the first line of this block.`,
+        `USER DETAIL — Intent: the user has explicitly provided this non-negotiable additional detail that MUST be honored and clearly reflected in the scene: "${trimmedCustomDetail}". Treat this with the same strictness as skin and pose. → Your task: write 2-3 flowing sentences that integrate this user detail naturally into the garment + scene context, adapting it to the garment TYPE / CATEGORY, the ENVIRONMENT / LOCATION, and the ATMOSPHERE / MOOD (if it's a background / environment element, describe how it frames the composition with THIS garment and its setting; if it's a styling / mood / prop element, describe how it complements the fabric, color, silhouette, and lighting). The detail must stay clearly recognizable and visible in your prose.`,
       );
     }
 
     const openingDirectivesInstruction = openingDirectiveItems.length
       ? `
-⚠️⚠️⚠️ OPENING DIRECTIVES BLOCK — MANDATORY OUTPUT STRUCTURE ⚠️⚠️⚠️
+OPENING NARRATIVE REQUIREMENTS — MANDATORY OUTPUT STRUCTURE:
 
-Your enhanced prompt MUST BEGIN with the following ${openingDirectiveItems.length} directive block${openingDirectiveItems.length > 1 ? "s" : ""} in this exact order, each separated by a blank line, BEFORE any other description (before model, garment, environment, lighting paragraphs). For each block you will interpret the intent and write an ENHANCED version (2-3 sentences) tailored to THIS specific shoot — adapting it to the garment TYPE / CATEGORY, its fabric / color / silhouette, the ENVIRONMENT / LOCATION, and the overall ATMOSPHERE / MOOD. Do NOT copy the instruction text verbatim. You MUST keep the exact ⚠️ header line (e.g. "⚠️ NATURAL SKIN DIRECTIVE:") as the first line of each block. Never skip, soften, contradict, or merge these blocks.
+Your enhanced prompt MUST OPEN with a short narrative section that fulfills the following ${openingDirectiveItems.length} intent${openingDirectiveItems.length > 1 ? "s" : ""} in this exact order, BEFORE the detailed model / garment / environment / photography paragraphs. For each intent, interpret it and write 2-3 flowing sentences tailored to THIS specific shoot — adapting it to the garment TYPE / CATEGORY, its fabric / color / silhouette, the ENVIRONMENT / LOCATION, and the overall ATMOSPHERE / MOOD. Do NOT copy the instruction text verbatim. Write these as natural, positively-framed photographic prose that blends into the rest of the prompt: describe what IS in the frame. Your output must NEVER contain ⚠️ symbols, section headers, rule labels, ALL-CAPS warnings, or lists of forbidden things — the final prompt must read like a photographer's shoot brief, not a rulebook. Never skip, soften, contradict, or merge these intents.
 
 ${openingDirectiveItems.map((item, idx) => `${idx + 1}. ${item}`).join("\n\n")}
 
-After these directive blocks (separated by a blank line), continue with the rest of the enhanced prompt as usual.
+After this opening narrative section, continue with the rest of the enhanced prompt as usual.
 `
       : "";
 
@@ -2010,12 +2189,18 @@ After these directive blocks (separated by a blank line), continue with the rest
       }
       baseModelText = modelGenderText; // age'siz sürüm
 
-      // Eğer yaş bilgisini yetişkinlerde kullanmak istersen
+      // Eğer yaş bilgisini yetişkinlerde kullanmak istersen.
+      // "22" gibi sayısal yaş → "22 year old ..."; "young" gibi kelime yaş →
+      // "young adult ..." (aksi halde "young year old" gibi bozuk gramer çıkıyor).
       if (age) {
+        const isNumericAge = /^\d+\s*(years?\s*old)?$/i.test(String(age).trim());
+        const agePrefix = isNumericAge
+          ? `${parseInt(age, 10)} year old`
+          : String(age).trim();
         modelGenderText =
           genderLower === "male" || genderLower === "man"
-            ? `${age} year old adult male model`
-            : `${age} year old adult female model with confident expression`;
+            ? `${agePrefix} adult male model`
+            : `${agePrefix} adult female model with confident expression`;
       }
     }
 
@@ -2125,7 +2310,9 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
 
       settingsPromptSection = `
     User selected settings: ${settingsText}
-    
+
+    ⚙️ SETTING VALUE NORMALIZATION (MANDATORY): The setting values below are raw UI data and may contain non-English labels (e.g. Turkish), underscore_separated keys, or hex color codes (e.g. "#FFF3E7"). NEVER copy such raw values into your output prompt. Always translate them into natural English photographic language: a hex code becomes a descriptive color or skin-tone phrase (e.g. "a warm ivory complexion"), an underscore key becomes its natural term (e.g. "low_angle" → "a low camera angle looking up"), and any non-English label is translated to its English equivalent. The final prompt must read as if written by a native English-speaking photographer.
+
     SETTINGS DETAIL FOR BETTER PROMPT CREATION:
     ${Object.entries(settings)
       .filter(
@@ -2193,14 +2380,7 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
         : "garment/product";
       posePromptSection = `
     
-DEFAULT POSE: If no specific pose is provided, use natural, product-focused poses.  
-POSE RULES: 
-- PRIORITY: Keep the ${garmentText} oriented toward the camera so the entire design stays open and unobstructed. A straight-on stance or a subtle angle toward the lens (only if every key detail remains visible) is acceptable.  
-- Avoid dramatic side profiles, over-the-shoulder turns, or poses that hide large sections of the ${garmentText} from the lens.  
-- Encourage a confident, editorial pose that still keeps the torso presented to the camera; slight dynamic twists are fine as long as seams, closures, and logos remain clear.  
-- Keep both hands away from pockets or positions that would cover prints, trims, or construction details.  
-- Maintain a polished posture and engaged expression (toward the camera or slightly off-camera) that highlights the product professionally.  
-IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remain fully visible and well lit.
+DEFAULT POSE: No specific pose was provided — you have full creative freedom over the pose, camera angle, and placement of the model within the frame (off-center compositions, walking frames, seated poses, three-quarter turns, and intentional negative space are all welcome when they serve the garment). The single guarantee that must always hold: the ${garmentText}'s key design elements (neckline, chest, sleeves, prints, closures, seams, hem) stay clearly visible and well lit from the chosen angle, and hand placement keeps them unobstructed.
 
 
     - Best showcase ${
@@ -2359,10 +2539,10 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
       );
     } else {
       perspectivePromptSection = `
-    
-    SPECIFIC CAMERA PERSPECTIVE: The user has selected a specific camera perspective: "${
-      settings.perspective
-    }". Please ensure the photography follows this perspective while maintaining professional composition and optimal ${
+
+    SPECIFIC CAMERA PERSPECTIVE: The user has selected a specific camera perspective: "${normalizePerspective(
+      settings.perspective,
+    )}". Please ensure the photography follows this perspective while maintaining professional composition and optimal ${
       isMultipleProducts ? "multi-product ensemble" : "garment"
     } presentation.`;
 
@@ -2443,6 +2623,18 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     BRAND SAFETY: If the input image contains any brand names or logos (e.g., Nike, Adidas, Prada, Gucci, Louis Vuitton, Chanel, Balenciaga, Versace, Dior, Hermès), please refer to them generically (e.g., "brand label", "logo") without naming the specific brand.
     ACCESSORY PRESENTATION: When the hero item is footwear, a handbag, backpack, small leather good, hat, watch, jewelry, eyewear, belt, or any similar fashion accessory, explicitly require modern fashion campaign posing and camera angles that hero the accessory. Specify refined hand/foot/head placement, keep every design detail fully visible, and reference popular e-commerce hero perspectives (runway footwear angles, wrist-level watch close-ups, eye-line eyewear framing, handbag-on-hip hero shot, etc.) while maintaining premium fashion styling.`;
 
+    // 🎬 ART DIRECTION — look'u Gemini ürünün kendisinden türetir. Hazır
+    // reçete/menü verilmez (kullanıcı kararı): Gemini kıyafeti analiz edip
+    // o kıyafetin markası çekseydi nasıl görünürdü sorusuna kendisi cevap
+    // yazar. Talimat menü değil, metod verir — jenerik ortalamaya çökmesin
+    // diye somutluk ve karakter zorunlu tutulur.
+    const styleDnaLibrary = `
+    🎬 ART DIRECTION — DERIVE THE LOOK FROM THE GARMENT ITSELF:
+
+    Before writing the photography paragraph, silently answer this question: "If the brand behind THIS exact garment shot its own campaign, what would the photograph look like?" Read the garment's DNA — its fabric weight and surface, its color temperature, its price impression, its attitude (relaxed, sharp, romantic, sporty, rebellious, refined) — and design ONE distinctive visual identity for this shoot from that reading: a specific light source and direction with a clear quality (hard or soft, warm or cool), a confident color grade with named characteristics, a deliberate composition energy (still and sculptural, or caught mid-motion; centered and calm, or off-center and tense), and a lens behavior that serves it. Commit fully to that identity with concrete photographic language.
+
+    Every garment must produce a DIFFERENT answer — a crisp poplin shirt, a washed denim jacket, a silk slip dress, and a technical running shell each demand visibly different light, grade, and energy. The one outcome you never produce is the interchangeable default: soft frontal light, centered static model, neutral washed grade. If your photography paragraph could be pasted under any other garment without feeling wrong, redesign it until it belongs to THIS one only.`;
+
     // Nano-banana-2/Pro için genel garment transform talimatları (güvenli flag-safe versiyon).
     // Gemini image modelleri anlatı (narrative) tarzı, pozitif çerçeveli, kumaş/kamera
     // terminolojisi zengin promptlarla en iyi sonucu verir — talimatlar buna göre yazıldı.
@@ -2464,7 +2656,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     if (isEditMode && editPrompt && editPrompt.trim()) {
       // EDIT MODE - EditScreen'den gelen özel prompt
       promptForGemini = `
-      SIMPLE EDIT INSTRUCTION: Generate a very short, focused prompt (maximum 30 words) that:
+      SIMPLE EDIT INSTRUCTION: Generate a focused edit prompt — as short as the request allows, but with no hard word limit; write whatever length the edit genuinely needs — that:
       
       1. STARTS with "Replace"
       2. Translates the user's request to English if needed  
@@ -2524,7 +2716,7 @@ Confident model poses.
         isMultipleProducts ? " and ALL unaffected products" : ""
       }
 
-      LANGUAGE REQUIREMENT: Always generate your prompt in English and START with "Replace, change...".
+      LANGUAGE REQUIREMENT: Always generate your prompt in English and START with a clear edit verb such as "Replace" or "Change".
 
       ${originalPrompt ? `Additional context: ${originalPrompt}.` : ""}
       `;
@@ -2642,10 +2834,10 @@ STRICT FORMAT REQUIREMENTS:
       ? "with soft natural shadow for depth"
       : "with no shadow - completely flat and clean"
   } ${addReflection ? "and subtle reflection effect for luxury look" : ""}"
-- Focus & Clarity Requirement: You MUST include instructions for "Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus" in your generated prompt.
+- Focus & Clarity Requirement: You MUST include instructions for "Sharp focus and high clarity throughout — every surface, edge, and texture rendered crisply from front to back with deep, full-frame focus" in your generated prompt.
 - Include ALL relevant sections based on product type
-- End with: "The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting."
-- Length: 250-350 words
+- End with: "The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail, with crisp full-frame focus and clean, even, professional lighting."
+- Length: no word limit — write as thoroughly as the product transformation deserves; every sentence should add a concrete visual instruction
 
 === PRODUCT-SPECIFIC TRANSFORMATION RULES ===
 
@@ -2789,7 +2981,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
     } else if (isColorChange && targetColor && targetColor !== "original") {
       // COLOR CHANGE MODE - Sadece renk değiştirme
       promptForGemini = `
-      MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "change". Do not include any introduction, explanation, or commentary.
+      MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Change". Do not include any introduction, explanation, or commentary.
 
       ${criticalDirectives}
 
@@ -2810,7 +3002,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
           : ""
       }
 
-      Create a professional fashion photography prompt in English that STARTS with "change" for changing ONLY the color of ${
+      Create a professional fashion photography prompt in English that STARTS with "Change" for changing ONLY the color of ${
         isMultipleProducts
           ? "the specified product(s)/garment(s)"
           : "the product/garment"
@@ -2821,7 +3013,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       IMPORTANT: Please explicitly mention in your generated prompt that this is for "professional fashion photography" to ensure the AI image model understands the context and produces high-quality fashion photography results.
 
       CRITICAL REQUIREMENTS FOR COLOR CHANGE:
-      1. The prompt MUST begin with "Replace the ${
+      1. The prompt MUST begin with "Change the color of the ${
         isMultipleProducts
           ? "specified product(s)/garment(s)"
           : "product/garment"
@@ -2852,7 +3044,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
           : ""
       }
 
-      LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "change".
+      LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Change".
 
       ${
         originalPrompt
@@ -2863,7 +3055,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
     } else if (isPoseChange) {
       // POSE CHANGE MODE - Optimize edilmiş poz değiştirme prompt'u (100-150 token)
       promptForGemini = `
-      FASHION POSE TRANSFORMATION: Generate a focused, detailed English prompt (100-150 words) that transforms the model's pose efficiently. Focus ONLY on altering the pose while keeping the existing model, outfit, lighting, and background exactly the same. You MUST explicitly describe the original background/environment details and state that they stay unchanged.
+      FASHION POSE TRANSFORMATION: Generate a focused, detailed English prompt (no word limit — write as richly as the pose change needs) that transforms the model's pose efficiently. Focus ONLY on altering the pose while keeping the existing model, outfit, lighting, and background exactly the same. You MUST explicitly describe the original background/environment details and state that they stay unchanged.
 
       USER POSE REQUEST: ${
         settings?.pose && settings.pose.trim()
@@ -2916,7 +3108,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
 
       CRITICAL FORMATTING REQUIREMENTS:
       - Your response MUST start with "Change"
-      - Must be 100-150 words (concise but detailed)
+      - No word limit — as detailed as the pose change needs, without repeating ideas
       - Must be entirely in English
       - Focus ONLY on pose transformation
       - Do NOT include any generic fashion photography rules
@@ -3118,8 +3310,10 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       - CAMERA: name an exact focal length and aperture (e.g. "85mm at f/2.2 with a gently melted background", "35mm at f/5.6 holding the architecture crisp"), plus the camera height and angle relative to the model.
       - LIGHTING RECIPE: a specific key light direction and quality (hard vs soft), fill/shadow density, and ONE deliberate lighting character (crisp rim light, hard sun with graphic shadows, window-light falloff, etc.) — never the phrase "professional studio lighting" on its own.
       - COLOR GRADE: a confident editorial grade described like a preset — rich contrast, deep blacks, controlled highlights, an intentional palette (e.g. "clean digital editorial with dense blacks and accurate whites", "Portra-like warm neutrals with high micro-contrast").
-      ❌ FORBIDDEN LOOK: flat, washed-out, low-contrast, hazy or pastel-toned renderings; lifeless gray shadows; milky highlights; generic soft-lit catalog blandness. If the scene calls for soft light, keep the light soft but the grade CONFIDENT (deep blacks, honest saturation where the garment demands it).
+      ✦ GRADE CHARACTER: the grade is always CONFIDENT — deep, dense blacks; clean, accurate whites; honest saturation where the garment demands it; controlled highlights with real tonal depth. Even when the scene calls for soft light, keep the light soft but the grade decisive: rich contrast, a deliberate palette, and shadows with genuine density.
       The final image must feel like a frame from a current high-end fashion editorial — the kind people save to Pinterest/Behance mood boards — never like a generic stock catalog photo.
+
+      ${styleDnaLibrary}
 
       CRITICAL REQUIREMENTS:
       1. The prompt MUST begin with "Replace the ${
@@ -3200,7 +3394,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
     if (!originalPrompt || !originalPrompt.includes("Model's pose")) {
       // Eğer poz seçilmemişse akıllı poz seçimi, seçilmişse belirtilen poz
       if (!settings?.pose && !poseImage) {
-        promptForGemini += `Since no specific pose was provided, choose a confident, editorial fashion pose that keeps the garment fully visible — front-facing or slightly angled, with expressive but natural body language (weight shifted onto one leg, a relaxed shoulder turn, a poised hand placement that stays clear of key design details). Hands rest naturally at the sides, on the waist, or in gentle motion — inside pockets only if the garment clearly has visible pockets in the reference. Every signature feature of the garment (neckline, sleeves, prints, seams, hem) remains clearly on display.`;
+        promptForGemini += `Since no specific pose was provided, choose a confident, editorial fashion pose with full creative freedom over angle, framing, and the model's placement in the composition — expressive, natural body language (weight shifted onto one leg, a relaxed shoulder turn, a mid-step walking frame, a poised hand placement that stays clear of key design details). Hands rest naturally at the sides, on the waist, or in gentle motion — inside pockets only if the garment clearly has visible pockets in the reference. The one constant: every signature feature of the garment (neckline, sleeves, prints, seams, hem) remains clearly on display and well lit from the chosen angle.`;
       }
     }
 
@@ -3233,10 +3427,10 @@ The main reference image is a COMPOSITE GRID containing ${multipleAnglesCount} p
 Analyze every cell together as complementary evidence of one product. Reconstruct a single, consistent garment on the model by preserving all visible front, side, back, silhouette, material, print, stitching, trim, hardware and proportion details. Resolve occluded details using the other angle cells, never duplicate the product, never create a collage in the output, and never treat detail close-ups as separate accessories. The final result must contain exactly one instance of this product, worn naturally by the model.`;
     }
 
-    // 📝 Opening directives — skin / pose / user-detail direktifleri Gemini
-    // tarafından kıyafete özgü enhanced versiyonlar olarak prompt'un EN BAŞINA
-    // yazılacak. Statik prepend kaldırıldı; Gemini her bloğu ⚠️ başlığıyla
-    // koruyup içeriği bu kıyafete/sahneye göre yorumluyor.
+    // 📝 Opening directives — skin / pose / user-detail intent'leri Gemini
+    // tarafından kıyafete özgü, başlıksız pozitif anlatı cümleleri olarak
+    // prompt'un EN BAŞINA yazılıyor (⚠️ başlık formatı kaldırıldı — final
+    // prompt fotoğrafçı brief'i gibi okunmalı, kural kitabı gibi değil).
     if (openingDirectivesInstruction) {
       promptForGemini = `${openingDirectivesInstruction}
 
@@ -3585,7 +3779,7 @@ ${promptForGemini}`;
             ? "Add subtle reflection underneath for luxury catalog look."
             : "No reflection underneath.";
 
-          enhancedPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishVal} ${shadowTextVal}; ${reflectionTextVal} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishVal}, completely flat${
+          enhancedPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishVal} ${shadowTextVal}; ${reflectionTextVal} Sharp focus and high clarity throughout — every surface, edge, and texture rendered crisply from front to back with deep, full-frame focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishVal}, completely flat${
             addShadowVal ? "" : ", shadowless"
           }${
             addReflectionVal ? "" : ", and non-reflective"
@@ -3593,7 +3787,7 @@ ${promptForGemini}`;
             addShadowVal || addReflectionVal
               ? "professionally presented"
               : "to float cleanly"
-          }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
+          }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail, with crisp full-frame focus and clean, even, professional lighting.`;
 
           logger.log("🔧 [REFINER-VALIDATION] Fallback prompt uygulandı");
         } else {
@@ -3653,7 +3847,7 @@ ${promptForGemini}`;
           ? "Add subtle reflection underneath for luxury catalog look."
           : "No reflection underneath.";
 
-        enhancedPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishCatch} ${shadowTextCatch}; ${reflectionTextCatch} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishCatch}, completely flat${
+        enhancedPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishCatch} ${shadowTextCatch}; ${reflectionTextCatch} Sharp focus and high clarity throughout — every surface, edge, and texture rendered crisply from front to back with deep, full-frame focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishCatch}, completely flat${
           addShadowCatch ? "" : ", shadowless"
         }${
           addReflectionCatch ? "" : ", and non-reflective"
@@ -3661,22 +3855,13 @@ ${promptForGemini}`;
           addShadowCatch || addReflectionCatch
             ? "professionally presented"
             : "to float cleanly"
-        }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
+        }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail, with crisp full-frame focus and clean, even, professional lighting.`;
       } else {
-        // Normal mode için fallback - statik kuralları ekle
-        const staticRules = `
-
-CRITICAL RULES:
-
-The output must be a single, high-end professional fashion photograph only — no collages, duplicates, or extra frames.
-
-Apply studio-grade fashion lighting blended naturally with daylight, ensuring flawless exposure, vibrant textures, and sharp focus.
-
-Guarantee editorial-level clarity and detail, with no blur, dull tones, or artificial look.
-
-Model, garment, and environment must integrate into one cohesive, seamless professional photo suitable for commercial catalogs and editorial campaigns.`;
-
-        enhancedPrompt = originalPrompt + staticRules;
+        // Normal mode: enhancedPrompt'u originalPrompt'a eşitle ki aşağıdaki
+        // detaylı fallback zinciri (basitleştirilmiş ikinci deneme → narratif
+        // şablon) devreye girsin. Ham client parametre prompt'u asla direkt
+        // görüntü modeline gitmesin.
+        enhancedPrompt = originalPrompt;
       }
     }
 
@@ -3731,7 +3916,7 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
           ? "Add subtle reflection underneath for luxury catalog look."
           : "No reflection underneath.";
 
-        const refinerFallbackPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglish} ${shadowText}; ${reflectionText} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglish}, completely flat${
+        const refinerFallbackPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglish} ${shadowText}; ${reflectionText} Sharp focus and high clarity throughout — every surface, edge, and texture rendered crisply from front to back with deep, full-frame focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglish}, completely flat${
           addShadow ? "" : ", shadowless"
         }${
           addReflection ? "" : ", and non-reflective"
@@ -3739,225 +3924,27 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
           addShadow || addReflection
             ? "professionally presented"
             : "to float cleanly"
-        }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
+        }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail, with crisp full-frame focus and clean, even, professional lighting.`;
 
         logger.log("🔧 [FALLBACK-REFINER] Generated refiner fallback prompt");
         return refinerFallbackPrompt;
       }
 
-      // Settings'ten bilgileri çıkar
-      const location = settings?.location;
-      const locationEnhancedPrompt = settings?.locationEnhancedPrompt; // Enhanced prompt bilgisini al
-      const weather = settings?.weather;
-      const age = settings?.age;
-      const gender = settings?.gender;
-      const productColor = settings?.productColor;
-      const mood = settings?.mood;
-      const perspective = settings?.perspective;
-      const accessories = settings?.accessories;
-      const skinTone = settings?.skinTone;
-      const hairStyle = settings?.hairStyle;
-      const hairColor = settings?.hairColor;
-      const bodyShape = settings?.bodyShape;
-      const pose = settings?.pose;
-      const ethnicity = settings?.ethnicity;
-
-      // Model tanımı
-      let modelDescription = "";
-
-      // Yaş ve cinsiyet - aynı koşullar kullanılıyor
-      const genderLower = gender ? gender.toLowerCase() : "female";
-      let parsedAgeInt = null;
-
-      // Newborn kontrolü - fallback prompt için
-      const isNewbornFallback =
-        age?.toLowerCase() === "newborn" ||
-        age?.toLowerCase() === "yenidoğan" ||
-        age === "0";
-
-      // Yaş sayısını çıkar
-      if (age) {
-        if (age.includes("years old")) {
-          const ageMatch = age.match(/(\d+)\s*years old/);
-          if (ageMatch) {
-            parsedAgeInt = parseInt(ageMatch[1]);
-          }
-        } else if (isNewbornFallback || age === "0") {
-          parsedAgeInt = 0; // Newborn
-        } else if (age.includes("baby") || age.includes("bebek")) {
-          parsedAgeInt = 1;
-        } else if (age.includes("child") || age.includes("çocuk")) {
-          parsedAgeInt = 5;
-        } else if (age.includes("young") || age.includes("genç")) {
-          parsedAgeInt = 22;
-        } else if (age.includes("adult") || age.includes("yetişkin")) {
-          parsedAgeInt = 45;
-        } else {
-          // Direkt sayı olarak parse et
-          const numericAge = parseInt(age, 10);
-          if (!isNaN(numericAge)) {
-            parsedAgeInt = numericAge;
-          }
-        }
-      }
-
-      // Yaş grupları - güvenli flag-safe tanımlar
-      if (isNewbornFallback || (!isNaN(parsedAgeInt) && parsedAgeInt === 0)) {
-        // NEWBORN (0 yaş) - Fallback prompt için
-        const genderWord =
-          genderLower === "male" || genderLower === "man" ? "boy" : "girl";
-        modelDescription = `newborn baby ${genderWord} (0 months old, infant)`;
-      } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
-        // Çocuk/genç yaş grupları için güvenli tanımlar
-        if (parsedAgeInt <= 12) {
-          modelDescription =
-            genderLower === "male" || genderLower === "man"
-              ? "child model (male)"
-              : "child model (female)";
-        } else {
-          modelDescription =
-            genderLower === "male" || genderLower === "man"
-              ? "teenage model (male)"
-              : "teenage model (female)";
-        }
-      } else {
-        // Yetişkin - güvenli tanımlar
-        if (genderLower === "male" || genderLower === "man") {
-          modelDescription = "adult male model";
-        } else {
-          modelDescription = "adult female model with confident expression";
-        }
-      }
-
-      // Etnik köken
-      if (ethnicity) {
-        modelDescription += ` ${ethnicity}`;
-      }
-
-      // Ten rengi
-      if (skinTone) {
-        modelDescription += ` with ${skinTone} skin`;
-      }
-
-      // Saç detayları
-      if (hairColor && hairStyle) {
-        modelDescription += `, ${hairColor} ${hairStyle}`;
-      } else if (hairColor) {
-        modelDescription += `, ${hairColor} hair`;
-      } else if (hairStyle) {
-        modelDescription += `, ${hairStyle}`;
-      }
-
-      // Vücut tipi
-      if (bodyShape) {
-        modelDescription += `, ${bodyShape} body shape`;
-      }
-
-      // Poz ve ifade
-      let poseDescription = "";
-      if (pose) poseDescription += `, ${pose}`;
-      if (mood) poseDescription += ` with ${mood} expression`;
-
-      // Aksesuarlar
-      let accessoriesDescription = "";
-      if (accessories) {
-        accessoriesDescription += `, wearing ${accessories}`;
-      }
-
-      // Ortam - enhanced prompt öncelikli
-      let environmentDescription = "";
-      if (locationEnhancedPrompt && locationEnhancedPrompt.trim()) {
-        environmentDescription += ` in ${locationEnhancedPrompt}`;
-        logger.log(
-          "🏞️ [FALLBACK] Enhanced location prompt kullanılıyor:",
-          locationEnhancedPrompt,
-        );
-      } else if (location) {
-        environmentDescription += ` in ${location}`;
-        logger.log("🏞️ [FALLBACK] Basit location kullanılıyor:", location);
-      }
-      if (weather) environmentDescription += ` during ${weather} weather`;
-
-      // Kamera açısı
-      let cameraDescription = "";
-      if (perspective) {
-        cameraDescription += `, ${perspective} camera angle`;
-      }
-
-      // Ürün rengi
-      let clothingDescription = "";
-      if (productColor && productColor !== "original") {
-        clothingDescription += `, wearing ${productColor} colored clothing`;
-      }
-
-      // Ana prompt oluştur - Fashion photography odaklı (çoklu ürün desteği ile)
-      let fallbackPrompt = `Replace the ${
-        isMultipleProducts
-          ? "multiple flat-lay garments/products"
-          : "flat-lay garment"
-      } from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
-
-      // Fashion photography ve kalite gereksinimleri
-      fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve ${
-        isMultipleProducts
-          ? "ALL original garments/products"
-          : "the original garment"
-      } exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show ${
-        isMultipleProducts
-          ? "ALL identical garments/products perfectly fitted and coordinated"
-          : "the identical garment perfectly fitted"
-      } on the dynamic model for high-end fashion shoots. `;
-
-      // Kıyafet özellikleri (genel)
-      fallbackPrompt += `${
-        isMultipleProducts ? "Each garment/product" : "The garment"
-      } features high-quality fabric with proper texture, stitching, and construction details. `;
-
-      // Çoklu ürün için ek koordinasyon talimatları
-      if (isMultipleProducts) {
-        fallbackPrompt += `Ensure ALL products work together as a coordinated ensemble, maintaining proper layering, fit, and visual harmony between all items. `;
-      }
-
-      // Temizlik gereksinimleri - güvenli versiyon
-      fallbackPrompt += `Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed. Transform the ${
-        isMultipleProducts ? "flat-lay garments/products" : "flat-lay garment"
-      } into hyper-realistic, three-dimensional worn ${
-        isMultipleProducts ? "garments/products" : "garment"
-      } on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
-
-      // Fizik gereksinimleri
-      fallbackPrompt += `Ensure realistic fabric physics for ${
-        isMultipleProducts ? "ALL garments/products" : "the garment"
-      }: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
-
-      // Detay koruma - güvenli versiyon
-      fallbackPrompt += `Preserve all original details of ${
-        isMultipleProducts ? "EACH garment/product" : "the garment"
-      } including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning ${
-        isMultipleProducts
-          ? "any of the original garments/products"
-          : "the original garment"
-      }. `;
-
-      // Pattern entegrasyonu
-      fallbackPrompt += `Integrate prints/patterns correctly over the 3D form for ${
-        isMultipleProducts ? "ALL products" : "the garment"
-      }: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
-
-      // Newborn fashion photography direktifleri (fallback prompt için)
-      if (isNewbornFallback || (!isNaN(parsedAgeInt) && parsedAgeInt === 0)) {
-        fallbackPrompt += `NEWBORN FASHION PHOTOGRAPHY MODE: This is professional newborn fashion photography. The model is a newborn baby (0 months old, infant). Use safe, gentle poses appropriate for newborns - lying down positions, swaddled poses, or supported sitting positions. Ensure soft, diffused lighting gentle on the newborn's eyes. Maintain a peaceful, serene atmosphere. The newborn should appear comfortable, content, and naturally positioned. Focus on showcasing the garment/product while ensuring the newborn's safety and comfort. Use professional newborn photography techniques with natural fabric draping and age-appropriate styling. The overall aesthetic should be gentle, tender, and suitable for newborn fashion photography campaigns. CAMERA FRAMING: Use CLOSE-UP framing (tight crop) that focuses on the newborn and the garment/product. The composition should be intimate and detail-focused, capturing the newborn's delicate features and the product's details. Frame the shot to emphasize the newborn's face, hands, and the garment/product being showcased. Avoid wide shots - maintain a close-up perspective that creates an intimate, tender atmosphere. The camera should be positioned close to the subject, creating a warm, personal connection with the viewer. `;
-      }
-
-      // Final kalite - Fashion photography standartları
-      fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
-
-      logger.log(
-        "🔄 [FALLBACK] Generated detailed fallback prompt:",
-        fallbackPrompt,
+      // 🔁 Önce basitleştirilmiş ikinci Gemini denemesi, o da olmazsa
+      // narratif statik şablon. Ham parametre dökümü asla görüntü modeline gitmez.
+      const simplifiedRetry = await attemptSimplifiedEnhance(
+        settings,
+        isMultipleProducts,
+        imageUrl,
       );
-
-      enhancedPrompt = fallbackPrompt + fallbackStaticRules;
+      enhancedPrompt =
+        simplifiedRetry ||
+        buildNarrativeFallbackPrompt(settings, isMultipleProducts);
+      logger.log(
+        simplifiedRetry
+          ? "🔁 [FALLBACK] Basitleştirilmiş enhance kullanılıyor"
+          : "🧵 [FALLBACK] Narratif statik fallback prompt kullanılıyor",
+      );
     }
 
     return enhancedPrompt;
@@ -4023,7 +4010,7 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
         ? "Add subtle reflection underneath for luxury catalog look."
         : "No reflection underneath.";
 
-      return `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishCatchErr} ${shadowTextCatchErr}; ${reflectionTextCatchErr} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishCatchErr}, completely flat${
+      return `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishCatchErr} ${shadowTextCatchErr}; ${reflectionTextCatchErr} Sharp focus and high clarity throughout — every surface, edge, and texture rendered crisply from front to back with deep, full-frame focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishCatchErr}, completely flat${
         addShadowCatchErr ? "" : ", shadowless"
       }${
         addReflectionCatchErr ? "" : ", and non-reflective"
@@ -4031,254 +4018,22 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
         addShadowCatchErr || addReflectionCatchErr
           ? "professionally presented"
           : "to float cleanly"
-      }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
+      }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail, with crisp full-frame focus and clean, even, professional lighting.`;
     }
 
-    // Statik kuralları fallback prompt'un sonuna da ekle
-    const fallbackStaticRules = `
-
-CRITICAL RULES:
-
-The output must be a single, high-end professional fashion photograph only — no collages, duplicates, or extra frames.
-
-Apply studio-grade fashion lighting blended naturally with daylight, ensuring flawless exposure, vibrant textures, and sharp focus.
-
-Guarantee editorial-level clarity and detail, with no blur, dull tones, or artificial look.
-
-Model, garment, and environment must integrate into one cohesive, seamless professional photo suitable for commercial catalogs and editorial campaigns.`;
-
-    // Settings'ten bilgileri çıkar
-    const location = settings?.location;
-    const locationEnhancedPrompt = settings?.locationEnhancedPrompt; // Enhanced prompt bilgisini al
-    const weather = settings?.weather;
-    const age = settings?.age;
-    const gender = settings?.gender;
-    const productColor = settings?.productColor;
-    const mood = settings?.mood;
-    const perspective = settings?.perspective;
-    const accessories = settings?.accessories;
-    const skinTone = settings?.skinTone;
-    const hairStyle = settings?.hairStyle;
-    const hairColor = settings?.hairColor;
-    const bodyShape = settings?.bodyShape;
-    const pose = settings?.pose;
-    const ethnicity = settings?.ethnicity;
-
-    // Model tanımı
-    let modelDescription = "";
-
-    // Yaş ve cinsiyet - aynı koşullar kullanılıyor
-    const genderLower = gender ? gender.toLowerCase() : "female";
-    let parsedAgeInt = null;
-
-    // Newborn kontrolü - ikinci fallback prompt için
-    const isNewbornFallbackError =
-      age?.toLowerCase() === "newborn" ||
-      age?.toLowerCase() === "yenidoğan" ||
-      age === "0";
-
-    // Yaş sayısını çıkar
-    if (age) {
-      if (age.includes("years old")) {
-        const ageMatch = age.match(/(\d+)\s*years old/);
-        if (ageMatch) {
-          parsedAgeInt = parseInt(ageMatch[1]);
-        }
-      } else if (isNewbornFallbackError || age === "0") {
-        parsedAgeInt = 0; // Newborn
-      } else if (age.includes("baby") || age.includes("bebek")) {
-        parsedAgeInt = 1;
-      } else if (age.includes("child") || age.includes("çocuk")) {
-        parsedAgeInt = 5;
-      } else if (age.includes("young") || age.includes("genç")) {
-        parsedAgeInt = 22;
-      } else if (age.includes("adult") || age.includes("yetişkin")) {
-        parsedAgeInt = 45;
-      } else {
-        // Direkt sayı olarak parse et
-        const numericAge = parseInt(age, 10);
-        if (!isNaN(numericAge)) {
-          parsedAgeInt = numericAge;
-        }
-      }
-    }
-
-    // Yaş grupları - güvenli flag-safe tanımlar (ikinci fallback)
-    if (
-      isNewbornFallbackError ||
-      (!isNaN(parsedAgeInt) && parsedAgeInt === 0)
-    ) {
-      // NEWBORN (0 yaş) - İkinci fallback prompt için
-      const genderWord =
-        genderLower === "male" || genderLower === "man" ? "boy" : "girl";
-      modelDescription = `newborn baby ${genderWord} (0 months old, infant)`;
-    } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 16) {
-      // Çocuk/genç yaş grupları için güvenli tanımlar
-      if (parsedAgeInt <= 12) {
-        modelDescription =
-          genderLower === "male" || genderLower === "man"
-            ? "child model (male)"
-            : "child model (female)";
-      } else {
-        modelDescription =
-          genderLower === "male" || genderLower === "man"
-            ? "teenage model (male)"
-            : "teenage model (female)";
-      }
-    } else {
-      // Yetişkin - güvenli tanımlar
-      if (genderLower === "male" || genderLower === "man") {
-        modelDescription = "adult male model";
-      } else {
-        modelDescription = "adult female model with confident expression";
-      }
-    }
-
-    // Etnik köken
-    if (ethnicity) {
-      modelDescription += ` ${ethnicity}`;
-    }
-
-    // Ten rengi
-    if (skinTone) {
-      modelDescription += ` with ${skinTone} skin`;
-    }
-
-    // Saç detayları
-    if (hairColor && hairStyle) {
-      modelDescription += `, ${hairColor} ${hairStyle}`;
-    } else if (hairColor) {
-      modelDescription += `, ${hairColor} hair`;
-    } else if (hairStyle) {
-      modelDescription += `, ${hairStyle}`;
-    }
-
-    // Vücut tipi
-    if (bodyShape) {
-      modelDescription += `, ${bodyShape} body shape`;
-    }
-
-    // Poz ve ifade
-    let poseDescription = "";
-    if (pose) poseDescription += `, ${pose}`;
-    if (mood) poseDescription += ` with ${mood} expression`;
-
-    // Aksesuarlar
-    let accessoriesDescription = "";
-    if (accessories) {
-      accessoriesDescription += `, wearing ${accessories}`;
-    }
-
-    // Ortam - enhanced prompt öncelikli
-    let environmentDescription = "";
-    if (locationEnhancedPrompt && locationEnhancedPrompt.trim()) {
-      environmentDescription += ` in ${locationEnhancedPrompt}`;
-      logger.log(
-        "🏞️ [FALLBACK ERROR] Enhanced location prompt kullanılıyor:",
-        locationEnhancedPrompt,
-      );
-    } else if (location) {
-      environmentDescription += ` in ${location}`;
-      logger.log("🏞️ [FALLBACK ERROR] Basit location kullanılıyor:", location);
-    }
-    if (weather) environmentDescription += ` during ${weather} weather`;
-
-    // Kamera açısı
-    let cameraDescription = "";
-    if (perspective) {
-      cameraDescription += `, ${perspective} camera angle`;
-    }
-
-    // Ürün rengi
-    let clothingDescription = "";
-    if (productColor && productColor !== "original") {
-      clothingDescription += `, wearing ${productColor} colored clothing`;
-    }
-
-    // Ana prompt oluştur (çoklu ürün desteği ile)
-    let fallbackPrompt = `Replace the ${
-      isMultipleProducts
-        ? "multiple flat-lay garments/products"
-        : "flat-lay garment"
-    } from the input image directly onto a ${modelDescription} model${poseDescription}${accessoriesDescription}${environmentDescription}${cameraDescription}${clothingDescription}. `;
-
-    // Fashion photography ve kalite gereksinimleri
-    fallbackPrompt += `This is for professional fashion photography and commercial garment presentation. Preserve ${
-      isMultipleProducts
-        ? "ALL original garments/products"
-        : "the original garment"
-    } exactly as is, without altering any design, shape, colors, patterns, or details. The photorealistic output must show ${
-      isMultipleProducts
-        ? "ALL identical garments/products perfectly fitted and coordinated"
-        : "the identical garment perfectly fitted"
-    } on the dynamic model for high-end fashion shoots. `;
-
-    // Kıyafet özellikleri (genel)
-    fallbackPrompt += `${
-      isMultipleProducts ? "Each garment/product" : "The garment"
-    } features high-quality fabric with proper texture, stitching, and construction details. `;
-
-    // Çoklu ürün için ek koordinasyon talimatları
-    if (isMultipleProducts) {
-      fallbackPrompt += `Ensure ALL products work together as a coordinated ensemble, maintaining proper layering, fit, and visual harmony between all items. `;
-    }
-
-    // Temizlik gereksinimleri - güvenli versiyon
-    fallbackPrompt += `Please ensure that all hangers, clips, tags, and flat-lay artifacts are completely removed. Transform the ${
-      isMultipleProducts ? "flat-lay garments/products" : "flat-lay garment"
-    } into hyper-realistic, three-dimensional worn ${
-      isMultipleProducts ? "garments/products" : "garment"
-    } on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance. `;
-
-    // Fizik gereksinimleri
-    fallbackPrompt += `Ensure realistic fabric physics for ${
-      isMultipleProducts ? "ALL garments/products" : "the garment"
-    }: natural drape, weight, tension, compression, and subtle folds along shoulders, chest, torso, and sleeves; maintain a clean commercial presentation with minimal distracting wrinkles. `;
-
-    // Detay koruma - güvenli versiyon
-    fallbackPrompt += `Preserve all original details of ${
-      isMultipleProducts ? "EACH garment/product" : "the garment"
-    } including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning ${
-      isMultipleProducts
-        ? "any of the original garments/products"
-        : "the original garment"
-    }. `;
-
-    // Pattern entegrasyonu
-    fallbackPrompt += `Integrate prints/patterns correctly over the 3D form for ${
-      isMultipleProducts ? "ALL products" : "the garment"
-    }: patterns must curve, stretch, and wrap naturally across body contours; no flat, uniform, or unnaturally straight pattern lines. `;
-
-    // Newborn fashion photography direktifleri (ikinci fallback prompt için)
-    if (
-      isNewbornFallbackError ||
-      (!isNaN(parsedAgeInt) && parsedAgeInt === 0)
-    ) {
-      fallbackPrompt += `NEWBORN FASHION PHOTOGRAPHY MODE: This is professional newborn fashion photography. The model is a newborn baby (0 months old, infant). Use safe, gentle poses appropriate for newborns - lying down positions, swaddled poses, or supported sitting positions. Ensure soft, diffused lighting gentle on the newborn's eyes. Maintain a peaceful, serene atmosphere. The newborn should appear comfortable, content, and naturally positioned. Focus on showcasing the garment/product while ensuring the newborn's safety and comfort. Use professional newborn photography techniques with natural fabric draping and age-appropriate styling. The overall aesthetic should be gentle, tender, and suitable for newborn fashion photography campaigns. CAMERA FRAMING: Use CLOSE-UP framing (tight crop) that focuses on the newborn and the garment/product. The composition should be intimate and detail-focused, capturing the newborn's delicate features and the product's details. Frame the shot to emphasize the newborn's face, hands, and the garment/product being showcased. Avoid wide shots - maintain a close-up perspective that creates an intimate, tender atmosphere. The camera should be positioned close to the subject, creating a warm, personal connection with the viewer. `;
-    }
-
-    // Final kalite - Fashion photography standartları
-    fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
-
-    logger.log(
-      "🔄 [FALLBACK] Generated detailed fallback prompt:",
-      fallbackPrompt,
+    // 🔁 Basitleştirilmiş ikinci Gemini denemesi, o da olmazsa narratif
+    // statik şablon. Ham parametre dökümü asla görüntü modeline gitmez.
+    const simplifiedRetryCatch = await attemptSimplifiedEnhance(
+      settings,
+      isMultipleProducts,
+      imageUrl,
     );
-
-    // Son fallback durumunda da statik kuralları ekle
-    const finalStaticRules = `
-
-CRITICAL RULES:
-
-The output must be a single, high-end professional fashion photograph only — no collages, duplicates, or extra frames.
-
-Apply studio-grade fashion lighting blended naturally with daylight, ensuring flawless exposure, vibrant textures, and sharp focus.
-
-Guarantee editorial-level clarity and detail, with no blur, dull tones, or artificial look.
-
-Model, garment, and environment must integrate into one cohesive, seamless professional photo suitable for commercial catalogs and editorial campaigns.`;
-
-    return fallbackPrompt + finalStaticRules;
+    if (simplifiedRetryCatch) {
+      logger.log("🔁 [CATCH-FALLBACK] Basitleştirilmiş enhance kullanılıyor");
+      return simplifiedRetryCatch;
+    }
+    logger.log("🧵 [CATCH-FALLBACK] Narratif statik fallback prompt kullanılıyor");
+    return buildNarrativeFallbackPrompt(settings, isMultipleProducts);
   }
 }
 
@@ -6801,6 +6556,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
               num_images: 1,
               resolution: "2K",
               safety_tolerance: safetyTolerance,
+              enable_web_search: true,
               ...(nb2ThinkingLevel !== "off"
                 ? { thinking_level: nb2ThinkingLevel }
                 : {}),
@@ -6822,6 +6578,14 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
             );
 
             if (nanoResponse.data?.images?.length > 0) {
+              // 🔎 Web search açık — modelin kendi anlatımı (description) arama
+              // kullanımına dair tek görünür sinyal; fal groundingMetadata vermez.
+              if (nanoResponse.data?.description) {
+                logger.log(
+                  "🔎 [V1 NB2] Model description:",
+                  String(nanoResponse.data.description).substring(0, 500),
+                );
+              }
               const outputUrls = nanoResponse.data.images.map((img) => img.url);
               replicateResponse = {
                 data: {
@@ -6852,7 +6616,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
 
         // 📏 nano-banana-pro 50.000 karakter prompt sınırı var. v2 veya
         // backSide akışında güvenli bir tampon (49.500) bırakıp SONDAN kırp.
-        // Kırpım başı (skin/pose/user-detail ünlemli direktifleri) korur.
+        // Kırpım başı (skin/pose/user-detail opening narrative bölümü) korur.
         const NANO_BANANA_PRO_MAX_PROMPT = 49500;
         let promptForNanoBananaPro = enhancedPrompt;
         if (
@@ -6878,6 +6642,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
             aspect_ratio: aspectRatioForRequest,
             num_images: 1,
             resolution: "2K",
+            enable_web_search: true,
             ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
             ...(isV2 || req.body.isBackSideAnalysis
               ? { safety_tolerance: safetyTolerance }
@@ -6899,6 +6664,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
             aspect_ratio: aspectRatioForRequest,
             num_images: 1,
             resolution: "2K",
+            enable_web_search: true,
             ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
             ...(isV2 || req.body.isBackSideAnalysis
               ? { safety_tolerance: safetyTolerance }
@@ -6944,6 +6710,14 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
             "✅ Fal.ai API başarılı, images alındı:",
             response.data.images.map((img) => img.url),
           );
+          // 🔎 Web search açık — modelin kendi anlatımı (description) arama
+          // kullanımına dair tek görünür sinyal; fal groundingMetadata vermez.
+          if (response.data.description) {
+            logger.log(
+              "🔎 [NB] Model description:",
+              String(response.data.description).substring(0, 500),
+            );
+          }
 
           // Fal.ai response'u Replicate formatına dönüştür (mevcut kod ile uyumluluk için)
           const outputUrls = response.data.images.map((img) => img.url);
@@ -7238,6 +7012,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
             aspect_ratio: formattedRatio || "9:16",
             num_images: 1,
             resolution: "2K",
+            enable_web_search: true,
             ...(isV2 || req.body.isBackSideAnalysis
               ? { safety_tolerance: safetyTolerance }
               : {}),
@@ -7270,6 +7045,12 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
             retryResponse.data.images &&
             retryResponse.data.images.length > 0
           ) {
+            if (retryResponse.data.description) {
+              logger.log(
+                "🔎 [NB-RETRY] Model description:",
+                String(retryResponse.data.description).substring(0, 500),
+              );
+            }
             const outputUrls = retryResponse.data.images.map((img) => img.url);
             logger.log(
               `✅ Retry ${retryAttempt} başarılı! Images alındı:`,
