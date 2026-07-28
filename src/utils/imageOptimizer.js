@@ -151,12 +151,15 @@ const optimizeHistoryImages = (historyItems) => {
 
   return historyItems.map((item) => {
     const optimizedItem = { ...item };
+    const ownThumb = optimizedItem.__ownThumb;
+    delete optimizedItem.__ownThumb;
 
     // Result image'ları
     if (optimizedItem.result_image_url) {
-      optimizedItem.result_image_url_thumbnail = optimizeForThumbnail(
-        optimizedItem.result_image_url,
-      );
+      // Sunucuda üretilmiş önizleme varsa (ör. upscale — büyük çıktılarda CDN
+      // resizing 403 dönüyor) CDN sarmalayıcısı yerine doğrudan o kullanılır.
+      optimizedItem.result_image_url_thumbnail =
+        ownThumb || optimizeForThumbnail(optimizedItem.result_image_url);
       optimizedItem.result_image_url_original = getOriginalForModal(
         optimizedItem.result_image_url,
       );

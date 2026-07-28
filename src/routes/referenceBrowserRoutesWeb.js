@@ -1354,9 +1354,9 @@ The final image MUST be a tight close-up on the upper torso / face area of the m
     case "detail":
       return `⚠️ STRICT FRAMING DIRECTIVE — EXTREME DETAIL / MACRO:
 The final image MUST be an extreme close-up on a single detail of the garment — fabric texture, stitching, trim, button, seam, print, collar, cuff, or embellishment. Do NOT produce a full-body, upper-body, or lower-body shot. The frame should be dominated by the garment detail with shallow depth of field; the model's body is mostly out of frame or provides minimal contextual background only.`;
-    case "product_only":
-      return `⚠️ STRICT FRAMING DIRECTIVE — PRODUCT-FOCUSED (FACE OUT OF FRAME):
-The garment is still worn on the model, but the model's FACE must be cropped OUT of the frame (above the chin / neck line). The composition centers the garment itself — the model acts purely as a silent wearer to showcase fit and drape. Do NOT show the model's face. Do NOT remove the model entirely (it is not a flat-lay). The final image is a neck-down or shoulder-down product-centric shot.`;
+    case "full_body":
+      return `⚠️ STRICT FRAMING DIRECTIVE — FULL BODY, HEAD TO TOE:
+The final image MUST show the model's complete body from the top of the head to the feet, including the full outfit and footwear. Do NOT crop the head, arms, hands, legs, feet, or any part of the garment. Keep comfortable visible space above the head and below the feet, and compose a clearly recognizable full-length fashion shot. This is a hard, non-negotiable requirement: do NOT produce an upper-body, lower-body, close-up, or detail shot.`;
     default:
       return "";
   }

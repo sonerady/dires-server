@@ -15,6 +15,17 @@ const {
 } = require("../services/pushNotificationService");
 const teamService = require("../services/teamService");
 const logger = require("../utils/logger");
+// app_config ile kapatıldığında sessizce atlamak için işaret hatası
+class EditorialDisabled extends Error {}
+
+const {
+  isEditorialAvailable,
+  isEditorialEnabledRemotely,
+  shouldAttachCollages,
+  getEditorialCollages,
+  pickVariationDirective,
+  buildEditorialPromptBlock,
+} = require("../config/editorialStyle");
 const { optimizeImageUrl } = require("../utils/imageOptimizer");
 const {
   evaluatePrompt: evaluateSafetyPrompt,
@@ -678,6 +689,37 @@ async function isGptEnabledForV1() {
   return true; // default: GPT açık
 }
 
+// 🧠 NB2 thinking level — app_config.nb2_thinking_level ("high" | "minimal" | "off").
+// Render öncesi kompozisyon/ışık muhakemesi; maliyet etkisi +$0.002/görsel (ihmal edilebilir).
+// Varsayılan: "high". "off" → parametre hiç gönderilmez.
+async function getNb2ThinkingLevel() {
+  const normalize = (v) => {
+    const s = String(v || "").trim().toLowerCase();
+    return s === "high" || s === "minimal" || s === "off" ? s : null;
+  };
+  try {
+    const { data } = await supabase
+      .from("app_config")
+      .select("nb2_thinking_level")
+      .limit(1)
+      .maybeSingle();
+    const v = normalize(data?.nb2_thinking_level);
+    if (v) return v;
+  } catch (e) {
+    // kolon yoksa PostgREST hata fırlatır — key/value fallback'i dene
+    try {
+      const { data } = await supabase
+        .from("app_config")
+        .select("value")
+        .eq("key", "nb2_thinking_level")
+        .maybeSingle();
+      const v = normalize(data?.value);
+      if (v) return v;
+    } catch (e2) {}
+  }
+  return "high"; // default: açık
+}
+
 // Görüntülerin geçici olarak saklanacağı klasörü oluştur
 const tempDir = path.join(__dirname, "../../temp");
 if (!fs.existsSync(tempDir)) {
@@ -877,6 +919,51 @@ async function saveResultImageToUserBucket(resultImageUrl, userId) {
     console.error("❌ Result image user bucket'e kaydedilemedi:", error);
     // Hata durumunda orijinal URL'yi döndür
     return resultImageUrl;
+  }
+}
+
+// 🖼️ Izgara önizlemesi (thumbnail) üretimi
+//
+// Neden gerekli: netleştirilmiş sonuçlar 30 MB'ı aşabiliyor. Cloudflare Image
+// Resizing bu boyuttaki kaynağı reddediyor (403) — yani Results ızgarasındaki
+// optimizeImageUrl önizlemesi hiç yüklenmiyor, kart boş kalıyor (tam boyutlu
+// görsel modalda açıldığı için sorun yalnızca ızgarada görülüyordu).
+// Çözüm: önizlemeyi biz üretip bucket'e koyuyoruz.
+async function saveThumbnailToUserBucket(sourceUrl, userId) {
+  try {
+    if (!sourceUrl || !userId) return null;
+    const resp = await axios.get(sourceUrl, {
+      responseType: "arraybuffer",
+      timeout: 120000,
+      maxContentLength: 250 * 1024 * 1024,
+      maxBodyLength: 250 * 1024 * 1024,
+    });
+    const thumb = await sharp(Buffer.from(resp.data))
+      .rotate()
+      .resize(900, 900, { fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 82 })
+      .toBuffer();
+
+    const fileName = `${userId}/${Date.now()}_thumb_${uuidv4().substring(0, 8)}.jpg`;
+    const { error } = await supabase.storage
+      .from("user_image_results")
+      .upload(fileName, thumb, {
+        contentType: "image/jpeg",
+        cacheControl: "3600",
+        upsert: true,
+      });
+    if (error) throw new Error(error.message);
+
+    const { data: urlData } = supabase.storage
+      .from("user_image_results")
+      .getPublicUrl(fileName);
+    logger.log(
+      `🖼️ [THUMB] Önizleme üretildi (${Math.round(thumb.length / 1024)} KB): ${urlData?.publicUrl}`,
+    );
+    return urlData?.publicUrl || null;
+  } catch (err) {
+    console.warn("⚠️ [THUMB] Önizleme üretilemedi:", err?.message);
+    return null;
   }
 }
 
@@ -1433,6 +1520,33 @@ async function updateGenerationStatus(
       }
     }
 
+    // 🔍 Netleştirilmiş sonuçlar için iki ek iş:
+    //   1) Öncesi karesi kalıcılaştırılır — fal.media URL'leri süreli, oysa
+    //      SimpleImageModal'daki öncesi/sonrası sürgüsü bu kareyi kullanıyor.
+    //   2) Izgara önizlemesi üretilir — 30 MB'lık kaynağı CDN küçültemiyor.
+    if (status === "completed" && finalUpdates.upscaled_mp) {
+      try {
+        if (updates.pre_upscale_image_url) {
+          const savedPre = await saveResultImageToUserBucket(
+            updates.pre_upscale_image_url,
+            userId,
+          );
+          if (savedPre) finalUpdates.pre_upscale_image_url = savedPre;
+        }
+        // Önizleme kaynağı olarak KÜÇÜK olan öncesi karesi tercih edilir;
+        // yoksa büyük sonuç indirilir (yavaş ama çalışır).
+        const thumbSource =
+          finalUpdates.pre_upscale_image_url || finalUpdates.result_image_url;
+        const thumbUrl = await saveThumbnailToUserBucket(thumbSource, userId);
+        if (thumbUrl) finalUpdates.result_thumb_url = thumbUrl;
+      } catch (thumbErr) {
+        console.warn(
+          "⚠️ Netleştirme yardımcı görselleri hazırlanamadı:",
+          thumbErr?.message,
+        );
+      }
+    }
+
     const updateData = {
       status: status,
       updated_at: new Date().toISOString(),
@@ -1600,7 +1714,7 @@ function sanitizePoseText(text) {
 }
 
 // 🎯 Focus area direktifi — kullanıcı CreateModelPhotoScreen'de Odak Alanı seçtiyse
-// çekim bölgesini (upper body / lower body / close-up / detail / product-only) SERT
+// çekim bölgesini (upper body / lower body / close-up / detail / full-body) SERT
 // bir talimat olarak prompt'un en başına yerleştirir. Auto veya bilinmeyen değerde
 // boş döner (direktif eklenmez).
 function buildFocusAreaDirective(focusArea) {
@@ -1621,9 +1735,9 @@ The final image MUST be a tight close-up on the upper torso / face area of the m
     case "detail":
       return `⚠️ STRICT FRAMING DIRECTIVE — EXTREME DETAIL / MACRO:
 The final image MUST be an extreme close-up on a single detail of the garment — fabric texture, stitching, trim, button, seam, print, collar, cuff, or embellishment. Do NOT produce a full-body, upper-body, or lower-body shot. The frame should be dominated by the garment detail with shallow depth of field; the model's body is mostly out of frame or provides minimal contextual background only.`;
-    case "product_only":
-      return `⚠️ STRICT FRAMING DIRECTIVE — PRODUCT-FOCUSED (FACE OUT OF FRAME):
-The garment is still worn on the model, but the model's FACE must be cropped OUT of the frame (above the chin / neck line). The composition centers the garment itself — the model acts purely as a silent wearer to showcase fit and drape. Do NOT show the model's face. Do NOT remove the model entirely (it is not a flat-lay). The final image is a neck-down or shoulder-down product-centric shot.`;
+    case "full_body":
+      return `⚠️ STRICT FRAMING DIRECTIVE — FULL BODY, HEAD TO TOE:
+The final image MUST show the model's complete body from the top of the head to the feet, including the full outfit and footwear. Do NOT crop the head, arms, hands, legs, feet, or any part of the garment. Keep comfortable visible space above the head and below the feet, and compose a clearly recognizable full-length fashion shot. This is a hard, non-negotiable requirement: do NOT produce an upper-body, lower-body, close-up, or detail shot.`;
     default:
       return "";
   }
@@ -1650,6 +1764,7 @@ async function enhancePromptWithGemini(
   userId = null, // Compress için userId
   originalBase64Data = null, // Orijinal base64 verisi - URL'den tekrar indirmemek için
   kombinItemCount = 0, // 🛍️ Kombin modunda grid içindeki tekil ürün sayısı (0 = kombin değil)
+  multipleAnglesCount = 0, // 📐 Aynı ürünün grid içindeki farklı açı sayısı
 ) {
   try {
     logger.log("🤖 [GEMINI] Google Gemini ile prompt iyileştirme başlatılıyor");
@@ -1663,6 +1778,7 @@ async function enhancePromptWithGemini(
     logger.log("✏️ [GEMINI] Edit prompt:", editPrompt);
     logger.log("🔧 [GEMINI] Refiner mode:", isRefinerMode);
     logger.log("🔄 [GEMINI] Back side analysis mode:", isBackSideAnalysis);
+    logger.log("📐 [GEMINI] Multiple angles count:", multipleAnglesCount);
 
     // Settings'in var olup olmadığını kontrol et
     const hasValidSettings =
@@ -2990,6 +3106,14 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
         isNewborn ? "newborn " : ""
       }fashion photography results.
 
+      🎥 CINEMATOGRAPHY & COLOR GRADE REQUIREMENTS (NON-NEGOTIABLE — this is what separates an editorial photograph from a lifeless stock photo):
+      Your enhanced prompt MUST include a dedicated technical paragraph written in confident director-of-photography language, with CONCRETE specs chosen to flatter THIS garment and THIS scene:
+      - CAMERA: name an exact focal length and aperture (e.g. "85mm at f/2.2 with a gently melted background", "35mm at f/5.6 holding the architecture crisp"), plus the camera height and angle relative to the model.
+      - LIGHTING RECIPE: a specific key light direction and quality (hard vs soft), fill/shadow density, and ONE deliberate lighting character (crisp rim light, hard sun with graphic shadows, window-light falloff, etc.) — never the phrase "professional studio lighting" on its own.
+      - COLOR GRADE: a confident editorial grade described like a preset — rich contrast, deep blacks, controlled highlights, an intentional palette (e.g. "clean digital editorial with dense blacks and accurate whites", "Portra-like warm neutrals with high micro-contrast").
+      ❌ FORBIDDEN LOOK: flat, washed-out, low-contrast, hazy or pastel-toned renderings; lifeless gray shadows; milky highlights; generic soft-lit catalog blandness. If the scene calls for soft light, keep the light soft but the grade CONFIDENT (deep blacks, honest saturation where the garment demands it).
+      The final image must feel like a frame from a current high-end fashion editorial — the kind people save to Pinterest/Behance mood boards — never like a generic stock catalog photo.
+
       CRITICAL REQUIREMENTS:
       1. The prompt MUST begin with "Replace the ${
         isMultipleProducts
@@ -3091,6 +3215,15 @@ Your enhanced prompt MUST explicitly instruct the generator to:
 6. Ensure the outfit looks natural, cohesive, and styled as a real editorial fashion look — no floating garments, no missing pieces, no duplicate garments.
 
 Start your enhanced prompt by explicitly listing what you see in the grid (one short sentence per piece) before the full prompt, so the downstream image generator has per-item grounding.`;
+    }
+
+    if (multipleAnglesCount && multipleAnglesCount > 1) {
+      promptForGemini += `
+
+📐 SAME PRODUCT / MULTIPLE ANGLES MODE — CRITICAL:
+The main reference image is a COMPOSITE GRID containing ${multipleAnglesCount} photographs of ONE AND THE SAME product captured from different angles and distances. The cells do NOT show separate garments and must NEVER be combined into an outfit.
+
+Analyze every cell together as complementary evidence of one product. Reconstruct a single, consistent garment on the model by preserving all visible front, side, back, silhouette, material, print, stitching, trim, hardware and proportion details. Resolve occluded details using the other angle cells, never duplicate the product, never create a collage in the output, and never treat detail close-ups as separate accessories. The final result must contain exactly one instance of this product, worn naturally by the model.`;
     }
 
     // 📝 Opening directives — skin / pose / user-detail direktifleri Gemini
@@ -4342,6 +4475,552 @@ async function pollReplicateResultWithRetry(predictionId, maxRetries = 3) {
   }
 }
 
+// 🎬 Stil profili adı DB'de çok dilli obje ({"en":"...","tr":"..."}) veya onun JSON
+// string hâli olabilir. Prompt'a bunun tamamı girerse model 66 dillik bir blob okur;
+// prompt'a daima TEK dil (İngilizce) girer.
+function resolveStyleProfileNameForPrompt(raw) {
+  if (!raw) return null;
+  let val = raw;
+  if (typeof val === "string") {
+    const trimmed = val.trim();
+    if (!trimmed) return null;
+    if (trimmed.startsWith("{")) {
+      try {
+        val = JSON.parse(trimmed);
+      } catch {
+        return trimmed;
+      }
+    } else {
+      return trimmed;
+    }
+  }
+  if (val && typeof val === "object") {
+    const pick =
+      val.en ||
+      val.tr ||
+      Object.values(val).find((v) => typeof v === "string" && v.trim());
+    return typeof pick === "string" && pick.trim() ? pick.trim() : null;
+  }
+  return null;
+}
+
+// 🎬 Stüdyo/düz zemin profilleri: "farklı bir mekân uydur" kuralı bunlarda ZARAR verir
+// (düz beyaz stüdyo → sütunlu, mimari beyaz iç mekân olarak çıkıyordu). Analiz
+// metnindeki ENVIRONMENT_LOCK işareti; yoksa metin sezgisi ile karar verilir.
+const STUDIO_LOCK_HINT_RE =
+  /\b(studio|seamless|cyclorama|infinity wall|blank wall|blank backdrop|neutral backdrop|white backdrop|(?:plain|bare|empty|clean|white|off-white|neutral) (?:white |off-white |neutral )?(?:wall|walls)|minimal(?:ist)? (?:white )?(?:set|interior|interiors|room|space|backdrop))\b/i;
+
+function isStudioLockedStyleProfile(stylePrompt) {
+  if (!stylePrompt) return false;
+  const marker = /ENVIRONMENT_LOCK:\s*([A-Z_]+)/i.exec(stylePrompt);
+  if (marker) return marker[1].toUpperCase() === "STUDIO";
+  return STUDIO_LOCK_HINT_RE.test(stylePrompt);
+}
+
+// Analiz metni prompt'a girmeden önce temizlenir: makine işareti çıkarılır, stüdyo
+// kilidi varsa "farklı mekân kullan" cümlesi de çıkarılır (aksi hâlde alt bölümdeki
+// stüdyo kuralıyla çelişiyor ve model mekânı değiştiriyor).
+function sanitizeStylePromptForOutput(stylePrompt, studioLocked) {
+  if (!stylePrompt) return stylePrompt;
+  let out = String(stylePrompt).replace(/^\s*ENVIRONMENT_LOCK:.*$/gim, "");
+  if (studioLocked) {
+    out = out.replace(
+      /New shoots must use a different location from any sample frame[^.]*\.[ \t]*/gi,
+      "",
+    );
+  }
+  return out.replace(/\n{3,}/g, "\n\n").trim();
+}
+
+// 🔍 Netleştirme kredi tarifesi — RefinerScreen'deki tabloyla aynı mantık:
+// taban 10 kredi, kademe başına maliyetle orantılı artış. 4 MP zaten "kapalı"
+// olduğu için burada yer almaz (ek işlem yapılmaz → ücret de yok).
+const RESULT_UPSCALE_CREDIT_BY_MP = { 8: 20, 16: 40, 32: 80, 64: 120, 128: 240 };
+
+// Netleştirme için krediyi atomic olarak düşer. Yetersizse false döner ve
+// çağıran taraf netleştirmeyi hiç başlatmaz (üretim yine de teslim edilir).
+async function chargeUpscaleCredits(userId, targetMp) {
+  const cost = RESULT_UPSCALE_CREDIT_BY_MP[Number(targetMp)];
+  if (!cost) return { charged: 0, ok: false };
+  if (!userId || userId === "anonymous_user") return { charged: 0, ok: false };
+
+  try {
+    const effectiveCredits = await teamService.getEffectiveCredits(userId);
+    const creditOwnerId = effectiveCredits.creditOwnerId || userId;
+    const balance = effectiveCredits.creditBalance || 0;
+
+    if (balance < cost) {
+      logger.warn(
+        `💳 [UPSCALE-CREDIT] Yetersiz kredi (var: ${balance}, gerekli: ${cost}) — netleştirme atlanıyor`,
+      );
+      return { charged: 0, ok: false };
+    }
+
+    const { error } = await supabase.rpc("deduct_user_credit", {
+      user_id: creditOwnerId,
+      credit_amount: cost,
+    });
+    if (error) {
+      logger.warn("💳 [UPSCALE-CREDIT] Kredi düşülemedi:", error.message);
+      return { charged: 0, ok: false };
+    }
+    logger.log(`💳 [UPSCALE-CREDIT] ${cost} kredi düşüldü (${targetMp} MP)`);
+    return { charged: cost, ok: true };
+  } catch (err) {
+    logger.warn("💳 [UPSCALE-CREDIT] Hata:", err?.message);
+    return { charged: 0, ok: false };
+  }
+}
+
+// Üretim kaydına ara aşama işareti yazar (settings.stage). Polling bu alanı
+// okuyup Results kartında durum rozeti gösterir. Hata durumunda sessiz geçilir —
+// bu yalnızca görsel geri bildirim, üretimi bloklamamalı.
+async function markGenerationStage(generationId, userId, stage) {
+  try {
+    if (!generationId || !userId) return;
+    const { data: rows } = await supabase
+      .from("reference_results")
+      .select("settings")
+      .eq("generation_id", generationId)
+      .eq("user_id", userId)
+      .limit(1);
+    const current = rows?.[0]?.settings || {};
+    await supabase
+      .from("reference_results")
+      .update({ settings: { ...current, stage } })
+      .eq("generation_id", generationId)
+      .eq("user_id", userId);
+  } catch (err) {
+    logger.warn("⚠️ [STAGE] Aşama işareti yazılamadı:", err?.message);
+  }
+}
+
+// 🔍 SONUÇ NETLEŞTİRME — üretim biter bitmez sonucu seçilen megapiksele yükseltir.
+// Results ekranındaki MP butonu 4'ten büyük seçildiğinde devreye girer; 4 "kapalı"
+// demektir. Model ve parametreler RefinerScreen'deki akışla aynı
+// (prunaai/p-image-upscale, target modu).
+const RESULT_UPSCALE_MODEL_VERSION =
+  "b998e77850c393ccddb1a4c32e5c298c91f89f2af9d9fc72bb85e1949fd80ae3";
+const RESULT_UPSCALE_ALLOWED_MP = [8, 16, 32, 64, 128];
+
+async function upscaleResultImage(imageUrl, targetMp) {
+  const mp = Number(targetMp);
+  if (!RESULT_UPSCALE_ALLOWED_MP.includes(mp)) return null;
+  const token = process.env.REPLICATE_API_TOKEN;
+  if (!token || !imageUrl) return null;
+
+  const created = await axios.post(
+    "https://api.replicate.com/v1/predictions",
+    {
+      version: RESULT_UPSCALE_MODEL_VERSION,
+      input: {
+        image: imageUrl,
+        upscale_mode: "target",
+        target: mp,
+        output_format: "jpg",
+        output_quality: 95,
+        enhance_details: true,
+        disable_safety_checker: true,
+      },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Prefer: "wait",
+      },
+      timeout: 180000,
+    },
+  );
+
+  let prediction = created.data;
+  for (let i = 0; i < 90 && ["starting", "processing"].includes(prediction?.status); i++) {
+    await new Promise((r) => setTimeout(r, 1000));
+    const poll = await axios.get(
+      `https://api.replicate.com/v1/predictions/${prediction.id}`,
+      { headers: { Authorization: `Bearer ${token}` }, timeout: 30000 },
+    );
+    prediction = poll.data;
+  }
+
+  if (prediction?.status !== "succeeded") {
+    throw new Error(
+      `Result upscale failed: ${prediction?.error || prediction?.status || "unknown"}`,
+    );
+  }
+  const out = prediction.output;
+  const url = Array.isArray(out) ? out[0] : out;
+  return typeof url === "string" && url.startsWith("http") ? url : null;
+}
+
+// 🎬 STYLE REFERENCE MODE — kompakt, deterministik prompt.
+// Kullanıcı bir stil referans görseli yüklediğinde koca Gemini enhanced-prompt hattı
+// ÇALIŞTIRILMAZ; ortam/ışık/kamera/poz zaten referans görselden kopyalanacağı için
+// prompt yalnızca (1) referans direktifi + kod plakası işareti, (2) ürün sadakati,
+// (3) kullanıcının seçim/detay girdilerinden oluşur.
+function buildStyleReferencePrompt({
+  settings = {},
+  customDetail = null,
+  hasModelReference = false,
+  isMultipleProducts = false,
+  stamped = true,
+  styleProfile = null, // { name, stylePrompt, imageCount } — stil profili (grid kolaj) modu
+  technicalAnalysis = null, // Gemini'nin tekil referanstan çıkardığı teknik kamera/ışık analizi
+} = {}) {
+  const refPointer = stamped
+    ? `the attached image that carries a solid BLACK code plate along its bottom edge with the printed text "STYLE REFERENCE · CODE SR-1" (it is the LAST attached image)`
+    : `the LAST attached image`;
+
+  // Stüdyo/düz zemin profillerinde mekân ÇEŞİTLENDİRİLMEZ — birebir korunur.
+  const studioLocked =
+    !!styleProfile && isStudioLockedStyleProfile(styleProfile.stylePrompt);
+  const profileName = styleProfile
+    ? resolveStyleProfileNameForPrompt(styleProfile.name)
+    : null;
+
+  const sections = [];
+
+  // Kod plakası sızıntısına karşı EN BAŞTA sert kural — model bazen input'taki
+  // plakayı çıktıya kopyalıyor; ilk cümle olarak yasaklamak en etkili yöntem.
+  if (stamped) {
+    sections.push(
+      `⚠️ ABSOLUTE OUTPUT RULE — READ FIRST: The final photograph fills the frame edge to edge; the bottom edge simply continues the scene. The black code plate strip you will see along the bottom of one attached input image is an INPUT-ONLY marker used to identify that image — the output must not contain that black strip or any similar added band. (Printed graphics, brand marks and labels that belong to the garment itself stay exactly as they are.)`,
+    );
+  }
+
+  if (styleProfile) {
+    sections.push(`⚠️ STYLE REFERENCE MODE — STRICT DIRECTIVES
+
+STYLE REFERENCE COLLAGE: Among the attached images, ${refPointer} is the STYLE REFERENCE. It is a COLLAGE GRID of ${styleProfile.imageCount} separate photoshoot frames that all belong to ONE brand aesthetic${profileName ? ` ("${profileName}")` : ""}. Treat the collage as EXAMPLES of a photographic STYLE only — mood boards, not sets to rebuild. Extract the SHARED aesthetic across its frames and reproduce that aesthetic in the final photograph:
+${studioLocked ? `- the SET itself: the same plain backdrop, wall/floor tone and emptiness (see BACKDROP LOCK below),` : `- the FAMILY of environments (urban street / studio / loft / etc.) — category only, never a specific pictured place,`}
+- the shared lighting language (direction, hardness/softness, time-of-day feel),
+- the shared color grade, contrast and atmosphere,
+- the shared camera language (focal-length feel, angles, crops, depth of field),
+- the shared posing style, energy and attitude.
+Compose ONE coherent new photograph inspired by this aesthetic — do not reproduce any single frame pixel-by-pixel, and do not render a collage/grid in the output.
+
+${
+      studioLocked
+        ? `⚠️ BACKDROP LOCK — STUDIO / PLAIN SET (HIGHEST PRIORITY, OVERRIDES EVERYTHING BELOW): The reference frames share a plain, seamless studio-style set. REPRODUCE THAT SAME BACKDROP EXACTLY: the same flat, evenly lit surface, the same wall and floor tone, the same emptiness and the same absence of depth. Keep it exactly as bare as the reference — do not enrich, decorate or restage it, and add nothing that the reference frames do not show. Turning this plain set into a different, more detailed or more spacious environment is a hard failure here.`
+        : `⚠️ LOCATIONS ARE EXAMPLES, NOT TEMPLATES (NON-NEGOTIABLE): Matching the sample locations is NOT required. The places in the collage frames only illustrate the vibe. Invent a NEW location that belongs to the same family (same architecture character, surfaces, urban/nature/indoor feel) but is clearly DIFFERENT from every pictured street, building, room, shopfront or backdrop. Do NOT rebuild, mirror or lightly remix any sample set.
+EXCEPTION — STUDIO: If the frames share a plain/seamless studio setup (neutral backdrop, minimal set), reproducing that same studio character is correct and expected — studio need not vary.`
+    }
+🚫 NO ONE-OFF PROP CARRY-OVER (NON-NEGOTIABLE): Incidental objects that appear in one or a few collage frames — a motorcycle, scooter, parked car, bicycle, traffic sign, graffiti, storefront, specific chair, plant, bag left in the background, etc. — are coincidences of that shoot, NOT part of the style. NEVER place such one-off props in the output, even if they are visually prominent in the collage. Only shared light, grade, camera and posing language define the style.`);
+  } else {
+    sections.push(`⚠️ STYLE REFERENCE MODE — STRICT DIRECTIVES
+
+STYLE REFERENCE IMAGE: Among the attached images, ${refPointer} is the STYLE REFERENCE. It defines HOW the final photograph must look. Treat it as the single source of truth for staging and replicate from it, as faithfully as possible:
+- the exact environment and location (architecture, surfaces, background elements, depth layers),
+- the exact lighting (direction, hardness/softness, time-of-day feel, shadow and highlight behavior),
+- the exact color grade, contrast and overall atmosphere/mood,
+- the exact camera angle, focal-length feel, framing and crop,
+- the exact model pose, stance, gesture and body language.`);
+  }
+
+  if (styleProfile?.stylePrompt) {
+    sections.push(`STYLE PROFILE ANALYSIS (art-director notes distilled from the reference frames — follow them):
+${sanitizeStylePromptForOutput(styleProfile.stylePrompt, studioLocked)}`);
+  }
+
+  // 🎯 Sadakat blokları — prompt'un geri kalanı ağırlıklı olarak YASAKLARDAN oluşuyor;
+  // bu iki blok "neyi birebir taşı" tarafını dengeler (poz enerjisi ve grade/preset,
+  // sonuçlarda en çok kaybedilen iki şeydi).
+  if (styleProfile) {
+    sections.push(`🎯 POSE & ATTITUDE ADHERENCE (HIGH PRIORITY): The output must read as one more frame from the SAME shoot as the reference collage — a DIFFERENT frame, not a repeat of one. What you copy is the REGISTER, not the gesture:
+- ENERGY & ATTITUDE — copy this exactly. If the reference subjects are playful, cheeky and relaxed, the model is playful, cheeky and relaxed; if they are still and cool, the model is still and cool. A neutral, stiff catalog pose is a failure whenever the references are not neutral.
+- BODY-LANGUAGE RULES — copy these too: how casual the stance and weight shift are, whether the hands are busy/engaged or hanging, how much movement vs stillness there is, the head-tilt and shoulder habits, how direct or soft the gaze is.
+- THE SPECIFIC GESTURES ARE EXAMPLES, NOT A TEMPLATE. A particular pose seen in a frame (a hand raised to the hair, a hand on the neck, a specific lean or hip pop) only demonstrates that this concept ALLOWS that kind of gesture. Do NOT reproduce it literally. Invent a DIFFERENT gesture from the same family — one that a photographer would naturally shoot next in this session, with the same attitude and the same level of looseness.
+- Exception: if the SAME gesture clearly recurs across most of the frames, it is a signature of the concept and may be used; a gesture that appears in only one frame is a one-off sample and must be varied away from.
+
+🎯 GRADE & PRESET ADHERENCE (HIGH PRIORITY): Apply the reference color treatment as if it were a fixed preset baked into the file: the same palette and saturation level, the same contrast curve and black level (lifted/matte vs crushed), the same white-balance bias, the same highlight roll-off, the same grain/texture and any fade. The exposure key must match too — if the references are high-key and airy, the output is high-key and airy. A technically clean but differently graded image is a failure.`);
+  }
+
+  if (technicalAnalysis) {
+    sections.push(`TECHNICAL CAMERA & LIGHTING ANALYSIS (extracted from the style reference by a director of photography — follow these specs precisely):
+${technicalAnalysis}`);
+  }
+
+  sections.push(`SCENE AND STAGING RULES:
+
+STRICT SEPARATION: Do NOT copy any clothing, product, accessory, jewelry, bag or shoe from the style reference. The style reference contributes ONLY ${
+    styleProfile
+      ? studioLocked
+        ? "the photographic STYLE (light, grade, camera, posing language) and the plain studio backdrop itself — never a one-off background prop"
+        : "the photographic STYLE (light, grade, camera, posing language and environment FAMILY) — never a specific pictured location or one-off background prop"
+      : "the scene, light, camera and pose"
+  }.
+
+🚫 IDENTITY PROTECTION (NON-NEGOTIABLE): Any person appearing in the style reference image (or in any of its frames, if it is a collage) must NEVER appear in the output. Generate a completely NEW, different model: a different face, different facial features, different identity. The output model must NOT be recognizable as, resemble, or be mistaken for the person in the style reference in ANY way — not their face, facial structure, distinctive marks, moles, scars or tattoos. Only the body POSE, stance and staging are taken from the reference person; their likeness is strictly off-limits.
+
+GARMENT SOURCE OF TRUTH: The other attached product photo(s) define the garment(s). Dress the model EXCLUSIVELY in these product(s) and reproduce them with catalog-grade fidelity — exact colors, prints and pattern scale, fabric texture and weight, stitching, seams, trims, hardware, closures, labels and proportions. Do not invent, restyle, recolor or omit any visible product detail.${
+    isMultipleProducts
+      ? " Multiple products are provided — the model wears them together as one coherent outfit, each piece reproduced faithfully."
+      : ""
+  }`);
+
+  if (stamped) {
+    sections.push(
+      `CODE PLATE: The black code strip on the style reference exists only to mark which attached image is the style reference. It belongs to the input, not to the photograph — the output frame contains only the scene itself, with no added strip or band at any edge. Graphics printed on the garment are part of the product and remain untouched.`,
+    );
+  }
+
+  // ── Kullanıcının seçim/detay girdileri ──
+  if (hasModelReference) {
+    sections.push(
+      `MODEL IDENTITY: The FIRST attached image is the model identity reference (provided by the user). Preserve THIS person's face, identity and skin tone exactly, while adopting the pose and staging of the style reference. The identity protection rule above still applies to the style-reference person — never blend their likeness into this model.`,
+    );
+  } else {
+    const gender = typeof settings?.gender === "string" && settings.gender.trim()
+      ? settings.gender.trim()
+      : null;
+    const age = settings?.age ? String(settings.age).trim() : null;
+    sections.push(
+      `MODEL: Create a brand-new, ${[age ? `${age}-year-old` : null, gender]
+        .filter(Boolean)
+        .join(" ")} AI-generated fashion model with natural, realistic skin texture — an entirely original person whose identity is clearly DIFFERENT from the person in the style reference.`.replace(/, +AI-generated/, " AI-generated"),
+    );
+  }
+
+  const bodyShape =
+    typeof settings?.bodyShape === "string" && settings.bodyShape.trim()
+      ? settings.bodyShape.trim()
+      : null;
+  if (bodyShape) {
+    sections.push(`BODY SHAPE: The model has a ${bodyShape} body shape.`);
+  }
+
+  if (settings?.productColor && settings.productColor !== "original") {
+    sections.push(
+      `🎨 PRODUCT COLOR REQUIREMENT (NON-NEGOTIABLE): Render the garment's base fabric in "${settings.productColor}" (if it is a hex code, use its closest natural color) while keeping every design element — prints, pattern scale, stitching, trims, hardware, labels, construction — exactly as in the product photo(s). The recolored fabric keeps realistic shading with natural tonal variation in highlights and folds.`,
+    );
+  }
+
+  if (customDetail && String(customDetail).trim()) {
+    sections.push(
+      `⚠️ USER DETAIL DIRECTIVE (mandatory): ${String(customDetail).trim()}`,
+    );
+  }
+
+  sections.push(
+    `OUTPUT: One single hyper-realistic, professional fashion photograph, full-bleed edge to edge, with no added black bar or strip at any edge. Natural skin texture, tack-sharp garment detail — every graphic, print and label that exists on the product is reproduced faithfully. Apart from the garment(s) (and the directives above), everything — scene, light, camera, framing, pose and mood — matches the style reference image.`,
+  );
+
+  return sections.join("\n\n");
+}
+
+// 🎬 Görselin altına "STYLE REFERENCE · CODE SR-1" siyah kod plakası basar (jpeg buffer döner).
+// Hem tekil stil referansında hem stil profili grid'inde kullanılır.
+async function stampStyleReferencePlate(rawBuf) {
+  const flattened = await sharp(rawBuf)
+    .rotate()
+    .flatten({ background: { r: 255, g: 255, b: 255 } })
+    .resize({ width: 1536, height: 1536, fit: "inside", withoutEnlargement: true })
+    .toBuffer();
+
+  const meta = await sharp(flattened).metadata();
+  const SW = meta.width || 800;
+  const SH = meta.height || 1200;
+
+  const PLATE_H = Math.min(150, Math.max(80, Math.round(SH * 0.09)));
+  const withPlate = await sharp(flattened)
+    .extend({ bottom: PLATE_H, background: { r: 10, g: 10, b: 12 } })
+    .toBuffer();
+
+  const plateFont = Math.min(58, Math.max(30, Math.round(SW / 20)));
+  const plateTextY = SH + Math.round(PLATE_H / 2) + Math.round(plateFont / 3);
+  const plateSvg = Buffer.from(`
+<svg xmlns="http://www.w3.org/2000/svg" width="${SW}" height="${SH + PLATE_H}">
+  <text x="${Math.round(SW / 2)}" y="${plateTextY}"
+        text-anchor="middle"
+        font-family="Helvetica, Arial, sans-serif"
+        font-size="${plateFont}"
+        font-weight="700"
+        fill="#FFFFFF"
+        letter-spacing="3">STYLE REFERENCE · CODE SR-1</text>
+</svg>
+`);
+
+  return sharp(withPlate)
+    .composite([{ input: plateSvg, blend: "over" }])
+    .jpeg({ quality: 90 })
+    .toBuffer();
+}
+
+// 🎬 Stil profili fotoğraflarını tek bir beyaz zeminli grid kolaja birleştirir.
+// En fazla 6 kare kullanılır; { buffer, count } döner.
+async function buildStyleProfileGrid(imageUrls) {
+  // Stil profili en fazla 3 fotoğraf tutar (styleProfileRoutes.MAX_IMAGES) —
+  // eski profillerde daha fazlası olabildiği için üst sınır burada da uygulanır.
+  const MAX_FRAMES = 3;
+  const CELL_W = 512;
+  const CELL_H = 640;
+  const GAP = 6;
+
+  const cells = [];
+  for (const url of (imageUrls || []).slice(0, MAX_FRAMES)) {
+    try {
+      const resp = await axios.get(sanitizeImageUrl(url), {
+        responseType: "arraybuffer",
+        timeout: 20000,
+      });
+      const buf = await sharp(Buffer.from(resp.data))
+        .rotate()
+        .resize(CELL_W, CELL_H, { fit: "cover" })
+        .jpeg({ quality: 88 })
+        .toBuffer();
+      cells.push(buf);
+    } catch (cellErr) {
+      logger.warn(
+        "🎬 [STYLE_PROFILE] Grid karesi indirilemedi, atlanıyor:",
+        cellErr?.message,
+      );
+    }
+  }
+  if (cells.length === 0) {
+    throw new Error("No style profile images could be loaded");
+  }
+
+  const cols = cells.length <= 1 ? 1 : cells.length <= 4 ? 2 : 3;
+  const rows = Math.ceil(cells.length / cols);
+  const W = cols * CELL_W + (cols + 1) * GAP;
+  const H = rows * CELL_H + (rows + 1) * GAP;
+
+  const composites = cells.map((buf, i) => ({
+    input: buf,
+    left: GAP + (i % cols) * (CELL_W + GAP),
+    top: GAP + Math.floor(i / cols) * (CELL_H + GAP),
+  }));
+
+  const grid = await sharp({
+    create: {
+      width: W,
+      height: H,
+      channels: 3,
+      background: { r: 255, g: 255, b: 255 },
+    },
+  })
+    .composite(composites)
+    .jpeg({ quality: 90 })
+    .toBuffer();
+
+  return { buffer: grid, count: cells.length };
+}
+
+// 🎬 SIZINTI TEMİZLİĞİ — model bazen input'taki "STYLE REFERENCE · SR-1" siyah plakasını
+// sonuç görselinin altına kopyalıyor. Bu helper sonucun alt bandını satır satır tarar:
+// alttan başlayan bitişik koyu satır bloğu (H'nin %3-14'ü) VE hemen üstünde belirgin
+// parlaklık sıçraması varsa plaka kabul edilip kırpılır. Normal koyu fotoğraflarda
+// sınır sıçraması olmadığı için false-positive vermez. Plaka yoksa orijinal URL döner.
+async function stripLeakedStylePlate(resultUrl, userId) {
+  try {
+    const resp = await axios.get(resultUrl, {
+      responseType: "arraybuffer",
+      timeout: 30000,
+    });
+    const buf = Buffer.from(resp.data);
+    const meta = await sharp(buf).metadata();
+    const W = meta.width;
+    const H = meta.height;
+    if (!W || !H) return resultUrl;
+
+    // Alt %16'lık bandı greyscale raw olarak al, satır ortalamalarını hesapla
+    const bandH = Math.max(12, Math.round(H * 0.16));
+    const band = await sharp(buf)
+      .extract({ left: 0, top: H - bandH, width: W, height: bandH })
+      .greyscale()
+      .raw()
+      .toBuffer();
+
+    const rowMeans = [];
+    for (let r = 0; r < bandH; r++) {
+      let sum = 0;
+      const off = r * W;
+      for (let c = 0; c < W; c++) sum += band[off + c];
+      rowMeans.push(sum / W);
+    }
+
+    // Alttan yukarı bitişik koyu satırları say (plaka zemini ~#0A0A0C)
+    let darkRows = 0;
+    for (let r = bandH - 1; r >= 0; r--) {
+      if (rowMeans[r] < 38) darkRows++;
+      else break;
+    }
+
+    const darkRatio = darkRows / H;
+    if (darkRatio < 0.03 || darkRatio > 0.14) return resultUrl; // plaka boyutunda değil
+
+    // Sınır kontrastı: koyu bloğun hemen üstündeki 4 satır belirgin şekilde açık olmalı
+    const boundaryIdx = bandH - darkRows - 1;
+    if (boundaryIdx < 3) return resultUrl;
+    const above =
+      (rowMeans[boundaryIdx] +
+        rowMeans[boundaryIdx - 1] +
+        rowMeans[boundaryIdx - 2] +
+        rowMeans[boundaryIdx - 3]) / 4;
+    if (above < 70) return resultUrl; // üstü de koyu → plaka değil, karanlık sahne
+
+    // 🔍 YAZI İMZASI ŞARTI — sadece "altta koyu bant var" demek yeterli değil:
+    // gece asfaltı, koyu stüdyo zemini veya alt kenara düşen derin gölge de bu
+    // tarife uyuyor ve meşru fotoğraflar kırpılıyordu. Gerçek plakada ortalanmış
+    // BEYAZ YAZI var; koyu bandın içinde parlak piksel kümesi arıyoruz.
+    const plateBand = await sharp(buf)
+      .extract({ left: 0, top: H - darkRows, width: W, height: darkRows })
+      .greyscale()
+      .raw()
+      .toBuffer();
+
+    let brightTotal = 0;
+    let maxRowBright = 0;
+    for (let r = 0; r < darkRows; r++) {
+      let cnt = 0;
+      const off = r * W;
+      for (let c = 0; c < W; c++) {
+        if (plateBand[off + c] > 200) cnt++;
+      }
+      brightTotal += cnt;
+      if (cnt > maxRowBright) maxRowBright = cnt;
+    }
+    const brightRatio = brightTotal / (W * darkRows);
+
+    // Yazı satırında genişliğin en az %2'si beyaz olmalı; toplam beyaz oranı da
+    // yazı seviyesinde kalmalı (çok yüksekse bant zaten koyu değil demektir).
+    if (maxRowBright < W * 0.02 || brightRatio < 0.0015 || brightRatio > 0.15) {
+      return resultUrl; // koyu bant var ama yazı yok → meşru fotoğraf, DOKUNMA
+    }
+
+    const cropH = H - darkRows - 2; // 2px güvenlik payı
+    logger.log(
+      `🎬 [PLATE STRIP] Sonuçta sızmış kod plakası tespit edildi (${darkRows}px, %${Math.round(darkRatio * 100)}, yazı imzası: %${(brightRatio * 100).toFixed(2)}) — kırpılıyor`,
+    );
+
+    const cleaned = await sharp(buf)
+      .extract({ left: 0, top: 0, width: W, height: cropH })
+      .png()
+      .toBuffer();
+
+    const cleanFileName = `temp_${Date.now()}_plate_stripped_${userId || "anonymous"}_${uuidv4().substring(0, 8)}.png`;
+    const { error: upErr } = await supabase.storage
+      .from("reference")
+      .upload(cleanFileName, cleaned, {
+        contentType: "image/png",
+        cacheControl: "3600",
+        upsert: false,
+      });
+    if (upErr) throw new Error(upErr.message);
+    const { data: urlData } = supabase.storage
+      .from("reference")
+      .getPublicUrl(cleanFileName);
+    logger.log("🎬 [PLATE STRIP] Temiz görsel upload OK:", urlData.publicUrl);
+    return urlData.publicUrl;
+  } catch (err) {
+    logger.warn(
+      "🎬 [PLATE STRIP] Kontrol/kırpma başarısız, orijinal sonuç kullanılıyor:",
+      err?.message,
+    );
+    return resultUrl;
+  }
+}
+
 router.post("/generate", async (req, res) => {
   // Kredi kontrolü ve düşme (kalite versiyonuna göre dinamik)
   let creditDeducted = false;
@@ -4378,12 +5057,38 @@ router.post("/generate", async (req, res) => {
       editPrompt = null, // EditScreen'den gelen özel prompt
       // Refiner mode specific parameters (RefinerScreen)
       isRefinerMode = false, // Bu RefinerScreen'den gelen refiner işlemi mi?
+      upscaleMp = 4, // 🔍 Sonuç netleştirme kademesi (4 = kapalı)
       // Session deduplication
       sessionId = null, // Aynı batch request'leri tanımlıyor
       modelPhoto = null,
       sizeReferenceImage = null, // 📏 SizeEditor'dan gelen boyut referans görseli (canvas çıktısı)
       kombinOriginalImages = null, // 📸 Kombin: grid'e ek olarak orijinal tekil ürün resimleri
+      isMultipleAnglesMode = false, // 📐 Aynı ürünün farklı açılarından oluşturulan grid
+      multipleAnglesCount = 0, // 📐 Grid içindeki açı sayısı
+      styleReferenceImage = null, // 🎬 Stil referansı: ortam/ışık/kamera/poz bu görselden birebir kopyalanır
+      styleProfileId = null, // 🎬 Stil profili: kullanıcının kayıtlı marka stil preseti (grid kolaj olarak kullanılır)
+      editorialMode = false, // 🎞️ Editorial mod: dahili stil kolajları her üretime eklenir
     } = req.body;
+
+    isMultipleAnglesMode =
+      Boolean(isMultipleAnglesMode) ||
+      Boolean(settings?.isMultipleAnglesMode);
+    multipleAnglesCount = Number(
+      multipleAnglesCount || settings?.multipleAnglesCount || 0,
+    );
+    if (!Number.isFinite(multipleAnglesCount) || multipleAnglesCount < 0) {
+      multipleAnglesCount = 0;
+    }
+    multipleAnglesCount = Math.floor(multipleAnglesCount);
+    if (isMultipleAnglesMode && multipleAnglesCount > 6) {
+      return res.status(400).json({
+        success: false,
+        result: {
+          errorCode: "MAX_MULTIPLE_ANGLES",
+          message: "At most 6 different-angle photos are allowed.",
+        },
+      });
+    }
 
     // Kalite versiyonu kontrolü (settings'ten al) - Refiner modunda v1'e zorla
     const qualityVersion = isRefinerMode
@@ -4519,6 +5224,11 @@ router.post("/generate", async (req, res) => {
 
     logger.log("🖼️ [BACKEND] isMultipleImages:", isMultipleImages);
     logger.log("🛍️ [BACKEND] isMultipleProducts:", isMultipleProducts);
+    logger.log(
+      "📐 [BACKEND] multiple angles:",
+      isMultipleAnglesMode,
+      multipleAnglesCount,
+    );
     logger.log("🎨 [BACKEND] isColorChange:", isColorChange);
     logger.log("🎨 [BACKEND] targetColor:", targetColor);
     logger.log("🕺 [BACKEND] isPoseChange:", isPoseChange);
@@ -4755,6 +5465,8 @@ router.post("/generate", async (req, res) => {
     const settingsWithSession = {
       ...settings,
       totalGenerations: totalGenerations, // Pay-on-success için gerekli
+      isMultipleAnglesMode,
+      multipleAnglesCount,
       ...(sessionId && { sessionId: sessionId }),
     };
 
@@ -4957,6 +5669,243 @@ router.post("/generate", async (req, res) => {
       `İstenen ratio: ${ratio}, formatlanmış ratio: ${formattedRatio}`,
     );
 
+    // 🎬 STYLE REFERENCE — kullanıcının yüklediği stil referans görselini (ör. Pinterest'ten
+    // beğenilen bir çekim) alt kenarına "STYLE REFERENCE · CODE SR-1" kod plakası basarak
+    // Supabase'e yükle. Prompt bu kod üzerinden görseli işaret eder; nano-banana ortam/ışık/
+    // kamera/pozu bu görselden kopyalar, kıyafetleri ise SADECE ürün fotoğraflarından alır.
+    // Renk değiştirme / poz değiştirme / refiner / arka analiz modlarında devre dışıdır.
+    let styleReferenceUrl = null;
+    let styleReferenceStamped = false;
+    let styleProfileMeta = null; // { name, stylePrompt, imageCount } — stil profili modunda dolar
+    let editorialCollagesForRequest = []; // 🎞️ Editorial mod: bu istekte eklenecek kolaj URL'leri
+    const styleReferenceRequested =
+      styleReferenceImage &&
+      (styleReferenceImage.base64 || styleReferenceImage.uri) &&
+      !isColorChange &&
+      !isPoseChange &&
+      !isRefinerMode &&
+      !req.body.isBackSideAnalysis;
+
+    if (styleReferenceRequested) {
+      try {
+        // 1) Raw buffer (base64 veya URL)
+        let styleRawBuf;
+        if (styleReferenceImage.base64) {
+          const cleanB64 = String(styleReferenceImage.base64).replace(
+            /^data:image\/\w+;base64,/,
+            "",
+          );
+          styleRawBuf = Buffer.from(cleanB64, "base64");
+        } else {
+          const cleanStyleUrl = sanitizeImageUrl(
+            styleReferenceImage.uri.split("?")[0],
+          );
+          const styleResp = await axios.get(cleanStyleUrl, {
+            responseType: "arraybuffer",
+            timeout: 15000,
+          });
+          styleRawBuf = Buffer.from(styleResp.data);
+        }
+
+        // 2) Kod plakalı composite üret (ortak helper — siyah plaka, boyut referansının
+        //    beyaz şeridinden bilinçli olarak farklı; model iki referansı karıştırmasın)
+        const styleComposited = await stampStyleReferencePlate(styleRawBuf);
+
+        // 4) Supabase'e yükle
+        const styleFileName = `temp_${Date.now()}_style_reference_${userId || "anonymous"}_${uuidv4().substring(0, 8)}.jpg`;
+        const { error: styleUpErr } = await supabase.storage
+          .from("reference")
+          .upload(styleFileName, styleComposited, {
+            contentType: "image/jpeg",
+            cacheControl: "3600",
+            upsert: false,
+          });
+        if (styleUpErr) {
+          throw new Error(`Supabase upload error: ${styleUpErr.message}`);
+        }
+        const { data: styleUrlData } = supabase.storage
+          .from("reference")
+          .getPublicUrl(styleFileName);
+        styleReferenceUrl = styleUrlData.publicUrl;
+        styleReferenceStamped = true;
+        logger.log(
+          "🎬 [STYLE REFERENCE] Kod plakalı composite upload OK:",
+          styleReferenceUrl,
+        );
+      } catch (styleErr) {
+        logger.warn(
+          "🎬 [STYLE REFERENCE] Damgalama/upload hatası, ham görsel denenecek:",
+          styleErr?.message,
+        );
+        // Fallback: damgasız ham görseli yüklemeyi dene — mod yine de çalışsın
+        try {
+          const rawSource = styleReferenceImage.base64
+            ? `data:image/jpeg;base64,${String(styleReferenceImage.base64).replace(/^data:image\/\w+;base64,/, "")}`
+            : sanitizeImageUrl(styleReferenceImage.uri);
+          styleReferenceUrl = await uploadReferenceImageToSupabase(
+            rawSource,
+            userId,
+          );
+          styleReferenceStamped = false;
+          logger.log(
+            "🎬 [STYLE REFERENCE] Ham görsel upload OK (kod plakasız):",
+            styleReferenceUrl,
+          );
+        } catch (rawErr) {
+          logger.warn(
+            "🎬 [STYLE REFERENCE] Ham upload da başarısız, stil referansı atlanıyor:",
+            rawErr?.message,
+          );
+          styleReferenceUrl = null;
+        }
+      }
+    }
+
+    // 🎬 STİL PROFİLİ — kullanıcının kayıtlı marka stil preseti. Doğrudan stil referansı
+    // yüklenmediyse ve styleProfileId geldiyse: profildeki TÜM fotoğraflar (en fazla 6)
+    // tek bir grid kolaja birleştirilir, SR-1 kod plakası basılır ve stil referansı
+    // olarak kullanılır; Gemini'nin profil analizi de prompta eklenir.
+    const styleProfileRequested =
+      !styleReferenceUrl &&
+      styleProfileId &&
+      !isColorChange &&
+      !isPoseChange &&
+      !isRefinerMode &&
+      !req.body.isBackSideAnalysis;
+
+    if (styleProfileRequested) {
+      try {
+        // style_profiles RLS'li (anon'a policy yok) — service role client şart.
+        // Bu dosyanın genel client'ı lokalde anon'a düşebildiği için ayrı client kuruyoruz.
+        const styleProfilesDb = createClient(
+          process.env.SUPABASE_URL,
+          process.env.SUPABASE_SERVICE_ROLE_KEY ||
+            process.env.SUPABASE_SERVICE_KEY ||
+            process.env.SUPABASE_ANON_KEY,
+          { auth: { autoRefreshToken: false, persistSession: false } },
+        );
+        const { data: styleProfileRow, error: spErr } = await styleProfilesDb
+          .from("style_profiles")
+          .select("*")
+          .eq("id", styleProfileId)
+          .maybeSingle();
+        if (spErr || !styleProfileRow) {
+          throw new Error("Style profile not found");
+        }
+        // Global (küratörlü) profiller herkese açık; diğerlerinde sahiplik şart
+        if (
+          String(styleProfileRow.user_id) !== String(userId) &&
+          String(styleProfileRow.user_id) !== "global"
+        ) {
+          throw new Error("Style profile is not owned by this user");
+        }
+        const profileUrls = Array.isArray(styleProfileRow.image_urls)
+          ? styleProfileRow.image_urls
+          : [];
+        if (profileUrls.length === 0) {
+          throw new Error("Style profile has no images");
+        }
+
+        // 🎬 Plakalı kolaj ÖNBELLEĞİ — aynı profil için her üretimde yeniden
+        // kolaj kurup plaka basmak ve yeni dosya yüklemek gereksiz. Bir kez
+        // üretilir, URL'si profile yazılır; sonraki üretimler onu kullanır.
+        // (Profile fotoğraf eklenip çıkarıldığında bu alan NULL'a çekiliyor.)
+        let gridCount = profileUrls.length;
+        let cachedGridUrl = styleProfileRow.stamped_grid_url || null;
+
+        if (!cachedGridUrl) {
+          const built = await buildStyleProfileGrid(profileUrls);
+          gridCount = built.count;
+          const stampedGrid = await stampStyleReferencePlate(built.buffer);
+
+          const gridFileName = `style_profile_grid_${styleProfileRow.id}_${uuidv4().substring(0, 8)}.jpg`;
+          const { error: gridUpErr } = await supabase.storage
+            .from("reference")
+            .upload(gridFileName, stampedGrid, {
+              contentType: "image/jpeg",
+              cacheControl: "3600",
+              upsert: true,
+            });
+          if (gridUpErr) {
+            throw new Error(`Supabase upload error: ${gridUpErr.message}`);
+          }
+          const { data: gridUrlData } = supabase.storage
+            .from("reference")
+            .getPublicUrl(gridFileName);
+          cachedGridUrl = gridUrlData.publicUrl;
+
+          // Kalıcılaştır — başarısız olursa üretim yine de devam eder,
+          // yalnızca bir sonraki sefer kolaj tekrar kurulur.
+          const { error: cacheErr } = await styleProfilesDb
+            .from("style_profiles")
+            .update({ stamped_grid_url: cachedGridUrl })
+            .eq("id", styleProfileRow.id);
+          if (cacheErr) {
+            logger.warn(
+              "🎬 [STYLE_PROFILE] kolaj önbelleği yazılamadı:",
+              cacheErr.message,
+            );
+          }
+        } else {
+          logger.log(
+            `🎬 [STYLE_PROFILE] plakalı kolaj önbellekten kullanıldı: ${cachedGridUrl}`,
+          );
+        }
+
+        styleReferenceUrl = cachedGridUrl;
+        styleReferenceStamped = true;
+        styleProfileMeta = {
+          name: styleProfileRow.name || null,
+          stylePrompt: styleProfileRow.style_prompt || null,
+          imageCount: gridCount,
+        };
+        logger.log(
+          `🎬 [STYLE_PROFILE] "${resolveStyleProfileNameForPrompt(styleProfileRow.name) || "?"}" grid kolajı (${gridCount} kare) upload OK:`,
+          styleReferenceUrl,
+        );
+      } catch (profileErr) {
+        logger.warn(
+          "🎬 [STYLE_PROFILE] Profil işlenemedi, normal akışa dönülüyor:",
+          profileErr?.message,
+        );
+        styleReferenceUrl = null;
+        styleProfileMeta = null;
+      }
+    }
+
+    // 🎬 TEKİL STİL REFERANSI TEKNİK ANALİZİ — profil modunda analiz zaten style_prompt'ta;
+    // doğrudan yüklenen tekil referans için Gemini'den kamera/ışık/grade reçetesi çıkar.
+    // Başarısız olursa sessizce devam edilir (nano-banana referansı yine de görüyor).
+    let styleReferenceTechAnalysis = null;
+    if (styleReferenceUrl && !styleProfileMeta) {
+      try {
+        const TECH_ANALYSIS_PROMPT = `You are a director of photography. Analyze the attached fashion/style reference photograph and output a compact TECHNICAL REPLICATION SPEC so an AI image model can recreate the exact same shot conditions. Ignore the black "STYLE REFERENCE" code plate at the bottom edge — it is a marker, not part of the photo.
+
+Give concrete estimates in cinematographer language:
+1. CAMERA — estimated focal length (mm), estimated aperture & depth of field, camera height and angle relative to the subject, lens character (compression/distortion).
+2. FRAMING — crop (full-body/three-quarter/waist-up), headroom, negative space, composition.
+3. LIGHTING — key direction & quality (hard/soft), fill & shadow density, rim/back light, natural vs studio, time-of-day feel.
+4. COLOR GRADE — palette, saturation, contrast curve, white balance bias, film-stock/preset character, grain.
+5. POSE GEOMETRY — body orientation, weight distribution, limb placement, gaze direction (describe geometry only, never identity).
+
+Do NOT describe the person's face/identity or the garments. PLAIN TEXT only, 100-180 words, numbered labels only, no markdown.`;
+        styleReferenceTechAnalysis = (
+          await callGeminiFlash(TECH_ANALYSIS_PROMPT, [styleReferenceUrl], 2)
+        )?.trim() || null;
+        if (styleReferenceTechAnalysis) {
+          logger.log(
+            `🎬 [STYLE REFERENCE] Teknik analiz hazır (${styleReferenceTechAnalysis.length} karakter)`,
+          );
+        }
+      } catch (techErr) {
+        logger.warn(
+          "🎬 [STYLE REFERENCE] Teknik analiz alınamadı, analizsiz devam:",
+          techErr?.message,
+        );
+        styleReferenceTechAnalysis = null;
+      }
+    }
+
     // 🚀 Paralel işlemler başlat
     logger.log(
       "🚀 Paralel işlemler başlatılıyor: Gemini + Arkaplan silme + ControlNet hazırlığı...",
@@ -5095,6 +6044,23 @@ router.post("/generate", async (req, res) => {
             : "🕺 Pose change prompt:",
         enhancedPrompt,
       );
+    } else if (!isPoseChange && styleReferenceUrl) {
+      // 🎬 STYLE REFERENCE MODE — Gemini enhanced-prompt hattı ATLANIR.
+      // Ortam/ışık/kamera/poz referans görselden kopyalanacağı için kompakt,
+      // deterministik prompt yeterli; sadece seçim/detay girdileri eklenir.
+      enhancedPrompt = buildStyleReferencePrompt({
+        settings: settings || {},
+        customDetail,
+        hasModelReference: !!modelReferenceImage,
+        isMultipleProducts,
+        stamped: styleReferenceStamped,
+        styleProfile: styleProfileMeta,
+        technicalAnalysis: styleReferenceTechAnalysis,
+      });
+      backgroundRemovedImage = finalImage;
+      logger.log(
+        `🎬 [STYLE REFERENCE] Kompakt prompt kullanılıyor (${enhancedPrompt.length} karakter) — Gemini enhancement atlandı`,
+      );
     } else if (!isPoseChange) {
       // 🖼️ NORMAL MODE - Arkaplan silme işlemi (paralel)
       // Gemini prompt üretimini paralelde başlat
@@ -5139,6 +6105,7 @@ router.post("/generate", async (req, res) => {
         userId, // Compress için userId
         originalBase64ForGemini, // 🚀 Orijinal base64 - URL indirmesi atlanacak
         Array.isArray(kombinOriginalImages) ? kombinOriginalImages.length : 0, // 🛍️ Kombin içindeki tekil ürün sayısı
+        isMultipleAnglesMode ? multipleAnglesCount : 0, // 📐 Aynı ürünün farklı açı sayısı
       );
 
       // ⏳ Sadece Gemini prompt iyileştirme bekle
@@ -5193,6 +6160,15 @@ KOMBIN REFERENCE IMAGES: In addition to the main combined grid image, ${kombinOr
       );
     }
 
+    if (isMultipleAnglesMode && multipleAnglesCount > 1) {
+      enhancedPrompt += `
+
+MULTIPLE-ANGLE PRODUCT REFERENCE: The main composite grid contains ${multipleAnglesCount} views of the same single product. Use all cells only to reconstruct that one product faithfully from every visible side. The final photograph contains one instance of the product, never multiple garments, duplicates, or a collage.`;
+      logger.log(
+        `📐 [MULTIPLE ANGLES] ${multipleAnglesCount} açılık tek ürün direktifi enhancedPrompt'a eklendi`,
+      );
+    }
+
     // 📏 Size reference image varsa, Gemini ve fallback'ten bağımsız olarak
     // kalibrasyon direktifini enhancedPrompt'a ekle (handler scope'unda erişilebiliyor).
     if (
@@ -5205,6 +6181,75 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
       logger.log(
         "📏 [SIZE REFERENCE] Kalibrasyon direktifi enhancedPrompt'a eklendi",
       );
+    }
+
+    // 🎞️ EDITORIAL MODE — kullanıcı stil profili/referansı SEÇMEDİYSE ve mod açıksa,
+    // dahili editorial kolajları prompt'un EN SONUNA teknik repertuar olarak eklenir.
+    //
+    // Neden en son: blok "daha önce yazılan her talimat önceliklidir" diyor. Kombin,
+    // çoklu açı ve size-reference direktifleri de enhancedPrompt'a ekleniyor; bu blok
+    // onlardan ÖNCE gelirse kendi öncelik kuralını tersine çevirir ve "son eklenen
+    // görseller" işaretçisi kombin/size görselleriyle karışabilir.
+    //
+    // Stil profili modundan farkı: normal Gemini prompt'u KORUNUR, yani kullanıcının
+    // mekân/poz/kadraj/model seçimleri aynen geçerli kalır; kolajlar yalnızca
+    // fotoğrafik ustalık (ışık, lens, kompozisyon, grade, yönetmenlik) katar.
+    editorialCollagesForRequest = [];
+    if (
+      editorialMode &&
+      // Kullanıcı bir stil kaynağı SEÇTİYSE editorial devreye GİRMEZ.
+      // Üç kontrol de gerekli:
+      //   styleReferenceUrl → yükleme/kolaj başarıyla tamamlandıysa dolu
+      //   styleReferenceImage → yükleme HATA verse bile kullanıcı seçim yapmıştı
+      //   styleProfileId → profil yüklenemese bile kullanıcı profil seçmişti
+      // Aksi halde kullanıcı kendi stilini seçmişken sessizce generic editorial'e düşerdi.
+      !styleReferenceUrl &&
+      !styleReferenceImage &&
+      !styleProfileId &&
+      !isColorChange &&
+      !isPoseChange &&
+      !isRefinerMode &&
+      !isEditMode &&
+      !req.body.isBackSideAnalysis &&
+      isEditorialAvailable()
+    ) {
+      try {
+        // app_config.editorial_mode_visible = false → özellik tamamen kapalı.
+        // Eski istemciler editorialMode:true gönderse bile burada durur.
+        const remotelyEnabled = await isEditorialEnabledRemotely();
+        if (!remotelyEnabled) {
+          logger.log("🎞️ [EDITORIAL] app_config ile kapalı — atlanıyor");
+          throw new EditorialDisabled();
+        }
+        const collages = getEditorialCollages();
+        // Varsayılan: kolaj GÖRSELLERİ eklenmez, yalnızca metin repertuarı gider.
+        // Kolajlardaki kişiler sonuç yüzlerine sızabildiği için (bkz. editorialStyle.js).
+        const withImages = shouldAttachCollages();
+        editorialCollagesForRequest = withImages
+          ? collages.map((c) => c.url)
+          : [];
+        const variation = pickVariationDirective();
+        const editorialBlock = buildEditorialPromptBlock({
+          collageCount: collages.length,
+          analyses: collages.map((c) => c.analysis),
+          codes: collages.map((c) => c.code),
+          variation,
+          withImages,
+        });
+        enhancedPrompt = `${enhancedPrompt || ""}\n\n${editorialBlock}`;
+        logger.log(
+          `🎞️ [EDITORIAL] repertuar prompt'un sonuna eklendi | görsel: ${withImages ? `${editorialCollagesForRequest.length} kolaj` : "YOK (metin-only)"} | varyasyon: ${variation.slice(0, 55)}...`,
+        );
+      } catch (editorialErr) {
+        // Editorial mod asla üretimi bozmamalı — hata olursa normal akış sürer.
+        editorialCollagesForRequest = [];
+        if (!(editorialErr instanceof EditorialDisabled)) {
+          logger.warn(
+            "🎞️ [EDITORIAL] Blok eklenemedi, normal akışa devam ediliyor:",
+            editorialErr?.message,
+          );
+        }
+      }
     }
 
     // Arkaplan silme kaldırıldı - direkt olarak finalImage kullanılacak
@@ -5617,6 +6662,28 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
           );
         }
 
+        // 🎬 Style reference image — prompt "LAST attached image" dediği için HER ZAMAN en sona
+        if (styleReferenceUrl) {
+          imageInputArray = [...(imageInputArray || []), styleReferenceUrl];
+          logger.log(
+            "🎬 [STYLE REFERENCE] imageInputArray'e SON sıraya eklendi, toplam:",
+            imageInputArray.length,
+          );
+        }
+
+        // 🎞️ Editorial kolajları — prompt "LAST N attached images" dediği için en sona.
+        // Not: editorial mod yalnızca styleReferenceUrl yokken devreye girdiği için
+        // bu iki blok aynı anda çalışmaz.
+        if (editorialCollagesForRequest.length > 0) {
+          imageInputArray = [
+            ...(imageInputArray || []),
+            ...editorialCollagesForRequest,
+          ];
+          logger.log(
+            `🎞️ [EDITORIAL] ${editorialCollagesForRequest.length} kolaj imageInputArray sonuna eklendi, toplam: ${imageInputArray.length}`,
+          );
+        }
+
         // Kalite versiyonu kontrolü (settings'ten al)
         const qualityVersion = isRefinerMode
           ? "v1"
@@ -5691,6 +6758,8 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
           } else {
             // ── nano-banana-2 yolu ──
             const nanoModel = "fal-ai/nano-banana-2/edit";
+            // 🧠 Render öncesi muhakeme — app_config.nb2_thinking_level ile yönetilir
+            const nb2ThinkingLevel = await getNb2ThinkingLevel();
             const nanoRequestBody = {
               prompt: enhancedPrompt,
               image_urls: imageInputArray,
@@ -5699,9 +6768,12 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
               num_images: 1,
               resolution: "2K",
               safety_tolerance: safetyTolerance,
+              ...(nb2ThinkingLevel !== "off"
+                ? { thinking_level: nb2ThinkingLevel }
+                : {}),
             };
             logger.log(
-              `🍌 [V1 NB2] fal.run/${nanoModel} çağrılıyor — images: ${imageInputArray?.length || 0}, aspect: ${aspectRatioForRequest}`,
+              `🍌 [V1 NB2] fal.run/${nanoModel} çağrılıyor — images: ${imageInputArray?.length || 0}, aspect: ${aspectRatioForRequest}, thinking: ${nb2ThinkingLevel}`,
             );
 
             const nanoResponse = await axios.post(
@@ -6121,6 +7193,11 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
             retryImageInputArray = [combinedImageForReplicate];
           }
 
+          // 🎬 Style reference — retry'da da prompt "LAST attached image" dediği için en sona ekle
+          if (styleReferenceUrl) {
+            retryImageInputArray = [...retryImageInputArray, styleReferenceUrl];
+          }
+
           const retryRequestBody = {
             prompt: enhancedPrompt,
             image_urls: retryImageInputArray,
@@ -6228,9 +7305,66 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
 
       // ✅ Status'u completed'e güncelle
       // fal.ai returns output as array, always use the first image
-      const resultImageUrl = Array.isArray(finalResult.output)
+      let resultImageUrl = Array.isArray(finalResult.output)
         ? finalResult.output[0]
         : finalResult.output;
+
+      // 🎬 Stil referansı / 🎞️ editorial modunda: sonuca sızmış olabilecek kod
+      // plakasını tespit et/kırp. İki akış da aynı plaka formatını kullanıyor
+      // (koyu bant + ortalanmış beyaz yazı) ve tespit o yazı imzasını arıyor.
+      if (
+        (styleReferenceUrl || editorialCollagesForRequest.length > 0) &&
+        resultImageUrl
+      ) {
+        resultImageUrl = await stripLeakedStylePlate(resultImageUrl, userId);
+      }
+
+      // 🔍 NETLEŞTİRME ADIMI — kullanıcı Results'ta 4 MP'den yüksek bir kademe
+      // seçtiyse sonuç, kaydedilmeden önce o çözünürlüğe yükseltilir. Hata
+      // durumunda orijinal sonuçla devam edilir (üretim asla kaybolmaz).
+      let appliedUpscaleMp = null;
+      // Netleştirme öncesi kare — SimpleImageModal'daki öncesi/sonrası sürgüsü
+      // bu URL'yi kullanıyor. Yalnızca netleştirme uygulanırsa doldurulur.
+      let preUpscaleImageUrl = null;
+      if (
+        resultImageUrl &&
+        RESULT_UPSCALE_ALLOWED_MP.includes(Number(upscaleMp))
+      ) {
+        try {
+          // Önce kredi: yetersizse netleştirme hiç başlatılmaz, üretim sonucu
+          // olduğu gibi teslim edilir (kullanıcı üretimini kaybetmez).
+          const upscaleCharge = await chargeUpscaleCredits(userId, upscaleMp);
+          if (!upscaleCharge.ok) {
+            throw new Error("UPSCALE_CREDIT_UNAVAILABLE");
+          }
+          logger.log(
+            `🔍 [RESULT UPSCALE] Sonuç ${upscaleMp} MP'ye yükseltiliyor (${upscaleCharge.charged} kredi)...`,
+          );
+          // İstemci polling'i "Netleştiriliyor…" rozetini bu işaretten okur.
+          // 64/128 MP'de bu adım dakikaya yaklaşabiliyor; kullanıcı ne
+          // beklediğini görsün.
+          await markGenerationStage(finalGenerationId, userId, "upscaling");
+          const tUp = Date.now();
+          const upscaled = await upscaleResultImage(resultImageUrl, upscaleMp);
+          if (upscaled) {
+            preUpscaleImageUrl = resultImageUrl;
+            resultImageUrl = upscaled;
+            appliedUpscaleMp = Number(upscaleMp);
+            logger.log(
+              `✅ [RESULT UPSCALE] ${appliedUpscaleMp} MP tamamlandı (${Date.now() - tUp}ms)`,
+            );
+          }
+          // Aşama işaretini temizle — kart "Netleştiriliyor…" ile takılı kalmasın
+          await markGenerationStage(finalGenerationId, userId, null);
+        } catch (upErr) {
+          logger.warn(
+            "⚠️ [RESULT UPSCALE] Netleştirme başarısız, orijinal sonuç kullanılıyor:",
+            upErr?.message,
+          );
+          await markGenerationStage(finalGenerationId, userId, null);
+        }
+      }
+
       const updatedGeneration = await updateGenerationStatus(
         finalGenerationId,
         userId,
@@ -6240,6 +7374,14 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
           result_image_url: resultImageUrl,
           replicate_prediction_id: initialResult.id,
           processing_time_seconds: processingTime,
+          // Netleştirildiyse hangi kademede olduğunu kaydet (SimpleImageModal
+          // bu bilgiye bakıp zoom aracını gösteriyor).
+          ...(appliedUpscaleMp
+            ? {
+                upscaled_mp: appliedUpscaleMp,
+                pre_upscale_image_url: preUpscaleImageUrl,
+              }
+            : {}),
         },
       );
       // updateGenerationStatus Supabase bucket'e kaydedip DB'yi günceller,
@@ -6276,18 +7418,28 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
         result: {
           // Supabase bucket URL kullan (fal.media yerine)
           imageUrl: finalResultImageUrl,
-          imageUrlThumbnail: finalResultImageUrl
-            ? optimizeImageUrl(finalResultImageUrl, {
-                width: 500,
-                height: 500,
-                quality: 80,
-              })
+          // Netleştirilmişse sunucuda üretilen küçük önizleme kullanılır;
+          // 30 MB'lık kaynağı CDN küçültemiyor (403) ve kart boş kalıyordu.
+          imageUrlThumbnail: (updatedGeneration?.result_thumb_url ||
+            finalResultImageUrl)
+            ? optimizeImageUrl(
+                updatedGeneration?.result_thumb_url || finalResultImageUrl,
+                { width: 500, height: 500, quality: 80 },
+              )
             : null,
           originalPrompt: promptText,
           enhancedPrompt: enhancedPrompt,
           replicateData: finalResult,
           currentCredit: currentCredit, // 💳 Güncel kredi bilgisini response'a ekle
           generationId: finalGenerationId, // 🆔 Generation ID'yi response'a ekle
+          // 🔍 Uygulanan netleştirme kademesi (yoksa null) — istemci bu bilgiyle
+          // SimpleImageModal'daki zoom kaydırıcısını gösteriyor.
+          upscaledMp: appliedUpscaleMp || null,
+          // Kalıcılaştırılmış (bucket) kare varsa o döner — fal URL'leri süreli.
+          preUpscaleImageUrl:
+            updatedGeneration?.pre_upscale_image_url ||
+            preUpscaleImageUrl ||
+            null,
         },
       };
 
@@ -6990,8 +8142,12 @@ router.get("/generation-status/:generationId", async (req, res) => {
       }
     }
 
-    const thumbnailUrl = generation.result_image_url
-      ? optimizeImageUrl(generation.result_image_url, {
+    // Netleştirilmiş sonuçlarda kaynak dosya CDN'in küçültebileceğinden büyük
+    // (403). Bu yüzden varsa sunucuda üretilmiş önizleme kullanılır.
+    const thumbnailSource =
+      generation.result_thumb_url || generation.result_image_url;
+    const thumbnailUrl = thumbnailSource
+      ? optimizeImageUrl(thumbnailSource, {
           width: 500,
           height: 500,
           quality: 80,
@@ -7014,6 +8170,10 @@ router.get("/generation-status/:generationId", async (req, res) => {
           "v1", // Kalite versiyonu
         status: finalStatus,
         resultImageUrl: generation.result_image_url,
+        upscaledMp: generation.upscaled_mp || null,
+        preUpscaleImageUrl: generation.pre_upscale_image_url || null,
+        // ⏳ Ara aşama ("upscaling") — Results kartındaki durum rozeti için
+        stage: generation.settings?.stage || null,
         resultImageThumbnail: thumbnailUrl,
         originalPrompt: generation.original_prompt,
         enhancedPrompt: generation.enhanced_prompt,
@@ -7146,8 +8306,10 @@ router.get("/pending-generations/:userId", async (req, res) => {
             generationId: gen.generation_id,
             status: gen.status,
             resultImageUrl: gen.result_image_url,
-            resultImageThumbnail: gen.result_image_url
-              ? optimizeImageUrl(gen.result_image_url, {
+            upscaledMp: gen.upscaled_mp || null,
+            preUpscaleImageUrl: gen.pre_upscale_image_url || null,
+            resultImageThumbnail: (gen.result_thumb_url || gen.result_image_url)
+              ? optimizeImageUrl(gen.result_thumb_url || gen.result_image_url, {
                   width: 500,
                   height: 500,
                   quality: 80,
@@ -7286,8 +8448,10 @@ router.get("/user-generations/:userId", async (req, res) => {
             userEmail: gen.users?.email || null, // Team workspace için user email
             status: gen.status,
             resultImageUrl: gen.result_image_url,
-            resultImageThumbnail: gen.result_image_url
-              ? optimizeImageUrl(gen.result_image_url, {
+            upscaledMp: gen.upscaled_mp || null,
+            preUpscaleImageUrl: gen.pre_upscale_image_url || null,
+            resultImageThumbnail: (gen.result_thumb_url || gen.result_image_url)
+              ? optimizeImageUrl(gen.result_thumb_url || gen.result_image_url, {
                   width: 500,
                   height: 500,
                   quality: 80,

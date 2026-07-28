@@ -65,6 +65,7 @@ const buildHistorySelect = ({
   includeSettings = true,
   includeVariantFields = false,
   includeGenerationId = true,
+  includeUpscaleFields = false,
 }) =>
   [
     "id",
@@ -74,6 +75,10 @@ const buildHistorySelect = ({
     "created_at",
     includeSettings ? "settings" : null,
     urlField,
+    // Netleştirme alanları yalnızca reference_results'ta var
+    includeUpscaleFields ? "result_thumb_url" : null,
+    includeUpscaleFields ? "upscaled_mp" : null,
+    includeUpscaleFields ? "pre_upscale_image_url" : null,
     includeReferenceFields ? "reference_images" : null,
     includeReferenceFields ? "location_image" : null,
     includeReferenceFields ? "visibility" : null,
@@ -98,13 +103,15 @@ const fetchMergedHistoryTable = async ({
   // tableConfig.hasGenerationId=false ise select'te exclude ederiz.
   const includeGenerationId = tableConfig.hasGenerationId !== false;
 
-  const runQuery = async (includeSettings) => {
+  const runQuery = async (includeSettings, includeUpscaleFields = true) => {
     const selectClause = buildHistorySelect({
       urlField: tableConfig.urlField,
       includeReferenceFields: tableConfig.name === "reference_results",
       includeVariantFields: tableConfig.name === "reference_results",
       includeSettings,
       includeGenerationId,
+      includeUpscaleFields:
+        includeUpscaleFields && tableConfig.name === "reference_results",
     });
 
     return retryQuery(() =>
@@ -132,6 +139,17 @@ const fetchMergedHistoryTable = async ({
     error = retryWithoutSettings.error;
   }
 
+  // Migration henüz uygulanmadıysa "tümü" sekmesi komple boşalmasın:
+  // netleştirme alanları olmadan tekrar dene.
+  if (error && isMissingColumnError(error.message, "result_thumb_url")) {
+    logger.log(
+      `ℹ️ [ALL] ${tableConfig.name}: result_thumb_url yok, netleştirme alanları atlanıyor.`,
+    );
+    const retryWithoutUpscale = await runQuery(true, false);
+    data = retryWithoutUpscale.data;
+    error = retryWithoutUpscale.error;
+  }
+
   if (error) {
     logger.log(`⚠️ [ALL] ${tableConfig.name} hata:`, error.message);
     return [];
@@ -157,6 +175,11 @@ const fetchMergedHistoryTable = async ({
       kits: row.kits || null,
       stories: row.stories || null,
       unboxing_stories: row.unboxing_stories || null,
+      // 🔍 Netleştirme: önizleme (büyük çıktılarda CDN 403 veriyor) + kama/
+      // karşılaştırma için gereken kademe ve öncesi karesi
+      result_thumb_url: row.result_thumb_url || null,
+      upscaled_mp: row.upscaled_mp || null,
+      pre_upscale_image_url: row.pre_upscale_image_url || null,
       item_type: tableConfig.type,
     }));
 };
@@ -406,6 +429,12 @@ const buildResponse = async (
   enrichedData = await resolvePoseIds(enrichedData);
   // Enrich stories from product_stories if reference_results.stories is empty
   enrichedData = await enrichStoryCounts(enrichedData);
+  // Sunucuda üretilmiş önizleme varsa CDN sarmalayıcısı yerine o kullanılır:
+  // 30 MB'ı aşan netleştirilmiş çıktılarda Cloudflare Image Resizing 403 dönüyor
+  // ve geçmiş kartı boş kalıyordu.
+  enrichedData = (enrichedData || []).map((row) =>
+    row?.result_thumb_url ? { ...row, __ownThumb: row.result_thumb_url } : row,
+  );
 
   return res.json({
     success: true,
@@ -465,7 +494,7 @@ router.get("/virtual-model/:userId", async (req, res) => {
       supabase
         .from("reference_results")
         .select(
-          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`,
+          `id, user_id, generation_id, status, result_image_url, result_thumb_url, upscaled_mp, pre_upscale_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
@@ -543,7 +572,7 @@ router.get("/pose-change/:userId", async (req, res) => {
       supabase
         .from("reference_results")
         .select(
-          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, pose_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`,
+          `id, user_id, generation_id, status, result_image_url, result_thumb_url, upscaled_mp, pre_upscale_image_url, reference_images, location_image, pose_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
@@ -622,7 +651,7 @@ router.get("/color-change/:userId", async (req, res) => {
       supabase
         .from("reference_results")
         .select(
-          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`,
+          `id, user_id, generation_id, status, result_image_url, result_thumb_url, upscaled_mp, pre_upscale_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
@@ -700,7 +729,7 @@ router.get("/back-side/:userId", async (req, res) => {
       supabase
         .from("reference_results")
         .select(
-          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`,
+          `id, user_id, generation_id, status, result_image_url, result_thumb_url, upscaled_mp, pre_upscale_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
@@ -775,7 +804,7 @@ router.get("/refiner/:userId", async (req, res) => {
       supabase
         .from("reference_results")
         .select(
-          `id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`,
+          `id, user_id, generation_id, status, result_image_url, result_thumb_url, upscaled_mp, pre_upscale_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits, stories, unboxing_stories`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
@@ -922,7 +951,7 @@ router.get("/upscale/:userId", async (req, res) => {
       supabase
         .from("upscale_generations")
         .select(
-          `id, user_id, status, original_image_url, result_image_url, original_size_bytes, result_size_bytes, scale, credits_cost, credit_balance_before, credit_balance_after, created_at`,
+          `id, user_id, status, original_image_url, result_image_url, result_thumb_url, original_size_bytes, result_size_bytes, scale, credits_cost, credit_balance_before, credit_balance_after, created_at`,
         )
         .in("user_id", memberIds)
         .in("status", ["completed", "failed"])
@@ -940,9 +969,18 @@ router.get("/upscale/:userId", async (req, res) => {
     logger.log(
       `📊 [FEATURE-HISTORY] upscale: ${data?.length || 0} items, total: ${totalCount}`,
     );
+
+    // Sunucuda üretilmiş önizleme varsa CDN thumbnail'ının yerine onu koy:
+    // büyük çıktılarda Cloudflare Image Resizing 403 dönüyor ve kart boş kalıyordu.
+    const withOwnThumbs = (data || []).map((row) =>
+      row?.result_thumb_url
+        ? { ...row, __ownThumb: row.result_thumb_url }
+        : row,
+    );
+
     return await buildResponse(
       res,
-      data,
+      withOwnThumbs,
       totalCount,
       parsedPage,
       parsedLimit,
@@ -1386,8 +1424,16 @@ router.get("/all/:userId", async (req, res) => {
     const totalMerged = merged.length;
     merged = merged.slice(offset, offset + limit);
 
-    // CDN optimize (mevcut helper)
-    const optimized = optimizeHistoryImages(merged);
+    // CDN optimize (mevcut helper). Sunucuda üretilmiş önizleme varsa CDN
+    // sarmalayıcısı yerine o kullanılır — 30 MB'ı aşan netleştirilmiş
+    // çıktılarda Cloudflare Image Resizing 403 dönüyor ve kart boş kalıyor.
+    const optimized = optimizeHistoryImages(
+      merged.map((row) =>
+        row?.result_thumb_url
+          ? { ...row, __ownThumb: row.result_thumb_url }
+          : row,
+      ),
+    );
 
     return res.json({
       success: true,

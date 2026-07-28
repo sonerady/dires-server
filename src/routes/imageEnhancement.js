@@ -1,11 +1,106 @@
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
+const sharp = require("sharp");
 const { v4: uuidv4 } = require("uuid");
 const { supabase } = require("../supabaseClient");
 const { getEffectiveCredits } = require("../services/teamService");
 
-const FAL_ENDPOINT = "https://fal.run/clarityai/crystal-upscaler";
+const FAL_ENDPOINT = "https://fal.run/clarityai/crystal-upscaler"; // (eski sağlayıcı — artık kullanılmıyor)
+
+// ============================================================================
+// 🔍 UPSCALE SAĞLAYICISI — Replicate prunaai/p-image-upscale
+// ----------------------------------------------------------------------------
+// "target" modunda çıktı çözünürlüğü megapiksel olarak verilir; model 128 MP'ye
+// kadar destekliyor. Replicate fiyatlandırması kademeli (çıktı MP'sine göre):
+//   1-4MP $0.005 · 4-8MP $0.01 · 8-16MP $0.02 · 16-32MP $0.04 · 32-64MP $0.06 · 64-128MP $0.12
+// Kredi tablosu bu maliyetle orantılı kurgulandı (aşağıdaki UPSCALE_CREDIT_BY_MP).
+// ============================================================================
+const REPLICATE_UPSCALE_MODEL = "prunaai/p-image-upscale";
+const REPLICATE_UPSCALE_VERSION =
+  "b998e77850c393ccddb1a4c32e5c298c91f89f2af9d9fc72bb85e1949fd80ae3";
+
+// Kullanıcının seçebileceği hedef çözünürlükler (megapiksel)
+const UPSCALE_MP_OPTIONS = [4, 8, 16, 32, 64, 128];
+const DEFAULT_UPSCALE_MP = 4;
+
+// Kredi maliyeti — taban 10 kredi (en düşük kademe), üstü Replicate maliyetiyle
+// orantılı ikişer kat. (1 kredi ≈ $0.025 · 600 kredi = $15 paketi baz alındı)
+//   4MP   → 10 kredi ($0.25 gelir / $0.005 maliyet)
+//   8MP   → 20 kredi ($0.50 / $0.01)
+//   16MP  → 40 kredi ($1.00 / $0.02)
+//   32MP  → 80 kredi ($2.00 / $0.04)
+//   64MP  →120 kredi ($3.00 / $0.06)
+//   128MP →240 kredi ($6.00 / $0.12)
+const UPSCALE_CREDIT_BY_MP = { 4: 10, 8: 20, 16: 40, 32: 80, 64: 120, 128: 240 };
+
+// İstemciden gelen değeri güvenli aralığa oturt
+function normalizeTargetMp(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return DEFAULT_UPSCALE_MP;
+  return UPSCALE_MP_OPTIONS.includes(n) ? n : DEFAULT_UPSCALE_MP;
+}
+
+function creditCostForMp(targetMp) {
+  return UPSCALE_CREDIT_BY_MP[normalizeTargetMp(targetMp)] || UPSCALE_CREDIT_BY_MP[DEFAULT_UPSCALE_MP];
+}
+
+// Replicate prediction: oluştur → tamamlanana kadar bekle → çıktı URL'i döner.
+async function runReplicateUpscale(imageUrl, targetMp) {
+  const mp = normalizeTargetMp(targetMp);
+  const token = process.env.REPLICATE_API_TOKEN;
+  if (!token) throw new Error("REPLICATE_API_TOKEN missing");
+
+  const created = await axios.post(
+    "https://api.replicate.com/v1/predictions",
+    {
+      version: REPLICATE_UPSCALE_VERSION,
+      input: {
+        image: imageUrl,
+        upscale_mode: "target",
+        target: mp,
+        output_format: "jpg",
+        output_quality: 95,
+        enhance_details: true,
+        // Ürün fotoğrafları zararsız; güvenlik filtresi yanlış pozitif verip
+        // işi düşürmesin diye kapatıldı.
+        disable_safety_checker: true,
+      },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Prefer: "wait", // model <1sn çalışıyor; çoğu istekte tek çağrıda biter
+      },
+      timeout: 180000,
+    },
+  );
+
+  let prediction = created.data;
+  // Prefer: wait ile bitmediyse kısa aralıklarla yokla
+  for (let i = 0; i < 90 && ["starting", "processing"].includes(prediction?.status); i++) {
+    await new Promise((r) => setTimeout(r, 1000));
+    const poll = await axios.get(
+      `https://api.replicate.com/v1/predictions/${prediction.id}`,
+      { headers: { Authorization: `Bearer ${token}` }, timeout: 30000 },
+    );
+    prediction = poll.data;
+  }
+
+  if (prediction?.status !== "succeeded") {
+    throw new Error(
+      `Replicate upscale failed: ${prediction?.error || prediction?.status || "unknown"}`,
+    );
+  }
+
+  const out = prediction.output;
+  const url = Array.isArray(out) ? out[0] : out;
+  if (typeof url !== "string" || !url.startsWith("http")) {
+    throw new Error("Replicate upscale returned no image URL");
+  }
+  return url;
+}
 
 // Helper: FAL'dan dönen geçici imajı user_image_results bucket'ına yükler ve
 // kalıcı api.diress.ai public URL'sini döner. Hata durumunda orijinal URL'yi döner
@@ -13,7 +108,7 @@ const FAL_ENDPOINT = "https://fal.run/clarityai/crystal-upscaler";
 // pattern'iyle birebir aynı.
 const saveResultImageToUserBucket = async (resultImageUrl, userId) => {
   try {
-    if (!resultImageUrl || !userId) return resultImageUrl;
+    if (!resultImageUrl || !userId) return { url: resultImageUrl, thumbUrl: null };
     const imageResponse = await axios.get(resultImageUrl, {
       responseType: "arraybuffer",
       timeout: 30000,
@@ -31,15 +126,44 @@ const saveResultImageToUserBucket = async (resultImageUrl, userId) => {
       });
     if (error) {
       console.error("❌ [UPSCALE-BUCKET] Upload hatası:", error.message);
-      return resultImageUrl;
+      return { url: resultImageUrl, thumbUrl: null };
     }
     const { data: urlData } = supabase.storage
       .from("user_image_results")
       .getPublicUrl(fileName);
-    return urlData?.publicUrl || resultImageUrl;
+
+    // 🖼️ Küçük önizleme — netleştirilmiş çıktı 30 MB'ı aşabiliyor ve Cloudflare
+    // Image Resizing bu boyutta 403 dönüyor; geçmiş ızgarası CDN thumbnail'ına
+    // güvendiği için kartlar boş görünüyordu. Thumbnail'ı burada kendimiz üretiriz.
+    let thumbUrl = null;
+    try {
+      const thumbBuffer = await sharp(imageBuffer)
+        .rotate()
+        .resize(600, 600, { fit: "inside", withoutEnlargement: true })
+        .jpeg({ quality: 80 })
+        .toBuffer();
+      const thumbName = fileName.replace(/\.jpg$/, "_thumb.jpg");
+      const { error: thumbErr } = await supabase.storage
+        .from("user_image_results")
+        .upload(thumbName, thumbBuffer, {
+          contentType: "image/jpeg",
+          cacheControl: "3600",
+          upsert: false,
+        });
+      if (!thumbErr) {
+        const { data: thumbData } = supabase.storage
+          .from("user_image_results")
+          .getPublicUrl(thumbName);
+        thumbUrl = thumbData?.publicUrl || null;
+      }
+    } catch (thumbException) {
+      console.warn("⚠️ [UPSCALE-BUCKET] Thumbnail üretilemedi:", thumbException?.message);
+    }
+
+    return { url: urlData?.publicUrl || resultImageUrl, thumbUrl };
   } catch (err) {
     console.error("❌ [UPSCALE-BUCKET] Exception:", err?.message);
-    return resultImageUrl;
+    return { url: resultImageUrl, thumbUrl: null };
   }
 };
 
@@ -60,7 +184,9 @@ const getRemoteFileSize = async (url) => {
 };
 
 router.post("/", async (req, res) => {
-  const CREDIT_COST = 5; // Image enhancement için kredi maliyeti
+  // Hedef çözünürlük (MP) → kredi. İstemci göndermezse 4MP/5 kredi.
+  const targetMp = normalizeTargetMp(req.body?.targetMp);
+  const CREDIT_COST = creditCostForMp(targetMp);
   let creditDeducted = false;
   let creditOwnerId;
   let userId;
@@ -152,52 +278,25 @@ router.post("/", async (req, res) => {
       }
     }
 
-    console.log("2. Starting Fal.ai API call (clarityai/crystal-upscaler)...");
+    console.log(
+      `2. Starting Replicate call (${REPLICATE_UPSCALE_MODEL}) — target ${targetMp}MP, ${CREDIT_COST} kredi...`,
+    );
     const tFalStart = Date.now();
 
-    // Fal.ai API çağrısı
-    const falResponse = await axios.post(
-      FAL_ENDPOINT,
-      {
-        image_url: imageUrl,
-        upscaling_factor: Number(scale) || 2,
-      },
-      {
-        headers: {
-          Authorization: `Key ${process.env.FAL_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        timeout: 180000,
-      }
-    );
+    const resultImageUrl = await runReplicateUpscale(imageUrl, targetMp);
+
     const falElapsed = Date.now() - tFalStart;
-    console.log(`3. Fal.ai API response received (took ${falElapsed} ms)`);
-
-    const output = falResponse.data;
-    console.log("Fal.ai raw output:", JSON.stringify(output, null, 2));
-
-    let resultImageUrl = null;
-
-    // Fal.ai çıktısını parse et
-    if (output.image && output.image.url) {
-      resultImageUrl = output.image.url;
-    } else if (output.images && Array.isArray(output.images) && output.images.length > 0) {
-      resultImageUrl = output.images[0].url;
-    } else if (typeof output === 'string' && output.startsWith('http')) {
-      resultImageUrl = output;
-    } else {
-      resultImageUrl = output.url || null;
-    }
-
-    if (!resultImageUrl) {
-      throw new Error("Fal.ai response did not contain a valid image URL");
-    }
+    console.log(`3. Replicate response received (took ${falElapsed} ms)`);
+    const output = { url: resultImageUrl, target_mp: targetMp };
 
     // FAL imajını user_image_results bucket'ına yükle → kalıcı api.diress URL'i.
     // (signed-expiry sorunu yok, frontend'de download/share çalışır)
     let finalImageUrl = resultImageUrl;
+    let resultThumbUrl = null;
     if (userId && userId !== "anonymous_user") {
-      finalImageUrl = await saveResultImageToUserBucket(resultImageUrl, userId);
+      const saved = await saveResultImageToUserBucket(resultImageUrl, userId);
+      finalImageUrl = saved.url;
+      resultThumbUrl = saved.thumbUrl;
     }
 
     // ✅ Client'a kalıcı URL ile dön — file size lookup ve DB insert ARKA PLANDA yapılır.
@@ -228,9 +327,10 @@ router.post("/", async (req, res) => {
               status: "completed",
               original_image_url: imageUrl,
               result_image_url: finalImageUrl,
+              result_thumb_url: resultThumbUrl,
               original_size_bytes: originalSize,
               result_size_bytes: resultSize,
-              scale: Number(scale) || 2,
+              scale: targetMp,
               credits_cost: CREDIT_COST,
               credit_balance_before: creditBalanceBefore,
               credit_balance_after: creditBalanceAfter,
@@ -330,8 +430,8 @@ router.post("/", async (req, res) => {
 // başarılı item'lardan kesilir. Anonymous user destekli (DB/credit skip).
 // ============================================================================
 const BULK_MAX_ITEMS = 20;
-const BULK_CREDIT_COST = 5;
-const BULK_SCALE = 4;
+// Toplu modda kredi de hedef çözünürlüğe göre hesaplanır (tekil akışla aynı tablo).
+const BULK_CREDIT_COST = UPSCALE_CREDIT_BY_MP[DEFAULT_UPSCALE_MP];
 
 // ============================================================================
 // BULK BATCH STATE — In-memory tracking for async/polling pattern
@@ -351,7 +451,14 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
-async function processBulkUpscaleItem({ userId, creditOwnerId, imageUrl, index, batchId }) {
+async function processBulkUpscaleItem({
+  userId,
+  creditOwnerId,
+  imageUrl,
+  index,
+  batchId,
+  targetMp = DEFAULT_UPSCALE_MP,
+}) {
   const startedAt = Date.now();
 
   try {
@@ -359,46 +466,24 @@ async function processBulkUpscaleItem({ userId, creditOwnerId, imageUrl, index, 
       throw new Error("INVALID_IMAGE_URL");
     }
 
-    // Fal.ai crystal-upscaler çağrısı
+    // Replicate p-image-upscale çağrısı (target modunda MP)
     const tFalStart = Date.now();
-    const falResponse = await axios.post(
-      FAL_ENDPOINT,
-      {
-        image_url: imageUrl,
-        upscaling_factor: BULK_SCALE,
-      },
-      {
-        headers: {
-          Authorization: `Key ${process.env.FAL_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        timeout: 180000,
-      }
-    );
+    const replicateUrl = await runReplicateUpscale(imageUrl, targetMp);
     const falElapsed = Date.now() - tFalStart;
-    console.log(`✓ [BULK_UPSCALE] Item ${index} Fal.ai response received in ${falElapsed}ms`);
+    console.log(
+      `✓ [BULK_UPSCALE] Item ${index} Replicate response received in ${falElapsed}ms (${targetMp}MP)`,
+    );
 
-    const output = falResponse.data;
-    let resultUrl = null;
-    if (output?.image?.url) {
-      resultUrl = output.image.url;
-    } else if (Array.isArray(output?.images) && output.images.length > 0) {
-      resultUrl = output.images[0].url;
-    } else if (typeof output === "string" && output.startsWith("http")) {
-      resultUrl = output;
-    } else {
-      resultUrl = output?.url || null;
-    }
-
-    if (!resultUrl) {
-      throw new Error("FAL_NO_OUTPUT_URL");
-    }
+    const resultUrl = replicateUrl;
 
     // FAL imajını user_image_results bucket'ına yükle → kalıcı api.diress URL'i.
     // (signed-expiry sorunu yok, frontend download/share/history çalışır)
     let finalImageUrl = resultUrl;
+    let resultThumbUrl = null;
     if (userId && userId !== "anonymous_user") {
-      finalImageUrl = await saveResultImageToUserBucket(resultUrl, userId);
+      const savedBulk = await saveResultImageToUserBucket(resultUrl, userId);
+      finalImageUrl = savedBulk.url;
+      resultThumbUrl = savedBulk.thumbUrl;
     }
 
     // ⚡ Critical: Credit kesimi sync (deduct atomic RPC, hızlı). HEAD + DB insert background'a.
@@ -407,7 +492,7 @@ async function processBulkUpscaleItem({ userId, creditOwnerId, imageUrl, index, 
       try {
         const { error: deductError } = await supabase.rpc(
           "deduct_user_credit",
-          { user_id: creditOwnerId, credit_amount: BULK_CREDIT_COST }
+          { user_id: creditOwnerId, credit_amount: creditCostForMp(targetMp) }
         );
         if (deductError) {
           console.error(
@@ -415,7 +500,7 @@ async function processBulkUpscaleItem({ userId, creditOwnerId, imageUrl, index, 
             deductError
           );
         } else {
-          creditsCharged = BULK_CREDIT_COST;
+          creditsCharged = creditCostForMp(targetMp);
         }
       } catch (creditErr) {
         console.error(
@@ -450,9 +535,10 @@ async function processBulkUpscaleItem({ userId, creditOwnerId, imageUrl, index, 
               status: "completed",
               original_image_url: imageUrl,
               result_image_url: finalImageUrl,
+              result_thumb_url: resultThumbUrl,
               original_size_bytes: originalSize,
               result_size_bytes: resultSize,
-              scale: BULK_SCALE,
+              scale: targetMp,
               credits_cost: creditsCharged,
             });
           if (insertError) {
@@ -500,7 +586,7 @@ async function processBulkUpscaleItem({ userId, creditOwnerId, imageUrl, index, 
           status: "failed",
           original_image_url: imageUrl || null,
           result_image_url: null,
-          scale: BULK_SCALE,
+          scale: targetMp,
           credits_cost: 0,
         });
       } catch (_) {
@@ -558,7 +644,8 @@ router.post("/generate-bulk", async (req, res) => {
     }
 
     const sessionId = rawSessionId || uuidv4();
-    const requiredCredits = items.length * BULK_CREDIT_COST;
+    const bulkTargetMp = normalizeTargetMp(req.body?.targetMp);
+    const requiredCredits = items.length * creditCostForMp(bulkTargetMp);
 
     // Team-aware credit precheck — endpoint başında 1 KEZ. creditOwnerId'yi tüm
     // item'lara geçeceğiz, böylece her item için ayrıca getEffectiveCredits
@@ -588,7 +675,7 @@ router.post("/generate-bulk", async (req, res) => {
 
     const tBatchStart = Date.now();
     console.log(
-      `🚀 [BULK_UPSCALE] ${items.length} item paralel işlenecek (sessionId=${sessionId}, scale=${BULK_SCALE}, creditOwnerId=${creditOwnerId})`
+      `🚀 [BULK_UPSCALE] ${items.length} item paralel işlenecek (sessionId=${sessionId}, targetMp=${bulkTargetMp}, creditOwnerId=${creditOwnerId})`
     );
 
     const settled = await Promise.allSettled(
@@ -598,7 +685,8 @@ router.post("/generate-bulk", async (req, res) => {
           creditOwnerId,
           imageUrl: it.imageUrl,
           index: i,
-        })
+        targetMp: bulkTargetMp,
+      })
       )
     );
 
@@ -683,7 +771,8 @@ router.post("/generate-bulk-async", async (req, res) => {
     }
 
     const sessionId = rawSessionId || uuidv4();
-    const requiredCredits = items.length * BULK_CREDIT_COST;
+    const bulkTargetMp = normalizeTargetMp(req.body?.targetMp);
+    const requiredCredits = items.length * creditCostForMp(bulkTargetMp);
 
     // Credit precheck (1 kez)
     let creditOwnerId = null;
@@ -740,7 +829,8 @@ router.post("/generate-bulk-async", async (req, res) => {
           imageUrl: it.imageUrl,
           index: i,
           batchId: sessionId,
-        });
+        targetMp: bulkTargetMp,
+      });
         const batch = bulkBatches.get(sessionId);
         if (batch) {
           batch.items[i] = { ...result, originalImageUrl: it.imageUrl };

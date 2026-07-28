@@ -11,127 +11,17 @@ const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const { createCanvas, loadImage } = require("canvas");
 const {
-  stampStyleReferencePlate,
-  buildStyleProfileGrid,
-} = require("../utils/styleReferenceImage");
-// 🔍 Sonuç netleştirme — model üretimiyle (referenceBrowserV7) ortak yardımcı
-const { applyResultUpscale } = require("../utils/resultUpscale");
-
-// ───────────────────────────────────────────────────────────────────────────
-// 🔧 Refiner çekim tarzı direktifleri
-//
-// Model/moda tarafındaki stil referansından KASITLI olarak farklıdır: burada
-// mekân, poz, model, atmosfer yoktur. Kopyalanan şey bir KATALOG KARESİNİN
-// teknik kurulumudur — zemin karakteri, ışık, gölge/yansıma dili, ürün açısı,
-// kadraj ve renk grade'i. Ürünün kendisi HER ZAMAN kullanıcının fotoğrafından
-// gelir; referanstaki ürün, marka, logo veya prop asla taşınmaz.
-// ───────────────────────────────────────────────────────────────────────────
-function buildRefinerStyleDirectives(meta, settings = {}) {
-  if (!meta) return "";
-
-  const addShadow = settings?.addShadow ?? false;
-  const addReflection = settings?.addReflection ?? false;
-  const backgroundColor = settings?.backgroundColor || null;
-  const flatBackdrop = meta.backdropLock === "FLAT";
-
-  const refPointer = meta.fromProfile
-    ? `The attached image carrying a solid BLACK code plate along its bottom edge with the printed text "STYLE REFERENCE · CODE SR-1" (the LAST attached image) is the STYLE REFERENCE. It is a COLLAGE GRID of ${meta.framesCount} separate catalog frames that share ONE product-photography look.`
-    : `The attached image carrying a solid BLACK code plate along its bottom edge with the printed text "STYLE REFERENCE · CODE SR-1" (the LAST attached image) is the STYLE REFERENCE — one catalog frame whose look must be matched.`;
-
-  const sections = [];
-
-  sections.push(`⚠️ ABSOLUTE OUTPUT RULE — READ FIRST: The final photograph fills the frame edge to edge; the bottom edge simply continues the backdrop. The black code plate strip you see along the bottom of one attached input image is an INPUT-ONLY marker used to identify that image — the output must not contain that black strip or any similar added band. (Printed graphics, brand marks and labels that belong to the product itself stay exactly as they are.)`);
-
-  sections.push(`🔧 CATALOG STYLE REFERENCE MODE — STRICT DIRECTIVES
-
-${refPointer}
-
-WHAT THE REFERENCE CONTRIBUTES (copy these):
-- BACKDROP: its character and exact tone — flat seamless colour vs subtle gradient vs textured sweep, how uniform it is, whether the product floats or sits on a visible surface.
-- LIGHT SETUP: key direction and size, how soft the shadow edges are, fill level, presence or absence of an edge/rim separation light, and how even the exposure reads across the frame.
-- SHADOW & REFLECTION LANGUAGE: exactly what sits under the product — its softness, opacity, direction and length.
-- CAMERA & FRAMING: camera height and angle relative to the product, focal-length feel, how tight the crop is, how much margin surrounds the product, and depth of field.
-- COLOR GRADE: palette, saturation, contrast curve, black level, white-balance bias, highlight roll-off — apply it as a fixed preset baked into the file.
-- STAGING HABIT: how the product is presented (ghost mannequin, standing, laid flat, propped, single item vs pair) when it is compatible with the user's product.
-
-WHAT THE REFERENCE MUST NEVER CONTRIBUTE:
-🚫 The products shown in it. The user's product is defined ONLY by the other attached photo(s). Never transfer a garment, shoe, bag, jewellery piece, colour, print, silhouette or material from the reference.
-🚫 Brands, logos, printed text or packaging visible in the reference.
-🚫 One-off props that appear in a single frame (a stone, a leaf, a cup, a stand, a plant). Only staging habits that clearly repeat across the frames may be reproduced.
-🚫 Any person, hand or model appearing in the reference. This is product photography — the output contains the product only.
-
-${
-    flatBackdrop
-      ? `⚠️ BACKDROP LOCK — FLAT STUDIO SET (HIGHEST PRIORITY): The reference frames share a plain, uniform studio backdrop. Reproduce that same flat, evenly lit surface, the same tone and the same emptiness. Do not enrich, decorate or restage it, and add nothing the reference does not show.`
-      : `⚠️ SURFACE CHARACTER: The reference uses a styled surface rather than a plain sweep. Recreate its MATERIAL and TONE (the same kind of surface, same colour family, same texture scale) with a fresh, clean arrangement — do not rebuild the exact scene or copy the objects in it.`
-  }`);
-
-  if (meta.stylePrompt) {
-    // Makine işareti prompt'a girmez
-    const cleaned = String(meta.stylePrompt)
-      .replace(/^\s*BACKDROP_LOCK:.*$/gim, "")
-      .replace(/\n{3,}/g, "\n\n")
-      .trim();
-    if (cleaned) {
-      sections.push(`CATALOG STYLE ANALYSIS (studio notes distilled from the reference frames — follow them):\n${cleaned}`);
-    }
-  }
-
-  // 🎬 Çekim tarzı devredeyken istemci arkaplan/efekt ayarlarını GÖNDERMEZ
-  // (kontroller UI'da da kilitli). Ayar geldiyse — eski istemci ya da başka bir
-  // çağrı — kullanıcının açık tercihi referansın üstünde tutulur.
-  const hasExplicitSettings =
-    backgroundColor != null ||
-    settings?.addShadow != null ||
-    settings?.addReflection != null;
-
-  if (hasExplicitSettings) {
-    const overrides = [];
-    if (backgroundColor) {
-      overrides.push(`- BACKGROUND COLOUR is user-selected: "${backgroundColor}". Use the reference only for HOW that background behaves (uniformity, falloff, texture, light), never for its colour.`);
-    }
-    if (settings?.addShadow != null) {
-      overrides.push(
-        addShadow
-          ? `- SHADOW is ON: keep a shadow under the product, and shape it exactly like the reference's shadow (same softness, direction and opacity).`
-          : `- SHADOW is OFF: there must be no shadow under the product, even if the reference frames show one. A clean, shadowless contact is required.`,
-      );
-    }
-    if (settings?.addReflection != null) {
-      overrides.push(
-        addReflection
-          ? `- REFLECTION is ON: keep a reflection under the product, matched to the reference's reflection character (same length, softness and opacity).`
-          : `- REFLECTION is OFF: there must be no reflection or mirrored surface under the product, even if the reference frames show one.`,
-      );
-    }
-    if (overrides.length) {
-      sections.push(`⚙️ USER SETTINGS TAKE PRECEDENCE OVER THE REFERENCE:\n${overrides.join("\n")}`);
-    }
-  } else {
-    sections.push(`⚙️ BACKGROUND, SHADOW AND REFLECTION ARE FULLY GOVERNED BY THE REFERENCE: the user deliberately handed these over to the style reference and set no manual values. Take the backdrop colour and treatment, the presence/absence of a shadow and its exact shape, and the presence/absence of a reflection straight from the reference frames. Do not invent a different backdrop colour, and do not add a shadow or reflection that the reference does not show.`);
-  }
-
-  sections.push(`🎯 MATCH THE REFERENCE SHOT EXACTLY (HIGH PRIORITY): The output must look like it was taken in the SAME session, on the SAME set, by the SAME photographer as the reference — only the product is different. Reproduce, as closely as the user's product allows:
-- CAMERA ANGLE & PRODUCT ORIENTATION: the same viewpoint and the same way the product is turned toward the lens (straight-on / slight top-down / three-quarter), the same tilt, the same axis. If the reference presents the item hanging, standing, laid flat or suspended, present the user's product the same way.
-- FRAMING & SCALE: the same crop tightness, the same margin of empty backdrop around the product, the same position in the frame and the same relative size. Do not zoom in or out beyond what the reference does.
-- LIGHTING: the same key direction and softness, the same fill, the same speculars and how highlights travel across the material, the same overall brightness. Metal must catch light the same way it does in the reference; stones must sparkle with the same intensity.
-- SHADOW / REFLECTION SHAPE: the same softness, direction, length and opacity under the product.
-- FINISHING & RETOUCH LEVEL: bring the product up to the reference's retouch standard — remove dust, lint, fingerprints, smudges, scratches, tarnish, stains, dirt and sticker residue; polish metal to the same sheen; make stones and glass clean and bright; smooth wrinkles and creases in fabric; straighten chains, laces and straps; cut the silhouette cleanly against the backdrop with crisp, artefact-free edges.
-- SHARPNESS: the whole product tack sharp, the same depth of field as the reference. No blur, no bokeh, no soft focus, no motion blur.
-- COLOUR: the product's own colours stay true, but the white balance and grade of the frame match the reference.
-This is a re-shoot of the user's product in the reference's studio — not a stylised reinterpretation.`);
-
-  sections.push(`🧷 PRODUCT FIDELITY (NON-NEGOTIABLE, OVERRIDES THE STYLE REFERENCE): The user's product must stay exactly itself — same shape, proportions, colour, material, texture, prints and pattern scale, stitching, seams, hardware, trims and labels. The style reference changes only HOW the product is photographed, never WHAT it is. Keep the whole product sharp and in focus; do not crop it more tightly than the reference framing requires.`);
-
-  return sections.join("\n\n");
-}
-const {
   sendGenerationCompletedNotification,
 } = require("../services/pushNotificationService");
 const teamService = require("../services/teamService");
 const logger = require("../utils/logger");
 const { optimizeImageUrl } = require("../utils/imageOptimizer");
-const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
+const {
+  evaluatePrompt: evaluateSafetyPrompt,
+  hardenPrompt: hardenSafetyPrompt,
+  isSafetyTestUser,
+  SAFETY_SYSTEM_PROMPT,
+} = require("../utils/nudityGuard");
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -156,34 +46,218 @@ const genAI = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
-// Replicate API üzerinden Gemini 2.5 Flash çağrısı yapan helper fonksiyon
+// Prompt enhance için Google AI Studio key'i (ayrı, kısıtsız key).
+// GOOGLE_AISTUDIO_KEY yoksa eski GEMINI_API_KEY'e düşer.
+const googleAiStudio = new GoogleGenAI({
+  apiKey: process.env.GOOGLE_AISTUDIO_KEY || process.env.GEMINI_API_KEY,
+});
+
+// Replicate API üzerinden Gemini 3 Flash çağrısı yapan helper fonksiyon
 // Hata durumunda 3 kez tekrar dener
 async function callReplicateGeminiFlash(
   prompt,
   imageUrls = [],
   maxRetries = 3,
 ) {
-  // Prompt enhance artık merkezi dispatcher'a yönleniyor (app_config: gemini/replicate)
-  return callGeminiFlash(prompt, imageUrls, maxRetries);
+  const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+
+  if (!REPLICATE_API_TOKEN) {
+    throw new Error("REPLICATE_API_TOKEN environment variable is not set");
+  }
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      logger.log(
+        `🤖 [REPLICATE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries}`,
+      );
+
+      // Debug: Request bilgilerini logla
+      logger.log(`🔍 [REPLICATE-GEMINI] Images count: ${imageUrls.length}`);
+      logger.log(`🔍 [REPLICATE-GEMINI] Prompt length: ${prompt.length} chars`);
+
+      const requestBody = {
+        input: {
+          top_p: 0.95,
+          images: imageUrls, // Direkt URL string array olarak gönder
+          prompt: prompt,
+          videos: [],
+          temperature: 1,
+          thinking_level: "low",
+          max_output_tokens: 65535,
+        },
+      };
+
+      const response = await axios.post(
+        "https://api.replicate.com/v1/models/google/gemini-3-flash/predictions",
+        requestBody,
+        {
+          headers: {
+            Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
+            "Content-Type": "application/json",
+            Prefer: "wait",
+          },
+          timeout: 120000, // 2 dakika timeout
+        },
+      );
+
+      const data = response.data;
+
+      // Hata kontrolü
+      if (data.error) {
+        console.error(`❌ [REPLICATE-GEMINI] API error:`, data.error);
+        throw new Error(data.error);
+      }
+
+      // Status kontrolü
+      if (data.status !== "succeeded") {
+        console.error(
+          `❌ [REPLICATE-GEMINI] Prediction failed with status:`,
+          data.status,
+        );
+        throw new Error(`Prediction failed with status: ${data.status}`);
+      }
+
+      // Output'u birleştir (array olarak geliyor)
+      let outputText = "";
+      if (Array.isArray(data.output)) {
+        outputText = data.output.join("");
+      } else if (typeof data.output === "string") {
+        outputText = data.output;
+      }
+
+      if (!outputText || outputText.trim() === "") {
+        console.error(`❌ [REPLICATE-GEMINI] Empty response`);
+        throw new Error("Replicate Gemini response is empty");
+      }
+
+      logger.log(
+        `✅ [REPLICATE-GEMINI] Başarılı response alındı (attempt ${attempt})`,
+      );
+      logger.log(`📊 [REPLICATE-GEMINI] Metrics:`, data.metrics);
+
+      return outputText.trim();
+    } catch (error) {
+      console.error(
+        `❌ [REPLICATE-GEMINI] Attempt ${attempt} failed:`,
+        error.message,
+      );
+
+      if (attempt === maxRetries) {
+        console.error(
+          `❌ [REPLICATE-GEMINI] All ${maxRetries} attempts failed`,
+        );
+        throw error;
+      }
+
+      // Retry öncesi kısa bekleme (exponential backoff)
+      const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      logger.log(`⏳ [REPLICATE-GEMINI] ${waitTime}ms bekleniyor...`);
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+    }
+  }
 }
 
-// @fal-ai/client import for GPT Image 2
-const { fal } = require("@fal-ai/client");
-fal.config({
-  credentials: process.env.FAL_API_KEY,
-});
+// Google'ın kendi Gemini API'si (yeni @google/genai SDK) üzerinden prompt enhance.
+// Replicate'teki google/gemini-3-flash yerine stabil Gemini 3.5 Flash kullanılıyor.
+const GEMINI_DIRECT_MODEL = "gemini-3.5-flash";
 
-// App-level config bayrağı: Supabase `app_config` tablosunda is_new = true ise
-// Refiner GPT Image 2 kullanır, false ise eski GPT Image 1.5'e düşer.
-// Hata/kolon yoksa default olarak `true` döner — güvenli fallback (yeni model).
-async function isNewRefinerEnabled() {
+async function callGoogleGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
+  if (!process.env.GOOGLE_AISTUDIO_KEY && !process.env.GEMINI_API_KEY) {
+    throw new Error(
+      "GOOGLE_AISTUDIO_KEY (veya GEMINI_API_KEY) environment variable is not set",
+    );
+  }
+
+  // Görsel URL'lerini indirip base64 inlineData part'larına çevir.
+  // (Google direkt API URL kabul etmez; inline base64 ister.)
+  const imageParts = [];
+  for (const url of imageUrls) {
+    try {
+      const imgResp = await axios.get(url, {
+        responseType: "arraybuffer",
+        timeout: 30000,
+      });
+      const mimeType =
+        imgResp.headers["content-type"]?.split(";")[0]?.trim() || "image/jpeg";
+      imageParts.push({
+        inlineData: {
+          mimeType,
+          data: Buffer.from(imgResp.data).toString("base64"),
+        },
+      });
+    } catch (imgErr) {
+      console.error(
+        `❌ [GOOGLE-GEMINI] Görsel indirilemedi (${url?.substring(0, 80)}):`,
+        imgErr.message,
+      );
+    }
+  }
+
+  const parts = [{ text: prompt }, ...imageParts];
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      logger.log(
+        `🤖 [GOOGLE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries} (model: ${GEMINI_DIRECT_MODEL})`,
+      );
+      logger.log(
+        `🔍 [GOOGLE-GEMINI] Images: ${imageParts.length}, Prompt length: ${prompt.length} chars`,
+      );
+
+      const response = await googleAiStudio.models.generateContent({
+        model: GEMINI_DIRECT_MODEL,
+        contents: [{ role: "user", parts }],
+        config: {
+          temperature: 1,
+          topP: 0.95,
+          maxOutputTokens: 65535,
+        },
+      });
+
+      const outputText = (response.text || "").trim();
+      if (!outputText) {
+        console.error(`❌ [GOOGLE-GEMINI] Empty response`);
+        throw new Error("Google Gemini response is empty");
+      }
+
+      logger.log(
+        `✅ [GOOGLE-GEMINI] Başarılı response alındı (attempt ${attempt})`,
+      );
+      return outputText;
+    } catch (error) {
+      console.error(
+        `❌ [GOOGLE-GEMINI] Attempt ${attempt} failed:`,
+        error.message,
+      );
+
+      if (attempt === maxRetries) {
+        console.error(`❌ [GOOGLE-GEMINI] All ${maxRetries} attempts failed`);
+        throw error;
+      }
+
+      const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      logger.log(`⏳ [GOOGLE-GEMINI] ${waitTime}ms bekleniyor...`);
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+    }
+  }
+}
+
+// Prompt enhance sağlayıcısını app_config'ten oku: "gemini" (Google direkt) | "replicate".
+// Default: "gemini". is_gpt ile aynı esnek okuma: önce kolon, sonra key/value fallback.
+async function getPromptEnhanceProvider() {
   try {
     const { data } = await supabase
       .from("app_config")
-      .select("is_new")
+      .select("prompt_enhance_provider")
       .limit(1)
       .maybeSingle();
-    if (data && typeof data.is_new === "boolean") return data.is_new;
+    if (
+      data &&
+      typeof data.prompt_enhance_provider === "string" &&
+      data.prompt_enhance_provider.trim()
+    ) {
+      return data.prompt_enhance_provider.trim().toLowerCase();
+    }
   } catch (e) {
     // kolon yoksa PostgREST hata fırlatır — sessizce geç
   }
@@ -191,125 +265,73 @@ async function isNewRefinerEnabled() {
     const { data } = await supabase
       .from("app_config")
       .select("value")
-      .eq("key", "is_new")
+      .eq("key", "prompt_enhance_provider")
       .maybeSingle();
-    if (data && data.value !== undefined && data.value !== null) {
-      const v = data.value;
-      if (typeof v === "boolean") return v;
-      if (typeof v === "string") return v.toLowerCase() === "true";
-      if (typeof v === "object" && v !== null && "bool" in v) return Boolean(v.bool);
+    if (data && typeof data.value === "string" && data.value.trim()) {
+      return data.value.trim().toLowerCase();
     }
   } catch (e) {}
-  return true; // default: yeni model (GPT Image 2)
+  return "gemini"; // default: Google direkt
 }
 
-// 🍌 Refiner + çekim tarzı yolu — nano-banana-2.
-// GPT Image uçları TEK görsel alıyor; stil referansı devredeyken ürün fotoğrafı ile
-// referans karesinin AYNI istekte gitmesi gerekiyor. nano-banana-2 çoklu görseli ve
-// "şu ekteki kareyi referans al" talimatını doğru işliyor, bu yüzden referans/çekim
-// tarzı seçiliyken model buraya yönlendirilir.
-async function callNanoBanana2ForRefiner(prompt, imageUrls, maxRetries = 3) {
-  const nanoModel = "fal-ai/nano-banana-2/edit";
-  let lastError = null;
+// Prompt enhance dispatcher — app_config seçimine göre Google direkt veya Replicate.
+// Replicate'i koruyoruz (geri dönülebilir + Google başarısızsa güvenli fallback).
+async function callGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
+  const provider = await getPromptEnhanceProvider();
 
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      logger.log(
-        `🍌 [REFINER NB2] fal.run/${nanoModel} attempt ${attempt}/${maxRetries} — images: ${imageUrls.length}`,
-      );
-      const response = await axios.post(
-        `https://fal.run/${nanoModel}`,
-        {
-          prompt,
-          image_urls: imageUrls,
-          output_format: "jpeg",
-          aspect_ratio: "3:4",
-          num_images: 1,
-          resolution: "2K",
-        },
-        {
-          headers: {
-            Authorization: `Key ${process.env.FAL_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          timeout: 300000,
-        },
-      );
-
-      const url = response.data?.images?.[0]?.url;
-      if (url) {
-        logger.log(`✅ [REFINER NB2] Başarılı (attempt ${attempt}):`, url);
-        return url;
-      }
-      throw new Error(
-        response.data?.detail ||
-          response.data?.error ||
-          "nano-banana-2 returned no images",
-      );
-    } catch (err) {
-      lastError = err;
-      logger.warn(
-        `❌ [REFINER NB2] attempt ${attempt} başarısız:`,
-        err?.response?.data?.detail || err?.message,
-      );
-      if (attempt < maxRetries) {
-        await new Promise((r) => setTimeout(r, attempt * 2000));
-      }
-    }
+  if (provider === "replicate") {
+    logger.log("🔀 [PROMPT_ENHANCE] Provider: replicate (Replicate Gemini 3 Flash)");
+    return callReplicateGeminiFlash(prompt, imageUrls, maxRetries);
   }
-  throw lastError || new Error("nano-banana-2 failed");
+
+  logger.log("🔀 [PROMPT_ENHANCE] Provider: gemini (Google direkt Gemini API)");
+  try {
+    return await callGoogleGeminiFlash(prompt, imageUrls, maxRetries);
+  } catch (err) {
+    console.error(
+      "⚠️ [PROMPT_ENHANCE] Google Gemini başarısız, Replicate'e fallback yapılıyor:",
+      err.message,
+    );
+    return callReplicateGeminiFlash(prompt, imageUrls, maxRetries);
+  }
 }
 
-// Fal.ai GPT Image Edit API call using SDK (for Refiner mode - Ghost Mannequin style).
-// app_config.is_new bayrağına göre model seçilir:
-//   true  → openai/gpt-image-2/edit  (yeni, image_size enum, input_fidelity yok)
-//   false → fal-ai/gpt-image-1.5/edit (eski, pixel size, input_fidelity var)
+// @fal-ai/client import for GPT Image 1.5
+const { fal } = require("@fal-ai/client");
+fal.config({
+  credentials: process.env.FAL_API_KEY,
+});
+
+// Fal.ai GPT Image 1.5 Edit API call using SDK (for Refiner mode - Ghost Mannequin style)
 async function callFalAiGptImageEditForRefiner(
   prompt,
   imageUrl,
   maxRetries = 3,
 ) {
-  const useGpt2 = await isNewRefinerEnabled();
-  const modelEndpoint = useGpt2
-    ? "openai/gpt-image-2/edit"
-    : "fal-ai/gpt-image-1.5/edit";
-  const modelLabel = useGpt2 ? "GPT Image 2" : "GPT Image 1.5";
-
-  // GPT 2: image_size enum, input_fidelity kaldırıldı.
-  // GPT 1.5: pixel size + input_fidelity: "high"
-  const input = useGpt2
-    ? {
-        prompt: prompt,
-        image_urls: [imageUrl],
-        image_size: "portrait_4_3",
-        quality: "medium",
-        num_images: 1,
-        output_format: "jpeg",
-      }
-    : {
-        prompt: prompt,
-        image_urls: [imageUrl],
-        image_size: "1024x1536",
-        quality: "medium",
-        input_fidelity: "high",
-        num_images: 1,
-        output_format: "jpeg",
-      };
-
-  logger.log(
-    `⚙️ [REFINER MODEL_SWITCH] app_config.is_new = ${useGpt2} → ${modelLabel} (${modelEndpoint})`,
-  );
-
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       logger.log(
-        `🎨 [FAL_AI_GPT_REFINER] ${modelLabel} attempt ${attempt}/${maxRetries}`,
+        `🎨 [FAL_AI_GPT_REFINER] Image generation attempt ${attempt}/${maxRetries}`,
       );
       logger.log(
         `🎨 [FAL_AI_GPT_REFINER] Prompt: ${prompt.substring(0, 100)}...`,
       );
 
-      const { request_id } = await fal.queue.submit(modelEndpoint, { input });
+      // fal.queue.submit ile GPT Image 1.5'e istek gönder
+      const { request_id } = await fal.queue.submit(
+        "fal-ai/gpt-image-1.5/edit",
+        {
+          input: {
+            prompt: prompt,
+            image_urls: [imageUrl], // Single image for refiner
+            image_size: "1024x1536", // Portrait size for e-commerce - ALWAYS fixed regardless of user ratio
+            quality: "medium", // medium for balanced quality/speed
+            input_fidelity: "high", // preserve product details
+            num_images: 1,
+            output_format: "jpeg",
+          },
+        },
+      );
 
       if (!request_id) {
         throw new Error("Fal.ai did not return a request_id");
@@ -322,10 +344,13 @@ async function callFalAiGptImageEditForRefiner(
       // Poll for completion
       let maxPolls = 60;
       for (let poll = 0; poll < maxPolls; poll++) {
-        const statusResult = await fal.queue.status(modelEndpoint, {
-          requestId: request_id,
-          logs: false,
-        });
+        const statusResult = await fal.queue.status(
+          "fal-ai/gpt-image-1.5/edit",
+          {
+            requestId: request_id,
+            logs: false,
+          },
+        );
 
         logger.log(
           `⏳ [FAL_AI_GPT_REFINER] Poll ${poll + 1}/${maxPolls}, status: ${
@@ -334,34 +359,37 @@ async function callFalAiGptImageEditForRefiner(
         );
 
         if (statusResult.status === "COMPLETED") {
-          const finalResult = await fal.queue.result(modelEndpoint, {
-            requestId: request_id,
-          });
+          // Get the final result
+          const finalResult = await fal.queue.result(
+            "fal-ai/gpt-image-1.5/edit",
+            {
+              requestId: request_id,
+            },
+          );
 
           if (
             finalResult.data &&
             finalResult.data.images &&
             finalResult.data.images.length > 0
           ) {
-            logger.log(
-              `✅ [FAL_AI_GPT_REFINER] ${modelLabel} image generated successfully`,
-            );
+            logger.log(`✅ [FAL_AI_GPT_REFINER] Image generated successfully`);
             return finalResult.data.images[0].url;
           }
           throw new Error("No images in completed result");
         }
 
         if (statusResult.status === "FAILED") {
-          throw new Error(`Fal.ai ${modelLabel} generation failed`);
+          throw new Error("Fal.ai GPT Image generation failed");
         }
 
+        // Wait before next poll
         await new Promise((resolve) => setTimeout(resolve, 2000));
       }
 
-      throw new Error(`Fal.ai ${modelLabel} polling timeout`);
+      throw new Error("Fal.ai GPT Image polling timeout");
     } catch (error) {
       console.error(
-        `❌ [FAL_AI_GPT_REFINER] ${modelLabel} attempt ${attempt} failed:`,
+        `❌ [FAL_AI_GPT_REFINER] Attempt ${attempt} failed:`,
         error.message,
       );
 
@@ -373,6 +401,312 @@ async function callFalAiGptImageEditForRefiner(
       await new Promise((resolve) => setTimeout(resolve, waitTime));
     }
   }
+}
+
+// Client'tan gelen aspect ratio'yu fal.ai GPT Image 2 image_size enum'una dönüştür
+// Results.js'deki tüm ratio seçenekleri: 21:9, 16:9, 3:2, 4:3, 5:4, 1:1, 4:5, 3:4, 2:3, 9:16
+// GPT Image 2 enum: landscape_16_9, landscape_4_3, square_hd, square, portrait_4_3, portrait_16_9
+// Enum'u olmayan ratio'lar aspect oran bazlı EN YAKIN enum'a eşlenir:
+//   21:9 (2.33) ve 16:9 (1.78) → landscape_16_9
+//   3:2 (1.50), 4:3 (1.33), 5:4 (1.25) → landscape_4_3
+//   1:1 (1.00) → square_hd
+//   4:5 (0.80), 3:4 (0.75), 2:3 (0.67) → portrait_4_3
+//   9:16 (0.56) → portrait_16_9
+function mapRatioToGptImage2Size(ratio) {
+  const mapping = {
+    // Ultra-wide + widescreen landscape → landscape_16_9
+    "21:9": "landscape_16_9",
+    "16:9": "landscape_16_9",
+    // Standard / klasik landscape → landscape_4_3
+    "3:2": "landscape_4_3",
+    "4:3": "landscape_4_3",
+    "5:4": "landscape_4_3",
+    // Kare
+    "1:1": "square_hd",
+    // Standard / klasik portrait → portrait_4_3
+    "4:5": "portrait_4_3",
+    "3:4": "portrait_4_3",
+    "2:3": "portrait_4_3",
+    // Widescreen portrait → portrait_16_9
+    "9:16": "portrait_16_9",
+  };
+  return mapping[ratio] || "portrait_4_3"; // fallback: 3:4 portrait
+}
+
+// GPT Image 2'ye giden input resimleri 3:1 aspect ratio limitine uydur.
+// GPT Image 2 hata verir: "Image aspect ratio X:Y exceeds the maximum allowed ratio of 3:1"
+// NOT: fal.ai tam 3:1'e çok yakın oranlarda (ör. 2.997) bile reddediyor (rounding/integer math).
+// O yüzden trigger eşiğini 2.9'a çektik, padding hedefi 2.5 (sağlam safety buffer).
+async function ensureMaxAspectRatio3to1ForInput(imageUrls, userId) {
+  const TRIGGER_RATIO = 2.9; // Bu oranı geçen resimlere padding uygula (sınıra yakın da dahil)
+  const TARGET_RATIO = 2.5; // Padding sonrası hedef oran (3.0'dan iyi uzak)
+  const processedUrls = [];
+
+  for (const url of imageUrls || []) {
+    if (!url || typeof url !== "string") {
+      processedUrls.push(url);
+      continue;
+    }
+    try {
+      const response = await axios.get(url, {
+        responseType: "arraybuffer",
+        timeout: 20000,
+      });
+      const buf = Buffer.from(response.data);
+
+      const meta = await sharp(buf).metadata();
+      const W = meta.width || 0;
+      const H = meta.height || 0;
+
+      if (!W || !H) {
+        processedUrls.push(url); // Metadata okunamadı → orijinali kullan
+        continue;
+      }
+
+      const ratio = W >= H ? W / H : H / W;
+
+      if (ratio <= TRIGGER_RATIO) {
+        processedUrls.push(url); // Zaten güvenli bölgede
+        continue;
+      }
+
+      logger.log(
+        `📐 [GPT2_ASPECT] ${W}x${H} (ratio ${ratio.toFixed(3)}:1) > ${TRIGGER_RATIO}:1, padding uygulanıyor (hedef ${TARGET_RATIO}:1)...`,
+      );
+
+      // Kısa kenarı büyüt, uzun kenara dokunma. Hedef oran 2.8:1 (3.0'ın altında buffer).
+      let padTop = 0,
+        padBottom = 0,
+        padLeft = 0,
+        padRight = 0;
+      let newW = W,
+        newH = H;
+
+      if (W > H) {
+        // Yatay resim → height'ı artır (W/TARGET_RATIO'a denk getir)
+        newH = Math.ceil(W / TARGET_RATIO);
+        const totalPadV = newH - H;
+        padTop = Math.floor(totalPadV / 2);
+        padBottom = totalPadV - padTop;
+      } else {
+        // Dikey resim → width'i artır (H/TARGET_RATIO'a denk getir)
+        newW = Math.ceil(H / TARGET_RATIO);
+        const totalPadH = newW - W;
+        padLeft = Math.floor(totalPadH / 2);
+        padRight = totalPadH - padLeft;
+      }
+
+      const padded = await sharp(buf)
+        .extend({
+          top: padTop,
+          bottom: padBottom,
+          left: padLeft,
+          right: padRight,
+          background: { r: 255, g: 255, b: 255 },
+        })
+        .jpeg({ quality: 90 })
+        .toBuffer();
+
+      // Padding sonrası metadata doğrulama (debug)
+      const paddedMeta = await sharp(padded).metadata();
+      const finalRatio =
+        (paddedMeta.width || newW) >= (paddedMeta.height || newH)
+          ? (paddedMeta.width || newW) / (paddedMeta.height || newH)
+          : (paddedMeta.height || newH) / (paddedMeta.width || newW);
+      logger.log(
+        `🔬 [GPT2_ASPECT] Padding sonrası: ${paddedMeta.width}x${paddedMeta.height}, ratio: ${finalRatio.toFixed(3)}:1`,
+      );
+
+      const timestamp = Date.now();
+      const randomId = uuidv4().substring(0, 8);
+      const fileName = `temp_${timestamp}_gpt2_pad_${userId || "anonymous"}_${randomId}.jpg`;
+
+      const { error: upErr } = await supabase.storage
+        .from("reference")
+        .upload(fileName, padded, {
+          contentType: "image/jpeg",
+        });
+
+      if (upErr) {
+        logger.warn(
+          `❌ [GPT2_ASPECT] Supabase upload failed, orijinali kullan:`,
+          upErr.message,
+        );
+        processedUrls.push(url);
+        continue;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("reference")
+        .getPublicUrl(fileName);
+
+      logger.log(
+        `✅ [GPT2_ASPECT] Padded: ${newW}x${newH}, URL: ${urlData.publicUrl}`,
+      );
+      processedUrls.push(urlData.publicUrl);
+    } catch (err) {
+      logger.warn(
+        `⚠️ [GPT2_ASPECT] Preprocess error for ${url.substring(0, 60)}:`,
+        err.message,
+      );
+      processedUrls.push(url); // Hata → orijinali kullan
+    }
+  }
+
+  return processedUrls;
+}
+
+// Fal.ai GPT Image 2 Edit API call - V1 mode (non-refiner, non-backSide) için
+// Birden fazla image_url kabul eder, aspect_ratio mapping ile image_size parametresi alır
+async function callFalAiGptImage2Edit(
+  prompt,
+  imageUrls,
+  imageSize = "portrait_4_3",
+  maxRetries = 3,
+) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      logger.log(
+        `🎨 [FAL_AI_GPT2_V1] attempt ${attempt}/${maxRetries}, image_size: ${imageSize}, images: ${imageUrls?.length || 0}`,
+      );
+      logger.log(`🎨 [FAL_AI_GPT2_V1] Prompt: ${prompt.substring(0, 100)}...`);
+
+      const { request_id } = await fal.queue.submit("openai/gpt-image-2/edit", {
+        input: {
+          prompt: prompt,
+          image_urls: imageUrls,
+          image_size: imageSize,
+          quality: "medium", // low/medium/high
+          num_images: 1,
+          output_format: "jpeg",
+        },
+      });
+
+      if (!request_id) {
+        throw new Error("Fal.ai did not return a request_id");
+      }
+
+      logger.log(
+        `⏳ [FAL_AI_GPT2_V1] Request submitted, request_id: ${request_id}`,
+      );
+
+      const maxPolls = 60;
+      for (let poll = 0; poll < maxPolls; poll++) {
+        const statusResult = await fal.queue.status("openai/gpt-image-2/edit", {
+          requestId: request_id,
+          logs: false,
+        });
+
+        logger.log(
+          `⏳ [FAL_AI_GPT2_V1] Poll ${poll + 1}/${maxPolls}, status: ${statusResult.status}`,
+        );
+
+        if (statusResult.status === "COMPLETED") {
+          const finalResult = await fal.queue.result(
+            "openai/gpt-image-2/edit",
+            {
+              requestId: request_id,
+            },
+          );
+
+          if (
+            finalResult.data &&
+            finalResult.data.images &&
+            finalResult.data.images.length > 0
+          ) {
+            logger.log(`✅ [FAL_AI_GPT2_V1] Image generated successfully`);
+            return finalResult.data.images[0].url;
+          }
+          throw new Error("No images in completed result");
+        }
+
+        if (statusResult.status === "FAILED") {
+          throw new Error("Fal.ai GPT Image 2 generation failed");
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+
+      throw new Error("Fal.ai GPT Image 2 polling timeout");
+    } catch (error) {
+      console.error(
+        `❌ [FAL_AI_GPT2_V1] Attempt ${attempt} failed:`,
+        error.message,
+      );
+
+      if (attempt === maxRetries) {
+        throw error;
+      }
+
+      const waitTime = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+    }
+  }
+}
+
+// App-level config bayrağı okuma: Supabase `app_config` tablosunda is_gpt = true
+// ise V1 modu GPT Image 2 kullanır, false ise nano-banana-2'ye düşer.
+// İki yaygın schema'yı dener:
+//   1) Direct column: `app_config.is_gpt` (tek satır, boolean kolon)
+//   2) Key/value:     `app_config` rows { key: "is_gpt", value: true }
+// Hata/okunamazsa default olarak GPT açık (true) döner — güvenli fallback.
+async function isGptEnabledForV1() {
+  try {
+    const { data } = await supabase
+      .from("app_config")
+      .select("is_gpt")
+      .limit(1)
+      .maybeSingle();
+    if (data && typeof data.is_gpt === "boolean") return data.is_gpt;
+  } catch (e) {
+    // kolon yoksa PostgREST hata fırlatır — sessizce geç
+  }
+  try {
+    const { data } = await supabase
+      .from("app_config")
+      .select("value")
+      .eq("key", "is_gpt")
+      .maybeSingle();
+    if (data && data.value !== undefined && data.value !== null) {
+      const v = data.value;
+      if (typeof v === "boolean") return v;
+      if (typeof v === "string") return v.toLowerCase() === "true";
+      if (typeof v === "object" && v !== null && "bool" in v)
+        return Boolean(v.bool);
+    }
+  } catch (e) {}
+  return true; // default: GPT açık
+}
+
+// 🧠 NB2 thinking level — app_config.nb2_thinking_level ("high" | "minimal" | "off").
+// Render öncesi kompozisyon/ışık muhakemesi; maliyet etkisi +$0.002/görsel (ihmal edilebilir).
+// Varsayılan: "high". "off" → parametre hiç gönderilmez.
+async function getNb2ThinkingLevel() {
+  const normalize = (v) => {
+    const s = String(v || "").trim().toLowerCase();
+    return s === "high" || s === "minimal" || s === "off" ? s : null;
+  };
+  try {
+    const { data } = await supabase
+      .from("app_config")
+      .select("nb2_thinking_level")
+      .limit(1)
+      .maybeSingle();
+    const v = normalize(data?.nb2_thinking_level);
+    if (v) return v;
+  } catch (e) {
+    // kolon yoksa PostgREST hata fırlatır — key/value fallback'i dene
+    try {
+      const { data } = await supabase
+        .from("app_config")
+        .select("value")
+        .eq("key", "nb2_thinking_level")
+        .maybeSingle();
+      const v = normalize(data?.value);
+      if (v) return v;
+    } catch (e2) {}
+  }
+  return "high"; // default: açık
 }
 
 // Görüntülerin geçici olarak saklanacağı klasörü oluştur
@@ -574,47 +908,6 @@ async function saveResultImageToUserBucket(resultImageUrl, userId) {
     console.error("❌ Result image user bucket'e kaydedilemedi:", error);
     // Hata durumunda orijinal URL'yi döndür
     return resultImageUrl;
-  }
-}
-
-// 🖼️ Izgara önizlemesi — netleştirilmiş (30 MB'a varan) sonuçlar için. Cloudflare
-// bu boyuttaki kaynağı küçültemiyor (403) ve kart boş kalıyor; bu yüzden küçük bir
-// JPEG önizleme sunucuda üretilip ayrıca saklanır. referenceBrowserV7'deki eşiyle aynı.
-async function saveThumbnailToUserBucket(sourceUrl, userId) {
-  try {
-    if (!sourceUrl || !userId) return null;
-    const resp = await axios.get(sourceUrl, {
-      responseType: "arraybuffer",
-      timeout: 120000,
-      maxContentLength: 250 * 1024 * 1024,
-      maxBodyLength: 250 * 1024 * 1024,
-    });
-    const thumb = await sharp(Buffer.from(resp.data))
-      .rotate()
-      .resize(900, 900, { fit: "inside", withoutEnlargement: true })
-      .jpeg({ quality: 82 })
-      .toBuffer();
-
-    const fileName = `${userId}/${Date.now()}_thumb_${uuidv4().substring(0, 8)}.jpg`;
-    const { error } = await supabase.storage
-      .from("user_image_results")
-      .upload(fileName, thumb, {
-        contentType: "image/jpeg",
-        cacheControl: "3600",
-        upsert: true,
-      });
-    if (error) throw new Error(error.message);
-
-    const { data: urlData } = supabase.storage
-      .from("user_image_results")
-      .getPublicUrl(fileName);
-    logger.log(
-      `🖼️ [THUMB] Önizleme üretildi (${Math.round(thumb.length / 1024)} KB): ${urlData?.publicUrl}`,
-    );
-    return urlData?.publicUrl || null;
-  } catch (err) {
-    console.warn("⚠️ [THUMB] Önizleme üretilemedi:", err?.message);
-    return null;
   }
 }
 
@@ -939,86 +1232,6 @@ async function createPendingGeneration(
   }
 }
 
-// ============================================================
-// Refiner Generations tablosuna kayıt fonksiyonları
-// reference_results'a ek olarak refiner_generations tablosuna da yazar
-// ============================================================
-
-async function saveToRefinerGenerations({
-  userId,
-  generationId,
-  status = "pending",
-  originalPrompt = null,
-  enhancedPrompt = null,
-  originalImageUrl = null,
-  resultImageUrl = null,
-  settings = {},
-  aspectRatio = "2:3",
-  qualityVersion = "v1",
-  falRequestId = null,
-  processingTimeSeconds = null,
-  creditsUsed = 20,
-}) {
-  try {
-    const { data, error } = await supabase
-      .from("refiner_generations")
-      .insert([
-        {
-          user_id: userId,
-          generation_id: generationId,
-          status,
-          original_prompt: originalPrompt,
-          enhanced_prompt: enhancedPrompt,
-          original_image_url: originalImageUrl,
-          result_image_url: resultImageUrl,
-          settings,
-          aspect_ratio: aspectRatio,
-          quality_version: qualityVersion,
-          fal_request_id: falRequestId,
-          processing_time_seconds: processingTimeSeconds,
-          credits_used: creditsUsed,
-        },
-      ])
-      .select();
-
-    if (error) {
-      console.error("❌ [REFINER_TABLE] Kayıt hatası:", error.message);
-      return null;
-    }
-    logger.log(`✅ [REFINER_TABLE] Kayıt oluşturuldu: ${generationId} (${status})`);
-    return data?.[0] || null;
-  } catch (err) {
-    console.error("❌ [REFINER_TABLE] Exception:", err.message);
-    return null;
-  }
-}
-
-async function updateRefinerGeneration(generationId, userId, updates = {}) {
-  try {
-    const updateData = {
-      ...updates,
-      updated_at: new Date().toISOString(),
-    };
-
-    const { data, error } = await supabase
-      .from("refiner_generations")
-      .update(updateData)
-      .eq("generation_id", generationId)
-      .eq("user_id", userId)
-      .select();
-
-    if (error) {
-      console.error("❌ [REFINER_TABLE] Güncelleme hatası:", error.message);
-      return false;
-    }
-    logger.log(`✅ [REFINER_TABLE] Güncellendi: ${generationId} →`, Object.keys(updates).join(", "));
-    return true;
-  } catch (err) {
-    console.error("❌ [REFINER_TABLE] Update exception:", err.message);
-    return false;
-  }
-}
-
 // Başarılı completion'da kredi düşürme fonksiyonu
 async function deductCreditOnSuccess(generationId, userId) {
   try {
@@ -1251,33 +1464,6 @@ async function updateGenerationStatus(
       }
     }
 
-    // 🔍 Netleştirilmiş sonuçlar için iki ek iş (referenceBrowserV7 ile aynı):
-    //   1) Öncesi karesi kalıcılaştırılır — fal/replicate URL'leri süreli, oysa
-    //      SimpleImageModal'daki öncesi/sonrası sürgüsü bu kareyi kullanıyor.
-    //   2) Izgara önizlemesi üretilir — 30 MB'lık kaynağı CDN küçültemiyor (403).
-    if (status === "completed" && finalUpdates.upscaled_mp) {
-      try {
-        if (updates.pre_upscale_image_url) {
-          const savedPre = await saveResultImageToUserBucket(
-            updates.pre_upscale_image_url,
-            userId,
-          );
-          if (savedPre) finalUpdates.pre_upscale_image_url = savedPre;
-        }
-        // Önizleme kaynağı olarak KÜÇÜK olan öncesi karesi tercih edilir;
-        // yoksa büyük sonuç indirilir (yavaş ama çalışır).
-        const thumbSource =
-          finalUpdates.pre_upscale_image_url || finalUpdates.result_image_url;
-        const thumbUrl = await saveThumbnailToUserBucket(thumbSource, userId);
-        if (thumbUrl) finalUpdates.result_thumb_url = thumbUrl;
-      } catch (thumbErr) {
-        console.warn(
-          "⚠️ Netleştirme yardımcı görselleri hazırlanamadı:",
-          thumbErr?.message,
-        );
-      }
-    }
-
     const updateData = {
       status: status,
       updated_at: new Date().toISOString(),
@@ -1297,25 +1483,6 @@ async function updateGenerationStatus(
     }
 
     logger.log(`✅ Generation ${generationId} status güncellendi: ${status}`);
-
-    // 📊 Refiner modunda refiner_generations tablosunu da güncelle
-    const isRefiner = previousSettings?.isRefinerMode || finalUpdates?.settings?.isRefinerMode;
-    if (isRefiner) {
-      const refinerUpdateData = { status };
-      if (finalUpdates.result_image_url) {
-        refinerUpdateData.result_image_url = finalUpdates.result_image_url;
-      }
-      if (finalUpdates.enhanced_prompt) {
-        refinerUpdateData.enhanced_prompt = finalUpdates.enhanced_prompt;
-      }
-      if (finalUpdates.replicate_prediction_id) {
-        refinerUpdateData.fal_request_id = finalUpdates.replicate_prediction_id;
-      }
-      if (finalUpdates.processing_time_seconds) {
-        refinerUpdateData.processing_time_seconds = finalUpdates.processing_time_seconds;
-      }
-      await updateRefinerGeneration(generationId, userId, refinerUpdateData);
-    }
 
     // 💳 Başarılı completion'da kredi düş (idempotent)
     if (status === "completed" && userId && userId !== "anonymous_user") {
@@ -1338,15 +1505,15 @@ async function updateGenerationStatus(
         logger.log(
           `📱 [NOTIFICATION] Generation completed - notification gönderiliyor: ${generationId}`,
         );
-        sendGenerationCompletedNotification(userId, generationId, { source: previousSettings?.source }).catch(
-          (error) => {
-            console.error(
-              `❌ [NOTIFICATION] Notification gönderme hatası:`,
-              error,
-            );
-            // Notification hatası generation'ı etkilemesin, sessizce devam et
-          },
-        );
+        sendGenerationCompletedNotification(userId, generationId, {
+          source: previousSettings?.source,
+        }).catch((error) => {
+          console.error(
+            `❌ [NOTIFICATION] Notification gönderme hatası:`,
+            error,
+          );
+          // Notification hatası generation'ı etkilemesin, sessizce devam et
+        });
       }
     }
 
@@ -1463,6 +1630,36 @@ function sanitizePoseText(text) {
   }
 }
 
+// 🎯 Focus area direktifi — kullanıcı CreateModelPhotoScreen'de Odak Alanı seçtiyse
+// çekim bölgesini (upper body / lower body / close-up / detail / product-only) SERT
+// bir talimat olarak prompt'un en başına yerleştirir. Auto veya bilinmeyen değerde
+// boş döner (direktif eklenmez).
+function buildFocusAreaDirective(focusArea) {
+  if (!focusArea || typeof focusArea !== "string") return "";
+  const key = focusArea.trim().toLowerCase();
+  if (!key || key === "auto") return "";
+
+  switch (key) {
+    case "upper_body":
+      return `⚠️ STRICT FRAMING DIRECTIVE — UPPER BODY ONLY:
+The final image MUST show ONLY the upper body of the model — from roughly the waist or hips upward (head, shoulders, torso, arms). The lower body (legs, knees, feet, shoes) MUST be cropped out or entirely out of frame. This is a hard, non-negotiable requirement: do NOT produce a full-body shot. Compose the frame as a medium / cowboy shot with the garment's upper portion as the focal subject.`;
+    case "lower_body":
+      return `⚠️ STRICT FRAMING DIRECTIVE — LOWER BODY ONLY:
+The final image MUST show ONLY the lower body of the model — from roughly the waist / hips downward (hips, thighs, knees, calves, feet, footwear). The upper body (face, chest, arms, torso detail) MUST be cropped out or entirely out of frame. This is a hard, non-negotiable requirement: do NOT produce a full-body shot or an upper-body shot. Compose the frame so that the lower-body garment (pants, skirt, shoes, etc.) is the sole focal subject.`;
+    case "close_up":
+      return `⚠️ STRICT FRAMING DIRECTIVE — CLOSE-UP PORTRAIT:
+The final image MUST be a tight close-up on the upper torso / face area of the model (chest, shoulders, neckline, face). Do NOT produce a full-body shot or a wide shot. The composition should feel like an intimate editorial portrait — the upper garment details and facial expression are the main subject.`;
+    case "detail":
+      return `⚠️ STRICT FRAMING DIRECTIVE — EXTREME DETAIL / MACRO:
+The final image MUST be an extreme close-up on a single detail of the garment — fabric texture, stitching, trim, button, seam, print, collar, cuff, or embellishment. Do NOT produce a full-body, upper-body, or lower-body shot. The frame should be dominated by the garment detail with shallow depth of field; the model's body is mostly out of frame or provides minimal contextual background only.`;
+    case "product_only":
+      return `⚠️ STRICT FRAMING DIRECTIVE — PRODUCT-FOCUSED (FACE OUT OF FRAME):
+The garment is still worn on the model, but the model's FACE must be cropped OUT of the frame (above the chin / neck line). The composition centers the garment itself — the model acts purely as a silent wearer to showcase fit and drape. Do NOT show the model's face. Do NOT remove the model entirely (it is not a flat-lay). The final image is a neck-down or shoulder-down product-centric shot.`;
+    default:
+      return "";
+  }
+}
+
 async function enhancePromptWithGemini(
   originalPrompt,
   imageUrl,
@@ -1483,7 +1680,7 @@ async function enhancePromptWithGemini(
   isMultipleImages = false, // Çoklu resim modu mu?
   userId = null, // Compress için userId
   originalBase64Data = null, // Orijinal base64 verisi - URL'den tekrar indirmemek için
-  styleReferenceActive = false, // 🎬 Çekim tarzı/referans devrede mi? (refiner)
+  kombinItemCount = 0, // 🛍️ Kombin modunda grid içindeki tekil ürün sayısı (0 = kombin değil)
 ) {
   try {
     logger.log("🤖 [GEMINI] Google Gemini ile prompt iyileştirme başlatılıyor");
@@ -1506,6 +1703,122 @@ async function enhancePromptWithGemini(
       );
 
     logger.log("🎛️ [BACKEND GEMINI] Settings kontrolü:", hasValidSettings);
+
+    // 🎯 Focus area — kullanıcı belirli bir çekim bölgesi seçtiyse (auto değilse)
+    // prompt'un en başına sert, pazarlıksız bir talimat olarak yerleştir.
+    const focusAreaDirective = buildFocusAreaDirective(settings?.focusArea);
+    if (focusAreaDirective) {
+      logger.log(
+        "🎯 [GEMINI] Focus area direktifi başa ekleniyor:",
+        settings?.focusArea,
+      );
+    }
+
+    // 📝 OPENING DIRECTIVES — Skin / Pose / User-Detail direktifleri artık statik
+    // metin olarak prepend edilmiyor. Gemini'ye "bu 3 direktifi kıyafete göre
+    // yorumla, ünlemli başlık formatını koru, 2-3 cümlelik enhanced versiyon
+    // üretip prompt'un EN BAŞINA yaz" talimatı veriliyor. Böylece skin ve pose
+    // blokları kıyafetin kumaşına, rengine ve sahnesine uyarlanmış olarak gider.
+    const directCustomDetail =
+      typeof customDetail === "string" ? customDetail.trim() : "";
+    // Fallback: eski client sürümleri customDetail'i ayrı parametre olarak
+    // göndermiyor — originalPrompt içindeki "Additional details: X" satırından
+    // parse et. Böylece USER DETAIL DIRECTIVE bloğu her koşulda üretilir.
+    let extractedFromOriginal = "";
+    if (!directCustomDetail && typeof originalPrompt === "string") {
+      const match = originalPrompt.match(
+        /Additional\s+details\s*:\s*([^.]*?)(?=\.\s+[A-Z]|\.\s*$|$)/i,
+      );
+      if (match && match[1]) {
+        extractedFromOriginal = match[1].trim().replace(/\.$/, "");
+      }
+    }
+    const trimmedCustomDetail = directCustomDetail || extractedFromOriginal;
+    if (extractedFromOriginal && !directCustomDetail) {
+      logger.log(
+        "📝 [GEMINI] customDetail parametresi boş — originalPrompt'tan extract edildi:",
+        extractedFromOriginal,
+      );
+    }
+    const hasUserPose =
+      (typeof settings?.pose === "string" && settings.pose.trim().length > 0) ||
+      Boolean(poseImage);
+    const includeOpenPoseDirective = !hasUserPose;
+
+    // 📏 MODEL BODY SIZE & HEIGHT DIRECTIVE — kullanıcı client'te belirli bir
+    // bodyShape (örn. "Petite", "Tall", "Plus Size") veya custom measurements
+    // (bust/waist/hips/height/weight) seçtiyse, prompt'un EN BAŞINA bu direktif
+    // konur. Gemini de "⚠️ MODEL BODY DIRECTIVE:" header'ıyla 2-3 cümlelik
+    // enhanced versiyon üretip blok'un başına yazar. Hedef: modelin beden ve
+    // boyu kullanıcı seçimine sadık, gerçekçi proportionlarla çıksın.
+    const bodyShapeText =
+      typeof settings?.bodyShape === "string" ? settings.bodyShape.trim() : "";
+    const hasCustomMeasurements =
+      settings?.type === "custom_measurements" &&
+      settings?.measurements &&
+      typeof settings.measurements === "object";
+    const measurements = hasCustomMeasurements ? settings.measurements : null;
+    const hasModelBodyDirective = Boolean(bodyShapeText) || Boolean(measurements);
+
+    const openingDirectiveItems = [];
+
+    if (hasModelBodyDirective) {
+      const measurementsLine = measurements
+        ? `Custom measurements (must be matched realistically): ${[
+            measurements.bust ? `bust ${measurements.bust} cm` : null,
+            measurements.waist ? `waist ${measurements.waist} cm` : null,
+            measurements.hips ? `hips ${measurements.hips} cm` : null,
+            measurements.height ? `height ${measurements.height} cm` : null,
+            measurements.weight ? `weight ${measurements.weight} kg` : null,
+          ]
+            .filter(Boolean)
+            .join(", ")}.`
+        : "";
+      const bodyShapeLine = bodyShapeText
+        ? `Selected body type / size: "${bodyShapeText}".`
+        : "";
+      openingDirectiveItems.push(
+        `"⚠️ MODEL BODY DIRECTIVE:" — Intent: the user has explicitly selected a specific body size / proportions / height for the model that MUST be honored in the final image with strict, photorealistic accuracy. ${bodyShapeLine} ${measurementsLine} The model's silhouette, body proportions, height impression in frame, garment drape, fit, and overall posture MUST all reflect this exact body specification — NOT a generic editorial standard size. Do NOT slim, lengthen, idealize, or substitute with a generic body. Frame the camera and choose a pose that is flattering and natural for THIS specific body type. → Your task: write a 2-3 sentence ENHANCED version that adapts this body specification to THIS specific garment's TYPE / CATEGORY, its fabric behavior on this body, the ENVIRONMENT / LOCATION, and the overall ATMOSPHERE / MOOD — describing how the garment realistically drapes, fits, and moves on a body of these proportions in this scene (e.g. a flowy linen dress softly skimming a curvier silhouette on a Mediterranean terrace; a tailored blazer cleanly structured on a petite frame in an urban plaza; a sweater hugging an athletic build in a mountain setting). The body specification must remain clearly visible and respected. Keep the exact header "⚠️ MODEL BODY DIRECTIVE:" as the first line of this block.`,
+      );
+    }
+
+    openingDirectiveItems.push(
+      `"⚠️ NATURAL SKIN DIRECTIVE:" — Intent: the model's face must look like a real, healthy, well-groomed human in a professional fashion photograph (soft natural pores, subtle texture, matte-to-soft finish). Avoid plastic / CGI / doll-like hyper-smooth skin and avoid heavy glossy beauty makeup. Skin must still be CLEAR and HEALTHY — NO acne, pimples, blemishes, red spots, visible scars, enlarged pores, rashes, or unkempt appearance. Think "photoreal editorial model with natural skin", not airbrushed mannequin and not visibly flawed skin. Facial lighting neutral and photographic. → Your task: write a 2-3 sentence ENHANCED version that adapts this intent to THIS specific garment's TYPE / CATEGORY (tailoring, knitwear, activewear, eveningwear, swimwear, streetwear, etc.), its fabric & color palette, the ENVIRONMENT / LOCATION, and the overall ATMOSPHERE / MOOD (e.g. warm golden-hour glow on softly tanned skin for linen on a Mediterranean terrace; cool porcelain complexion with crisp studio key light for structured black eveningwear; fresh, healthy skin with light dew sheen for sportswear in an outdoor morning setting). Keep the exact header "⚠️ NATURAL SKIN DIRECTIVE:" as the first line of this block.`,
+    );
+    if (includeOpenPoseDirective) {
+      openingDirectiveItems.push(
+        `"⚠️ FASHION POSE DIRECTIVE:" — Intent: no specific pose was requested, so a dynamic fashion-editorial pose must be chosen that flatters THIS specific garment. The stiff mannequin default (both arms hanging straight down at the sides, feet parallel, frontal symmetric stance, blank catalog expression) is ABSOLUTELY FORBIDDEN. Hands must not enter pockets unless the garment clearly has visible pockets in the reference image (never invent pockets), and must not obstruct key garment details (neckline, print, stitching, buttons, hem, logo). The pose must feel like a professional lookbook / editorial shoot — natural, expressive, and chosen to showcase fit, drape, and silhouette. → Your task: write a 2-3 sentence ENHANCED version that picks and describes a specific editorial pose tailored to THIS garment's TYPE / CATEGORY, silhouette, cut, fabric behavior, and intended styling — AND that also fits the ENVIRONMENT / LOCATION and ATMOSPHERE / MOOD of the scene (e.g. relaxed contrapposto with a gentle shoulder turn for a flowy summer dress on a cobblestone street; confident wide three-quarter stance with one hand at the waist for a structured tailored blazer in an urban plaza; mid-step walking frame with natural arm swing for sportswear on a running track; seated editorial pose leaning forward for eveningwear in a candlelit interior). Keep the exact header "⚠️ FASHION POSE DIRECTIVE:" as the first line of this block.`,
+      );
+    }
+    if (trimmedCustomDetail) {
+      openingDirectiveItems.push(
+        `"⚠️ USER DETAIL DIRECTIVE:" — Intent: the user has explicitly provided this non-negotiable additional detail that MUST be honored and clearly reflected in the scene: "${trimmedCustomDetail}". Treat this with the same strictness as skin and pose. → Your task: write a 2-3 sentence ENHANCED version that integrates this user detail naturally into the garment + scene context, adapting it to the garment TYPE / CATEGORY, the ENVIRONMENT / LOCATION, and the ATMOSPHERE / MOOD (if it's a background / environment element, describe how it frames the composition with THIS garment and its setting; if it's a styling / mood / prop element, describe how it complements the fabric, color, silhouette, and lighting). The detail must stay recognizable and visible. Keep the exact header "⚠️ USER DETAIL DIRECTIVE:" as the first line of this block.`,
+      );
+    }
+
+    const openingDirectivesInstruction = openingDirectiveItems.length
+      ? `
+⚠️⚠️⚠️ OPENING DIRECTIVES BLOCK — MANDATORY OUTPUT STRUCTURE ⚠️⚠️⚠️
+
+Your enhanced prompt MUST BEGIN with the following ${openingDirectiveItems.length} directive block${openingDirectiveItems.length > 1 ? "s" : ""} in this exact order, each separated by a blank line, BEFORE any other description (before model, garment, environment, lighting paragraphs). For each block you will interpret the intent and write an ENHANCED version (2-3 sentences) tailored to THIS specific shoot — adapting it to the garment TYPE / CATEGORY, its fabric / color / silhouette, the ENVIRONMENT / LOCATION, and the overall ATMOSPHERE / MOOD. Do NOT copy the instruction text verbatim. You MUST keep the exact ⚠️ header line (e.g. "⚠️ NATURAL SKIN DIRECTIVE:") as the first line of each block. Never skip, soften, contradict, or merge these blocks.
+
+${openingDirectiveItems.map((item, idx) => `${idx + 1}. ${item}`).join("\n\n")}
+
+After these directive blocks (separated by a blank line), continue with the rest of the enhanced prompt as usual.
+`
+      : "";
+
+    if (openingDirectivesInstruction) {
+      logger.log(
+        `📝 [GEMINI] Opening directives Gemini'ye gönderiliyor (${hasModelBodyDirective ? "body + " : ""}skin${includeOpenPoseDirective ? " + pose" : ""}${trimmedCustomDetail ? " + user detail" : ""}) — enhanced şekilde başa yazılacak`,
+      );
+      if (hasModelBodyDirective) {
+        logger.log(
+          "📏 [GEMINI] Model body directive en başa eklendi:",
+          bodyShapeText || JSON.stringify(measurements),
+        );
+      }
+    }
 
     // Cinsiyet belirleme - varsayılan olarak kadın
     const gender = settings?.gender || "female";
@@ -1742,7 +2055,7 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
         : ""
     }${
       settings?.productColor && settings.productColor !== "original"
-        ? `\n    \n    🎨 PRODUCT COLOR REQUIREMENT:\n    The user has specifically selected "${settings.productColor}" as the product color. CRITICAL: Ensure the garment/product appears in ${settings.productColor} color in the final image. This color selection must be prominently featured and accurately represented.`
+        ? `\n    \n    🎨 PRODUCT COLOR REQUIREMENT (NON-NEGOTIABLE):\n    The user selected "${settings.productColor}" as the garment color. In your prompt, name this color precisely and repeat it once more when describing the fabric, so the image model locks onto it (if it is a hex code, translate it into its closest natural color name and mention both). The recolor applies to the garment's base fabric while every design element — prints, pattern scale, stitching, trims, hardware, labels, construction — stays exactly as in the reference, and the fabric keeps realistic shading: the ${settings.productColor} surface shows natural tonal variation in highlights and shadow folds rather than one flat uniform fill. Choose scene lighting that renders this color faithfully (neutral white balance, no strong color casts).`
         : ""
     }${
       settings?.framing && settings.framing !== "auto"
@@ -1974,9 +2287,9 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     if (hairStyleImage) {
       hairStylePromptSection = `
     
-    HAIR STYLE REFERENCE: A hair style reference image has been provided to show the desired hairstyle for the ${baseModelText}. Please analyze this hair style image carefully and incorporate the exact hair length, texture, cut, styling, and overall hair appearance into your enhanced prompt. The ${baseModelText} should have this specific hairstyle that complements ${
+    HAIR STYLE REFERENCE: A hair style reference image is provided — it is the source of truth for the ${baseModelText}'s hair. Read it like a session stylist: identify the cut and its shape, exact length, layering, texture (straight / wavy / curly / coily), color and any dimension (balayage, highlights), volume, parting, and finish (glossy blowout, natural air-dry, editorial slick). Reproduce THIS hairstyle faithfully in your prompt using that professional vocabulary, and style it in harmony with ${
       isMultipleProducts ? "the multi-product ensemble" : "the garment"
-    } and overall aesthetic.`;
+    } — falling or pinned so necklines, collars, earrings, and shoulder details of the outfit remain clearly visible.`;
 
       logger.log("💇 [GEMINI] Hair style prompt section eklendi");
     }
@@ -1986,26 +2299,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     if (locationImage) {
       locationPromptSection = `
     
-    LOCATION ENVIRONMENT REFERENCE: A location reference image has been provided to show the desired environment and setting for the fashion photography. Please analyze this location image carefully and create a detailed, comprehensive environment description that includes:
-
-    ENVIRONMENT ANALYSIS REQUIREMENTS:
-    - Analyze the architectural elements, lighting conditions, and atmospheric details visible in the location image
-    - Identify the specific type of environment (indoor/outdoor, studio, urban, natural, etc.)
-    - Describe the lighting characteristics (natural light, artificial lighting, time of day, etc.)
-    - Note any distinctive features, textures, colors, and mood of the location
-    - Identify any props, furniture, or environmental elements that could enhance the fashion shoot
-    - Consider how the environment complements the garment and overall aesthetic
-
-    DETAILED ENVIRONMENT DESCRIPTION:
-    Create a rich, detailed description of the environment that will serve as the backdrop for the fashion photography. Include specific details about:
-    - The physical space and its characteristics
-    - Lighting setup and mood
-    - Color palette and atmosphere
-    - Any distinctive architectural or design elements
-    - How the environment enhances the garment presentation
-    - Professional photography considerations for this specific location
-
-    The environment description should be detailed enough to guide the AI image generation model in creating a photorealistic, professional fashion photograph that seamlessly integrates the model and garment into this specific location setting.`;
+    LOCATION ENVIRONMENT REFERENCE: A location reference image is provided — it defines WHERE this shoot takes place. Read it like a location scout and rebuild it in your prompt's environment paragraph as a vivid, specific scene: the type of space (indoor / outdoor, studio, urban street, coastal, interior), its architecture and materials (weathered stone, polished concrete, warm timber, glass), depth layers from foreground to background, the ambient color palette, and the light already living in the scene (time of day, direction, quality — hard sun, soft window light, overcast diffusion). Then stage the model INSIDE this environment: standing on its actual ground, lit by its actual light, casting believable shadows onto its surfaces — a photograph taken on location, with the scene's atmosphere flattering the garment's fabric and palette. Reproduce this specific location faithfully; do not swap it for a generic backdrop.`;
 
       logger.log("🏞️ [GEMINI] Location prompt section eklendi");
     }
@@ -2015,79 +2309,62 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     if (settings?.hairStyle) {
       hairStyleTextSection = `
     
-    SPECIFIC HAIR STYLE REQUIREMENT: The user has selected a specific hair style: "${settings.hairStyle}". Please ensure the ${baseModelText} is styled with this exact hair style, matching its length, texture and overall look naturally.`;
+    SPECIFIC HAIR STYLE REQUIREMENT: The user has selected the hair style "${settings.hairStyle}". This may arrive as an internal slug (e.g. "u_cut_layers", "curtain_bangs_wavy") — first translate it into its natural hairdressing name, then describe it in your prompt with professional salon vocabulary: cut shape and length, layering, texture (straight / wavy / coily), volume and movement, parting, and finish (sleek blowout, air-dried, tousled). The ${baseModelText} wears exactly this hairstyle, styled to complement the garment's neckline and the scene's lighting — e.g. hair tucked or swept so it never hides collars, straps, or key design details.`;
       logger.log(
         "💇 [GEMINI] Hair style text section eklendi:",
         settings.hairStyle,
       );
     }
 
-    // Dinamik yüz tanımı - çeşitlilik için
-    const faceDescriptorsAdult = [
-      "soft angular jawline with friendly eyes",
-      "gentle oval face and subtle dimples",
-      "defined cheekbones with warm smile",
-      "rounded face with expressive eyebrows",
-      "heart-shaped face and bright eyes",
-      "slightly sharp chin and relaxed expression",
-      "broad forehead with calm gaze",
-    ];
-    const faceDescriptorsChild = [
-      "round cheeks and bright curious eyes",
-      "button nose and playful grin",
-      "soft chubby cheeks with gentle smile",
-      "big innocent eyes and tiny nose",
-      "freckled cheeks and joyful expression",
-    ];
-    const faceDescriptorsNewborn = [
-      "tiny delicate features with soft round cheeks",
-      "peaceful sleeping expression with closed eyes",
-      "gentle newborn face with small button nose",
-      "serene infant features with soft skin",
-      "tender newborn appearance with tiny lips",
-      "calm sleeping baby with peaceful expression",
-    ];
-
-    let faceDescriptor;
-    if (isNewborn) {
-      // Newborn için özel yüz tanımları
-      faceDescriptor =
-        faceDescriptorsNewborn[
-          Math.floor(Math.random() * faceDescriptorsNewborn.length)
-        ];
-    } else if (!isNaN(parsedAgeInt) && parsedAgeInt <= 12) {
-      faceDescriptor =
-        faceDescriptorsChild[
-          Math.floor(Math.random() * faceDescriptorsChild.length)
-        ];
-    } else {
-      faceDescriptor =
-        faceDescriptorsAdult[
-          Math.floor(Math.random() * faceDescriptorsAdult.length)
-        ];
-    }
+    // Dinamik yüz çeşitliliği — Gemini'yi hazır örnek cümleye DEMİRLEMEMEK için tam
+    // cümle örneği verilmez; her istekte farklı kombinasyonda rastgele "esin eksenleri"
+    // verilir (yüz şekli × göz karakteri × ayırt edici detay × ifade). Gemini bunları
+    // birebir kullanamaz — özgün kompozisyon zorunludur.
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    const faceAxes = isNewborn
+      ? {
+          shape: pick(["softly rounded", "delicately small", "gently full-cheeked"]),
+          eyes: pick(["peacefully closed", "sleepy half-open", "calm and resting"]),
+          detail: pick(["tiny button nose", "soft wisps of newborn hair", "delicate rosebud lips"]),
+          expression: pick(["serene sleep", "peaceful calm", "tender stillness"]),
+        }
+      : !isNaN(parsedAgeInt) && parsedAgeInt <= 12
+        ? {
+            shape: pick(["round", "softly oval", "heart-shaped", "full-cheeked"]),
+            eyes: pick(["big and curious", "bright and lively", "gentle and warm", "sparkling with mischief"]),
+            detail: pick(["light freckles", "a playful dimple", "a button nose", "soft baby hairs at the hairline"]),
+            expression: pick(["joyful grin", "shy soft smile", "curious wonder", "natural candid laugh"]),
+          }
+        : {
+            shape: pick(["oval", "heart-shaped", "square", "round", "diamond", "oblong", "angular"]),
+            eyes: pick(["almond-shaped", "hooded", "wide-set", "deep-set", "upturned", "monolid", "downturned"]),
+            detail: pick(["light freckles across the nose", "a small beauty mark", "soft dimples", "bold natural brows", "high cheekbones", "a gentle cleft chin", "delicate fine features", "a strong defined jawline"]),
+            expression: pick(["calm confidence", "a warm approachable smile", "poised editorial neutrality", "a soft candid smile", "quiet magnetic intensity"]),
+          };
 
     const faceDescriptionSection = `
-    
-    FACE DESCRIPTION GUIDELINE: Below is *one example* of a possible face description → "${faceDescriptor}". This is **only an example**; do NOT reuse it verbatim. Instead, create your own natural-sounding, age-appropriate face description for the ${baseModelText} so that each generation features a unique and photogenic look.`;
+
+    FACE DESCRIPTION (UNIQUENESS REQUIRED): Invent a completely ORIGINAL, photoreal, age-appropriate face for the ${baseModelText} — never a stock, template, or recycled description, and never the same face twice across generations. As loose inspiration ONLY for this generation (recombine, alter, or discard any of them freely): face shape leaning "${faceAxes.shape}", eye character around "${faceAxes.eyes}", a distinctive touch such as "${faceAxes.detail}", and an expression of "${faceAxes.expression}". Do NOT restate these fragments verbatim — compose your own flowing description covering face shape, eyes, brows, nose, lips, jawline, and expression, so every generation features a clearly different, unique, and photogenic human face.`;
 
     // Gemini'ye gönderilecek metin - güvenli flag-safe versiyon
     const criticalDirectives = `
     BRAND SAFETY: If the input image contains any brand names or logos (e.g., Nike, Adidas, Prada, Gucci, Louis Vuitton, Chanel, Balenciaga, Versace, Dior, Hermès), please refer to them generically (e.g., "brand label", "logo") without naming the specific brand.
     ACCESSORY PRESENTATION: When the hero item is footwear, a handbag, backpack, small leather good, hat, watch, jewelry, eyewear, belt, or any similar fashion accessory, explicitly require modern fashion campaign posing and camera angles that hero the accessory. Specify refined hand/foot/head placement, keep every design detail fully visible, and reference popular e-commerce hero perspectives (runway footwear angles, wrist-level watch close-ups, eye-line eyewear framing, handbag-on-hip hero shot, etc.) while maintaining premium fashion styling.`;
 
-    // Flux Max için genel garment transform talimatları (güvenli flag-safe versiyon)
-    const fluxMaxGarmentTransformationDirectives = `
-    GARMENT TRANSFORMATION REQUIREMENTS:
-    - Generate ONLY ONE SINGLE unified fashion photograph, not multiple images or split views
-    - Transform the flat-lay garment into a hyper-realistic, three-dimensional worn garment on the existing model while avoiding any 2D, sticker-like, or paper-like overlay appearance.
-    - Ensure realistic fabric physics with natural drape, weight, tension, compression, and subtle folds along shoulders, chest/bust, torso, and sleeves. Maintain a clean commercial presentation with minimal distracting wrinkles.
-    - Preserve all original garment details including exact colors, prints/patterns, material texture, stitching, construction elements, trims, and finishes. Avoid redesigning the original garment.
-    - Integrate prints/patterns correctly over the 3D form ensuring patterns curve, stretch, and wrap naturally across body contours. Avoid flat, uniform, or unnaturally straight pattern lines.
-    - For structured details such as knots, pleats, darts, and seams, render functional tension, deep creases, and realistic shadows consistent with real fabric behavior.
-    - Maintain photorealistic integration with the model and scene including correct scale, perspective, lighting, cast shadows, and occlusions that match the camera angle and scene lighting.
-    - Focus on transforming the garment onto the existing model and seamlessly integrating it into the outfit. Avoid introducing new background elements unless a location reference is explicitly provided.
-    - OUTPUT: One single professional fashion photograph only`;
+    // Nano-banana-2/Pro için genel garment transform talimatları (güvenli flag-safe versiyon).
+    // Gemini image modelleri anlatı (narrative) tarzı, pozitif çerçeveli, kumaş/kamera
+    // terminolojisi zengin promptlarla en iyi sonucu verir — talimatlar buna göre yazıldı.
+    const garmentTransformationDirectives = `
+    GARMENT TRANSFORMATION REQUIREMENTS (write these as flowing narrative sentences inside your prompt, not as a bullet list):
+    - Single frame: the output is exactly ONE unified fashion photograph — one model, one scene, one camera view.
+    - Dimensional realism: the flat-lay garment becomes a fully three-dimensional worn garment with believable volume — fabric wraps around the body, catches light on raised folds, and falls into soft shadow inside creases. It reads as physically worn cloth, never as a flat graphic layered onto the model.
+    - Fabric physics vocabulary: name the fabric behavior explicitly using textile language the image model understands — how this specific material drapes (fluid, crisp, structured, clinging), its weight class (featherweight chiffon vs. heavy melton wool), where tension gathers (shoulder seams, bust, elbows) and where it releases (hem, sleeve openings). Keep the presentation commercially clean with only natural, intentional folds.
+    - Faithful reproduction: every original garment detail transfers exactly — colorway, prints and pattern scale, weave/knit texture, topstitching, seams, buttons, zippers, trims, labels, hem finish. The garment in the output is the same product a customer would receive, worn instead of flat.
+    - Pattern mapping: prints and patterns follow the body's 3D contours — curving over the bust/chest, compressing at the waist, flowing around sleeves — with realistic continuity at seams. Pattern lines bend with the fabric, never stay ruler-straight.
+    - Construction under tension: knots, pleats, darts, gathers, and seams show functional, load-bearing behavior — real creases, believable pull lines, and contact shadows exactly where fabric works against the body.
+    - Scene integration: the garment shares one light source with the model and environment — matching color temperature, cast shadows, contact occlusion at collar/waist/cuffs, correct scale and perspective for the camera angle. The environment stays as described; introduce new background elements only when a location reference explicitly provides them.
+    - TUCKING / UNTUCKING RULE (APPLIES TO ALL MODES, INCLUDING SINGLE-GARMENT REPLACEMENT): keep the top's natural, intended length and hemline exactly as the flat-lay shows — the hem falls freely OVER the waistband of the bottoms. A tucked-in styling is allowed only if (a) the flat-lay clearly shows the top already tucked, or (b) the garment is unambiguously a formal dress shirt / blouse whose design demands tucking. Casual shirts, t-shirts, sweatshirts, hoodies, knitwear, oversized / cropped / streetwear tops default to UNTUCKED. Integration comes from realistic draping over the bottoms — never from invented half-tucks, French tucks, or added belts.
+    - OUTPUT: one single professional fashion photograph only.`;
 
     // Gemini'ye gönderilecek metin - Edit mode vs Color change vs Normal replace
     let promptForGemini;
@@ -2175,36 +2452,8 @@ Confident model poses.
         colorInputMode,
       });
 
-      // 🎬 Çekim tarzı devredeyken görünüm kararlarını Gemini VERMEZ: zemin, ışık,
-      // gölge/yansıma, açı ve kadraj ekteki stil referansından gelir. Aksi hâlde
-      // burada üretilen "düz beyaz, gölgesiz" gibi cümleler referansla çelişiyor.
-      if (styleReferenceActive) {
-        logger.log(
-          "🔧 [REFINER GEMINI] Çekim tarzı aktif → zemin/ışık/gölge kararları referansa devredildi",
-        );
-      }
-
       // Build dynamic settings instruction for Gemini
-      let creationSettingsInstruction = styleReferenceActive
-        ? `
-=== ⚠️ STYLE REFERENCE IS ACTIVE — DO NOT DECIDE THE LOOK ===
-
-A separate STYLE REFERENCE image is attached to the image-generation request. IT decides how the final photo looks. Your generated prompt MUST therefore:
-- NOT state any background colour, backdrop type or "flat/uniform/white background" instruction,
-- NOT state whether there is a shadow or a reflection under the product,
-- NOT prescribe lighting direction, softness or exposure,
-- NOT prescribe camera angle, crop, framing or how the product is positioned in the frame,
-- NOT describe any studio environment.
-Instead write: "Match the background, lighting, shadow, reflection, camera angle and framing of the attached style reference exactly."
-
-WHAT YOU SHOULD FOCUS ON INSTEAD (this is your whole job here):
-- Identify the product category precisely and describe the product's own identity: shape, construction, materials, colours, patterns, hardware, stitching, labels.
-- Specify the CLEANUP and REPAIR work: remove dust, lint, fingerprints, smudges, scratches, tarnish, stains, creases, wrinkles, price tags and sticker residue; polish metal; make stones and glass clean and bright; untangle chains; straighten laces and straps; present as brand-new.
-- Demand sharp focus across the whole product, true-to-life colour of the product itself, and crisp clean edges.
-- Keep the product's identity 100% unchanged — never restyle, recolour or redesign it.
-
-`
-        : `
+      let creationSettingsInstruction = `
 === USER-SELECTED CREATION SETTINGS (APPLY THESE EXACTLY) ===
 
 The user has selected the following settings for this product photo transformation. You MUST incorporate these settings into your generated prompt:
@@ -2283,7 +2532,7 @@ ${creationSettingsInstruction}
 === STEP 1: PRODUCT IDENTIFICATION (CRITICAL) ===
 First, carefully analyze the image and identify the product category:
 - CLOTHING (shirts, dresses, jackets, pants, coats, etc.)
-- JEWELRY (rings, bracelets, earrings, watches)
+- JEWELRY (rings, necklaces, bracelets, earrings, watches)
 - FOOTWEAR (shoes, sneakers, boots, sandals, heels)
 - EYEWEAR (sunglasses, prescription glasses)
 - BAGS & ACCESSORIES (handbags, wallets, belts, hats, scarves)
@@ -2295,20 +2544,12 @@ Based on the identified product type, generate a SPECIALIZED transformation prom
 
 STRICT FORMAT REQUIREMENTS:
 - Start with: "Transform this amateur product photo into a professional high-end e-commerce catalog photo."
-${
-  styleReferenceActive
-    ? `- ⚠️ STYLE REFERENCE OVERRIDE: everything written below about backgrounds, shadows, reflections, lighting, camera angle, framing and positioning is SUPERSEDED by the attached style reference. Ignore those lines completely and never repeat them in your output. Use the product-specific sections ONLY for what they say about the product itself: its construction, materials, details to preserve, and the cleaning/repair work needed. Your second sentence must be exactly: "Match the background, lighting, shadow, reflection, camera angle and framing of the attached style reference exactly."`
-    : `- AFTER the opening statement, IMMEDIATELY specify the user-selected settings:`
-}
-  ${
-    styleReferenceActive
-      ? ""
-      : `* "Background: [ENGLISH color name] ${
-          addShadow
-            ? "with soft natural shadow for depth"
-            : "with no shadow - completely flat and clean"
-        } ${addReflection ? "and subtle reflection effect for luxury look" : ""}"`
-  }
+- AFTER the opening statement, IMMEDIATELY specify the user-selected settings:
+  * "Background: [ENGLISH color name] ${
+    addShadow
+      ? "with soft natural shadow for depth"
+      : "with no shadow - completely flat and clean"
+  } ${addReflection ? "and subtle reflection effect for luxury look" : ""}"
 - Focus & Clarity Requirement: You MUST include instructions for "Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus" in your generated prompt.
 - Include ALL relevant sections based on product type
 - End with: "The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting."
@@ -2342,7 +2583,7 @@ Fabric Enhancement:
 Positioning: Perfectly centered, shoulders level, hemline balanced, symmetrical presentation
 Lighting: Even, bright, professional studio lighting - no harsh shadows, no blown highlights
 
-▶ FOR JEWELRY (Rings, Bracelets, Earrings):
+▶ FOR JEWELRY (Rings, Necklaces, Bracelets, Earrings):
 Background: Pure flat ${
         colorInputMode === "hex" ? backgroundColor : backgroundColor
       } background (solid, uniform color) ${
@@ -2671,7 +2912,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       
       IMPORTANT: Your generated prompt MUST result in a BACK VIEW of the model, not a front view or side view. The model should be facing AWAY from the camera to show the back design. Output ONLY ONE single image.
 
-      ${fluxMaxGarmentTransformationDirectives}
+      ${garmentTransformationDirectives}
 
       MANDATORY BACK SIDE PROMPT SUFFIX:
       After generating your main prompt, ALWAYS append this exact text to the end:
@@ -2703,70 +2944,38 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       // NORMAL MODE - Standart garment replace
       promptForGemini = `
       MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
-      
-      IMPORTANT: Your generated prompt must be UNDER 5000 characters total. Be concise but descriptive. Focus on the most important details.
-         
-      DEFAULT POSE INSTRUCTION: If no specific pose is provided by the user, you must randomly select an editorial-style fashion pose that best showcases the garment’s unique details, fit, and silhouette. The pose should be confident and photogenic, with body language that emphasizes fabric drape, construction, and design elements, while remaining natural and commercially appealing. Always ensure the garment’s critical features (neckline, sleeves, logos, seams, textures) are clearly visible from the chosen pose.
 
-      After constructing the garment, model, and background descriptions, you must also generate an additional block of at least 200 words that describes a professional editorial fashion photography effect. This effect must always adapt naturally to the specific garment, fabric type, color palette, lighting conditions, and background environment described earlier. Do not use a fixed style for every prompt. Instead, analyze the context and propose an effect that enhances the scene cohesively. Examples might include glossy highlights and refined softness for silk in a studio setting, or natural tones, airy realism, and depth of field for cotton in outdoor daylight. These are only examples, not strict rules — you should always generate an effect description that best matches the unique scene. Your effect description must cover color grading, lighting treatment, texture and fabric physics, background integration, focus and depth of field, and overall editorial polish. Always ensure the tone is professional, realistic, and aligned with the visual language of high-end fashion magazines. The effect description must make the final result feel like a hyper-realistic editorial-quality fashion photograph, seamlessly blending garment, model, and environment into a single cohesive campaign-ready image.
+      LENGTH GUIDANCE: There is no character limit — write as richly and thoroughly as the shoot deserves. Every sentence should add a concrete visual fact (fabric, light, pose, texture) rather than repeating ideas.
 
+      TARGET MODEL CONTEXT: Your output will be sent to a state-of-the-art AI image editing model, which responds best to flowing NARRATIVE descriptions written like a professional photographer's shoot brief — not keyword lists, not bullet points, not shouted commands. Write rich, specific, connected sentences. Use POSITIVE framing throughout: describe what IS in the frame (e.g. "a clean, uncluttered backdrop") rather than listing what is absent. Hyper-specificity wins: name the exact fabric ("brushed cotton fleece", "fluid silk charmeuse", "structured piqué knit"), the exact light ("late-afternoon window light with a soft silver bounce"), the exact lens behavior ("85mm portrait lens at f/2.8, shallow depth of field").
 
-      When generating fashion photography prompts, you must always structure the text into four separate paragraphs using \n\n line breaks. Do not output one long block of text.
+      IMAGE ROLE GROUNDING: The reference images you receive have distinct roles — the garment/product reference(s) show the EXACT product(s) to be worn (treat them as the immutable source of truth for design, color, pattern and construction), and any model / pose / hair / location references define who wears it, how they stand, how they are styled, and where the scene takes place. In your prompt, make clear that the garment from the reference is the one being worn.
 
-Paragraph 1 → Model Description & Pose
+      DEFAULT POSE INSTRUCTION: If no specific pose is provided by the user, select an editorial-style fashion pose that best showcases this exact garment's details, fit, and silhouette — confident, photogenic body language that puts fabric drape, construction, and design elements on display while staying natural and commercially appealing. Keep the garment's critical features (neckline, sleeves, logos, seams, textures) clearly visible from the chosen pose.
 
-Introduce the model (age, gender, editorial features).
+      OUTPUT STRUCTURE — write the prompt as four flowing paragraphs separated by \n\n line breaks (never one long block):
 
-Describe the pose with confident, fashion-forward language.
+      Paragraph 1 → Model & Pose. Introduce the model (age, gender, editorial presence) with fashion-magazine language, then describe the pose cinematically — weight distribution, shoulder line, hand placement, gaze direction — chosen to flatter THIS garment.
 
-Paragraph 2 → Garment & Fabric Physics
+      Paragraph 2 → Garment & Fabric Physics. This is the heart of the prompt. Identify the garment precisely (category, cut, silhouette) and describe it with textile jargon: fiber and weave/knit, drape class, weight, surface finish, seam and trim work. State that every design element — colorway, prints and their scale, stitching, hardware, labels, hem — matches the reference exactly, then describe how the fabric physically behaves on this body in this pose: where it folds, where it holds structure, where light catches the surface.
 
-Use fashion and textile jargon.
+      Paragraph 3 → Environment & Atmosphere. Describe the setting like a location scout: architecture or landscape, surface textures, depth layers (foreground / midground / background), ambient color palette, and the mood it creates. The environment supports and elevates the garment as an editorial backdrop. The original flat-lay background is fully replaced by this described scene, and only the garment itself carries over from the product photo — the final scene contains no hangers, clips, mannequin forms, or flat-lay artifacts.
 
-Describe fabric drape, weight, tension, folds, stitching.
+      Paragraph 4 → Photography, Light & Grade. Choose a camera, lens character, viewpoint, depth of field, lighting approach, and color treatment that genuinely serve this specific garment, pose, model, and location. Make these choices feel intentional and varied across generations: adapt the perspective, visual energy, contrast, depth, and mood to the scene rather than relying on a fixed studio recipe. Use precise professional photography language where it helps define the image, but never treat any particular focal length, lighting setup, or color grade as the default. For controlled studio shoots, a clean high-key commercial grade and balanced three-point softbox lighting can be appropriate. For premium editorial scenes, a medium-format film character with subtle fine grain can be appropriate. Use these only when they genuinely suit the garment, location, and intended mood; never apply them as a default recipe. The final result is a single, hyper-realistic, editorial-quality fashion photograph, seamlessly integrating model, garment, and environment at campaign-ready standards.
 
-Keep all design, color, patterns, trims, logos exactly the same as the reference.
+      CRITICAL RULES:
 
-Paragraph 3 → Environment & Ambiance
+      Write in the language of editorial fashion photography — precise industry jargon over plain product description (drape, silhouette, cut, ribbed, pleated, piqué knit, melange, structured detailing, trims, seams, stitchwork).
 
-Describe the setting in editorial tone (minimalist, refined, photogenic).
+      Define the model's appearance with editorial tone (sculpted jawline, refined cheekbones, luminous gaze, poised stance) while keeping it natural and photoreal.
 
-Mention architecture, light play, textures.
+      Compose with fashion-photography vocabulary — rule of thirds, negative space, eye-level or low-angle perspective, foreground depth, polished framing.
 
-Keep it supportive, not distracting.
+      The environment stays photogenic and supportive — sophisticated, refined, contemporary — framing the garment as the hero of the image.
 
-Paragraph 4 → Lighting, Composition & Final Output
+      The final sentence of the prompt always affirms: a single, high-end professional fashion photograph, polished to editorial standards, suitable for premium catalogs and campaigns.
 
-Always describe lighting as “natural daylight blended with studio-grade softness”.
-
-
-Conclude with: “The final result must be a single, hyper-realistic, editorial-quality fashion photograph, seamlessly integrating model, garment, and environment at campaign-ready standards
-
-      
-
-CRITICAL RULES:
-
-Always construct prompts in the language and style of editorial fashion photography. Use precise fashion industry jargon rather than plain product description.
-
-Describe the garment using textile and tailoring terminology (drape, silhouette, cut, ribbed, pleated, piqué knit, melange, structured detailing, trims, seams, stitchwork, etc.).
-
-Define the model’s appearance with editorial tone (sculpted jawline, refined cheekbones, luminous gaze, poised stance).
-
-Lighting must be described in studio-grade fashion terms (diffused daylight, editorial softness, balanced exposure, flattering shadow play, high-definition clarity).
-
-Composition should reference fashion photography language (rule of thirds, depth of field, eye-level perspective, polished framing, editorial atmosphere).
-
-Environment must remain minimalist and photogenic, complementing the garment without distraction. Use words like “sophisticated”, “refined”, “contemporary”, “elevated backdrop”.
-
-Always conclude that the result is a single, high-end professional fashion photograph, polished to editorial standards, suitable for premium catalogs and campaigns.
-
-Do not use plain catalog language. Do not produce technical listing-style descriptions. The tone must always reflect editorial-level fashion shoot aesthetic
-
-Exclude all original flat-lay elements (hanger, frame, shadows, textures, painting, or any other artifacts). Only the garment itself must be transferred.
-
-The original background must be completely replaced with the newly described background. Do not keep or reuse any part of the input photo background.
-
-The output must be hyper-realistic, high-end professional fashion editorial quality, suitable for commercial catalog presentation.
+      The output must be hyper-realistic, high-end professional fashion editorial quality, suitable for commercial catalog presentation.
 
       ${criticalDirectives}
 
@@ -2812,6 +3021,14 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
         isNewborn ? "newborn " : ""
       }fashion photography results.
 
+      🎥 CINEMATOGRAPHY & COLOR GRADE REQUIREMENTS (NON-NEGOTIABLE — this is what separates an editorial photograph from a lifeless stock photo):
+      Your enhanced prompt MUST include a dedicated technical paragraph written in confident director-of-photography language, with CONCRETE specs chosen to flatter THIS garment and THIS scene:
+      - CAMERA: name an exact focal length and aperture (e.g. "85mm at f/2.2 with a gently melted background", "35mm at f/5.6 holding the architecture crisp"), plus the camera height and angle relative to the model.
+      - LIGHTING RECIPE: a specific key light direction and quality (hard vs soft), fill/shadow density, and ONE deliberate lighting character (crisp rim light, hard sun with graphic shadows, window-light falloff, etc.) — never the phrase "professional studio lighting" on its own.
+      - COLOR GRADE: a confident editorial grade described like a preset — rich contrast, deep blacks, controlled highlights, an intentional palette (e.g. "clean digital editorial with dense blacks and accurate whites", "Portra-like warm neutrals with high micro-contrast").
+      ❌ FORBIDDEN LOOK: flat, washed-out, low-contrast, hazy or pastel-toned renderings; lifeless gray shadows; milky highlights; generic soft-lit catalog blandness. If the scene calls for soft light, keep the light soft but the grade CONFIDENT (deep blacks, honest saturation where the garment demands it).
+      The final image must feel like a frame from a current high-end fashion editorial — the kind people save to Pinterest/Behance mood boards — never like a generic stock catalog photo.
+
       CRITICAL REQUIREMENTS:
       1. The prompt MUST begin with "Replace the ${
         isMultipleProducts
@@ -2831,7 +3048,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
           ? "ALL garments/products perfectly fitted and coordinated"
           : "the same garment perfectly fitted"
       } on the ${baseModelText}
-      5. Use natural studio lighting with a clean background
+      5. Light the scene with a professional lighting design chosen to fit the environment and fabric (studio softbox, golden-hour daylight, diffused overcast, etc.) — when no location is specified, default to a refined studio setting with a clean, elevated backdrop
       6. Preserve ALL original details of ${
         isMultipleProducts ? "EACH garment/product" : "the garment"
       }: colors, patterns, textures, hardware, stitching, logos, graphics, and construction elements
@@ -2860,7 +3077,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
           : ""
       }
 
-      ${fluxMaxGarmentTransformationDirectives}
+      ${garmentTransformationDirectives}
 
       LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Replace".
 
@@ -2891,8 +3108,49 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
     if (!originalPrompt || !originalPrompt.includes("Model's pose")) {
       // Eğer poz seçilmemişse akıllı poz seçimi, seçilmişse belirtilen poz
       if (!settings?.pose && !poseImage) {
-        promptForGemini += `Since no specific pose was provided, use a natural pose that keeps the garment fully visible. The stance may be front-facing or slightly angled, but avoid hiding details. Do not put hands in pockets. Ensure garment features are clearly shown.`;
+        promptForGemini += `Since no specific pose was provided, choose a confident, editorial fashion pose that keeps the garment fully visible — front-facing or slightly angled, with expressive but natural body language (weight shifted onto one leg, a relaxed shoulder turn, a poised hand placement that stays clear of key design details). Hands rest naturally at the sides, on the waist, or in gentle motion — inside pockets only if the garment clearly has visible pockets in the reference. Every signature feature of the garment (neckline, sleeves, prints, seams, hem) remains clearly on display.`;
       }
+    }
+
+    // 🛍️ Kombin modu: Grid resmi içindeki tüm parçaların giydirilmesi için Gemini'yi
+    // bilgilendir. Sadece grid image Gemini'ye gider (latency için), ama prompt'ta
+    // içindeki her ürünün nasıl giydirileceği detaylı olarak açıklanması isteniyor.
+    if (kombinItemCount && kombinItemCount > 1) {
+      promptForGemini += `
+
+🛍️ KOMBIN / OUTFIT COMPOSITION MODE — CRITICAL:
+The main reference image provided is a COMPOSITE GRID showing ${kombinItemCount} separate garment pieces laid out side by side in flat-lay form. These are NOT one single garment — they are distinct outfit items (e.g. top, bottom, outerwear, footwear, accessories) that must ALL be worn simultaneously on the model as a single cohesive outfit.
+
+Your enhanced prompt MUST explicitly instruct the generator to:
+1. Identify EACH individual garment cell in the grid (their order in the grid does not dictate styling order — analyze each visually).
+2. Describe how each piece should be worn on the model (upper body vs. lower body, outer layer vs. base layer, footwear, accessories) and how they interact, respecting each garment's own intended fit and silhouette as shown in its grid cell.
+3. TUCKING / LAYERING NEUTRALITY — CRITICAL: Do NOT automatically tuck tops into bottoms. Only tuck a top into a bottom if the top is clearly a formal dress shirt paired with tailored trousers/skirt, OR the flat-lay of the top visibly shows a tucked-in styling. For casual shirts, t-shirts, sweatshirts, knitwear, oversized tops, cropped tops, hoodies, and any top whose intended wear is untucked → leave it fully UNTUCKED, hanging naturally over the waistband of the bottom. When in doubt, default to UNTUCKED. Do not invent tucking, belting, half-tucks, or "French tucks" unless the garment's own design clearly demands it.
+4. For EACH piece separately, preserve the exact color, pattern/print, stitching, fabric texture, trims, buttons, prints, length, hem, and construction details exactly as shown in its grid cell. Do NOT merge, simplify, redesign, shorten, lengthen, or adjust the fit of any piece.
+5. Describe the expected complete silhouette of the full outfit on the model once all ${kombinItemCount} pieces are worn together — but the silhouette must follow from the garments themselves, not from a default styling assumption.
+6. Ensure the outfit looks natural, cohesive, and styled as a real editorial fashion look — no floating garments, no missing pieces, no duplicate garments.
+
+Start your enhanced prompt by explicitly listing what you see in the grid (one short sentence per piece) before the full prompt, so the downstream image generator has per-item grounding.`;
+    }
+
+    // 📝 Opening directives — skin / pose / user-detail direktifleri Gemini
+    // tarafından kıyafete özgü enhanced versiyonlar olarak prompt'un EN BAŞINA
+    // yazılacak. Statik prepend kaldırıldı; Gemini her bloğu ⚠️ başlığıyla
+    // koruyup içeriği bu kıyafete/sahneye göre yorumluyor.
+    if (openingDirectivesInstruction) {
+      promptForGemini = `${openingDirectivesInstruction}
+
+${promptForGemini}`;
+    }
+
+    // 🎯 Focus area direktifi — EN BAŞA koy ki hem Gemini hem generator'a
+    // pazarlıksız bir çerçeveleme talimatı olarak görünsün. Enhanced prompt'u
+    // üretirken Gemini bu direktifi koruması için net işaretle.
+    if (focusAreaDirective) {
+      promptForGemini = `${focusAreaDirective}
+
+(Keep the framing directive above verbatim as the opening of your enhanced prompt — do NOT rewrite, soften, or remove it.)
+
+${promptForGemini}`;
     }
 
     logger.log("🤖 [GEMINI] Prompt oluşturuluyor:", promptForGemini);
@@ -3032,6 +3290,11 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
       }
     }
 
+    // Gemini'ye sadece ana görsel (+ pose/hair/location) gidiyor.
+    // Kombin tekil ürünleri ve size reference resmi Gemini'den atlanıyor
+    // (prompt enhancement için yeterince latency oluşturuyorlardı).
+    // Nano-banana tarafına /generate handler'da ekstra olarak ekleniyorlar.
+
     // Base64'e çevir ve parts'e ekle
     for (const buffer of imageBuffers) {
       const base64Image = buffer.toString("base64");
@@ -3119,15 +3382,25 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
 
     try {
       // parts array'indeki text prompt'u al
-      const textPrompt = parts.find((p) => p.text)?.text || promptForGemini;
+      let textPrompt = parts.find((p) => p.text)?.text || promptForGemini;
 
-      const geminiGeneratedPrompt = await callReplicateGeminiFlash(
+      // 🔒 Ek güvenlik katmanı — SADECE test hesabı (nodselemen): enhancer'ın EN BAŞINA
+      // "uygunsuz/+18 istekte o yönde prompt üretme" system prompt'unu ekle. Gerçek
+      // kullanıcılarda bu satır hiç çalışmaz (textPrompt aynen kalır).
+      if (await isSafetyTestUser(userId)) {
+        textPrompt = `${SAFETY_SYSTEM_PROMPT}\n\n---\n${textPrompt}`;
+        logger.log(
+          `🔒 [SAFETY] Enhancer'a güvenlik system prompt'u eklendi (test hesabı ${userId}).`,
+        );
+      }
+
+      const geminiGeneratedPrompt = await callGeminiFlash(
         textPrompt,
         imageUrlsForReplicate,
         3,
       );
 
-      // Statik kurallar kaldırıldı - fal.ai 5000 karakter limiti var
+      // Statik kurallar kaldırıldı (not: fal.ai eski 5000 char limiti kalktı — 50k+ kabul ediyor, test edildi Tem 2026)
       // Gemini'nin ürettiği prompt yeterince detaylı
       let staticRules = "";
 
@@ -4108,6 +4381,317 @@ async function pollReplicateResultWithRetry(predictionId, maxRetries = 3) {
   }
 }
 
+// 🎬 STYLE REFERENCE MODE — kompakt, deterministik prompt.
+// Kullanıcı bir stil referans görseli yüklediğinde koca Gemini enhanced-prompt hattı
+// ÇALIŞTIRILMAZ; ortam/ışık/kamera/poz zaten referans görselden kopyalanacağı için
+// prompt yalnızca (1) referans direktifi + kod plakası işareti, (2) ürün sadakati,
+// (3) kullanıcının seçim/detay girdilerinden oluşur.
+function buildStyleReferencePrompt({
+  settings = {},
+  customDetail = null,
+  hasModelReference = false,
+  isMultipleProducts = false,
+  stamped = true,
+  styleProfile = null, // { name, stylePrompt, imageCount } — stil profili (grid kolaj) modu
+  technicalAnalysis = null, // Gemini'nin tekil referanstan çıkardığı teknik kamera/ışık analizi
+} = {}) {
+  const refPointer = stamped
+    ? `the attached image that carries a solid BLACK code plate along its bottom edge with the printed text "STYLE REFERENCE · CODE SR-1" (it is the LAST attached image)`
+    : `the LAST attached image`;
+
+  const sections = [];
+
+  // Kod plakası sızıntısına karşı EN BAŞTA sert kural — model bazen input'taki
+  // plakayı çıktıya kopyalıyor; ilk cümle olarak yasaklamak en etkili yöntem.
+  if (stamped) {
+    sections.push(
+      `⚠️ ABSOLUTE OUTPUT RULE — READ FIRST: The final photograph must be a clean, full-bleed image with NO text, NO black bar or plate, NO caption, NO watermark anywhere — especially nothing along the bottom edge. The black "STYLE REFERENCE · CODE SR-1" plate you will see on one attached input image is an INPUT-ONLY marker; reproducing it (or any bar/text) in the output is a hard failure.`,
+    );
+  }
+
+  if (styleProfile) {
+    sections.push(`⚠️ STYLE REFERENCE MODE — STRICT DIRECTIVES
+
+STYLE REFERENCE COLLAGE: Among the attached images, ${refPointer} is the STYLE REFERENCE. It is a COLLAGE GRID of ${styleProfile.imageCount} separate photoshoot frames that all belong to ONE brand aesthetic${styleProfile.name ? ` ("${styleProfile.name}")` : ""}. Treat the collage as EXAMPLES of a photographic STYLE only — mood boards, not sets to rebuild. Extract the SHARED aesthetic across its frames and reproduce that aesthetic in the final photograph:
+- the FAMILY of environments (urban street / studio / loft / etc.) — category only, never a specific pictured place,
+- the shared lighting language (direction, hardness/softness, time-of-day feel),
+- the shared color grade, contrast and atmosphere,
+- the shared camera language (focal-length feel, angles, crops, depth of field),
+- the shared posing style, energy and attitude.
+Compose ONE coherent new photograph inspired by this aesthetic — do not reproduce any single frame pixel-by-pixel, and do not render a collage/grid in the output.
+
+⚠️ LOCATIONS ARE EXAMPLES, NOT TEMPLATES (NON-NEGOTIABLE): Matching the sample locations is NOT required. The places in the collage frames only illustrate the vibe. Invent a NEW location that belongs to the same family (same architecture character, surfaces, urban/nature/indoor feel) but is clearly DIFFERENT from every pictured street, building, room, shopfront or backdrop. Do NOT rebuild, mirror or lightly remix any sample set.
+🚫 NO ONE-OFF PROP CARRY-OVER (NON-NEGOTIABLE): Incidental objects that appear in one or a few collage frames — a motorcycle, scooter, parked car, bicycle, traffic sign, graffiti, storefront, specific chair, plant, bag left in the background, etc. — are coincidences of that shoot, NOT part of the style. NEVER place such one-off props in the output, even if they are visually prominent in the collage. Only shared light, grade, camera and posing language define the style.
+EXCEPTION — STUDIO: If the frames share a plain/seamless studio setup (neutral backdrop, minimal set), reproducing that same studio character is correct and expected — studio need not vary.`);
+  } else {
+    sections.push(`⚠️ STYLE REFERENCE MODE — STRICT DIRECTIVES
+
+STYLE REFERENCE IMAGE: Among the attached images, ${refPointer} is the STYLE REFERENCE. It defines HOW the final photograph must look. Treat it as the single source of truth for staging and replicate from it, as faithfully as possible:
+- the exact environment and location (architecture, surfaces, background elements, depth layers),
+- the exact lighting (direction, hardness/softness, time-of-day feel, shadow and highlight behavior),
+- the exact color grade, contrast and overall atmosphere/mood,
+- the exact camera angle, focal-length feel, framing and crop,
+- the exact model pose, stance, gesture and body language.`);
+  }
+
+  if (styleProfile?.stylePrompt) {
+    sections.push(`STYLE PROFILE ANALYSIS (art-director notes distilled from the reference frames — follow them):
+${styleProfile.stylePrompt}`);
+  }
+
+  if (technicalAnalysis) {
+    sections.push(`TECHNICAL CAMERA & LIGHTING ANALYSIS (extracted from the style reference by a director of photography — follow these specs precisely):
+${technicalAnalysis}`);
+  }
+
+  sections.push(`SCENE AND STAGING RULES:
+
+STRICT SEPARATION: Do NOT copy any clothing, product, accessory, jewelry, bag or shoe from the style reference. The style reference contributes ONLY ${
+    styleProfile
+      ? "the photographic STYLE (light, grade, camera, posing language and environment FAMILY) — never a specific pictured location or one-off background prop"
+      : "the scene, light, camera and pose"
+  }.
+
+🚫 IDENTITY PROTECTION (NON-NEGOTIABLE): Any person appearing in the style reference image (or in any of its frames, if it is a collage) must NEVER appear in the output. Generate a completely NEW, different model: a different face, different facial features, different identity. The output model must NOT be recognizable as, resemble, or be mistaken for the person in the style reference in ANY way — not their face, facial structure, distinctive marks, moles, scars or tattoos. Only the body POSE, stance and staging are taken from the reference person; their likeness is strictly off-limits.
+
+GARMENT SOURCE OF TRUTH: The other attached product photo(s) define the garment(s). Dress the model EXCLUSIVELY in these product(s) and reproduce them with catalog-grade fidelity — exact colors, prints and pattern scale, fabric texture and weight, stitching, seams, trims, hardware, closures, labels and proportions. Do not invent, restyle, recolor or omit any visible product detail.${
+    isMultipleProducts
+      ? " Multiple products are provided — the model wears them together as one coherent outfit, each piece reproduced faithfully."
+      : ""
+  }`);
+
+  if (stamped) {
+    sections.push(
+      `CODE PLATE: The black "STYLE REFERENCE · CODE SR-1" plate exists only to mark which attached image is the style reference. It must NEVER appear in the output — no plate, text, watermark, border or label of any kind in the final photograph.`,
+    );
+  }
+
+  // ── Kullanıcının seçim/detay girdileri ──
+  if (hasModelReference) {
+    sections.push(
+      `MODEL IDENTITY: The FIRST attached image is the model identity reference (provided by the user). Preserve THIS person's face, identity and skin tone exactly, while adopting the pose and staging of the style reference. The identity protection rule above still applies to the style-reference person — never blend their likeness into this model.`,
+    );
+  } else {
+    const gender = typeof settings?.gender === "string" && settings.gender.trim()
+      ? settings.gender.trim()
+      : null;
+    const age = settings?.age ? String(settings.age).trim() : null;
+    sections.push(
+      `MODEL: Create a brand-new, ${[age ? `${age}-year-old` : null, gender]
+        .filter(Boolean)
+        .join(" ")} AI-generated fashion model with natural, realistic skin texture — an entirely original person whose identity is clearly DIFFERENT from the person in the style reference.`.replace(/, +AI-generated/, " AI-generated"),
+    );
+  }
+
+  const bodyShape =
+    typeof settings?.bodyShape === "string" && settings.bodyShape.trim()
+      ? settings.bodyShape.trim()
+      : null;
+  if (bodyShape) {
+    sections.push(`BODY SHAPE: The model has a ${bodyShape} body shape.`);
+  }
+
+  if (settings?.productColor && settings.productColor !== "original") {
+    sections.push(
+      `🎨 PRODUCT COLOR REQUIREMENT (NON-NEGOTIABLE): Render the garment's base fabric in "${settings.productColor}" (if it is a hex code, use its closest natural color) while keeping every design element — prints, pattern scale, stitching, trims, hardware, labels, construction — exactly as in the product photo(s). The recolored fabric keeps realistic shading with natural tonal variation in highlights and folds.`,
+    );
+  }
+
+  if (customDetail && String(customDetail).trim()) {
+    sections.push(
+      `⚠️ USER DETAIL DIRECTIVE (mandatory): ${String(customDetail).trim()}`,
+    );
+  }
+
+  sections.push(
+    `OUTPUT: One single hyper-realistic, professional fashion photograph, full-bleed edge to edge. Natural skin texture, tack-sharp garment detail. NO text, NO logos, NO watermarks, NO black bar or plate at any edge of the image. Apart from the garment(s) (and the directives above), everything — scene, light, camera, framing, pose and mood — matches the style reference image.`,
+  );
+
+  return sections.join("\n\n");
+}
+
+// 🎬 Görselin altına "STYLE REFERENCE · CODE SR-1" siyah kod plakası basar (jpeg buffer döner).
+// Hem tekil stil referansında hem stil profili grid'inde kullanılır.
+async function stampStyleReferencePlate(rawBuf) {
+  const flattened = await sharp(rawBuf)
+    .rotate()
+    .flatten({ background: { r: 255, g: 255, b: 255 } })
+    .resize({ width: 1536, height: 1536, fit: "inside", withoutEnlargement: true })
+    .toBuffer();
+
+  const meta = await sharp(flattened).metadata();
+  const SW = meta.width || 800;
+  const SH = meta.height || 1200;
+
+  const PLATE_H = Math.min(150, Math.max(80, Math.round(SH * 0.09)));
+  const withPlate = await sharp(flattened)
+    .extend({ bottom: PLATE_H, background: { r: 10, g: 10, b: 12 } })
+    .toBuffer();
+
+  const plateFont = Math.min(58, Math.max(30, Math.round(SW / 20)));
+  const plateTextY = SH + Math.round(PLATE_H / 2) + Math.round(plateFont / 3);
+  const plateSvg = Buffer.from(`
+<svg xmlns="http://www.w3.org/2000/svg" width="${SW}" height="${SH + PLATE_H}">
+  <text x="${Math.round(SW / 2)}" y="${plateTextY}"
+        text-anchor="middle"
+        font-family="Helvetica, Arial, sans-serif"
+        font-size="${plateFont}"
+        font-weight="700"
+        fill="#FFFFFF"
+        letter-spacing="3">STYLE REFERENCE · CODE SR-1</text>
+</svg>
+`);
+
+  return sharp(withPlate)
+    .composite([{ input: plateSvg, blend: "over" }])
+    .jpeg({ quality: 90 })
+    .toBuffer();
+}
+
+// 🎬 Stil profili fotoğraflarını tek bir beyaz zeminli grid kolaja birleştirir.
+// En fazla 6 kare kullanılır; { buffer, count } döner.
+async function buildStyleProfileGrid(imageUrls) {
+  const MAX_FRAMES = 6;
+  const CELL_W = 512;
+  const CELL_H = 640;
+  const GAP = 6;
+
+  const cells = [];
+  for (const url of (imageUrls || []).slice(0, MAX_FRAMES)) {
+    try {
+      const resp = await axios.get(sanitizeImageUrl(url), {
+        responseType: "arraybuffer",
+        timeout: 20000,
+      });
+      const buf = await sharp(Buffer.from(resp.data))
+        .rotate()
+        .resize(CELL_W, CELL_H, { fit: "cover" })
+        .jpeg({ quality: 88 })
+        .toBuffer();
+      cells.push(buf);
+    } catch (cellErr) {
+      logger.warn(
+        "🎬 [STYLE_PROFILE] Grid karesi indirilemedi, atlanıyor:",
+        cellErr?.message,
+      );
+    }
+  }
+  if (cells.length === 0) {
+    throw new Error("No style profile images could be loaded");
+  }
+
+  const cols = cells.length <= 1 ? 1 : cells.length <= 4 ? 2 : 3;
+  const rows = Math.ceil(cells.length / cols);
+  const W = cols * CELL_W + (cols + 1) * GAP;
+  const H = rows * CELL_H + (rows + 1) * GAP;
+
+  const composites = cells.map((buf, i) => ({
+    input: buf,
+    left: GAP + (i % cols) * (CELL_W + GAP),
+    top: GAP + Math.floor(i / cols) * (CELL_H + GAP),
+  }));
+
+  const grid = await sharp({
+    create: {
+      width: W,
+      height: H,
+      channels: 3,
+      background: { r: 255, g: 255, b: 255 },
+    },
+  })
+    .composite(composites)
+    .jpeg({ quality: 90 })
+    .toBuffer();
+
+  return { buffer: grid, count: cells.length };
+}
+
+// 🎬 SIZINTI TEMİZLİĞİ — model bazen input'taki "STYLE REFERENCE · SR-1" siyah plakasını
+// sonuç görselinin altına kopyalıyor. Bu helper sonucun alt bandını satır satır tarar:
+// alttan başlayan bitişik koyu satır bloğu (H'nin %3-14'ü) VE hemen üstünde belirgin
+// parlaklık sıçraması varsa plaka kabul edilip kırpılır. Normal koyu fotoğraflarda
+// sınır sıçraması olmadığı için false-positive vermez. Plaka yoksa orijinal URL döner.
+async function stripLeakedStylePlate(resultUrl, userId) {
+  try {
+    const resp = await axios.get(resultUrl, {
+      responseType: "arraybuffer",
+      timeout: 30000,
+    });
+    const buf = Buffer.from(resp.data);
+    const meta = await sharp(buf).metadata();
+    const W = meta.width;
+    const H = meta.height;
+    if (!W || !H) return resultUrl;
+
+    // Alt %16'lık bandı greyscale raw olarak al, satır ortalamalarını hesapla
+    const bandH = Math.max(12, Math.round(H * 0.16));
+    const band = await sharp(buf)
+      .extract({ left: 0, top: H - bandH, width: W, height: bandH })
+      .greyscale()
+      .raw()
+      .toBuffer();
+
+    const rowMeans = [];
+    for (let r = 0; r < bandH; r++) {
+      let sum = 0;
+      const off = r * W;
+      for (let c = 0; c < W; c++) sum += band[off + c];
+      rowMeans.push(sum / W);
+    }
+
+    // Alttan yukarı bitişik koyu satırları say (plaka zemini ~#0A0A0C)
+    let darkRows = 0;
+    for (let r = bandH - 1; r >= 0; r--) {
+      if (rowMeans[r] < 38) darkRows++;
+      else break;
+    }
+
+    const darkRatio = darkRows / H;
+    if (darkRatio < 0.03 || darkRatio > 0.14) return resultUrl; // plaka boyutunda değil
+
+    // Sınır kontrastı: koyu bloğun hemen üstündeki 4 satır belirgin şekilde açık olmalı
+    const boundaryIdx = bandH - darkRows - 1;
+    if (boundaryIdx < 3) return resultUrl;
+    const above =
+      (rowMeans[boundaryIdx] +
+        rowMeans[boundaryIdx - 1] +
+        rowMeans[boundaryIdx - 2] +
+        rowMeans[boundaryIdx - 3]) / 4;
+    if (above < 70) return resultUrl; // üstü de koyu → plaka değil, karanlık sahne
+
+    const cropH = H - darkRows - 2; // 2px güvenlik payı
+    logger.log(
+      `🎬 [PLATE STRIP] Sonuçta sızmış kod plakası tespit edildi (${darkRows}px, %${Math.round(darkRatio * 100)}) — kırpılıyor`,
+    );
+
+    const cleaned = await sharp(buf)
+      .extract({ left: 0, top: 0, width: W, height: cropH })
+      .png()
+      .toBuffer();
+
+    const cleanFileName = `temp_${Date.now()}_plate_stripped_${userId || "anonymous"}_${uuidv4().substring(0, 8)}.png`;
+    const { error: upErr } = await supabase.storage
+      .from("reference")
+      .upload(cleanFileName, cleaned, {
+        contentType: "image/png",
+        cacheControl: "3600",
+        upsert: false,
+      });
+    if (upErr) throw new Error(upErr.message);
+    const { data: urlData } = supabase.storage
+      .from("reference")
+      .getPublicUrl(cleanFileName);
+    logger.log("🎬 [PLATE STRIP] Temiz görsel upload OK:", urlData.publicUrl);
+    return urlData.publicUrl;
+  } catch (err) {
+    logger.warn(
+      "🎬 [PLATE STRIP] Kontrol/kırpma başarısız, orijinal sonuç kullanılıyor:",
+      err?.message,
+    );
+    return resultUrl;
+  }
+}
+
 router.post("/generate", async (req, res) => {
   // Kredi kontrolü ve düşme (kalite versiyonuna göre dinamik)
   let creditDeducted = false;
@@ -4115,6 +4699,9 @@ router.post("/generate", async (req, res) => {
   let userId; // Scope için önceden tanımla
   let finalGenerationId = null; // Scope için önceden tanımla
   let temporaryFiles = []; // Silinecek geçici dosyalar
+  // fal nano-banana güvenlik toleransı: "6" = en gevşek (varsayılan, gerçek kullanıcılar).
+  // Güvenlik test hesabında (nodselemen) "1" = en katı'ya çekilir (çıplaklık üretimini zorlaştırır).
+  let safetyTolerance = "6";
 
   try {
     let {
@@ -4141,14 +4728,13 @@ router.post("/generate", async (req, res) => {
       editPrompt = null, // EditScreen'den gelen özel prompt
       // Refiner mode specific parameters (RefinerScreen)
       isRefinerMode = false, // Bu RefinerScreen'den gelen refiner işlemi mi?
-      // 🔧 Refiner çekim tarzı / referans karesi (opsiyonel)
-      styleProfileId: refinerStyleProfileId = null, // refiner_style_profiles.id
-      styleReferenceImage: refinerStyleReferenceImage = null, // { uri, base64 }
       // Session deduplication
       sessionId = null, // Aynı batch request'leri tanımlıyor
       modelPhoto = null,
-      // 🔍 Sonuç netleştirme kademesi (4 = kapalı)
-      upscaleMp = 4,
+      sizeReferenceImage = null, // 📏 SizeEditor'dan gelen boyut referans görseli (canvas çıktısı)
+      kombinOriginalImages = null, // 📸 Kombin: grid'e ek olarak orijinal tekil ürün resimleri
+      styleReferenceImage = null, // 🎬 Stil referansı: ortam/ışık/kamera/poz bu görselden birebir kopyalanır
+      styleProfileId = null, // 🎬 Stil profili: kullanıcının kayıtlı marka stil preseti (grid kolaj olarak kullanılır)
     } = req.body;
 
     // Kalite versiyonu kontrolü (settings'ten al) - Refiner modunda v1'e zorla
@@ -4230,6 +4816,39 @@ router.post("/generate", async (req, res) => {
 
     // userId'yi scope için ata
     userId = requestUserId;
+
+    // 🔒 İÇERİK GÜVENLİĞİ — SADECE güvenlik test hesapları için (ör. Google Play inceleme).
+    // Çıplaklık/manipülasyon promptu gelirse sistemden geçirme (model çağrılmaz, kredi düşmez);
+    // bu hesabın diğer isteklerinde promptu sertleştir. Gerçek kullanıcılar ETKİLENMEZ.
+    try {
+      const safetyCheckText = [promptText, editPrompt, customDetail]
+        .filter(Boolean)
+        .join("\n");
+      const safety = await evaluateSafetyPrompt(userId, safetyCheckText);
+      if (safety.blocked) {
+        logger.log(
+          `🔒 [SAFETY] Çıplaklık/manipülasyon promptu engellendi (test hesabı ${userId}): ${safety.reason}`,
+        );
+        return res.status(400).json({
+          success: false,
+          error: "content_policy_violation",
+          message:
+            "Bu içerik güvenlik politikalarına aykırı olduğu için oluşturulamaz.",
+        });
+      }
+      if (safety.isTestUser) {
+        promptText = hardenSafetyPrompt(promptText);
+        safetyTolerance = "1"; // en katı fal güvenlik toleransı
+        logger.log(
+          `🔒 [SAFETY] Test hesabı ${userId} için prompt sertleştirildi + safety_tolerance="1" (en katı).`,
+        );
+      }
+    } catch (safetyErr) {
+      logger.log(
+        "⚠️ [SAFETY] Guard çalışmadı (devam ediliyor):",
+        safetyErr?.message || safetyErr,
+      );
+    }
 
     if (modelReferenceImage) {
       logger.log(
@@ -4550,20 +5169,6 @@ router.post("/generate", async (req, res) => {
     // 🔄 Status'u processing'e güncelle
     await updateGenerationStatus(finalGenerationId, userId, "processing");
 
-    // 📊 Refiner modunda refiner_generations tablosuna da kaydet
-    if (isRefinerMode) {
-      await saveToRefinerGenerations({
-        userId,
-        generationId: finalGenerationId,
-        status: "processing",
-        originalPrompt: promptText,
-        originalImageUrl: referenceImageUrls?.[0] || null,
-        settings: settingsWithSession,
-        aspectRatio: ratio,
-        qualityVersion: qualityVersionForDB,
-      });
-    }
-
     logger.log("🎛️ [BACKEND] Gelen settings parametresi:", settings);
     logger.log("🏞️ [BACKEND] Settings içindeki location:", settings?.location);
     logger.log(
@@ -4704,99 +5309,221 @@ router.post("/generate", async (req, res) => {
       `İstenen ratio: ${ratio}, formatlanmış ratio: ${formattedRatio}`,
     );
 
+    // 🎬 STYLE REFERENCE — kullanıcının yüklediği stil referans görselini (ör. Pinterest'ten
+    // beğenilen bir çekim) alt kenarına "STYLE REFERENCE · CODE SR-1" kod plakası basarak
+    // Supabase'e yükle. Prompt bu kod üzerinden görseli işaret eder; nano-banana ortam/ışık/
+    // kamera/pozu bu görselden kopyalar, kıyafetleri ise SADECE ürün fotoğraflarından alır.
+    // Renk değiştirme / poz değiştirme / refiner / arka analiz modlarında devre dışıdır.
+    let styleReferenceUrl = null;
+    let styleReferenceStamped = false;
+    let styleProfileMeta = null; // { name, stylePrompt, imageCount } — stil profili modunda dolar
+    const styleReferenceRequested =
+      styleReferenceImage &&
+      (styleReferenceImage.base64 || styleReferenceImage.uri) &&
+      !isColorChange &&
+      !isPoseChange &&
+      !isRefinerMode &&
+      !req.body.isBackSideAnalysis;
+
+    if (styleReferenceRequested) {
+      try {
+        // 1) Raw buffer (base64 veya URL)
+        let styleRawBuf;
+        if (styleReferenceImage.base64) {
+          const cleanB64 = String(styleReferenceImage.base64).replace(
+            /^data:image\/\w+;base64,/,
+            "",
+          );
+          styleRawBuf = Buffer.from(cleanB64, "base64");
+        } else {
+          const cleanStyleUrl = sanitizeImageUrl(
+            styleReferenceImage.uri.split("?")[0],
+          );
+          const styleResp = await axios.get(cleanStyleUrl, {
+            responseType: "arraybuffer",
+            timeout: 15000,
+          });
+          styleRawBuf = Buffer.from(styleResp.data);
+        }
+
+        // 2) Kod plakalı composite üret (ortak helper — siyah plaka, boyut referansının
+        //    beyaz şeridinden bilinçli olarak farklı; model iki referansı karıştırmasın)
+        const styleComposited = await stampStyleReferencePlate(styleRawBuf);
+
+        // 4) Supabase'e yükle
+        const styleFileName = `temp_${Date.now()}_style_reference_${userId || "anonymous"}_${uuidv4().substring(0, 8)}.jpg`;
+        const { error: styleUpErr } = await supabase.storage
+          .from("reference")
+          .upload(styleFileName, styleComposited, {
+            contentType: "image/jpeg",
+            cacheControl: "3600",
+            upsert: false,
+          });
+        if (styleUpErr) {
+          throw new Error(`Supabase upload error: ${styleUpErr.message}`);
+        }
+        const { data: styleUrlData } = supabase.storage
+          .from("reference")
+          .getPublicUrl(styleFileName);
+        styleReferenceUrl = styleUrlData.publicUrl;
+        styleReferenceStamped = true;
+        logger.log(
+          "🎬 [STYLE REFERENCE] Kod plakalı composite upload OK:",
+          styleReferenceUrl,
+        );
+      } catch (styleErr) {
+        logger.warn(
+          "🎬 [STYLE REFERENCE] Damgalama/upload hatası, ham görsel denenecek:",
+          styleErr?.message,
+        );
+        // Fallback: damgasız ham görseli yüklemeyi dene — mod yine de çalışsın
+        try {
+          const rawSource = styleReferenceImage.base64
+            ? `data:image/jpeg;base64,${String(styleReferenceImage.base64).replace(/^data:image\/\w+;base64,/, "")}`
+            : sanitizeImageUrl(styleReferenceImage.uri);
+          styleReferenceUrl = await uploadReferenceImageToSupabase(
+            rawSource,
+            userId,
+          );
+          styleReferenceStamped = false;
+          logger.log(
+            "🎬 [STYLE REFERENCE] Ham görsel upload OK (kod plakasız):",
+            styleReferenceUrl,
+          );
+        } catch (rawErr) {
+          logger.warn(
+            "🎬 [STYLE REFERENCE] Ham upload da başarısız, stil referansı atlanıyor:",
+            rawErr?.message,
+          );
+          styleReferenceUrl = null;
+        }
+      }
+    }
+
+    // 🎬 STİL PROFİLİ — kullanıcının kayıtlı marka stil preseti. Doğrudan stil referansı
+    // yüklenmediyse ve styleProfileId geldiyse: profildeki TÜM fotoğraflar (en fazla 6)
+    // tek bir grid kolaja birleştirilir, SR-1 kod plakası basılır ve stil referansı
+    // olarak kullanılır; Gemini'nin profil analizi de prompta eklenir.
+    const styleProfileRequested =
+      !styleReferenceUrl &&
+      styleProfileId &&
+      !isColorChange &&
+      !isPoseChange &&
+      !isRefinerMode &&
+      !req.body.isBackSideAnalysis;
+
+    if (styleProfileRequested) {
+      try {
+        // style_profiles RLS'li (anon'a policy yok) — service role client şart.
+        // Bu dosyanın genel client'ı lokalde anon'a düşebildiği için ayrı client kuruyoruz.
+        const styleProfilesDb = createClient(
+          process.env.SUPABASE_URL,
+          process.env.SUPABASE_SERVICE_ROLE_KEY ||
+            process.env.SUPABASE_SERVICE_KEY ||
+            process.env.SUPABASE_ANON_KEY,
+          { auth: { autoRefreshToken: false, persistSession: false } },
+        );
+        const { data: styleProfileRow, error: spErr } = await styleProfilesDb
+          .from("style_profiles")
+          .select("*")
+          .eq("id", styleProfileId)
+          .maybeSingle();
+        if (spErr || !styleProfileRow) {
+          throw new Error("Style profile not found");
+        }
+        // Global (küratörlü) profiller herkese açık; diğerlerinde sahiplik şart
+        if (
+          String(styleProfileRow.user_id) !== String(userId) &&
+          String(styleProfileRow.user_id) !== "global"
+        ) {
+          throw new Error("Style profile is not owned by this user");
+        }
+        const profileUrls = Array.isArray(styleProfileRow.image_urls)
+          ? styleProfileRow.image_urls
+          : [];
+        if (profileUrls.length === 0) {
+          throw new Error("Style profile has no images");
+        }
+
+        const { buffer: gridBuf, count: gridCount } =
+          await buildStyleProfileGrid(profileUrls);
+        const stampedGrid = await stampStyleReferencePlate(gridBuf);
+
+        const gridFileName = `temp_${Date.now()}_style_profile_${userId || "anonymous"}_${uuidv4().substring(0, 8)}.jpg`;
+        const { error: gridUpErr } = await supabase.storage
+          .from("reference")
+          .upload(gridFileName, stampedGrid, {
+            contentType: "image/jpeg",
+            cacheControl: "3600",
+            upsert: false,
+          });
+        if (gridUpErr) {
+          throw new Error(`Supabase upload error: ${gridUpErr.message}`);
+        }
+        const { data: gridUrlData } = supabase.storage
+          .from("reference")
+          .getPublicUrl(gridFileName);
+
+        styleReferenceUrl = gridUrlData.publicUrl;
+        styleReferenceStamped = true;
+        styleProfileMeta = {
+          name: styleProfileRow.name || null,
+          stylePrompt: styleProfileRow.style_prompt || null,
+          imageCount: gridCount,
+        };
+        logger.log(
+          `🎬 [STYLE_PROFILE] "${styleProfileRow.name}" grid kolajı (${gridCount} kare) upload OK:`,
+          styleReferenceUrl,
+        );
+      } catch (profileErr) {
+        logger.warn(
+          "🎬 [STYLE_PROFILE] Profil işlenemedi, normal akışa dönülüyor:",
+          profileErr?.message,
+        );
+        styleReferenceUrl = null;
+        styleProfileMeta = null;
+      }
+    }
+
+    // 🎬 TEKİL STİL REFERANSI TEKNİK ANALİZİ — profil modunda analiz zaten style_prompt'ta;
+    // doğrudan yüklenen tekil referans için Gemini'den kamera/ışık/grade reçetesi çıkar.
+    // Başarısız olursa sessizce devam edilir (nano-banana referansı yine de görüyor).
+    let styleReferenceTechAnalysis = null;
+    if (styleReferenceUrl && !styleProfileMeta) {
+      try {
+        const TECH_ANALYSIS_PROMPT = `You are a director of photography. Analyze the attached fashion/style reference photograph and output a compact TECHNICAL REPLICATION SPEC so an AI image model can recreate the exact same shot conditions. Ignore the black "STYLE REFERENCE" code plate at the bottom edge — it is a marker, not part of the photo.
+
+Give concrete estimates in cinematographer language:
+1. CAMERA — estimated focal length (mm), estimated aperture & depth of field, camera height and angle relative to the subject, lens character (compression/distortion).
+2. FRAMING — crop (full-body/three-quarter/waist-up), headroom, negative space, composition.
+3. LIGHTING — key direction & quality (hard/soft), fill & shadow density, rim/back light, natural vs studio, time-of-day feel.
+4. COLOR GRADE — palette, saturation, contrast curve, white balance bias, film-stock/preset character, grain.
+5. POSE GEOMETRY — body orientation, weight distribution, limb placement, gaze direction (describe geometry only, never identity).
+
+Do NOT describe the person's face/identity or the garments. PLAIN TEXT only, 100-180 words, numbered labels only, no markdown.`;
+        styleReferenceTechAnalysis = (
+          await callGeminiFlash(TECH_ANALYSIS_PROMPT, [styleReferenceUrl], 2)
+        )?.trim() || null;
+        if (styleReferenceTechAnalysis) {
+          logger.log(
+            `🎬 [STYLE REFERENCE] Teknik analiz hazır (${styleReferenceTechAnalysis.length} karakter)`,
+          );
+        }
+      } catch (techErr) {
+        logger.warn(
+          "🎬 [STYLE REFERENCE] Teknik analiz alınamadı, analizsiz devam:",
+          techErr?.message,
+        );
+        styleReferenceTechAnalysis = null;
+      }
+    }
+
     // 🚀 Paralel işlemler başlat
     logger.log(
       "🚀 Paralel işlemler başlatılıyor: Gemini + Arkaplan silme + ControlNet hazırlığı...",
     );
 
     let enhancedPrompt, backgroundRemovedImage;
-
-    // ── 🔧 REFINER ÇEKİM TARZI / REFERANS KARESİ ────────────────────────────
-    // Kullanıcı ya beğendiği bir katalog karesini referans yükler ya da kayıtlı
-    // bir refiner çekim tarzı seçer. Kolaj/tek kare, altına SR-1 kod plakası
-    // basılıp fal'a SON ek olarak gider; prompt'a da eşleşen direktifler eklenir.
-    let refinerStyleRefUrl = null;
-    let refinerStyleRefMeta = null; // { framesCount, stylePrompt, backdropLock }
-    if (
-      isRefinerMode &&
-      (refinerStyleProfileId || refinerStyleReferenceImage?.base64 || refinerStyleReferenceImage?.uri)
-    ) {
-      try {
-        let rawBuf = null;
-        let framesCount = 1;
-        let stylePrompt = null;
-
-        if (refinerStyleProfileId) {
-          // refiner_style_profiles RLS'li — service role client şart
-          const refinerStyleDb = createClient(
-            process.env.SUPABASE_URL,
-            process.env.SUPABASE_SERVICE_ROLE_KEY ||
-              process.env.SUPABASE_SERVICE_KEY ||
-              process.env.SUPABASE_ANON_KEY,
-            { auth: { autoRefreshToken: false, persistSession: false } },
-          );
-          const { data: profileRow, error: profileErr } = await refinerStyleDb
-            .from("refiner_style_profiles")
-            .select("*")
-            .eq("id", refinerStyleProfileId)
-            .maybeSingle();
-          if (profileErr || !profileRow) throw new Error("Refiner style profile not found");
-          if (
-            String(profileRow.user_id) !== String(userId) &&
-            String(profileRow.user_id) !== "global"
-          ) {
-            throw new Error("Refiner style profile is not owned by this user");
-          }
-          const profileUrls = Array.isArray(profileRow.image_urls)
-            ? profileRow.image_urls
-            : [];
-          if (profileUrls.length === 0) throw new Error("Refiner style profile has no images");
-
-          const grid = await buildStyleProfileGrid(profileUrls);
-          rawBuf = grid.buffer;
-          framesCount = grid.count;
-          stylePrompt = profileRow.style_prompt || null;
-        } else if (refinerStyleReferenceImage?.base64) {
-          rawBuf = Buffer.from(refinerStyleReferenceImage.base64, "base64");
-        } else {
-          const resp = await axios.get(refinerStyleReferenceImage.uri, {
-            responseType: "arraybuffer",
-            timeout: 25000,
-          });
-          rawBuf = Buffer.from(resp.data);
-        }
-
-        const stamped = await stampStyleReferencePlate(rawBuf);
-        const refFileName = `temp_${Date.now()}_refiner_style_ref_${userId || "anonymous"}_${uuidv4().substring(0, 8)}.jpg`;
-        const { error: refUpErr } = await supabase.storage
-          .from("reference")
-          .upload(refFileName, stamped, { contentType: "image/jpeg", upsert: false });
-        if (refUpErr) throw refUpErr;
-        const { data: refUrlData } = supabase.storage
-          .from("reference")
-          .getPublicUrl(refFileName);
-
-        refinerStyleRefUrl = refUrlData.publicUrl;
-        const lockMatch = /BACKDROP_LOCK:\s*([A-Z_]+)/i.exec(stylePrompt || "");
-        refinerStyleRefMeta = {
-          framesCount,
-          stylePrompt,
-          backdropLock: lockMatch ? lockMatch[1].toUpperCase() : null,
-          fromProfile: !!refinerStyleProfileId,
-        };
-        logger.log(
-          `🔧 [REFINER STYLE] Referans hazır (${refinerStyleRefMeta.fromProfile ? `profil, ${framesCount} kare` : "tek kare"}):`,
-          refinerStyleRefUrl,
-        );
-      } catch (styleErr) {
-        logger.warn(
-          "🔧 [REFINER STYLE] Çekim tarzı hazırlanamadı, referanssız devam ediliyor:",
-          styleErr?.message,
-        );
-        refinerStyleRefUrl = null;
-        refinerStyleRefMeta = null;
-      }
-    }
 
     if (isColorChange || isPoseChange || isRefinerMode) {
       // 🎨 COLOR CHANGE MODE, 🕺 POSE CHANGE MODE veya 🔧 REFINER MODE - Özel prompt'lar
@@ -4841,23 +5568,7 @@ router.post("/generate", async (req, res) => {
           false, // isMultipleImages
           userId, // Compress için userId
           originalBase64ForGemini, // 🚀 Orijinal base64 - URL indirmesi atlanacak
-          !!refinerStyleRefUrl, // 🎬 Çekim tarzı aktif mi?
         );
-
-        // 🔧 Çekim tarzı seçiliyse direktifler prompt'un ÖNÜNE eklenir —
-        // ilk okunan blok, referansın ne olduğunu ve neyin kopyalanmayacağını söyler.
-        if (refinerStyleRefUrl && refinerStyleRefMeta) {
-          const styleDirectives = buildRefinerStyleDirectives(
-            refinerStyleRefMeta,
-            settings || {},
-          );
-          if (styleDirectives) {
-            enhancedPrompt = `${styleDirectives}\n\n${enhancedPrompt}`;
-            logger.log(
-              `🔧 [REFINER STYLE] Direktifler prompt'a eklendi (+${styleDirectives.length} karakter)`,
-            );
-          }
-        }
       } else if (isPoseChange) {
         logger.log(
           "🕺 Pose change mode: Gemini ile poz değiştirme prompt'u oluşturuluyor",
@@ -4945,6 +5656,23 @@ router.post("/generate", async (req, res) => {
             : "🕺 Pose change prompt:",
         enhancedPrompt,
       );
+    } else if (!isPoseChange && styleReferenceUrl) {
+      // 🎬 STYLE REFERENCE MODE — Gemini enhanced-prompt hattı ATLANIR.
+      // Ortam/ışık/kamera/poz referans görselden kopyalanacağı için kompakt,
+      // deterministik prompt yeterli; sadece seçim/detay girdileri eklenir.
+      enhancedPrompt = buildStyleReferencePrompt({
+        settings: settings || {},
+        customDetail,
+        hasModelReference: !!modelReferenceImage,
+        isMultipleProducts,
+        stamped: styleReferenceStamped,
+        styleProfile: styleProfileMeta,
+        technicalAnalysis: styleReferenceTechAnalysis,
+      });
+      backgroundRemovedImage = finalImage;
+      logger.log(
+        `🎬 [STYLE REFERENCE] Kompakt prompt kullanılıyor (${enhancedPrompt.length} karakter) — Gemini enhancement atlandı`,
+      );
     } else if (!isPoseChange) {
       // 🖼️ NORMAL MODE - Arkaplan silme işlemi (paralel)
       // Gemini prompt üretimini paralelde başlat
@@ -4988,6 +5716,7 @@ router.post("/generate", async (req, res) => {
         isMultipleImages, // Çoklu resim modu mu?
         userId, // Compress için userId
         originalBase64ForGemini, // 🚀 Orijinal base64 - URL indirmesi atlanacak
+        Array.isArray(kombinOriginalImages) ? kombinOriginalImages.length : 0, // 🛍️ Kombin içindeki tekil ürün sayısı
       );
 
       // ⏳ Sadece Gemini prompt iyileştirme bekle
@@ -4996,6 +5725,65 @@ router.post("/generate", async (req, res) => {
     }
 
     logger.log("✅ Gemini prompt iyileştirme tamamlandı");
+
+    // 🎯 Focus area — Gemini rewrite edip kaldırmış olabileceği için enhancedPrompt'un
+    // EN BAŞINA pazarlıksız olarak yeniden yerleştir. Gemini direktifi zaten ilk satıra
+    // kopyaladıysa tekrar eklemiyoruz (duplicate engeli).
+    {
+      const focusDir = buildFocusAreaDirective(settings?.focusArea);
+      if (focusDir) {
+        const marker = "⚠️ STRICT FRAMING DIRECTIVE";
+        const trimmed = (enhancedPrompt || "").trimStart();
+        // Gemini direktifi prompt'un en başına koyduysa tekrar ekleme (duplicate önle).
+        // Eğer başa değil de ortaya gömdüyse (nadir), ek prepend karakter israfı ama
+        // işlevsel olarak sorun değil — direktif hala görülür.
+        if (trimmed.startsWith(marker)) {
+          logger.log(
+            "🎯 [FOCUS AREA] Direktif zaten prompt başında — duplicate eklenmedi",
+          );
+        } else {
+          enhancedPrompt = `${focusDir}
+
+${enhancedPrompt || ""}`;
+          logger.log(
+            "🎯 [FOCUS AREA] enhancedPrompt'un başına sert direktif eklendi:",
+            settings?.focusArea,
+          );
+        }
+      }
+    }
+
+    // 🧴💃 Natural skin + Fashion pose direktifleri artık STATIK prepend
+    // edilmiyor. Gemini bunları enhancePromptWithGemini içinde "Opening
+    // Directives" talimatıyla alıyor ve kıyafete / ortama / atmosfere göre
+    // enhanced versiyonlarını ⚠️ başlık formatında prompt'un başına yazıyor.
+
+    // 📸 Kombin originals varsa prompt'a ek direktif koy — grid ve tekiller birlikte.
+    if (
+      Array.isArray(kombinOriginalImages) &&
+      kombinOriginalImages.length > 0
+    ) {
+      enhancedPrompt += `
+
+KOMBIN REFERENCE IMAGES: In addition to the main combined grid image, ${kombinOriginalImages.length} individual product photo(s) are attached — each showing one garment separately. Use the grid image to understand how the outfit pieces should appear together on the model, and use the individual photos for faithful per-item detail reproduction (exact colors, prints, stitching, trims, proportions). Do NOT invent or alter any garment detail that is not visible in the individual photos.`;
+      logger.log(
+        `📸 [KOMBİN ORIG] enhancedPrompt'a ${kombinOriginalImages.length} tekil ürün direktifi eklendi`,
+      );
+    }
+
+    // 📏 Size reference image varsa, Gemini ve fallback'ten bağımsız olarak
+    // kalibrasyon direktifini enhancedPrompt'a ekle (handler scope'unda erişilebiliyor).
+    if (
+      sizeReferenceImage &&
+      (sizeReferenceImage.base64 || sizeReferenceImage.uri)
+    ) {
+      enhancedPrompt += `
+
+SIZE REFERENCE IMAGE: An additional size/scale reference image is attached alongside the main product photo(s). This reference shows the product placed onto a generic mannequin silhouette — use it PURELY to calibrate how the product should appear on the final model in terms of proportion, vertical coverage on the body, and relative scale (e.g. whether the garment ends at the waist, hip, knee, or ankle). Do NOT replicate the mannequin's shape, pose, background, lighting, or any styling details from this reference. Treat it strictly as a size/placement guide, not a visual style source.`;
+      logger.log(
+        "📏 [SIZE REFERENCE] Kalibrasyon direktifi enhancedPrompt'a eklendi",
+      );
+    }
 
     // Arkaplan silme kaldırıldı - direkt olarak finalImage kullanılacak
     backgroundRemovedImage = finalImage;
@@ -5076,100 +5864,43 @@ router.post("/generate", async (req, res) => {
     logger.log("📝 [BACKEND MAIN] Original prompt:", promptText);
     logger.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
 
-    // 🔧 REFINER MODE
-    //   • Çekim tarzı / referans YOKSA  → GPT Image (tek görsel, mevcut davranış)
-    //   • Çekim tarzı / referans VARSA   → nano-banana-2 (ürün + referans aynı istekte)
-    // GPT Image uçları tek görsel aldığı için referans o yolda fal'a HİÇ gitmiyordu.
+    // 🔧 REFINER MODE: Use GPT Image 1.5 instead of nano-banana
     if (isRefinerMode) {
-      const useNb2ForStyle = !!refinerStyleRefUrl;
-      logger.log(
-        useNb2ForStyle
-          ? "🔧 [REFINER MODE] Çekim tarzı aktif → nano-banana-2 (2 görsel) kullanılacak"
-          : "🔧 [REFINER MODE] GPT Image 2 API kullanılacak...",
-      );
+      logger.log("🔧 [REFINER MODE] GPT Image 1.5 API kullanılacak...");
       logger.log("🔧 [REFINER MODE] Final Image URL:", finalImage);
 
       try {
-        // Referans varsa ürün + stil referansı birlikte gider (referans SON sırada)
-        const gptImageResult = useNb2ForStyle
-          ? await callNanoBanana2ForRefiner(enhancedPrompt, [
-              finalImage,
-              refinerStyleRefUrl,
-            ])
-          : await callFalAiGptImageEditForRefiner(enhancedPrompt, finalImage);
-
-        logger.log(
-          `✅ [REFINER MODE] ${useNb2ForStyle ? "nano-banana-2" : "GPT Image 2"} başarılı:`,
-          gptImageResult,
+        // GPT Image 1.5 ile görsel oluştur
+        const gptImageResult = await callFalAiGptImageEditForRefiner(
+          enhancedPrompt,
+          finalImage,
         );
 
-        // 🔍 NETLEŞTİRME ADIMI — Results'taki MP butonu 4'ten büyük seçildiyse
-        // sonuç, kaydedilmeden önce o çözünürlüğe yükseltilir. Model üretimiyle
-        // (referenceBrowserV7) aynı ortak yardımcıyı kullanır.
-        const upscaleOutcome = await applyResultUpscale({
-          imageUrl: gptImageResult,
-          upscaleMp,
-          userId,
-          generationId: finalGenerationId,
-          logTag: "REFINER UPSCALE",
-        });
+        logger.log("✅ [REFINER MODE] GPT Image 1.5 başarılı:", gptImageResult);
 
         // Generation'ı completed olarak güncelle (result_image_url ile - updateGenerationStatus içinde Supabase'e kaydediliyor)
-        const refinerUpdated = await updateGenerationStatus(
-          finalGenerationId,
-          userId,
-          "completed",
-          {
-            result_image_url: upscaleOutcome.imageUrl,
-            enhanced_prompt: enhancedPrompt,
-            // Netleştirildiyse hangi kademede olduğunu kaydet (SimpleImageModal
-            // bu bilgiye bakıp zoom aracını gösteriyor).
-            ...(upscaleOutcome.appliedMp
-              ? {
-                  upscaled_mp: upscaleOutcome.appliedMp,
-                  pre_upscale_image_url: upscaleOutcome.preUpscaleUrl,
-                }
-              : {}),
-          },
-        );
+        await updateGenerationStatus(finalGenerationId, userId, "completed", {
+          result_image_url: gptImageResult,
+          enhanced_prompt: enhancedPrompt,
+        });
 
         logger.log("✅ [REFINER MODE] Generation completed olarak güncellendi");
-
-        // Bucket'e kaydedildiyse kalıcı URL döner; yoksa netleştirme çıktısı.
-        const refinerFinalUrl =
-          refinerUpdated?.result_image_url || upscaleOutcome.imageUrl;
 
         // Response döndür (imageUrl eklendi - RefinerScreen için)
         return res.json({
           success: true,
           result: {
-            imageUrl: refinerFinalUrl, // RefinerScreen bu format'ı bekliyor
-            output: [refinerFinalUrl], // Diğer client'lar için
-            // Netleştirilmişse sunucuda üretilen küçük önizleme kullanılır;
-            // 30 MB'lık kaynağı CDN küçültemiyor (403) ve kart boş kalıyordu.
-            imageUrlThumbnail: (refinerUpdated?.result_thumb_url ||
-              refinerFinalUrl)
-              ? optimizeImageUrl(
-                  refinerUpdated?.result_thumb_url || refinerFinalUrl,
-                  { width: 500, height: 500, quality: 80 },
-                )
-              : null,
+            imageUrl: gptImageResult, // RefinerScreen bu format'ı bekliyor
+            output: [gptImageResult], // Diğer client'lar için
             prompt: enhancedPrompt,
             generationId: finalGenerationId,
             isRefinerMode: true,
-            apiUsed: useNb2ForStyle ? "nano-banana-2" : "gpt-image-2",
-            styleReferenceApplied: useNb2ForStyle,
-            // 🔍 Uygulanan netleştirme kademesi (yoksa null)
-            upscaledMp: upscaleOutcome.appliedMp || null,
-            preUpscaleImageUrl:
-              refinerUpdated?.pre_upscale_image_url ||
-              upscaleOutcome.preUpscaleUrl ||
-              null,
+            apiUsed: "gpt-image-1.5",
           },
         });
       } catch (refinerError) {
         console.error(
-          `❌ [REFINER MODE] ${useNb2ForStyle ? "nano-banana-2" : "GPT Image 2"} hatası:`,
+          "❌ [REFINER MODE] GPT Image 1.5 hatası:",
           refinerError.message,
         );
 
@@ -5209,6 +5940,152 @@ router.post("/generate", async (req, res) => {
             error: refinerError.message,
           },
         });
+      }
+    }
+
+    // 📸 Kombin originals — tekil ürün resimlerini Supabase'e upload edip nano-banana
+    // image_urls listesine grid resminin yanında ek referans olarak ekleyeceğiz.
+    let kombinOriginalUrls = [];
+    if (
+      Array.isArray(kombinOriginalImages) &&
+      kombinOriginalImages.length > 0
+    ) {
+      logger.log(
+        `📸 [KOMBİN ORIG] ${kombinOriginalImages.length} tekil ürün nano-banana için upload ediliyor...`,
+      );
+      for (let i = 0; i < kombinOriginalImages.length; i++) {
+        const orig = kombinOriginalImages[i];
+        try {
+          let origSource = null;
+          if (orig?.base64) {
+            const cleanB64 = String(orig.base64).replace(
+              /^data:image\/\w+;base64,/,
+              "",
+            );
+            origSource = `data:image/jpeg;base64,${cleanB64}`;
+          } else if (orig?.uri && /^https?:\/\//i.test(orig.uri)) {
+            origSource = orig.uri;
+          }
+          if (!origSource) continue;
+          const origUrl = await uploadReferenceImageToSupabase(
+            origSource,
+            userId,
+          );
+          kombinOriginalUrls.push(origUrl);
+          logger.log(
+            `📸 [KOMBİN ORIG] Tekil ürün ${i + 1}/${kombinOriginalImages.length} upload OK:`,
+            origUrl,
+          );
+        } catch (origUpErr) {
+          logger.warn(
+            `📸 [KOMBİN ORIG] Tekil ürün ${i + 1} upload hatası:`,
+            origUpErr?.message,
+          );
+        }
+      }
+    }
+
+    // 📏 Size reference image — nano-banana için beyaz arka plan üzerine composite edip
+    // altına "SIZE REFERENCE" başlıklı şerit ekleyip Supabase'e upload edip public URL al
+    let sizeReferenceUrl = null;
+    if (
+      sizeReferenceImage &&
+      (sizeReferenceImage.base64 || sizeReferenceImage.uri)
+    ) {
+      try {
+        // 1) Raw buffer'ı çıkar (base64 veya URL)
+        let rawBuf;
+        if (sizeReferenceImage.base64) {
+          const cleanBase64 = sizeReferenceImage.base64.replace(
+            /^data:image\/\w+;base64,/,
+            "",
+          );
+          rawBuf = Buffer.from(cleanBase64, "base64");
+        } else {
+          const cleanSizeUrl = sanitizeImageUrl(
+            sizeReferenceImage.uri.split("?")[0],
+          );
+          const sizeResp = await axios.get(cleanSizeUrl, {
+            responseType: "arraybuffer",
+            timeout: 15000,
+          });
+          rawBuf = Buffer.from(sizeResp.data);
+        }
+
+        // 2) Şeffaf alanları beyaza flatten et
+        const flattened = await sharp(rawBuf)
+          .rotate() // EXIF
+          .flatten({ background: { r: 255, g: 255, b: 255 } })
+          .toBuffer();
+
+        const meta = await sharp(flattened).metadata();
+        const W = meta.width || 800;
+        const H = meta.height || 1200;
+
+        // 3) Alta şerit ekle (resim yüksekliğinin %10'u, min 90 max 160 px)
+        const LABEL_H = Math.min(160, Math.max(90, Math.round(H * 0.1)));
+        const extendedH = H + LABEL_H;
+
+        const withStrip = await sharp(flattened)
+          .extend({
+            bottom: LABEL_H,
+            background: { r: 255, g: 255, b: 255 },
+          })
+          .toBuffer();
+
+        // 4) SVG metin overlay'i — responsive font (çok uzun olmayan İngilizce metin)
+        const fontSize = Math.min(72, Math.max(36, Math.round(W / 16)));
+        const labelText = "SIZE REFERENCE";
+        const textY = H + Math.round(LABEL_H / 2) + Math.round(fontSize / 3);
+        const svg = Buffer.from(`
+<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${extendedH}">
+  <text x="${Math.round(W / 2)}" y="${textY}"
+        text-anchor="middle"
+        font-family="Helvetica, Arial, sans-serif"
+        font-size="${fontSize}"
+        font-weight="700"
+        fill="#111827"
+        letter-spacing="2">${labelText}</text>
+</svg>
+`);
+
+        const composited = await sharp(withStrip)
+          .composite([{ input: svg, blend: "over" }])
+          .jpeg({ quality: 90 })
+          .toBuffer();
+
+        // 5) Supabase'e direkt yükle (uploadReferenceImageToSupabase file:// ret ediyor,
+        //    composite buffer'ı doğrudan upload ediyoruz)
+        const timestamp = Date.now();
+        const randomId = uuidv4().substring(0, 8);
+        const fileName = `temp_${timestamp}_size_reference_${userId || "anonymous"}_${randomId}.jpg`;
+
+        const { data: upData, error: upErr } = await supabase.storage
+          .from("reference")
+          .upload(fileName, composited, {
+            contentType: "image/jpeg",
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (upErr) {
+          throw new Error(`Supabase upload error: ${upErr.message}`);
+        }
+
+        const { data: urlData } = supabase.storage
+          .from("reference")
+          .getPublicUrl(fileName);
+
+        sizeReferenceUrl = urlData.publicUrl;
+        logger.log(
+          "📏 [SIZE REFERENCE] Composite (beyaz bg + başlık) upload OK:",
+          sizeReferenceUrl,
+        );
+      } catch (sizeUploadErr) {
+        logger.warn(
+          "📏 [SIZE REFERENCE] Composite/upload hatası, nano-banana'ya eklenmiyor:",
+          sizeUploadErr?.message,
+        );
       }
     }
 
@@ -5300,75 +6177,219 @@ router.post("/generate", async (req, res) => {
           imageInputArray = [combinedImageForReplicate];
         }
 
+        // 📸 Kombin originals — tekil ürün URL'lerini grid resminin yanına ek referans olarak ekle
+        if (kombinOriginalUrls && kombinOriginalUrls.length > 0) {
+          imageInputArray = [...(imageInputArray || []), ...kombinOriginalUrls];
+          logger.log(
+            `📸 [KOMBİN ORIG] ${kombinOriginalUrls.length} tekil ürün imageInputArray'e eklendi, toplam:`,
+            imageInputArray.length,
+          );
+        }
+
+        // 📏 Size reference image'ı nano-banana'nın image_urls listesine ek referans olarak koy
+        if (sizeReferenceUrl) {
+          imageInputArray = [...(imageInputArray || []), sizeReferenceUrl];
+          logger.log(
+            "📏 [SIZE REFERENCE] imageInputArray'e eklendi, toplam:",
+            imageInputArray.length,
+          );
+        }
+
+        // 🎬 Style reference image — prompt "LAST attached image" dediği için HER ZAMAN en sona
+        if (styleReferenceUrl) {
+          imageInputArray = [...(imageInputArray || []), styleReferenceUrl];
+          logger.log(
+            "🎬 [STYLE REFERENCE] imageInputArray'e SON sıraya eklendi, toplam:",
+            imageInputArray.length,
+          );
+        }
 
         // Kalite versiyonu kontrolü (settings'ten al)
         const qualityVersion = isRefinerMode
           ? "v1"
           : settings?.qualityVersion || settings?.quality_version || "v1";
         const isV2 = qualityVersion === "v2";
-        // For fal.ai, we use nano-banana/edit for v1 and nano-banana-pro/edit for v2
-        // Back side analysis modunda her zaman nano-banana-pro kullan
-        const falModel =
-          isV2 || req.body.isBackSideAnalysis
-            ? "fal-ai/nano-banana-pro/edit"
-            : "fal-ai/nano-banana/edit";
+        // Model seçimi:
+        //   v1 (default)    → openai/gpt-image-2/edit (aşağıdaki branch'te handle edilir)
+        //   v2 veya backSide → fal-ai/nano-banana-pro/edit
+        const falModel = "fal-ai/nano-banana-pro/edit"; // v2/backSide için
 
         logger.log(
-          `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model: ${falModel}`,
+          `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model (v2/backSide fallback): ${falModel}`,
         );
 
         let requestBody;
         const aspectRatioForRequest = formattedRatio || "9:16";
 
-        // Fal.ai 5000 karakter limiti - prompt'u kırp
-        const maxPromptLength = 4900;
-        let truncatedPrompt = enhancedPrompt;
         logger.log(
-          `📏 [FAL_PROMPT] Enhanced prompt uzunluğu: ${enhancedPrompt.length} karakter`,
-        );
-        if (enhancedPrompt.length > maxPromptLength) {
-          logger.log(
-            `⚠️ Prompt ${enhancedPrompt.length} karakter, ${maxPromptLength}'e kırpılıyor...`,
-          );
-          truncatedPrompt = enhancedPrompt.substring(0, maxPromptLength);
-        }
-        logger.log(
-          `📋 [FAL_PROMPT] Fal.ai'ya giden prompt (${truncatedPrompt.length} karakter):`,
-          truncatedPrompt,
+          `📋 [FAL_PROMPT] Fal.ai'ya giden prompt (${enhancedPrompt.length} karakter):`,
+          enhancedPrompt,
         );
 
-        // Back side analysis veya v2 modunda quality "2K" olarak ayarla
+        // 🎨 Model dallanması:
+        //   backSide analysis   → HER ZAMAN GPT Image 2 (v1 + v2, is_gpt bayrağından bağımsız)
+        //   v1 (non-backside)   → app_config.is_gpt: true → GPT Image 2, false → nano-banana-2
+        //   v2 (non-backside)   → aşağıdaki nano-banana-pro akışı devam eder.
+        if (req.body.isBackSideAnalysis || !isV2) {
+          const useGpt = req.body.isBackSideAnalysis
+            ? true
+            : await isGptEnabledForV1();
+          logger.log(
+            req.body.isBackSideAnalysis
+              ? `⚙️ [MODEL_SWITCH] backSideAnalysis → GPT Image 2 (zorunlu)`
+              : `⚙️ [V1 MODEL_SWITCH] app_config.is_gpt = ${useGpt} → ${useGpt ? "GPT Image 2" : "nano-banana-2"}`,
+          );
+
+          if (useGpt) {
+            // ── GPT Image 2 yolu ──
+            const gptImageSize = mapRatioToGptImage2Size(aspectRatioForRequest);
+
+            logger.log(
+              `🛡️ [V1 GPT2] Input aspect kontrolü başlıyor (${imageInputArray?.length || 0} resim)...`,
+            );
+            const sanitizedImageUrls = await ensureMaxAspectRatio3to1ForInput(
+              imageInputArray,
+              userId,
+            );
+
+            logger.log(
+              `🎨 [V1 GPT2] Ratio: ${aspectRatioForRequest} → image_size: ${gptImageSize}, images: ${sanitizedImageUrls?.length || 0}`,
+            );
+
+            const gptResultUrl = await callFalAiGptImage2Edit(
+              enhancedPrompt,
+              sanitizedImageUrls,
+              gptImageSize,
+            );
+
+            replicateResponse = {
+              data: {
+                id: `gpt2-${uuidv4()}`,
+                status: "succeeded",
+                output: [gptResultUrl],
+                urls: { get: null },
+              },
+            };
+
+            logger.log(
+              `✅ [V1 GPT2] Başarılı, retry loop'tan çıkılıyor (attempt ${attempt})`,
+            );
+            break;
+          } else {
+            // ── nano-banana-2 yolu ──
+            const nanoModel = "fal-ai/nano-banana-2/edit";
+            // 🧠 Render öncesi muhakeme — app_config.nb2_thinking_level ile yönetilir
+            const nb2ThinkingLevel = await getNb2ThinkingLevel();
+            const nanoRequestBody = {
+              prompt: enhancedPrompt,
+              image_urls: imageInputArray,
+              output_format: "png",
+              aspect_ratio: aspectRatioForRequest,
+              num_images: 1,
+              resolution: "2K",
+              safety_tolerance: safetyTolerance,
+              ...(nb2ThinkingLevel !== "off"
+                ? { thinking_level: nb2ThinkingLevel }
+                : {}),
+            };
+            logger.log(
+              `🍌 [V1 NB2] fal.run/${nanoModel} çağrılıyor — images: ${imageInputArray?.length || 0}, aspect: ${aspectRatioForRequest}, thinking: ${nb2ThinkingLevel}`,
+            );
+
+            const nanoResponse = await axios.post(
+              `https://fal.run/${nanoModel}`,
+              nanoRequestBody,
+              {
+                headers: {
+                  Authorization: `Key ${process.env.FAL_API_KEY}`,
+                  "Content-Type": "application/json",
+                },
+                timeout: 300000,
+              },
+            );
+
+            if (nanoResponse.data?.images?.length > 0) {
+              const outputUrls = nanoResponse.data.images.map((img) => img.url);
+              replicateResponse = {
+                data: {
+                  id: nanoResponse.data.request_id || `nb2-${uuidv4()}`,
+                  status: "succeeded",
+                  output: outputUrls,
+                  urls: { get: null },
+                },
+              };
+              logger.log(
+                `✅ [V1 NB2] Başarılı, retry loop'tan çıkılıyor (attempt ${attempt})`,
+              );
+              break;
+            }
+
+            // Nano-banana-2 başarısız → throw et, retry loop kendi denesin
+            const errMsg =
+              nanoResponse.data?.detail ||
+              nanoResponse.data?.error ||
+              "nano-banana-2 returned no images";
+            throw new Error(`nano-banana-2 failed: ${errMsg}`);
+          }
+        }
+
+        // Back side analysis veya v2 modunda quality "2K" olarak ayarla (nano-banana-pro için)
         const qualityParam =
           isV2 || req.body.isBackSideAnalysis ? "2K" : undefined;
+
+        // 📏 nano-banana-pro 50.000 karakter prompt sınırı var. v2 veya
+        // backSide akışında güvenli bir tampon (49.500) bırakıp SONDAN kırp.
+        // Kırpım başı (skin/pose/user-detail ünlemli direktifleri) korur.
+        const NANO_BANANA_PRO_MAX_PROMPT = 49500;
+        let promptForNanoBananaPro = enhancedPrompt;
+        if (
+          (isV2 || req.body.isBackSideAnalysis) &&
+          typeof enhancedPrompt === "string" &&
+          enhancedPrompt.length > NANO_BANANA_PRO_MAX_PROMPT
+        ) {
+          promptForNanoBananaPro = enhancedPrompt.substring(
+            0,
+            NANO_BANANA_PRO_MAX_PROMPT,
+          );
+          logger.log(
+            `✂️ [NB-PRO] Prompt ${enhancedPrompt.length} → ${promptForNanoBananaPro.length} karakter olarak sondan kırpıldı (50k limit)`,
+          );
+        }
 
         if (isPoseChange) {
           // POSE CHANGE MODE - Farklı input parametreleri
           requestBody = {
-            prompt: truncatedPrompt, // Kırpılmış prompt
+            prompt: promptForNanoBananaPro,
             image_urls: imageInputArray,
             output_format: "png",
             aspect_ratio: aspectRatioForRequest,
             num_images: 1,
-            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
+            resolution: "2K",
             ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
+            ...(isV2 || req.body.isBackSideAnalysis
+              ? { safety_tolerance: safetyTolerance }
+              : {}),
           };
           logger.log(
             `🕺 [POSE_CHANGE] fal.ai ${falModel} request body hazırlandı`,
           );
           logger.log(
             "🕺 [POSE_CHANGE] Prompt:",
-            enhancedPrompt.substring(0, 200) + "...",
+            promptForNanoBananaPro.substring(0, 200) + "...",
           );
         } else {
-          // NORMAL MODE - Kalite versiyonuna göre parametreler
+          // NORMAL MODE
           requestBody = {
-            prompt: truncatedPrompt, // Kırpılmış prompt
+            prompt: promptForNanoBananaPro,
             image_urls: imageInputArray,
             output_format: "png",
             aspect_ratio: aspectRatioForRequest,
             num_images: 1,
-            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
+            resolution: "2K",
             ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
+            ...(isV2 || req.body.isBackSideAnalysis
+              ? { safety_tolerance: safetyTolerance }
+              : {}),
           };
         }
 
@@ -5692,14 +6713,21 @@ router.post("/generate", async (req, res) => {
             retryImageInputArray = [combinedImageForReplicate];
           }
 
+          // 🎬 Style reference — retry'da da prompt "LAST attached image" dediği için en sona ekle
+          if (styleReferenceUrl) {
+            retryImageInputArray = [...retryImageInputArray, styleReferenceUrl];
+          }
+
           const retryRequestBody = {
             prompt: enhancedPrompt,
             image_urls: retryImageInputArray,
             output_format: "png",
             aspect_ratio: formattedRatio || "9:16",
             num_images: 1,
-            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
-            ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
+            resolution: "2K",
+            ...(isV2 || req.body.isBackSideAnalysis
+              ? { safety_tolerance: safetyTolerance }
+              : {}),
           };
 
           logger.log(
@@ -5797,9 +6825,14 @@ router.post("/generate", async (req, res) => {
 
       // ✅ Status'u completed'e güncelle
       // fal.ai returns output as array, always use the first image
-      const resultImageUrl = Array.isArray(finalResult.output)
+      let resultImageUrl = Array.isArray(finalResult.output)
         ? finalResult.output[0]
         : finalResult.output;
+
+      // 🎬 Stil referansı modunda: sonuca sızmış olabilecek SR-1 kod plakasını tespit et/kırp
+      if (styleReferenceUrl && resultImageUrl) {
+        resultImageUrl = await stripLeakedStylePlate(resultImageUrl, userId);
+      }
       const updatedGeneration = await updateGenerationStatus(
         finalGenerationId,
         userId,
@@ -6280,15 +7313,15 @@ async function generatePoseDescriptionWithGemini(
       }
     }
 
-    // Replicate Gemini Flash API çağrısı (3 retry ile)
-    const poseDescription = await callReplicateGeminiFlash(
+    // Prompt enhance (Google direkt veya Replicate — app_config seçimine göre)
+    const poseDescription = await callGeminiFlash(
       posePrompt,
       imageUrlsForPose,
       3,
     );
 
     if (!poseDescription) {
-      throw new Error("Replicate Gemini API response is empty");
+      throw new Error("Gemini API response is empty");
     }
 
     logger.log(
@@ -6559,12 +7592,8 @@ router.get("/generation-status/:generationId", async (req, res) => {
       }
     }
 
-    // Netleştirilmişse sunucuda üretilen küçük önizleme kullanılır; 30 MB'lık
-    // kaynağı CDN küçültemiyor (403) ve kart boş kalıyordu.
-    const thumbnailSource =
-      generation.result_thumb_url || generation.result_image_url;
-    const thumbnailUrl = thumbnailSource
-      ? optimizeImageUrl(thumbnailSource, {
+    const thumbnailUrl = generation.result_image_url
+      ? optimizeImageUrl(generation.result_image_url, {
           width: 500,
           height: 500,
           quality: 80,
@@ -6591,9 +7620,6 @@ router.get("/generation-status/:generationId", async (req, res) => {
         originalPrompt: generation.original_prompt,
         enhancedPrompt: generation.enhanced_prompt,
         settings: generation.settings || {}, // Settings bilgisini de ekle
-        // 🔍 Netleştirme bilgisi — SimpleImageModal zoom sürgüsü bunlara bakıyor
-        upscaledMp: generation.upscaled_mp || null,
-        preUpscaleImageUrl: generation.pre_upscale_image_url || null,
         errorMessage: shouldUpdateStatus ? "İşlem zaman aşımına uğradı" : null,
         processingTimeSeconds: generation.processing_time_seconds,
         createdAt: generation.created_at,

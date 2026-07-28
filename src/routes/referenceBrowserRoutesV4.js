@@ -2070,7 +2070,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
         }
 
         const base64First = imageBuffer.toString("base64");
-        const mimeTypeFirst = mime.getType(firstImageUrl) || "image/jpeg";
+        const mimeTypeFirst = mime.lookup(firstImageUrl) || "image/jpeg";
         parts.push({
           inlineData: {
             data: base64First,
@@ -2093,7 +2093,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
         }
 
         const base64Second = imageBuffer.toString("base64");
-        const mimeTypeSecond = mime.getType(secondImageUrl) || "image/jpeg";
+        const mimeTypeSecond = mime.lookup(secondImageUrl) || "image/jpeg";
         parts.push({
           inlineData: {
             data: base64Second,
@@ -2131,7 +2131,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
           }
 
           const base64 = imageBuffer.toString("base64");
-          const mimeType = mime.getType(imageUrl) || "image/jpeg";
+          const mimeType = mime.lookup(imageUrl) || "image/jpeg";
           parts.push({
             inlineData: {
               data: base64,
@@ -2162,7 +2162,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
           }
 
           const base64 = imageBuffer.toString("base64");
-          const mimeType = mime.getType(cleanImageUrl) || "image/jpeg";
+          const mimeType = mime.lookup(cleanImageUrl) || "image/jpeg";
           parts.push({
             inlineData: {
               data: base64,
@@ -2192,7 +2192,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
         }
 
         const base64 = imageBuffer.toString("base64");
-        const mimeType = mime.getType(cleanPoseImageUrl) || "image/jpeg";
+        const mimeType = mime.lookup(cleanPoseImageUrl) || "image/jpeg";
         parts.push({
           inlineData: {
             data: base64,
@@ -2223,7 +2223,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
         }
 
         const base64 = imageBuffer.toString("base64");
-        const mimeType = mime.getType(cleanHairStyleImageUrl) || "image/jpeg";
+        const mimeType = mime.lookup(cleanHairStyleImageUrl) || "image/jpeg";
         parts.push({
           inlineData: {
             data: base64,
@@ -2254,7 +2254,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
         }
 
         const base64 = imageBuffer.toString("base64");
-        const mimeType = mime.getType(cleanLocationImageUrl) || "image/jpeg";
+        const mimeType = mime.lookup(cleanLocationImageUrl) || "image/jpeg";
         parts.push({
           inlineData: {
             data: base64,
