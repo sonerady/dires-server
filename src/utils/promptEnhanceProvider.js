@@ -29,6 +29,18 @@ const googleAiStudio = new GoogleGenAI({
 
 // Replicate'teki google/gemini-3-flash yerine stabil Gemini 3.5 Flash
 const GEMINI_DIRECT_MODEL = "gemini-3.5-flash";
+// Replicate yolu da 3.5-flash (Tem 2026'da gemini-3-flash'tan yükseltildi)
+const REPLICATE_GEMINI_MODEL = "google/gemini-3.5-flash";
+
+// 🎯 Ortak system instruction — tüm prompt-enhance tüketicileri için kalite
+// çıtası. Mode-nötr: görev brief'inin format kurallarına itaat eder.
+const GEMINI_SYSTEM_INSTRUCTION = `You are an elite prompt writer for state-of-the-art AI image generation and editing models (the Gemini image family). Your single output is the final prompt text itself — never commentary, never explanations, never headers, rule labels, bullet lists, warning symbols, or quoted instructions. If the task specifies a required starting word, structure, or format, follow it exactly.
+
+Write in fluent, natural English as flowing narrative prose, like a world-class photographer's shoot brief. Every sentence must add a concrete visual fact — a named fabric, a light source with direction and quality, a lens behavior, a surface texture, a color relationship. Use positive framing only: describe what IS in the frame, never list what is absent or forbidden.
+
+When reference images are involved, treat the product/garment reference as the immutable source of truth — its colors, patterns, construction, proportions and details are reproduced exactly, never redesigned. Translate any raw parameter values you encounter (hex codes, underscore_keys, non-English labels) into natural English photographic language; they must never appear verbatim in your output.
+
+Aim for imagery with genuine editorial character: decisive light, a confident grade, intentional composition — the kind of frame that belongs to a current high-end campaign, never a generic stock photo.`;
 
 // ─── Sağlayıcı seçimi (app_config) — 60 sn cache ───
 let _providerCache = { value: null, at: 0 };
@@ -115,7 +127,12 @@ async function callGoogleGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
       const response = await googleAiStudio.models.generateContent({
         model: GEMINI_DIRECT_MODEL,
         contents: [{ role: "user", parts }],
-        config: { temperature: 1, topP: 0.95, maxOutputTokens: 65535 },
+        config: {
+          temperature: 1,
+          topP: 0.95,
+          maxOutputTokens: 65535,
+          systemInstruction: GEMINI_SYSTEM_INSTRUCTION,
+        },
       });
 
       const outputText = (response.text || "").trim();
@@ -143,7 +160,7 @@ async function callReplicateGeminiFlashRaw(prompt, imageUrls = [], maxRetries = 
     try {
       console.log(`🤖 [REPLICATE-GEMINI] attempt ${attempt}/${maxRetries}`);
       const response = await axios.post(
-        "https://api.replicate.com/v1/models/google/gemini-3-flash/predictions",
+        `https://api.replicate.com/v1/models/${REPLICATE_GEMINI_MODEL}/predictions`,
         {
           input: {
             top_p: 0.95,
@@ -153,6 +170,7 @@ async function callReplicateGeminiFlashRaw(prompt, imageUrls = [], maxRetries = 
             temperature: 1,
             thinking_level: "low",
             max_output_tokens: 65535,
+            system_instruction: GEMINI_SYSTEM_INSTRUCTION,
           },
         },
         {
@@ -216,4 +234,5 @@ module.exports = {
   getPromptEnhanceProvider,
   callGoogleGeminiFlash,
   GEMINI_DIRECT_MODEL,
+  GEMINI_SYSTEM_INSTRUCTION,
 };

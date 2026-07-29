@@ -1267,9 +1267,9 @@ function sanitizePoseText(text) {
   }
 }
 
-// 🔄 Back side pose directive ITEM — V7 "Opening Directives" pattern
+// 🔄 Back side pose directive ITEM — V7 "Opening Narrative" pattern
 // (Gemini tarafından modelin yüzüne + kıyafete + arka tasarıma + sahneye göre
-// enhanced edilir, ⚠️ başlık verbatim korunur).
+// başlıksız, akıcı pozitif anlatı cümleleri olarak prompt başına yazılır).
 function buildBackSidePoseDirectiveItem(customDetail) {
   const detail =
     typeof customDetail === "string" && customDetail.trim()
@@ -1280,7 +1280,7 @@ function buildBackSidePoseDirectiveItem(customDetail) {
     ? `The user has additionally requested: "${detail}". Honor this nuance while keeping the back-view orientation absolute.`
     : ``;
 
-  return `"⚠️ STRICT BACK SIDE POSE DIRECTIVE:" — Intent: YOUR ONLY TASK IS TO TURN THE MODEL AROUND TO SHOW THE BACK OF THE GARMENT. The model in the FIRST reference image is currently facing the camera; in the output the model MUST be rotated 180° so the BACK is fully visible to the camera. The back design, print, graphic, embroidery, text, pattern, color blocking, seams, label position, and silhouette MUST EXACTLY match what is shown in the SECOND reference image (the flat back-side product photo, "ARKA ÜRÜN") — wrapped naturally onto the model's back with realistic fabric drape, shoulder folds, and curvature. Camera shoots from BEHIND the model; head may face fully away or include a subtle over-shoulder glance — never a frontal pose. ${userClause} ABSOLUTE PRESERVATION (locked, must not change): the model's identity (same face, skin tone, hair, makeup, body type — never a different person, even though the face is now mostly out of frame), the FRONT garment continuity (it is the same physical garment — colors, fabric, fit, length, trims, logos must remain consistent with the front view), the environment / background (exact same scene, props, walls, floor, lighting, atmosphere, time of day — never changed), and the camera framing + photo style. → Your task: write a 2-3 sentence ENHANCED version that interprets this intent for THIS specific garment, model, and scene. Describe the back-turn vividly and concretely (shoulder line, weight shift, foot placement, head angle, how the back design sits across the shoulder blades and lower back) and weave in the locked preservation reminder briefly. Keep the exact header "⚠️ STRICT BACK SIDE POSE DIRECTIVE:" as the first line of this block.`;
+  return `BACK-VIEW TURN — Intent: YOUR ONLY TASK IS TO TURN THE MODEL AROUND TO SHOW THE BACK OF THE GARMENT. The model in the FIRST reference image is currently facing the camera; in the output the model MUST be rotated 180° so the BACK is fully visible to the camera. The back design, print, graphic, embroidery, text, pattern, color blocking, seams, label position, and silhouette MUST EXACTLY match what is shown in the SECOND reference image (the flat back-side product photo, "ARKA ÜRÜN") — wrapped naturally onto the model's back with realistic fabric drape, shoulder folds, and curvature. Camera shoots from BEHIND the model; head may face fully away or include a subtle over-shoulder glance — never a frontal pose. ${userClause} ABSOLUTE PRESERVATION (locked, must not change): the model's identity (same face, skin tone, hair, makeup, body type — never a different person, even though the face is now mostly out of frame), the FRONT garment continuity (it is the same physical garment — colors, fabric, fit, length, trims, logos must remain consistent with the front view), the environment / background (exact same scene, props, walls, floor, lighting, atmosphere, time of day — never changed), and the camera framing + photo style. → Your task: write 2-3 flowing sentences that interpret this intent for THIS specific garment, model, and scene. Describe the back-turn vividly and concretely (shoulder line, weight shift, foot placement, head angle, how the back design sits across the shoulder blades and lower back) and weave in the locked preservation reminder briefly — as natural, positively-framed photographic prose describing what the camera sees.`;
 }
 
 async function enhancePromptWithGemini(
@@ -1893,7 +1893,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     if (isEditMode && editPrompt && editPrompt.trim()) {
       // EDIT MODE - EditScreen'den gelen özel prompt
       promptForGemini = `
-      SIMPLE EDIT INSTRUCTION: Generate a very short, focused prompt (maximum 30 words) that:
+      SIMPLE EDIT INSTRUCTION: Generate a focused edit prompt — as short as the request allows, but with no hard word limit; write whatever length the edit genuinely needs — that:
       
       1. STARTS with "Replace"
       2. Translates the user's request to English if needed  
@@ -2061,10 +2061,10 @@ STRICT FORMAT REQUIREMENTS:
           ? "with soft natural shadow for depth"
           : "with no shadow - completely flat and clean"
         } ${addReflection ? "and subtle reflection effect for luxury look" : ""}"
-- Focus & Clarity Requirement: You MUST include instructions for "Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus" in your generated prompt.
+- Focus & Clarity Requirement: You MUST include instructions for "Sharp focus and high clarity throughout — every surface, edge, and texture rendered crisply from front to back with deep, full-frame focus" in your generated prompt.
 - Include ALL relevant sections based on product type
-- End with: "The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting."
-- Length: 250-350 words
+- End with: "The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail, with crisp full-frame focus and clean, even, professional lighting."
+- Length: no word limit — write as thoroughly as the product transformation deserves; every sentence should add a concrete visual instruction
 
 === PRODUCT-SPECIFIC TRANSFORMATION RULES ===
 
@@ -2195,7 +2195,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
     } else if (isColorChange && targetColor && targetColor !== "original") {
       // COLOR CHANGE MODE - Sadece renk değiştirme
       promptForGemini = `
-      MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "change". Do not include any introduction, explanation, or commentary.
+      MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Change". Do not include any introduction, explanation, or commentary.
 
       ${criticalDirectives}
 
@@ -2215,7 +2215,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
           : ""
         }
 
-      Create a professional fashion photography prompt in English that STARTS with "change" for changing ONLY the color of ${isMultipleProducts
+      Create a professional fashion photography prompt in English that STARTS with "Change" for changing ONLY the color of ${isMultipleProducts
           ? "the specified product(s)/garment(s)"
           : "the product/garment"
         } from the reference image to ${targetColor}.
@@ -2225,7 +2225,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       IMPORTANT: Please explicitly mention in your generated prompt that this is for "professional fashion photography" to ensure the AI image model understands the context and produces high-quality fashion photography results.
 
       CRITICAL REQUIREMENTS FOR COLOR CHANGE:
-      1. The prompt MUST begin with "Replace the ${isMultipleProducts
+      1. The prompt MUST begin with "Change the color of the ${isMultipleProducts
           ? "specified product(s)/garment(s)"
           : "product/garment"
         }..."
@@ -2250,7 +2250,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
           : ""
         }
 
-      LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "change".
+      LANGUAGE REQUIREMENT: The final prompt MUST be entirely in English and START with "Change".
 
       ${originalPrompt
           ? `Additional color change requirements: ${originalPrompt}.`
@@ -2260,7 +2260,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
     } else if (isPoseChange) {
       // POSE CHANGE MODE - Optimize edilmiş poz değiştirme prompt'u (100-150 token)
       promptForGemini = `
-      FASHION POSE TRANSFORMATION: Generate a focused, detailed English prompt (100-150 words) that transforms the model's pose efficiently. Focus ONLY on altering the pose while keeping the existing model, outfit, lighting, and background exactly the same. You MUST explicitly describe the original background/environment details and state that they stay unchanged.
+      FASHION POSE TRANSFORMATION: Generate a focused, detailed English prompt (no word limit — write as richly as the pose change needs) that transforms the model's pose efficiently. Focus ONLY on altering the pose while keeping the existing model, outfit, lighting, and background exactly the same. You MUST explicitly describe the original background/environment details and state that they stay unchanged.
 
       USER POSE REQUEST: ${settings?.pose && settings.pose.trim()
           ? `Transform the model to: ${settings.pose.trim()}`
@@ -2312,7 +2312,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
 
       CRITICAL FORMATTING REQUIREMENTS:
       - Your response MUST start with "Change"
-      - Must be 100-150 words (concise but detailed)
+      - No word limit — as detailed as the pose change needs, without repeating ideas
       - Must be entirely in English
       - Focus ONLY on pose transformation
       - Do NOT include any generic fashion photography rules
@@ -2400,19 +2400,19 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       Generate a concise prompt focused on showcasing both front and back garment details while maintaining all original design elements. REMEMBER: Your response must START with "Replace" and emphasize back design features.
       `;
 
-      // 🔄 Back side pose directive — V7 "Opening Directives" pattern.
+      // 🔄 Back side pose directive — V7 "Opening Narrative" pattern.
       // Statik prompt template'inin başına Gemini'ye intent + meta-instruction
-      // veriyoruz; Gemini ⚠️ başlığı verbatim koruyup ALTI'nı bu kıyafete /
-      // modele / arka tasarıma / sahneye göre 2-3 cümle ENHANCED yazacak.
+      // veriyoruz; Gemini bu intent'i başlıksız, pozitif anlatı cümleleri
+      // olarak prompt'un EN BAŞINA yazacak (kural kitabı değil, çekim brief'i).
       const backSideItem = buildBackSidePoseDirectiveItem(customDetail);
       const backSideOpeningInstruction = `
-⚠️⚠️⚠️ OPENING DIRECTIVE BLOCK — MANDATORY OUTPUT STRUCTURE ⚠️⚠️⚠️
+OPENING NARRATIVE REQUIREMENT — MANDATORY OUTPUT STRUCTURE:
 
-Your enhanced prompt MUST BEGIN with the following directive block, BEFORE any other description or "Replace ..." line. Interpret the intent and write an ENHANCED version (2-3 sentences) tailored to THIS specific garment / model / back design / scene. Do NOT copy the instruction text verbatim. You MUST keep the exact ⚠️ header line ("⚠️ STRICT BACK SIDE POSE DIRECTIVE:") as the first line of the block. Never skip, soften, contradict, or merge this block.
+Your enhanced prompt MUST OPEN with a short narrative section that fulfills the following intent, placed at the very beginning (immediately after the required "Replace ..." opening line). Interpret the intent and write 2-3 flowing sentences tailored to THIS specific garment / model / back design / scene. Do NOT copy the instruction text verbatim. Your output must NEVER contain ⚠️ symbols, section headers, rule labels, ALL-CAPS warnings, or lists of forbidden things — the final prompt must read like a photographer's shoot brief, not a rulebook. Never skip, soften, contradict, or merge this intent.
 
 1. ${backSideItem}
 
-After this directive block (separated by a blank line), continue with the rest of the enhanced prompt as usual (the "Replace ..." instruction and all other sections below).
+After this opening narrative (separated by a blank line), continue with the rest of the enhanced prompt as usual.
 `;
       promptForGemini = `${backSideOpeningInstruction}
 
@@ -2426,11 +2426,19 @@ ${promptForGemini}`;
       promptForGemini = `
       MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
       
-      IMPORTANT: Your generated prompt must be UNDER 5000 characters total. Be concise but descriptive. Focus on the most important details.
+      LENGTH GUIDANCE: There is no character limit — write as richly and thoroughly as the shoot deserves. Every sentence should add a concrete visual fact (fabric, light, pose, texture) rather than repeating ideas.
          
-      DEFAULT POSE INSTRUCTION: If no specific pose is provided by the user, you must randomly select an editorial-style fashion pose that best showcases the garment’s unique details, fit, and silhouette. The pose should be confident and photogenic, with body language that emphasizes fabric drape, construction, and design elements, while remaining natural and commercially appealing. Always ensure the garment’s critical features (neckline, sleeves, logos, seams, textures) are clearly visible from the chosen pose.
+      DEFAULT POSE INSTRUCTION: If no specific pose is provided by the user, select an editorial-style fashion pose that best showcases this exact garment's details, fit, and silhouette — confident, photogenic body language that puts fabric drape, construction, and design elements on display while staying natural and commercially appealing, with full creative freedom over angle, framing, and the model's placement in the composition. Always ensure the garment's critical features (neckline, sleeves, logos, seams, textures) are clearly visible and well lit from the chosen pose.
 
-      After constructing the garment, model, and background descriptions, you must also generate an additional block of at least 200 words that describes a professional editorial fashion photography effect. This effect must always adapt naturally to the specific garment, fabric type, color palette, lighting conditions, and background environment described earlier. Do not use a fixed style for every prompt. Instead, analyze the context and propose an effect that enhances the scene cohesively. Examples might include glossy highlights and refined softness for silk in a studio setting, or natural tones, airy realism, and depth of field for cotton in outdoor daylight. These are only examples, not strict rules — you should always generate an effect description that best matches the unique scene. Your effect description must cover color grading, lighting treatment, texture and fabric physics, background integration, focus and depth of field, and overall editorial polish. Always ensure the tone is professional, realistic, and aligned with the visual language of high-end fashion magazines. The effect description must make the final result feel like a hyper-realistic editorial-quality fashion photograph, seamlessly blending garment, model, and environment into a single cohesive campaign-ready image.
+      🎥 CINEMATOGRAPHY & COLOR GRADE REQUIREMENTS (NON-NEGOTIABLE — this is what separates an editorial photograph from a lifeless stock photo):
+      Your enhanced prompt MUST include a dedicated technical paragraph written in confident director-of-photography language, with CONCRETE specs chosen to flatter THIS garment and THIS scene:
+      - CAMERA: name an exact focal length and aperture (e.g. "85mm at f/2.2 with a gently melted background", "35mm at f/5.6 holding the architecture crisp"), plus the camera height and angle relative to the model.
+      - LIGHTING RECIPE: a specific key light direction and quality (hard vs soft), fill/shadow density, and ONE deliberate lighting character (crisp rim light, hard sun with graphic shadows, window-light falloff, etc.) — never the phrase "professional studio lighting" on its own.
+      - COLOR GRADE: a confident editorial grade described like a preset — rich contrast, deep blacks, controlled highlights, an intentional palette (e.g. "clean digital editorial with dense blacks and accurate whites", "Portra-like warm neutrals with high micro-contrast").
+      ✦ GRADE CHARACTER: the grade is always CONFIDENT — deep, dense blacks; clean, accurate whites; honest saturation where the garment demands it; controlled highlights with real tonal depth. Even when the scene calls for soft light, keep the light soft but the grade decisive: rich contrast, a deliberate palette, and shadows with genuine density.
+
+      🎬 ART DIRECTION — DERIVE THE LOOK FROM THE GARMENT ITSELF:
+      Before writing the photography paragraph, silently answer this question: "If the brand behind THIS exact garment shot its own campaign, what would the photograph look like?" Read the garment's DNA — its fabric weight and surface, its color temperature, its price impression, its attitude (relaxed, sharp, romantic, sporty, rebellious, refined) — and design ONE distinctive visual identity for this shoot from that reading: a specific light source and direction with a clear quality, a confident color grade with named characteristics, a deliberate composition energy, and a lens behavior that serves it. Every garment must produce a DIFFERENT answer. The one outcome you never produce is the interchangeable default: soft frontal light, centered static model, neutral washed grade.
 
 
       When generating fashion photography prompts, you must always structure the text into four separate paragraphs using \n\n line breaks. Do not output one long block of text.
@@ -2916,12 +2924,12 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
             ? "Add subtle reflection underneath for luxury catalog look."
             : "No reflection underneath.";
 
-          enhancedPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishVal} ${shadowTextVal}; ${reflectionTextVal} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishVal}, completely flat${addShadowVal ? "" : ", shadowless"
+          enhancedPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishVal} ${shadowTextVal}; ${reflectionTextVal} Sharp focus and high clarity throughout — every surface, edge, and texture rendered crisply from front to back with deep, full-frame focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishVal}, completely flat${addShadowVal ? "" : ", shadowless"
             }${addReflectionVal ? "" : ", and non-reflective"
             }, making the product appear ${addShadowVal || addReflectionVal
               ? "professionally presented"
               : "to float cleanly"
-            }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
+            }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail, with crisp full-frame focus and clean, even, professional lighting.`;
 
           logger.log("🔧 [REFINER-VALIDATION] Fallback prompt uygulandı");
         } else {
@@ -2981,12 +2989,12 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
           ? "Add subtle reflection underneath for luxury catalog look."
           : "No reflection underneath.";
 
-        enhancedPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishCatch} ${shadowTextCatch}; ${reflectionTextCatch} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishCatch}, completely flat${addShadowCatch ? "" : ", shadowless"
+        enhancedPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishCatch} ${shadowTextCatch}; ${reflectionTextCatch} Sharp focus and high clarity throughout — every surface, edge, and texture rendered crisply from front to back with deep, full-frame focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishCatch}, completely flat${addShadowCatch ? "" : ", shadowless"
           }${addReflectionCatch ? "" : ", and non-reflective"
           }, making the product appear ${addShadowCatch || addReflectionCatch
             ? "professionally presented"
             : "to float cleanly"
-          }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
+          }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail, with crisp full-frame focus and clean, even, professional lighting.`;
       } else {
         // Normal mode için fallback - statik kuralları ekle
         const staticRules = `
@@ -3056,12 +3064,12 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
           ? "Add subtle reflection underneath for luxury catalog look."
           : "No reflection underneath.";
 
-        const refinerFallbackPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglish} ${shadowText}; ${reflectionText} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglish}, completely flat${addShadow ? "" : ", shadowless"
+        const refinerFallbackPrompt = `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglish} ${shadowText}; ${reflectionText} Sharp focus and high clarity throughout — every surface, edge, and texture rendered crisply from front to back with deep, full-frame focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglish}, completely flat${addShadow ? "" : ", shadowless"
           }${addReflection ? "" : ", and non-reflective"
           }, making the product appear ${addShadow || addReflection
             ? "professionally presented"
             : "to float cleanly"
-          }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
+          }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail, with crisp full-frame focus and clean, even, professional lighting.`;
 
         logger.log("🔧 [FALLBACK-REFINER] Generated refiner fallback prompt");
         return refinerFallbackPrompt;
@@ -3335,12 +3343,12 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
         ? "Add subtle reflection underneath for luxury catalog look."
         : "No reflection underneath.";
 
-      return `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishCatchErr} ${shadowTextCatchErr}; ${reflectionTextCatchErr} Sharp focus, high clarity, NO BLUR, no bokeh, everything in crisp focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishCatchErr}, completely flat${addShadowCatchErr ? "" : ", shadowless"
+      return `Transform this amateur product photo into a professional high-end e-commerce catalog photo. Background: ${bgColorEnglishCatchErr} ${shadowTextCatchErr}; ${reflectionTextCatchErr} Sharp focus and high clarity throughout — every surface, edge, and texture rendered crisply from front to back with deep, full-frame focus. Apply a professional ghost mannequin effect to the product. Completely remove any visible hanger, mannequin, human body parts, and any other external elements. The garment/product must appear as if worn by an invisible body or floating cleanly, showcasing its natural 3D internal structure and form. Create a clean, hollow neckline with visible interior depth and a well-defined collar interior (for clothing items). Ensure realistic volume, natural shape, and appropriate form definition. Position any sleeves or extensions naturally with slight bends to indicate depth. Preserve and enhance all product construction details, including logos, labels, stitching, seams, hardware, and finishing details. Remove all wrinkles, creases, dust, lint, loose threads, stains, and any imperfections. Enhance the material texture, presenting the product as freshly pressed, pristine, and brand-new, straight from a luxury boutique. Position the product perfectly centered, with balanced proportions and symmetrical presentation. Illuminate the product with even, bright, professional studio lighting that highlights the product's form and details without harsh shadows or blown-out highlights. Correct any bad lighting, uneven tones, or color casts from the original amateur photo, ensuring true-to-life color accuracy and proper white balance. Sharpen all details to remove any blur or softness. Ensure the silhouette is clean and perfectly cut out against the background. The background must be a pure, uniform ${bgColorEnglishCatchErr}, completely flat${addShadowCatchErr ? "" : ", shadowless"
         }${addReflectionCatchErr ? "" : ", and non-reflective"
         }, making the product appear ${addShadowCatchErr || addReflectionCatchErr
           ? "professionally presented"
           : "to float cleanly"
-        }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail. Negative Prompt: blur, focus blur, bokeh, motion blur, bad lighting.`;
+        }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail, with crisp full-frame focus and clean, even, professional lighting.`;
     }
 
     // Statik kuralları fallback prompt'un sonuna da ekle
