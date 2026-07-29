@@ -10,7 +10,7 @@ const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
 // Gemini API için istemci oluştur
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-const NANO_BANANA_API_URL = "https://fal.run/fal-ai/nano-banana/edit";
+const NANO_BANANA_API_URL = "https://fal.run/fal-ai/nano-banana-2/edit";
 
 // Replicate API üzerinden Gemini 2.5 Flash çağrısı yapan helper fonksiyon
 // Hata durumunda 3 kez tekrar dener

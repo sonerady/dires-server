@@ -3546,7 +3546,7 @@ router.post("/generate", async (req, res) => {
 
         // Kalite versiyonuna göre model URL ve parametreleri güncelle
         // Fal.ai model seçimi
-        let falModel = "fal-ai/nano-banana/edit"; // Model ID for Fal.ai
+        let falModel = "google/nano-banana-lite/edit"; // Model ID for Fal.ai
 
         if (qualityVersion === "v2") {
           logger.log(

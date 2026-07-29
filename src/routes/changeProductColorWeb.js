@@ -4739,7 +4739,7 @@ router.post("/generate", async (req, res) => {
         const falModel =
           isV2 || req.body.isBackSideAnalysis
             ? "fal-ai/nano-banana-2/edit"
-            : "fal-ai/nano-banana/edit";
+            : "google/nano-banana-lite/edit";
 
         logger.log(
           `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model: ${falModel}`
@@ -6407,7 +6407,7 @@ async function processBulkColorItem({
   const isV2 = qualityVersion === "v2";
   const falModel = isV2
     ? "fal-ai/nano-banana-2/edit"
-    : "fal-ai/nano-banana/edit";
+    : "google/nano-banana-lite/edit";
   const creditCost = isV2 ? 35 : 10;
 
   const baseSettings = {

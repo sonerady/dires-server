@@ -3735,7 +3735,7 @@ router.post("/generate", async (req, res) => {
     const isV2 = req.body.quality === "v2";
     const falModel = isV2 // req.body'de quality varsa v2 kontrolü yap
       ? "fal-ai/nano-banana-pro/edit"
-      : "fal-ai/nano-banana/edit";
+      : "google/nano-banana-lite/edit";
 
     logger.log(
       `🤖 Fal.ai Modeli Seçildi: ${falModel} ${isV2 ? "(PRO)" : "(Standard)"}`
