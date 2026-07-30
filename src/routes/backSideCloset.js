@@ -17,6 +17,15 @@ const teamService = require("../services/teamService");
 const logger = require("../utils/logger");
 const { optimizeImageUrl } = require("../utils/imageOptimizer");
 const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
+const { applyResultUpscale } = require("../utils/resultUpscale");
+
+// 🔄 BACK SIDE FALLBACK PROMPT — Gemini enhance başarısız olduğunda kullanılır.
+// Genel fallback "flat-lay garment onto a model" (ÖN yüz) kurgusundadır ve arka
+// görünüm talimatı içermez; back side modunda o fallback'e düşmek kullanıcıya
+// ÖN pozlu sonuç döndürüyordu (bildirilen bug). Bu prompt iki resimli back side
+// girdisine (1: modelli ön çekim, 2: arka tasarım ürün fotoğrafı) özel yazılmıştır.
+const buildBackSideFallbackPrompt = (poseDescription = "", environmentDescription = "") =>
+  `Replace the front-facing pose with a full back view: the same model from the first image, wearing the exact same garment, photographed from directly behind, turned a full 180 degrees so their back faces the camera${poseDescription}${environmentDescription}. Reproduce the back design shown in the back-design reference images (every image after the first) exactly — every graphic, print, lettering, pattern placement and scale, yoke seams and back hem — spread naturally across the model's back and following the body's real curvature. Keep the model's identity, hairstyle, skin tone, body proportions, the background scene, lighting direction and color temperature identical to the first image. The model stands in a natural, confident back-view editorial stance with their back fully to the camera and weight settled onto one leg. Camera positioned directly behind the model at chest height, focus locked on the back panel so the back design is rendered tack-sharp. The garment appears realistic with natural drape, folds along the shoulders, and accurate fabric texture; the print wraps seamlessly on the fabric, following the model's back curvature. The lighting, background, and perspective match the original scene, resulting in one single cohesive photorealistic back-view fashion photograph.`;
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -1082,6 +1091,21 @@ async function updateGenerationStatus(
       }
     }
 
+    // 🔍 Netleştirme uygulandıysa öncesi kareyi de bucket'a kalıcılaştır
+    // (fal.media URL'leri geçici; SimpleImageModal öncesi/sonrası sürgüsü ve
+    // thumbnail bu URL'yi uzun vadede kullanır) — V7 ile aynı davranış.
+    if (status === "completed" && finalUpdates.upscaled_mp && updates.pre_upscale_image_url) {
+      try {
+        const savedPre = await saveResultImageToUserBucket(
+          updates.pre_upscale_image_url,
+          userId
+        );
+        if (savedPre) finalUpdates.pre_upscale_image_url = savedPre;
+      } catch (preErr) {
+        console.error("❌ Pre-upscale bucket kaydetme hatası:", preErr);
+      }
+    }
+
     const updateData = {
       status: status,
       updated_at: new Date().toISOString(),
@@ -1598,7 +1622,23 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
     const hasPoseImage = Boolean(poseImage);
 
     // Pose handling - enhanced with detailed descriptions
-    if (!hasPoseText && !hasPoseImage) {
+    if (isBackSideAnalysis) {
+      // 🔄 BACK SIDE MODE: varsayılan poz bölümü "kıyafeti kameraya dönük tut /
+      // omuz üstü dönüşlerden kaçın" der — arka görünüm direktifiyle birebir
+      // çelişir ve modelin öne dönük gelmesine neden oluyordu (bildirilen bug).
+      // Arka moda özel duruş direktifi kullanılır.
+      posePromptSection = `
+
+BACK-VIEW POSE: The model faces AWAY from the camera for this shot.
+- The model's back is fully turned to the camera (a complete 180-degree turn from the reference photo) so the garment's back design is the hero of the frame.
+- A relaxed, confident back-view editorial stance: weight settled naturally, arms relaxed at the sides or gently posed so they never cover the back panel.
+- The head may face straight ahead (away from the camera) or offer a subtle over-the-shoulder glance, but the shoulders and torso stay square to the camera from behind.
+- Keep the entire back panel — yoke, prints, embroidery, seams, hem — unobstructed, naturally draped, and clearly lit.`;
+
+      logger.log(
+        "🔄 [GEMINI] Back side modu — arka görünüm poz direktifi kullanılıyor"
+      );
+    } else if (!hasPoseText && !hasPoseImage) {
       const garmentText = isMultipleProducts
         ? "multiple garments/products ensemble"
         : "garment/product";
@@ -2331,22 +2371,25 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       TARGET MODEL CONTEXT: Your output will be sent to a state-of-the-art AI image editing model, which responds best to flowing NARRATIVE descriptions written like a professional photographer's shoot brief — not keyword lists, not bullet points, not shouted commands. Write rich, specific, connected sentences. Use POSITIVE framing: describe what IS in the frame rather than listing what is absent. Hyper-specificity wins: name the exact fabric, the exact light, the exact camera behavior.
 
       🔄 BACK DESIGN SHOWCASE MODE — IMAGE ROLE GROUNDING:
-      You are looking at TWO views of the SAME garment:
-      1. TOP IMAGE: the garment worn on a model, seen from the FRONT — this defines the model's identity, the garment's fit, and the scene.
-      2. BOTTOM IMAGE (labeled "ARKA ÜRÜN"): the BACK design of the same garment — this is the immutable source of truth for every back-panel element: graphics, prints, text, pattern placement and scale, yoke seams, back hem.
+      You are receiving ${referenceImages?.length || 2} SEPARATE reference images of the SAME garment, in this exact order:
+      1. FIRST IMAGE: the garment worn on a model, seen from the FRONT — this defines the model's identity, the garment's fit, and the scene.
+      2. SECOND IMAGE (the back-design reference): the BACK design of the same garment — this is the immutable source of truth for every back-panel element: graphics, prints, text, pattern placement and scale, yoke seams, back hem.${referenceImages && referenceImages.length > 2
+        ? `
+      3. ADDITIONAL IMAGES (#3${referenceImages.length > 3 ? `-#${referenceImages.length}` : ""}): further reference photos of the SAME garment's back design — extra angles, close-up details, fabric texture or print close-ups. Combine ALL back-design references into one complete, accurate understanding of the back panel; where they overlap, they agree — use the extra detail to describe the back design more precisely.`
+        : ""}
 
-      YOUR MISSION: Rewrite the scene so the SAME model, wearing the SAME garment, is photographed from BEHIND — turned a full 180 degrees — with the exact back design from the "ARKA ÜRÜN" image displayed across their back as the hero of the frame.
+      YOUR MISSION: Rewrite the scene so the SAME model, wearing the SAME garment, is photographed from BEHIND — turned a full 180 degrees — with the exact back design from the SECOND image displayed across their back as the hero of the frame.
 
       BACK-VIEW SHOT DESIGN (describe these narratively in your prompt):
       - Body position: the model stands with their back fully to the camera in a natural, confident stance — weight settled onto one leg, shoulders relaxed, posture elongated. A subtle over-shoulder glance toward the camera is allowed when it suits the garment's character; otherwise the model faces fully away. The pose is a deliberate back-view editorial stance, never a frontal or walking pose.
-      - Back design as focal point: read the "ARKA ÜRÜN" image like a print technician and describe exactly what sits on the back panel — the specific graphic, lettering, artwork or pattern, its position (between the shoulder blades, across the yoke, centered at the spine), its scale relative to the garment, and its colors. This description anchors the entire image.
+      - Back design as focal point: read the SECOND image (back-design reference) like a print technician and describe exactly what sits on the back panel — the specific graphic, lettering, artwork or pattern, its position (between the shoulder blades, across the yoke, centered at the spine), its scale relative to the garment, and its colors. This description anchors the entire image.
       - Camera: positioned directly behind the model at chest height, focus plane locked on the back panel — every detail of the back design rendered tack-sharp. Choose a focal length and framing that keeps the full back design comfortably inside the frame with balanced negative space.
       - Fit on the body: describe how the back of the garment actually sits on this model — how the fabric spans the shoulder blades, where it skims or drapes at the spine and waist, how the hem falls — so the back design follows the body's real curvature.
       - Lighting: professional fashion lighting that renders the back design faithfully — an even key across the back panel with soft modeling shadows in the fabric folds, matching the color temperature and direction of the original scene.
 
-      EXAMPLE STRUCTURE: "Replace the front-facing pose with a full back view: the model turns away from the camera, revealing [the exact back design elements you see in the ARKA ÜRÜN image] spread across the back panel between the shoulder blades, rendered tack-sharp under an even editorial key light..."
+      EXAMPLE STRUCTURE: "Replace the front-facing pose with a full back view: the model turns away from the camera, revealing [the exact back design elements you see in the SECOND image] spread across the back panel between the shoulder blades, rendered tack-sharp under an even editorial key light..."
 
-      🎯 FINAL GOAL: one photograph — the model from the TOP image, turned away from the camera, wearing the same garment, with the "ARKA ÜRÜN" back design reproduced exactly and prominently across their back.
+      🎯 FINAL GOAL: one photograph — the model from the FIRST image, turned away from the camera, wearing the same garment, with the back design from the SECOND image reproduced exactly and prominently across their back.
 
       ${criticalDirectives}
 
@@ -2364,11 +2407,11 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
           : ""
         }
 
-      Create a professional fashion photography prompt in English that shows the model from the BACK VIEW wearing the garment, specifically displaying the back design elements visible in the "ARKA ÜRÜN" image.
+      Create a professional fashion photography prompt in English that shows the model from the BACK VIEW wearing the garment, specifically displaying the back design elements visible in the SECOND image.
       
       SINGLE OUTPUT REQUIREMENT: The result is exactly ONE unified back-view fashion photograph — a single frame, a single model, a single scene. Your prompt must make this explicit so the image model renders one cohesive shot rather than split views, collages, front+back pairs, or extra flat product shots.
 
-      ANCHOR PHRASES — weave these naturally into your narrative so the image model locks onto the back-view intent: "model turned away from camera", "full back view", "showing the back of the garment", "back design prominently displayed", "single unified fashion photograph", "professional fashion photography" — plus your own precise description of the specific back design (graphic, pattern, text) you see in the "ARKA ÜRÜN" image.
+      ANCHOR PHRASES — weave these naturally into your narrative so the image model locks onto the back-view intent: "model turned away from camera", "full back view", "showing the back of the garment", "back design prominently displayed", "single unified fashion photograph", "professional fashion photography" — plus your own precise description of the specific back design (graphic, pattern, text) you see in the SECOND image.
 
       IMPORTANT: Your generated prompt MUST result in a BACK VIEW — the model facing away from the camera with the back design on full display — as one single image.
 
@@ -2604,8 +2647,11 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
 
     // Eğer originalPrompt'ta "Model's pose" ibaresi yoksa ek cümle ekleyelim:
     if (!originalPrompt || !originalPrompt.includes("Model's pose")) {
-      // Eğer poz seçilmemişse akıllı poz seçimi, seçilmişse belirtilen poz
-      if (!settings?.pose && !poseImage) {
+      // Eğer poz seçilmemişse akıllı poz seçimi, seçilmişse belirtilen poz.
+      // 🔄 BACK SIDE MODE: "stance may be front-facing" cümlesi arka görünüm
+      // direktifiyle çelişiyordu ve Gemini'nin okuduğu SON talimat olduğu için
+      // öne dönük sonuç üretebiliyordu — back side'da eklenmez.
+      if (!settings?.pose && !poseImage && !isBackSideAnalysis) {
         promptForGemini += `Since no specific pose was provided, use a natural pose that keeps the garment fully visible. The stance may be front-facing or slightly angled, but avoid hiding details. Do not put hands in pockets. Ensure garment features are clearly shown.`;
       }
     }
@@ -2620,28 +2666,25 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
 
     // Multi-mode resim gönderimi: Back side analysis, Multiple products, veya Normal mod
     if (isBackSideAnalysis && referenceImages && referenceImages.length >= 2) {
+      // Çoklu arka referans desteği: 1. resim ön/model, 2..N arka tasarım
+      // referansları (farklı açı/detay). Tümü Gemini'ye gönderilir.
       logger.log(
-        "🔄 [BACK_SIDE] Gemini'ye 2 resim gönderiliyor (ön + arka)..."
-      );
-
-      const firstImageUrl = sanitizeImageUrl(
-        referenceImages[0].uri || referenceImages[0]
-      );
-      const secondImageUrl = sanitizeImageUrl(
-        referenceImages[1].uri || referenceImages[1]
+        `🔄 [BACK_SIDE] Gemini'ye ${referenceImages.length} resim gönderiliyor (1 ön + ${referenceImages.length - 1} arka referans)...`
       );
 
       try {
-        const [firstResponse, secondResponse] = await Promise.all([
-          axios.get(firstImageUrl, { responseType: "arraybuffer" }),
-          axios.get(secondImageUrl, { responseType: "arraybuffer" }),
-        ]);
-
-        imageBuffers.push(
-          Buffer.from(firstResponse.data),
-          Buffer.from(secondResponse.data)
+        const responses = await Promise.all(
+          referenceImages.map((refImg) =>
+            axios.get(sanitizeImageUrl(refImg.uri || refImg), {
+              responseType: "arraybuffer",
+            })
+          )
         );
-        logger.log("🔄 [BACK_SIDE] Toplam 2 resim Gemini'ye eklendi");
+
+        imageBuffers.push(...responses.map((r) => Buffer.from(r.data)));
+        logger.log(
+          `🔄 [BACK_SIDE] Toplam ${responses.length} resim Gemini'ye eklendi`
+        );
       } catch (imageError) {
         console.error("❌ Resim indirme hatası:", imageError);
         throw new Error("Failed to download images for Gemini");
@@ -2763,13 +2806,10 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
 
     // Referans resimlerin URL'lerini ekle
     if (isBackSideAnalysis && referenceImages && referenceImages.length >= 2) {
-      const firstImageUrl = sanitizeImageUrl(
-        referenceImages[0].uri || referenceImages[0]
-      );
-      const secondImageUrl = sanitizeImageUrl(
-        referenceImages[1].uri || referenceImages[1]
-      );
-      imageUrlsForReplicate.push(firstImageUrl, secondImageUrl);
+      // Tüm resimleri gönder (1 ön + 1-3 arka referans)
+      for (const refImg of referenceImages) {
+        imageUrlsForReplicate.push(sanitizeImageUrl(refImg.uri || refImg));
+      }
     } else if (
       isMultipleProducts &&
       referenceImages &&
@@ -2937,6 +2977,29 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
         }
       }
 
+      // 🔄 BACK SIDE MODE için Gemini yanıt validasyonu — enhanced prompt'ta
+      // arka görünüm dili yoksa Gemini direktifi sulandırmış demektir; öne
+      // dönük sonuç üretmemesi için deterministik arka görünüm fallback'ine geç
+      // (bildirilen "ön pozlu sonuç" bug'ının prompt-katmanı güvencesi).
+      if (isBackSideAnalysis) {
+        const lowerBackPrompt = enhancedPrompt.toLowerCase();
+        const hasBackViewLanguage =
+          /back view|from behind|from directly behind|turned away|facing away|back (?:is |fully )?(?:turned )?to the camera|180[- ]?degree|back of the garment|back design/.test(
+            lowerBackPrompt
+          );
+
+        if (!hasBackViewLanguage) {
+          logger.log(
+            "⚠️ [BACKSIDE-VALIDATION] Gemini prompt'unda arka görünüm dili yok — deterministik back side fallback kullanılıyor"
+          );
+          enhancedPrompt = buildBackSideFallbackPrompt();
+        } else {
+          logger.log(
+            "✅ [BACKSIDE-VALIDATION] Enhanced prompt arka görünüm dilini içeriyor"
+          );
+        }
+      }
+
       logger.log(
         "✨ [REPLICATE-GEMINI] Final enhanced prompt (statik kurallarla) hazırlandı"
       );
@@ -2995,6 +3058,15 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
             ? "professionally presented"
             : "to float cleanly"
           }. Remove any traces of original background elements. The final result must look like a flawless premium product photo ready for luxury e-commerce catalogs, fashion websites, and online marketplaces. Maintain photorealistic quality suitable for premium retail, with crisp full-frame focus and clean, even, professional lighting.`;
+      } else if (isBackSideAnalysis) {
+        // 🔄 BACK SIDE MODE: originalPrompt bu ekranda "Change the model to a
+        // different famous model pose" gibi ÖN poz talimatıdır — Gemini hatasında
+        // onu kullanmak öne dönük sonuç garantiliyordu (bildirilen bug).
+        // Deterministik arka görünüm fallback'i kullanılır.
+        logger.log(
+          "🔄 [CATCH-BACKSIDE] Gemini başarısız, back side arka görünüm fallback prompt'u kullanılıyor"
+        );
+        enhancedPrompt = buildBackSideFallbackPrompt();
       } else {
         // Normal mode için fallback - statik kuralları ekle
         const staticRules = `
@@ -3271,6 +3343,18 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
 
       // Final kalite - Fashion photography standartları
       fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
+
+      // 🔄 BACK SIDE MODE: genel fallback ÖN yüz kurgusudur (flat-lay → model);
+      // back side'da bu prompt ön pozlu sonuç üretiyordu. Moda özel fallback kullan.
+      if (isBackSideAnalysis) {
+        logger.log(
+          "🔄 [FALLBACK-BACKSIDE] Back side modu için arka görünüm fallback prompt'u kullanılıyor"
+        );
+        fallbackPrompt = buildBackSideFallbackPrompt(
+          poseDescription,
+          environmentDescription
+        );
+      }
 
       logger.log(
         "🔄 [FALLBACK] Generated detailed fallback prompt:",
@@ -3567,6 +3651,18 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
     // Final kalite - Fashion photography standartları
     fallbackPrompt += `Maintain photorealistic integration with the model and scene: correct scale, perspective, lighting, cast shadows, and occlusions; match camera angle and scene lighting. High quality, sharp detail, professional fashion photography aesthetic suitable for commercial and editorial use.`;
 
+    // 🔄 BACK SIDE MODE: catch fallback'i de ön yüz kurgusudur — back side'da
+    // arka görünüm fallback prompt'una geç (bildirilen "ön poz geldi" bug'ı).
+    if (isBackSideAnalysis) {
+      logger.log(
+        "🔄 [FALLBACK-BACKSIDE-ERROR] Gemini hatası, back side arka görünüm fallback prompt'u kullanılıyor"
+      );
+      fallbackPrompt = buildBackSideFallbackPrompt(
+        poseDescription,
+        environmentDescription
+      );
+    }
+
     logger.log(
       "🔄 [FALLBACK] Generated detailed fallback prompt:",
       fallbackPrompt
@@ -3825,6 +3921,8 @@ router.post("/generate", async (req, res) => {
       // Session deduplication
       sessionId = null, // Aynı batch request'leri tanımlıyor
       modelPhoto = null,
+      // 🔍 Sonuç netleştirme kademesi (Results'taki MP butonu; 4 = kapalı)
+      upscaleMp = 4,
     } = req.body;
 
     // Kalite versiyonu kontrolü (settings'ten al) - Refiner modunda v1'e zorla
@@ -4764,13 +4862,13 @@ router.post("/generate", async (req, res) => {
           referenceImages &&
           referenceImages.length >= 2
         ) {
+          // 1. resim ön/model + 2..N arka tasarım referansları — tümü gönderilir
           logger.log(
-            "🔄 [BACK_SIDE] 2 ayrı resim Nano Banana'ya gönderiliyor..."
+            `🔄 [BACK_SIDE] ${referenceImages.length} ayrı resim görüntü modeline gönderiliyor...`
           );
-          imageInputArray = [
-            referenceImages[0].uri || referenceImages[0], // Ön resim - direkt string
-            referenceImages[1].uri || referenceImages[1], // Arka resim - direkt string
-          ];
+          imageInputArray = referenceImages.map(
+            (refImg) => refImg.uri || refImg
+          );
           logger.log("📤 [BACK_SIDE] Image input array:", imageInputArray);
         } else if (
           (isMultipleImages && referenceImages.length > 1) ||
@@ -4854,6 +4952,28 @@ router.post("/generate", async (req, res) => {
             `⚠️ Prompt ${enhancedPrompt.length} karakter, ${maxPromptLength}'e kırpılıyor...`
           );
           truncatedPrompt = enhancedPrompt.substring(0, maxPromptLength);
+        }
+
+        // 🔄 BACK VIEW ENFORCEMENT — back side modunda, prompt hangi yoldan
+        // gelirse gelsin (Gemini enhanced / fallback / kırpılmış), görüntü
+        // modeline giden nihai metnin SONUNA arka görünüm direktifi eklenir.
+        // Gemini'nin arka görünüm vurgusunu sulandırdığı veya kırpmanın kuyruk
+        // talimatlarını yuttuğu durumlara karşı son savunma hattı (bildirilen
+        // "ön pozlu sonuç" bug'ının güvencesi). Suffix için yer ayrılarak
+        // kırpma yapılır — direktif asla kesilmez.
+        if (req.body.isBackSideAnalysis) {
+          // Pozitif çerçeveli, anlatı tonunda kapanış (V7 modernizasyon ilkesi:
+          // rulebook değil çekim brief'i — bağıran başlık ve negatif liste yok).
+          const backViewEnforcement =
+            "\n\nThe finished photograph shows the model from directly behind — turned a full 180 degrees, back fully to the camera — with the garment's back design from the back-design reference images displayed clearly and prominently across their back, captured as one single unified back-view fashion photograph.";
+          const budget = maxPromptLength - backViewEnforcement.length;
+          if (truncatedPrompt.length > budget) {
+            truncatedPrompt = truncatedPrompt.substring(0, budget);
+          }
+          truncatedPrompt += backViewEnforcement;
+          logger.log(
+            "🔄 [BACK_VIEW_ENFORCE] Arka görünüm direktifi nihai prompt'un sonuna eklendi"
+          );
         }
         logger.log(`📋 [FAL_PROMPT] Fal.ai'ya giden prompt (${truncatedPrompt.length} karakter):`, truncatedPrompt);
 
@@ -5272,18 +5392,41 @@ router.post("/generate", async (req, res) => {
 
       // ✅ Status'u completed'e güncelle
       // fal.ai returns output as array, always use the first image
-      const resultImageUrl = Array.isArray(finalResult.output)
+      let resultImageUrl = Array.isArray(finalResult.output)
         ? finalResult.output[0]
         : finalResult.output;
+
+      // 🔍 NETLEŞTİRME ADIMI — Results'ta 4 MP'den yüksek kademe seçildiyse
+      // sonuç kaydedilmeden önce o çözünürlüğe yükseltilir (V7 ile aynı ortak
+      // util). Hata/yetersiz kredi durumunda orijinal sonuçla devam edilir.
+      const upscaleOutcome = await applyResultUpscale({
+        imageUrl: resultImageUrl,
+        upscaleMp,
+        userId,
+        generationId: finalGenerationId,
+        logTag: "BACKSIDE UPSCALE",
+      });
+      resultImageUrl = upscaleOutcome.imageUrl;
+
       const updatedGeneration = await updateGenerationStatus(finalGenerationId, userId, "completed", {
         enhanced_prompt: enhancedPrompt,
         result_image_url: resultImageUrl,
         replicate_prediction_id: initialResult.id,
         processing_time_seconds: processingTime,
+        // Netleştirildiyse kademe + öncesi kare (SimpleImageModal sürgüsü okur)
+        ...(upscaleOutcome.appliedMp && {
+          upscaled_mp: upscaleOutcome.appliedMp,
+          pre_upscale_image_url: upscaleOutcome.preUpscaleUrl,
+        }),
       });
       // updateGenerationStatus Supabase bucket'e kaydedip DB'yi günceller,
       // dönen kayıttaki result_image_url artık Supabase URL'sidir (fal.media değil)
       const finalResultImageUrl = updatedGeneration?.result_image_url || resultImageUrl;
+      // Netleştirilmiş sonuç CDN'in boyut limitini aşabilir (30 MB+ kaynak
+      // küçültülemez → 403). Thumbnail'i netleştirme ÖNCESİ kareden üret.
+      const thumbnailSourceUrl = upscaleOutcome.appliedMp
+        ? updatedGeneration?.pre_upscale_image_url || upscaleOutcome.preUpscaleUrl
+        : finalResultImageUrl;
 
       // 💳 KREDI GÜNCELLEME SIRASI
       // Kredi düşümü updateGenerationStatus içinde tetikleniyor (pay-on-success).
@@ -5311,7 +5454,7 @@ router.post("/generate", async (req, res) => {
         result: {
           // Supabase bucket URL kullan (fal.media yerine)
           imageUrl: finalResultImageUrl,
-          imageUrlThumbnail: finalResultImageUrl ? optimizeImageUrl(finalResultImageUrl, { width: 500, height: 500, quality: 80 }) : null,
+          imageUrlThumbnail: thumbnailSourceUrl ? optimizeImageUrl(thumbnailSourceUrl, { width: 500, height: 500, quality: 80 }) : null,
           originalPrompt: promptText,
           enhancedPrompt: enhancedPrompt,
           replicateData: finalResult,
@@ -6013,7 +6156,12 @@ router.get("/generation-status/:generationId", async (req, res) => {
       }
     }
 
-    const thumbnailUrl = generation.result_image_url ? optimizeImageUrl(generation.result_image_url, { width: 500, height: 500, quality: 80 }) : null;
+    // Netleştirilmiş (upscale) sonuçlar CDN boyut limitini aşabilir (403) —
+    // thumbnail'i netleştirme öncesi kareden üret.
+    const thumbnailSource = generation.upscaled_mp
+      ? generation.pre_upscale_image_url || generation.result_image_url
+      : generation.result_image_url;
+    const thumbnailUrl = thumbnailSource ? optimizeImageUrl(thumbnailSource, { width: 500, height: 500, quality: 80 }) : null;
     if (finalStatus === "completed") {
       logger.log(`🖼️ [THUMBNAIL] Generation ${generation.generation_id}: original=${generation.result_image_url?.substring(0, 60)} | thumbnail=${thumbnailUrl?.substring(0, 80)}`);
     }
@@ -6030,6 +6178,9 @@ router.get("/generation-status/:generationId", async (req, res) => {
         status: finalStatus,
         resultImageUrl: generation.result_image_url,
         resultImageThumbnail: thumbnailUrl,
+        // 🔍 Netleştirme bilgisi (SimpleImageModal öncesi/sonrası sürgüsü)
+        upscaledMp: generation.upscaled_mp || null,
+        preUpscaleImageUrl: generation.pre_upscale_image_url || null,
         originalPrompt: generation.original_prompt,
         enhancedPrompt: generation.enhanced_prompt,
         settings: generation.settings || {}, // Settings bilgisini de ekle
