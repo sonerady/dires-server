@@ -542,44 +542,58 @@ async function saveGeneratedImageToUserBucket(imageUrl, userId, imageType) {
 const { resolveCanonicalGenerationId } = require("../utils/canonicalGenerationId");
 
 // ─── Progressive save: append a single kit image URL to reference_results.kits ───
+// 🔁 Retry'lı: geçici ağ hataları (fetch failed / stream aborted) kit slotunu
+// kaybettirmesin. "Kayıt gerçekten yok" ile "sorgu ağ hatasıyla düştü" ayrı loglanır.
 async function appendKitToRecord(recordId, imageUrl, sceneIndex) {
-    try {
-        const { data: existing, error: findError } = await supabase
-            .from("reference_results")
-            .select("id, kits")
-            .eq("generation_id", recordId)
-            .maybeSingle();
+    const MAX_ATTEMPTS = 3;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+            const { data: existing, error: findError } = await supabase
+                .from("reference_results")
+                .select("id, kits")
+                .eq("generation_id", recordId)
+                .maybeSingle();
 
-        if (findError || !existing) {
-            console.warn(`⚠️ [APPEND_KIT] No reference_results row for recordId=${recordId} — kit slot ${sceneIndex} won't be visible to polling`);
-            return null;
+            if (findError) throw new Error(`lookup failed: ${findError.message}`);
+
+            if (!existing) {
+                console.warn(`⚠️ [APPEND_KIT] reference_results'ta kayıt GERÇEKTEN yok (recordId=${recordId}) — kit slot ${sceneIndex} polling'e görünmeyecek`);
+                return null; // kayıt yoksa retry anlamsız
+            }
+
+            // Maintain position-preserved array (6 slots, null for pending/failed)
+            let currentKits = Array.isArray(existing.kits) ? [...existing.kits] : [];
+
+            if (sceneIndex !== undefined && sceneIndex !== null) {
+                // Ensure array is at least sceneIndex+1 long
+                while (currentKits.length <= sceneIndex) currentKits.push(null);
+                currentKits[sceneIndex] = imageUrl;
+            } else {
+                // Legacy fallback: append
+                if (currentKits.includes(imageUrl)) return null;
+                currentKits.push(imageUrl);
+            }
+
+            const { error: updateError } = await supabase
+                .from("reference_results")
+                .update({ kits: currentKits })
+                .eq("id", existing.id);
+
+            if (updateError) throw new Error(`update failed: ${updateError.message}`);
+
+            const filledCount = currentKits.filter(Boolean).length;
+            console.log(`📦 [KIT_V2] Progressive save: ${filledCount} kits now in DB (slot ${sceneIndex ?? 'append'})`);
+            return currentKits;
+        } catch (error) {
+            if (attempt === MAX_ATTEMPTS) {
+                console.error(`❌ [APPEND_KIT] ${MAX_ATTEMPTS} deneme başarısız (recordId=${recordId}, slot ${sceneIndex}) — muhtemel geçici ağ hatası: ${error.message}`);
+                return null;
+            }
+            console.warn(`🔁 [APPEND_KIT] attempt ${attempt} failed (${error.message}) — ${attempt}sn sonra tekrar...`);
+            await new Promise((r) => setTimeout(r, 1000 * attempt));
         }
-
-        // Maintain position-preserved array (6 slots, null for pending/failed)
-        let currentKits = Array.isArray(existing.kits) ? [...existing.kits] : [];
-
-        if (sceneIndex !== undefined && sceneIndex !== null) {
-            // Ensure array is at least sceneIndex+1 long
-            while (currentKits.length <= sceneIndex) currentKits.push(null);
-            currentKits[sceneIndex] = imageUrl;
-        } else {
-            // Legacy fallback: append
-            if (currentKits.includes(imageUrl)) return null;
-            currentKits.push(imageUrl);
-        }
-
-        await supabase
-            .from("reference_results")
-            .update({ kits: currentKits })
-            .eq("id", existing.id);
-
-        const filledCount = currentKits.filter(Boolean).length;
-        console.log(`📦 [KIT_V2] Progressive save: ${filledCount} kits now in DB (slot ${sceneIndex ?? 'append'})`);
-        return currentKits;
-    } catch (error) {
-        console.error(`❌ [KIT_V2] Progressive save error:`, error.message);
-        return null;
     }
+    return null;
 }
 
 // ─── Parse Gemini response to extract prompts (JSON format) ───

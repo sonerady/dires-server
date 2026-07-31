@@ -391,36 +391,55 @@ async function updateUnboxingStoriesForRecord(recordId, storyImages) {
 }
 
 // Append a single unboxing image URL to reference_results.unboxing_stories (progressive save)
+// 🔁 Retry'lı: geçici ağ hataları (fetch failed / stream aborted) sahne slotunu
+// kaybettirmesin. "Kayıt gerçekten yok" ile "sorgu ağ hatasıyla düştü" ayrı loglanır.
 async function appendUnboxingToRecord(recordId, imageUrl, sceneIndex) {
-    const { data: existing, error: findError } = await supabase
-        .from("reference_results")
-        .select("id, unboxing_stories")
-        .eq("generation_id", recordId)
-        .maybeSingle();
+    const MAX_ATTEMPTS = 3;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+            const { data: existing, error: findError } = await supabase
+                .from("reference_results")
+                .select("id, unboxing_stories")
+                .eq("generation_id", recordId)
+                .maybeSingle();
 
-    if (findError || !existing) {
-        console.warn(`⚠️ [APPEND_UNBOXING] No reference_results row for recordId=${recordId} — unboxing slot ${sceneIndex} won't be visible to polling`);
-        return null;
+            if (findError) throw new Error(`lookup failed: ${findError.message}`);
+
+            if (!existing) {
+                console.warn(`⚠️ [APPEND_UNBOXING] reference_results'ta kayıt GERÇEKTEN yok (recordId=${recordId}) — unboxing slot ${sceneIndex} polling'e görünmeyecek`);
+                return null; // kayıt yoksa retry anlamsız
+            }
+
+            let current = Array.isArray(existing.unboxing_stories) ? [...existing.unboxing_stories] : [];
+
+            if (sceneIndex !== undefined && sceneIndex !== null) {
+                // Position-preserved: place at correct slot
+                while (current.length <= sceneIndex) current.push(null);
+                current[sceneIndex] = imageUrl;
+            } else {
+                // Legacy fallback: append
+                if (current.includes(imageUrl)) return null;
+                current.push(imageUrl);
+            }
+
+            const { error: updateError } = await supabase
+                .from("reference_results")
+                .update({ unboxing_stories: current })
+                .eq("id", existing.id);
+
+            if (updateError) throw new Error(`update failed: ${updateError.message}`);
+
+            return current;
+        } catch (e) {
+            if (attempt === MAX_ATTEMPTS) {
+                console.error(`❌ [APPEND_UNBOXING] ${MAX_ATTEMPTS} deneme başarısız (recordId=${recordId}, slot ${sceneIndex}) — muhtemel geçici ağ hatası: ${e.message}`);
+                return null;
+            }
+            console.warn(`🔁 [APPEND_UNBOXING] attempt ${attempt} failed (${e.message}) — ${attempt}sn sonra tekrar...`);
+            await new Promise((r) => setTimeout(r, 1000 * attempt));
+        }
     }
-
-    let current = Array.isArray(existing.unboxing_stories) ? [...existing.unboxing_stories] : [];
-
-    if (sceneIndex !== undefined && sceneIndex !== null) {
-        // Position-preserved: place at correct slot
-        while (current.length <= sceneIndex) current.push(null);
-        current[sceneIndex] = imageUrl;
-    } else {
-        // Legacy fallback: append
-        if (current.includes(imageUrl)) return null;
-        current.push(imageUrl);
-    }
-
-    await supabase
-        .from("reference_results")
-        .update({ unboxing_stories: current })
-        .eq("id", existing.id);
-
-    return current;
+    return null;
 }
 
 // Save product unboxing story to database

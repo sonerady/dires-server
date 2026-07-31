@@ -33,6 +33,10 @@ const {
   isSafetyTestUser,
   SAFETY_SYSTEM_PROMPT,
 } = require("../utils/nudityGuard");
+const {
+  sanitizePromptForContentFilter,
+  isContentFilter422,
+} = require("../utils/promptContentFilter");
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -4870,6 +4874,7 @@ router.post("/generate", async (req, res) => {
       modelPhoto = null,
       sizeReferenceImage = null, // 📏 SizeEditor'dan gelen boyut referans görseli (canvas çıktısı)
       kombinOriginalImages = null, // 📸 Kombin: grid'e ek olarak orijinal tekil ürün resimleri
+      angleOriginalImages = null, // 📐 Çoklu açı: grid'e ek olarak orijinal açı fotoğrafları (detay sadakati)
       isMultipleAnglesMode = false, // 📐 Aynı ürünün farklı açılarından oluşturulan grid
       multipleAnglesCount = 0, // 📐 Grid içindeki açı sayısı
       styleReferenceImage = null, // 🎬 Stil referansı: ortam/ışık/kamera/poz bu görselden birebir kopyalanır
@@ -4895,6 +4900,74 @@ router.post("/generate", async (req, res) => {
           message: "At most 6 different-angle photos are allowed.",
         },
       });
+    }
+
+    // 🛡️ BOŞ GRID GUARD — kombin / çoklu açı modunda client'ın gönderdiği
+    // kompozit grid bazen BEMBEYAZ gelebiliyor (ViewShot, resimler decode
+    // edilmeden capture aldığında — canlıda görüldü: model kıyafeti uydurup
+    // CGI görünümlü sonuç üretti). Neredeyse tek renk bir referansla üretime
+    // hiç başlama: model çağrısından ve kayıttan ÖNCE anlaşılır hatayla
+    // reddet (kredi pay-on-success olduğu için kredi de yanmaz).
+    const isCompositeGridInput =
+      isMultipleAnglesMode || Boolean(req.body.isKombinMode);
+    if (
+      isCompositeGridInput &&
+      Array.isArray(referenceImages) &&
+      referenceImages[0]
+    ) {
+      try {
+        const firstRef = referenceImages[0];
+        let gridBuffer = null;
+        if (typeof firstRef?.base64 === "string" && firstRef.base64.length > 0) {
+          gridBuffer = Buffer.from(
+            firstRef.base64.replace(/^data:image\/[a-z]+;base64,/i, ""),
+            "base64",
+          );
+        } else {
+          const gridUrl = sanitizeImageUrl(
+            firstRef?.uri || firstRef?.url || firstRef,
+          );
+          if (typeof gridUrl === "string" && gridUrl.startsWith("http")) {
+            const gridResp = await axios.get(gridUrl, {
+              responseType: "arraybuffer",
+              timeout: 15000,
+            });
+            gridBuffer = Buffer.from(gridResp.data);
+          }
+        }
+
+        if (gridBuffer) {
+          const gridStats = await sharp(gridBuffer).stats();
+          // Tamamen boş (tek renk) capture'da tüm kanalların stdev'i ~0 olur.
+          // Eşik 2.5 bilinçli olarak düşük: beyaz zeminli gerçek ürün
+          // fotoğraflarında bile gölge/kenar kontrastı stdev'i 5+ yapar.
+          const maxChannelStdev = Math.max(
+            ...gridStats.channels.map((c) => c.stdev),
+          );
+          if (maxChannelStdev < 2.5) {
+            logger.error(
+              `🛡️ [BLANK GRID GUARD] Kompozit referans neredeyse tek renk (max stdev: ${maxChannelStdev.toFixed(2)}) — üretim reddediliyor`,
+            );
+            return res.status(400).json({
+              success: false,
+              result: {
+                errorCode: "BLANK_REFERENCE_GRID",
+                message:
+                  "Your product photos could not be processed (the combined reference image is blank). Please try generating again.",
+              },
+            });
+          }
+          logger.log(
+            `🛡️ [BLANK GRID GUARD] Kompozit referans sağlıklı (max stdev: ${maxChannelStdev.toFixed(1)})`,
+          );
+        }
+      } catch (guardErr) {
+        // Kontrol edilemiyorsa üretimi bloklama — bu yalnızca güvenlik ağı
+        logger.warn(
+          "🛡️ [BLANK GRID GUARD] Kontrol yapılamadı, devam ediliyor:",
+          guardErr?.message,
+        );
+      }
     }
 
     // Kalite versiyonu kontrolü (settings'ten al) - Refiner modunda v1'e zorla
@@ -5952,29 +6025,34 @@ Do NOT describe the person's face/identity or the garments. PLAIN TEXT only, 100
     logger.log("✅ Gemini prompt iyileştirme tamamlandı");
 
     // 🎯 Focus area — Gemini rewrite edip kaldırmış olabileceği için enhancedPrompt'un
-    // EN BAŞINA pazarlıksız olarak yeniden yerleştir. Gemini direktifi zaten ilk satıra
-    // kopyaladıysa tekrar eklemiyoruz (duplicate engeli).
+    // EN BAŞINA pazarlıksız olarak yeniden yerleştir. Gemini direktifi bazen başa
+    // koymak yerine kendi cümlesinin İÇİNE de kopyalıyor ("adhering strictly to the
+    // framing directive: ⚠️ ..."); startsWith kontrolü bunu görmüyordu ve final
+    // prompt'ta aynı blok İKİ kez geçiyordu. Artık: gövdedeki TÜM kopyalar
+    // temizlenir, sonra direktif başa bir kez konur.
     {
       const focusDir = buildFocusAreaDirective(settings?.focusArea);
       if (focusDir) {
-        const marker = "⚠️ STRICT FRAMING DIRECTIVE";
-        const trimmed = (enhancedPrompt || "").trimStart();
-        // Gemini direktifi prompt'un en başına koyduysa tekrar ekleme (duplicate önle).
-        // Eğer başa değil de ortaya gömdüyse (nadir), ek prepend karakter israfı ama
-        // işlevsel olarak sorun değil — direktif hala görülür.
-        if (trimmed.startsWith(marker)) {
+        let body = enhancedPrompt || "";
+        const beforeLen = body.length;
+        // Gemini direktifi genellikle birebir kopyalıyor — tam metin eşleşmesiyle
+        // tüm kopyaları sök (başındaki/ortadaki fark etmez).
+        body = body.split(focusDir.trim()).join("").trimStart();
+        // Kalıntı bağlaç temizliği: "adhering strictly to the framing directive: "
+        // gibi direktife işaret eden yarım kalmış ifadeler sorun değil — model
+        // baştaki gerçek direktifi görecek.
+        if (body.length !== beforeLen) {
           logger.log(
-            "🎯 [FOCUS AREA] Direktif zaten prompt başında — duplicate eklenmedi",
-          );
-        } else {
-          enhancedPrompt = `${focusDir}
-
-${enhancedPrompt || ""}`;
-          logger.log(
-            "🎯 [FOCUS AREA] enhancedPrompt'un başına sert direktif eklendi:",
-            settings?.focusArea,
+            "🎯 [FOCUS AREA] Gövdeye gömülü direktif kopyaları temizlendi",
           );
         }
+        enhancedPrompt = `${focusDir}
+
+${body}`;
+        logger.log(
+          "🎯 [FOCUS AREA] enhancedPrompt'un başına sert direktif (tek kopya) yerleştirildi:",
+          settings?.focusArea,
+        );
       }
     }
 
@@ -5997,11 +6075,15 @@ KOMBIN REFERENCE IMAGES: In addition to the main combined grid image, ${kombinOr
     }
 
     if (isMultipleAnglesMode && multipleAnglesCount > 1) {
+      const hasAngleOriginals =
+        Array.isArray(angleOriginalImages) && angleOriginalImages.length > 0;
       enhancedPrompt += `
 
-MULTIPLE-ANGLE PRODUCT REFERENCE: The main composite grid contains ${multipleAnglesCount} views of the same single product. Use all cells only to reconstruct that one product faithfully from every visible side. The final photograph contains one instance of the product, never multiple garments, duplicates, or a collage.`;
+MULTIPLE-ANGLE PRODUCT REFERENCE: The main composite grid contains ${multipleAnglesCount} views of the same single product. Use all cells only to reconstruct that one product faithfully from every visible side.${hasAngleOriginals
+        ? ` In addition to the grid, ${angleOriginalImages.length} full-resolution individual photo(s) of the same product are attached — use these for faithful fine-detail reproduction (exact colors, prints, stitching, trims, fabric texture, proportions). Do NOT invent or alter any product detail that is not visible in these photos.`
+        : ""} The final photograph contains one instance of the product, never multiple garments, duplicates, or a collage.`;
       logger.log(
-        `📐 [MULTIPLE ANGLES] ${multipleAnglesCount} açılık tek ürün direktifi enhancedPrompt'a eklendi`,
+        `📐 [MULTIPLE ANGLES] ${multipleAnglesCount} açılık tek ürün direktifi enhancedPrompt'a eklendi${hasAngleOriginals ? ` (+${angleOriginalImages.length} orijinal foto direktifi)` : ""}`,
       );
     }
 
@@ -6288,6 +6370,49 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
       }
     }
 
+    // 📐 Çoklu açı originals — grid ~1024px/hücreye sıkıştığı için ince detaylar
+    // (dikiş, baskı, doku) kayboluyordu; orijinal açı fotoğrafları da upload
+    // edilip modele grid'in yanında ek referans olarak verilir (kombin pattern'ı)
+    let angleOriginalUrls = [];
+    if (
+      Array.isArray(angleOriginalImages) &&
+      angleOriginalImages.length > 0
+    ) {
+      logger.log(
+        `📐 [ANGLE ORIG] ${angleOriginalImages.length} orijinal açı fotoğrafı upload ediliyor...`,
+      );
+      for (let i = 0; i < angleOriginalImages.length; i++) {
+        const orig = angleOriginalImages[i];
+        try {
+          let origSource = null;
+          if (orig?.base64) {
+            const cleanB64 = String(orig.base64).replace(
+              /^data:image\/\w+;base64,/,
+              "",
+            );
+            origSource = `data:image/jpeg;base64,${cleanB64}`;
+          } else if (orig?.uri && /^https?:\/\//i.test(orig.uri)) {
+            origSource = orig.uri;
+          }
+          if (!origSource) continue;
+          const origUrl = await uploadReferenceImageToSupabase(
+            origSource,
+            userId,
+          );
+          angleOriginalUrls.push(origUrl);
+          logger.log(
+            `📐 [ANGLE ORIG] Açı ${i + 1}/${angleOriginalImages.length} upload OK:`,
+            origUrl,
+          );
+        } catch (origUpErr) {
+          logger.warn(
+            `📐 [ANGLE ORIG] Açı ${i + 1} upload hatası:`,
+            origUpErr?.message,
+          );
+        }
+      }
+    }
+
     // 📏 Size reference image — nano-banana için beyaz arka plan üzerine composite edip
     // altına "SIZE REFERENCE" başlıklı şerit ekleyip Supabase'e upload edip public URL al
     let sizeReferenceUrl = null;
@@ -6397,8 +6522,12 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
     const maxRetries = 3;
     let totalRetryAttempts = 0;
     let retryReasons = [];
+    // 🛡️ 422 güvenlik ağı: normal denemeler (aynı prompt) tükendikten sonra
+    // içerik filtresine takılmaya devam ediyorsa, yaş/ten ibareleri temizlenmiş
+    // prompt'la BİR ekstra deneme yapılır (maxRetries + 1. tur).
+    let sanitizedRetryUsed = false;
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
       try {
         logger.log(
           `🔄 Fal.ai nano-banana API attempt ${attempt}/${maxRetries}`,
@@ -6485,6 +6614,15 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
           imageInputArray = [...(imageInputArray || []), ...kombinOriginalUrls];
           logger.log(
             `📸 [KOMBİN ORIG] ${kombinOriginalUrls.length} tekil ürün imageInputArray'e eklendi, toplam:`,
+            imageInputArray.length,
+          );
+        }
+
+        // 📐 Çoklu açı originals — orijinal açı fotoğraflarını grid'in yanına ek referans olarak ekle
+        if (angleOriginalUrls && angleOriginalUrls.length > 0) {
+          imageInputArray = [...(imageInputArray || []), ...angleOriginalUrls];
+          logger.log(
+            `📐 [ANGLE ORIG] ${angleOriginalUrls.length} orijinal açı fotoğrafı imageInputArray'e eklendi, toplam:`,
             imageInputArray.length,
           );
         }
@@ -6836,20 +6974,43 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
           throw apiError; // Timeout hatası için retry yok
         }
 
-        // Son deneme değilse ve network hataları veya geçici hatalar ise tekrar dene
+        // Son deneme değilse ve network hataları, geçici hatalar veya içerik
+        // filtresi (422) ise AYNI prompt'la tekrar dene — 422 bazen aynı
+        // prompt'un sonraki denemesinde geçebiliyor (filtre deterministik değil)
         if (
           attempt < maxRetries &&
           (apiError.code === "ECONNRESET" ||
             apiError.code === "ENOTFOUND" ||
             apiError.response?.status >= 500 ||
-            apiError.message.includes("RETRYABLE_SERVICE_ERROR"))
+            apiError.message.includes("RETRYABLE_SERVICE_ERROR") ||
+            isContentFilter422(apiError))
         ) {
           totalRetryAttempts++;
+          if (isContentFilter422(apiError)) {
+            retryReasons.push(`422 content filter (attempt ${attempt})`);
+          }
           const waitTime = attempt * 2000; // 2s, 4s, 6s bekle
           logger.log(
             `⏳ ${waitTime}ms bekleniyor, sonra tekrar denenecek... (${attempt}/${maxRetries})`,
           );
           await new Promise((resolve) => setTimeout(resolve, waitTime));
+          continue;
+        }
+
+        // 🛡️ SON ŞANS — normal denemeler tükendi ama hata hâlâ 422 (içerik
+        // filtresi): prompt'tan yaş ibareleri + ten tasvirli cümleler ayıklanıp
+        // BİR kez daha denenir. Canlı örnek: "17 years old ... bare shoulders
+        // and back" kombinasyonu filtreye takılıp üretimi tamamen düşürüyordu.
+        if (isContentFilter422(apiError) && !sanitizedRetryUsed) {
+          sanitizedRetryUsed = true;
+          totalRetryAttempts++;
+          retryReasons.push("422 content filter → sanitized prompt (final)");
+          const before = enhancedPrompt.length;
+          enhancedPrompt = sanitizePromptForContentFilter(enhancedPrompt);
+          logger.log(
+            `🛡️ [422 SAFETY NET] İçerik filtresi ${maxRetries} denemede geçilemedi — prompt temizlendi (${before} → ${enhancedPrompt.length} karakter), son bir deneme yapılıyor`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, 2000));
           continue;
         }
 
@@ -8465,6 +8626,48 @@ router.get("/generation/:generationId/reference-images", async (req, res) => {
         message: "Reference images sorgulanırken hata oluştu",
         error: error.message,
       },
+    });
+  }
+});
+
+// 🎬 Stil referansı geçmişi — kullanıcının daha önce üretimde KULLANDIĞI tekil
+// stil referansı fotoğrafları (style_source='upload'; profil grid kolajları
+// hariç). URL'ler üretim sırasında Supabase'e kalıcılaştırıldığı için geçmişten
+// yeniden seçim her zaman çalışır. Tekrar eden URL'ler tekilleştirilir.
+router.get("/style-reference-history/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    if (!userId || userId === "anonymous_user") {
+      return res.status(200).json({ success: true, items: [] });
+    }
+
+    const { data, error } = await supabase
+      .from("reference_results")
+      .select("style_reference_url, created_at")
+      .eq("user_id", userId)
+      .eq("style_source", "upload")
+      .not("style_reference_url", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(60);
+
+    if (error) throw error;
+
+    const seen = new Set();
+    const items = [];
+    for (const row of data || []) {
+      if (!row.style_reference_url || seen.has(row.style_reference_url)) continue;
+      seen.add(row.style_reference_url);
+      items.push({ url: row.style_reference_url, createdAt: row.created_at });
+      if (items.length >= 24) break;
+    }
+
+    return res.status(200).json({ success: true, items });
+  } catch (error) {
+    console.error("❌ [STYLE_REF_HISTORY] Endpoint hatası:", error?.message);
+    return res.status(500).json({
+      success: false,
+      items: [],
+      error: error?.message,
     });
   }
 });

@@ -1414,8 +1414,27 @@ router.get("/all/:userId", async (req, res) => {
       ),
     );
 
+    // 🔁 Dedupe — backside akışı aynı sonucu HEM reference_results'a HEM
+    // back_side_generations'a yazıyor; ALL sekmesinde aynı görsel iki kez
+    // görünmesin. Aynı result URL'den reference_results versiyonu tercih
+    // edilir (kits/stories/netleştirme gibi zengin alanları o taşır).
+    const seenByUrl = new Map();
+    for (const row of results.flat()) {
+      const key =
+        row?.result_image_url || row?.result_video_url || `${row?.item_type}:${row?.id}`;
+      const existing = seenByUrl.get(key);
+      if (!existing) {
+        seenByUrl.set(key, row);
+      } else if (
+        existing.item_type !== "reference_results" &&
+        row.item_type === "reference_results"
+      ) {
+        seenByUrl.set(key, row);
+      }
+    }
+
     // Merge + sort
-    let merged = results.flat().sort((a, b) => {
+    let merged = [...seenByUrl.values()].sort((a, b) => {
       const aT = new Date(a.created_at).getTime();
       const bT = new Date(b.created_at).getTime();
       return ascending ? aT - bT : bT - aT;

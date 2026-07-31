@@ -18,6 +18,10 @@ const logger = require("../utils/logger");
 const { optimizeImageUrl } = require("../utils/imageOptimizer");
 const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
 const { applyResultUpscale } = require("../utils/resultUpscale");
+const {
+  sanitizePromptForContentFilter,
+  isContentFilter422,
+} = require("../utils/promptContentFilter");
 
 // 🔄 BACK SIDE FALLBACK PROMPT — Gemini enhance başarısız olduğunda kullanılır.
 // Genel fallback "flat-lay garment onto a model" (ÖN yüz) kurgusundadır ve arka
@@ -4844,8 +4848,12 @@ router.post("/generate", async (req, res) => {
     const maxRetries = 3;
     let totalRetryAttempts = 0;
     let retryReasons = [];
+    // 🛡️ 422 güvenlik ağı: normal denemeler (aynı prompt) tükendikten sonra
+    // içerik filtresine takılmaya devam ediyorsa, yaş/ten ibareleri temizlenmiş
+    // prompt'la BİR ekstra deneme yapılır (maxRetries + 1. tur).
+    let sanitizedRetryUsed = false;
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
       try {
         logger.log(
           `🔄 Fal.ai nano-banana API attempt ${attempt}/${maxRetries}`
@@ -5075,20 +5083,44 @@ router.post("/generate", async (req, res) => {
           throw apiError; // Timeout hatası için retry yok
         }
 
-        // Son deneme değilse ve network hataları veya geçici hatalar ise tekrar dene
+        // Son deneme değilse ve network hataları, geçici hatalar veya içerik
+        // filtresi (422) ise AYNI prompt'la tekrar dene — 422 bazen aynı
+        // prompt'un sonraki denemesinde geçebiliyor (filtre deterministik değil)
         if (
           attempt < maxRetries &&
           (apiError.code === "ECONNRESET" ||
             apiError.code === "ENOTFOUND" ||
             apiError.response?.status >= 500 ||
-            apiError.message.includes("RETRYABLE_SERVICE_ERROR"))
+            apiError.message.includes("RETRYABLE_SERVICE_ERROR") ||
+            isContentFilter422(apiError))
         ) {
           totalRetryAttempts++;
+          if (isContentFilter422(apiError)) {
+            retryReasons.push(`422 content filter (attempt ${attempt})`);
+          }
           const waitTime = attempt * 2000; // 2s, 4s, 6s bekle
           logger.log(
             `⏳ ${waitTime}ms bekleniyor, sonra tekrar denenecek... (${attempt}/${maxRetries})`
           );
           await new Promise((resolve) => setTimeout(resolve, waitTime));
+          continue;
+        }
+
+        // 🛡️ SON ŞANS — normal denemeler tükendi ama hata hâlâ 422 (içerik
+        // filtresi): prompt'tan yaş ibareleri + ten tasvirli cümleler ayıklanıp
+        // BİR kez daha denenir (üretim kaybolmasın). truncation + back-view
+        // suffix her attempt'ta enhancedPrompt'tan yeniden kurulduğu için
+        // temizlenmiş prompt bir sonraki turda otomatik devreye girer.
+        if (isContentFilter422(apiError) && !sanitizedRetryUsed) {
+          sanitizedRetryUsed = true;
+          totalRetryAttempts++;
+          retryReasons.push("422 content filter → sanitized prompt (final)");
+          const before = enhancedPrompt.length;
+          enhancedPrompt = sanitizePromptForContentFilter(enhancedPrompt);
+          logger.log(
+            `🛡️ [422 SAFETY NET] İçerik filtresi ${maxRetries} denemede geçilemedi — prompt temizlendi (${before} → ${enhancedPrompt.length} karakter), son bir deneme yapılıyor`
+          );
+          await new Promise((resolve) => setTimeout(resolve, 2000));
           continue;
         }
 

@@ -320,36 +320,55 @@ async function updateStoriesForRecord(recordId, storyImages) {
 }
 
 // Append a single story image URL to reference_results.stories (progressive save)
+// 🔁 Retry'lı: geçici ağ hataları (fetch failed / stream aborted) sahne slotunu
+// kaybettirmesin. "Kayıt gerçekten yok" ile "sorgu ağ hatasıyla düştü" ayrı loglanır.
 async function appendStoryToRecord(recordId, imageUrl, sceneIndex) {
-    const { data: existing, error: findError } = await supabase
-        .from("reference_results")
-        .select("id, stories")
-        .eq("generation_id", recordId)
-        .maybeSingle();
+    const MAX_ATTEMPTS = 3;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+            const { data: existing, error: findError } = await supabase
+                .from("reference_results")
+                .select("id, stories")
+                .eq("generation_id", recordId)
+                .maybeSingle();
 
-    if (findError || !existing) {
-        console.warn(`⚠️ [APPEND_STORY] No reference_results row for recordId=${recordId} — story slot ${sceneIndex} won't be visible to polling`);
-        return null;
+            if (findError) throw new Error(`lookup failed: ${findError.message}`);
+
+            if (!existing) {
+                console.warn(`⚠️ [APPEND_STORY] reference_results'ta kayıt GERÇEKTEN yok (recordId=${recordId}) — story slot ${sceneIndex} polling'e görünmeyecek`);
+                return null; // kayıt yoksa retry anlamsız
+            }
+
+            let currentStories = Array.isArray(existing.stories) ? [...existing.stories] : [];
+
+            if (sceneIndex !== undefined && sceneIndex !== null) {
+                // Position-preserved: place at correct slot
+                while (currentStories.length <= sceneIndex) currentStories.push(null);
+                currentStories[sceneIndex] = imageUrl;
+            } else {
+                // Legacy fallback: append
+                if (currentStories.includes(imageUrl)) return null;
+                currentStories.push(imageUrl);
+            }
+
+            const { error: updateError } = await supabase
+                .from("reference_results")
+                .update({ stories: currentStories })
+                .eq("id", existing.id);
+
+            if (updateError) throw new Error(`update failed: ${updateError.message}`);
+
+            return currentStories;
+        } catch (e) {
+            if (attempt === MAX_ATTEMPTS) {
+                console.error(`❌ [APPEND_STORY] ${MAX_ATTEMPTS} deneme başarısız (recordId=${recordId}, slot ${sceneIndex}) — muhtemel geçici ağ hatası: ${e.message}`);
+                return null;
+            }
+            console.warn(`🔁 [APPEND_STORY] attempt ${attempt} failed (${e.message}) — ${attempt}sn sonra tekrar...`);
+            await new Promise((r) => setTimeout(r, 1000 * attempt));
+        }
     }
-
-    let currentStories = Array.isArray(existing.stories) ? [...existing.stories] : [];
-
-    if (sceneIndex !== undefined && sceneIndex !== null) {
-        // Position-preserved: place at correct slot
-        while (currentStories.length <= sceneIndex) currentStories.push(null);
-        currentStories[sceneIndex] = imageUrl;
-    } else {
-        // Legacy fallback: append
-        if (currentStories.includes(imageUrl)) return null;
-        currentStories.push(imageUrl);
-    }
-
-    await supabase
-        .from("reference_results")
-        .update({ stories: currentStories })
-        .eq("id", existing.id);
-
-    return currentStories;
+    return null;
 }
 
 // Save product story to database (product_stories table)
