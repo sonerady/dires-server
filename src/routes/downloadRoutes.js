@@ -203,8 +203,31 @@ async function addWatermarkToImage(imageUrl) {
     });
     ctx.restore();
 
-    // ALT bant: şeffaftan siyaha gradient + ortasında yuvarlatılmış app ikonu
-    const bandHeight = Math.round(imageHeight * 0.16);
+    // ALT bant: şeffaftan siyaha gradient + app ikonu + PRO çağrısı
+    const shortEdge = Math.min(imageWidth, imageHeight);
+    const iconSize = Math.round(shortEdge * 0.135);
+    const ctaGap = Math.round(shortEdge * 0.022); // ikon ile yazı arası
+    const bottomGap = Math.round(shortEdge * 0.045); // yazının altındaki pay
+
+    // CTA yazısı: tek satır, asla alt satıra kaymaz — sığmazsa punto küçülür.
+    // Metin İngilizce ve olabildiğince yalın; ana dili İngilizce olmayan
+    // kullanıcılar da "upgrade" ve "PRO" kelimelerini tanıyor.
+    const ctaText = "UPGRADE TO PRO";
+    let ctaFontSize = Math.round(shortEdge * 0.045);
+    ctx.font = `${ctaFontSize}px "${WATERMARK_FONT_FAMILY}"`;
+    const maxCtaWidth = imageWidth * 0.82;
+    if (ctx.measureText(ctaText).width > maxCtaWidth) {
+      ctaFontSize = Math.floor(
+        ctaFontSize * (maxCtaWidth / ctx.measureText(ctaText).width)
+      );
+      ctx.font = `${ctaFontSize}px "${WATERMARK_FONT_FAMILY}"`;
+    }
+
+    const blockHeight = iconSize + ctaGap + ctaFontSize;
+    // Bant, içeriği rahat sarmalayacak kadar yüksek olsun
+    const bandHeight = Math.round(
+      Math.max(imageHeight * 0.16, blockHeight + bottomGap * 2.4)
+    );
     const bandTop = imageHeight - bandHeight;
     const bandGradient = ctx.createLinearGradient(0, bandTop, 0, imageHeight);
     FADE_STOPS.forEach(([stop, alpha]) => {
@@ -216,13 +239,12 @@ async function addWatermarkToImage(imageUrl) {
     ctx.fillRect(0, bandTop, imageWidth, bandHeight);
     ctx.restore();
 
-    // App ikonu — bandın alt-orta kısmına, iOS köşe yuvarlaklığında
+    const blockTop = imageHeight - bottomGap - blockHeight;
+
+    // App ikonu — iOS köşe yuvarlaklığında
     if (appIconImage) {
-      const iconSize = Math.round(Math.min(imageWidth, imageHeight) * 0.135);
       const iconX = Math.round((imageWidth - iconSize) / 2);
-      // Alt kenara yakın dursun: ikonun altında görselin kısa kenarının ~%4'ü kadar pay
-      const bottomGap = Math.round(Math.min(imageWidth, imageHeight) * 0.04);
-      const iconY = Math.round(imageHeight - bottomGap - iconSize);
+      const iconY = blockTop;
       const radius = iconSize * 0.225; // iOS squircle'a yakın oran
 
       ctx.save();
@@ -242,6 +264,19 @@ async function addWatermarkToImage(imageUrl) {
       ctx.drawImage(appIconImage, iconX, iconY, iconSize, iconSize);
       ctx.restore();
     }
+
+    // PRO çağrısı — ikonun altında
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.font = `${ctaFontSize}px "${WATERMARK_FONT_FAMILY}"`;
+    ctx.globalAlpha = 1;
+    ctx.shadowColor = "rgba(0,0,0,0.6)";
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetY = 2;
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillText(ctaText, imageWidth / 2, blockTop + iconSize + ctaGap);
+    ctx.restore();
 
     // Canvas'ı buffer'a çevir
     const watermarkedBuffer = canvas.toBuffer("image/png");
