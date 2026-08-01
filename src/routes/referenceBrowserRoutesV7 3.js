@@ -37,11 +37,6 @@ const {
   sanitizePromptForContentFilter,
   isContentFilter422,
 } = require("../utils/promptContentFilter");
-// 🛡️ Boş (bembeyaz) referans kolajını üretim başlamadan yakalar
-const {
-  isBlankImage,
-  BLANK_REFERENCE_RESPONSE,
-} = require("../utils/blankReferenceGuard");
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -4911,10 +4906,8 @@ router.post("/generate", async (req, res) => {
     // kompozit grid bazen BEMBEYAZ gelebiliyor (ViewShot, resimler decode
     // edilmeden capture aldığında — canlıda görüldü: model kıyafeti uydurup
     // CGI görünümlü sonuç üretti). Neredeyse tek renk bir referansla üretime
-    // hiç başlama: model çağrısından ve kayıttan ÖNCE reddet (kredi
-    // pay-on-success olduğu için kredi de yanmaz).
-    // Ortak util: utils/blankReferenceGuard — changePose ve backSideCloset de
-    // aynı kontrolü kullanıyor.
+    // hiç başlama: model çağrısından ve kayıttan ÖNCE anlaşılır hatayla
+    // reddet (kredi pay-on-success olduğu için kredi de yanmaz).
     const isCompositeGridInput =
       isMultipleAnglesMode || Boolean(req.body.isKombinMode);
     if (
@@ -4922,13 +4915,58 @@ router.post("/generate", async (req, res) => {
       Array.isArray(referenceImages) &&
       referenceImages[0]
     ) {
-      const blankGrid = await isBlankImage(
-        referenceImages[0],
-        sanitizeImageUrl,
-        "BLANK GRID GUARD",
-      );
-      if (blankGrid === true) {
-        return res.status(400).json(BLANK_REFERENCE_RESPONSE);
+      try {
+        const firstRef = referenceImages[0];
+        let gridBuffer = null;
+        if (typeof firstRef?.base64 === "string" && firstRef.base64.length > 0) {
+          gridBuffer = Buffer.from(
+            firstRef.base64.replace(/^data:image\/[a-z]+;base64,/i, ""),
+            "base64",
+          );
+        } else {
+          const gridUrl = sanitizeImageUrl(
+            firstRef?.uri || firstRef?.url || firstRef,
+          );
+          if (typeof gridUrl === "string" && gridUrl.startsWith("http")) {
+            const gridResp = await axios.get(gridUrl, {
+              responseType: "arraybuffer",
+              timeout: 15000,
+            });
+            gridBuffer = Buffer.from(gridResp.data);
+          }
+        }
+
+        if (gridBuffer) {
+          const gridStats = await sharp(gridBuffer).stats();
+          // Tamamen boş (tek renk) capture'da tüm kanalların stdev'i ~0 olur.
+          // Eşik 2.5 bilinçli olarak düşük: beyaz zeminli gerçek ürün
+          // fotoğraflarında bile gölge/kenar kontrastı stdev'i 5+ yapar.
+          const maxChannelStdev = Math.max(
+            ...gridStats.channels.map((c) => c.stdev),
+          );
+          if (maxChannelStdev < 2.5) {
+            logger.error(
+              `🛡️ [BLANK GRID GUARD] Kompozit referans neredeyse tek renk (max stdev: ${maxChannelStdev.toFixed(2)}) — üretim reddediliyor`,
+            );
+            return res.status(400).json({
+              success: false,
+              result: {
+                errorCode: "BLANK_REFERENCE_GRID",
+                message:
+                  "Your product photos could not be processed (the combined reference image is blank). Please try generating again.",
+              },
+            });
+          }
+          logger.log(
+            `🛡️ [BLANK GRID GUARD] Kompozit referans sağlıklı (max stdev: ${maxChannelStdev.toFixed(1)})`,
+          );
+        }
+      } catch (guardErr) {
+        // Kontrol edilemiyorsa üretimi bloklama — bu yalnızca güvenlik ağı
+        logger.warn(
+          "🛡️ [BLANK GRID GUARD] Kontrol yapılamadı, devam ediliyor:",
+          guardErr?.message,
+        );
       }
     }
 
@@ -8588,48 +8626,6 @@ router.get("/generation/:generationId/reference-images", async (req, res) => {
         message: "Reference images sorgulanırken hata oluştu",
         error: error.message,
       },
-    });
-  }
-});
-
-// 🎬 Stil referansı geçmişi — kullanıcının daha önce üretimde KULLANDIĞI tekil
-// stil referansı fotoğrafları (style_source='upload'; profil grid kolajları
-// hariç). URL'ler üretim sırasında Supabase'e kalıcılaştırıldığı için geçmişten
-// yeniden seçim her zaman çalışır. Tekrar eden URL'ler tekilleştirilir.
-router.get("/style-reference-history/:userId", async (req, res) => {
-  try {
-    const { userId } = req.params;
-    if (!userId || userId === "anonymous_user") {
-      return res.status(200).json({ success: true, items: [] });
-    }
-
-    const { data, error } = await supabase
-      .from("reference_results")
-      .select("style_reference_url, created_at")
-      .eq("user_id", userId)
-      .eq("style_source", "upload")
-      .not("style_reference_url", "is", null)
-      .order("created_at", { ascending: false })
-      .limit(60);
-
-    if (error) throw error;
-
-    const seen = new Set();
-    const items = [];
-    for (const row of data || []) {
-      if (!row.style_reference_url || seen.has(row.style_reference_url)) continue;
-      seen.add(row.style_reference_url);
-      items.push({ url: row.style_reference_url, createdAt: row.created_at });
-      if (items.length >= 24) break;
-    }
-
-    return res.status(200).json({ success: true, items });
-  } catch (error) {
-    console.error("❌ [STYLE_REF_HISTORY] Endpoint hatası:", error?.message);
-    return res.status(500).json({
-      success: false,
-      items: [],
-      error: error?.message,
     });
   }
 });

@@ -22,14 +22,34 @@ const {
   sanitizePromptForContentFilter,
   isContentFilter422,
 } = require("../utils/promptContentFilter");
+// 🛡️ Boş (bembeyaz) referans görselini üretim başlamadan yakalar
+const {
+  isBlankImage,
+  BLANK_REFERENCE_RESPONSE,
+} = require("../utils/blankReferenceGuard");
 
 // 🔄 BACK SIDE FALLBACK PROMPT — Gemini enhance başarısız olduğunda kullanılır.
 // Genel fallback "flat-lay garment onto a model" (ÖN yüz) kurgusundadır ve arka
 // görünüm talimatı içermez; back side modunda o fallback'e düşmek kullanıcıya
 // ÖN pozlu sonuç döndürüyordu (bildirilen bug). Bu prompt iki resimli back side
 // girdisine (1: modelli ön çekim, 2: arka tasarım ürün fotoğrafı) özel yazılmıştır.
-const buildBackSideFallbackPrompt = (poseDescription = "", environmentDescription = "") =>
-  `Replace the front-facing pose with a full back view: the same model from the first image, wearing the exact same garment, photographed from directly behind, turned a full 180 degrees so their back faces the camera${poseDescription}${environmentDescription}. Reproduce the back design shown in the back-design reference images (every image after the first) exactly — every graphic, print, lettering, pattern placement and scale, yoke seams and back hem — spread naturally across the model's back and following the body's real curvature. Keep the model's identity, hairstyle, skin tone, body proportions, the background scene, lighting direction and color temperature identical to the first image. The model stands in a natural, confident back-view editorial stance with their back fully to the camera and weight settled onto one leg. Camera positioned directly behind the model at chest height, focus locked on the back panel so the back design is rendered tack-sharp. The garment appears realistic with natural drape, folds along the shoulders, and accurate fabric texture; the print wraps seamlessly on the fabric, following the model's back curvature. The lighting, background, and perspective match the original scene, resulting in one single cohesive photorealistic back-view fashion photograph.`;
+const buildBackSideFallbackPrompt = (
+  poseDescription = "",
+  environmentDescription = "",
+  customDetail = "",
+  backPose = "",
+) => {
+  // Seçilen arka poz fallback'te de geçerli; "üç çeyrek" gibi pozlarda sabit
+  // "turned a full 180 degrees" ifadesi çelişki yaratacağı için yön de değişir.
+  const poseEntry = resolveBackPose(backPose);
+  const orientationClause = poseEntry?.orientation
+    ? "turned about three-quarters away from the camera"
+    : "turned a full 180 degrees";
+  const stanceSentence = poseEntry
+    ? ` The model is ${poseEntry.stance}.`
+    : " The model stands in a natural, confident back-view editorial stance with their back fully to the camera and weight settled onto one leg.";
+  return `Replace the front-facing pose with a full back view: the same model from the first image, wearing the exact same garment, photographed from directly behind, ${orientationClause} so their back faces the camera${poseDescription}${environmentDescription}. Reproduce the back design shown in the back-design reference images (every image after the first) exactly — every graphic, print, lettering, pattern placement and scale, yoke seams and back hem — spread naturally across the model's back and following the body's real curvature. Keep the model's identity, hairstyle, skin tone, body proportions, the background scene, lighting direction and color temperature identical to the first image.${stanceSentence} Camera positioned directly behind the model at chest height, focus locked on the back panel so the back design is rendered tack-sharp. The garment appears realistic with natural drape, folds along the shoulders, and accurate fabric texture; the print wraps seamlessly on the fabric, following the model's back curvature. The lighting, background, and perspective match the original scene, resulting in one single cohesive photorealistic back-view fashion photograph.${customDetail ? ` Additionally, honor this explicit request from the user and make it clearly visible in the photograph without weakening the back view: ${customDetail}.` : ""}`;
+};
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -89,8 +109,11 @@ function mapRatioToGptImage2Size(ratio) {
   return mapping[ratio] || "portrait_4_3";
 }
 
-// Fal.ai GPT Image 2 Edit — backside üretimi için (v1 + v2).
-// Birden fazla image_url kabul eder; queue submit + poll ile sonucu döner.
+// Fal.ai GPT Image 2 Edit.
+// ⚠️ ARTIK KULLANILMIYOR: backside üretimi nano-banana-2 (v1) /
+// nano-banana-pro (v2) modellerine taşındı — GPT Image 2 "modeli 180° döndür"
+// talimatını güvenilir şekilde uygulamıyordu. Geri dönüş gerekirse diye
+// mapRatioToGptImage2Size ile birlikte duruyor.
 async function callFalAiGptImage2Edit(
   prompt,
   imageUrls,
@@ -1295,20 +1318,103 @@ function sanitizePoseText(text) {
   }
 }
 
+// 🕺 ARKA POZ KÜTÜPHANESİ — Arka Görünüm ekranındaki poz seçenekleri.
+// Her giriş iki parça taşır:
+//   stance      → Gemini'nin genişleteceği somut duruş tarifi
+//   orientation → nihai prompt'un sonundaki deterministik yön cümlesi.
+//                 "Üç çeyrek" pozu tam 180° değildir; sabit bir "turned a full
+//                 180 degrees" kuyruğu o pozla çelişirdi, bu yüzden yön de
+//                 poza göre değişiyor.
+const BACK_POSE_DEFAULT_ORIENTATION =
+  "turned a full 180 degrees, back fully to the camera";
+
+const BACK_POSE_LIBRARY = {
+  // Varsayılan — klasik düz arka duruş
+  straight: {
+    stance:
+      "standing square to the camera with her back fully turned, weight settled onto one leg so the hips tilt gently, shoulders relaxed and level, arms falling naturally at her sides, head facing straight away from the lens",
+  },
+  // Omuz üstünden bakış — yüz büyük ölçüde kameradan uzakta kalır
+  overShoulder: {
+    stance:
+      "her back to the camera but her head turned into a soft over-the-shoulder glance, chin drawn near the shoulder line so only the cheekbone, lashes and jawline catch the light while the face stays mostly away from the lens, the torso spiralling gently for a graceful line",
+  },
+  // Saçı toplama — ense ve sırt paneli tamamen açılır
+  hairSweep: {
+    stance:
+      "both hands lifting and gathering her hair up off her neck, elbows raised and open to the sides, the nape and the full sweep of the back panel completely exposed, chin dipped slightly forward",
+  },
+  // Yürüyüş — kumaşta hareket
+  walking: {
+    stance:
+      "caught mid-stride walking away from the camera, one heel lifting off the ground, hips rotated slightly with the step, arms swinging naturally and the hem of the garment carrying a little motion",
+  },
+  // Eller belde — bel ve sırt hattı belirginleşir
+  handsOnHips: {
+    stance:
+      "hands resting on her hips with the elbows angled out, shoulder blades drawn together, the waist and the line of the back clearly defined, weight settled on one leg",
+  },
+  // Üç çeyrek — sırt ana konu, yan dikiş de görünür
+  threeQuarter: {
+    stance:
+      "turned roughly three-quarters away from the camera so the back panel reads as the dominant subject while the side seam and a sliver of her profile stay visible, the torso twisting gently toward the shoulder",
+    orientation:
+      "turned about three-quarters away from the camera so the back of the garment is the dominant view",
+  },
+  // Kollar yukarı — sırt hattı uzar
+  armsRaised: {
+    stance:
+      "both arms lifted overhead in a long, unhurried stretch, the spine lengthening and the shoulder blades opening so the whole back panel is pulled taut and fully readable",
+  },
+};
+
+// Seçilen pozu çözer. "auto" / bilinmeyen / boş → null (Gemini kendisi seçer).
+function resolveBackPose(backPose) {
+  const id = typeof backPose === "string" ? backPose.trim() : "";
+  if (!id || id === "auto") return null;
+  return BACK_POSE_LIBRARY[id] || null;
+}
+
+// Nihai prompt kuyruğundaki yön cümlesi — poza göre değişir.
+function getBackPoseOrientation(backPose) {
+  const entry = resolveBackPose(backPose);
+  return entry?.orientation || BACK_POSE_DEFAULT_ORIENTATION;
+}
+
 // 🔄 Back side pose directive ITEM — V7 "Opening Narrative" pattern
 // (Gemini tarafından modelin yüzüne + kıyafete + arka tasarıma + sahneye göre
 // başlıksız, akıcı pozitif anlatı cümleleri olarak prompt başına yazılır).
-function buildBackSidePoseDirectiveItem(customDetail) {
-  const detail =
-    typeof customDetail === "string" && customDetail.trim()
-      ? customDetail.trim()
-      : "";
+function buildBackSidePoseDirectiveItem(backPose) {
+  const entry = resolveBackPose(backPose);
+  // Kullanıcı bir poz seçtiyse duruşu birebir dayat; "Otomatik"te seçimi
+  // Gemini'ye bırak — ama her iki durumda da arka görünüm zorunluluğu aynı.
+  const stanceClause = entry
+    ? `REQUIRED STANCE (the user picked this explicitly, do not substitute it): ${entry.stance}. Build the whole back-view description around this stance.`
+    : `No stance was named, so choose the back-view stance that flatters THIS garment's back construction most — a straight square-on back, a soft over-the-shoulder glance, hair lifted off the nape, a mid-stride walk-away, or an arms-raised stretch — and commit to it fully.`;
 
-  const userClause = detail
-    ? `The user has additionally requested: "${detail}". Honor this nuance while keeping the back-view orientation absolute.`
-    : ``;
+  return `BACK-VIEW TURN — Intent: YOUR ONLY TASK IS TO TURN THE MODEL AROUND TO SHOW THE BACK OF THE GARMENT. The model in the FIRST reference image is currently facing the camera; in the output the model MUST be rotated 180° so the BACK is fully visible to the camera. The back design, print, graphic, embroidery, text, pattern, color blocking, seams, label position, and silhouette MUST EXACTLY match what is shown in the SECOND reference image (the flat back-side product photo, "ARKA ÜRÜN") — wrapped naturally onto the model's back with realistic fabric drape, shoulder folds, and curvature. Camera shoots from BEHIND the model; head may face fully away or include a subtle over-shoulder glance — never a frontal pose. ${stanceClause} ABSOLUTE PRESERVATION (locked, must not change): the model's identity (same face, skin tone, hair, makeup, body type — never a different person, even though the face is now mostly out of frame), the FRONT garment continuity (it is the same physical garment — colors, fabric, fit, length, trims, logos must remain consistent with the front view), the environment / background (exact same scene, props, walls, floor, lighting, atmosphere, time of day — never changed), and the camera framing + photo style. → Your task: write 2-3 flowing sentences that interpret this intent for THIS specific garment, model, and scene. Describe the back-turn vividly and concretely (shoulder line, weight shift, foot placement, head angle, how the back design sits across the shoulder blades and lower back) and weave in the locked preservation reminder briefly — as natural, positively-framed photographic prose describing what the camera sees.`;
+}
 
-  return `BACK-VIEW TURN — Intent: YOUR ONLY TASK IS TO TURN THE MODEL AROUND TO SHOW THE BACK OF THE GARMENT. The model in the FIRST reference image is currently facing the camera; in the output the model MUST be rotated 180° so the BACK is fully visible to the camera. The back design, print, graphic, embroidery, text, pattern, color blocking, seams, label position, and silhouette MUST EXACTLY match what is shown in the SECOND reference image (the flat back-side product photo, "ARKA ÜRÜN") — wrapped naturally onto the model's back with realistic fabric drape, shoulder folds, and curvature. Camera shoots from BEHIND the model; head may face fully away or include a subtle over-shoulder glance — never a frontal pose. ${userClause} ABSOLUTE PRESERVATION (locked, must not change): the model's identity (same face, skin tone, hair, makeup, body type — never a different person, even though the face is now mostly out of frame), the FRONT garment continuity (it is the same physical garment — colors, fabric, fit, length, trims, logos must remain consistent with the front view), the environment / background (exact same scene, props, walls, floor, lighting, atmosphere, time of day — never changed), and the camera framing + photo style. → Your task: write 2-3 flowing sentences that interpret this intent for THIS specific garment, model, and scene. Describe the back-turn vividly and concretely (shoulder line, weight shift, foot placement, head angle, how the back design sits across the shoulder blades and lower back) and weave in the locked preservation reminder briefly — as natural, positively-framed photographic prose describing what the camera sees.`;
+// 📝 USER DETAIL directive ITEM — V7 (referenceBrowserRoutesV7) ile AYNI kalite:
+// detay yan cümle olarak geçilmiyor; kendi başına bir açılış intent'i olarak
+// veriliyor ve Gemini'den kıyafete/sahneye uyarlanmış 2-3 cümleye genişletmesi
+// isteniyor. Böylece nüanslı istekler arka görünüm vurgusunun altında kaybolmuyor.
+function buildUserDetailDirectiveItem(detail) {
+  return `USER DETAIL — Intent: the user has explicitly provided this non-negotiable additional detail that MUST be honored and clearly reflected in the final photograph: "${detail}". Treat it with the same strictness as the back-view orientation itself — it complements the back-view, never replaces or weakens it. → Your task: write 2-3 flowing sentences that integrate this detail naturally into the garment + back-design + scene context, adapting it to the garment TYPE / CATEGORY, the ENVIRONMENT / LOCATION and the ATMOSPHERE / MOOD (if it is a background / environment element, describe how it frames the composition around the model seen from behind; if it is a styling / mood / prop element, describe how it complements the fabric, colour, silhouette and lighting across the back panel). The detail must stay clearly recognizable and visible in your prose.`;
+}
+
+// Eski istemciler customDetail'i ayrı parametre olarak göndermiyor olabilir;
+// bu durumda prompt metnindeki "Additional details: X" satırından çıkarılır
+// (V7'deki yedek yolun aynısı) — böylece blok her koşulda üretilir.
+function extractCustomDetail(customDetail, originalPrompt) {
+  const direct =
+    typeof customDetail === "string" ? customDetail.trim() : "";
+  if (direct) return direct;
+  if (typeof originalPrompt !== "string") return "";
+  const match = originalPrompt.match(
+    /Additional\s+(?:user\s+)?details\s*:\s*([^.]*?)(?=\.\s+[A-Z]|\.\s*$|$)/i,
+  );
+  return match && match[1] ? match[1].trim().replace(/\.$/, "") : "";
 }
 
 async function enhancePromptWithGemini(
@@ -1330,8 +1436,17 @@ async function enhancePromptWithGemini(
   referenceImages = null, // Back side analysis için 2 resim
   isMultipleImages = false, // Çoklu resim modu mu?
   userId = null, // Compress için userId
-  originalBase64Data = null // Orijinal base64 verisi - URL'den tekrar indirmemek için
+  originalBase64Data = null, // Orijinal base64 verisi - URL'den tekrar indirmemek için
+  // 📐 İkinci referans kaç arka fotoğraftan oluşan bir KOLAJ? (0 = kolaj yok)
+  backCollageCount = 0
 ) {
+  // 📝 Kullanıcının "detay ekle" girdisi — ayrı parametre yoksa prompt
+  // metnindeki "Additional (user) details: X" satırından çıkarılır.
+  // try'dan ÖNCE: catch içindeki fallback'ler de bu değere erişiyor.
+  const resolvedCustomDetail = extractCustomDetail(customDetail, originalPrompt);
+  // 🕺 Kullanıcının seçtiği arka poz — fallback yolları da buna uyar.
+  const resolvedBackPose = settings?.backPose || settings?.back_pose || "auto";
+
   try {
     logger.log(
       "🤖 [GEMINI] Google Gemini ile prompt iyileştirme başlatılıyor"
@@ -1918,7 +2033,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     ACCESSORY PRESENTATION: When the hero item is footwear, a handbag, backpack, small leather good, hat, watch, jewelry, eyewear, belt, or any similar fashion accessory, explicitly require modern fashion campaign posing and camera angles that hero the accessory. Specify refined hand/foot/head placement, keep every design detail fully visible, and reference popular e-commerce hero perspectives (runway footwear angles, wrist-level watch close-ups, eye-line eyewear framing, handbag-on-hip hero shot, etc.) while maintaining premium fashion styling.`;
 
     // Flux Max için genel garment transform talimatları (güvenli flag-safe versiyon)
-    // GPT Image 2 için genel garment transform talimatları — anlatı tarzı, pozitif
+    // Genel garment transform talimatları — anlatı tarzı, pozitif
     // çerçeveli, kumaş/ışık terminolojisi zengin promptlar en iyi sonucu verir.
     const garmentTransformationDirectives = `
     GARMENT TRANSFORMATION REQUIREMENTS (weave these into your prompt as flowing narrative sentences, not a bullet list):
@@ -2377,7 +2492,9 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       🔄 BACK DESIGN SHOWCASE MODE — IMAGE ROLE GROUNDING:
       You are receiving ${referenceImages?.length || 2} SEPARATE reference images of the SAME garment, in this exact order:
       1. FIRST IMAGE: the garment worn on a model, seen from the FRONT — this defines the model's identity, the garment's fit, and the scene.
-      2. SECOND IMAGE (the back-design reference): the BACK design of the same garment — this is the immutable source of truth for every back-panel element: graphics, prints, text, pattern placement and scale, yoke seams, back hem.${referenceImages && referenceImages.length > 2
+      2. SECOND IMAGE (the back-design reference): the BACK design of the same garment — this is the immutable source of truth for every back-panel element: graphics, prints, text, pattern placement and scale, yoke seams, back hem.${backCollageCount > 1
+        ? ` This second image is a COMPOSITE STRIP containing ${backCollageCount} photographs of that one back design side by side — different angles, distances or detail close-ups of the SAME panel, never separate garments. Read all cells together as complementary evidence of a single back design; where one cell is occluded, resolve it from the others.`
+        : ""}${referenceImages && referenceImages.length > 2
         ? `
       3. ADDITIONAL IMAGES (#3${referenceImages.length > 3 ? `-#${referenceImages.length}` : ""}): further reference photos of the SAME garment's back design — extra angles, close-up details, fabric texture or print close-ups. Combine ALL back-design references into one complete, accurate understanding of the back panel; where they overlap, they agree — use the extra detail to describe the back design more precisely.`
         : ""}
@@ -2451,13 +2568,17 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       // Statik prompt template'inin başına Gemini'ye intent + meta-instruction
       // veriyoruz; Gemini bu intent'i başlıksız, pozitif anlatı cümleleri
       // olarak prompt'un EN BAŞINA yazacak (kural kitabı değil, çekim brief'i).
-      const backSideItem = buildBackSidePoseDirectiveItem(customDetail);
+      const backSideItems = [buildBackSidePoseDirectiveItem(resolvedBackPose)];
+      if (resolvedCustomDetail) {
+        backSideItems.push(buildUserDetailDirectiveItem(resolvedCustomDetail));
+      }
+      const isMultiIntent = backSideItems.length > 1;
       const backSideOpeningInstruction = `
 OPENING NARRATIVE REQUIREMENT — MANDATORY OUTPUT STRUCTURE:
 
-Your enhanced prompt MUST OPEN with a short narrative section that fulfills the following intent, placed at the very beginning (immediately after the required "Replace ..." opening line). Interpret the intent and write 2-3 flowing sentences tailored to THIS specific garment / model / back design / scene. Do NOT copy the instruction text verbatim. Your output must NEVER contain ⚠️ symbols, section headers, rule labels, ALL-CAPS warnings, or lists of forbidden things — the final prompt must read like a photographer's shoot brief, not a rulebook. Never skip, soften, contradict, or merge this intent.
+Your enhanced prompt MUST OPEN with a short narrative section that fulfills ${isMultiIntent ? `ALL ${backSideItems.length} of the intents below, in order` : "the following intent"}, placed at the very beginning (immediately after the required "Replace ..." opening line). Interpret ${isMultiIntent ? "each intent" : "the intent"} and write 2-3 flowing sentences tailored to THIS specific garment / model / back design / scene. Do NOT copy the instruction text verbatim. Your output must NEVER contain ⚠️ symbols, section headers, rule labels, ALL-CAPS warnings, or lists of forbidden things — the final prompt must read like a photographer's shoot brief, not a rulebook. Never skip, soften, contradict, or merge ${isMultiIntent ? "these intents" : "this intent"}.
 
-1. ${backSideItem}
+${backSideItems.map((item, index) => `${index + 1}. ${item}`).join("\n\n")}
 
 After this opening narrative (separated by a blank line), continue with the rest of the enhanced prompt as usual.
 `;
@@ -2465,8 +2586,8 @@ After this opening narrative (separated by a blank line), continue with the rest
 
 ${promptForGemini}`;
       logger.log(
-        "🔄 [BACK SIDE DIRECTIVE] Opening directive Gemini'ye gönderiliyor — enhanced şekilde başa yazılacak:",
-        customDetail || "(no extra customDetail)",
+        `🔄 [BACK SIDE DIRECTIVE] Poz: ${resolvedBackPose} · ${backSideItems.length} intent Gemini'ye gönderiliyor — enhanced şekilde başa yazılacak. USER DETAIL:`,
+        resolvedCustomDetail || "(yok)",
       );
     } else {
       // NORMAL MODE - Standart garment replace
@@ -2996,7 +3117,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
           logger.log(
             "⚠️ [BACKSIDE-VALIDATION] Gemini prompt'unda arka görünüm dili yok — deterministik back side fallback kullanılıyor"
           );
-          enhancedPrompt = buildBackSideFallbackPrompt();
+          enhancedPrompt = buildBackSideFallbackPrompt("", "", resolvedCustomDetail, resolvedBackPose);
         } else {
           logger.log(
             "✅ [BACKSIDE-VALIDATION] Enhanced prompt arka görünüm dilini içeriyor"
@@ -3070,7 +3191,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
         logger.log(
           "🔄 [CATCH-BACKSIDE] Gemini başarısız, back side arka görünüm fallback prompt'u kullanılıyor"
         );
-        enhancedPrompt = buildBackSideFallbackPrompt();
+        enhancedPrompt = buildBackSideFallbackPrompt("", "", resolvedCustomDetail, resolvedBackPose);
       } else {
         // Normal mode için fallback - statik kuralları ekle
         const staticRules = `
@@ -3356,7 +3477,9 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
         );
         fallbackPrompt = buildBackSideFallbackPrompt(
           poseDescription,
-          environmentDescription
+          environmentDescription,
+          resolvedCustomDetail,
+          resolvedBackPose
         );
       }
 
@@ -3663,7 +3786,9 @@ Model, garment, and environment must integrate into one cohesive, seamless profe
       );
       fallbackPrompt = buildBackSideFallbackPrompt(
         poseDescription,
-        environmentDescription
+        environmentDescription,
+        resolvedCustomDetail,
+        resolvedBackPose
       );
     }
 
@@ -3927,6 +4052,11 @@ router.post("/generate", async (req, res) => {
       modelPhoto = null,
       // 🔍 Sonuç netleştirme kademesi (Results'taki MP butonu; 4 = kapalı)
       upscaleMp = 4,
+      // 📐 Arka referans kolajının yanında gelen tam çözünürlüklü tekiller.
+      // Kolaj ~1024px/hücreye sıkıştığı için ince detaylar (baskı, dikiş, doku)
+      // kayboluyor; bunlar YALNIZCA görüntü modeline ek referans olarak gider,
+      // Gemini'ye gitmez (onun işi sahneyi anlayıp prompt yazmak).
+      backOriginalImages = null,
     } = req.body;
 
     // Kalite versiyonu kontrolü (settings'ten al) - Refiner modunda v1'e zorla
@@ -3945,6 +4075,21 @@ router.post("/generate", async (req, res) => {
     );
 
     modelPhoto = modelPhoto ? sanitizeImageUrl(modelPhoto) : modelPhoto;
+
+    // 🛡️ BOŞ REFERANS GUARD — bu ekranda kolaj birleştirme yok, fotoğraflar ayrı
+    // ayrı geliyor; yine de bozuk/boş bir kare (ör. yarım kalan bir capture veya
+    // içi boşalmış dosya) gelirse model kıyafeti uydurur. Üretime başlanmadan,
+    // kayıt ve kredi düşümünden ÖNCE reddedilir.
+    if (Array.isArray(referenceImages) && referenceImages.length > 0) {
+      const blankMain = await isBlankImage(
+        referenceImages[0],
+        sanitizeImageUrl,
+        "BLANK REF GUARD",
+      );
+      if (blankMain === true) {
+        return res.status(400).json(BLANK_REFERENCE_RESPONSE);
+      }
+    }
 
     // ReferenceImages sanitization + model referansını yakala
     referenceImages = Array.isArray(referenceImages)
@@ -4539,7 +4684,8 @@ router.post("/generate", async (req, res) => {
           referenceImages, // Multi-product için tüm referans resimler
           false, // isMultipleImages
           userId, // Compress için userId
-          originalBase64ForGemini // 🚀 Orijinal base64 - URL indirmesi atlanacak
+          originalBase64ForGemini, // 🚀 Orijinal base64 - URL indirmesi atlanacak
+          Array.isArray(backOriginalImages) ? backOriginalImages.length : 0
         );
       } else if (isPoseChange) {
         logger.log(
@@ -4616,7 +4762,8 @@ router.post("/generate", async (req, res) => {
           null, // referenceImages - Gemini'ye product photolar gönderilmez
           false, // isMultipleImages - Gemini'ye tek resim gönderiliyor
           userId, // Compress için userId
-          originalBase64ForGemini // 🚀 Orijinal base64 - URL indirmesi atlanacak
+          originalBase64ForGemini, // 🚀 Orijinal base64 - URL indirmesi atlanacak
+          Array.isArray(backOriginalImages) ? backOriginalImages.length : 0
         );
       }
       backgroundRemovedImage = finalImage; // Orijinal image'ı kullan, arkaplan silme yok
@@ -4670,7 +4817,9 @@ router.post("/generate", async (req, res) => {
         referenceImages, // Multi-product için tüm referans resimler
         isMultipleImages, // Çoklu resim modu mu?
         userId, // Compress için userId
-        originalBase64ForGemini // 🚀 Orijinal base64 - URL indirmesi atlanacak
+        originalBase64ForGemini, // 🚀 Orijinal base64 - URL indirmesi atlanacak
+        // 📐 İkinci referans kaç arka fotoğraftan oluşan bir kolaj? (0 = kolaj yok)
+        Array.isArray(backOriginalImages) ? backOriginalImages.length : 0
       );
 
       // ⏳ Sadece Gemini prompt iyileştirme bekle
@@ -4843,6 +4992,45 @@ router.post("/generate", async (req, res) => {
       }
     }
 
+    // 📐 Arka referans tekillerini Supabase'e yükle — kolajın yanında görüntü
+    // modeline ek referans olarak verilecek (kombin/çoklu açı pattern'ı)
+    let backOriginalUrls = [];
+    if (Array.isArray(backOriginalImages) && backOriginalImages.length > 0) {
+      logger.log(
+        `📐 [BACK ORIG] ${backOriginalImages.length} tekil arka referans upload ediliyor...`
+      );
+      for (let i = 0; i < backOriginalImages.length; i++) {
+        const orig = backOriginalImages[i];
+        try {
+          let origSource = null;
+          if (orig?.base64) {
+            const cleanB64 = String(orig.base64).replace(
+              /^data:image\/\w+;base64,/,
+              ""
+            );
+            origSource = `data:image/jpeg;base64,${cleanB64}`;
+          } else if (orig?.uri && /^https?:\/\//i.test(orig.uri)) {
+            origSource = orig.uri;
+          }
+          if (!origSource) continue;
+          const origUrl = await uploadReferenceImageToSupabase(
+            origSource,
+            userId
+          );
+          backOriginalUrls.push(origUrl);
+          logger.log(
+            `📐 [BACK ORIG] Tekil ${i + 1}/${backOriginalImages.length} upload OK:`,
+            origUrl
+          );
+        } catch (origUpErr) {
+          logger.warn(
+            `📐 [BACK ORIG] Tekil ${i + 1} upload hatası:`,
+            origUpErr?.message
+          );
+        }
+      }
+    }
+
     // Fal.ai nano-banana modeli ile istek gönder (NORMAL MODE - non-refiner)
     let replicateResponse;
     const maxRetries = 3;
@@ -4852,6 +5040,13 @@ router.post("/generate", async (req, res) => {
     // içerik filtresine takılmaya devam ediyorsa, yaş/ten ibareleri temizlenmiş
     // prompt'la BİR ekstra deneme yapılır (maxRetries + 1. tur).
     let sanitizedRetryUsed = false;
+    // 🔗 "failed status" retry bloğu try kapsamının DIŞINDA çalışıyor; falModel
+    // ve arka görünüm direktifi eklenmiş nihai prompt oradan görünmüyordu
+    // (retry tetiklenseydi ReferenceError verir, direktifsiz prompt gönderirdi).
+    // Bu iki değeri dış kapsamda tutuyoruz.
+    let selectedFalModel = null;
+    let finalPromptForModel = null;
+    let isNanoBananaProSelected = false;
 
     for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
       try {
@@ -4935,24 +5130,47 @@ router.post("/generate", async (req, res) => {
           imageInputArray = [combinedImageForReplicate];
         }
 
+        // 📐 Arka referans tekilleri — kolajın YANINA ek referans olarak eklenir.
+        // Kolaj kompozisyonu/açı ilişkisini, tekiller ise ince detayı taşır.
+        if (backOriginalUrls && backOriginalUrls.length > 0) {
+          imageInputArray = [...(imageInputArray || []), ...backOriginalUrls];
+          logger.log(
+            `📐 [BACK ORIG] ${backOriginalUrls.length} tekil arka referans imageInputArray'e eklendi, toplam:`,
+            imageInputArray.length
+          );
+        }
+
         // Kalite versiyonu kontrolü (settings'ten al)
         const qualityVersion = isRefinerMode
           ? "v1"
           : settings?.qualityVersion || settings?.quality_version || "v1";
         const isV2 = qualityVersion === "v2";
-        // 🧠 BACKSIDE: v1 + v2 her zaman GPT Image 2 (openai/gpt-image-2/edit).
-        // nano-banana/nano-banana-2 bu route'ta artık kullanılmıyor.
-        const falModel = "openai/gpt-image-2/edit";
+        // 🍌 BACKSIDE MODEL SEÇİMİ — GPT Image 2'den nano banana'ya geçildi.
+        // GPT Image 2, "modeli 180° döndür" talimatını çoğu zaman uygulamıyor,
+        // modelin yüzü öne dönük kalıyordu (canlıda bildirildi). Nano banana
+        // ailesi bu tür mekânsal/oryantasyon talimatlarını belirgin şekilde
+        // daha iyi takip ediyor.
+        //   v1 → fal-ai/nano-banana-2/edit
+        //   v2 → fal-ai/nano-banana-pro/edit (üst kademe, 35 kredilik farkın karşılığı)
+        const falModel = isV2
+          ? "fal-ai/nano-banana-pro/edit"
+          : "fal-ai/nano-banana-2/edit";
+        const isNanoBananaPro = isV2;
+        selectedFalModel = falModel;
+        isNanoBananaProSelected = isNanoBananaPro;
 
         logger.log(
-          `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model: ${falModel} (GPT Image 2)`
+          `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model: ${falModel}`
         );
 
         let requestBody;
         const aspectRatioForRequest = formattedRatio || "9:16";
 
-        // Fal.ai 5000 karakter limiti - prompt'u kırp
-        const maxPromptLength = 4900;
+        // 📏 Prompt limiti — nano banana ailesi ~50.000 karaktere kadar kabul
+        // ediyor. Eskiden GPT Image 2'nin 5.000 karakter limiti yüzünden 4.900'e
+        // kırpılıyordu; zengin arka görünüm anlatısı ve kuyruk direktifleri bu
+        // yüzden kesiliyordu. Güvenli tampon: 49.500.
+        const maxPromptLength = 49500;
         let truncatedPrompt = enhancedPrompt;
         logger.log(`📏 [FAL_PROMPT] Enhanced prompt uzunluğu: ${enhancedPrompt.length} karakter`);
         if (enhancedPrompt.length > maxPromptLength) {
@@ -4970,10 +5188,29 @@ router.post("/generate", async (req, res) => {
         // "ön pozlu sonuç" bug'ının güvencesi). Suffix için yer ayrılarak
         // kırpma yapılır — direktif asla kesilmez.
         if (req.body.isBackSideAnalysis) {
+          // 📐 Kolaj kullanıldıysa tekil tam çözünürlüklü arka referanslar da
+          // ekli — modele bunları detay kaynağı olarak kullanmasını söyle.
+          const originalsDirective =
+            backOriginalUrls.length > 0
+              ? `\n\nAlongside the composite back-design strip, ${backOriginalUrls.length} full-resolution individual photograph(s) of that same back design are attached — use them for faithful fine-detail reproduction of the print, lettering, stitching, trims and fabric texture, and do not invent any detail that is not visible in them.`
+              : "";
           // Pozitif çerçeveli, anlatı tonunda kapanış (V7 modernizasyon ilkesi:
           // rulebook değil çekim brief'i — bağıran başlık ve negatif liste yok).
+          // 🕺 Yön cümlesi seçilen poza göre kurulur; "üç çeyrek" pozunda sabit
+          // "turned a full 180 degrees" kuyruğu kullanıcının seçimiyle çelişirdi.
+          const enforcedBackPose =
+            settings?.backPose || settings?.back_pose || "auto";
+          const orientationClause = getBackPoseOrientation(enforcedBackPose);
+          const enforcedPoseEntry = resolveBackPose(enforcedBackPose);
+          const stanceClause = enforcedPoseEntry
+            ? ` She is ${enforcedPoseEntry.stance}.`
+            : "";
           const backViewEnforcement =
-            "\n\nThe finished photograph shows the model from directly behind — turned a full 180 degrees, back fully to the camera — with the garment's back design from the back-design reference images displayed clearly and prominently across their back, captured as one single unified back-view fashion photograph.";
+            originalsDirective +
+            `\n\nThe finished photograph shows the model from directly behind — ${orientationClause} — with the garment's back design from the back-design reference images displayed clearly and prominently across their back, captured as one single unified back-view fashion photograph.${stanceClause}`;
+          logger.log(
+            `🕺 [BACK_POSE] Nihai kuyrukta uygulanan poz: ${enforcedBackPose}`
+          );
           const budget = maxPromptLength - backViewEnforcement.length;
           if (truncatedPrompt.length > budget) {
             truncatedPrompt = truncatedPrompt.substring(0, budget);
@@ -4984,40 +5221,38 @@ router.post("/generate", async (req, res) => {
           );
         }
         logger.log(`📋 [FAL_PROMPT] Fal.ai'ya giden prompt (${truncatedPrompt.length} karakter):`, truncatedPrompt);
+        finalPromptForModel = truncatedPrompt;
 
         // Back side analysis veya v2 modunda quality "2K" olarak ayarla
         const qualityParam =
           isV2 || req.body.isBackSideAnalysis ? "2K" : undefined;
 
+        // 🍌 Nano banana ortak gövdesi. quality "2K" yalnızca nano-banana-pro
+        // (v2) tarafından destekleniyor — v1'de gönderilmiyor.
+        const buildNanoRequestBody = () => ({
+          prompt: truncatedPrompt, // Kırpılmış prompt
+          image_urls: imageInputArray,
+          output_format: "png",
+          aspect_ratio: aspectRatioForRequest,
+          num_images: 1,
+          resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
+          safety_tolerance: "6",
+          ...(isNanoBananaPro && qualityParam ? { quality: qualityParam } : {}),
+        });
+
         if (isPoseChange) {
           // POSE CHANGE MODE - Farklı input parametreleri
-          requestBody = {
-            prompt: truncatedPrompt, // Kırpılmış prompt
-            image_urls: imageInputArray,
-            output_format: "png",
-            aspect_ratio: aspectRatioForRequest,
-            num_images: 1,
-            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
-            safety_tolerance: "6",
-          };
+          requestBody = buildNanoRequestBody();
           logger.log(
             `🕺 [POSE_CHANGE] fal.ai ${falModel} request body hazırlandı`
           );
           logger.log(
             "🕺 [POSE_CHANGE] Prompt:",
-            enhancedPrompt.substring(0, 200) + "..."
+            truncatedPrompt.substring(0, 200) + "..."
           );
         } else {
           // NORMAL MODE - Kalite versiyonuna göre parametreler
-          requestBody = {
-            prompt: truncatedPrompt, // Kırpılmış prompt
-            image_urls: imageInputArray,
-            output_format: "png",
-            aspect_ratio: aspectRatioForRequest,
-            num_images: 1,
-            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
-            safety_tolerance: "6",
-          };
+          requestBody = buildNanoRequestBody();
         }
 
         logger.log("📋 Fal.ai Request Body:", {
@@ -5032,32 +5267,54 @@ router.post("/generate", async (req, res) => {
           aspectRatio: aspectRatioForRequest,
         });
 
-        // 🧠 GPT Image 2 çağrısı (queue + poll). İç retry 1 — dış döngü retry'ı yönetiyor.
-        const gptImageSize = mapRatioToGptImage2Size(aspectRatioForRequest);
+        // 🍌 Nano banana çağrısı (fal.run senkron endpoint).
         logger.log(
-          `🎨 [BACKSIDE GPT2] Ratio: ${aspectRatioForRequest} → image_size: ${gptImageSize}, images: ${imageInputArray?.length || 0}`
+          `🍌 [BACKSIDE NB] fal.run/${falModel} çağrılıyor — images: ${imageInputArray?.length || 0}, aspect: ${aspectRatioForRequest}, prompt: ${truncatedPrompt.length} karakter`
         );
 
-        const gptResultUrl = await callFalAiGptImage2Edit(
-          truncatedPrompt,
-          imageInputArray,
-          gptImageSize,
-          1
+        const nanoResponse = await axios.post(
+          `https://fal.run/${falModel}`,
+          requestBody,
+          {
+            headers: {
+              Authorization: `Key ${process.env.FAL_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            timeout: 300000, // 5 dakika
+          }
         );
+
+        if (!nanoResponse.data?.images?.length) {
+          const errMsg =
+            nanoResponse.data?.detail ||
+            nanoResponse.data?.error ||
+            "nano banana returned no images";
+          throw new Error(`${falModel} failed: ${errMsg}`);
+        }
+
+        // Modelin kendi anlatımı — sonucu teşhis ederken faydalı.
+        if (nanoResponse.data.description) {
+          logger.log(
+            "🔎 [BACKSIDE NB] Model description:",
+            String(nanoResponse.data.description).substring(0, 500)
+          );
+        }
 
         // Response'u Replicate formatına dönüştür (mevcut kod ile uyumluluk için)
         replicateResponse = {
           data: {
-            id: `gpt2-${uuidv4()}`,
+            id: nanoResponse.data.request_id || `nb-${uuidv4()}`,
             status: "succeeded",
-            output: [gptResultUrl],
+            output: nanoResponse.data.images.map((img) => img.url),
             urls: {
               get: null,
             },
           },
         };
 
-        logger.log(`✅ GPT Image 2 API başarılı (attempt ${attempt})`);
+        logger.log(
+          `✅ Nano banana API başarılı (attempt ${attempt}, model: ${falModel})`
+        );
         break; // Başarılı olursa loop'tan çık
       } catch (apiError) {
         console.error(
@@ -5319,22 +5576,27 @@ router.post("/generate", async (req, res) => {
             retryImageInputArray = [combinedImageForReplicate];
           }
 
+          // İlk denemedeki nihai prompt (arka görünüm direktifi dahil) ve aynı
+          // model kullanılır — retry'ın ilk denemeden zayıf olmaması için.
+          const retryModel = selectedFalModel || "fal-ai/nano-banana-2/edit";
+          const retryPrompt = finalPromptForModel || enhancedPrompt;
           const retryRequestBody = {
-            prompt: enhancedPrompt,
+            prompt: retryPrompt,
             image_urls: retryImageInputArray,
             output_format: "png",
             aspect_ratio: formattedRatio || "9:16",
             num_images: 1,
             resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
             safety_tolerance: "6",
+            ...(isNanoBananaProSelected ? { quality: "2K" } : {}),
           };
 
           logger.log(
-            `🔄 Retry ${retryAttempt}: Yeni prediction oluşturuluyor... (Model: ${falModel})`
+            `🔄 Retry ${retryAttempt}: Yeni prediction oluşturuluyor... (Model: ${retryModel})`
           );
 
           const retryResponse = await axios.post(
-            `https://fal.run/${falModel}`,
+            `https://fal.run/${retryModel}`,
             retryRequestBody,
             {
               headers: {

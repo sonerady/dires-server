@@ -15,6 +15,11 @@ const {
 } = require("../services/pushNotificationService");
 const teamService = require("../services/teamService");
 const logger = require("../utils/logger");
+// 🛡️ Boş (bembeyaz) referans kolajını üretim başlamadan yakalar
+const {
+  isBlankImage,
+  BLANK_REFERENCE_RESPONSE,
+} = require("../utils/blankReferenceGuard");
 const { optimizeImageUrl } = require("../utils/imageOptimizer");
 const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
 
@@ -3785,6 +3790,27 @@ router.post("/generate", async (req, res) => {
     );
 
     modelPhoto = modelPhoto ? sanitizeImageUrl(modelPhoto) : modelPhoto;
+
+    // 🛡️ BOŞ REFERANS GUARD — client'ın ürün fotoğraflarından ürettiği kolaj
+    // bazen BEMBEYAZ geliyor (ViewShot, resimler çizilmeden capture alındığında).
+    // Böyle bir referansla model kıyafeti uyduruyor. Üretime hiç başlanmaz:
+    // model çağrısı, kayıt ve kredi düşümünden ÖNCE reddedilir.
+    if (Array.isArray(referenceImages) && referenceImages.length > 0) {
+      for (const candidate of referenceImages) {
+        const type = (candidate?.type || candidate?.imageType || "").toLowerCase();
+        // Yalnızca ürün kolajı kontrol edilir; model referansı hariç
+        if (type === "model" || candidate?.isModelReference === true) continue;
+        if (!candidate?.isCombined) continue;
+        const blank = await isBlankImage(
+          candidate,
+          sanitizeImageUrl,
+          "BLANK GRID GUARD",
+        );
+        if (blank === true) {
+          return res.status(400).json(BLANK_REFERENCE_RESPONSE);
+        }
+      }
+    }
 
     // ReferenceImages sanitization + model referansını yakala
     referenceImages = Array.isArray(referenceImages)
