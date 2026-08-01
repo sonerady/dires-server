@@ -2,8 +2,36 @@ const express = require("express");
 const router = express.Router();
 const { createClient } = require("@supabase/supabase-js");
 const axios = require("axios");
-const { createCanvas, loadImage } = require("canvas");
+const { createCanvas, loadImage, registerFont } = require("canvas");
+const path = require("path");
 const { v4: uuidv4 } = require("uuid");
+
+// ⚠️ Filigran fontu REPO'DAN gelir, sistemden DEĞİL.
+// Railway/Linux konteynerinde Arial (ve çoğu zaman hiçbir font) kurulu değil;
+// node-canvas font bulamayınca glyph yerine boş kare (tofu) çiziyordu.
+// Bundle edilmiş TTF ile her ortamda aynı görünüm garanti.
+const WATERMARK_FONT_FAMILY = "DiressWatermark";
+try {
+  registerFont(
+    path.join(__dirname, "../assets/fonts/ArchivoBlack-Regular.ttf"),
+    { family: WATERMARK_FONT_FAMILY }
+  );
+  console.log("🔤 [DOWNLOAD API] Filigran fontu yüklendi: ArchivoBlack");
+} catch (fontError) {
+  console.error("❌ [DOWNLOAD API] Filigran fontu yüklenemedi:", fontError.message);
+}
+
+// App ikonu bir kez yüklenip bellekte tutulur (her indirmede diskten okumaya gerek yok)
+const APP_ICON_PATH = path.join(__dirname, "../assets/brand/app_icon.png");
+let appIconImage = null;
+loadImage(APP_ICON_PATH)
+  .then((img) => {
+    appIconImage = img;
+    console.log("🎨 [DOWNLOAD API] App ikonu yüklendi (filigran bandı için)");
+  })
+  .catch((iconError) => {
+    console.error("❌ [DOWNLOAD API] App ikonu yüklenemedi:", iconError.message);
+  });
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -74,58 +102,97 @@ async function addWatermarkToImage(imageUrl) {
     // Orijinal resmi canvas'e çiz
     ctx.drawImage(originalImage, 0, 0, imageWidth, imageHeight);
 
-    // Watermark ayarları - client-side ile aynı stil
+    // Filigran ayarları
     const watermarkText = "DIRESS";
-    const fontSize = Math.max(imageWidth * 0.04, 20);
-    
-    // Font ayarları
-    ctx.font = `900 ${fontSize}px Arial`;
+    const fontSize = Math.max(imageWidth * 0.032, 18);
+
+    ctx.font = `${fontSize}px "${WATERMARK_FONT_FAMILY}"`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
-    // Watermark pozisyonları - client-side ile aynı
-    const positions = [
-      { x: imageWidth * 0.15, y: imageHeight * 0.15 },
-      { x: imageWidth * 0.5, y: imageHeight * 0.1 },
-      { x: imageWidth * 0.85, y: imageHeight * 0.15 },
-      { x: imageWidth * 0.1, y: imageHeight * 0.35 },
-      { x: imageWidth * 0.4, y: imageHeight * 0.3 },
-      { x: imageWidth * 0.7, y: imageHeight * 0.35 },
-      { x: imageWidth * 0.9, y: imageHeight * 0.3 },
-      { x: imageWidth * 0.15, y: imageHeight * 0.55 },
-      { x: imageWidth * 0.5, y: imageHeight * 0.5 },
-      { x: imageWidth * 0.85, y: imageHeight * 0.55 },
-      { x: imageWidth * 0.1, y: imageHeight * 0.75 },
-      { x: imageWidth * 0.4, y: imageHeight * 0.7 },
-      { x: imageWidth * 0.7, y: imageHeight * 0.75 },
-      { x: imageWidth * 0.9, y: imageHeight * 0.7 },
-      { x: imageWidth * 0.25, y: imageHeight * 0.9 },
-      { x: imageWidth * 0.75, y: imageHeight * 0.9 },
+    const textWidth = ctx.measureText(watermarkText).width;
+
+    // Yoğun döşeme: sabit 16 nokta yerine tüm yüzeyi kaplayan diagonal ızgara.
+    // Kaymalı (staggered) satırlar sayesinde desen tekrar etmiyor gibi duruyor.
+    const stepX = textWidth * 1.5;
+    const stepY = fontSize * 2.6;
+    // 45° dönüş sonrası köşelerin boş kalmaması için tuvali taşıracak kadar geniş tara
+    const diagonal = Math.sqrt(imageWidth ** 2 + imageHeight ** 2);
+    const startX = (imageWidth - diagonal) / 2;
+    const startY = (imageHeight - diagonal) / 2;
+
+    ctx.save();
+    // Tüm ızgarayı tek seferde döndür — her yazı için ayrı rotate/restore yapmaktan hızlı
+    ctx.translate(imageWidth / 2, imageHeight / 2);
+    ctx.rotate(-Math.PI / 4);
+    ctx.translate(-imageWidth / 2, -imageHeight / 2);
+
+    ctx.shadowColor = "rgba(0, 0, 0, 0.22)";
+    ctx.shadowBlur = 3;
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+    ctx.fillStyle = "#FFFFFF";
+    ctx.globalAlpha = 0.16;
+
+    let rowIndex = 0;
+    let stamps = 0;
+    for (let y = startY; y < startY + diagonal; y += stepY) {
+      // Tek satırlar yarım adım kaydırılır → şaşırtmalı (tuğla) düzen
+      const offsetX = rowIndex % 2 === 0 ? 0 : stepX / 2;
+      for (let x = startX + offsetX; x < startX + diagonal; x += stepX) {
+        ctx.fillText(watermarkText, x, y);
+        stamps++;
+      }
+      rowIndex++;
+    }
+    ctx.restore();
+
+    console.log(`🎨 [DOWNLOAD API] ${stamps} filigran basıldı (font ${Math.round(fontSize)}px)`);
+
+    // Alt bant: şeffaftan siyaha gradient + ortasında yuvarlatılmış app ikonu
+    const bandHeight = Math.round(imageHeight * 0.16);
+    const bandTop = imageHeight - bandHeight;
+    const bandGradient = ctx.createLinearGradient(0, bandTop, 0, imageHeight);
+    // 14 duraklı kosinüs-ease alfa — düz iki duraklı fade bant kenarında çizgi bırakıyor
+    const FADE_STOPS = [
+      [0.0, 0.0], [0.077, 0.015], [0.154, 0.057], [0.231, 0.126],
+      [0.308, 0.216], [0.385, 0.323], [0.462, 0.44], [0.538, 0.56],
+      [0.615, 0.677], [0.692, 0.784], [0.769, 0.874], [0.846, 0.943],
+      [0.923, 0.985], [1.0, 1.0],
     ];
-
-    // Her pozisyona watermark ekle
-    positions.forEach((pos) => {
-      ctx.save();
-      
-      // Pozisyona git
-      ctx.translate(pos.x, pos.y);
-      
-      // 45 derece döndür (diagonal)
-      ctx.rotate(-Math.PI / 4);
-
-      // Gölge efekti
-      ctx.shadowColor = "rgba(0, 0, 0, 0.25)";
-      ctx.shadowBlur = 3;
-      ctx.shadowOffsetX = 1;
-      ctx.shadowOffsetY = 1;
-
-      // Ana text (beyaz, şeffaf)
-      ctx.globalAlpha = 0.18; // Client-side ile aynı opacity
-      ctx.fillStyle = "#FFFFFF";
-      ctx.fillText(watermarkText, 0, 0);
-
-      ctx.restore();
+    FADE_STOPS.forEach(([stop, alpha]) => {
+      bandGradient.addColorStop(stop, `rgba(0,0,0,${(alpha * 0.85).toFixed(3)})`);
     });
+    ctx.save();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = bandGradient;
+    ctx.fillRect(0, bandTop, imageWidth, bandHeight);
+    ctx.restore();
+
+    // App ikonu — bandın alt-orta kısmına, iOS köşe yuvarlaklığında
+    if (appIconImage) {
+      const iconSize = Math.round(Math.min(imageWidth, imageHeight) * 0.09);
+      const iconX = Math.round((imageWidth - iconSize) / 2);
+      const iconY = Math.round(imageHeight - bandHeight * 0.62 - iconSize / 2);
+      const radius = iconSize * 0.225; // iOS squircle'a yakın oran
+
+      ctx.save();
+      ctx.beginPath();
+      // Yuvarlatılmış dikdörtgen yolu (roundRect eski canvas sürümlerinde yok)
+      ctx.moveTo(iconX + radius, iconY);
+      ctx.lineTo(iconX + iconSize - radius, iconY);
+      ctx.quadraticCurveTo(iconX + iconSize, iconY, iconX + iconSize, iconY + radius);
+      ctx.lineTo(iconX + iconSize, iconY + iconSize - radius);
+      ctx.quadraticCurveTo(iconX + iconSize, iconY + iconSize, iconX + iconSize - radius, iconY + iconSize);
+      ctx.lineTo(iconX + radius, iconY + iconSize);
+      ctx.quadraticCurveTo(iconX, iconY + iconSize, iconX, iconY + iconSize - radius);
+      ctx.lineTo(iconX, iconY + radius);
+      ctx.quadraticCurveTo(iconX, iconY, iconX + radius, iconY);
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(appIconImage, iconX, iconY, iconSize, iconSize);
+      ctx.restore();
+    }
 
     // Canvas'ı buffer'a çevir
     const watermarkedBuffer = canvas.toBuffer("image/png");
