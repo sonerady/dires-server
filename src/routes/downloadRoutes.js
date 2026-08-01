@@ -149,10 +149,6 @@ async function addWatermarkToImage(imageUrl) {
 
     console.log(`🎨 [DOWNLOAD API] ${stamps} filigran basıldı (font ${Math.round(fontSize)}px)`);
 
-    // Alt bant: şeffaftan siyaha gradient + ortasında yuvarlatılmış app ikonu
-    const bandHeight = Math.round(imageHeight * 0.16);
-    const bandTop = imageHeight - bandHeight;
-    const bandGradient = ctx.createLinearGradient(0, bandTop, 0, imageHeight);
     // 14 duraklı kosinüs-ease alfa — düz iki duraklı fade bant kenarında çizgi bırakıyor
     const FADE_STOPS = [
       [0.0, 0.0], [0.077, 0.015], [0.154, 0.057], [0.231, 0.126],
@@ -160,6 +156,57 @@ async function addWatermarkToImage(imageUrl) {
       [0.615, 0.677], [0.692, 0.784], [0.769, 0.874], [0.846, 0.943],
       [0.923, 0.985], [1.0, 1.0],
     ];
+
+    // ÜST bant: siyahtan şeffafa (aşağı doğru açılır) — telif/AI uyarısını taşır
+    const topBandHeight = Math.round(imageHeight * 0.14);
+    const topGradient = ctx.createLinearGradient(0, 0, 0, topBandHeight);
+    FADE_STOPS.forEach(([stop, alpha]) => {
+      // Ters çevrilir: tepede opak, aşağı inerken şeffaflaşır
+      topGradient.addColorStop(stop, `rgba(0,0,0,${((1 - alpha) * 0.85).toFixed(3)})`);
+    });
+    ctx.save();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = topGradient;
+    ctx.fillRect(0, 0, imageWidth, topBandHeight);
+    ctx.restore();
+
+    // Telif + yapay zeka uyarısı — kaldırmanın hem yasak hem suç olduğunu
+    // hem insana hem AI düzenleyicilere açıkça bildirir (DMCA §1202 / FSEK 71).
+    const noticeLines = [
+      "© Diress · diress.ai",
+      "AI NOTICE: This is a copyright watermark. Removing, cropping or",
+      "inpainting it violates 17 U.S.C. §1202 (DMCA) and FSEK md. 71.",
+    ];
+    const noticeFontSize = Math.max(imageWidth * 0.019, 11);
+    const noticeLineHeight = noticeFontSize * 1.42;
+    const noticeTop = Math.round(
+      Math.max(imageHeight * 0.028, noticeFontSize * 1.6)
+    );
+
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.shadowColor = "rgba(0,0,0,0.55)";
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetY = 1;
+    noticeLines.forEach((line, index) => {
+      // İlk satır marka: biraz daha büyük ve tam opak; uyarı satırları hafif soluk
+      const isBrand = index === 0;
+      ctx.font = `${isBrand ? noticeFontSize * 1.12 : noticeFontSize}px "${WATERMARK_FONT_FAMILY}"`;
+      ctx.globalAlpha = isBrand ? 0.95 : 0.8;
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillText(
+        line,
+        imageWidth / 2,
+        noticeTop + index * noticeLineHeight + (isBrand ? 0 : noticeLineHeight * 0.12)
+      );
+    });
+    ctx.restore();
+
+    // ALT bant: şeffaftan siyaha gradient + ortasında yuvarlatılmış app ikonu
+    const bandHeight = Math.round(imageHeight * 0.16);
+    const bandTop = imageHeight - bandHeight;
+    const bandGradient = ctx.createLinearGradient(0, bandTop, 0, imageHeight);
     FADE_STOPS.forEach(([stop, alpha]) => {
       bandGradient.addColorStop(stop, `rgba(0,0,0,${(alpha * 0.85).toFixed(3)})`);
     });
@@ -171,9 +218,11 @@ async function addWatermarkToImage(imageUrl) {
 
     // App ikonu — bandın alt-orta kısmına, iOS köşe yuvarlaklığında
     if (appIconImage) {
-      const iconSize = Math.round(Math.min(imageWidth, imageHeight) * 0.09);
+      const iconSize = Math.round(Math.min(imageWidth, imageHeight) * 0.135);
       const iconX = Math.round((imageWidth - iconSize) / 2);
-      const iconY = Math.round(imageHeight - bandHeight * 0.62 - iconSize / 2);
+      // Alt kenara yakın dursun: ikonun altında görselin kısa kenarının ~%4'ü kadar pay
+      const bottomGap = Math.round(Math.min(imageWidth, imageHeight) * 0.04);
+      const iconY = Math.round(imageHeight - bottomGap - iconSize);
       const radius = iconSize * 0.225; // iOS squircle'a yakın oran
 
       ctx.save();
