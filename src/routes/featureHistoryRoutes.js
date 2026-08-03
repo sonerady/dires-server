@@ -2,12 +2,24 @@ const express = require("express");
 const { createClient } = require("@supabase/supabase-js");
 const teamService = require("../services/teamService");
 const logger = require("../utils/logger");
-const { optimizeHistoryImages, getOriginalUrl } = require("../utils/imageOptimizer");
+const {
+  optimizeHistoryImages,
+  optimizeForThumbnail,
+  getOriginalForModal,
+  getOriginalUrl,
+} = require("../utils/imageOptimizer");
 const router = express.Router();
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
+// variation_generations RLS altında anon client'a hata vermeden boş dönebiliyor.
+// Yalnız server-side varyant enrichment için service-role client kullanılır.
+const variationSupabase = createClient(
+  supabaseUrl,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseKey,
+  { auth: { autoRefreshToken: false, persistSession: false } },
+);
 const MISSING_HISTORY_TABLES = new Set();
 
 // Retry helper function for Supabase queries
@@ -409,6 +421,67 @@ const enrichStoryCounts = async (items) => {
     });
   } catch (e) {
     console.warn("⚠️ [FEATURE-HISTORY] enrichStoryCounts error:", e.message);
+    return items;
+  }
+};
+
+/**
+ * "Tümü" galerisinde ana sonuçtan hemen sonra gösterilmek üzere tamamlanmış
+ * Yeni Pozlar varyantlarını kaynak generation kaydına ekler.
+ */
+const enrichPoseVariations = async (items, memberIds) => {
+  if (!Array.isArray(items) || items.length === 0) return items;
+
+  const sourceIds = [
+    ...new Set(
+      items
+        .map((item) => item?.generation_id || item?.id)
+        .filter(Boolean)
+        .map(String),
+    ),
+  ];
+  if (sourceIds.length === 0) return items;
+
+  try {
+    const { data, error } = await variationSupabase
+      .from("variation_generations")
+      .select("generation_id, source_generation_id, result_image_url, created_at")
+      .in("user_id", memberIds)
+      .in("source_generation_id", sourceIds)
+      .eq("status", "completed")
+      .not("result_image_url", "is", null)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      if (!isMissingRelationError(error.message)) {
+        logger.warn("⚠️ [ALL] Varyasyon enrichment hatası:", error.message);
+      }
+      return items;
+    }
+
+    const bySource = new Map();
+    for (const row of data || []) {
+      const sourceId = String(row.source_generation_id || "");
+      if (!sourceId || !row.result_image_url) continue;
+      const current = bySource.get(sourceId) || [];
+      current.push({
+        generation_id: row.generation_id,
+        url: getOriginalForModal(row.result_image_url),
+        thumbnail_url: optimizeForThumbnail(row.result_image_url),
+        created_at: row.created_at,
+      });
+      bySource.set(sourceId, current);
+    }
+
+    return items.map((item) => {
+      const sourceId = String(item?.generation_id || item?.id || "");
+      const variationImages = bySource.get(sourceId) || [];
+      return variationImages.length > 0
+        ? { ...item, variation_images: variationImages }
+        : item;
+    });
+  } catch (error) {
+    logger.warn("⚠️ [ALL] Varyasyon enrichment istisnası:", error.message);
     return items;
   }
 };
@@ -1442,6 +1515,10 @@ router.get("/all/:userId", async (req, res) => {
 
     const totalMerged = merged.length;
     merged = merged.slice(offset, offset + limit);
+
+    // Yeni Pozlar varyantlarını yalnız sayfa dilimindeki ana kayıtlara bağla.
+    // Böylece sorgu küçük kalır ve client ana → varyant sırasını kurabilir.
+    merged = await enrichPoseVariations(merged, memberIds);
 
     // CDN optimize (mevcut helper). Sunucuda üretilmiş önizleme varsa CDN
     // sarmalayıcısı yerine o kullanılır — 30 MB'ı aşan netleştirilmiş

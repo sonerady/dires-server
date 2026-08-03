@@ -25,10 +25,26 @@ const { supabaseAdmin, supabase } = require("../supabaseClient");
 const db = supabaseAdmin || supabase;
 
 const ONESIGNAL_API_BASE = "https://api.onesignal.com";
+// 401/403 geçici kullanıcı hatası değildir; App API Key yanlış app'e ait,
+// yetkisi eksik veya IP allowlist Railway çıkışını reddediyordur. Aynı process
+// içinde binlerce kullanıcı için aynı bozuk isteği tekrar göndermeyi durdur.
+let blockedCredentialFingerprint = null;
+let blockedCredentialStatus = null;
+
+function normalizeApiKey(value) {
+  return String(value || "")
+    .trim()
+    .replace(/^(?:key|basic)\s+/i, "");
+}
+
+function credentialFingerprint(creds) {
+  // Yalnız process içi karşılaştırma; secret hiçbir zaman loglanmaz.
+  return `${creds.appId}:${creds.apiKey}`;
+}
 
 function getCreds() {
   const appId = process.env.ONESIGNAL_APP_ID;
-  const apiKey = process.env.ONESIGNAL_REST_API_KEY;
+  const apiKey = normalizeApiKey(process.env.ONESIGNAL_REST_API_KEY);
   if (!appId || !apiKey) return null;
   return { appId, apiKey };
 }
@@ -66,6 +82,16 @@ async function syncOneSignalTagsFromDb(userId) {
  * Idempotent — OneSignal merges tag updates server-side.
  */
 async function pushTagsToOneSignal(creds, externalId, tags) {
+  const fingerprint = credentialFingerprint(creds);
+  if (blockedCredentialFingerprint === fingerprint) {
+    return {
+      ok: false,
+      fatal: true,
+      status: blockedCredentialStatus,
+      reason: "onesignal_auth_circuit_open",
+    };
+  }
+
   const url = `${ONESIGNAL_API_BASE}/apps/${creds.appId}/users/by/external_id/${encodeURIComponent(externalId)}`;
   try {
     const res = await fetch(url, {
@@ -85,6 +111,25 @@ async function pushTagsToOneSignal(creds, externalId, tags) {
         return { ok: false, reason: "user_not_in_onesignal", status: 404 };
       }
       const text = await res.text().catch(() => "");
+      if (res.status === 401 || res.status === 403) {
+        const wasAlreadyBlocked = blockedCredentialFingerprint === fingerprint;
+        blockedCredentialFingerprint = fingerprint;
+        blockedCredentialStatus = res.status;
+        if (!wasAlreadyBlocked) {
+          console.error(
+            `[OS-SYNC] OneSignal authorization failed (${res.status}); sync circuit opened. ` +
+              "Check that ONESIGNAL_REST_API_KEY is an App API Key for ONESIGNAL_APP_ID and that its IP allowlist permits this server. " +
+              `Response: ${text.slice(0, 200)}`,
+          );
+        }
+        return {
+          ok: false,
+          fatal: true,
+          status: res.status,
+          reason: "onesignal_authorization_failed",
+          error: text.slice(0, 300),
+        };
+      }
       console.warn(
         `[OS-SYNC] OneSignal PATCH ${res.status} for ${externalId}: ${text.slice(0, 200)}`,
       );
@@ -117,6 +162,7 @@ async function syncAllUsersToOneSignal({ batchSize = 1000, concurrency = 8 } = {
   let failed = 0;
   let cursor = null;
   let batchNum = 0;
+  let fatalAuthFailure = null;
   const startedAt = Date.now();
 
   // First: count total to give meaningful progress percentages
@@ -147,32 +193,47 @@ async function syncAllUsersToOneSignal({ batchSize = 1000, concurrency = 8 } = {
 
     // Run with concurrency
     let idx = 0;
+    let batchAttempted = 0;
     async function runner() {
       while (true) {
+        if (fatalAuthFailure) return;
         const myIdx = idx++;
         if (myIdx >= data.length) return;
         const u = data[myIdx];
+        batchAttempted++;
         const result = await pushTagsToOneSignal(creds, u.id, {
           is_pro: u.is_pro === true ? "true" : "false",
           is_in_trial: u.is_in_trial === true ? "true" : "false",
         });
         if (result.ok) updated++;
         else if (result.status === 404) missing++;
-        else failed++;
+        else {
+          failed++;
+          if (result.fatal) {
+            fatalAuthFailure = result;
+            return;
+          }
+        }
       }
     }
     await Promise.all(
       Array.from({ length: Math.min(concurrency, data.length) }, () => runner()),
     );
-    processed += data.length;
+    processed += batchAttempted;
     cursor = data[data.length - 1].id;
 
     const batchSec = ((Date.now() - batchStart) / 1000).toFixed(1);
     const pct = totalUsers ? ((processed / totalUsers) * 100).toFixed(1) : "?";
     console.log(
-      `[OS-SYNC-CRON] Batch ${batchNum}: +${data.length} (${batchSec}s) — total processed=${processed} (~${pct}%) | updated=${updated} no-os=${missing} failed=${failed}`,
+      `[OS-SYNC-CRON] Batch ${batchNum}: attempted=${batchAttempted}/${data.length} (${batchSec}s) — total processed=${processed} (~${pct}%) | updated=${updated} no-os=${missing} failed=${failed}`,
     );
 
+    if (fatalAuthFailure) {
+      console.error(
+        `[OS-SYNC-CRON] Aborted after OneSignal authorization failure (${fatalAuthFailure.status}). No remaining users will be attempted.`,
+      );
+      break;
+    }
     if (data.length < batchSize) break;
   }
 
@@ -180,7 +241,16 @@ async function syncAllUsersToOneSignal({ batchSize = 1000, concurrency = 8 } = {
   console.log(
     `[OS-SYNC-CRON] ✅ Done in ${durationSec}s — processed ${processed}, updated ${updated}, no-onesignal ${missing}, failed ${failed}`,
   );
-  return { ok: true, processed, updated, missing, failed, durationSec };
+  return {
+    ok: !fatalAuthFailure,
+    reason: fatalAuthFailure ? "onesignal_authorization_failed" : undefined,
+    status: fatalAuthFailure?.status,
+    processed,
+    updated,
+    missing,
+    failed,
+    durationSec,
+  };
 }
 
 module.exports = {

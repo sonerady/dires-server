@@ -163,27 +163,10 @@ const pushNotificationRoutes = require("./routes/pushNotificationRoutes");
 // Banner AI Fill route import
 const bannerAiFillRouter = require("./routes/bannerAiFill");
 const { startScheduler } = require("./services/schedulerService");
-const {
-  startOneSignalMarketingScheduler,
-} = require("./services/oneSignalMarketingScheduler");
-const {
-  startOneSignalTagSyncCron,
-} = require("./services/oneSignalTagSyncCron");
 
 // Start the daily notification scheduler (Expo push, low-credit reminders)
 // DISABLED: günlük Expo push bildirimleri kullanıcı isteğiyle kapatıldı.
 // startScheduler();
-
-// Start the OneSignal weekly marketing scheduler (non-Pro retention)
-// Her gün 08:00 UTC → o günün kampanyası → Non-Pro Users segmenti
-// → user'ın kendi dilinde, kendi yerel 20:00'ında teslim
-// DISABLED: pazarlama bildirimleri kullanıcı isteğiyle kapatıldı.
-// startOneSignalMarketingScheduler();
-
-// Daily safety-net: rewrites is_pro / is_in_trial OneSignal tags for ALL
-// users from the canonical `users` table (which RC webhooks keep updated).
-// Real-time path is via webhook res.on('finish') in revenuecatWebhookv2/v3.js.
-startOneSignalTagSyncCron();
 
 // Auth routes import
 const authRoutes = require("./routes/authRoutes");
@@ -243,11 +226,6 @@ app.get("/notification-dashboard.html", (req, res) => {
 // Admin Dashboard UI'yi serve et
 app.get("/admin-dashboard.html", (req, res) => {
   res.sendFile(path.join(__dirname, "../admin-dashboard.html"));
-});
-
-// OneSignal Test Panel UI'yi serve et
-app.get("/onesignal-test.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "../onesignal-test.html"));
 });
 
 // Basit test endpointi ekle
@@ -342,11 +320,14 @@ const socialStudioRoutes = require("./routes/socialStudioRoutes");
 const { startSocialStudioScheduler } = require("./jobs/socialStudioScheduler");
 app.use("/api/social-studio", requireAdmin, socialStudioRoutes);
 startSocialStudioScheduler();
-app.use("/api/onesignal", require("./routes/oneSignalTestRoutes"));
 app.use("/api", require("./routes/contentReportRoutes"));
 
 const downloadRoutes = require("./routes/downloadRoutes");
 app.use("/api/download", downloadRoutes);
+
+// Varyasyon ("Yeni Pozlar") — tamamlanmış sonucun farklı pozları
+const variationRoutes = require("./routes/variationRoutes");
+app.use("/api/variations", variationRoutes);
 app.use("/api/hairstyles", botDetection, catalogRateLimiter, hairStyleRoutes);
 app.use("/api/haircolors", botDetection, catalogRateLimiter, hairColorRoutes);
 app.use("/api/banner-ai-fill", bannerAiFillRouter);

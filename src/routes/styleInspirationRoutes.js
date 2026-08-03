@@ -16,6 +16,7 @@ const logger = require("../utils/logger");
 const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
 const {
   searchStyleImages,
+  trackUnsplashDownload,
   DEFAULT_LIMIT,
 } = require("../utils/imageSearchProviders");
 
@@ -310,6 +311,26 @@ router.post("/suggest", async (req, res) => {
   } catch (err) {
     logger.error("❌ [STYLE_INSPIRATION] suggest error:", err?.message);
     return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * Bir öneri gerçekten stil referansı olarak SEÇİLDİĞİNDE çağrılır.
+ * Unsplash API kuralı: kullanım anında download ucunun tetiklenmesi zorunlu;
+ * tetiklenmezse uygulamanın API erişimi askıya alınabilir.
+ * Kullanıcı akışını bloklamaz — her koşulda 200 döner.
+ */
+router.post("/used", async (req, res) => {
+  try {
+    const { source, downloadLocation } = req.body || {};
+    if (source === "unsplash" && downloadLocation) {
+      // Beklemeden tetikle; hata olsa da istemci beklemesin
+      trackUnsplashDownload(downloadLocation);
+    }
+    return res.json({ success: true });
+  } catch (err) {
+    logger.warn("⚠️ [STYLE_INSPIRATION] used bildirimi hatası:", err?.message);
+    return res.json({ success: true });
   }
 });
 

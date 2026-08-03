@@ -44,31 +44,36 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
   },
 });
 
-// Kullanıcının pro olup olmadığını kontrol etme fonksiyonu
-async function checkUserProStatus(userId) {
+// İndirmede filigransız dosyaya yalnızca ücretli Pro kullanıcı erişebilir.
+// Trial sırasında users.is_pro=true tutulduğu için is_in_trial ayrıca kontrol edilir.
+async function checkUserDownloadAccess(userId) {
   try {
     if (!userId || userId === "anonymous_user") {
-      return false;
+      return { isPro: false, isInTrial: false, canDownloadOriginal: false };
     }
 
     const { data: user, error } = await supabase
       .from("users")
-      .select("is_pro")
+      .select("is_pro, is_in_trial")
       .eq("id", userId)
       .single();
 
     if (error) {
-      console.error("❌ User pro status kontrol hatası:", error);
-      return false;
+      console.error("❌ User download access kontrol hatası:", error);
+      return { isPro: false, isInTrial: false, canDownloadOriginal: false };
     }
 
     const isPro = user?.is_pro === true;
-    console.log(`👤 User ${userId.slice(0, 8)} pro status: ${isPro}`);
-    
-    return isPro;
+    const isInTrial = user?.is_in_trial === true;
+    const canDownloadOriginal = isPro && !isInTrial;
+    console.log(
+      `👤 User ${userId.slice(0, 8)} download access: pro=${isPro}, trial=${isInTrial}, original=${canDownloadOriginal}`
+    );
+
+    return { isPro, isInTrial, canDownloadOriginal };
   } catch (error) {
-    console.error("❌ Pro status kontrol hatası:", error);
-    return false;
+    console.error("❌ Download access kontrol hatası:", error);
+    return { isPro: false, isInTrial: false, canDownloadOriginal: false };
   }
 }
 
@@ -307,17 +312,19 @@ router.get("/image", async (req, res) => {
       userId: userId?.slice(0, 8) || "anonymous",
     });
 
-    // Pro status kontrolü
-    const isUserPro = await checkUserProStatus(userId);
-    console.log(`👤 [DOWNLOAD API] User pro status: ${isUserPro}`);
+    // Paid Pro / trial ayrımını backend DB kaydından doğrula.
+    const downloadAccess = await checkUserDownloadAccess(userId);
+    console.log("👤 [DOWNLOAD API] User download access:", downloadAccess);
 
-    if (isUserPro) {
-      // Pro kullanıcı - orijinal resmi redirect et
-      console.log("💎 [DOWNLOAD API] Pro kullanıcı - orijinal resim redirect");
+    if (downloadAccess.canDownloadOriginal) {
+      // Yalnızca ücretli Pro kullanıcı - orijinal resmi redirect et
+      console.log("💎 [DOWNLOAD API] Ücretli Pro kullanıcı - orijinal resim redirect");
       return res.redirect(imageUrl);
     } else {
-      // Pro olmayan kullanıcı - watermark ekle
-      console.log("🎨 [DOWNLOAD API] Pro olmayan kullanıcı - watermark ekleniyor...");
+      // Free veya trial kullanıcı - watermark ekle
+      console.log(
+        `🎨 [DOWNLOAD API] ${downloadAccess.isInTrial ? "Trial" : "Free"} kullanıcı - watermark ekleniyor...`
+      );
       
       const watermarkedBuffer = await addWatermarkToImage(imageUrl);
       

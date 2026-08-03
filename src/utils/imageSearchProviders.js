@@ -79,7 +79,18 @@ function pinToItem(pin, source) {
 }
 
 /** Sonuçları tek biçime indirger. */
-function normalise({ url, thumb, width, height, source, sourceUrl, title }) {
+function normalise({
+  url,
+  thumb,
+  width,
+  height,
+  source,
+  sourceUrl,
+  title,
+  authorName,
+  authorUrl,
+  downloadLocation,
+}) {
   if (!url || !/^https?:\/\//i.test(url)) return null;
   return {
     url,
@@ -89,7 +100,31 @@ function normalise({ url, thumb, width, height, source, sourceUrl, title }) {
     source, // "pinterest" | "pexels" | "unsplash"
     sourceUrl: sourceUrl || null, // içeriğin kendi sayfası (atıf için)
     title: title || null,
+    // Unsplash/Pexels API kuralları: fotoğrafçı adı ve profil bağlantısı
+    // görselle birlikte gösterilmeli.
+    authorName: authorName || null,
+    authorUrl: authorUrl || null,
+    // Unsplash: görsel gerçekten kullanıldığında tetiklenmesi ZORUNLU olan uç.
+    // İstemciye sızdırmıyoruz; sunucu tarafında trackUnsplashDownload ile çağrılır.
+    downloadLocation: downloadLocation || null,
   };
+}
+
+// Unsplash API kuralı: bir görsel "kullanıldığında" (indirme/seçme) download
+// ucunun tetiklenmesi zorunlu. Tetiklenmezse API erişimi iptal edilebilir.
+// Hata durumunda sessiz geçilir — kullanıcı akışını bloklamaz.
+async function trackUnsplashDownload(downloadLocation) {
+  const key = process.env.UNSPLASH_ACCESS_KEY;
+  if (!key || !downloadLocation) return;
+  try {
+    await axios.get(downloadLocation, {
+      timeout: 8000,
+      headers: { Authorization: `Client-ID ${key}` },
+    });
+    logger.log("📸 [UNSPLASH] download tetiklendi");
+  } catch (error) {
+    logger.warn("⚠️ [UNSPLASH] download tetiklenemedi:", error.message);
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -301,6 +336,8 @@ async function searchPexels(query, limit) {
         source: "pexels",
         sourceUrl: p?.url,
         title: p?.alt,
+        authorName: p?.photographer,
+        authorUrl: p?.photographer_url,
       }),
     )
     .filter(Boolean)
@@ -329,6 +366,12 @@ async function searchUnsplash(query, limit) {
         source: "unsplash",
         sourceUrl: p?.links?.html,
         title: p?.alt_description,
+        authorName: p?.user?.name,
+        // Unsplash kuralı: profil bağlantısına utm parametreleri eklenmeli
+        authorUrl: p?.user?.links?.html
+          ? `${p.user.links.html}?utm_source=diress&utm_medium=referral`
+          : null,
+        downloadLocation: p?.links?.download_location,
       }),
     )
     .filter(Boolean)
@@ -418,4 +461,9 @@ logger.log(
     ].join(" | "),
 );
 
-module.exports = { searchStyleImages, DEFAULT_LIMIT, POOL_SIZE };
+module.exports = {
+  searchStyleImages,
+  trackUnsplashDownload,
+  DEFAULT_LIMIT,
+  POOL_SIZE,
+};
