@@ -1041,15 +1041,22 @@ router.post("/retry-kit-scene", async (req, res) => {
             return res.status(400).json({ success: false, error: "Invalid sceneIndex" });
         }
 
-        console.log(`🔄 [KIT_V2_RETRY] Retrying scene ${sceneIndex} (${sceneType}) for record: ${recordId}`);
+        // Modal bir pose varyantındayken eski client'lar varyant ID'sini
+        // gönderebilir. Kit slotu her zaman ana reference_results kaydına yazılır.
+        const canonicalRecordId = await resolveCanonicalGenerationId(recordId, imageUrl);
+        if (!canonicalRecordId) {
+            throw new Error("Canonical generation record could not be resolved");
+        }
+
+        console.log(`🔄 [KIT_V2_RETRY] Retrying scene ${sceneIndex} (${sceneType}) for record: ${canonicalRecordId}`);
 
         // Get reference image
         let referenceImageUrl = imageUrl;
-        if (recordId) {
+        if (canonicalRecordId) {
             const { data: record } = await supabase
                 .from("reference_results")
                 .select("reference_images")
-                .eq("generation_id", recordId)
+                .eq("generation_id", canonicalRecordId)
                 .maybeSingle();
 
             if (record?.reference_images?.length > 0) {
@@ -1081,8 +1088,15 @@ router.post("/retry-kit-scene", async (req, res) => {
         const savedUrl = await saveGeneratedImageToUserBucket(generatedUrl, userId || "anonymous", sceneType);
 
         // Save to reference_results.kits at correct position
-        if (savedUrl && recordId) {
-            await appendKitToRecord(recordId, savedUrl, sceneIndex);
+        if (savedUrl && canonicalRecordId) {
+            const persistedKits = await appendKitToRecord(
+                canonicalRecordId,
+                savedUrl,
+                sceneIndex,
+            );
+            if (!persistedKits) {
+                throw new Error("Retried kit scene could not be persisted");
+            }
         }
 
         // Also update product_kits table
@@ -1090,7 +1104,7 @@ router.post("/retry-kit-scene", async (req, res) => {
             const { data: existingKit } = await supabase
                 .from("product_kits")
                 .select("id, kit_images")
-                .eq("generation_id", recordId)
+                .eq("generation_id", canonicalRecordId)
                 .maybeSingle();
 
             if (existingKit) {

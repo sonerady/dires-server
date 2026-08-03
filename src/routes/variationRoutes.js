@@ -34,9 +34,6 @@ const supabase = createClient(
 // Hız ve maliyet odaklı Nano Banana Lite edit modeli.
 const VARIATION_MODEL = "google/nano-banana-lite/edit";
 const VARIATION_MODEL_SETTINGS = {
-  // aspect_ratio bilerek gönderilmiyor: edit modelinin varsayılan davranışı
-  // kaynak görselin oranını korusun. "auto" göndermek modelin oranı yeniden
-  // seçmesine izin verebildiği için varyasyonlarda zorlanmıyor.
   num_images: 1,
   output_format: "jpeg",
   limit_generations: true,
@@ -46,6 +43,34 @@ const VARIATION_CREDIT_COST = 10;
 const TRIAL_VARIATION_BATCH_LIMIT = 5;
 const MAX_POLLS = 90; // ~3 dk (2 sn aralık)
 const POLL_INTERVAL_MS = 2000;
+const SUPPORTED_VARIATION_ASPECT_RATIOS = new Set([
+  "21:9",
+  "16:9",
+  "3:2",
+  "4:3",
+  "5:4",
+  "1:1",
+  "4:5",
+  "3:4",
+  "2:3",
+  "9:16",
+  "4:1",
+  "1:4",
+  "8:1",
+  "1:8",
+]);
+
+const normalizeVariationAspectRatio = (value) => {
+  const normalized = String(value || "").trim();
+  return SUPPORTED_VARIATION_ASPECT_RATIOS.has(normalized)
+    ? normalized
+    : null;
+};
+
+const getVariationModelSettings = (aspectRatio) => ({
+  ...VARIATION_MODEL_SETTINGS,
+  ...(aspectRatio ? { aspect_ratio: aspectRatio } : {}),
+});
 
 // Gemini yaratıcı pozu/kadrajı seçer; referanstaki kimlik, ürün ve sahne
 // bütünlüğü ise modele giden HER promptta backend tarafından zorunlu tutulur.
@@ -427,8 +452,16 @@ function collectInputImages({ sourceImageUrl, referenceImages, extraImages }) {
   const images = [];
 
   const push = (value) => {
-    if (!value || typeof value !== "string") return;
-    const url = value.trim();
+    if (Array.isArray(value)) {
+      value.forEach(push);
+      return;
+    }
+    const rawUrl =
+      typeof value === "string"
+        ? value
+        : value?.uri || value?.url || value?.publicUrl || value?.imageUrl;
+    if (!rawUrl || typeof rawUrl !== "string") return;
+    const url = rawUrl.trim();
     if (!/^https?:\/\//i.test(url) || seen.has(url)) return;
     seen.add(url);
     images.push(url);
@@ -436,11 +469,72 @@ function collectInputImages({ sourceImageUrl, referenceImages, extraImages }) {
 
   // Sonuç görseli EN BAŞA: modelin kimlik/kompozisyon çıpası bu kare
   push(sourceImageUrl);
-  (Array.isArray(referenceImages) ? referenceImages : []).forEach(push);
-  (Array.isArray(extraImages) ? extraImages : []).forEach(push);
+  push(referenceImages);
+  push(extraImages);
 
-  // nano-banana çok fazla referansta kimliği dağıtıyor — ilk 6 yeterli
-  return images.slice(0, 6);
+  // Kullanıcının yüklediği ürün fotoğraflarını sessizce kesme. UI yükleme
+  // limitleri zaten havuzu sınırlıyor; burada tüm kalıcı referanslar NB Lite'a gider.
+  return images;
+}
+
+/**
+ * Client kartı eksik/hydrate edilmiş olsa bile kaynak generation'ın kalıcı
+ * referanslarını backend'den tamamlar. Özellikle History ve yeniden çeşitlendirme
+ * akışlarının yalnız hero görseli göndermesini önler.
+ */
+async function loadStoredSourceContext(userId, sourceGenerationId) {
+  try {
+    const { data, error } = await supabase
+      .from("reference_results")
+      .select(
+        "reference_images, location_image, pose_image, hair_style_image, aspect_ratio, settings",
+      )
+      .eq("user_id", userId)
+      .eq("generation_id", sourceGenerationId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      logger.warn(
+        `⚠️ [VARIATION] Kaynak referansları okunamadı (${sourceGenerationId}):`,
+        error.message,
+      );
+      return { inputs: [], aspectRatio: null };
+    }
+
+    let settings = data?.settings || {};
+    if (typeof settings === "string") {
+      try {
+        settings = JSON.parse(settings);
+      } catch {
+        settings = {};
+      }
+    }
+
+    return {
+      inputs: [
+        data?.reference_images,
+        data?.location_image,
+        data?.pose_image,
+        data?.hair_style_image,
+        settings?.backImage,
+        settings?.backSideImage,
+        settings?.styleReferenceImage,
+        settings?.locationImage,
+        settings?.poseImage,
+      ],
+      // "original" seçeneğinde alanı göndermemek gerekir; NB Lite bu durumda
+      // edit kaynağının gerçek oranını varsayılan davranışıyla korur.
+      aspectRatio: normalizeVariationAspectRatio(data?.aspect_ratio),
+    };
+  } catch (error) {
+    logger.warn(
+      `⚠️ [VARIATION] Kaynak referans istisnası (${sourceGenerationId}):`,
+      error?.message || error,
+    );
+    return { inputs: [], aspectRatio: null };
+  }
 }
 
 /** Başarı anında krediyi düşer. Ücretsiz varyasyonda hiç çağrılmaz. */
@@ -516,6 +610,7 @@ async function runFalVariation(
   prompt,
   imageUrls,
   creditCost,
+  aspectRatio,
 ) {
   const startedAt = Date.now();
 
@@ -523,14 +618,15 @@ async function runFalVariation(
     // Gemini'nin yazdığı ve Nano Banana Lite'a aynen gönderilen nihai prompt.
     console.log(
       `🍌 [VARIATION] Nano Banana Lite prompt | generation=${generationId} | ` +
-        `model=${VARIATION_MODEL}:\n${prompt}`
+        `model=${VARIATION_MODEL} | input_images=${imageUrls.length} | ` +
+        `aspect_ratio=${aspectRatio || "source-default"}:\n${prompt}`
     );
 
     const { request_id } = await fal.queue.submit(VARIATION_MODEL, {
       input: {
         prompt,
         image_urls: imageUrls,
-        ...VARIATION_MODEL_SETTINGS,
+        ...getVariationModelSettings(aspectRatio),
       },
     });
 
@@ -643,11 +739,16 @@ async function startAutomaticTrialVariation({
     };
   }
 
+  const sourceContext = await loadStoredSourceContext(
+    userId,
+    sourceGenerationId,
+  );
   const imageUrls = collectInputImages({
     sourceImageUrl,
     referenceImages,
-    extraImages,
+    extraImages: [extraImages, sourceContext.inputs],
   });
+  const sourceAspectRatio = sourceContext.aspectRatio;
   if (imageUrls.length === 0) {
     return { started: false, reason: "no_images" };
   }
@@ -675,7 +776,7 @@ async function startAutomaticTrialVariation({
     credits_used: 0,
     settings: {
       model: VARIATION_MODEL,
-      ...VARIATION_MODEL_SETTINGS,
+      ...getVariationModelSettings(sourceAspectRatio),
       batchId,
       slot: index + 1,
       automaticTrial: true,
@@ -721,7 +822,7 @@ async function startAutomaticTrialVariation({
             prompt,
             settings: {
               model: VARIATION_MODEL,
-              ...VARIATION_MODEL_SETTINGS,
+              ...getVariationModelSettings(sourceAspectRatio),
               batchId,
               slot: index + 1,
               automaticTrial: true,
@@ -753,6 +854,7 @@ async function startAutomaticTrialVariation({
       prompt,
       imageUrls,
       0,
+      sourceAspectRatio,
     );
   });
 
@@ -816,11 +918,16 @@ router.post("/generate", async (req, res) => {
       });
     }
 
+    const sourceContext = await loadStoredSourceContext(
+      userId,
+      sourceGenerationId,
+    );
     const imageUrls = collectInputImages({
       sourceImageUrl,
       referenceImages,
-      extraImages,
+      extraImages: [extraImages, sourceContext.inputs],
     });
+    const sourceAspectRatio = sourceContext.aspectRatio;
 
     if (imageUrls.length === 0) {
       return res
@@ -908,7 +1015,7 @@ router.post("/generate", async (req, res) => {
       credits_used: i === 0 ? creditCost : 0,
       settings: {
         model: VARIATION_MODEL,
-        ...VARIATION_MODEL_SETTINGS,
+        ...getVariationModelSettings(sourceAspectRatio),
         batchId,
         slot: i + 1,
         backReferenceAnalysis: backAnalysis,
@@ -941,7 +1048,8 @@ router.post("/generate", async (req, res) => {
         sourceGenerationId,
         prompt,
         imageUrls,
-        i === 0 ? creditCost : 0
+        i === 0 ? creditCost : 0,
+        sourceAspectRatio,
       );
     });
 

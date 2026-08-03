@@ -6408,6 +6408,37 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
       }
     }
 
+    // Varyasyon üretimi daha sonra (Results veya History'den) yeniden
+    // başlatıldığında tekil ürün/açı fotoğrafları kaybolmasın. Pending kayıt
+    // başlangıçta yalnız ana/grid referanslarını içeriyordu; NB için sonradan
+    // upload edilen kalıcı URL'leri de aynı generation'a ekle.
+    const completeReferenceImageUrls = Array.from(
+      new Set(
+        [
+          ...(Array.isArray(referenceImageUrls) ? referenceImageUrls : []),
+          ...kombinOriginalUrls,
+          ...angleOriginalUrls,
+        ].filter((url) => typeof url === "string" && /^https?:\/\//i.test(url)),
+      ),
+    );
+    if (completeReferenceImageUrls.length > 0) {
+      const { error: referencePersistError } = await supabase
+        .from("reference_results")
+        .update({ reference_images: completeReferenceImageUrls })
+        .eq("generation_id", generationId)
+        .eq("user_id", userId);
+      if (referencePersistError) {
+        logger.warn(
+          `⚠️ [VARIATION_REFS] Kalıcı referans listesi yazılamadı (${generationId}):`,
+          referencePersistError.message,
+        );
+      } else {
+        logger.log(
+          `✅ [VARIATION_REFS] ${completeReferenceImageUrls.length} kalıcı referans generation'a yazıldı`,
+        );
+      }
+    }
+
     // 📏 Size reference image — nano-banana için beyaz arka plan üzerine composite edip
     // altına "SIZE REFERENCE" başlıklı şerit ekleyip Supabase'e upload edip public URL al
     let sizeReferenceUrl = null;
