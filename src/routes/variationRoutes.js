@@ -34,7 +34,9 @@ const supabase = createClient(
 // Hız ve maliyet odaklı Nano Banana Lite edit modeli.
 const VARIATION_MODEL = "google/nano-banana-lite/edit";
 const VARIATION_MODEL_SETTINGS = {
-  aspect_ratio: "auto",
+  // aspect_ratio bilerek gönderilmiyor: edit modelinin varsayılan davranışı
+  // kaynak görselin oranını korusun. "auto" göndermek modelin oranı yeniden
+  // seçmesine izin verebildiği için varyasyonlarda zorlanmıyor.
   num_images: 1,
   output_format: "jpeg",
   limit_generations: true,
