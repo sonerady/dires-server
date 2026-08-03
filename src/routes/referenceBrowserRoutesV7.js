@@ -15,6 +15,9 @@ const {
 } = require("../services/pushNotificationService");
 const teamService = require("../services/teamService");
 const logger = require("../utils/logger");
+const {
+  startAutomaticTrialVariation,
+} = require("./variationRoutes");
 // app_config ile kapatıldığında sessizce atlamak için işaret hatası
 class EditorialDisabled extends Error {}
 
@@ -1629,6 +1632,33 @@ async function updateGenerationStatus(
           );
           // Notification hatası generation'ı etkilemesin, sessizce devam et
         });
+
+        // Trial otomasyonu client yaşam döngüsüne bağlı değildir. Ana sonuç DB
+        // ve bucket'a yazılır yazılmaz ilk iki varyant backend'de başlar; app
+        // arka planda veya kapalı olsa da üretim devam eder.
+        if (
+          previousSettings?.automaticTrialVariationRequested === true &&
+          data?.[0]?.result_image_url
+        ) {
+          startAutomaticTrialVariation({
+            userId,
+            sourceGenerationId: generationId,
+            sourceImageUrl: data[0].result_image_url,
+            referenceImages: [
+              ...(Array.isArray(data[0].reference_images)
+                ? data[0].reference_images
+                : []),
+              data[0].location_image,
+              data[0].pose_image,
+              data[0].hair_style_image,
+            ].filter(Boolean),
+          }).catch((error) => {
+            logger.error(
+              `❌ [TRIAL_VARIATION] Backend otomatik başlatma hatası (${generationId}):`,
+              error?.message || error,
+            );
+          });
+        }
       }
     }
 
@@ -4885,6 +4915,7 @@ router.post("/generate", async (req, res) => {
       styleReferenceImage = null, // 🎬 Stil referansı: ortam/ışık/kamera/poz bu görselden birebir kopyalanır
       styleProfileId = null, // 🎬 Stil profili: kullanıcının kayıtlı marka stil preseti (grid kolaj olarak kullanılır)
       editorialMode = false, // 🎞️ Editorial mod: dahili stil kolajları her üretime eklenir
+      enableAutomaticTrialVariation = false, // Trial ilk varyasyonu backend completion'da başlatır
     } = req.body;
 
     isMultipleAnglesMode =
@@ -5309,6 +5340,8 @@ router.post("/generate", async (req, res) => {
       totalGenerations: totalGenerations, // Pay-on-success için gerekli
       isMultipleAnglesMode,
       multipleAnglesCount,
+      automaticTrialVariationRequested:
+        enableAutomaticTrialVariation === true,
       ...(sessionId && { sessionId: sessionId }),
     };
 

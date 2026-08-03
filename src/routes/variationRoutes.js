@@ -15,6 +15,13 @@ const { v4: uuidv4 } = require("uuid");
 const teamService = require("../services/teamService");
 const logger = require("../utils/logger");
 const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
+const {
+  calculateVariationAccess,
+  canStartFreeOnlyVariation,
+  shouldStartAutomaticTrialVariation,
+} = require("../utils/variationFlow");
+const { persistVariationImage } = require("../utils/variationStorage");
+const { optimizeForThumbnail } = require("../utils/imageOptimizer");
 
 fal.config({ credentials: process.env.FAL_API_KEY });
 
@@ -34,6 +41,7 @@ const VARIATION_MODEL_SETTINGS = {
 };
 const FREE_FIRST_VARIATION = true;
 const VARIATION_CREDIT_COST = 10;
+const TRIAL_VARIATION_BATCH_LIMIT = 5;
 const MAX_POLLS = 90; // ~3 dk (2 sn aralık)
 const POLL_INTERVAL_MS = 2000;
 
@@ -67,27 +75,55 @@ const POSE_DIVERGENCE_SUFFIX =
 // Yardımcılar
 // ─────────────────────────────────────────────────────────────
 
-/** Bu kaynak için kaçıncı varyasyon olacağını ve ücretini hesaplar. */
+/** Bu kaynak için gerçek parti sayısını, trial limitini ve ücreti hesaplar. */
 async function resolveVariationCost(userId, sourceGenerationId) {
-  const { count, error } = await supabase
-    .from("variation_generations")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", userId)
-    .eq("source_generation_id", sourceGenerationId)
-    .in("status", ["pending", "processing", "completed"]);
+  const [{ data: rows, error: rowsError }, { data: user, error: userError }] =
+    await Promise.all([
+      supabase
+        .from("variation_generations")
+        .select("generation_id, variation_index, settings")
+        .eq("user_id", userId)
+        .eq("source_generation_id", sourceGenerationId)
+        .in("status", ["pending", "processing", "completed"]),
+      supabase.from("users").select("is_in_trial").eq("id", userId).single(),
+    ]);
 
-  if (error) {
-    logger.error("❌ [VARIATION] Sayım hatası:", error.message);
-    // Sayamıyorsak ücretli varsay — bedava üretim sızdırmaktansa güvenli taraf
-    return { variationIndex: 2, creditCost: VARIATION_CREDIT_COST };
+  if (rowsError) {
+    logger.error("❌ [VARIATION] Parti sayım hatası:", rowsError.message);
+    throw new Error("variation_batch_count_failed");
+  }
+  if (userError || !user) {
+    logger.error("❌ [VARIATION] Trial durumu okunamadı:", userError?.message);
+    throw new Error("variation_user_status_failed");
   }
 
-  const previous = count || 0;
-  const variationIndex = previous + 1;
-  const creditCost =
-    FREE_FIRST_VARIATION && variationIndex === 1 ? 0 : VARIATION_CREDIT_COST;
+  // Her tıklama iki DB satırı üretir. Aynı settings.batchId değerine sahip
+  // satırlar tek üretim partisidir; eski kayıtlarda variation_index fallback'tir.
+  const batchKeys = new Set(
+    (rows || []).map((row) =>
+      String(
+        row?.settings?.batchId ||
+          `legacy-index-${row?.variation_index ?? row?.generation_id}`,
+      ),
+    ),
+  );
 
-  return { variationIndex, creditCost };
+  const access = calculateVariationAccess(batchKeys.size, {
+    isInTrial: user.is_in_trial === true,
+    trialBatchLimit: TRIAL_VARIATION_BATCH_LIMIT,
+    freeFirstVariation: FREE_FIRST_VARIATION,
+    variationCreditCost: VARIATION_CREDIT_COST,
+  });
+  const highestStoredIndex = Math.max(
+    0,
+    ...(rows || []).map((row) => Number(row?.variation_index) || 0),
+  );
+  return {
+    ...access,
+    // Eski kod iki DB satırını iki ayrı tur saydığı için indeksler 1,3,5
+    // olabilir. Mevcut veriyle çakışmadan yeni partileri sona ekle.
+    variationIndex: Math.max(access.variationIndex, highestStoredIndex + 1),
+  };
 }
 
 /**
@@ -471,7 +507,14 @@ async function deductVariationCredit(generationId, userId, creditCost) {
 }
 
 /** fal kuyruğunu üretim bitene kadar yoklar. */
-async function runFalVariation(generationId, userId, prompt, imageUrls, creditCost) {
+async function runFalVariation(
+  generationId,
+  userId,
+  sourceGenerationId,
+  prompt,
+  imageUrls,
+  creditCost,
+) {
   const startedAt = Date.now();
 
   try {
@@ -514,11 +557,22 @@ async function runFalVariation(generationId, userId, prompt, imageUrls, creditCo
         const finalResult = await fal.queue.result(VARIATION_MODEL, {
           requestId: request_id,
         });
-        const resultUrl = finalResult?.data?.images?.[0]?.url;
-        if (!resultUrl) throw new Error("Sonuçta görsel yok");
+        const temporaryResultUrl = finalResult?.data?.images?.[0]?.url;
+        if (!temporaryResultUrl) throw new Error("Sonuçta görsel yok");
+
+        // fal.ai CDN adresi geçicidir. DB'ye yazmadan önce uygulamanın kalıcı
+        // Supabase bucket'ına taşı; upload başarısızsa geçici URL'yi kaydetme.
+        const persisted = await persistVariationImage({
+          supabase,
+          sourceUrl: temporaryResultUrl,
+          userId,
+          sourceGenerationId,
+          generationId,
+        });
+        const resultUrl = persisted.publicUrl;
 
         const seconds = Math.round((Date.now() - startedAt) / 1000);
-        await supabase
+        const { error: completionUpdateError } = await supabase
           .from("variation_generations")
           .update({
             status: "completed",
@@ -528,8 +582,16 @@ async function runFalVariation(generationId, userId, prompt, imageUrls, creditCo
             updated_at: new Date().toISOString(),
           })
           .eq("generation_id", generationId);
+        if (completionUpdateError) {
+          throw new Error(
+            `Variation completion could not be saved: ${completionUpdateError.message}`,
+          );
+        }
 
-        logger.log(`✅ [VARIATION] ${generationId} tamamlandı (${seconds} sn)`);
+        logger.log(
+          `✅ [VARIATION] ${generationId} tamamlandı (${seconds} sn) | ` +
+            `bucket=${persisted.bucket} path=${persisted.storagePath}`,
+        );
 
         // Kredi yalnız başarılı sonuçta düşer.
         await deductVariationCredit(generationId, userId, creditCost);
@@ -555,6 +617,150 @@ async function runFalVariation(generationId, userId, prompt, imageUrls, creditCo
   }
 }
 
+/**
+ * Ana model üretimi tamamlandığı anda trial kullanıcısının İLK varyasyon
+ * partisini backend'de başlatır. Deterministik generation id'leri ve UNIQUE
+ * constraint aynı completion iki kez işlense bile ikinci fal üretimini engeller.
+ */
+async function startAutomaticTrialVariation({
+  userId,
+  sourceGenerationId,
+  sourceImageUrl,
+  referenceImages = [],
+  extraImages = [],
+}) {
+  if (!userId || !sourceGenerationId || !sourceImageUrl) {
+    return { started: false, reason: "missing_input" };
+  }
+
+  const access = await resolveVariationCost(userId, sourceGenerationId);
+  if (!shouldStartAutomaticTrialVariation(access)) {
+    return {
+      started: false,
+      reason: access.isInTrial ? "already_started" : "not_trial",
+    };
+  }
+
+  const imageUrls = collectInputImages({
+    sourceImageUrl,
+    referenceImages,
+    extraImages,
+  });
+  if (imageUrls.length === 0) {
+    return { started: false, reason: "no_images" };
+  }
+
+  const stableSourceId = String(sourceGenerationId).replace(
+    /[^a-zA-Z0-9_-]+/g,
+    "_",
+  );
+  const batchId = `trial_auto_${stableSourceId}`;
+  const generationIds = [
+    `var_auto_${stableSourceId}_1`,
+    `var_auto_${stableSourceId}_2`,
+  ];
+  // Önce deterministik pending satırlarını ayır. Prompt analizi uzun sürse bile
+  // client processing kartını hemen görür; eşzamanlı ikinci worker UNIQUE'e takılır.
+  const rows = generationIds.map((generationId, index) => ({
+    user_id: userId,
+    generation_id: generationId,
+    source_generation_id: sourceGenerationId,
+    source_image_url: sourceImageUrl,
+    input_images: imageUrls,
+    prompt: null,
+    status: "pending",
+    variation_index: access.variationIndex,
+    credits_used: 0,
+    settings: {
+      model: VARIATION_MODEL,
+      ...VARIATION_MODEL_SETTINGS,
+      batchId,
+      slot: index + 1,
+      automaticTrial: true,
+    },
+  }));
+
+  const { error: insertError } = await supabase
+    .from("variation_generations")
+    .insert(rows);
+  if (insertError) {
+    // generation_id UNIQUE koruması: başka worker önce başlattıysa başarı say.
+    if (insertError.code === "23505") {
+      logger.log(
+        `🎭 [TRIAL_VARIATION] ${sourceGenerationId} otomatik parti zaten başlatılmış`,
+      );
+      return { started: false, reason: "already_started" };
+    }
+    throw insertError;
+  }
+
+  let prompts;
+  let backAnalysis;
+  try {
+    backAnalysis = await analyzeBackReference(imageUrls);
+    const creativePrompts = await buildVariationPrompts({
+      imageUrls,
+      backAnalysis,
+      note: null,
+    });
+    prompts = creativePrompts.map((prompt, index) =>
+      finalizeVariationPrompt(prompt, {
+        forceBackView: backAnalysis.hasBackReference && index === 1,
+        forbidBackView: !backAnalysis.hasBackReference,
+        backReferenceImageNumber: backAnalysis.backReferenceImageNumber,
+      }),
+    );
+
+    await Promise.all(
+      prompts.map(async (prompt, index) => {
+        const { error } = await supabase
+          .from("variation_generations")
+          .update({
+            prompt,
+            settings: {
+              model: VARIATION_MODEL,
+              ...VARIATION_MODEL_SETTINGS,
+              batchId,
+              slot: index + 1,
+              automaticTrial: true,
+              backReferenceAnalysis: backAnalysis,
+            },
+            updated_at: new Date().toISOString(),
+          })
+          .eq("generation_id", generationIds[index]);
+        if (error) throw error;
+      }),
+    );
+  } catch (error) {
+    await supabase
+      .from("variation_generations")
+      .update({
+        status: "failed",
+        error_message: error?.message || "automatic variation setup failed",
+        updated_at: new Date().toISOString(),
+      })
+      .in("generation_id", generationIds);
+    throw error;
+  }
+
+  prompts.forEach((prompt, index) => {
+    runFalVariation(
+      generationIds[index],
+      userId,
+      sourceGenerationId,
+      prompt,
+      imageUrls,
+      0,
+    );
+  });
+
+  logger.log(
+    `🎭 [TRIAL_VARIATION] Backend otomatik parti başlattı | ` +
+      `source=${sourceGenerationId} batch=${batchId}`,
+  );
+  return { started: true, batchId, generationIds };
+}
+
 // ─────────────────────────────────────────────────────────────
 // Uçlar
 // ─────────────────────────────────────────────────────────────
@@ -572,16 +778,15 @@ router.get("/quote", async (req, res) => {
         .json({ success: false, error: "userId and sourceGenerationId required" });
     }
 
-    const { variationIndex, creditCost } = await resolveVariationCost(
+    const access = await resolveVariationCost(
       userId,
       sourceGenerationId
     );
 
     return res.json({
       success: true,
-      variationIndex,
-      creditCost,
-      isFree: creditCost === 0,
+      ...access,
+      isFree: access.creditCost === 0 && !access.limitReached,
     });
   } catch (err) {
     logger.error("❌ [VARIATION] quote hatası:", err.message);
@@ -621,14 +826,23 @@ router.post("/generate", async (req, res) => {
         .json({ success: false, error: "no usable image urls" });
     }
 
-    const { variationIndex, creditCost } = await resolveVariationCost(
+    const access = await resolveVariationCost(
       userId,
       sourceGenerationId
     );
+    const { variationIndex, creditCost } = access;
 
-    // Trial otomasyonu yalnız kaynağın ücretsiz ilk varyasyonunu başlatabilir.
-    // Quote ile generate arasındaki olası yarışta istemeden kredi harcanmasını önler.
-    if (freeOnly === true && creditCost > 0) {
+    if (access.limitReached) {
+      return res.status(409).json({
+        success: false,
+        error: "trial_variation_limit",
+        ...access,
+      });
+    }
+
+    // Trial'deki beş hakkın tamamı ve normal kullanıcının ücretsiz ilk hakkı
+    // freeOnly çalışabilir. Quote/generate yarışında kredi harcanmasını önler.
+    if (freeOnly === true && !canStartFreeOnlyVariation(creditCost)) {
       return res.status(409).json({
         success: false,
         error: "automatic_variation_not_free",
@@ -722,6 +936,7 @@ router.post("/generate", async (req, res) => {
       runFalVariation(
         generationIds[i],
         userId,
+        sourceGenerationId,
         prompt,
         imageUrls,
         i === 0 ? creditCost : 0
@@ -735,6 +950,13 @@ router.post("/generate", async (req, res) => {
       variationIndex,
       creditCost,
       isFree: creditCost === 0,
+      batchCount: access.batchCount + 1,
+      isInTrial: access.isInTrial,
+      trialLimit: access.trialLimit,
+      trialRemaining: access.isInTrial
+        ? Math.max(0, access.trialRemaining - 1)
+        : null,
+      limitReached: access.isInTrial && access.trialRemaining <= 1,
       backReferenceAnalysis: backAnalysis,
       status: "pending",
     });
@@ -760,7 +982,15 @@ router.get("/status/:generationId", async (req, res) => {
       return res.status(404).json({ success: false, error: "not found" });
     }
 
-    return res.json({ success: true, variation: data });
+    return res.json({
+      success: true,
+      variation: {
+        ...data,
+        result_image_thumbnail: data.result_image_url
+          ? optimizeForThumbnail(data.result_image_url)
+          : null,
+      },
+    });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
   }
@@ -775,7 +1005,7 @@ router.get("/by-source/:sourceGenerationId", async (req, res) => {
     let q = supabase
       .from("variation_generations")
       .select(
-        "generation_id, source_generation_id, source_image_url, status, result_image_url, variation_index, created_at"
+        "generation_id, source_generation_id, source_image_url, status, result_image_url, variation_index, settings, created_at"
       )
       .eq("source_generation_id", sourceGenerationId)
       .order("created_at", { ascending: true });
@@ -790,14 +1020,44 @@ router.get("/by-source/:sourceGenerationId", async (req, res) => {
     const variations = (data || []).filter(
       (v) => v.status === "completed" && v.result_image_url
     );
+    const pendingRows = (data || []).filter((v) =>
+      ["pending", "processing"].includes(v.status),
+    );
+    const latestPending = pendingRows[pendingRows.length - 1] || null;
+    const activeBatchKey = latestPending
+      ? latestPending.settings?.batchId ||
+        `legacy-index-${latestPending.variation_index}`
+      : null;
+    const activeBatch = activeBatchKey
+      ? (data || [])
+          .filter((row) => {
+            const rowBatchKey =
+              row.settings?.batchId || `legacy-index-${row.variation_index}`;
+            return rowBatchKey === activeBatchKey;
+          })
+          .map((row) => ({
+            generation_id: row.generation_id,
+            status: row.status,
+            result_image_url: row.result_image_url,
+            result_image_thumbnail: row.result_image_url
+              ? optimizeForThumbnail(row.result_image_url)
+              : null,
+            variation_index: row.variation_index,
+            created_at: row.created_at,
+          }))
+      : [];
 
     return res.json({
       success: true,
-      variations,
+      variations: variations.map(({ settings, ...variation }) => ({
+        ...variation,
+        result_image_thumbnail: optimizeForThumbnail(
+          variation.result_image_url,
+        ),
+      })),
+      activeBatch,
       sourceImageUrl: (data || []).find((v) => v.source_image_url)?.source_image_url || null,
-      pending: (data || []).filter((v) =>
-        ["pending", "processing"].includes(v.status)
-      ).length,
+      pending: pendingRows.length,
     });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
@@ -805,3 +1065,4 @@ router.get("/by-source/:sourceGenerationId", async (req, res) => {
 });
 
 module.exports = router;
+module.exports.startAutomaticTrialVariation = startAutomaticTrialVariation;
