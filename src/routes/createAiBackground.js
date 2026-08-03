@@ -79,13 +79,13 @@ async function generateEnhancedPrompt(
         {
           parts: [
             {
-              text: `Create a concise edit prompt for improving a product image.
+              text: `Create a complete, detailed edit prompt for improving a product image.
 
 User instructions: ${productDetails || "No specific instructions provided."}
 
 If the user instructions are not in English, translate them first. Then, write a clear, effective edit prompt that would transform a product image into a professional photo.
 
-Keep it simple, direct, and under 100 words. Provide only the edit instructions without any additional commentary.`,
+Use as much detail as the edit requires and retain every applicable user instruction. Provide only the edit instructions without any additional commentary.`,
             },
           ],
         },
@@ -292,7 +292,7 @@ For example, if the product is a tumbler:
 
 FORMAT: Write as a unified text-to-image prompt where the product description is extremely detailed but the environment is minimal, ensuring the product is the absolute focus.
 
-Your prompt should be in English, clear, product-focused (150-250 words with 80% describing ONLY the product itself), and contain no additional commentary.`,
+Your prompt should be in English, clear, product-focused, use as much detail as needed with most of it describing ONLY the product itself, and contain no additional commentary.`,
             },
           ];
 

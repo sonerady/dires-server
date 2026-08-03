@@ -197,10 +197,6 @@ async function generateVideoPrompt(
     const imageUrls = imageUrl && imageUrl.startsWith("http") ? [imageUrl] : [];
     let enhancedPrompt = await callReplicateGeminiFlash(promptForGemini, imageUrls, 3);
 
-    if (enhancedPrompt.length > 2400) {
-      enhancedPrompt = enhancedPrompt.substring(0, 2400);
-    }
-
     console.log("🎬 [VIDEO-V2] Enhanced prompt:", `${enhancedPrompt.substring(0, 100)}...`);
 
     // 🧩 Grid preview akışında, input image bir 6 sahneli storyboard. Seedance'e

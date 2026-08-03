@@ -2372,7 +2372,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     if (isEditMode && editPrompt && editPrompt.trim()) {
       // EDIT MODE - EditScreen'den gelen özel prompt
       promptForGemini = `
-      SIMPLE EDIT INSTRUCTION: Generate a very short, focused prompt (maximum 30 words) that:
+      EDIT INSTRUCTION: Generate a focused, detailed prompt that fully preserves every applicable user requirement and:
       
       1. STARTS with "Replace"
       2. Translates the user's request to English if needed  
@@ -2771,7 +2771,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
     } else if (isPoseChange) {
       // POSE CHANGE MODE - Optimize edilmiş poz değiştirme prompt'u (100-150 token)
       promptForGemini = `
-      FASHION POSE TRANSFORMATION: Generate a focused, detailed English prompt (100-150 words) that transforms the model's pose efficiently. Focus ONLY on altering the pose while keeping the existing model, outfit, lighting, and background exactly the same. You MUST explicitly describe the original background/environment details and state that they stay unchanged.
+      FASHION POSE TRANSFORMATION: Generate a focused, detailed English prompt, using as much detail as needed, that transforms the model's pose efficiently. Focus ONLY on altering the pose while keeping the existing model, outfit, lighting, and background exactly the same. You MUST explicitly describe the original background/environment details and state that they stay unchanged.
 
       USER POSE REQUEST: ${
         settings?.pose && settings.pose.trim()
@@ -2824,7 +2824,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
 
       CRITICAL FORMATTING REQUIREMENTS:
       - Your response MUST start with "Change"
-      - Must be 100-150 words (concise but detailed)
+      - Use as much detail as needed; do not omit applicable instructions
       - Must be entirely in English
       - Focus ONLY on pose transformation
       - Do NOT include any generic fashion photography rules
@@ -2938,7 +2938,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       ${locationPromptSection}
       ${faceDescriptionSection}
       
-      Generate a concise prompt focused on showcasing both front and back garment details while maintaining all original design elements. REMEMBER: Your response must START with "Replace" and emphasize back design features.
+      Generate a complete, detailed prompt that showcases both front and back garment details while maintaining all original design elements. REMEMBER: Your response must START with "Replace" and emphasize back design features.
       `;
     } else {
       // NORMAL MODE - Standart garment replace
@@ -3098,7 +3098,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       ${locationPromptSection}
       ${faceDescriptionSection}
       
-      Generate a concise prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace". Apply all rules silently and do not include any rule text or headings in the output.
+      Generate a complete, detailed prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace". Apply all rules silently and do not include any rule text or headings in the output.
       
       EXAMPLE FORMAT: "Replace the flat-lay garment from the input image directly onto a standing [model description] while keeping the original garment exactly the same..."
       `;
@@ -6337,24 +6337,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
         const qualityParam =
           isV2 || req.body.isBackSideAnalysis ? "2K" : undefined;
 
-        // 📏 nano-banana-pro 50.000 karakter prompt sınırı var. v2 veya
-        // backSide akışında güvenli bir tampon (49.500) bırakıp SONDAN kırp.
-        // Kırpım başı (skin/pose/user-detail ünlemli direktifleri) korur.
-        const NANO_BANANA_PRO_MAX_PROMPT = 49500;
-        let promptForNanoBananaPro = enhancedPrompt;
-        if (
-          (isV2 || req.body.isBackSideAnalysis) &&
-          typeof enhancedPrompt === "string" &&
-          enhancedPrompt.length > NANO_BANANA_PRO_MAX_PROMPT
-        ) {
-          promptForNanoBananaPro = enhancedPrompt.substring(
-            0,
-            NANO_BANANA_PRO_MAX_PROMPT,
-          );
-          logger.log(
-            `✂️ [NB-PRO] Prompt ${enhancedPrompt.length} → ${promptForNanoBananaPro.length} karakter olarak sondan kırpıldı (50k limit)`,
-          );
-        }
+        const promptForNanoBananaPro = enhancedPrompt;
 
         if (isPoseChange) {
           // POSE CHANGE MODE - Farklı input parametreleri

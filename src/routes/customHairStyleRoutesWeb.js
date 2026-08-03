@@ -272,7 +272,7 @@ IMPORTANT: Return ONLY valid JSON, no extra text.
       console.log("🔄 [GEMINI HAIR] Tekrar deneniyor...");
 
       // Daha basit prompt ile tekrar dene
-      const simplePrompt = `Translate "${originalDescription}" to detailed English hair style description (minimum 40 words). Return JSON: {"enhancedPrompt": "A ${gender} mannequin with detailed ${originalDescription} hair style", "hairStyleDescription": "detailed professional hair style description with cut details, texture, and styling elements"}`;
+      const simplePrompt = `Translate "${originalDescription}" into a complete, detailed English hair style description without omitting any detail. Return JSON: {"enhancedPrompt": "A ${gender} mannequin with detailed ${originalDescription} hair style", "hairStyleDescription": "detailed professional hair style description with cut details, texture, and styling elements"}`;
 
       const retryTextRaw = await callReplicateGeminiFlash(simplePrompt);
 

@@ -1438,7 +1438,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     if (isPoseChange) {
       // POSE CHANGE MODE - Takı fotoğrafçılığı için poz değiştirme
       promptForGemini = `
-      JEWELRY PHOTOGRAPHY POSE TRANSFORMATION: Generate a focused, detailed English prompt (100-150 words) that transforms the model's pose efficiently for jewelry photography. Focus ONLY on altering the pose while keeping the existing model, jewelry piece, lighting, and background exactly the same. You MUST explicitly describe the original background/environment details and state that they stay unchanged.
+      JEWELRY PHOTOGRAPHY POSE TRANSFORMATION: Generate a focused, detailed English prompt, using as much detail as needed, that transforms the model's pose efficiently for jewelry photography. Focus ONLY on altering the pose while keeping the existing model, jewelry piece, lighting, and background exactly the same. You MUST explicitly describe the original background/environment details and state that they stay unchanged.
 
       USER POSE REQUEST: ${settings?.pose && settings.pose.trim()
           ? `Transform the model to: ${settings.pose.trim()}`
@@ -1475,7 +1475,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
 
       CRITICAL FORMATTING REQUIREMENTS:
       - Your response MUST start with "Change"
-      - Must be 100-150 words (concise but detailed)
+      - Use as much detail as needed; do not omit applicable instructions
       - Must be entirely in English
       - Focus ONLY on pose transformation for jewelry photography
       - Do NOT mention jewelry replacement or modification
@@ -1524,7 +1524,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
       ${locationPromptSection}
       ${faceDescriptionSection}
       
-      Generate a concise prompt focused on showcasing the jewelry's back design while maintaining all original jewelry details. REMEMBER: Your response must START with "Replace".
+      Generate a complete, detailed prompt showcasing the jewelry's back design while maintaining all original jewelry details. REMEMBER: Your response must START with "Replace".
       `;
     } else {
       // NORMAL MODE - Takı fotoğrafçılığı odaklı
@@ -1676,7 +1676,7 @@ The output must be hyper-realistic, high-end professional jewelry editorial qual
       ${locationPromptSection}
       ${faceDescriptionSection}
       
-      Generate a concise prompt focused on jewelry replacement while maintaining all original details. REMEMBER: Your response must START with "Replace". Apply all rules silently and do not include any rule text or headings in the output.
+      Generate a complete, detailed prompt focused on jewelry replacement while maintaining all original details. REMEMBER: Your response must START with "Replace". Apply all rules silently and do not include any rule text or headings in the output.
       
       EXAMPLE FORMAT: "Replace the flat-lay jewelry piece from the input image directly onto a ${baseModelText} while keeping the original jewelry piece exactly the same..."
       `;

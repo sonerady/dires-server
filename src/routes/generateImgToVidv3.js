@@ -123,10 +123,6 @@ async function generateVideoPrompt(imageUrl, userPrompt, editMode = false) {
     const imageUrls = imageUrl && imageUrl.startsWith("http") ? [imageUrl] : [];
     let enhancedPrompt = await callReplicateGeminiFlash(promptForGemini, imageUrls, 3);
 
-    if (enhancedPrompt.length > 2400) {
-      enhancedPrompt = enhancedPrompt.substring(0, 2400);
-    }
-
     console.log("🎬 [VIDEO-V3] Enhanced prompt:", enhancedPrompt.substring(0, 100) + "...");
     return enhancedPrompt;
   } catch (error) {

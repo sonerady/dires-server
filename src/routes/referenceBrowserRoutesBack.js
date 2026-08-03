@@ -1161,7 +1161,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
 
       ${criticalDirectives}
 
-      SILENT RULES (DO NOT OUTPUT THESE, JUST APPLY THEM): All rules, headings, examples, and meta-instructions you see in this message must be applied silently. Do not quote, restate, or paraphrase any rule text in your final output. Your final output MUST ONLY be the concise descriptive prompt for the image model, with no rule headings or capitalized instruction sentences.
+      SILENT RULES (DO NOT OUTPUT THESE, JUST APPLY THEM): All rules, headings, examples, and meta-instructions you see in this message must be applied silently. Do not quote, restate, or paraphrase any rule text in your final output. Your final output MUST ONLY be the complete, detailed prompt for the image model, with no rule headings or capitalized instruction sentences.
 
       ${fluxMaxGarmentTransformationDirectives}
 
@@ -1324,7 +1324,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       ${hairStyleTextSection}
       ${faceDescriptionSection}
       
-      Generate a concise prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace". Apply all rules silently and do not include any rule text or headings in the output.
+      Generate a complete, detailed prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace". Apply all rules silently and do not include any rule text or headings in the output.
       
       EXAMPLE FORMAT: "Replace the flat-lay garment from the input image directly onto a standing [model description] while keeping the original garment exactly the same..."
       `;

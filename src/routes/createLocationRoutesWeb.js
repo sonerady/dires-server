@@ -175,7 +175,7 @@ async function generateLocationTagsWithGPT(
     const prompt = `Generate location tags for fashion photography. Each tag must be EXACTLY ONE WORD (single word, no spaces, no hyphens). Tags must be DIRECTLY RELATED to the location's main subject and theme.
 
 Location: "${locationTitle}"
-Description: "${locationDescription.substring(0, 300)}"
+Description: "${locationDescription}"
 Type: ${locationType}
 
 CRITICAL REQUIREMENTS:
@@ -321,10 +321,7 @@ IMPORTANT: Return ONLY valid JSON, no explanations, no markdown, no code blocks.
 
       // Retry with a simpler prompt
       try {
-        const retryPrompt = `Generate location tags. Each tag must be EXACTLY ONE WORD. Tags must be DIRECTLY RELATED to the location's main subject. Location: "${locationTitle}" - "${(locationDescription || "").substring(
-          0,
-          200
-        )}". MANDATORY: Extract key words from title and description - the MAIN SUBJECT mentioned MUST be included in tags. Focus on main subjects, objects, places, styles mentioned. DO NOT use generic atmosphere tags. If location mentions specific objects (car, ship, building, etc.), these MUST be in the tags. Return JSON with languages: en, es, pt, fr, de, it, tr, ru, uk, ar, fa, zh, zh-tw, ja, ko, hi, id. Each language must have exactly 5 tags (minimum 5, maximum 5), each tag exactly one word. Return ONLY valid JSON, no explanations.`;
+        const retryPrompt = `Generate location tags. Each tag must be EXACTLY ONE WORD. Tags must be DIRECTLY RELATED to the location's main subject. Location: "${locationTitle}" - "${locationDescription || ""}". MANDATORY: Extract key words from title and description - the MAIN SUBJECT mentioned MUST be included in tags. Focus on main subjects, objects, places, styles mentioned. DO NOT use generic atmosphere tags. If location mentions specific objects (car, ship, building, etc.), these MUST be in the tags. Return JSON with languages: en, es, pt, fr, de, it, tr, ru, uk, ar, fa, zh, zh-tw, ja, ko, hi, id. Each language must have exactly 5 tags (minimum 5, maximum 5), each tag exactly one word. Return ONLY valid JSON, no explanations.`;
 
         const retryGeminiResponse = await callReplicateGeminiFlash(retryPrompt, [], 3);
 
@@ -364,11 +361,11 @@ async function enhanceLocationPromptWithGPT(originalPrompt) {
   try {
     console.log("🤖 [GEMINI] Prompt enhancement başlatılıyor...");
 
-    const promptForGemini = `You are an expert AI prompt engineer specializing in photorealistic location photography. Create SHORT, SIMPLE prompts optimized for image generation.
+    const promptForGemini = `You are an expert AI prompt engineer specializing in photorealistic location photography. Create complete, detailed prompts optimized for image generation without omitting user instructions.
 
 IMPORTANT: Always respond in ENGLISH only, regardless of the input language. If the input is in Turkish, Arabic, or any other language, translate the concept to English and create an English prompt.
 
-Generate a SHORT, SIMPLE ENGLISH prompt (max 512 tokens) following best practices.
+Generate a clear, detailed ENGLISH prompt following best practices. Use as much detail as the scene requires.
 
 🎯 OPTIMIZATION REQUIREMENTS:
 - Focus on visual description and atmosphere
@@ -410,7 +407,7 @@ You MUST analyze the location description and determine if it's:
 
 OUTPUT FORMAT (MUST BE IN ENGLISH):
 {
-  "prompt": "[simple 200-400 word English prompt with vibrant colors and realistic details - NO technical camera specs, NO people, NO humans, NO figures, NO mannequins - focus on visual description of an EMPTY, VACANT location - translate any non-English concepts to English]",
+  "prompt": "[detailed English prompt with vibrant colors and realistic details, using as much length as needed - NO technical camera specs, NO people, NO humans, NO figures, NO mannequins - focus on visual description of an EMPTY, VACANT location - translate any non-English concepts to English]",
   "title": "[complete, descriptive English location title - 4-8 words - MUST start with the MAIN SUBJECT/THEME of the location - make it general and beautiful - example: 'Vintage Car on Historic Istanbul Street' NOT 'Vintage Car in' - the title must be complete and meaningful]",
   "locationType": "[outdoor/indoor/studio]"
 }
@@ -514,13 +511,6 @@ Create a detailed location photography prompt from: "${originalPrompt}"`;
     // Token sayısını kontrol et (prompt için)
     const tokenCount = enhancedPrompt.split(/\s+/).length;
     console.log(`Generated prompt token count: ${tokenCount}`);
-
-    // Eğer 512 token'dan fazlaysa kısalt
-    if (tokenCount > 512) {
-      const words = enhancedPrompt.split(/\s+/);
-      enhancedPrompt = words.slice(0, 512).join(" ");
-      console.log(`Prompt kısaltıldı: ${enhancedPrompt}`);
-    }
 
     // Basit uzunluk kontrolü (çok kısa değilse kabul et)
     if (tokenCount < 50) {

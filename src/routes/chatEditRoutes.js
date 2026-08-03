@@ -384,13 +384,9 @@ IMPORTANT: Output ONLY the enhanced prompt text, nothing else. No explanations, 
 
     const qualitySuffix = " Render in ultra-high 4K resolution with maximum detail, sharp textures, and photorealistic quality.";
     const promptWithQuality = enhancedPrompt + qualitySuffix;
-    const truncatedPrompt =
-      promptWithQuality.length > 4900
-        ? promptWithQuality.substring(0, 4900)
-        : promptWithQuality;
 
     const falRequestBody = {
-      prompt: truncatedPrompt,
+      prompt: promptWithQuality,
       image_urls: hasSelections ? [originalImageUrl, maskedImageUrl] : [originalImageUrl],
       output_format: "png",
       aspect_ratio: aspectRatio || "9:16",

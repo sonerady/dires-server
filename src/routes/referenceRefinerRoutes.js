@@ -340,7 +340,7 @@ async function enhancePromptWithGemini(
     let promptForGemini = `
     IMPORTANT INSTRUCTION: Please generate ONLY the requested prompt without any introduction, explanation, or commentary. Do not start with phrases like "Here's a detailed prompt" or "Editorial Photography Prompt" or any descriptive text. Return ONLY the direct prompt content that will be used for image generation.
 
-    PROMPT LENGTH REQUIREMENT: Generate a comprehensive, detailed prompt that is AT LEAST 500 words long. Include extensive descriptions of fabric details, lighting conditions, environmental elements, product arrangement, garment construction, textures, colors, styling elements, and photographic composition. The prompt should be richly detailed and descriptive to ensure high-quality image generation.
+    PROMPT DETAIL REQUIREMENT: Generate a comprehensive prompt using as much detail as the image requires. Include fabric details, lighting conditions, environmental elements, product arrangement, garment construction, textures, colors, styling elements, and photographic composition without omitting applicable information.
 
     CRITICAL ACCURACY REQUIREMENT: Carefully analyze the reference image and describe ONLY the features that actually exist in the garment. Do NOT assume or invent details that are not visible. Pay special attention to:
     - Only mention pockets if they are clearly visible in the reference image

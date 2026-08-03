@@ -722,7 +722,7 @@ TASK: Write 6 "transform..." prompts that tell the story of receiving and trying
 
 STYLE: Authentic phone camera quality. NO professional studio lighting. NO filters. Think real Instagram Stories — slightly imperfect, genuine, candid. The kind of photos real people post when they receive a new outfit. ALL scenes must be indoor home settings — bedroom, living room, couch, bed, mirror — NEVER outdoors, never street, never park, never outside.
 
-Each prompt should be 80-120 words, written as one flowing paragraph. Cover these aspects naturally:
+Each prompt should be a detailed flowing paragraph using as much length as its scene requires. Cover these aspects naturally:
 - Setting & environment (INDOOR HOME ONLY — bedroom, living room, couch, bed, kitchen)
 - Lighting (warm indoor ambient light, window light — NOT studio, NOT outdoor)
 - Phone camera quality (slightly grainy, real, no post-processing)

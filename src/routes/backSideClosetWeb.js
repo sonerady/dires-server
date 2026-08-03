@@ -1811,7 +1811,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     if (isEditMode && editPrompt && editPrompt.trim()) {
       // EDIT MODE - EditScreen'den gelen özel prompt
       promptForGemini = `
-      SIMPLE EDIT INSTRUCTION: Generate a very short, focused prompt (maximum 30 words) that:
+      EDIT INSTRUCTION: Generate a focused, detailed prompt that fully preserves every applicable user requirement and:
       
       1. STARTS with "Replace"
       2. Translates the user's request to English if needed  
@@ -2176,9 +2176,9 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
         }
       `;
     } else if (isPoseChange) {
-      // POSE CHANGE MODE - Optimize edilmiş poz değiştirme prompt'u (100-150 token)
+      // POSE CHANGE MODE - Eksiksiz poz değiştirme prompt'u
       promptForGemini = `
-      FASHION POSE TRANSFORMATION: Generate a focused, detailed English prompt (100-150 words) that transforms the model's pose efficiently. Focus ONLY on altering the pose while keeping the existing model, outfit, lighting, and background exactly the same. You MUST explicitly describe the original background/environment details and state that they stay unchanged.
+      FASHION POSE TRANSFORMATION: Generate a focused, detailed English prompt, using as much detail as needed, that transforms the model's pose efficiently. Focus ONLY on altering the pose while keeping the existing model, outfit, lighting, and background exactly the same. You MUST explicitly describe the original background/environment details and state that they stay unchanged.
 
       USER POSE REQUEST: ${settings?.pose && settings.pose.trim()
           ? `Transform the model to: ${settings.pose.trim()}`
@@ -2230,7 +2230,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
 
       CRITICAL FORMATTING REQUIREMENTS:
       - Your response MUST start with "Change"
-      - Must be 100-150 words (concise but detailed)
+      - Use as much detail as needed; do not omit applicable instructions
       - Must be entirely in English
       - Focus ONLY on pose transformation
       - Do NOT include any generic fashion photography rules
@@ -2342,7 +2342,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       ${locationPromptSection}
       ${faceDescriptionSection}
       
-      Generate a concise prompt focused on showcasing both front and back garment details while maintaining all original design elements. REMEMBER: Your response must START with "Replace" and emphasize back design features.
+      Generate a complete, detailed prompt that showcases both front and back garment details while maintaining all original design elements. REMEMBER: Your response must START with "Replace" and emphasize back design features.
       `;
 
       // 🔄 Back side pose directive — V7 "Opening Directives" pattern.
@@ -2371,11 +2371,11 @@ ${promptForGemini}`;
       promptForGemini = `
       MANDATORY INSTRUCTION: You MUST generate a prompt that STARTS with the word "Replace". The first word of your output must be "Replace". Do not include any introduction, explanation, or commentary.
       
-      IMPORTANT: Your generated prompt must be UNDER 5000 characters total. Be concise but descriptive. Focus on the most important details.
+      IMPORTANT: There is no hard character limit. Include every applicable instruction and all visually important details.
          
       DEFAULT POSE INSTRUCTION: If no specific pose is provided by the user, you must randomly select an editorial-style fashion pose that best showcases the garment’s unique details, fit, and silhouette. The pose should be confident and photogenic, with body language that emphasizes fabric drape, construction, and design elements, while remaining natural and commercially appealing. Always ensure the garment’s critical features (neckline, sleeves, logos, seams, textures) are clearly visible from the chosen pose.
 
-      After constructing the garment, model, and background descriptions, you must also generate an additional block of at least 200 words that describes a professional editorial fashion photography effect. This effect must always adapt naturally to the specific garment, fabric type, color palette, lighting conditions, and background environment described earlier. Do not use a fixed style for every prompt. Instead, analyze the context and propose an effect that enhances the scene cohesively. Examples might include glossy highlights and refined softness for silk in a studio setting, or natural tones, airy realism, and depth of field for cotton in outdoor daylight. These are only examples, not strict rules — you should always generate an effect description that best matches the unique scene. Your effect description must cover color grading, lighting treatment, texture and fabric physics, background integration, focus and depth of field, and overall editorial polish. Always ensure the tone is professional, realistic, and aligned with the visual language of high-end fashion magazines. The effect description must make the final result feel like a hyper-realistic editorial-quality fashion photograph, seamlessly blending garment, model, and environment into a single cohesive campaign-ready image.
+      After constructing the garment, model, and background descriptions, also generate a thorough professional editorial fashion photography effect block using as much detail as the scene requires. This effect must always adapt naturally to the specific garment, fabric type, color palette, lighting conditions, and background environment described earlier. Do not use a fixed style for every prompt. Instead, analyze the context and propose an effect that enhances the scene cohesively. Examples might include glossy highlights and refined softness for silk in a studio setting, or natural tones, airy realism, and depth of field for cotton in outdoor daylight. These are only examples, not strict rules — always generate an effect description that best matches the unique scene. Cover color grading, lighting treatment, texture and fabric physics, background integration, focus and depth of field, and overall editorial polish. Keep the tone professional, realistic, and aligned with the visual language of high-end fashion magazines. The effect description must make the final result feel like a hyper-realistic editorial-quality fashion photograph, seamlessly blending garment, model, and environment into a single cohesive campaign-ready image.
 
 
       When generating fashion photography prompts, you must always structure the text into four separate paragraphs using \n\n line breaks. Do not output one long block of text.
@@ -2533,7 +2533,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
       ${locationPromptSection}
       ${faceDescriptionSection}
       
-      Generate a concise prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace". Apply all rules silently and do not include any rule text or headings in the output.
+      Generate a complete, detailed prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace". Apply all rules silently and do not include any rule text or headings in the output.
       
       EXAMPLE FORMAT: "Replace the flat-lay garment from the input image directly onto a standing [model description] while keeping the original garment exactly the same..."
       `;
@@ -4785,17 +4785,8 @@ router.post("/generate", async (req, res) => {
         let requestBody;
         const aspectRatioForRequest = formattedRatio || "9:16";
 
-        // Fal.ai 5000 karakter limiti - prompt'u kırp
-        const maxPromptLength = 4900;
-        let truncatedPrompt = enhancedPrompt;
         logger.log(`📏 [FAL_PROMPT] Enhanced prompt uzunluğu: ${enhancedPrompt.length} karakter`);
-        if (enhancedPrompt.length > maxPromptLength) {
-          logger.log(
-            `⚠️ Prompt ${enhancedPrompt.length} karakter, ${maxPromptLength}'e kırpılıyor...`
-          );
-          truncatedPrompt = enhancedPrompt.substring(0, maxPromptLength);
-        }
-        logger.log(`📋 [FAL_PROMPT] Fal.ai'ya giden prompt (${truncatedPrompt.length} karakter):`, truncatedPrompt);
+        logger.log(`📋 [FAL_PROMPT] Fal.ai'ya giden prompt (${enhancedPrompt.length} karakter):`, enhancedPrompt);
 
         // Back side analysis veya v2 modunda quality "2K" olarak ayarla
         const qualityParam =
@@ -4804,7 +4795,7 @@ router.post("/generate", async (req, res) => {
         if (isPoseChange) {
           // POSE CHANGE MODE - Farklı input parametreleri
           requestBody = {
-            prompt: truncatedPrompt, // Kırpılmış prompt
+            prompt: enhancedPrompt,
             image_urls: imageInputArray,
             output_format: "png",
             aspect_ratio: aspectRatioForRequest,
@@ -4822,7 +4813,7 @@ router.post("/generate", async (req, res) => {
         } else {
           // NORMAL MODE - Kalite versiyonuna göre parametreler
           requestBody = {
-            prompt: truncatedPrompt, // Kırpılmış prompt
+            prompt: enhancedPrompt,
             image_urls: imageInputArray,
             output_format: "png",
             aspect_ratio: aspectRatioForRequest,

@@ -322,7 +322,7 @@ The prompt MUST begin with a detailed description of the product itself - descri
 
 IMPORTANT: If the product is a clothing item (such as shirt, pants, dress, t-shirt, skirt, or any apparel), the clothing should appear three-dimensional and filled out as if worn by an invisible body. The clothing should maintain its natural shape with proper volume, realistic folds and draping, showing how it would look when worn, without showing any visible mannequin. The garment should appear to be floating naturally with proper form and structure, not flat or collapsed.
 
-Your response must be ONLY the prompt itself with no additional commentary or introductory phrases. The prompt must be in English (regardless of what language the user description is in) and limited to 150 words.`,
+Your response must be ONLY the prompt itself with no additional commentary or introductory phrases. The prompt must be in English (regardless of what language the user description is in) and use as much detail as needed.`,
           },
         ];
 

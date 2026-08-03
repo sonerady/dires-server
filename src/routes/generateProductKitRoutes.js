@@ -652,13 +652,13 @@ Analyze the following product image and generate 6 professional prompts for fash
 All prompts MUST be in ENGLISH.
 
 1, 2) Change Pose (1, 2) – Prompts:
-Generate 2 short, distinct ENERGETIC pose prompts with dynamic movement.
+Generate 2 complete, distinct ENERGETIC pose prompts with dynamic movement and all necessary visual detail.
 CRITICAL REQUIREMENTS:
 - Each pose MUST be completely DIFFERENT from the other
 - Use ENERGETIC, DYNAMIC poses with movement and life
 - Natural, lively, high-fashion energy
 - Preserve all garment details
-- Keep prompts SHORT and CONCISE
+- Keep every applicable pose and styling detail
 
 EXAMPLE Change_Pose_1_Prompt:
 "convert to dynamic high-fashion pose with energetic movement, natural lively stance, preserve all garment details. Apply a clean editorial color preset with natural tones, balanced contrast, soft highlights, accurate whites, and professional fashion color grading. Avoid heavy filters, oversaturation, or stylized effects."
@@ -684,7 +684,7 @@ CRITICAL REQUIREMENTS:
 - Clean controlled artificial studio lighting environment.
 IMPORTANT: 
 - Start the prompt with the word "convert".
-- Keep the prompt SHORT and CONCISE.
+- Keep every applicable pose and styling detail.
 - DO NOT describe product color, fabric, or name.
 
 EXAMPLE Studio_1_Prompt:

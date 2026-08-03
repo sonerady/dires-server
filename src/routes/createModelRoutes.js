@@ -475,13 +475,6 @@ Create a professional ID photo prompt incorporating these details: "${originalPr
     const tokenCount = enhancedPrompt.split(/\s+/).length;
     logger.log(`Generated prompt token count: ${tokenCount}`);
 
-    // Eğer çok uzunsa kısalt
-    if (tokenCount > 512) {
-      const words = enhancedPrompt.split(/\s+/);
-      enhancedPrompt = words.slice(0, 512).join(" ");
-      logger.log(`Prompt kısaltıldı: ${enhancedPrompt}`);
-    }
-
     logger.log("✅ Replicate Gemini ID photo prompt enhancement tamamlandı");
     logger.log("Enhanced prompt length:", enhancedPrompt.length);
 

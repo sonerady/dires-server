@@ -256,7 +256,7 @@ IMPORTANT: Return ONLY valid JSON, no extra text.
       console.log("🔄 [GEMINI] Tekrar deneniyor...");
 
       // Daha basit prompt ile tekrar dene
-      const simplePrompt = `Translate "${originalDescription}" to English pose description (max 5 words). Return JSON: {"enhancedPrompt": "A ${gender} model in ${originalDescription} pose", "poseDescription": "translated pose"}`;
+      const simplePrompt = `Translate "${originalDescription}" into a complete English pose description without omitting any detail. Return JSON: {"enhancedPrompt": "A ${gender} model in ${originalDescription} pose", "poseDescription": "translated pose"}`;
 
       const retryTextRaw = await callReplicateGeminiFlash(simplePrompt);
 

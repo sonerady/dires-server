@@ -19,6 +19,10 @@ const { optimizeImageUrl } = require("../utils/imageOptimizer");
 const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
 const { applyResultUpscale } = require("../utils/resultUpscale");
 const {
+  appendUserInstructionLock,
+  buildUserInstructionLock,
+} = require("../utils/userInstructionLock");
+const {
   sanitizePromptForContentFilter,
   isContentFilter422,
 } = require("../utils/promptContentFilter");
@@ -48,7 +52,7 @@ const buildBackSideFallbackPrompt = (
   const stanceSentence = poseEntry
     ? ` The model is ${poseEntry.stance}.`
     : " The model stands in a natural, confident back-view editorial stance with their back fully to the camera and weight settled onto one leg.";
-  return `Replace the front-facing pose with a full back view: the same model from the first image, wearing the exact same garment, photographed from directly behind, ${orientationClause} so their back faces the camera${poseDescription}${environmentDescription}. Reproduce the back design shown in the back-design reference images (every image after the first) exactly — every graphic, print, lettering, pattern placement and scale, yoke seams and back hem — spread naturally across the model's back and following the body's real curvature. Keep the model's identity, hairstyle, skin tone, body proportions, the background scene, lighting direction and color temperature identical to the first image.${stanceSentence} Camera positioned directly behind the model at chest height, focus locked on the back panel so the back design is rendered tack-sharp. The garment appears realistic with natural drape, folds along the shoulders, and accurate fabric texture; the print wraps seamlessly on the fabric, following the model's back curvature. The lighting, background, and perspective match the original scene, resulting in one single cohesive photorealistic back-view fashion photograph.${customDetail ? ` Additionally, honor this explicit request from the user and make it clearly visible in the photograph without weakening the back view: ${customDetail}.` : ""}`;
+  return `Replace the front-facing pose with a full back view: the same model from the first image, wearing the exact same garment, photographed from directly behind, ${orientationClause} so their back faces the camera${poseDescription}${environmentDescription}. Reproduce the back design shown in the back-design reference images (every image after the first) exactly — every graphic, print, lettering, pattern placement and scale, yoke seams and back hem — spread naturally across the model's back and following the body's real curvature. Keep the model's identity, hairstyle, skin tone, body proportions, the background scene, lighting direction and color temperature identical to the first image.${stanceSentence} Camera positioned directly behind the model at chest height, focus locked on the back panel so the back design is rendered tack-sharp. The garment appears realistic with natural drape, folds along the shoulders, and accurate fabric texture; the print wraps seamlessly on the fabric, following the model's back curvature. The lighting, background, and perspective match the original scene, resulting in one single cohesive photorealistic back-view fashion photograph.${customDetail ? ` Additionally, honor this explicit request from the user literally and make it unmistakably visible without weakening the back view: ${customDetail}. Any garment, color, accessory, prop, pose, or scene change explicitly named in that request is an allowed exception to the preservation rules; preserve every unmentioned attribute exactly.` : ""}`;
 };
 
 // Supabase istemci oluştur
@@ -1392,7 +1396,7 @@ function buildBackSidePoseDirectiveItem(backPose) {
     ? `REQUIRED STANCE (the user picked this explicitly, do not substitute it): ${entry.stance}. Build the whole back-view description around this stance.`
     : `No stance was named, so choose the back-view stance that flatters THIS garment's back construction most — a straight square-on back, a soft over-the-shoulder glance, hair lifted off the nape, a mid-stride walk-away, or an arms-raised stretch — and commit to it fully.`;
 
-  return `BACK-VIEW TURN — Intent: YOUR ONLY TASK IS TO TURN THE MODEL AROUND TO SHOW THE BACK OF THE GARMENT. The model in the FIRST reference image is currently facing the camera; in the output the model MUST be rotated 180° so the BACK is fully visible to the camera. The back design, print, graphic, embroidery, text, pattern, color blocking, seams, label position, and silhouette MUST EXACTLY match what is shown in the SECOND reference image (the flat back-side product photo, "ARKA ÜRÜN") — wrapped naturally onto the model's back with realistic fabric drape, shoulder folds, and curvature. Camera shoots from BEHIND the model; head may face fully away or include a subtle over-shoulder glance — never a frontal pose. ${stanceClause} ABSOLUTE PRESERVATION (locked, must not change): the model's identity (same face, skin tone, hair, makeup, body type — never a different person, even though the face is now mostly out of frame), the FRONT garment continuity (it is the same physical garment — colors, fabric, fit, length, trims, logos must remain consistent with the front view), the environment / background (exact same scene, props, walls, floor, lighting, atmosphere, time of day — never changed), and the camera framing + photo style. → Your task: write 2-3 flowing sentences that interpret this intent for THIS specific garment, model, and scene. Describe the back-turn vividly and concretely (shoulder line, weight shift, foot placement, head angle, how the back design sits across the shoulder blades and lower back) and weave in the locked preservation reminder briefly — as natural, positively-framed photographic prose describing what the camera sees.`;
+  return `BACK-VIEW TURN — Intent: YOUR ONLY TASK IS TO TURN THE MODEL AROUND TO SHOW THE BACK OF THE GARMENT. The model in the FIRST reference image is currently facing the camera; in the output the model MUST be rotated 180° so the BACK is fully visible to the camera. The back design, print, graphic, embroidery, text, pattern, color blocking, seams, label position, and silhouette MUST EXACTLY match what is shown in the SECOND reference image (the flat back-side product photo, "ARKA ÜRÜN") — wrapped naturally onto the model's back with realistic fabric drape, shoulder folds, and curvature. Camera shoots from BEHIND the model; head may face fully away or include a subtle over-shoulder glance — never a frontal pose. ${stanceClause} ABSOLUTE PRESERVATION (locked, must not change except only where USER DETAIL explicitly requests a modification): the model's identity (same face, skin tone, hair, makeup, body type — never a different person, even though the face is now mostly out of frame), the FRONT garment continuity (it is the same physical garment — preserve every color, fabric, fit, length, trim, and logo that USER DETAIL does not explicitly change), the environment / background (preserve the exact scene, props, walls, floor, lighting, atmosphere, and time of day except only for elements USER DETAIL explicitly adds or changes), and the camera framing + photo style. → Your task: write 2-3 flowing sentences that interpret this intent for THIS specific garment, model, and scene. Describe the back-turn vividly and concretely (shoulder line, weight shift, foot placement, head angle, how the back design sits across the shoulder blades and lower back) and weave in the locked preservation reminder briefly — as natural, positively-framed photographic prose describing what the camera sees.`;
 }
 
 // 📝 USER DETAIL directive ITEM — V7 (referenceBrowserRoutesV7) ile AYNI kalite:
@@ -1400,7 +1404,7 @@ function buildBackSidePoseDirectiveItem(backPose) {
 // veriliyor ve Gemini'den kıyafete/sahneye uyarlanmış 2-3 cümleye genişletmesi
 // isteniyor. Böylece nüanslı istekler arka görünüm vurgusunun altında kaybolmuyor.
 function buildUserDetailDirectiveItem(detail) {
-  return `USER DETAIL — Intent: the user has explicitly provided this non-negotiable additional detail that MUST be honored and clearly reflected in the final photograph: "${detail}". Treat it with the same strictness as the back-view orientation itself — it complements the back-view, never replaces or weakens it. → Your task: write 2-3 flowing sentences that integrate this detail naturally into the garment + back-design + scene context, adapting it to the garment TYPE / CATEGORY, the ENVIRONMENT / LOCATION and the ATMOSPHERE / MOOD (if it is a background / environment element, describe how it frames the composition around the model seen from behind; if it is a styling / mood / prop element, describe how it complements the fabric, colour, silhouette and lighting across the back panel). The detail must stay clearly recognizable and visible in your prose.`;
+  return `USER DETAIL — Intent: the user has explicitly provided this non-negotiable additional detail that MUST be honored literally and clearly reflected in the final photograph: "${detail}". Treat it with the same strictness as the back-view orientation itself — it complements the back-view, never replaces or weakens it. If it explicitly asks to add or modify a garment detail, color, accessory, prop, styling element, background feature, pose, or visual treatment, that named change OVERRIDES the general preservation rule only for the requested attribute; preserve every other unmentioned attribute exactly. → Your task: write 2-3 flowing sentences that integrate this detail naturally into the garment + back-design + scene context, adapting it to the garment TYPE / CATEGORY, the ENVIRONMENT / LOCATION and the ATMOSPHERE / MOOD (if it is a background / environment element, describe how it frames the composition around the model seen from behind; if it is a styling / mood / prop element, describe how it complements the fabric, colour, silhouette and lighting across the back panel). The detail must stay clearly recognizable and unmistakably visible in your prose.`;
 }
 
 // Eski istemciler customDetail'i ayrı parametre olarak göndermiyor olabilir;
@@ -2052,7 +2056,7 @@ IMPORTANT: Ensure garment details (neckline, chest, sleeves, logos, seams) remai
     if (isEditMode && editPrompt && editPrompt.trim()) {
       // EDIT MODE - EditScreen'den gelen özel prompt
       promptForGemini = `
-      SIMPLE EDIT INSTRUCTION: Generate a focused edit prompt — as short as the request allows, but with no hard word limit; write whatever length the edit genuinely needs — that:
+      EDIT INSTRUCTION: Generate a complete, focused edit prompt that retains every applicable requirement and:
       
       1. STARTS with "Replace"
       2. Translates the user's request to English if needed  
@@ -2417,7 +2421,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
         }
       `;
     } else if (isPoseChange) {
-      // POSE CHANGE MODE - Optimize edilmiş poz değiştirme prompt'u (100-150 token)
+      // POSE CHANGE MODE - Eksiksiz poz değiştirme prompt'u
       promptForGemini = `
       FASHION POSE TRANSFORMATION: Generate a focused, detailed English prompt (no word limit — write as richly as the pose change needs) that transforms the model's pose efficiently. Focus ONLY on altering the pose while keeping the existing model, outfit, lighting, and background exactly the same. You MUST explicitly describe the original background/environment details and state that they stay unchanged.
 
@@ -2561,7 +2565,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       ${locationPromptSection}
       ${faceDescriptionSection}
       
-      Generate a concise prompt focused on showcasing both front and back garment details while maintaining all original design elements. REMEMBER: Your response must START with "Replace" and emphasize back design features.
+      Generate a complete, detailed prompt that showcases both front and back garment details while maintaining all original design elements. REMEMBER: Your response must START with "Replace" and emphasize back design features.
       `;
 
       // 🔄 Back side pose directive — V7 "Opening Narrative" pattern.
@@ -2764,7 +2768,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
       ${locationPromptSection}
       ${faceDescriptionSection}
       
-      Generate a concise prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace". Apply all rules silently and do not include any rule text or headings in the output.
+      Generate a complete, detailed prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace". Apply all rules silently and do not include any rule text or headings in the output.
       
       EXAMPLE FORMAT: "Replace the flat-lay garment from the input image directly onto a standing [model description] while keeping the original garment exactly the same..."
       `;
@@ -4059,6 +4063,29 @@ router.post("/generate", async (req, res) => {
       backOriginalImages = null,
     } = req.body;
 
+    // Backside istemcilerinin eski sürümleri detayı yalnız promptText içine
+    // yazabiliyor. Tek bir çözülmüş değer kullanarak Gemini direktifinin, DB
+    // kaydının ve nihai image-model kilidinin aynı isteği taşımasını sağla.
+    const resolvedRequestCustomDetail = req.body.isBackSideAnalysis
+      ? extractCustomDetail(customDetail || settings?.customDetail, promptText)
+      : customDetail;
+    const backSideUserInstructionLock = req.body.isBackSideAnalysis
+      ? buildUserInstructionLock({
+          settings: settings || {},
+          customDetail: resolvedRequestCustomDetail,
+          hasLocationReference: Boolean(locationImage),
+          hasPoseReference: Boolean(poseImage),
+          hasHairReference: Boolean(hairStyleImage),
+        })
+      : "";
+
+    if (req.body.isBackSideAnalysis) {
+      logger.log(
+        "📝 [BACKSIDE USER DETAIL] İstekten çözülen değer:",
+        resolvedRequestCustomDetail || "(yok)",
+      );
+    }
+
     // Kalite versiyonu kontrolü (settings'ten al) - Refiner modunda v1'e zorla
     const qualityVersion = isRefinerMode
       ? "v1"
@@ -4482,7 +4509,7 @@ router.post("/generate", async (req, res) => {
         generationId: finalGenerationId,
         status: "processing",
         originalPrompt: promptText,
-        customDetail: customDetail || settings?.customDetail || null,
+        customDetail: resolvedRequestCustomDetail || null,
         originalImageUrl: referenceImageUrls?.[0] || null,
         backImageUrl: referenceImageUrls?.[1] || null,
         settings: settingsWithSession,
@@ -4754,7 +4781,7 @@ router.post("/generate", async (req, res) => {
           false, // isColorChange
           null, // targetColor
           isPoseChange, // isPoseChange
-          customDetail, // customDetail
+          resolvedRequestCustomDetail, // customDetail
           isEditMode, // isEditMode
           editPrompt, // editPrompt
           false, // isRefinerMode
@@ -4809,7 +4836,7 @@ router.post("/generate", async (req, res) => {
         isColorChange, // Renk değiştirme işlemi mi?
         targetColor, // Hedef renk bilgisi
         isPoseChange, // Poz değiştirme işlemi mi?
-        customDetail, // Özel detay bilgisi
+        resolvedRequestCustomDetail, // Özel detay bilgisi
         isEditMode, // EditScreen modu mu?
         editPrompt, // EditScreen'den gelen prompt
         isRefinerMode, // RefinerScreen modu mu?
@@ -5166,33 +5193,20 @@ router.post("/generate", async (req, res) => {
         let requestBody;
         const aspectRatioForRequest = formattedRatio || "9:16";
 
-        // 📏 Prompt limiti — nano banana ailesi ~50.000 karaktere kadar kabul
-        // ediyor. Eskiden GPT Image 2'nin 5.000 karakter limiti yüzünden 4.900'e
-        // kırpılıyordu; zengin arka görünüm anlatısı ve kuyruk direktifleri bu
-        // yüzden kesiliyordu. Güvenli tampon: 49.500.
-        const maxPromptLength = 49500;
-        let truncatedPrompt = enhancedPrompt;
+        let finalPrompt = enhancedPrompt;
         logger.log(`📏 [FAL_PROMPT] Enhanced prompt uzunluğu: ${enhancedPrompt.length} karakter`);
-        if (enhancedPrompt.length > maxPromptLength) {
-          logger.log(
-            `⚠️ Prompt ${enhancedPrompt.length} karakter, ${maxPromptLength}'e kırpılıyor...`
-          );
-          truncatedPrompt = enhancedPrompt.substring(0, maxPromptLength);
-        }
 
         // 🔄 BACK VIEW ENFORCEMENT — back side modunda, prompt hangi yoldan
-        // gelirse gelsin (Gemini enhanced / fallback / kırpılmış), görüntü
+        // gelirse gelsin (Gemini enhanced / fallback), görüntü
         // modeline giden nihai metnin SONUNA arka görünüm direktifi eklenir.
-        // Gemini'nin arka görünüm vurgusunu sulandırdığı veya kırpmanın kuyruk
-        // talimatlarını yuttuğu durumlara karşı son savunma hattı (bildirilen
-        // "ön pozlu sonuç" bug'ının güvencesi). Suffix için yer ayrılarak
-        // kırpma yapılır — direktif asla kesilmez.
+        // Gemini'nin arka görünüm vurgusunu sulandırdığı durumlara karşı son
+        // savunma hattıdır (bildirilen "ön pozlu sonuç" bug'ının güvencesi).
         if (req.body.isBackSideAnalysis) {
           // 📐 Kolaj kullanıldıysa tekil tam çözünürlüklü arka referanslar da
           // ekli — modele bunları detay kaynağı olarak kullanmasını söyle.
           const originalsDirective =
             backOriginalUrls.length > 0
-              ? `\n\nAlongside the composite back-design strip, ${backOriginalUrls.length} full-resolution individual photograph(s) of that same back design are attached — use them for faithful fine-detail reproduction of the print, lettering, stitching, trims and fabric texture, and do not invent any detail that is not visible in them.`
+              ? `\n\nAlongside the composite back-design strip, ${backOriginalUrls.length} full-resolution individual photograph(s) of that same back design are attached — use them for faithful fine-detail reproduction of the print, lettering, stitching, trims and fabric texture. Do not invent details that are not visible in them, except only for explicit additions or modifications stated in the final USER-LOCKED REQUIREMENTS; preserve every other unmentioned detail.`
               : "";
           // Pozitif çerçeveli, anlatı tonunda kapanış (V7 modernizasyon ilkesi:
           // rulebook değil çekim brief'i — bağıran başlık ve negatif liste yok).
@@ -5211,17 +5225,28 @@ router.post("/generate", async (req, res) => {
           logger.log(
             `🕺 [BACK_POSE] Nihai kuyrukta uygulanan poz: ${enforcedBackPose}`
           );
-          const budget = maxPromptLength - backViewEnforcement.length;
-          if (truncatedPrompt.length > budget) {
-            truncatedPrompt = truncatedPrompt.substring(0, budget);
-          }
-          truncatedPrompt += backViewEnforcement;
+          finalPrompt += backViewEnforcement;
           logger.log(
             "🔄 [BACK_VIEW_ENFORCE] Arka görünüm direktifi nihai prompt'un sonuna eklendi"
           );
         }
-        logger.log(`📋 [FAL_PROMPT] Fal.ai'ya giden prompt (${truncatedPrompt.length} karakter):`, truncatedPrompt);
-        finalPromptForModel = truncatedPrompt;
+
+        // 🔒 En son katman: Gemini'nin yazdığı metin veya arka görünüm
+        // koruma cümleleri kullanıcı detayını zayıflatamasın. Özellikle
+        // "rengi koru" + "kırmızı yap" gibi çelişkilerde yalnız açıkça adı
+        // geçen nitelik değişir; kilit Nano Banana prompt'unun EN SONUNDADIR.
+        if (backSideUserInstructionLock) {
+          finalPrompt = appendUserInstructionLock(
+            finalPrompt,
+            backSideUserInstructionLock,
+          );
+          logger.log(
+            "🔒 [BACKSIDE USER INSTRUCTION LOCK] Nihai prompt'un sonuna eklendi:",
+            backSideUserInstructionLock,
+          );
+        }
+        logger.log(`📋 [FAL_PROMPT] Fal.ai'ya giden prompt (${finalPrompt.length} karakter):`, finalPrompt);
+        finalPromptForModel = finalPrompt;
 
         // Back side analysis veya v2 modunda quality "2K" olarak ayarla
         const qualityParam =
@@ -5230,7 +5255,7 @@ router.post("/generate", async (req, res) => {
         // 🍌 Nano banana ortak gövdesi. quality "2K" yalnızca nano-banana-pro
         // (v2) tarafından destekleniyor — v1'de gönderilmiyor.
         const buildNanoRequestBody = () => ({
-          prompt: truncatedPrompt, // Kırpılmış prompt
+          prompt: finalPrompt,
           image_urls: imageInputArray,
           output_format: "png",
           aspect_ratio: aspectRatioForRequest,
@@ -5248,7 +5273,7 @@ router.post("/generate", async (req, res) => {
           );
           logger.log(
             "🕺 [POSE_CHANGE] Prompt:",
-            truncatedPrompt.substring(0, 200) + "..."
+            finalPrompt.substring(0, 200) + "..."
           );
         } else {
           // NORMAL MODE - Kalite versiyonuna göre parametreler
@@ -5269,7 +5294,7 @@ router.post("/generate", async (req, res) => {
 
         // 🍌 Nano banana çağrısı (fal.run senkron endpoint).
         logger.log(
-          `🍌 [BACKSIDE NB] fal.run/${falModel} çağrılıyor — images: ${imageInputArray?.length || 0}, aspect: ${aspectRatioForRequest}, prompt: ${truncatedPrompt.length} karakter`
+          `🍌 [BACKSIDE NB] fal.run/${falModel} çağrılıyor — images: ${imageInputArray?.length || 0}, aspect: ${aspectRatioForRequest}, prompt: ${finalPrompt.length} karakter`
         );
 
         const nanoResponse = await axios.post(

@@ -147,11 +147,11 @@ async function enhanceLocationPromptWithGPT(originalPrompt) {
   try {
     console.log("🤖 GPT-4O-mini ile prompt enhancement başlatılıyor...");
 
-    const systemPrompt = `You are an expert AI prompt engineer specializing in photorealistic location photography. Create SHORT, SIMPLE prompts optimized for image generation.
+    const systemPrompt = `You are an expert AI prompt engineer specializing in photorealistic location photography. Create complete, detailed prompts optimized for image generation without omitting user instructions.
 
 IMPORTANT: Always respond in ENGLISH only, regardless of the input language. If the input is in Turkish, Arabic, or any other language, translate the concept to English and create an English prompt.
 
-Generate a SHORT, SIMPLE ENGLISH prompt (max 512 tokens) following best practices.
+Generate a clear, detailed ENGLISH prompt following best practices. Use as much detail as the scene requires.
 
 🎯 OPTIMIZATION REQUIREMENTS:
 - Focus on visual description and atmosphere
@@ -193,7 +193,7 @@ You MUST analyze the location description and determine if it's:
 
 OUTPUT FORMAT (MUST BE IN ENGLISH):
 {
-  "prompt": "[simple 200-400 word English prompt with vibrant colors and realistic details - NO technical camera specs, NO people, NO humans, NO figures, NO mannequins - focus on visual description of an EMPTY, VACANT location - translate any non-English concepts to English]",
+  "prompt": "[detailed English prompt with vibrant colors and realistic details, using as much length as needed - NO technical camera specs, NO people, NO humans, NO figures, NO mannequins - focus on visual description of an EMPTY, VACANT location - translate any non-English concepts to English]",
   "title": "[short 5-10 word English location title]",
   "locationType": "[outdoor/indoor/studio]"
 }
@@ -331,13 +331,6 @@ IMPORTANT: You MUST return a valid JSON object with these exact keys: prompt, ti
     // Token sayısını kontrol et (prompt için)
     const tokenCount = enhancedPrompt.split(/\s+/).length;
     console.log(`Generated prompt token count: ${tokenCount}`);
-
-    // Eğer 512 token'dan fazlaysa kısalt
-    if (tokenCount > 512) {
-      const words = enhancedPrompt.split(/\s+/);
-      enhancedPrompt = words.slice(0, 512).join(" ");
-      console.log(`Prompt kısaltıldı: ${enhancedPrompt}`);
-    }
 
     // Basit uzunluk kontrolü (çok kısa değilse kabul et)
     if (tokenCount < 50) {

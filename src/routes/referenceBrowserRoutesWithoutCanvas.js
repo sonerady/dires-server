@@ -1299,7 +1299,7 @@ This is a child model. Avoid inappropriate styling, body-focused language, or an
       ${hairStyleTextSection}
       ${faceDescriptionSection}
       
-      Generate a concise prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace".
+      Generate a complete, detailed prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace".
       
       EXAMPLE FORMAT: "Replace the flat-lay garment from the input image directly onto a standing [model description] while keeping the original garment exactly the same..."
       `;
@@ -1678,10 +1678,7 @@ async function generatePortraitPromptWithGemini(
     - If accessories are present, include ONLY face/head/hair-related accessories.
     - Do NOT mention or imply any body/hand/arm/waist accessories.
     ${emphasisText}
-    Generate a professional portrait photography prompt suitable for Flux.1-dev model. 
-    LIMIT:
-    - The final prompt MUST be no more than 77 tokens. Keep it concise.
-    - Do NOT exceed 77 tokens under any circumstances.
+    Generate a professional portrait photography prompt suitable for Flux.1-dev model. Use as much detail as needed and retain every applicable instruction.
     Return only the prompt text, no explanations.`;
 
     // Gemini API'yi retry mekanizması ile çağır

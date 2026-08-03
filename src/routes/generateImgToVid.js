@@ -167,12 +167,6 @@ async function generateVideoPrompt(imageUrl, userPrompt) {
     try {
       let enhancedPrompt = await callReplicateGeminiFlash(promptForGemini, imageUrls, 3);
 
-      // Manual trim safeguard
-      if (enhancedPrompt.length > 2400) {
-        console.log(`⚠️ Prompt too long (${enhancedPrompt.length}), truncating to 2400 chars.`);
-        enhancedPrompt = enhancedPrompt.substring(0, 2400);
-      }
-
       console.log("🎬 Replicate Gemini'nin ürettiği video prompt:", enhancedPrompt);
       return enhancedPrompt;
     } catch (geminiError) {

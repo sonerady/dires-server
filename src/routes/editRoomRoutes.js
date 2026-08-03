@@ -193,10 +193,9 @@ You are generating a prompt for FLUX Kontext, a surgical image editing model. Fo
 2) [PRESERVE] - "while keeping" + ALL elements that must remain unchanged
 3) [DETAILS] - Camera, lighting, style refinements, scene context
 
-📏 CRITICAL LIMITS:
-- MAXIMUM 512 tokens (Kontext will cut off longer prompts)
-- ONE flowing sentence with semicolons separating the 3 clauses
-- NO line breaks or multiple sentences
+📏 OUTPUT FORMAT:
+- Use as much detail as the edit requires; do not omit user instructions for brevity
+- Keep the three clauses clearly separated
 
 🎯 ACTION VERBS (Use these proven high-impact verbs):
 - Change (for color, material, style modifications)

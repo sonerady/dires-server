@@ -304,7 +304,7 @@ specify the newly invented pose and camera composition concretely. Never mention
 creative variation key, this analysis process or alternative options in the prompts.
 ${safeNote ? `Additional direction from the user: ${safeNote}\n` : ""}
 
-Write each prompt in fluent natural English as a concise but richly visual photographer's
+Write each prompt in fluent natural English as a complete and richly visual photographer's
 brief. Do not put headings, bullets, numbering or meta-commentary inside either prompt.
 
 Return ONLY valid JSON, nothing else:

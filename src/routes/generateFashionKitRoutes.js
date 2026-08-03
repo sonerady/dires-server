@@ -613,7 +613,7 @@ STRICT PROMPT STRUCTURE (follow this exact pattern for EVERY prompt):
 6. End with: "The final image should resemble [quality target]"
 
 RULES:
-- Each prompt MUST be 80-120 words, written as ONE flowing paragraph
+- Each prompt must be a detailed flowing paragraph using as much length as its scene requires
 - ALWAYS start with "Transform the image into"
 - ALWAYS include "Preserve the clothing, garment details, color, texture, and fabric exactly as they are."
 - Each scene MUST have a COMPLETELY DIFFERENT POSE — sitting, standing, walking, lounging, close-up, etc.

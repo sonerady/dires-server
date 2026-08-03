@@ -155,13 +155,13 @@ async function generateEnhancedPrompt(
         {
           parts: [
             {
-              text: `Create a concise edit prompt for improving a product image.
+              text: `Create a complete, detailed edit prompt for improving a product image.
 
 User instructions: ${productDetails || "No specific instructions provided."}
 
 If the user instructions are not in English, translate them first. Then, write a clear, effective edit prompt that would transform a product image into a professional photo.
 
-Keep it simple, direct, and under 100 words. Provide only the edit instructions without any additional commentary.`,
+Use as much detail as the edit requires and retain every applicable user instruction. Provide only the edit instructions without any additional commentary.`,
             },
           ],
         },
@@ -333,7 +333,7 @@ router.post("/gemini-image-edit", upload.single("image"), async (req, res) => {
             },
           },
           {
-            text: `Look at this product image and create a concise, effective edit prompt based on what you see. 
+            text: `Look at this product image and create a complete, effective edit prompt based on what you see.
 
 ${userDescription
                 ? `The user wants the following: "${userDescription}". The user prompt may be in any language, so if it's not in English, translate it first.`
@@ -342,7 +342,7 @@ ${userDescription
 
 Write a clear, effective image editing prompt that would help transform this into a professional product photo. Focus on what specific edits would improve this particular image.
 
-Your prompt should be in English, under 100 words, and only contain the edit instructions with no additional commentary.`,
+Your prompt should be in English, use as much detail as the edit requires, and only contain the edit instructions with no additional commentary.`,
           },
         ];
 

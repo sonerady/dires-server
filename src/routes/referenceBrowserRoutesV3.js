@@ -1186,7 +1186,7 @@ IMPORTANT: Ensure garment details (logos, chest prints, seams, collars, cuffs) r
     if (isEditMode && editPrompt && editPrompt.trim()) {
       // EDIT MODE - EditScreen'den gelen özel prompt
       promptForGemini = `
-      SIMPLE EDIT INSTRUCTION: Generate a very short, focused prompt (maximum 30 words) that:
+      EDIT INSTRUCTION: Generate a focused, detailed prompt that fully preserves every applicable user requirement and:
       
       1. STARTS with "Replace"
       2. Translates the user's request to English if needed  
@@ -1370,7 +1370,7 @@ Confident model poses.
     } else if (isPoseChange) {
       // POSE CHANGE MODE - Basit poz değiştirme
       promptForGemini = `
-      PROFESSIONAL FASHION POSE SELECTION: Generate a high-quality English prompt (30-50 words) that changes the model's pose to a DIFFERENT famous fashion modeling pose while enhancing image quality and sharpness.
+      PROFESSIONAL FASHION POSE SELECTION: Generate a high-quality, detailed English prompt that changes the model's pose to a DIFFERENT famous fashion modeling pose while enhancing image quality and sharpness. Use as much detail as needed.
 
       CRITICAL REQUIREMENTS:
       - MUST select a COMPLETELY DIFFERENT pose from the current image
@@ -1513,7 +1513,7 @@ Confident model poses.
       ${locationPromptSection}
       ${faceDescriptionSection}
       
-      Generate a concise prompt focused on showcasing both front and back garment details while maintaining all original design elements. REMEMBER: Your response must START with "Replace" and emphasize back design features.
+      Generate a complete, detailed prompt that showcases both front and back garment details while maintaining all original design elements. REMEMBER: Your response must START with "Replace" and emphasize back design features.
       `;
     } else {
       // NORMAL MODE - Standart garment replace
@@ -1678,7 +1678,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
       ${locationPromptSection}
       ${faceDescriptionSection}
       
-      Generate a concise prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace". Apply all rules silently and do not include any rule text or headings in the output.
+      Generate a complete, detailed prompt focused on garment replacement while maintaining all original details. REMEMBER: Your response must START with "Replace". Apply all rules silently and do not include any rule text or headings in the output.
       
       EXAMPLE FORMAT: "Replace the flat-lay garment from the input image directly onto a standing [model description] while keeping the original garment exactly the same..."
       `;
