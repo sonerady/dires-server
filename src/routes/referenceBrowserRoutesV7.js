@@ -89,7 +89,25 @@ Write in fluent, natural English as flowing narrative prose, like a world-class 
 
 When reference images are involved, treat the product/garment reference as the immutable source of truth — its colors, patterns, construction, proportions and details are reproduced exactly, never redesigned. Translate any raw parameter values you encounter (hex codes, underscore_keys, non-English labels) into natural English photographic language; they must never appear verbatim in your output.
 
+Photographic realism is non-negotiable. Ground every creative choice in real camera and material behavior: natural skin microtexture and anatomy, believable fabric physics, tangible environmental surfaces, physically consistent light direction and shadows, coherent perspective, plausible optics and unified photographic color science. Describe these properties specifically for the requested model, garment and setting instead of relying on the word "realistic" alone.
+
 Aim for imagery with genuine editorial character: decisive light, a confident grade, intentional composition — the kind of frame that belongs to a current high-end campaign, never a generic stock photo.`;
+
+// Her V7 üretim modunda (normal, stil referansı, renk/poz değişimi, refiner,
+// backside, v1/v2) görsel modeline gitmeden önce eklenen ortak kalite tabanı.
+// Gemini'nin "photorealistic" kelimesini yazması tek başına yeterli olmadığı
+// için gerçekçiliği cilt, anatomi, kumaş, ortam, ışık ve kamera fiziği üzerinden
+// somut ve denetlenebilir şekilde tarif eder.
+const UNIVERSAL_PHOTOREALISM_DIRECTIVE = `PHOTOGRAPHIC REALISM — NON-NEGOTIABLE:
+Render the result as an authentic professional photograph captured in one physically coherent real-world scene, never as synthetic AI imagery or a 3D render. When a human model is present, preserve anatomically correct proportions, natural posture and believable hands, fingers, eyes and teeth; render living skin with visible pores, fine vellus hair, subtle tonal variation and small natural imperfections, plus individually resolved hair strands and realistic contact between body and clothing. Render every garment or product with true-to-reference fabric weave, stitching, seams, thickness, weight, gravity-driven drape, tension folds, compression and contact shadows. Make every visible surface in the environment physically tangible with credible material texture, scale, perspective, atmospheric depth and grounded foot contact. Use one consistent, motivated lighting setup across the model, garment and environment: matching direction, softness, color temperature, exposure, cast shadows, bounce light, reflections and highlight roll-off. Use plausible photographic optics with coherent lens perspective, natural depth-of-field transition, realistic dynamic range and restrained sensor or film texture. All subjects and objects must share the same perspective, focus logic, color science, grain and illumination so the frame reads as a genuine high-end fashion photograph rather than a composited or generated image. Avoid waxy or airbrushed skin, mannequin stiffness, malformed anatomy, floating subjects, cutout halos, fake blur, oversharpening, inconsistent shadows, plastic fabric and sterile CGI surfaces.`;
+
+function appendUniversalPhotorealism(prompt) {
+  const base = String(prompt || "").trim();
+  if (base.includes("PHOTOGRAPHIC REALISM — NON-NEGOTIABLE:")) {
+    return base;
+  }
+  return `${base}\n\n${UNIVERSAL_PHOTOREALISM_DIRECTIVE}`.trim();
+}
 
 // Replicate API üzerinden Gemini Flash çağrısı yapan helper fonksiyon.
 // Model: google/gemini-3.5-flash (gemini-3-flash'tan yükseltildi, Tem 2026).
@@ -6168,6 +6186,15 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
         }
       }
     }
+
+    // 📷 ORTAK FOTOĞRAFİK GERÇEKÇİLİK TABANI
+    // Gemini'nin çıktısı, stil-referansı gibi Gemini'yi atlayan dallar ve tüm
+    // fallback promptları aynı noktada birleşir. Böylece hangi kalite modeli
+    // seçilirse seçilsin fiziksel gerçekçilik talimatı final promptta bulunur.
+    enhancedPrompt = appendUniversalPhotorealism(enhancedPrompt);
+    logger.log(
+      "📷 [PHOTOREALISM] Model/cilt/kumaş/ortam/ışık/kamera gerçekçiliği final prompt'a eklendi",
+    );
 
     // 🔒 ADD DETAIL + ADVANCED SETTINGS SON KİLİT
     // Gemini bu alanları doğal brief'e dönüştürüyor; ancak uzun/yaratıcı prompt
