@@ -85,6 +85,12 @@ router.get("/app-config/version", async (req, res) => {
   try {
     const platform = normalisePlatform(req.query.platform || req.query.os);
     const lang = normaliseLanguage(req.query.lang);
+    // Apple login canlıya açılmadan önce yalnız test kullanıcılarında görünsün
+    // (app_config.apple_login_enabled global bayrağını ezmeden kullanıcı bazlı istisna)
+    const APPLE_LOGIN_TEST_USERS = new Set([
+      "38ce6442-3e6c-4cc5-b8c0-bbe1b1b20a23",
+    ]);
+    const isAppleTestUser = APPLE_LOGIN_TEST_USERS.has(String(req.query.userId || ""));
 
     const { data, error } = await supabase
       .from("app_config")
@@ -147,7 +153,7 @@ router.get("/app-config/version", async (req, res) => {
       websiteOpen: data.website_open || false,
       websiteLaunchDate: data.website_launch_date || null,
       googleLoginEnabled: data.google_login_enabled !== false,
-      appleLoginEnabled: data.apple_login_enabled !== false,
+      appleLoginEnabled: isAppleTestUser || data.apple_login_enabled !== false,
       trialEnabled: data.trial_enabled === true,
       trialCredits: Number.isFinite(data.trial_credits) ? data.trial_credits : 150,
       trialDurationDays: Number.isFinite(data.trial_duration_days) ? data.trial_duration_days : 3,
