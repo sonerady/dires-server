@@ -1,8 +1,9 @@
 // Varyasyon ("Yeni Pozlar") üretimi
 //
 // Tamamlanmış bir sonucun aynı ürün + aynı manken kimliğiyle FARKLI POZLARINI üretir.
-// Modele o üretime ait TÜM görseller gider: ürün fotoğrafları, stil/mekân referansları
-// ve tamamlanmış sonuç. Sonuç, kaynağın altında ayrı bir panelde gösterilir.
+// Modele tamamlanmış sonuç ile ürün/kimlik için gerekli referanslar gider.
+// Ayrı location görseli özellikle gönderilmez; mevcut mekân hero görselinden ve
+// prompttaki sahne koruma talimatından devam ettirilir.
 //
 // Kredi kuralı: bir kaynak görselin İLK varyasyonu ÜCRETSİZ, sonrakiler 10 kredi.
 // İstemci 2. üretimde kullanıcıya onay sorar; sunucu yine de kendi sayımını yapar
@@ -22,6 +23,7 @@ const {
 } = require("../utils/variationFlow");
 const { persistVariationImage } = require("../utils/variationStorage");
 const { optimizeForThumbnail } = require("../utils/imageOptimizer");
+const { collectInputImages } = require("../utils/variationInputImages");
 
 fal.config({ credentials: process.env.FAL_API_KEY });
 
@@ -82,7 +84,10 @@ const VARIATION_PRESERVATION_SUFFIX =
   "grade. Introduce no new clothing details, furniture or environmental elements. " +
   "Change only the model's pose, camera angle and framing. Do NOT preserve or closely " +
   "imitate the hero's stance, limb arrangement, hand placement, body orientation, gaze, " +
-  "camera height or crop. The output must read instantly as a genuinely different shot, " +
+  "camera height or crop. Keep the garment or product visually dominant and large enough " +
+  "for its construction, material and selling details to be immediately readable. Use a " +
+  "product-led close framing chosen specifically for this garment; never default to a " +
+  "head-to-toe full-body composition. The output must read instantly as a genuinely different shot, " +
   "not as a subtle adjustment or near-duplicate of the hero.";
 
 const POSE_DIVERGENCE_SUFFIX =
@@ -248,7 +253,7 @@ world-class e-commerce fashion brand. Creative variation key: ${creativeVariatio
 Use that key only as an internal diversity cue; never print or mention it.
 
 The FIRST image is the hero shot that was just produced. Any following images are
-references from the same shoot (product photos, style/location references${
+references from the same shoot (product photos and other non-location references${
     hasBackReference
       ? `, including a confirmed BACK-SIDE garment reference at image ${backReferenceImageNumber}`
       : ""
@@ -276,7 +281,20 @@ zoom level or angle template. Nevertheless, each shot MUST use a visibly differe
 distance and viewpoint from the hero, and the two prompts must also choose clearly distinct
 camera strategies from each other. A minor hand movement, slight head turn, mirrored stance,
 or the original pose with a new crop is forbidden. The difference must be obvious in a
-one-second side-by-side comparison. ${
+one-second side-by-side comparison.
+
+PRODUCT-LED CAMERA PROXIMITY: In both variations, the garment is the primary visual subject,
+not the model's full figure or the surrounding set. Silently determine the most commercially
+valuable visible area of this specific product, then bring the camera close enough that its
+material, construction, fit and distinctive selling features carry the frame. Do not use a
+head-to-toe full-body composition. The two images must still choose meaningfully different
+proximities, viewpoints, crops and model direction from each other, without adopting a fixed
+lens, crop, body gesture or product-interaction formula. When physically natural, art-direct
+the model's relationship to the garment in a way that adds product information and visual
+interest while keeping important details unobstructed; make this decision uniquely from the
+actual garment rather than repeating a standard pose.
+
+${
     hasBackReference
       ? `Prompt 1 must be a freely art-directed non-back view. Prompt 2 MUST be a rear-facing e-commerce pose that clearly sells the back of the garment, using image ${backReferenceImageNumber} as the exact rear-construction source of truth. Exactly one prompt must be a back view.`
       : `There is NO verified back-side garment reference. Therefore BOTH prompts MUST keep
@@ -370,6 +388,8 @@ function fallbackPrompts(hasBackReference, note) {
     "Keep the SAME model (identical face, hair, skin tone and proportions) wearing the " +
     "SAME garment (identical colour, fabric, cut, pattern and every detail), in the SAME " +
     "location with the SAME light direction, quality and colour grade as the reference. " +
+    "Use a close, product-led composition in which the garment dominates the frame; do not " +
+    "use a head-to-toe full-body view. " +
     "Photoreal editorial fashion photography, sharp focus, single subject, no text, " +
     "no watermark, no collage, no duplicated limbs.";
 
@@ -383,10 +403,10 @@ function fallbackPrompts(hasBackReference, note) {
     "a restrained front-oriented pose that clearly reveals the garment's front silhouette",
   ];
   const framings = [
-    "full-length at natural eye level with balanced product-page negative space",
-    "three-quarter length from a subtly lower camera height that flatters the silhouette",
-    "mid-length with a refined off-center composition emphasizing construction and drape",
-    "full-length with a subtle diagonal composition and editorial depth",
+    "a close product-dominant crop with balanced product-page negative space",
+    "a garment-led viewpoint that fills the frame while preserving natural proportions",
+    "a detail-conscious crop with a refined off-center composition",
+    "an intimate product-first composition with controlled editorial depth",
   ];
 
   const firstDirection = directions[Math.floor(Math.random() * directions.length)];
@@ -446,37 +466,6 @@ function finalizeVariationPrompt(
   );
 }
 
-/** Bir üretime ait tüm görselleri toplayıp modele gidecek listeyi kurar. */
-function collectInputImages({ sourceImageUrl, referenceImages, extraImages }) {
-  const seen = new Set();
-  const images = [];
-
-  const push = (value) => {
-    if (Array.isArray(value)) {
-      value.forEach(push);
-      return;
-    }
-    const rawUrl =
-      typeof value === "string"
-        ? value
-        : value?.uri || value?.url || value?.publicUrl || value?.imageUrl;
-    if (!rawUrl || typeof rawUrl !== "string") return;
-    const url = rawUrl.trim();
-    if (!/^https?:\/\//i.test(url) || seen.has(url)) return;
-    seen.add(url);
-    images.push(url);
-  };
-
-  // Sonuç görseli EN BAŞA: modelin kimlik/kompozisyon çıpası bu kare
-  push(sourceImageUrl);
-  push(referenceImages);
-  push(extraImages);
-
-  // Kullanıcının yüklediği ürün fotoğraflarını sessizce kesme. UI yükleme
-  // limitleri zaten havuzu sınırlıyor; burada tüm kalıcı referanslar NB Lite'a gider.
-  return images;
-}
-
 /**
  * Client kartı eksik/hydrate edilmiş olsa bile kaynak generation'ın kalıcı
  * referanslarını backend'den tamamlar. Özellikle History ve yeniden çeşitlendirme
@@ -500,7 +489,7 @@ async function loadStoredSourceContext(userId, sourceGenerationId) {
         `⚠️ [VARIATION] Kaynak referansları okunamadı (${sourceGenerationId}):`,
         error.message,
       );
-      return { inputs: [], aspectRatio: null };
+      return { inputs: [], excludedLocationImages: [], aspectRatio: null };
     }
 
     let settings = data?.settings || {};
@@ -515,14 +504,19 @@ async function loadStoredSourceContext(userId, sourceGenerationId) {
     return {
       inputs: [
         data?.reference_images,
-        data?.location_image,
         data?.pose_image,
         data?.hair_style_image,
         settings?.backImage,
         settings?.backSideImage,
         settings?.styleReferenceImage,
-        settings?.locationImage,
         settings?.poseImage,
+      ],
+      // Client aynı location URL'sini generic referenceImages içinde yeniden
+      // gönderebilir. Toplayıcı bu listeyi URL query/hash farklarından bağımsız
+      // olarak filtreler; konum görseli NB Lite'a hiçbir akıştan ulaşmaz.
+      excludedLocationImages: [
+        data?.location_image,
+        settings?.locationImage,
       ],
       // "original" seçeneğinde alanı göndermemek gerekir; NB Lite bu durumda
       // edit kaynağının gerçek oranını varsayılan davranışıyla korur.
@@ -533,7 +527,7 @@ async function loadStoredSourceContext(userId, sourceGenerationId) {
       `⚠️ [VARIATION] Kaynak referans istisnası (${sourceGenerationId}):`,
       error?.message || error,
     );
-    return { inputs: [], aspectRatio: null };
+    return { inputs: [], excludedLocationImages: [], aspectRatio: null };
   }
 }
 
@@ -747,6 +741,7 @@ async function startAutomaticTrialVariation({
     sourceImageUrl,
     referenceImages,
     extraImages: [extraImages, sourceContext.inputs],
+    excludedImages: sourceContext.excludedLocationImages,
   });
   const sourceAspectRatio = sourceContext.aspectRatio;
   if (imageUrls.length === 0) {
@@ -926,6 +921,7 @@ router.post("/generate", async (req, res) => {
       sourceImageUrl,
       referenceImages,
       extraImages: [extraImages, sourceContext.inputs],
+      excludedImages: sourceContext.excludedLocationImages,
     });
     const sourceAspectRatio = sourceContext.aspectRatio;
 

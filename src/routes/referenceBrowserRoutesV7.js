@@ -1670,7 +1670,6 @@ async function updateGenerationStatus(
               ...(Array.isArray(data[0].reference_images)
                 ? data[0].reference_images
                 : []),
-              data[0].location_image,
               data[0].pose_image,
               data[0].hair_style_image,
             ].filter(Boolean),
