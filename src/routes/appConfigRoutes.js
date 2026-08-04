@@ -89,6 +89,7 @@ router.get("/app-config/version", async (req, res) => {
     // (app_config.apple_login_enabled global bayrağını ezmeden kullanıcı bazlı istisna)
     const APPLE_LOGIN_TEST_USERS = new Set([
       "38ce6442-3e6c-4cc5-b8c0-bbe1b1b20a23",
+      "84536d5e-5f8d-4d0e-aab8-2c14c7956ef1",
     ]);
     const isAppleTestUser = APPLE_LOGIN_TEST_USERS.has(String(req.query.userId || ""));
 
