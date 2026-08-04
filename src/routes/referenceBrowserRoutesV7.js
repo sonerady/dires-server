@@ -4939,6 +4939,31 @@ router.post("/generate", async (req, res) => {
       enableAutomaticTrialVariation = false, // Trial ilk varyasyonu backend completion'da başlatır
     } = req.body;
 
+    // Stil referansı/profili sahne, arka plan, ışık ve atmosferin tek kaynağıdır.
+    // Eski client sürümleri SelectLocation mount olduğunda varsayılan #FFFFFF
+    // gönderebildiği için backend'de de kesin koruma uygula: aktif stil kaynağı
+    // varken hiçbir location/background kalıntısı final prompt'a ulaşmasın.
+    const hasActiveStyleSource = Boolean(
+      styleProfileId ||
+        (styleReferenceImage &&
+          (styleReferenceImage.base64 || styleReferenceImage.uri)),
+    );
+    if (hasActiveStyleSource) {
+      settings = { ...(settings || {}) };
+      [
+        "location",
+        "locationEnhancedPrompt",
+        "locationId",
+        "backgroundColorHex",
+        "weather",
+        "timeOfDay",
+      ].forEach((key) => delete settings[key]);
+      locationImage = null;
+      logger.log(
+        "🎬 [STYLE SOURCE] Location/background alanları backend'de temizlendi",
+      );
+    }
+
     isMultipleAnglesMode =
       Boolean(isMultipleAnglesMode) ||
       Boolean(settings?.isMultipleAnglesMode);

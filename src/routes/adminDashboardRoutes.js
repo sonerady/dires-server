@@ -189,8 +189,76 @@ router.get("/generations", async (req, res) => {
 
     console.log("[Admin] Success - rows:", data?.length, "total:", count);
 
-    // Enrich with user info (email, credit_balance) for all features
+    // Virtual Model kartlarında ana üretime bağlı tamamlanmış varyasyonları
+    // tek sorguda getir. Kart başına sorgu yapmak yerine sayfadaki tüm
+    // generation_id değerlerini toplu sorgulamak admin gridini hızlı tutar.
     let enrichedData = data || [];
+    if (feature === "virtual-model" && enrichedData.length > 0) {
+      const sourceGenerationIds = [
+        ...new Set(
+          enrichedData
+            .map((item) => item.generation_id)
+            .filter(Boolean)
+            .map(String),
+        ),
+      ];
+      const variationUserIds = [
+        ...new Set(
+          enrichedData
+            .map((item) => item.user_id)
+            .filter(Boolean)
+            .map(String),
+        ),
+      ];
+
+      if (sourceGenerationIds.length > 0 && variationUserIds.length > 0) {
+        const { data: variations, error: variationsError } = await db
+          .from("variation_generations")
+          .select(
+            "generation_id, user_id, source_generation_id, result_image_url, variation_index, created_at",
+          )
+          .in("user_id", variationUserIds)
+          .in("source_generation_id", sourceGenerationIds)
+          .eq("status", "completed")
+          .not("result_image_url", "is", null)
+          .order("created_at", { ascending: true });
+
+        if (variationsError) {
+          // Varyasyon enrichment'i ana admin listesini kullanılamaz hale
+          // getirmemeli; sorgu hatasında ana üretimler gösterilmeye devam eder.
+          console.warn(
+            "[Admin] Virtual-model variation enrichment error:",
+            variationsError.message,
+          );
+        } else {
+          const variationsBySource = new Map();
+          for (const variation of variations || []) {
+            const sourceId = String(variation.source_generation_id || "");
+            if (!sourceId || !variation.result_image_url) continue;
+            const sourceKey = `${variation.user_id}:${sourceId}`;
+            const current = variationsBySource.get(sourceKey) || [];
+            current.push({
+              generation_id: variation.generation_id,
+              url: getOriginalForModal(variation.result_image_url),
+              thumbnail_url: optimizeForThumbnail(variation.result_image_url),
+              variation_index: variation.variation_index,
+              created_at: variation.created_at,
+            });
+            variationsBySource.set(sourceKey, current);
+          }
+
+          enrichedData = enrichedData.map((item) => ({
+            ...item,
+            variation_images:
+              variationsBySource.get(
+                `${item.user_id}:${String(item.generation_id || "")}`,
+              ) || [],
+          }));
+        }
+      }
+    }
+
+    // Enrich with user info (email, credit_balance) for all features
     if (enrichedData.length > 0) {
       const userIds = [...new Set(enrichedData.map(d => d.user_id).filter(Boolean))];
       if (userIds.length > 0) {

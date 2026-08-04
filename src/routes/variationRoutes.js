@@ -79,9 +79,12 @@ const getVariationModelSettings = (aspectRatio) => ({
 const VARIATION_PRESERVATION_SUFFIX =
   "Edit the provided reference image. Preserve the exact identity, face, hair, " +
   "skin tone, body proportions, outfit, garment construction, print, colors, " +
-  "fabric, seams and accessories from the reference. Preserve the existing " +
-  "location, architecture, background objects, lighting direction and color " +
-  "grade. Introduce no new clothing details, furniture or environmental elements. " +
+  "fabric, seams and accessories from the reference. Preserve the identity of the " +
+  "existing location, its architecture, materials, established objects, physical " +
+  "light sources, atmosphere, time of day and color grade. Re-photograph that same " +
+  "place from a genuinely different, physically coherent spatial viewpoint; do not " +
+  "copy the hero's exact background projection, object overlap or environmental " +
+  "composition. Introduce no new clothing details, furniture or environmental elements. " +
   "Change only the model's pose, camera angle and framing. Do NOT preserve or closely " +
   "imitate the hero's stance, limb arrangement, hand placement, body orientation, gaze, " +
   "camera height or crop. Keep the garment or product visually dominant and large enough " +
@@ -102,6 +105,19 @@ const POSE_DIVERGENCE_SUFFIX =
   "with a different crop is NOT acceptable. Recreating the hero's silhouette or pose is " +
   "a failed edit. Preserve identity and garment exactly while directing a clearly new, " +
   "physically natural premium e-commerce fashion pose.";
+
+const ENVIRONMENT_PERSPECTIVE_SUFFIX =
+  "\n\nMANDATORY SAME-LOCATION PERSPECTIVE VARIATION: Keep the location unmistakably " +
+  "the same place, with the same architecture, materials, set identity, established " +
+  "objects, atmosphere and physical lighting setup. However, the camera must occupy a " +
+  "meaningfully different spatial viewpoint from reference image 1, so perspective, " +
+  "parallax, background layering, relative scale, visible surface planes, occlusion and " +
+  "negative space are naturally recomposed. Do not reuse the hero background as a flat " +
+  "plate and do not merely move or crop the model over an unchanged backdrop. Let the " +
+  "new camera position determine which existing environmental elements are visible and " +
+  "how they relate in frame, without inventing a new place or following a fixed angle. " +
+  "The two variations must also use clearly different environmental perspectives from " +
+  "each other while remaining physically consistent with the same location.";
 
 // ─────────────────────────────────────────────────────────────
 // Yardımcılar
@@ -294,6 +310,16 @@ the model's relationship to the garment in a way that adds product information a
 interest while keeping important details unobstructed; make this decision uniquely from the
 actual garment rather than repeating a standard pose.
 
+SAME-LOCATION PERSPECTIVE VARIATION: Preserve the location's recognizable identity,
+architecture, materials, established objects, atmosphere, time of day and physical light
+sources, but do not reproduce the hero's background as a fixed flat plate. For each shot,
+choose a genuinely different camera position within that same place and reconstruct the
+environment with physically coherent perspective, parallax, background layering, relative
+scale, surface visibility, occlusion and negative space. The two variations must also show
+clearly different environmental viewpoints from each other. Let the chosen camera position
+determine the new background composition naturally; do not prescribe or repeat a fixed angle,
+and do not invent a different location.
+
 ${
     hasBackReference
       ? `Prompt 1 must be a freely art-directed non-back view. Prompt 2 MUST be a rear-facing e-commerce pose that clearly sells the back of the garment, using image ${backReferenceImageNumber} as the exact rear-construction source of truth. Exactly one prompt must be a back view.`
@@ -308,8 +334,9 @@ two complementary front-safe viewpoints and crop distances appropriate to this g
 Each final prompt must be a self-contained Nano Banana Lite image-editing brief.
 Explicitly anchor the edit to the reference person, garment and photoshoot. Preserve the
 identical face, hair, skin tone, body proportions, garment colour, fabric, cut, pattern,
-seams, closures and every product detail. Preserve the same location, set design, light
-direction, light quality, colour grade and time of day. Change only pose, body angle,
+seams, closures and every product detail. Preserve the same location, set design, physical
+lighting setup, light quality, colour grade and time of day while recomposing the space from
+a new camera position. Change only pose, body angle,
 camera viewpoint and framing. Keep important garment features visible and unobstructed,
 with anatomically natural hands and limbs, realistic fabric behavior, photoreal skin,
 crisp product detail and polished high-end e-commerce editorial finishing. Each output
@@ -387,7 +414,9 @@ function fallbackPrompts(hasBackReference, note) {
   const shared =
     "Keep the SAME model (identical face, hair, skin tone and proportions) wearing the " +
     "SAME garment (identical colour, fabric, cut, pattern and every detail), in the SAME " +
-    "location with the SAME light direction, quality and colour grade as the reference. " +
+    "location with the SAME physical lighting setup, quality and colour grade as the reference, " +
+    "but reconstruct the same place from a clearly different, physically coherent camera " +
+    "position with new perspective, parallax, background layering and object relationships. " +
     "Use a close, product-led composition in which the garment dominates the frame; do not " +
     "use a head-to-toe full-body view. " +
     "Photoreal editorial fashion photography, sharp focus, single subject, no text, " +
@@ -461,6 +490,7 @@ function finalizeVariationPrompt(
   return (
     `${String(prompt || "").trim()}\n\n${VARIATION_PRESERVATION_SUFFIX}` +
     POSE_DIVERGENCE_SUFFIX +
+    ENVIRONMENT_PERSPECTIVE_SUFFIX +
     backViewSuffix +
     noBackViewSuffix
   );

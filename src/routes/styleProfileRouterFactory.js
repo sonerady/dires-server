@@ -1089,11 +1089,6 @@ function createStyleProfileRouter({
   // açıkça yazıyor ki sayılar "hiç kullanılmamış" diye okunmasın.
   router.get("/admin/usage", async (req, res) => {
     try {
-      const sampleLimit = Math.min(
-        Math.max(parseInt(req.query.samples, 10) || 4, 1),
-        12,
-      );
-
       // ── Profiller: global ve kullanıcı ayrımıyla ──
       const { data: profiles, error: profErr } = await supabase
         .from(TABLE)
@@ -1105,34 +1100,39 @@ function createStyleProfileRouter({
       const userProfiles = (profiles || []).filter((p) => p.user_id !== "global");
 
       // ── Stil referansı özelliğinin genel kullanımı ──
-      // count-only sorgular: 1.1M satırlık tabloyu satır çekmeden sayar.
-      const countBySource = async (source) => {
-        const q = supabase
+      // Aynı satırları runsByProfile, distinctUsers ve örnek görseller için
+      // zaten kullanıyoruz.
+      // 1.1M satırlık reference_results üzerinde ayrıca iki ayrı exact-count
+      // taraması yapmak yerine bu küçük stil-kullanım kümesinden toplamları da
+      // hesapla. Supabase'in varsayılan 1000 satır sınırını aşmamak için sayfala.
+      const usageRows = [];
+      const usagePageSize = 1000;
+      for (let from = 0; ; from += usagePageSize) {
+        const { data: usagePage, error: usageErr } = await supabase
           .from("reference_results")
-          .select("*", { count: "exact", head: true });
-        const { count, error } = source
-          ? await q.eq("style_source", source)
-          : await q.not("style_source", "is", null);
-        if (error) throw new Error(error.message);
-        return count || 0;
-      };
+          .select(
+            "id, user_id, style_profile_id, style_source, reference_images, result_image_url, style_reference_url, status, created_at",
+          )
+          .not("style_source", "is", null)
+          .order("created_at", { ascending: false })
+          .range(from, from + usagePageSize - 1);
+        if (usageErr) throw new Error(usageErr.message);
+        usageRows.push(...(usagePage || []));
+        if (!usagePage || usagePage.length < usagePageSize) break;
+      }
 
-      const [profileRuns, uploadRuns] = await Promise.all([
-        countBySource("profile"),
-        countBySource("upload"),
-      ]);
+      const profileRuns = usageRows.reduce(
+        (count, row) => count + (row.style_source === "profile" ? 1 : 0),
+        0,
+      );
+      const uploadRuns = usageRows.reduce(
+        (count, row) => count + (row.style_source === "upload" ? 1 : 0),
+        0,
+      );
 
-      // Kaç FARKLI kullanıcı özelliği denedi? Sayfalama yok: yalnızca stil
-      // kullanılan satırlar okunuyor, bunlar toplamın küçük bir dilimi.
-      const { data: usageRows, error: usageErr } = await supabase
-        .from("reference_results")
-        .select("user_id, style_profile_id, style_source, created_at")
-        .not("style_source", "is", null);
-      if (usageErr) throw new Error(usageErr.message);
-
-      const distinctUsers = new Set((usageRows || []).map((r) => r.user_id).filter(Boolean));
+      const distinctUsers = new Set(usageRows.map((r) => r.user_id).filter(Boolean));
       const runsByProfile = new Map();
-      for (const row of usageRows || []) {
+      for (const row of usageRows) {
         if (!row.style_profile_id) continue;
         runsByProfile.set(
           row.style_profile_id,
@@ -1140,33 +1140,41 @@ function createStyleProfileRouter({
         );
       }
 
-      // ── Kullanılan tarzlar: en çoktan aza, her biri için önce/sonra örnekleri
-      const usedProfileIds = [...runsByProfile.entries()]
-        .sort((a, b) => b[1] - a[1])
-        .map(([id]) => id);
-
+      // ── Kullanılan tarzların TÜM önce/sonra örnekleri ──
+      // Eskiden her profil için ayrı sorgu + 4 kayıt limiti vardı. Yukarıdaki
+      // toplu sorgu gerekli URL'leri zaten taşıyor; burada profile göre
+      // gruplayarak N+1 sorguyu ve görünmeyen kayıtları kaldır.
       const samplesByProfile = {};
-      // Sıralı değil paralel: her profil için tek, indeksli, küçük sorgu.
-      await Promise.all(
-        usedProfileIds.map(async (profileId) => {
-          const { data: rows } = await supabase
-            .from("reference_results")
-            .select("id, reference_images, result_image_url, result_thumb_url, style_reference_url, created_at")
-            .eq("style_profile_id", profileId)
-            .eq("status", "completed")
-            .not("result_image_url", "is", null)
-            .order("created_at", { ascending: false })
-            .limit(sampleLimit);
-          samplesByProfile[profileId] = (rows || []).map((r) => ({
-            id: r.id,
-            // "Önce" = kullanıcının yüklediği ürün fotoğrafı, "sonra" = sonuç.
-            before: Array.isArray(r.reference_images) ? r.reference_images[0] || null : null,
-            after: r.result_thumb_url || r.result_image_url,
-            styleReferenceUrl: r.style_reference_url || null,
-            createdAt: r.created_at,
-          }));
-        }),
-      );
+      for (const row of usageRows) {
+        if (
+          !row.style_profile_id ||
+          row.status !== "completed" ||
+          !row.result_image_url
+        ) {
+          continue;
+        }
+
+        let referenceImages = row.reference_images;
+        if (typeof referenceImages === "string") {
+          try {
+            referenceImages = JSON.parse(referenceImages);
+          } catch {
+            referenceImages = [];
+          }
+        }
+
+        const profileSamples = samplesByProfile[row.style_profile_id] || [];
+        profileSamples.push({
+          id: row.id,
+          before: Array.isArray(referenceImages)
+            ? referenceImages[0] || null
+            : null,
+          after: row.result_image_url,
+          styleReferenceUrl: row.style_reference_url || null,
+          createdAt: row.created_at,
+        });
+        samplesByProfile[row.style_profile_id] = profileSamples;
+      }
 
       const decorate = (list) =>
         list.map((p) => ({
