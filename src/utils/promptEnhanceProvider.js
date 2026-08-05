@@ -3,17 +3,15 @@
 //
 // Tüm route'lar prompt enhance için Gemini 3 Flash'ı buradan çağırır.
 // app_config.prompt_enhance_provider değerine göre seçim yapılır:
-//   "gemini"    (default) → Google'ın kendi Gemini API'si (yeni @google/genai SDK,
-//                           GOOGLE_AISTUDIO_KEY → yoksa GEMINI_API_KEY), model: gemini-3.5-flash
+//   "gemini"    (default) → OpenRouter üzerinden google/gemini-3.5-flash
 //   "replicate"           → Replicate üzerinden google/gemini-3-flash (eski davranış)
 //
-// Google başarısız olursa güvenli fallback olarak Replicate denenir.
+// OpenRouter başarısız olursa güvenli fallback olarak Replicate denenir.
 // Sağlayıcı seçimi kısa süreli (60 sn) cache'lenir; her çağrıda DB'ye gidilmez.
 // ───────────────────────────────────────────────────────────────────────────
 
 const axios = require("axios");
 const { createClient } = require("@supabase/supabase-js");
-const { GoogleGenAI } = require("@google/genai");
 
 // Supabase (app_config okumak için)
 const supabase = createClient(
@@ -22,13 +20,7 @@ const supabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } },
 );
 
-// Google AI Studio (direkt Gemini) — ayrı kısıtsız key, yoksa eski GEMINI_API_KEY
-const googleAiStudio = new GoogleGenAI({
-  apiKey: process.env.GOOGLE_AISTUDIO_KEY || process.env.GEMINI_API_KEY,
-});
-
-// Replicate'teki google/gemini-3-flash yerine stabil Gemini 3.5 Flash
-const GEMINI_DIRECT_MODEL = "gemini-3.5-flash";
+const OPENROUTER_GEMINI_MODEL = "google/gemini-3.5-flash";
 // Replicate yolu da 3.5-flash (Tem 2026'da gemini-3-flash'tan yükseltildi)
 const REPLICATE_GEMINI_MODEL = "google/gemini-3.5-flash";
 
@@ -84,64 +76,68 @@ async function getPromptEnhanceProvider() {
   return provider;
 }
 
-// ─── Google direkt Gemini Flash (yeni @google/genai SDK) ───
-async function callGoogleGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
-  if (!process.env.GOOGLE_AISTUDIO_KEY && !process.env.GEMINI_API_KEY) {
-    throw new Error(
-      "GOOGLE_AISTUDIO_KEY (veya GEMINI_API_KEY) environment variable is not set",
-    );
+// ─── OpenRouter Gemini Flash ───
+async function callOpenRouterGeminiFlash(
+  prompt,
+  imageUrls = [],
+  maxRetries = 3,
+  systemInstruction = GEMINI_SYSTEM_INSTRUCTION,
+) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    throw new Error("OPENROUTER_API_KEY environment variable is not set");
   }
-
-  // Görsel URL'lerini indirip base64 inlineData'ya çevir (Google direkt API URL kabul etmez)
-  const imageParts = [];
-  for (const url of imageUrls || []) {
-    if (!url) continue;
-    try {
-      const imgResp = await axios.get(url, {
-        responseType: "arraybuffer",
-        timeout: 30000,
-      });
-      const mimeType =
-        imgResp.headers["content-type"]?.split(";")[0]?.trim() || "image/jpeg";
-      imageParts.push({
-        inlineData: {
-          mimeType,
-          data: Buffer.from(imgResp.data).toString("base64"),
-        },
-      });
-    } catch (imgErr) {
-      console.error(
-        `❌ [GOOGLE-GEMINI] Görsel indirilemedi (${String(url).substring(0, 80)}):`,
-        imgErr.message,
-      );
-    }
+  const userContent = [
+    { type: "text", text: prompt },
+    ...(imageUrls || [])
+      .filter(Boolean)
+      .map((url) => ({ type: "image_url", image_url: { url } })),
+  ];
+  const messages = [];
+  if (systemInstruction) {
+    messages.push({ role: "system", content: systemInstruction });
   }
-
-  const parts = [{ text: prompt }, ...imageParts];
+  messages.push({ role: "user", content: userContent });
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       console.log(
-        `🤖 [GOOGLE-GEMINI] attempt ${attempt}/${maxRetries} (model: ${GEMINI_DIRECT_MODEL}, images: ${imageParts.length})`,
+        `🤖 [OPENROUTER-GEMINI] attempt ${attempt}/${maxRetries} (model: ${OPENROUTER_GEMINI_MODEL}, images: ${userContent.length - 1})`,
       );
-      const response = await googleAiStudio.models.generateContent({
-        model: GEMINI_DIRECT_MODEL,
-        contents: [{ role: "user", parts }],
-        config: {
+      const response = await axios.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        {
+          model: OPENROUTER_GEMINI_MODEL,
+          messages,
           temperature: 1,
-          topP: 0.95,
-          maxOutputTokens: 65535,
-          systemInstruction: GEMINI_SYSTEM_INSTRUCTION,
+          top_p: 0.95,
+          max_tokens: 65535,
+          reasoning: { effort: "low", exclude: true },
         },
-      });
+        {
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": process.env.OPENROUTER_SITE_URL || "https://diress.ai",
+            "X-OpenRouter-Title": "Diress",
+          },
+          timeout: 120000,
+        },
+      );
+      const content = response.data?.choices?.[0]?.message?.content;
+      const outputText = (Array.isArray(content)
+        ? content
+            .map((part) => (typeof part === "string" ? part : part?.text || ""))
+            .join("")
+        : content || ""
+      ).trim();
+      if (!outputText) throw new Error("OpenRouter Gemini response is empty");
 
-      const outputText = (response.text || "").trim();
-      if (!outputText) throw new Error("Google Gemini response is empty");
-
-      console.log(`✅ [GOOGLE-GEMINI] Başarılı (attempt ${attempt})`);
+      console.log(`✅ [OPENROUTER-GEMINI] Başarılı (attempt ${attempt})`);
       return outputText;
     } catch (error) {
-      console.error(`❌ [GOOGLE-GEMINI] attempt ${attempt} failed:`, error.message);
+      const detail = error.response?.data?.error?.message || error.message;
+      console.error(`❌ [OPENROUTER-GEMINI] attempt ${attempt} failed:`, detail);
       if (attempt === maxRetries) throw error;
       const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
       await new Promise((resolve) => setTimeout(resolve, waitTime));
@@ -208,7 +204,7 @@ async function callReplicateGeminiFlashRaw(prompt, imageUrls = [], maxRetries = 
   }
 }
 
-// ─── Dispatcher — app_config seçimine göre Google direkt veya Replicate ───
+// ─── Dispatcher — app_config seçimine göre OpenRouter veya Replicate ───
 async function callGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
   const provider = await getPromptEnhanceProvider();
 
@@ -217,12 +213,12 @@ async function callGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
     return callReplicateGeminiFlashRaw(prompt, imageUrls, maxRetries);
   }
 
-  console.log("🔀 [PROMPT_ENHANCE] Provider: gemini (Google direkt)");
+  console.log("🔀 [PROMPT_ENHANCE] Provider: gemini (OpenRouter)");
   try {
-    return await callGoogleGeminiFlash(prompt, imageUrls, maxRetries);
+    return await callOpenRouterGeminiFlash(prompt, imageUrls, maxRetries);
   } catch (err) {
     console.error(
-      "⚠️ [PROMPT_ENHANCE] Google Gemini başarısız, Replicate'e fallback:",
+      "⚠️ [PROMPT_ENHANCE] OpenRouter Gemini başarısız, Replicate'e fallback:",
       err.message,
     );
     return callReplicateGeminiFlashRaw(prompt, imageUrls, maxRetries);
@@ -232,7 +228,7 @@ async function callGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
 module.exports = {
   callGeminiFlash,
   getPromptEnhanceProvider,
-  callGoogleGeminiFlash,
-  GEMINI_DIRECT_MODEL,
+  callOpenRouterGeminiFlash,
+  OPENROUTER_GEMINI_MODEL,
   GEMINI_SYSTEM_INSTRUCTION,
 };

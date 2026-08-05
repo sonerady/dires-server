@@ -5,9 +5,9 @@ const { createClient } = require("@supabase/supabase-js");
 const { v4: uuidv4 } = require("uuid");
 const sharp = require("sharp");
 const { fal } = require("@fal-ai/client");
-const { GoogleGenAI } = require("@google/genai");
 const teamService = require("../services/teamService");
 const { optimizeKitImages } = require("../utils/imageOptimizer");
+const { callOpenRouterGeminiFlash } = require("../utils/promptEnhanceProvider");
 
 // Fal.ai client config (detail + ghost sahneleri için GPT Image 2 queue SDK)
 fal.config({
@@ -23,12 +23,6 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
         autoRefreshToken: false,
         persistSession: false,
     },
-});
-
-// Google AI Studio (direkt Gemini) — prompt enhance için ayrı kısıtsız key.
-// GOOGLE_AISTUDIO_KEY yoksa eski GEMINI_API_KEY'e düşer.
-const googleAiStudio = new GoogleGenAI({
-    apiKey: process.env.GOOGLE_AISTUDIO_KEY || process.env.GEMINI_API_KEY,
 });
 
 // ─── Constants ───
@@ -109,51 +103,7 @@ async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) 
     }
 }
 
-// ─── Google direkt Gemini Flash API helper (yeni @google/genai SDK) ───
-// Replicate'teki google/gemini-3-flash yerine stabil Gemini 3.5 Flash.
-const GEMINI_DIRECT_MODEL = "gemini-3.5-flash";
-
-async function callGoogleGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
-    if (!process.env.GOOGLE_AISTUDIO_KEY && !process.env.GEMINI_API_KEY) {
-        throw new Error("GOOGLE_AISTUDIO_KEY (veya GEMINI_API_KEY) environment variable is not set");
-    }
-
-    // Görsel URL'lerini indirip base64 inlineData'ya çevir (Google direkt API URL kabul etmez)
-    const imageParts = [];
-    for (const url of imageUrls) {
-        try {
-            const imgResp = await axios.get(url, { responseType: "arraybuffer", timeout: 30000 });
-            const mimeType = imgResp.headers["content-type"]?.split(";")[0]?.trim() || "image/jpeg";
-            imageParts.push({ inlineData: { mimeType, data: Buffer.from(imgResp.data).toString("base64") } });
-        } catch (imgErr) {
-            console.error(`❌ [KIT_V2_GOOGLE_GEMINI] Görsel indirilemedi (${url?.substring(0, 80)}):`, imgErr.message);
-        }
-    }
-
-    const parts = [{ text: prompt }, ...imageParts];
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            console.log(`🤖 [KIT_V2_GOOGLE_GEMINI] API çağrısı attempt ${attempt}/${maxRetries} (model: ${GEMINI_DIRECT_MODEL})`);
-            const response = await googleAiStudio.models.generateContent({
-                model: GEMINI_DIRECT_MODEL,
-                contents: [{ role: "user", parts }],
-                config: { temperature: 1, topP: 0.95, maxOutputTokens: 65535 },
-            });
-            const outputText = (response.text || "").trim();
-            if (!outputText) throw new Error("Google Gemini response is empty");
-            console.log(`✅ [KIT_V2_GOOGLE_GEMINI] Başarılı response (attempt ${attempt})`);
-            return outputText;
-        } catch (error) {
-            console.error(`❌ [KIT_V2_GOOGLE_GEMINI] Attempt ${attempt} failed:`, error.message);
-            if (attempt === maxRetries) throw error;
-            const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-            await new Promise(resolve => setTimeout(resolve, waitTime));
-        }
-    }
-}
-
-// ─── Prompt enhance sağlayıcısını app_config'ten oku: "gemini" (Google direkt) | "replicate" (default: gemini) ───
+// ─── Prompt enhance sağlayıcısını app_config'ten oku: "gemini" (OpenRouter) | "replicate" (default: gemini) ───
 async function getPromptEnhanceProvider() {
     try {
         const { data } = await supabase.from("app_config").select("prompt_enhance_provider").limit(1).maybeSingle();
@@ -170,19 +120,19 @@ async function getPromptEnhanceProvider() {
     return "gemini";
 }
 
-// ─── Prompt enhance dispatcher — app_config seçimine göre Google direkt veya Replicate ───
-// Google patlarsa Replicate'e güvenli fallback (referenceBrowserRoutesV7 ile aynı mantık).
+// ─── Prompt enhance dispatcher — app_config seçimine göre OpenRouter veya Replicate ───
+// OpenRouter patlarsa Replicate'e güvenli fallback (referenceBrowserRoutesV7 ile aynı mantık).
 async function callGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
     const provider = await getPromptEnhanceProvider();
     if (provider === "replicate") {
         console.log("🔀 [KIT_V2_PROMPT_ENHANCE] Provider: replicate (Replicate Gemini 3 Flash)");
         return callReplicateGeminiFlash(prompt, imageUrls, maxRetries);
     }
-    console.log("🔀 [KIT_V2_PROMPT_ENHANCE] Provider: gemini (Google direkt Gemini API)");
+    console.log("🔀 [KIT_V2_PROMPT_ENHANCE] Provider: gemini (OpenRouter Gemini 3.5 Flash)");
     try {
-        return await callGoogleGeminiFlash(prompt, imageUrls, maxRetries);
+        return await callOpenRouterGeminiFlash(prompt, imageUrls, maxRetries);
     } catch (err) {
-        console.error("⚠️ [KIT_V2_PROMPT_ENHANCE] Google Gemini başarısız, Replicate'e fallback:", err.message);
+        console.error("⚠️ [KIT_V2_PROMPT_ENHANCE] OpenRouter Gemini başarısız, Replicate'e fallback:", err.message);
         return callReplicateGeminiFlash(prompt, imageUrls, maxRetries);
     }
 }

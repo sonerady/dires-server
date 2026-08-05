@@ -1,7 +1,5 @@
 const express = require("express");
 const router = express.Router();
-// Updated: Using Google Gemini API for prompt generation
-const { GoogleGenAI } = require("@google/genai");
 const mime = require("mime");
 const { createClient } = require("@supabase/supabase-js");
 const axios = require("axios");
@@ -49,6 +47,9 @@ const {
   appendUserInstructionLock,
   buildUserInstructionLock,
 } = require("../utils/userInstructionLock");
+const {
+  callOpenRouterGeminiFlash,
+} = require("../utils/promptEnhanceProvider");
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -66,17 +67,6 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
     autoRefreshToken: false,
     persistSession: false,
   },
-});
-
-// Gemini API setup
-const genAI = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
-
-// Prompt enhance için Google AI Studio key'i (ayrı, kısıtsız key).
-// GOOGLE_AISTUDIO_KEY yoksa eski GEMINI_API_KEY'e düşer.
-const googleAiStudio = new GoogleGenAI({
-  apiKey: process.env.GOOGLE_AISTUDIO_KEY || process.env.GEMINI_API_KEY,
 });
 
 // 🎯 Ortak system instruction — hem Replicate hem Google direkt enhance yolu
@@ -217,93 +207,7 @@ async function callReplicateGeminiFlash(
   }
 }
 
-// Google'ın kendi Gemini API'si (yeni @google/genai SDK) üzerinden prompt enhance.
-// Replicate'teki google/gemini-3-flash yerine stabil Gemini 3.5 Flash kullanılıyor.
-const GEMINI_DIRECT_MODEL = "gemini-3.5-flash";
-
-async function callGoogleGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
-  if (!process.env.GOOGLE_AISTUDIO_KEY && !process.env.GEMINI_API_KEY) {
-    throw new Error(
-      "GOOGLE_AISTUDIO_KEY (veya GEMINI_API_KEY) environment variable is not set",
-    );
-  }
-
-  // Görsel URL'lerini indirip base64 inlineData part'larına çevir.
-  // (Google direkt API URL kabul etmez; inline base64 ister.)
-  const imageParts = [];
-  for (const url of imageUrls) {
-    try {
-      const imgResp = await axios.get(url, {
-        responseType: "arraybuffer",
-        timeout: 30000,
-      });
-      const mimeType =
-        imgResp.headers["content-type"]?.split(";")[0]?.trim() || "image/jpeg";
-      imageParts.push({
-        inlineData: {
-          mimeType,
-          data: Buffer.from(imgResp.data).toString("base64"),
-        },
-      });
-    } catch (imgErr) {
-      console.error(
-        `❌ [GOOGLE-GEMINI] Görsel indirilemedi (${url?.substring(0, 80)}):`,
-        imgErr.message,
-      );
-    }
-  }
-
-  const parts = [{ text: prompt }, ...imageParts];
-
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      logger.log(
-        `🤖 [GOOGLE-GEMINI] API çağrısı attempt ${attempt}/${maxRetries} (model: ${GEMINI_DIRECT_MODEL})`,
-      );
-      logger.log(
-        `🔍 [GOOGLE-GEMINI] Images: ${imageParts.length}, Prompt length: ${prompt.length} chars`,
-      );
-
-      const response = await googleAiStudio.models.generateContent({
-        model: GEMINI_DIRECT_MODEL,
-        contents: [{ role: "user", parts }],
-        config: {
-          temperature: 1,
-          topP: 0.95,
-          maxOutputTokens: 65535,
-          systemInstruction: GEMINI_SYSTEM_INSTRUCTION,
-        },
-      });
-
-      const outputText = (response.text || "").trim();
-      if (!outputText) {
-        console.error(`❌ [GOOGLE-GEMINI] Empty response`);
-        throw new Error("Google Gemini response is empty");
-      }
-
-      logger.log(
-        `✅ [GOOGLE-GEMINI] Başarılı response alındı (attempt ${attempt})`,
-      );
-      return outputText;
-    } catch (error) {
-      console.error(
-        `❌ [GOOGLE-GEMINI] Attempt ${attempt} failed:`,
-        error.message,
-      );
-
-      if (attempt === maxRetries) {
-        console.error(`❌ [GOOGLE-GEMINI] All ${maxRetries} attempts failed`);
-        throw error;
-      }
-
-      const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-      logger.log(`⏳ [GOOGLE-GEMINI] ${waitTime}ms bekleniyor...`);
-      await new Promise((resolve) => setTimeout(resolve, waitTime));
-    }
-  }
-}
-
-// Prompt enhance sağlayıcısını app_config'ten oku: "gemini" (Google direkt) | "replicate".
+// Prompt enhance sağlayıcısını app_config'ten oku: "gemini" (OpenRouter) | "replicate".
 // Default: "gemini". is_gpt ile aynı esnek okuma: önce kolon, sonra key/value fallback.
 async function getPromptEnhanceProvider() {
   try {
@@ -332,11 +236,11 @@ async function getPromptEnhanceProvider() {
       return data.value.trim().toLowerCase();
     }
   } catch (e) {}
-  return "gemini"; // default: Google direkt
+  return "gemini"; // default: OpenRouter
 }
 
-// Prompt enhance dispatcher — app_config seçimine göre Google direkt veya Replicate.
-// Replicate'i koruyoruz (geri dönülebilir + Google başarısızsa güvenli fallback).
+// Prompt enhance dispatcher — app_config seçimine göre OpenRouter veya Replicate.
+// Replicate'i koruyoruz (geri dönülebilir + OpenRouter başarısızsa güvenli fallback).
 async function callGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
   const provider = await getPromptEnhanceProvider();
 
@@ -345,12 +249,17 @@ async function callGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
     return callReplicateGeminiFlash(prompt, imageUrls, maxRetries);
   }
 
-  logger.log("🔀 [PROMPT_ENHANCE] Provider: gemini (Google direkt Gemini API)");
+  logger.log("🔀 [PROMPT_ENHANCE] Provider: gemini (OpenRouter Gemini 3.5 Flash)");
   try {
-    return await callGoogleGeminiFlash(prompt, imageUrls, maxRetries);
+    return await callOpenRouterGeminiFlash(
+      prompt,
+      imageUrls,
+      maxRetries,
+      GEMINI_SYSTEM_INSTRUCTION,
+    );
   } catch (err) {
     console.error(
-      "⚠️ [PROMPT_ENHANCE] Google Gemini başarısız, Replicate'e fallback yapılıyor:",
+      "⚠️ [PROMPT_ENHANCE] OpenRouter Gemini başarısız, Replicate'e fallback yapılıyor:",
       err.message,
     );
     return callReplicateGeminiFlash(prompt, imageUrls, maxRetries);
@@ -4384,6 +4293,16 @@ function isStudioLockedStyleProfile(stylePrompt) {
   return STUDIO_LOCK_HINT_RE.test(stylePrompt);
 }
 
+// Bazı stil profilleri kompozisyonun zorunlu oyuncu sayısını tanımlar. Bu işaret
+// yalnız ilgili profil promptunda bulunur; diğer global stillerin casting akışını
+// değiştirmez. Serbest metindeki "subjects" gibi zayıf çoğul ifadeler yerine
+// deterministik bir kilit kullanıyoruz.
+function isFemaleMaleCoupleLockedStyleProfile(stylePrompt) {
+  return /SUBJECT_COUNT_LOCK:\s*COUPLE_FEMALE_MALE/i.test(
+    String(stylePrompt || ""),
+  );
+}
+
 // Analiz metni prompt'a girmeden önce temizlenir: makine işareti çıkarılır, stüdyo
 // kilidi varsa "farklı mekân kullan" cümlesi de çıkarılır (aksi hâlde alt bölümdeki
 // stüdyo kuralıyla çelişiyor ve model mekânı değiştiriyor).
@@ -4541,6 +4460,9 @@ function buildStyleReferencePrompt({
   // Stüdyo/düz zemin profillerinde mekân ÇEŞİTLENDİRİLMEZ — birebir korunur.
   const studioLocked =
     !!styleProfile && isStudioLockedStyleProfile(styleProfile.stylePrompt);
+  const femaleMaleCoupleLocked =
+    !!styleProfile &&
+    isFemaleMaleCoupleLockedStyleProfile(styleProfile.stylePrompt);
   const profileName = styleProfile
     ? resolveStyleProfileNameForPrompt(styleProfile.name)
     : null;
@@ -4573,6 +4495,14 @@ ${
 EXCEPTION — STUDIO: If the frames share a plain/seamless studio setup (neutral backdrop, minimal set), reproducing that same studio character is correct and expected — studio need not vary.`
     }
 🚫 NO ONE-OFF PROP CARRY-OVER (NON-NEGOTIABLE): Incidental objects that appear in one or a few collage frames — a motorcycle, scooter, parked car, bicycle, traffic sign, graffiti, storefront, specific chair, plant, bag left in the background, etc. — are coincidences of that shoot, NOT part of the style. NEVER place such one-off props in the output, even if they are visually prominent in the collage. Only shared light, grade, camera and posing language define the style.`);
+
+    sections.push(
+      hasModelReference
+        ? `⚠️ GLOBAL STYLE FACE SEPARATION — HIGHEST PRIORITY: Every person inside the style collage is mood-board talent, NEVER a model-identity reference. The user has supplied a separate model reference, so preserve ONLY that user-provided person's identity. Take ZERO facial anatomy, facial proportions, distinctive features, skin marks or biometric likeness from any collage person. The collage may influence only non-identity performance direction such as gaze intensity, expression energy, attitude and posing register; it must never blend a collage face into the user's model.`
+        : `⚠️ GLOBAL STYLE CASTING & MANDATORY FACE REPLACEMENT — HIGHEST PRIORITY: Every person inside the style collage is mood-board talent, NEVER a model-identity reference. Cast a completely NEW, photoreal person whose face is unmistakably different and biologically unrelated to EVERY collage person. Rebuild all identity-bearing facial geometry: different face shape and proportions, eye shape and spacing, brows, nose structure, lips, cheekbones, jawline, hairline and distinctive marks. The output must fail any same-person or look-alike comparison with the collage people.
+
+ALLOWED INSPIRATION — NON-IDENTIFYING ONLY: Preserve the broad casting language that makes the style work with the garment: overall fashion archetype and presence, approximate adult age band, gaze direction/intensity, expression energy, confidence, attitude and grooming mood. Translate that direction onto the new person rather than copying a face. Similar campaign energy is correct; similar facial identity is a hard failure. Any explicit user age, gender, ethnicity, hair or model setting overrides the collage.`
+    );
   } else {
     sections.push(`⚠️ STYLE REFERENCE MODE — STRICT DIRECTIVES
 
@@ -4617,7 +4547,7 @@ STRICT SEPARATION: Do NOT copy any clothing, product, accessory, jewelry, bag or
       : "the scene, light, camera and pose"
   }.
 
-🚫 IDENTITY PROTECTION (NON-NEGOTIABLE): Any person appearing in the style reference image (or in any of its frames, if it is a collage) must NEVER appear in the output. Generate a completely NEW, different model: a different face, different facial features, different identity. The output model must NOT be recognizable as, resemble, or be mistaken for the person in the style reference in ANY way — not their face, facial structure, distinctive marks, moles, scars or tattoos. Only the body POSE, stance and staging are taken from the reference person; their likeness is strictly off-limits.
+🚫 IDENTITY PROTECTION (NON-NEGOTIABLE): Any person appearing in the style reference image (or in any of its frames, if it is a collage) must NEVER appear in the output. Generate a completely NEW, different model: a different face, different facial features, different identity. The output model must NOT be recognizable as, resemble, or be mistaken for the person in the style reference in ANY way — not their face, facial structure, distinctive marks, moles, scars or tattoos. Only broad non-identifying casting direction (fashion archetype, gaze and expression energy, attitude), plus the body pose, stance and staging, may inspire the output; their likeness is strictly off-limits.
 
 GARMENT SOURCE OF TRUTH: The other attached product photo(s) define the garment(s). Dress the model EXCLUSIVELY in these product(s) and reproduce them with catalog-grade fidelity — exact colors, prints and pattern scale, fabric texture and weight, stitching, seams, trims, hardware, closures, labels and proportions. Do not invent, restyle, recolor or omit any visible product detail.${
     isMultipleProducts
@@ -4644,8 +4574,18 @@ GARMENT SOURCE OF TRUTH: The other attached product photo(s) define the garment(
     sections.push(
       `MODEL: Create a brand-new, ${[age ? `${age}-year-old` : null, gender]
         .filter(Boolean)
-        .join(" ")} AI-generated fashion model with natural, realistic skin texture — an entirely original person whose identity is clearly DIFFERENT from the person in the style reference.`.replace(/, +AI-generated/, " AI-generated"),
+        .join(" ")} AI-generated fashion model with natural, realistic skin texture — an entirely original person whose facial identity is clearly DIFFERENT from every person in the style reference.`.replace(/, +AI-generated/, " AI-generated"),
     );
+  }
+
+  if (femaleMaleCoupleLocked) {
+    sections.push(`⚠️ REQUIRED TWO-PERSON ROMANTIC COUPLE — HIGHEST PRIORITY, NON-NEGOTIABLE: The final photograph MUST show exactly TWO clearly visible adult people together in the same frame: (1) the primary adult woman wearing the user-provided garment and (2) one adult male romantic partner positioned beside her. The male partner is mandatory in every output; a solo woman, an obscured man, a cropped-out man, or any image where the second person is merely implied is a failed result. Their body language must read unmistakably as a believable, refined romantic couple while remaining natural and editorial.
+
+The woman and the user garment remain the commercial hero. The man supports the composition in complementary, style-appropriate neutral clothing and must never cover, replace, duplicate, or wear the hero garment. Keep both faces photorealistic and completely separate from every identity in the style-reference collage. ${
+      hasModelReference
+        ? "Preserve the separately supplied woman's identity exactly; cast the male partner as a completely new person."
+        : "Cast both the woman and the man as completely new people."
+    } This TWO-PERSON requirement overrides every singular use of “model”, “person”, or “subject” elsewhere in the prompt.`);
   }
 
   const bodyShape =
@@ -4669,7 +4609,17 @@ GARMENT SOURCE OF TRUTH: The other attached product photo(s) define the garment(
   }
 
   sections.push(
-    `OUTPUT: One single hyper-realistic, professional fashion photograph, full-bleed edge to edge, with no added black bar or strip at any edge. Natural skin texture, tack-sharp garment detail — every graphic, print and label that exists on the product is reproduced faithfully. Apart from the garment(s) (and the directives above), everything — scene, light, camera, framing, pose and mood — matches the style reference image.`,
+    `OUTPUT: One single hyper-realistic, professional fashion photograph, full-bleed edge to edge, with no added black bar or strip at any edge.${
+      femaleMaleCoupleLocked
+        ? " It contains exactly TWO visible adult people: the primary woman and her male romantic partner; never a solo model."
+        : ""
+    } Natural skin texture, tack-sharp garment detail — every graphic, print and label that exists on the product is reproduced faithfully. ${
+      hasModelReference
+        ? femaleMaleCoupleLocked
+          ? "The woman's face and identity come only from the separate user-provided model reference; the male partner has a newly cast identity. Neither comes from a style-reference person."
+          : "The face and identity come only from the separate user-provided model reference, never from a style-reference person."
+        : "The face is a newly cast identity, unmistakably different from every style-reference person, while retaining only the requested campaign gaze and attitude."
+    } Apart from the garment(s) (and the directives above), everything — scene, light, camera, framing, pose and mood — matches the style reference image.`,
   );
 
   return sections.join("\n\n");

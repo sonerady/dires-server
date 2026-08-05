@@ -344,6 +344,9 @@ app.use("/api/referenceBrowserV4", referenceBrowserRoutesV4);
 app.use("/api/referenceBrowserV5", referenceBrowserRoutesV5);
 app.use("/api/referenceBrowserV6", referenceBrowserRoutesV6);
 app.use("/api/referenceBrowserV7", referenceBrowserRoutesV7);
+// Stil yönetimindeki okuma/yazma uçları yalnız oturum açmış admin tarafından
+// kullanılabilir. Public /global ve kullanıcı profili uçları aynı kalır.
+app.use("/api/style-profiles/admin", requireAdmin);
 app.use("/api/style-profiles", styleProfileRoutes);
 app.use("/api/refiner-style-profiles", refinerStyleProfileRoutes);
 app.use("/api/style-inspiration", styleInspirationRoutes);

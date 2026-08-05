@@ -54,6 +54,7 @@ function createStyleProfileRouter({
   // Elle oluşturma ekranı kendi alt sınırını istemcide uyguluyor.
   const MIN_IMAGES = 1;
   const MAX_IMAGES = 3;
+  const GLOBAL_IMPORT_WINDOW_HOURS = 10;
 
   // ─── Yardımcılar ───
 
@@ -1214,6 +1215,315 @@ function createStyleProfileRouter({
     }
   });
 
+  // Admin'de bir kullanıcı stilini globale almadan önce; yalnız son 10 saatte
+  // tamamlanan stilli üretimleri, stilin ilk yüklenen referanslarıyla birlikte
+  // gösterir. Bu endpoint hiçbir satırı değiştirmez.
+  router.get("/admin/import-candidates", async (req, res) => {
+    try {
+      if (TABLE !== "style_profiles") {
+        return res.status(404).json({ success: false, error: "Not available" });
+      }
+      const userId = String(req.query.userId || "").trim();
+      if (!userId) {
+        return res.status(400).json({ success: false, error: "userId is required" });
+      }
+
+      const cutoffIso = new Date(
+        Date.now() - GLOBAL_IMPORT_WINDOW_HOURS * 60 * 60 * 1000,
+      ).toISOString();
+
+      const { data: resultRows, error: resultsErr } = await supabase
+        .from("reference_results")
+        .select(
+          "id, generation_id, style_profile_id, reference_images, result_image_url, status, created_at",
+        )
+        .eq("user_id", userId)
+        .eq("status", "completed")
+        .not("style_profile_id", "is", null)
+        .gte("created_at", cutoffIso)
+        .order("created_at", { ascending: false });
+      if (resultsErr) throw new Error(resultsErr.message);
+
+      const resultProfileIds = [
+        ...new Set((resultRows || []).map((row) => row.style_profile_id).filter(Boolean)),
+      ];
+      if (resultProfileIds.length === 0) {
+        return res.json({
+          success: true,
+          windowHours: GLOBAL_IMPORT_WINDOW_HOURS,
+          profiles: [],
+        });
+      }
+
+      // Global kataloğa alındıktan sonraki üretimler global profil ID'siyle
+      // kaydolur. Admin'de bunları kaynak kullanıcı profiline geri bağla; aksi
+      // halde aday kartı yalnız globale alınmadan önceki ilk sonuçlarda donar.
+      const { data: resultProfiles, error: resultProfilesErr } = await supabase
+        .from(TABLE)
+        .select("id, user_id, source_profile_id")
+        .in("id", resultProfileIds);
+      if (resultProfilesErr) throw new Error(resultProfilesErr.message);
+      const sourceIdByResultProfileId = new Map(
+        (resultProfiles || []).map((profile) => [
+          profile.id,
+          profile.user_id === "global" && profile.source_profile_id
+            ? profile.source_profile_id
+            : profile.id,
+        ]),
+      );
+      const sourceProfileIds = [
+        ...new Set([...sourceIdByResultProfileId.values()].filter(Boolean)),
+      ];
+
+      const { data: profiles, error: profilesErr } = await supabase
+        .from(TABLE)
+        .select(
+          "id, user_id, name, subtitle, tags, category_slug, image_urls, status, translations_status, created_at",
+        )
+        .eq("user_id", userId)
+        .in("id", sourceProfileIds);
+      if (profilesErr) throw new Error(profilesErr.message);
+
+      const generationIds = (resultRows || [])
+        .map((row) => row.generation_id)
+        .filter(Boolean);
+      let variationRows = [];
+      if (generationIds.length > 0) {
+        const { data, error } = await supabase
+          .from("variation_generations")
+          .select(
+            "generation_id, source_generation_id, result_image_url, status, created_at",
+          )
+          .eq("user_id", userId)
+          .eq("status", "completed")
+          .in("source_generation_id", generationIds)
+          .order("created_at", { ascending: true });
+        if (error) throw new Error(error.message);
+        variationRows = data || [];
+      }
+
+      const variationsBySource = new Map();
+      for (const row of variationRows) {
+        const list = variationsBySource.get(row.source_generation_id) || [];
+        if (row.result_image_url) list.push(row.result_image_url);
+        variationsBySource.set(row.source_generation_id, list);
+      }
+
+      const resultsByProfile = new Map();
+      const latestResultAtByProfile = new Map();
+      for (const row of resultRows || []) {
+        const sourceProfileId = sourceIdByResultProfileId.get(row.style_profile_id);
+        if (!sourceProfileId) continue;
+        const list = resultsByProfile.get(sourceProfileId) || [];
+        const outputUrls = [
+          row.result_image_url,
+          ...(variationsBySource.get(row.generation_id) || []),
+        ].filter(Boolean);
+        list.push({
+          id: row.id,
+          generationId: row.generation_id,
+          sourceImageUrl: Array.isArray(row.reference_images)
+            ? row.reference_images.find(Boolean) || null
+            : null,
+          outputUrls,
+          createdAt: row.created_at,
+        });
+        resultsByProfile.set(sourceProfileId, list);
+        if (!latestResultAtByProfile.has(sourceProfileId)) {
+          latestResultAtByProfile.set(sourceProfileId, row.created_at);
+        }
+      }
+
+      const { data: promotedRows, error: promotedErr } = await supabase
+        .from(TABLE)
+        .select("id, source_profile_id, display_image_urls")
+        .eq("user_id", "global")
+        .in("source_profile_id", sourceProfileIds);
+      if (promotedErr) throw new Error(promotedErr.message);
+      const promotedBySource = new Map(
+        (promotedRows || []).map((row) => [row.source_profile_id, row]),
+      );
+
+      return res.json({
+        success: true,
+        windowHours: GLOBAL_IMPORT_WINDOW_HOURS,
+        profiles: (profiles || [])
+          .map((profile) => ({
+            ...profile,
+            examples: resultsByProfile.get(profile.id) || [],
+            promotedGlobalProfileId: promotedBySource.get(profile.id)?.id || null,
+            promotedDisplayImageUrls: Array.isArray(
+              promotedBySource.get(profile.id)?.display_image_urls,
+            )
+              ? promotedBySource.get(profile.id).display_image_urls
+              : [],
+            latestResultAt: latestResultAtByProfile.get(profile.id) || null,
+          }))
+          .sort(
+            (a, b) =>
+              new Date(b.latestResultAt || 0).getTime() -
+              new Date(a.latestResultAt || 0).getTime(),
+          ),
+      });
+    } catch (err) {
+      console.error("❌ [STYLE_PROFILE] import candidates error:", err?.message);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // Kullanıcının seçtiği stili global kataloğa kopyalar. Üretim kaynağı olarak
+  // yalnız sourceProfile.image_urls saklanır. Gerçek sonuçlar ayrı
+  // display_image_urls alanına yazılır ve NB2 akışına hiçbir zaman girmez.
+  router.post("/admin/promote-to-global", async (req, res) => {
+    try {
+      if (TABLE !== "style_profiles") {
+        return res.status(404).json({ success: false, error: "Not available" });
+      }
+      const sourceProfileId = String(req.body?.sourceProfileId || "").trim();
+      const userId = String(req.body?.userId || "").trim();
+      const requestedDisplayUrls = Array.isArray(req.body?.selectedDisplayImageUrls)
+        ? [...new Set(req.body.selectedDisplayImageUrls.map((url) => String(url || "").trim()))]
+            .filter(Boolean)
+        : [];
+      if (!sourceProfileId || !userId) {
+        return res.status(400).json({
+          success: false,
+          error: "sourceProfileId and userId are required",
+        });
+      }
+      if (requestedDisplayUrls.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: "Select at least one showcase image",
+        });
+      }
+
+      const { data: sourceProfile, error: sourceErr } = await supabase
+        .from(TABLE)
+        .select("*")
+        .eq("id", sourceProfileId)
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (sourceErr || !sourceProfile) {
+        return res.status(404).json({ success: false, error: "Source profile not found" });
+      }
+      const originalReferenceUrls = Array.isArray(sourceProfile.image_urls)
+        ? sourceProfile.image_urls.filter(Boolean).slice(0, MAX_IMAGES)
+        : [];
+      if (originalReferenceUrls.length === 0 || sourceProfile.status !== "ready") {
+        return res.status(400).json({
+          success: false,
+          error: "Source profile must be ready and include original references",
+        });
+      }
+
+      const { data: existingGlobalProfile, error: existingGlobalErr } = await supabase
+        .from(TABLE)
+        .select("id")
+        .eq("user_id", "global")
+        .eq("source_profile_id", sourceProfileId)
+        .maybeSingle();
+      if (existingGlobalErr) throw new Error(existingGlobalErr.message);
+      const resultStyleProfileIds = [
+        sourceProfileId,
+        existingGlobalProfile?.id,
+      ].filter(Boolean);
+
+      const cutoffIso = new Date(
+        Date.now() - GLOBAL_IMPORT_WINDOW_HOURS * 60 * 60 * 1000,
+      ).toISOString();
+
+      const { data: resultRows, error: resultsErr } = await supabase
+        .from("reference_results")
+        .select("generation_id, result_image_url, created_at")
+        .eq("user_id", userId)
+        .in("style_profile_id", resultStyleProfileIds)
+        .eq("status", "completed")
+        .gte("created_at", cutoffIso)
+        .order("created_at", { ascending: false });
+      if (resultsErr) throw new Error(resultsErr.message);
+
+      const generationIds = (resultRows || [])
+        .map((row) => row.generation_id)
+        .filter(Boolean);
+      let variationRows = [];
+      if (generationIds.length > 0) {
+        const { data, error } = await supabase
+          .from("variation_generations")
+          .select("source_generation_id, result_image_url, created_at")
+          .eq("user_id", userId)
+          .eq("status", "completed")
+          .in("source_generation_id", generationIds)
+          .order("created_at", { ascending: true });
+        if (error) throw new Error(error.message);
+        variationRows = data || [];
+      }
+      const variationsBySource = new Map();
+      for (const row of variationRows) {
+        const list = variationsBySource.get(row.source_generation_id) || [];
+        if (row.result_image_url) list.push(row.result_image_url);
+        variationsBySource.set(row.source_generation_id, list);
+      }
+      const allowedShowcaseUrls = new Set();
+      for (const row of resultRows || []) {
+        for (const url of [
+          row.result_image_url,
+          ...(variationsBySource.get(row.generation_id) || []),
+        ]) {
+          if (url) allowedShowcaseUrls.add(url);
+        }
+      }
+      if (allowedShowcaseUrls.size === 0) {
+        return res.status(400).json({
+          success: false,
+          error: `This style has no completed showcase results in the last ${GLOBAL_IMPORT_WINDOW_HOURS} hours`,
+        });
+      }
+      const invalidDisplayUrls = requestedDisplayUrls.filter(
+        (url) => !allowedShowcaseUrls.has(url),
+      );
+      if (invalidDisplayUrls.length > 0) {
+        return res.status(400).json({
+          success: false,
+          error: "One or more selected images do not belong to this style's recent results",
+        });
+      }
+
+      const globalProfilePayload = {
+          user_id: "global",
+          name: sourceProfile.name,
+          subtitle: sourceProfile.subtitle,
+          tags: sourceProfile.tags,
+          category_slug: sourceProfile.category_slug,
+          image_urls: originalReferenceUrls,
+          display_image_urls: requestedDisplayUrls,
+          style_prompt: sourceProfile.style_prompt,
+          status: "ready",
+          translations_status:
+            sourceProfile.translations_status === "ready" ? "ready" : "pending",
+          source_profile_id: sourceProfile.id,
+          // Global kopya ilk kullanımında kolajı image_urls'tan yeniden kurar.
+          stamped_grid_url: null,
+        };
+      const mutation = existingGlobalProfile
+        ? supabase
+            .from(TABLE)
+            .update(globalProfilePayload)
+            .eq("id", existingGlobalProfile.id)
+        : supabase.from(TABLE).insert(globalProfilePayload);
+      const { data: saved, error: saveErr } = await mutation.select().single();
+      if (saveErr) throw new Error(saveErr.message);
+      return res.json({
+        success: true,
+        profile: saved,
+        updated: Boolean(existingGlobalProfile),
+      });
+    } catch (err) {
+      console.error("❌ [STYLE_PROFILE] promote global error:", err?.message);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
   // 🗂️ Kategori sözlüğü — modaldaki yatay bar bunu okur.
   // Sayım istemcide yapılır: profiller zaten category_slug ile geliyor, böylece
   // bar ile listedeki süzme sonucu her zaman birbirini tutar.
@@ -1232,7 +1542,9 @@ function createStyleProfileRouter({
     try {
       const { data, error } = await supabase
         .from(TABLE)
-        .select("id, name, subtitle, tags, category_slug, image_urls, status, created_at")
+        .select(
+          "id, name, subtitle, tags, category_slug, image_urls, display_image_urls, source_profile_id, status, created_at",
+        )
         .eq("user_id", "global")
         .eq("status", "ready")
         .order("created_at", { ascending: false });
