@@ -1540,6 +1540,17 @@ function createStyleProfileRouter({
   // Admin, normal POST / ucuna userId: "global" ile oluşturur; tüm kullanıcılara sunulur.
   router.get("/global", async (req, res) => {
     try {
+      // Global vitrin admin panelinden değiştirilebildiği için bu cevabın cihaz,
+      // proxy veya CDN üzerinde eski kalmasına izin verme. Özellikle eski mobil
+      // sürümler aynı URL'yi tekrar çağırdığı için cache'lenmiş katalog aksi
+      // hâlde yeni seçilen fotoğrafları hiç göremeyebiliyor.
+      res.set({
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        "CDN-Cache-Control": "no-store",
+        "Surrogate-Control": "no-store",
+        Pragma: "no-cache",
+        Expires: "0",
+      });
       const { data, error } = await supabase
         .from(TABLE)
         .select(
@@ -1549,7 +1560,35 @@ function createStyleProfileRouter({
         .eq("status", "ready")
         .order("created_at", { ascending: false });
       if (error) throw new Error(error.message);
-      return res.json({ success: true, profiles: data || [] });
+
+      // Geriye uyumluluk:
+      // - Yeni istemciler vitrinde display_image_urls kullanıyor.
+      // - Eski uygulama sürümleri bu alanı bilmediği için yalnız image_urls okuyor.
+      // API cevabında image_urls'u seçilen vitrin sonuçlarına eşleyerek eski
+      // sürümlerin de adminin seçtiği güncel fotoğrafları göstermesini sağla.
+      // DB'deki gerçek image_urls DEĞİŞMİYOR; üretim route'u styleProfileId ile
+      // profili doğrudan DB'den okuyup orijinal referansları NB2'ye göndermeye
+      // devam ediyor. reference_image_urls yalnız yeni/debug tüketicileri için
+      // bu ayrımı açıkça koruyor.
+      const profiles = (data || []).map((profile) => {
+        const referenceImageUrls = Array.isArray(profile.image_urls)
+          ? profile.image_urls.filter(Boolean)
+          : [];
+        const displayImageUrls = Array.isArray(profile.display_image_urls)
+          ? profile.display_image_urls.filter(Boolean)
+          : [];
+        const publicImageUrls =
+          displayImageUrls.length > 0 ? displayImageUrls : referenceImageUrls;
+
+        return {
+          ...profile,
+          image_urls: publicImageUrls,
+          display_image_urls: publicImageUrls,
+          reference_image_urls: referenceImageUrls,
+        };
+      });
+
+      return res.json({ success: true, profiles });
     } catch (err) {
       return res.status(500).json({ success: false, error: err.message });
     }
