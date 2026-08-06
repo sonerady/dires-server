@@ -100,9 +100,9 @@ function appendUniversalPhotorealism(prompt) {
 }
 
 // Replicate API üzerinden Gemini Flash çağrısı yapan helper fonksiyon.
-// Model: google/gemini-3.5-flash (gemini-3-flash'tan yükseltildi, Tem 2026).
+// Model: google/gemini-3-flash.
 // Hata durumunda 3 kez tekrar dener
-const REPLICATE_GEMINI_MODEL = "google/gemini-3.5-flash";
+const REPLICATE_GEMINI_MODEL = "google/gemini-3-flash";
 async function callReplicateGeminiFlash(
   prompt,
   imageUrls = [],
@@ -249,7 +249,7 @@ async function callGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
     return callReplicateGeminiFlash(prompt, imageUrls, maxRetries);
   }
 
-  logger.log("🔀 [PROMPT_ENHANCE] Provider: gemini (OpenRouter Gemini 3.5 Flash)");
+  logger.log("🔀 [PROMPT_ENHANCE] Provider: gemini (OpenRouter Gemini 3 Flash)");
   try {
     return await callOpenRouterGeminiFlash(
       prompt,

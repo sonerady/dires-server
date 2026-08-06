@@ -128,7 +128,7 @@ async function callGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
         console.log("🔀 [KIT_V2_PROMPT_ENHANCE] Provider: replicate (Replicate Gemini 3 Flash)");
         return callReplicateGeminiFlash(prompt, imageUrls, maxRetries);
     }
-    console.log("🔀 [KIT_V2_PROMPT_ENHANCE] Provider: gemini (OpenRouter Gemini 3.5 Flash)");
+    console.log("🔀 [KIT_V2_PROMPT_ENHANCE] Provider: gemini (OpenRouter Gemini 3 Flash)");
     try {
         return await callOpenRouterGeminiFlash(prompt, imageUrls, maxRetries);
     } catch (err) {
