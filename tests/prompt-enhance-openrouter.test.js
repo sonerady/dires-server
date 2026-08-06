@@ -16,7 +16,7 @@ test("OpenRouter Gemini sends text first and preserves all image references", as
   try {
     axios.post = async (url, body, options) => {
       assert.equal(url, "https://openrouter.ai/api/v1/chat/completions");
-      assert.equal(body.model, "google/gemini-3.5-flash");
+      assert.equal(body.model, "google/gemini-3-flash-preview");
       assert.deepEqual(body.reasoning, { effort: "low", exclude: true });
       assert.equal(body.messages[0].role, "system");
       assert.equal(body.messages[1].content[0].type, "text");

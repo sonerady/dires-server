@@ -3,7 +3,7 @@
 //
 // Tüm route'lar prompt enhance için Gemini 3 Flash'ı buradan çağırır.
 // app_config.prompt_enhance_provider değerine göre seçim yapılır:
-//   "gemini"    (default) → OpenRouter üzerinden google/gemini-3.5-flash
+//   "gemini"    (default) → OpenRouter üzerinden google/gemini-3-flash-preview
 //   "replicate"           → Replicate üzerinden google/gemini-3-flash (eski davranış)
 //
 // OpenRouter başarısız olursa güvenli fallback olarak Replicate denenir.
@@ -20,9 +20,8 @@ const supabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } },
 );
 
-const OPENROUTER_GEMINI_MODEL = "google/gemini-3.5-flash";
-// Replicate yolu da 3.5-flash (Tem 2026'da gemini-3-flash'tan yükseltildi)
-const REPLICATE_GEMINI_MODEL = "google/gemini-3.5-flash";
+const OPENROUTER_GEMINI_MODEL = "google/gemini-3-flash-preview";
+const REPLICATE_GEMINI_MODEL = "google/gemini-3-flash";
 
 // 🎯 Ortak system instruction — tüm prompt-enhance tüketicileri için kalite
 // çıtası. Mode-nötr: görev brief'inin format kurallarına itaat eder.
