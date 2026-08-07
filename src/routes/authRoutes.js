@@ -648,6 +648,39 @@ const getPlanTypeFromEntitlements = (entitlements) => {
 };
 
 /**
+ * RevenueCat REST API'den kullanıcının aktif abonelik/entitlement durumunu çek.
+ * Client'ın "isPro=false" iddiasına karşı server-side doğrulama için kullanılır.
+ * @returns {{activeEntitlements: string[], activeProductIds: string[]}|null} null = RC'ye ulaşılamadı
+ */
+const fetchRevenueCatProState = async (userId) => {
+  const apiKey = process.env.REVENUECAT_API_KEY;
+  if (!apiKey) return null;
+  try {
+    const resp = await fetch(
+      `https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(userId)}`,
+      { headers: { Authorization: `Bearer ${apiKey}`, "X-Platform": "ios" } },
+    );
+    if (!resp.ok) return null;
+    const json = await resp.json();
+    const subscriber = json?.subscriber || {};
+    const now = Date.now();
+    // expires_date === null → lifetime entitlement, aktif sayılır
+    const isActive = (expiresDate) =>
+      expiresDate === null || new Date(expiresDate).getTime() > now;
+    const activeEntitlements = Object.entries(subscriber.entitlements || {})
+      .filter(([, ent]) => isActive(ent?.expires_date ?? null))
+      .map(([key]) => key);
+    const activeProductIds = Object.entries(subscriber.subscriptions || {})
+      .filter(([, sub]) => sub?.expires_date && isActive(sub.expires_date))
+      .map(([productId]) => productId);
+    return { activeEntitlements, activeProductIds };
+  } catch (err) {
+    console.warn("⚠️ [AUTH] RevenueCat verification failed:", err?.message || err);
+    return null;
+  }
+};
+
+/**
  * RevenueCat'ten Pro durumunu senkronize et
  * Login sırasında client RevenueCat'ten aktif abonelik kontrolü yapar
  * ve bu endpoint ile backend'deki is_pro'yu günceller
@@ -664,7 +697,8 @@ router.post("/sync-pro-status", async (req, res) => {
     }
 
     // Entitlement'lardan plan tipini çıkar (webhook mantığıyla uyumlu)
-    const planType = getPlanTypeFromEntitlements(entitlements);
+    let effectiveIsPro = isPro === true;
+    let planType = getPlanTypeFromEntitlements(entitlements);
 
     console.log(`🔄 [AUTH] Syncing Pro status for user ${userId}:`, {
       isPro,
@@ -672,13 +706,56 @@ router.post("/sync-pro-status", async (req, res) => {
       derivedPlanType: planType,
     });
 
+    // Client "PRO değil" diyorsa körlemesine downgrade etme: RevenueCat'ten doğrula.
+    // Client SDK cache'i, RC dashboard'da eksik entitlement bağlantısı (Ağu 2026 v2
+    // olayı) veya restore race'leri, webhook'un doğru yazdığı is_pro=true'yu ezebiliyor.
+    if (!effectiveIsPro) {
+      const rcState = await fetchRevenueCatProState(userId);
+
+      if (rcState === null) {
+        // RC'ye ulaşılamadı → downgrade YAPMA, mevcut durumu koru.
+        // Gerçek abonelik bitişini zaten webhook EXPIRATION event'i işliyor.
+        console.warn(
+          `⚠️ [AUTH] sync-pro-status: RC unreachable, skipping downgrade for ${userId}`,
+        );
+        const { data: currentUser } = await supabase
+          .from("users")
+          .select("id, is_pro, subscription_type")
+          .eq("id", userId)
+          .single();
+        return res.status(200).json({
+          success: true,
+          message: "RevenueCat unreachable — downgrade skipped, current state preserved",
+          user: {
+            id: userId,
+            isPro: currentUser?.is_pro ?? false,
+            subscriptionType: currentUser?.subscription_type ?? null,
+          },
+        });
+      }
+
+      if (
+        rcState.activeEntitlements.length > 0 ||
+        rcState.activeProductIds.length > 0
+      ) {
+        effectiveIsPro = true;
+        planType =
+          getPlanTypeFromEntitlements(rcState.activeEntitlements) ||
+          getPlanTypeFromEntitlements(rcState.activeProductIds);
+        console.log(
+          `🛡️ [AUTH] sync-pro-status: client claimed isPro=false but RC shows active subscription for ${userId} → keeping PRO`,
+          rcState,
+        );
+      }
+    }
+
     // Users tablosunu güncelle
     const { data: updatedUser, error: updateError } = await supabase
       .from("users")
       .update({
-        is_pro: isPro,
+        is_pro: effectiveIsPro,
         // Plan tipini webhook ile uyumlu şekilde kaydet
-        subscription_type: isPro ? planType : null,
+        subscription_type: effectiveIsPro ? planType : null,
       })
       .eq("id", userId)
       .select("id, is_pro, subscription_type")
@@ -693,7 +770,7 @@ router.post("/sync-pro-status", async (req, res) => {
       });
     }
 
-    console.log(`✅ [AUTH] Pro status synced: ${userId} → is_pro: ${isPro}, subscription_type: ${planType}`);
+    console.log(`✅ [AUTH] Pro status synced: ${userId} → is_pro: ${effectiveIsPro}, subscription_type: ${planType}`);
 
     return res.status(200).json({
       success: true,
