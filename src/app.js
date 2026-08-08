@@ -481,6 +481,10 @@ app.use("/api", generateUnboxingStoryRoutes);
 const campaignKitRoutes = require("./routes/campaignKitRoutes");
 app.use("/api/campaign-kit", campaignKitRoutes);
 
+// Banner Studio routes (LLM ile HTML kampanya banner'ı)
+const bannerStudioRoutes = require("./routes/bannerStudioRoutes");
+app.use("/api/banner-studio", bannerStudioRoutes);
+
 // Support routes
 const supportRoutes = require("./routes/supportRoutes");
 app.use("/api/support", requireBrowser, requireAuth, supportRoutes);
