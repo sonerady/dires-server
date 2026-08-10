@@ -3,6 +3,10 @@ const { supabase } = require("../supabaseClient");
 const {
   resolveRevenueCatTrialState,
 } = require("../utils/revenuecatTrialState");
+const {
+  isSupersededByNewerPaidSubscription,
+} = require("../utils/revenuecatSupersededProduct");
+const { applyRevenueCatTransfer } = require("../utils/revenuecatTransfer");
 
 const router = express.Router();
 
@@ -238,6 +242,23 @@ router.post("/webhookv3", async (req, res) => {
     ];
 
     // Eğer cancellation/expiration event'i ise kullanıcıyı free yap
+    // 🔁 TRANSFER — aboneliğin başka bir app_user_id'ye taşınması.
+    // Bu event'te app_user_id/product_id YOKTUR, o yüzden normal akıştan önce ele
+    // alınmalı. İşlenmediğinde eski sahip ömür boyu is_pro=true takılı kalıyordu.
+    if (type === "TRANSFER") {
+      const transferResult = await applyRevenueCatTransfer({
+        supabase,
+        event,
+        logPrefix: "RC_WEBHOOK_V3",
+      });
+      return res.status(200).json({
+        success: true,
+        message: "Transfer processed — previous owners downgraded",
+        event_type: type,
+        ...transferResult,
+      });
+    }
+
     if (cancellationEvents.includes(type)) {
       console.log(`🚫 Processing ${type} event...`);
 
@@ -268,6 +289,32 @@ router.post("/webhookv3", async (req, res) => {
 
       // Android base plan desteği: Product ID'den suffix'i temizle
       const cancelBaseProductId = product_id ? product_id.split(':')[0] : product_id;
+
+      // 🛡️ BAYAT EVENT KORUMASI
+      // Kullanıcı trial'dayken ücretli plana yükseldiğinde, ESKİ (trial) ürün için
+      // günler sonra bir EXPIRATION gelir. O ürün artık kullanıcının aboneliği
+      // değildir; bu event'i işlemek AKTİF ÖDEYEN aboneyi is_pro=false /
+      // subscription_type=null'a düşürüyordu. Event'in ürünü kullanıcının güncel
+      // ücretli ürünü değilse hiçbir şey yapmadan 200 dönüyoruz.
+      if (
+        await isSupersededByNewerPaidSubscription({
+          supabase,
+          userId,
+          productId: cancelBaseProductId,
+          purchasedAtMs: purchased_at_ms,
+        })
+      ) {
+        console.log(
+          `🛡️ [RC_WEBHOOK_V3] ${type} bayat ürüne ait (${cancelBaseProductId}) → kullanıcı düşürülmedi.`,
+        );
+        return res.status(200).json({
+          success: true,
+          message: "Stale product event ignored — user has a newer paid subscription",
+          user_id: userId,
+          product_id: cancelBaseProductId,
+          event_type: type,
+        });
+      }
 
       // Team paketi iptal mi kontrol et
       if (isTeamPackage(cancelBaseProductId)) {
@@ -903,6 +950,13 @@ router.post("/webhookv3", async (req, res) => {
       (type === "PRODUCT_CHANGE" && wasInTrial && period_type !== "TRIAL");
 
     // Credit calculation
+    // ⚠️ isTrialContinuation'da bakiyeyi HİÇ YAZMIYORUZ (aşağıda updateFields'a
+    // credit_balance eklenmez). Eskiden `newBalance = currentBalance` yazılıyordu;
+    // bu bir read-modify-write. Trial→ücretli yükseltmesinde eski ürünün
+    // PRODUCT_CHANGE'i, yeni ürünün ücretli event'iyle aynı anda işlendiği için
+    // `currentBalance`'ı ödeme işlenmeden ÖNCE okuyup üstüne bayat değeri geri
+    // yazıyor, kullanıcının satın aldığı tam paket kredisini (ör. 2400) siliyordu.
+    // Bakiyeye hiç dokunmamak bu yarışı tamamen ortadan kaldırır.
     let newBalance;
     if (isTrialContinuation) {
       newBalance = currentBalance;
@@ -949,10 +1003,18 @@ router.post("/webhookv3", async (req, res) => {
 
     // Kullanıcının kredi bakiyesini güncelle ve PRO yap
     const updateFields = {
-      credit_balance: newBalance,
       is_pro: isPro,
       is_in_trial: isInTrialNext,
     };
+
+    // Trial continuation'da bakiye alanı UPDATE'e hiç girmez — bkz. yukarıdaki not.
+    if (!isTrialContinuation) {
+      updateFields.credit_balance = newBalance;
+    } else {
+      console.log(
+        "🛡️ [RC_WEBHOOK_V3] Trial continuation → credit_balance UPDATE dışında bırakıldı (yarış koruması)",
+      );
+    }
 
     // has_used_trial: bir kez true olunca asla false'a dönmez (audit flag).
     // Apple trial başlatmışsa set ederiz — kill-switch'ten bağımsız.

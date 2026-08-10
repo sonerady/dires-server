@@ -55,6 +55,23 @@ test("preserves trial during a trial-period product change", () => {
   );
 });
 
+// Regresyon: trial→ücretli yükseltmesinde mağaza iki event gönderiyor —
+// yeni ürün için ücretli event, ESKİ (trial) ürün için PRODUCT_CHANGE+TRIAL.
+// İkincisi trial bayrağını DİRİLTMEMELİ, yoksa ödeyen kullanıcı is_in_trial=true
+// takılı kalıp her indirmede filigran yiyor (downloadRoutes.js canDownloadOriginal).
+test("stale trial-period product change never resurrects an already-ended trial", () => {
+  assert.equal(
+    resolveRevenueCatTrialState({
+      wasInTrial: false, // ücretli event milisaniyeler önce trial'ı kapattı
+      eventType: "PRODUCT_CHANGE",
+      periodType: "TRIAL", // eski trial ürününün dönemi
+      isTrialConversion: false,
+      isSubscription: true,
+    }),
+    false,
+  );
+});
+
 test("coin purchases do not end trial", () => {
   assert.equal(
     resolveRevenueCatTrialState({
