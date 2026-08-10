@@ -45,6 +45,19 @@ test("global style prompts require a new face while preserving only casting ener
   );
 });
 
+test("garments are reconstructed on the body and relit inside the final scene", () => {
+  for (const directive of [
+    "GARMENT-TO-BODY & SCENE INTEGRATION — MANDATORY",
+    "not as a flat layer to paste onto the model",
+    "Discard the source mannequin, hanger, display form, background, cutout edges and source-photo lighting completely",
+    "Create pose-specific tension, compression, folds, drape, overlap, occlusion and contact shadows",
+    "Relight the garment from scratch inside the final scene",
+    "never as though the garment was composited afterward",
+  ]) {
+    assert.ok(source.includes(directive), `include ${directive}`);
+  }
+});
+
 test("profile-level couple lock requires a visible woman and male partner", () => {
   for (const directive of [
     "SUBJECT_COUNT_LOCK:\\s*COUPLE_FEMALE_MALE",
