@@ -766,18 +766,28 @@ router.post("/webhookv2", async (req, res) => {
     } else if (isTrialConversion) {
       // Trial→Paid dönüşüm event'i (dashboard'da "NEW SUB" görünen olay).
       // creditsToAdd zaten packageCredits olarak set edildi — full paket kredisini
-      // veriyoruz. Trial başlangıcında verilen ~2000 trial bonusunu DÜŞMÜYORUZ,
-      // bonus olarak kalsın (trial'ı tamamlayan kullanıcıya teşekkür jesti).
+      // veriyoruz.
+      //
+      // ⚠️ KALAN TRIAL KREDİSİ SİLİNİR. Aşağıdaki bakiye hesabında
+      // `isConvertingFromTrial` dalı `newBalance = creditsToAdd` yapar, yani mevcut
+      // bakiye toplanmaz — SIFIRLANIP paket kredisi yazılır. Kullanıcı dönüşüm anında
+      // 260 trial kredisiyle geçtiyse o 260 kaybolur ve bakiye tam paket tutarına
+      // sabitlenir. Bu KASITLIDIR (ürün kararı, 10 Ağu 2026 teyit edildi): trial
+      // kredisi denemek içindir, ücretli pakete taşınmaz.
+      //
+      // (Bu yorum eskiden "bonusu DÜŞMÜYORUZ, bonus olarak kalsın" diyordu ve kodla
+      // çelişiyordu — kod her zaman sıfırlıyordu. Doğru olan sıfırlamak.)
       console.log(
-        `🎉 [RC_WEBHOOK_V2] Trial-to-Paid CONVERSION detected (is_trial_conversion=true) → granting full ${packageCredits} credits (trial 2000 bonus preserved on top)`,
+        `🎉 [RC_WEBHOOK_V2] Trial-to-Paid CONVERSION detected (is_trial_conversion=true) → granting exactly ${packageCredits} credits (remaining trial credits are discarded by design)`,
       );
     } else if (type === "PRODUCT_CHANGE") {
       // Trial içindeyken "Tam Sürüme Geç" → farklı bir paket satın alma veya
       // mevcut planı upgrade etme (monthly → yearly vs.) durumunda RevenueCat
       // PRODUCT_CHANGE fırlatır. Kullanıcı artık tam ücret ödüyor, dolayısıyla:
-      //   - Full package credits eklenir (creditsToAdd zaten packageCredits)
+      //   - Full package credits yazılır (creditsToAdd zaten packageCredits)
       //   - is_pro = true olur (isTrialGrant = false olduğu için aşağıda set edilir)
-      //   - Trial bonus (varsa) zaten bakiyede, additive olarak kalır
+      //   - Kalan trial kredisi SİLİNİR — bakiye hesabında `isConvertingFromTrial`
+      //     dalı sıfırlayıp paket kredisini yazar, additive DEĞİLDİR.
       console.log(
         `🔄 [RC_WEBHOOK_V2] PRODUCT_CHANGE detected → upgrade flow, granting full ${packageCredits} credits + is_pro=true`,
       );
