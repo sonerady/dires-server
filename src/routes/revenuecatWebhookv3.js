@@ -231,7 +231,6 @@ router.post("/webhookv3", async (req, res) => {
       "INITIAL_PURCHASE", // İlk satın alma
       "NON_RENEWING_PURCHASE", // Tek seferlik satın alma
       "RENEWAL", // Yenileme
-      "PRODUCT_CHANGE", // Trial→Paid upgrade veya plan değişikliği (aynı subscription group içinde)
       "TEST", // RevenueCat test webhook'ları
     ];
 
@@ -256,6 +255,59 @@ router.post("/webhookv3", async (req, res) => {
         message: "Transfer processed — previous owners downgraded",
         event_type: type,
         ...transferResult,
+      });
+    }
+
+    // 🔀 PRODUCT_CHANGE — paket değişimi. KREDİ VERMEZ.
+    //
+    // ⚠️ Bu event, kullanıcının ÇIKTIĞI (eski) ürünü taşır; yeni ürünü değil.
+    // Eskiden kredi veren event listesindeydi ve eski paketin kredisi ekleniyordu:
+    // aylık 2400'den haftalık 600'e geçen kullanıcı 2400 + 600 = 3000 kredi
+    // alıyordu (11 Ağu 2026 sandbox'ta doğrulandı, user 8bbc1df5).
+    // Aynı sebeple planType da yanlış türetiliyordu — plus'tan standard'a inen
+    // biri için eski üründen "plus" okunuyordu.
+    //
+    // Doğrusu: burada yalnız bir GEÇİŞ İŞARETİ bırakmak. Kredi ve plan, yeni
+    // ürünün INITIAL_PURCHASE / RENEWAL event'inden gelir. v4 zaten böyle
+    // çalışıyordu; işaret aynı şemayla yazılıyor ki v4'ün lookback mantığıyla
+    // uyumlu kalsın.
+    if (type === "PRODUCT_CHANGE") {
+      const switchUserId = app_user_id || original_app_user_id;
+      console.log(
+        `🔀 [RC_WEBHOOK_V3] PRODUCT_CHANGE — geçiş işareti kaydediliyor, kredi VERİLMİYOR (eski ürün: ${product_id})`,
+      );
+
+      try {
+        await supabase.from("purchase_history").insert({
+          user_id: switchUserId,
+          product_id: normalizeRevenueCatProductId(product_id) || product_id || "unknown",
+          original_transaction_id: event.original_transaction_id || null,
+          normalized_product_id: normalizeRevenueCatProductId(product_id) || null,
+          switch_marker: true,
+          event_timestamp_ms: event.event_timestamp_ms || null,
+          transaction_id: transaction_id || `product_change_${Date.now()}`,
+          credits_added: 0,
+          price: price || 0,
+          currency: currency || "USD",
+          store: store || "unknown",
+          environment: environment || "unknown",
+          event_type: type,
+          purchased_at: new Date(purchased_at_ms || Date.now()),
+          created_at: new Date().toISOString(),
+        });
+      } catch (markerError) {
+        console.error(
+          `⚠️ [RC_WEBHOOK_V3] Geçiş işareti yazılamadı:`,
+          markerError?.message || markerError,
+        );
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "PRODUCT_CHANGE marker saved; no credit added",
+        type,
+        user_id: switchUserId,
+        product_id,
       });
     }
 
@@ -792,17 +844,6 @@ router.post("/webhookv3", async (req, res) => {
       console.log(
         `🎉 [RC_WEBHOOK_V3] Trial-to-Paid CONVERSION detected (is_trial_conversion=true) → granting exactly ${packageCredits} credits (remaining trial credits are discarded by design)`,
       );
-    } else if (type === "PRODUCT_CHANGE") {
-      // Trial içindeyken "Tam Sürüme Geç" → farklı bir paket satın alma veya
-      // mevcut planı upgrade etme (monthly → yearly vs.) durumunda RevenueCat
-      // PRODUCT_CHANGE fırlatır. Kullanıcı artık tam ücret ödüyor, dolayısıyla:
-      //   - Full package credits yazılır (creditsToAdd zaten packageCredits)
-      //   - is_pro = true olur (isTrialGrant = false olduğu için aşağıda set edilir)
-      //   - Kalan trial kredisi SİLİNİR — bakiye hesabında `isConvertingFromTrial`
-      //     dalı sıfırlayıp paket kredisini yazar, additive DEĞİLDİR.
-      console.log(
-        `🔄 [RC_WEBHOOK_V3] PRODUCT_CHANGE detected → upgrade flow, granting full ${packageCredits} credits + is_pro=true`,
-      );
     }
 
     console.log("🧪 [RC_WEBHOOK_V3] Product mapping debug:", {
@@ -949,6 +990,10 @@ router.post("/webhookv3", async (req, res) => {
 
     // Trial continuation: kullanıcı trial'dayken PRODUCT_CHANGE event'i geldi VE
     // period_type hâlâ TRIAL → sadece product değişti, trial devam ediyor (ödeme yok).
+    // NOT: PRODUCT_CHANGE artık yukarıda erken dönüyor (geçiş işareti), bu yüzden
+    // aşağıdaki iki bayrak pratikte false kalıyor. Kaldırmıyoruz: RevenueCat
+    // ileride PRODUCT_CHANGE'i farklı gönderirse ya da erken dönüş kaldırılırsa
+    // trial mantığı olduğu gibi çalışmaya devam etsin.
     const isTrialContinuation =
       type === "PRODUCT_CHANGE" && period_type === "TRIAL" && wasInTrial;
 
