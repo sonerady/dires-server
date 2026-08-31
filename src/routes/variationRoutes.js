@@ -189,12 +189,6 @@ const ENVIRONMENT_PERSPECTIVE_SUFFIX =
 //   • Varyasyon 2 → ürünün en değerli detayına makro yakınlaşma
 // İkisinin birbirinden farklı olması zorunlu (aşağıdaki divergence bloğu).
 const PRODUCT_VARIATION_PRESERVATION_SUFFIX =
-  "REFERENCE ROLES — READ BEFORE EDITING: every reference image after the first one is the " +
-  "seller's own source photograph of the same product, useful only as extra evidence of its " +
-  "real construction, materials, texture and details. Its background, surface, table, floor, " +
-  "packaging, lighting, shadows, colour cast and snapshot quality are irrelevant and must " +
-  "never appear in the output. The background, lighting and colour grade come from the FIRST " +
-  "image alone.\n\n" +
   "Edit the provided reference image. The FIRST image is the finished catalog photograph of " +
   "the product; it is the single source of truth for the product's identity. Preserve that " +
   "product EXACTLY: the same object, same silhouette and proportions, same materials and " +
@@ -725,11 +719,8 @@ world-class online store. Creative variation key: ${creativeVariationKey}. Use t
 only as an internal diversity cue; never print or mention it.
 
 The FIRST image is the finished catalog photograph of a single product that was just
-produced, and it is the ONLY source of the background, lighting and colour grade. Any
-following images are the seller's own source photographs of the SAME product, useful only as
-extra evidence of its real construction, materials and details. Their backgrounds, surfaces,
-tables, packaging, shadows, lighting and snapshot quality are irrelevant and must never enter
-the prompts or the output.
+produced. Any following images are the seller's own source photographs of the SAME
+product, useful only as extra evidence of its real construction, materials and details.
 
 Write TWO fresh product photographs of THAT EXACT SAME product, for the same product
 detail page. There is no model, no hands and no scene to art-direct — the product itself

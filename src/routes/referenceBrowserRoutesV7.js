@@ -6860,6 +6860,17 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
     // 🧍 Otomatik stil kullanılan HER üretimde (FULL + SOFT) poz-kıyafet uyumu
     // sert kurala bağlanır; tarz 4 (Sokak Stili) ayrıca kimlik güvenlik duvarı
     // alır (19 Ağu 2026, kullanıcı isteği — telif/benzerlik riski sıfırlanacak).
+    //
+    // 👜 Aksesuar kuralı 1 Eyl 2026'da "birebir ayna"dan İKİ GRUPLU mantığa
+    // geçti (kullanıcı isteği). Eski kural referanstaki her aksesuarı aynen
+    // taşıyordu; bu, referans kişinin kırmızı tişörtünün üstündeki kemeri
+    // kullanıcının hiç kemer istemediği yeni kıyafete de zorla giydiriyordu.
+    // Yeni ayrım: (A) kişiye ait taşınan parçalar (gözlük, çanta, şapka, takı,
+    // saat) HER ZAMAN taşınır ama kullanıcının ürününün stil DNA'sına göre
+    // YENİDEN TASARLANIR; (B) kıyafete bağlı stil parçaları (kemer, kuşak,
+    // kravat, kıyafete sokulmuş atkı, üste katlanan zincir) yalnız kullanıcının
+    // ürünü gerçekten gerektiriyorsa gelir — gelmemesi hata değil, doğru sonuç.
+    // Envanter dışı aksesuar ekleme yasağı ise aynen duruyor.
     if (autoStyleProfile) {
       enhancedPrompt = `${enhancedPrompt || ""}
 
@@ -6869,7 +6880,13 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
 
 🚫 STREET-STYLE IDENTITY FIREWALL (ABSOLUTE, HIGHEST PRIORITY): This generation uses a street-style reference photograph of a REAL person. That person's face and identity are legally OFF-LIMITS. The output person must be a COMPLETELY DIFFERENT human being: rebuild every identity-bearing feature from scratch — face shape, facial proportions, eye shape and color, brows, nose, lips, cheekbones, jawline, hairline, skin tone may all differ, and the overall "type" must read as a different person entirely. The output must fail any same-person, look-alike or celebrity-match comparison with the reference person. If the user supplied their own model reference elsewhere in this prompt, THAT user-provided identity is the only allowed face source; otherwise cast a brand-new, unrecognizable photoreal person. Copying, approximating or subtly echoing the reference person's face is a hard failure with legal consequences — when in doubt, make the person MORE different, never less.
 
-👜 STREET-STYLE ACCESSORY MIRROR (OVERRIDES ANY "IGNORE REFERENCE ACCESSORIES" RULE FOR THIS GENERATION): Accessories are MIRRORED from the reference — strictly one-to-one, in BOTH directions. FIRST inventory exactly which accessories are ACTUALLY VISIBLE on the reference person (bag, jewelry, sunglasses/glasses, hat, scarf, belt, watch...). THEN: every accessory on that inventory carries over as the same KIND of piece, worn or carried the same way (a shoulder bag stays a shoulder bag on the same side, sunglasses held in hand stay in hand — NOT moved onto the face); and NOTHING outside that inventory may appear. ADDING an accessory the reference person is not visibly wearing is as much a failure as removing one — if the reference shows no sunglasses, the output has NO sunglasses; no hat means NO hat; no jewelry means NO jewelry. Never "complete" or "enrich" the look with extra styling. Render carried-over pieces as similar generic items — never brand-identical copies with visible logos — and never let any accessory cover or compete with the user's product's defining details.
+👜 STREET-STYLE ACCESSORY LOGIC (OVERRIDES ANY "IGNORE REFERENCE ACCESSORIES" RULE FOR THIS GENERATION): FIRST inventory exactly which accessories are ACTUALLY VISIBLE on the reference person (bag, jewelry, sunglasses/glasses, hat, scarf, belt, watch, headphones...). NOTHING outside that inventory may ever appear: ADDING an accessory the reference person is not visibly wearing is a hard failure — if the reference shows no sunglasses, the output has NO sunglasses; no hat means NO hat; no jewelry means NO jewelry. Never "complete" or "enrich" the look with extra styling. THEN sort every inventoried piece into one of the two groups below and treat the groups DIFFERENTLY.
+
+(A) BODY-WORN / CARRIED PIECES — sunglasses or glasses, hat or cap, handbag, shoulder bag, tote, backpack, watch, earrings, necklace, bracelet, rings, headphones. These belong to the PERSON, so they ALWAYS carry over. Keep the same KIND of piece and the same way it is worn or carried (a shoulder bag stays a shoulder bag on the same side; sunglasses held in the hand stay in the hand and are NOT moved onto the face). But do NOT copy the reference object literally: REDESIGN each piece so it belongs to the NEW outfit — re-choose its color, material, finish, hardware tone, scale and level of polish from the style DNA of the user's garment (its palette, fabric, formality and attitude), so the accessory reads as deliberately styled with THIS product instead of borrowed from another look. Same kind, same placement, new design.
+
+(B) GARMENT-DEPENDENT STYLING PIECES — belt, waist chain, belt bag worn across the outfit, tie, bow tie, suspenders, brooch or pin fastened to the fabric, scarf tied or tucked into the clothing, chain layered over a top, any piece that cinches, fastens to or sits on the clothing. These belong to the REFERENCE'S OUTFIT, not to the person, so they are CONDITIONAL. They carry over ONLY IF the user's garment genuinely invites them: a belt appears only if this garment actually has belt loops or a waist meant to be cinched AND the belt improves it; a tucked or tied scarf appears only if this garment's neckline and layering really support it. If the user's garment does not call for the piece, OMIT IT — leaving it out is the CORRECT result and never counts as removing an accessory. When in doubt, OMIT. Never force a reference belt, chain, tie or scarf onto a garment that was not designed for it, and never cinch, fold, cover or interrupt the product's silhouette just to make a reference styling piece fit.
+
+ACROSS BOTH GROUPS: if the user's own product is itself an accessory of a category present in the inventory (the user's product IS the bag, the glasses, the hat or the jewelry), the user's product REPLACES that reference piece entirely — never show two pieces of the same category. Render every carried-over piece as a similar generic item — never a brand-identical copy with visible logos — and never let any accessory cover, crowd or compete with the user's product's defining details; if a piece would obscure them, scale it down, reposition it slightly, or drop it.
 
 ${
   autoStyleMode === "soft"
