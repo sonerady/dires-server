@@ -127,6 +127,18 @@ const getVariationModelSettings = (aspectRatio) => ({
 // Gemini yaratıcı pozu/kadrajı seçer; referanstaki kimlik, ürün ve sahne
 // bütünlüğü ise modele giden HER promptta backend tarafından zorunlu tutulur.
 const VARIATION_PRESERVATION_SUFFIX =
+  "REFERENCE ROLES — READ BEFORE EDITING: Reference image 1 is the hero photograph and the " +
+  "ONLY source of the scene. The location, background, set, props, floor, walls, surfaces, " +
+  "weather, time of day, lighting setup, light direction, shadows and colour grade all come " +
+  "from reference image 1 and from nothing else. Every additional reference image is a " +
+  "PRODUCT-TRUTH reference: it is supplied so the garment stays accurate when the camera moves, " +
+  "so study it closely and read the real construction, cut, seams, closures, colour, pattern, " +
+  "print placement, trims, hardware and the side and back detail from it — then render those " +
+  "details correctly from the new angle. Read ONLY the garment from it. Never carry over its background, " +
+  "room, shop interior, rails, hangers, shelves, mirrors, mannequins, other people, floor, " +
+  "wall, table, daylight, artificial or flash lighting, colour cast or amateur snapshot look. " +
+  "If a product reference was photographed somewhere else, that place must not appear anywhere " +
+  "in the output, not even partially, softly, reflected or out of focus.\n\n" +
   "Edit the provided reference image. Preserve the exact identity, face, hair, " +
   "skin tone, body proportions, outfit, garment construction, print, colors, " +
   "fabric, seams and accessories from the reference. Preserve the identity of the " +
@@ -177,6 +189,12 @@ const ENVIRONMENT_PERSPECTIVE_SUFFIX =
 //   • Varyasyon 2 → ürünün en değerli detayına makro yakınlaşma
 // İkisinin birbirinden farklı olması zorunlu (aşağıdaki divergence bloğu).
 const PRODUCT_VARIATION_PRESERVATION_SUFFIX =
+  "REFERENCE ROLES — READ BEFORE EDITING: every reference image after the first one is the " +
+  "seller's own source photograph of the same product, useful only as extra evidence of its " +
+  "real construction, materials, texture and details. Its background, surface, table, floor, " +
+  "packaging, lighting, shadows, colour cast and snapshot quality are irrelevant and must " +
+  "never appear in the output. The background, lighting and colour grade come from the FIRST " +
+  "image alone.\n\n" +
   "Edit the provided reference image. The FIRST image is the finished catalog photograph of " +
   "the product; it is the single source of truth for the product's identity. Preserve that " +
   "product EXACTLY: the same object, same silhouette and proportions, same materials and " +
@@ -358,6 +376,13 @@ async function resolveVariationCost(userId, sourceGenerationId) {
 /**
  * Hero dışındaki referanslarda aynı kıyafetin gerçek arka görünümü var mı?
  * Düşük güven veya geçersiz görsel numarası güvenli biçimde `false` sayılır.
+ *
+ * 📍 Aynı çağrı ayrıca SAHNE KİLİDİ verisini de çıkarır (1 Eyl 2026): hero'nun
+ * mekânını tek cümlede tarif eder ve BAŞKA bir yerde çekilmiş referansları
+ * numaralarıyla işaretler. Ürün fotoğrafları modele girdi olarak gitmeye devam
+ * ediyor (yan/arka detaylar için şart), fakat nihai prompt artık hem hero'nun
+ * mekânını metinle sabitliyor hem de hangi karelerin ortamının çıktıya
+ * girmesinin yasak olduğunu numarayla söylüyor.
  */
 async function analyzeBackReference(imageUrls) {
   if (!Array.isArray(imageUrls) || imageUrls.length < 2) {
@@ -366,6 +391,8 @@ async function analyzeBackReference(imageUrls) {
       backReferenceImageNumber: null,
       confidence: "high",
       reason: "No reference images beyond the hero image.",
+      heroScene: null,
+      offSceneImageNumbers: [],
     };
   }
 
@@ -381,8 +408,19 @@ neckline, print continuation or back panel. A front image, side angle, model mer
 turning slightly away, location reference, pose reference, unrelated garment or ambiguous
 flat-lay is not sufficient. If several qualify, choose the clearest one.
 
+SECOND TASK — SCENE LOCK. Describe the location of image 1 in ONE dense sentence: the
+place, its defining architecture or landscape, the surfaces and objects around the subject,
+the light source, the time of day and the colour grade. Write it as a photographer would
+brief it, so an image model can rebuild that same place from the sentence alone.
+
+THIRD TASK — OFF-SCENE REFERENCES. List the numbers of every image from 2 to ${imageUrls.length}
+that was NOT photographed in the location of image 1 — typically the seller's own product
+shots taken in a shop, a stockroom, a studio, on a hanger, on a flat surface or against a
+plain wall. Judge by the background, the lighting and the colour cast, not by the garment.
+If an image shares image 1's location, leave it out of the list. When uncertain, include it.
+
 Return ONLY valid JSON:
-{"hasBackReference":true,"backReferenceImageNumber":2,"confidence":"high","reason":"brief visual evidence"}
+{"hasBackReference":true,"backReferenceImageNumber":2,"confidence":"high","reason":"brief visual evidence","heroScene":"one dense sentence describing image 1's location and light","offSceneImageNumbers":[2,3]}
 
 Use hasBackReference=false and backReferenceImageNumber=null whenever uncertain.
 confidence must be exactly "high", "medium" or "low".`;
@@ -403,11 +441,28 @@ confidence must be exactly "high", "medium" or "low".`;
     const hasBackReference =
       parsed?.hasBackReference === true && validImageNumber && confidence !== "low";
 
+    // Sahne kilidi: hero'nun mekânı + ortamı çıktıya girmesi YASAK referanslar.
+    const heroScene = String(parsed?.heroScene || "").trim().slice(0, 600) || null;
+    const offSceneImageNumbers = Array.from(
+      new Set(
+        (Array.isArray(parsed?.offSceneImageNumbers)
+          ? parsed.offSceneImageNumbers
+          : []
+        )
+          .map((n) => Number(n))
+          .filter(
+            (n) => Number.isInteger(n) && n >= 2 && n <= imageUrls.length,
+          ),
+      ),
+    ).sort((a, b) => a - b);
+
     const analysis = {
       hasBackReference,
       backReferenceImageNumber: hasBackReference ? imageNumber : null,
       confidence,
       reason: String(parsed?.reason || "").slice(0, 500),
+      heroScene,
+      offSceneImageNumbers,
     };
     console.log(`🔍 [VARIATION] Back-reference decision: ${JSON.stringify(analysis)}`);
     return analysis;
@@ -418,6 +473,13 @@ confidence must be exactly "high", "medium" or "low".`;
       backReferenceImageNumber: null,
       confidence: "low",
       reason: `Analysis failed: ${err.message}`,
+      heroScene: null,
+      // Analiz yoksa TÜM ek referanslar "başka yerde çekilmiş" sayılır:
+      // sahne kaçağına karşı güvenli taraf budur.
+      offSceneImageNumbers: Array.from(
+        { length: imageUrls.length - 1 },
+        (_, i) => i + 2,
+      ),
     };
   }
 }
@@ -449,12 +511,22 @@ async function buildVariationPrompts({ imageUrls, backAnalysis, note }) {
 world-class e-commerce fashion brand. Creative variation key: ${creativeVariationKey}.
 Use that key only as an internal diversity cue; never print or mention it.
 
-The FIRST image is the hero shot that was just produced. Any following images are
-references from the same shoot (product photos and other non-location references${
+The FIRST image is the hero shot that was just produced, and it is the ONLY source of the
+scene: the location, background, set, props, weather, time of day, lighting setup and colour
+grade of all three frames come from it. Any following images are the seller's own product
+photographs of the same garment${
     hasBackReference
       ? `, including a confirmed BACK-SIDE garment reference at image ${backReferenceImageNumber}`
       : ""
-  }).
+}. They exist so the garment stays truthful when the camera moves, so study them: they show
+the real construction, seams, closures, trims, hardware, print placement and the side and back
+of the piece, and your prompts should describe those details concretely so a side or rear angle
+comes out accurate rather than invented. But they were usually shot somewhere else — in a shop,
+a stockroom or on a hanger, under different, amateur lighting. Read ONLY the garment from them.
+Never let their room, background, rails, hangers, mannequins, floor, lighting or colour cast
+enter your prompts; never describe the scene of a following image as if it were the shoot's
+location. Every prompt you write must keep the hero's place and light, and must state that
+location and its light explicitly.
 
 Invent THREE fresh, premium e-commerce fashion-editorial frames from this exact same
 photoshoot. Each frame must have its OWN SUBJECT — not three versions of the same idea:
@@ -653,8 +725,11 @@ world-class online store. Creative variation key: ${creativeVariationKey}. Use t
 only as an internal diversity cue; never print or mention it.
 
 The FIRST image is the finished catalog photograph of a single product that was just
-produced. Any following images are the seller's own source photographs of the SAME
-product, useful only as extra evidence of its real construction, materials and details.
+produced, and it is the ONLY source of the background, lighting and colour grade. Any
+following images are the seller's own source photographs of the SAME product, useful only as
+extra evidence of its real construction, materials and details. Their backgrounds, surfaces,
+tables, packaging, shadows, lighting and snapshot quality are irrelevant and must never enter
+the prompts or the output.
 
 Write TWO fresh product photographs of THAT EXACT SAME product, for the same product
 detail page. There is no model, no hands and no scene to art-direct — the product itself
@@ -890,6 +965,58 @@ function fallbackPrompts(hasBackReference, note) {
   return [withNote(first), withNote(second), withNote(third)];
 }
 
+/**
+ * 📍 SAHNE KİLİDİ bloğu. Ürün fotoğrafları modele girdi olarak gitmeye devam
+ * ettiği için (yan/arka pozlarda kıyafetin gerçek detayı onlardan okunuyor),
+ * mekân kaçağını bu blok kesiyor: hero'nun mekânı metinle sabitleniyor ve
+ * başka yerde çekilmiş referanslar NUMARALARIYLA "ortamı yasak" ilan ediliyor.
+ * Modele "şu görsellere bakma" değil, "şu görsellerden yalnız kumaşı oku,
+ * mekânını okuma" deniyor — kıyafet doğruluğu korunuyor, sahne sızmıyor.
+ */
+function buildSceneLockSuffix({ heroScene, offSceneImageNumbers, imageCount }) {
+  const referenceCount = Math.max(0, Number(imageCount) || 0) - 1;
+  if (referenceCount <= 0) return "";
+
+  const offScene = Array.isArray(offSceneImageNumbers)
+    ? offSceneImageNumbers.filter((n) => Number.isInteger(n) && n >= 2)
+    : [];
+  const offSceneLabel =
+    offScene.length === 0
+      ? null
+      : offScene.length === 1
+        ? `reference image ${offScene[0]}`
+        : `reference images ${offScene.slice(0, -1).join(", ")} and ${
+            offScene[offScene.length - 1]
+          }`;
+
+  return (
+    "\n\nMANDATORY SCENE LOCK — WHERE THIS PHOTOGRAPH IS TAKEN: " +
+    (heroScene
+      ? `The shoot happens here and nowhere else: ${
+          /[.!?]$/.test(heroScene.trim()) ? heroScene.trim() : `${heroScene.trim()}.`
+        } `
+      : "The shoot happens in the location of reference image 1 and nowhere else. ") +
+    "Reference image 1 is the ONLY source of the location, background, set, props, floor, " +
+    "walls, surfaces, weather, time of day, light sources, light direction, shadows and " +
+    `colour grade. Reference images 2 to ${referenceCount + 1} are PRODUCT-TRUTH references ` +
+    "and they are essential: read the garment's real construction, cut, seams, closures, " +
+    "trims, hardware, print placement, colour and its side and back detail from them, and " +
+    "use that knowledge to render the garment correctly from the new angle. But read ONLY " +
+    "the garment from them. " +
+    (offSceneLabel
+      ? `${offSceneLabel.charAt(0).toUpperCase()}${offSceneLabel.slice(1)} ` +
+        `${offScene.length === 1 ? "was" : "were"} photographed somewhere else entirely; ` +
+        `that place must not appear in the output. `
+      : "") +
+    "Never import a shop interior, stockroom, studio, plain wall, seamless sweep, table, " +
+    "hanger, rail, shelf, mirror, mannequin, bystander, packaging, floor, artificial or " +
+    "flash lighting, or colour cast from any reference other than image 1 — not in the " +
+    "background, not at the frame edges, not reflected, not blurred behind the subject and " +
+    "not as a change of light on the garment. If the finished frame could be mistaken for a " +
+    "photograph taken where the product references were taken, the edit has failed."
+  );
+}
+
 /** Gemini/fallback çıktısını üretim modeline gidecek nihai prompta dönüştürür. */
 function finalizeVariationPrompt(
   prompt,
@@ -898,6 +1025,9 @@ function finalizeVariationPrompt(
     forbidBackView = false,
     backReferenceImageNumber,
     inSceneDetail = false,
+    heroScene = null,
+    offSceneImageNumbers = [],
+    imageCount = 0,
   } = {}
 ) {
   const backViewSuffix = forceBackView
@@ -931,6 +1061,7 @@ function finalizeVariationPrompt(
     `${String(prompt || "").trim()}\n\n${VARIATION_PRESERVATION_SUFFIX}` +
     POSE_DIVERGENCE_SUFFIX +
     ENVIRONMENT_PERSPECTIVE_SUFFIX +
+    buildSceneLockSuffix({ heroScene, offSceneImageNumbers, imageCount }) +
     inSceneDetailSuffix +
     backViewSuffix +
     noBackViewSuffix
@@ -1370,6 +1501,10 @@ async function startAutomaticTrialVariation({
           backReferenceImageNumber: backAnalysis.backReferenceImageNumber,
           // 3. kare: sahnede kalan yakın ürün detayı
           inSceneDetail: index === 2,
+          // 📍 Sahne kilidi: mekân hero'dan, kumaş ürün karelerinden.
+          heroScene: backAnalysis.heroScene,
+          offSceneImageNumbers: backAnalysis.offSceneImageNumbers,
+          imageCount: imageUrls.length,
         }),
       );
     }
@@ -1593,6 +1728,10 @@ router.post("/generate", async (req, res) => {
           backReferenceImageNumber: backAnalysis.backReferenceImageNumber,
           // 3. kare: sahnede kalan yakın ürün detayı
           inSceneDetail: index === 2,
+          // 📍 Sahne kilidi: mekân hero'dan, kumaş ürün karelerinden.
+          heroScene: backAnalysis.heroScene,
+          offSceneImageNumbers: backAnalysis.offSceneImageNumbers,
+          imageCount: imageUrls.length,
         }),
       );
     }
@@ -1649,6 +1788,16 @@ router.post("/generate", async (req, res) => {
             : backAnalysis.hasBackReference
               ? `image ${backAnalysis.backReferenceImageNumber}`
               : "none"
+        }` +
+        `${
+          backAnalysis
+            ? ` | sahne kilidi=${backAnalysis.heroScene ? "var" : "yok"} · ` +
+              `ortamı yasak görseller=${
+                backAnalysis.offSceneImageNumbers?.length
+                  ? backAnalysis.offSceneImageNumbers.join(",")
+                  : "yok"
+              }`
+            : ""
         }`
     );
 

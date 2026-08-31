@@ -44,6 +44,8 @@ const {
 // DB'de CDN sarmalı ya da render URL'si kayıtlı olabilir; fal'a HER ZAMAN
 // ham obje URL'si gitmeli, yoksa sağlayıcı görseli indiremiyor.
 const { getOriginalUrl } = require("../utils/imageOptimizer");
+const sharp = require("sharp");
+const { createFalClient } = require("../utils/jewelryCleanStyleImage");
 
 // Service role şart: style_profiles RLS'li ve anon/authenticated'e policy yok.
 // .env'de anahtar adı SUPABASE_SERVICE_ROLE_KEY (Railway'de SUPABASE_SERVICE_KEY olabilir).
@@ -62,6 +64,26 @@ const APPROACH_SAMPLE_TTL_MS = 10 * 60 * 1000;
 // kararı). Uygulama her açılışta bunlardan rastgele birini gösteriyor.
 const MAX_CARDS_PER_SLOT = 5;
 const approachSampleCache = new Map();
+
+// 📐 gpt-image-2 serbest oran kabul etmiyor; hazır ölçülerden birini istiyor.
+// Kaynağın oranına EN YAKIN olanı seçmek, kartın kadrajının korunmasının tek
+// yolu (nano-banana-2'deki `aspect_ratio: "auto"`nun karşılığı yok).
+const GPT_IMAGE_SIZES = [
+  { name: "portrait_16_9", ratio: 9 / 16 },
+  { name: "portrait_4_3", ratio: 3 / 4 },
+  { name: "square_hd", ratio: 1 },
+  { name: "landscape_4_3", ratio: 4 / 3 },
+  { name: "landscape_16_9", ratio: 16 / 9 },
+];
+
+function nearestGptImageSize(width, height) {
+  // Ölçü okunamazsa kart oranına (3:4) düş — havuzun ezici çoğunluğu bu.
+  if (!width || !height) return "portrait_4_3";
+  const ratio = width / height;
+  return GPT_IMAGE_SIZES.reduce((best, cur) =>
+    Math.abs(cur.ratio - ratio) < Math.abs(best.ratio - ratio) ? cur : best,
+  ).name;
+}
 
 function createStyleProfileRouter({
   table,
@@ -2309,13 +2331,14 @@ function createStyleProfileRouter({
   // ✏️ Kart görselini PROMPT ile yeniden üret (31 Ağu 2026, kullanıcı isteği)
   //
   // Akış: yönetici Türkçe yazar → metin İngilizce bir DÜZENLEME talimatına
-  // çevrilir → nano-banana-2/edit mevcut kareyi o talimatla yeniden üretir →
+  // çevrilir → openai/gpt-image-2/edit mevcut kareyi o talimatla yeniden üretir →
   // sonuç `reference` bucket'ına yüklenir → slottaki satırın image_url'i yeni
   // adrese döner. Kart aynı yerinde kalır, yalnız görseli değişir.
   //
-  // ⚠️ ORAN KORUNUR: `aspect_ratio: "auto"` — kartlar 3:4 gösteriliyor, oran
-  // değişirse uygulamada kırpma bozuluyor. Model "aynı kadraj" talimatını da
-  // prompt içinde alıyor; ikisi birlikte güvence.
+  // ⚠️ ORAN KORUNUR: kaynağın en/boy oranı ölçülüp gpt-image-2'nin en yakın
+  // hazır ölçüsüne eşleniyor (bkz. nearestGptImageSize) — kartlar 3:4
+  // gösteriliyor, oran değişirse uygulamada kırpma bozuluyor. Model "aynı
+  // kadraj" talimatını da prompt içinde alıyor; ikisi birlikte güvence.
   //
   // ⚠️ Eski görsel bucket'ta BIRAKILIR. Aynı kare başka bir slotta ya da bir
   // stil profilinde de kullanılıyor olabilir; silmek onları kırardı.
@@ -2342,8 +2365,8 @@ function createStyleProfileRouter({
           .status(400)
           .json({ success: false, error: "Ne değişsin, birkaç kelimeyle yazın." });
       }
-      const falApiKey = process.env.FAL_API_KEY || process.env.FAL_KEY;
-      if (!falApiKey) {
+      // Erken kontrol: anahtar yoksa çeviri çağrısını boşuna yapmayalım.
+      if (!(process.env.FAL_API_KEY || process.env.FAL_KEY)) {
         return res
           .status(500)
           .json({ success: false, error: "FAL_API_KEY tanımlı değil" });
@@ -2403,31 +2426,85 @@ function createStyleProfileRouter({
       // düşürmüş olabilir).
       const finalPrompt = `${editPrompt}\n\nKeep the exact same framing, crop, aspect ratio and composition as the source image.`;
 
-      // 3) nano-banana-2 ile düzenle.
+      // 3) GPT Image 2 ile düzenle (31 Ağu 2026, kullanıcı kararı).
+      //
+      // ⚠️ ORAN: gpt-image-2'nin `aspect_ratio: "auto"` gibi bir seçeneği yok,
+      // hazır `image_size` ölçülerinden birini istiyor. Bu yüzden kaynağın
+      // oranı ÖLÇÜLÜP en yakın ölçüye eşleniyor — sabit bir değer yazılsaydı
+      // (örn. portrait_4_3) 3:4 olmayan havuz kareleri kırpılırdı.
       const sourceUrl = getOriginalUrl(imageUrl);
-      const falResponse = await axios.post(
-        "https://fal.run/fal-ai/nano-banana-2/edit",
-        {
+      const sourceMeta = await axios.get(sourceUrl, {
+        responseType: "arraybuffer",
+        timeout: 60000,
+      });
+      const { width: srcW, height: srcH } = await sharp(
+        Buffer.from(sourceMeta.data),
+      ).metadata();
+      const imageSize = nearestGptImageSize(srcW, srcH);
+
+      const falClient = createFalClient();
+      const MODEL = "openai/gpt-image-2/edit";
+      // Kuyruk kullanılıyor: gpt-image-2 senkron uçta zaman aşımına
+      // düşebilecek kadar yavaş (kod tabanındaki diğer çağrılar da kuyrukta).
+      console.log(
+        `🎨 [APPROACH_CARD_REGEN] ${category}/${approach} · kaynak ${srcW}x${srcH} → ${imageSize} · gpt-image-2 kuyruğa veriliyor`,
+      );
+      console.log(
+        `🎨 [APPROACH_CARD_REGEN] prompt: ${finalPrompt.slice(0, 160).replace(/\s+/g, " ")}…`,
+      );
+      const { request_id: requestId } = await falClient.queue.submit(MODEL, {
+        input: {
           prompt: finalPrompt,
           image_urls: [sourceUrl],
+          image_size: imageSize,
+          // Kart görselleri uzun ömürlü ve seyrek üretiliyor (yönetici
+          // eylemi) — burada kalite maliyete tercih ediliyor.
+          quality: "high",
           num_images: 1,
-          aspect_ratio: "auto", // kaynağın oranı korunur
           output_format: "jpeg",
-          resolution: "2K",
-          safety_tolerance: "6",
         },
-        {
-          headers: {
-            Authorization: `Key ${falApiKey}`,
-            "Content-Type": "application/json",
-          },
-          timeout: 300000,
-        },
-      );
-      const producedUrl =
-        falResponse?.data?.images?.[0]?.url || falResponse?.data?.image?.url;
+      });
+      if (!requestId) throw new Error("fal request_id döndürmedi");
+      console.log(`⏳ [APPROACH_CARD_REGEN] request_id: ${requestId}`);
+
+      const MAX_POLLS = 90; // 3 sn × 90 ≈ 4,5 dakika
+      const startedAt = Date.now();
+      let producedUrl = null;
+      let lastStatus = "";
+      for (let poll = 0; poll < MAX_POLLS; poll += 1) {
+        const status = await falClient.queue.status(MODEL, {
+          requestId,
+          logs: false,
+        });
+        const elapsed = Math.round((Date.now() - startedAt) / 1000);
+        // Her turu basmak logu boğuyor (90 satır). Durum DEĞİŞTİĞİNDE ve
+        // ayrıca 15 saniyede bir "hâlâ çalışıyor" satırı yazılır — takılma
+        // ile ilerleme bu ikisiyle ayırt edilebiliyor.
+        if (status.status !== lastStatus || poll % 5 === 0) {
+          console.log(
+            `⏳ [APPROACH_CARD_REGEN] ${poll + 1}/${MAX_POLLS} · ${status.status} · ${elapsed} sn`,
+          );
+          lastStatus = status.status;
+        }
+        if (status.status === "COMPLETED") {
+          const done = await falClient.queue.result(MODEL, { requestId });
+          producedUrl = done?.data?.images?.[0]?.url || null;
+          console.log(
+            `✅ [APPROACH_CARD_REGEN] üretim bitti (${elapsed} sn) → ${producedUrl ? "görsel var" : "GÖRSEL YOK"}`,
+          );
+          break;
+        }
+        if (status.status === "FAILED") {
+          console.error(
+            `❌ [APPROACH_CARD_REGEN] fal FAILED (${elapsed} sn)`,
+            JSON.stringify(status).slice(0, 300),
+          );
+          throw new Error("GPT Image 2 üretimi başarısız");
+        }
+        await new Promise((r) => setTimeout(r, 3000));
+      }
       if (!producedUrl) {
-        throw new Error("fal geçerli bir görsel döndürmedi");
+        throw new Error("GPT Image 2 zaman aşımına uğradı veya görsel dönmedi");
       }
 
       // 4) Bucket'a yaz. Yol her seferinde benzersiz: aynı adrese yazmak
@@ -2457,25 +2534,27 @@ function createStyleProfileRouter({
           upsert: false,
         });
       if (uploadErr) throw new Error(`Supabase upload: ${uploadErr.message}`);
+      console.log(
+        `📦 [APPROACH_CARD_REGEN] bucket'a yazıldı: ${objectPath} (${Math.round(download.data.byteLength / 1024)} KB)`,
+      );
       const { data: publicData } = supabase.storage
         .from("reference")
         .getPublicUrl(objectPath);
       const newUrl = publicData?.publicUrl;
       if (!newUrl) throw new Error("Supabase public URL üretilemedi");
 
-      // 5) Slottaki satır yeni adrese döner (yeni satır açılmaz — kartın
-      // sırası ve sayısı aynı kalmalı).
-      const { error: updateErr } = await supabase
-        .from("style_approach_cards")
-        .update({ image_url: newUrl, style_profile_id: null })
-        .eq("id", row.id);
-      if (updateErr) throw updateErr;
-
-      approachSampleCache.clear(); // değişiklik uygulamada hemen görünsün
+      // 5) DB'ye DOKUNULMAZ (31 Ağu 2026, kullanıcı isteği): sonuç önce
+      // yöneticiye gösterilir, kart ancak "Kabul et" denince değişir.
+      // Onay /approach-cards/apply, ret /approach-cards/discard ucunda.
       console.log(
-        `✏️ [APPROACH_CARD_REGEN] ${category}/${approach} güncellendi → ${objectPath}`,
+        `👀 [APPROACH_CARD_REGEN] önizleme hazır — onay bekliyor: ${objectPath}`,
       );
-      return res.json({ success: true, imageUrl: newUrl, prompt: finalPrompt });
+      return res.json({
+        success: true,
+        imageUrl: newUrl,
+        objectPath, // ret edilirse silinebilsin diye
+        prompt: finalPrompt,
+      });
     } catch (err) {
       const detail =
         err?.response?.data?.detail?.[0]?.msg ||
@@ -2483,6 +2562,96 @@ function createStyleProfileRouter({
         err.message;
       console.error("❌ [APPROACH_CARD_REGEN]", detail);
       return res.status(500).json({ success: false, error: detail });
+    }
+  });
+
+
+  // ✅ Önizlemeyi ONAYLA — kart görseli ancak burada değişir.
+  // Ayrı uç olmasının sebebi: üretim uzun sürüyor ve yönetici sonucu görmeden
+  // karar veremiyor. Üretim ucu artık yalnız bucket'a yazıp URL döndürüyor.
+  router.post("/admin/approach-cards/apply", async (req, res) => {
+    try {
+      const category = String(req.body?.category || "").trim().toLowerCase();
+      const subtype =
+        String(req.body?.subtype || "").trim().toLowerCase() || null;
+      const genderRaw = String(req.body?.gender || "").trim().toLowerCase();
+      const gender =
+        genderRaw === "woman" || genderRaw === "man" ? genderRaw : null;
+      const approach = Number.parseInt(req.body?.approach, 10);
+      const oldImageUrl = String(req.body?.oldImageUrl || "").trim();
+      const newImageUrl = String(req.body?.newImageUrl || "").trim();
+
+      if (!category || !oldImageUrl || !newImageUrl || ![1, 2, 3, 4].includes(approach)) {
+        return res.status(400).json({
+          success: false,
+          error: "category, approach, oldImageUrl ve newImageUrl zorunlu",
+        });
+      }
+
+      let rowQuery = supabase
+        .from("style_approach_cards")
+        .select("id")
+        .eq("product_category", category)
+        .eq("style_approach", approach)
+        .eq("image_url", oldImageUrl);
+      rowQuery = subtype
+        ? rowQuery.eq("product_subtype", subtype)
+        : rowQuery.is("product_subtype", null);
+      rowQuery = gender
+        ? rowQuery.eq("gender", gender)
+        : rowQuery.is("gender", null);
+      const { data: row, error: rowErr } = await rowQuery.maybeSingle();
+      if (rowErr) throw rowErr;
+      if (!row) {
+        return res.status(404).json({
+          success: false,
+          error: "Değiştirilecek görsel bu slotta bulunamadı — sayfayı yenileyin.",
+        });
+      }
+
+      // Satır YERİNDE güncellenir; yeni satır açılmaz, sıra ve sayı korunur.
+      // style_profile_id sıfırlanır: üretilen kare artık o profilin karesi değil.
+      const { error: updateErr } = await supabase
+        .from("style_approach_cards")
+        .update({ image_url: newImageUrl, style_profile_id: null })
+        .eq("id", row.id);
+      if (updateErr) throw updateErr;
+
+      approachSampleCache.clear(); // değişiklik uygulamada hemen görünsün
+      console.log(
+        `✏️ [APPROACH_CARD_APPLY] ${category}/${approach} güncellendi → ${newImageUrl}`,
+      );
+      return res.json({ success: true, imageUrl: newImageUrl });
+    } catch (err) {
+      console.error("❌ [APPROACH_CARD_APPLY]", err.message);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // 🗑️ Beğenilmeyen önizlemeyi bucket'tan sil.
+  //
+  // ⚠️ Yalnız BU akışın ürettiği dosyalar silinebilir: yol hem storage
+  // ön ekiyle hem `approach_` damgasıyla başlamak zorunda. Aksi hâlde uç,
+  // istemciden gelen serbest bir yolla havuzdaki gerçek kareleri silebilirdi.
+  router.post("/admin/approach-cards/discard", async (req, res) => {
+    try {
+      const objectPath = String(req.body?.objectPath || "").trim();
+      const expectedPrefix = `${STORAGE_PREFIX}approach_`;
+      if (!objectPath || !objectPath.startsWith(expectedPrefix)) {
+        return res.status(400).json({
+          success: false,
+          error: "Yalnız bu akışta üretilen önizlemeler silinebilir",
+        });
+      }
+      const { error } = await supabase.storage
+        .from("reference")
+        .remove([objectPath]);
+      if (error) throw error;
+      console.log(`🗑️ [APPROACH_CARD_DISCARD] silindi: ${objectPath}`);
+      return res.json({ success: true });
+    } catch (err) {
+      console.error("❌ [APPROACH_CARD_DISCARD]", err.message);
+      return res.status(500).json({ success: false, error: err.message });
     }
   });
 

@@ -201,11 +201,17 @@ router.get("/generations", async (req, res) => {
 
     console.log("[Admin] Success - rows:", data?.length, "total:", count);
 
-    // Virtual Model kartlarında ana üretime bağlı tamamlanmış varyasyonları
-    // tek sorguda getir. Kart başına sorgu yapmak yerine sayfadaki tüm
-    // generation_id değerlerini toplu sorgulamak admin gridini hızlı tutar.
+    // Ana üretime bağlı tamamlanmış varyasyonları tek sorguda getir. Kart
+    // başına sorgu yapmak yerine sayfadaki tüm generation_id değerlerini toplu
+    // sorgulamak admin gridini hızlı tutar.
+    //
+    // 🔁 31 Ağu 2026 (kullanıcı isteği): Refiner de bu listeye eklendi.
+    // Varyasyon üretimi Refiner çıktısını da kaynak alabiliyor (bkz.
+    // variationRoutes.js "Refiner çıktısında ÜRÜN modu"), yani o kartların da
+    // varyantı olabiliyordu; admin'de görünmüyordu.
+    const VARIATION_ENRICHED_FEATURES = ["virtual-model", "refiner"];
     let enrichedData = data || [];
-    if (feature === "virtual-model" && enrichedData.length > 0) {
+    if (VARIATION_ENRICHED_FEATURES.includes(feature) && enrichedData.length > 0) {
       const sourceGenerationIds = [
         ...new Set(
           enrichedData
@@ -239,7 +245,7 @@ router.get("/generations", async (req, res) => {
           // Varyasyon enrichment'i ana admin listesini kullanılamaz hale
           // getirmemeli; sorgu hatasında ana üretimler gösterilmeye devam eder.
           console.warn(
-            "[Admin] Virtual-model variation enrichment error:",
+            `[Admin] ${feature} variation enrichment error:`,
             variationsError.message,
           );
         } else {
