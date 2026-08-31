@@ -2,6 +2,8 @@
   "scripts": {
     "start": "nodemon src/app.js",
     "test": "node --test tests/*.test.js",
+    "locales:rtl": "node scripts/translate-locales-openrouter.js",
+    "styles:jewelry-clean": "node scripts/backfill-jewelry-clean-style-images.js",
     "postinstall": "node scripts/verify-mime.js"
   },
   "overrides": {

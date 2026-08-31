@@ -120,21 +120,36 @@ async function getPromptEnhanceProvider() {
     return "gemini";
 }
 
-// ─── Prompt enhance dispatcher — app_config seçimine göre OpenRouter veya Replicate ───
-// OpenRouter patlarsa Replicate'e güvenli fallback (referenceBrowserRoutesV7 ile aynı mantık).
+// ─── Prompt enhance dispatcher — sağlayıcı SABİT OpenRouter (13 Ağu, config yok sayılır) ───
+// Replicate yalnız OpenRouter başarısız olursa fallback (referenceBrowserRoutesV7 ile aynı mantık).
 async function callGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
-    const provider = await getPromptEnhanceProvider();
-    if (provider === "replicate") {
-        console.log("🔀 [KIT_V2_PROMPT_ENHANCE] Provider: replicate (Replicate Gemini 3 Flash)");
-        return callReplicateGeminiFlash(prompt, imageUrls, maxRetries);
-    }
-    console.log("🔀 [KIT_V2_PROMPT_ENHANCE] Provider: gemini (OpenRouter Gemini 3 Flash)");
+  // 17 Ağu 2026 (kullanıcı kararı): app_config.prompt_enhance_provider YENİDEN
+  // OKUNUYOR. 13 Ağu'da OpenRouter'a sabitlenmişti; bakiye bitince (402) her
+  // çağrı boşuna deneyip fallback'e düşüyordu. Artık config neredeyse oraya
+  // gidilir, diğeri yedektir.
+  const provider = await getPromptEnhanceProvider();
+  const useReplicateFirst = provider === "replicate";
+  console.log(`🔀 [KIT_V2_PROMPT_ENHANCE] Provider: ${useReplicateFirst ? "Replicate gemini-3-flash" : "OpenRouter gemini-3.7-flash"} — app_config: "${provider}"`);
+  if (useReplicateFirst) {
     try {
-        return await callOpenRouterGeminiFlash(prompt, imageUrls, maxRetries);
+      return await callReplicateGeminiFlash(prompt, imageUrls, maxRetries);
     } catch (err) {
-        console.error("⚠️ [KIT_V2_PROMPT_ENHANCE] OpenRouter Gemini başarısız, Replicate'e fallback:", err.message);
-        return callReplicateGeminiFlash(prompt, imageUrls, maxRetries);
+      console.error(
+        "⚠️ [KIT_V2_PROMPT_ENHANCE] Replicate Gemini başarısız, OpenRouter'a fallback:",
+        err.message,
+      );
+      return callOpenRouterGeminiFlash(prompt, imageUrls, maxRetries);
     }
+  }
+  try {
+    return await callOpenRouterGeminiFlash(prompt, imageUrls, maxRetries);
+  } catch (err) {
+    console.error(
+      "⚠️ [KIT_V2_PROMPT_ENHANCE] OpenRouter Gemini başarısız, Replicate'e fallback:",
+      err.message,
+    );
+    return callReplicateGeminiFlash(prompt, imageUrls, maxRetries);
+  }
 }
 
 // ─── Optimize image (resize to fit under 7MB) ───
@@ -260,6 +275,80 @@ async function ensureMaxAspectRatio3to1ForKitInput(imageUrls, userId) {
     }
 
     return processedUrls;
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// 🧩 REFINER SÖZLEŞMESİ (28 Ağu 2026, kullanıcı isteği)
+//
+// Refiner'ın çeşitlendirme tarafındaki "detay makro" kareleri belirgin biçimde
+// daha iyi çıkıyordu. Fark modelde değildi — kit zaten AYNI uca gidiyor
+// (openai/gpt-image-2/edit) — PROMPT YAPISINDAYDI. Oradaki üç blok buraya
+// birebir taşındı ve `detail` + `ghost` sahnelerinin sonuna ekleniyor:
+//   1) ÜRÜN KİMLİĞİ korunumu (variationRoutes.PRODUCT_VARIATION_PRESERVATION_SUFFIX)
+//   2) ZEMİN SADAKATİ (beyaz saf kalsın, renkli solmasın — makroda kritik)
+//   3) GERÇEK MAKRO / HAYALET MANKEN inşa kuralı
+// Böylece Gemini ne yazarsa yazsın, modele giden nihai metin aynı disiplini
+// taşıyor. ⚠️ Değiştirirken variationRoutes.js ile birlikte düşün.
+// ─────────────────────────────────────────────────────────────────────
+const KIT_PRODUCT_PRESERVATION_SUFFIX =
+    "Edit the provided reference image. The FIRST image is the finished photograph of the product; it is the " +
+    "single source of truth for the product's identity. Preserve that product EXACTLY: the same object, same " +
+    "silhouette and proportions, same materials and finish, same colors and color temperature, same texture, same " +
+    "pattern, same weave, same stitching, same hardware, same print placement, same engraving and the same " +
+    "branding. Do not restyle, redesign, simplify, embellish, resize or replace any part of the product, and do " +
+    "not invent details that are not visible in the reference. The output is one single photograph of that one " +
+    "product, finished to flawless high-end e-commerce retouch quality: razor-sharp focus, crisp edges, clean " +
+    "surfaces free of dust, lint, scratches and fingerprints, and true-to-life color. No text, no logos of other " +
+    "brands, no watermark, no collage and no split frames.";
+
+const KIT_BACKGROUND_FIDELITY_SUFFIX =
+    "\n\nBACKGROUND FIDELITY: whatever background this shot calls for, it must be clean and uniform edge to edge. " +
+    "If it is pure white, it is the same pure, even, seamless white (#FFFFFF) across the whole frame — never grey, " +
+    "never cream, never beige, never washed-out or dulled, never a gradient, never vignetted or darker in the " +
+    "corners, with no visible seam, no horizon line, no dust, no noise and no soft falloff. If it is a colour, it " +
+    "keeps the exact same hue, saturation and brightness across the entire frame — never faded, muted, darkened, " +
+    "pastelled or tinted by the product's reflections. This matters most in a close-up frame, where a near camera " +
+    "and shallow depth of field tend to grey down, blur or contaminate the background: keep it perfectly clean, " +
+    "uniform and fully saturated there too. Do not introduce any surface, table, floor, wall, backdrop edge, prop " +
+    "shadow or environmental colour cast the shot does not call for.";
+
+const KIT_MACRO_SUFFIX =
+    "\n\nMACRO REQUIREMENT — THIS IS A TRUE MACRO PHOTOGRAPH taken with a real macro lens, not a digital zoom and " +
+    "not an upscaled crop of the source image. The camera physically moves close to the product; the chosen area " +
+    "fills the frame and the rest of the product may fall outside the crop or out of the plane of focus. Render " +
+    "real macro optics: genuine material texture, believable micro-reflections and crisp micro-detail on weave, " +
+    "thread, grain, stitching, seam construction, button edges, zipper teeth and label embossing. Choose the " +
+    "single most commercially valuable area of THIS specific product and let it carry the frame. Never a wide " +
+    "catalog shot of the whole product." +
+    "\n\nMANDATORY SHOT-DIVERGENCE RULE: compare against the source image before editing. This frame must be " +
+    "unmistakably a DIFFERENT photograph of the same product, not a subtle adjustment or a re-crop. Change the " +
+    "camera position in three-dimensional space: viewing angle, rotation of the product relative to the lens, " +
+    "camera height and camera distance must all visibly differ, with physically coherent perspective, " +
+    "foreshortening and specular highlights for the new viewpoint. Simply zooming into the source pixels, " +
+    "mirroring it or nudging the crop is a failed edit.";
+
+const KIT_GHOST_SUFFIX =
+    "\n\nGHOST MANNEQUIN CONSTRUCTION: the garment is filled by an INVISIBLE body and holds its full " +
+    "three-dimensional form — shoulders shaped, chest with real depth, collar standing open with a clean hollow " +
+    "neckline that shows the interior, hem falling naturally. For any garment with sleeves, construct the sleeves " +
+    "as if naturally supported by invisible arms: clear internal volume, hollow tubular structure, a subtle bend " +
+    "around the elbow, cuffs preserving a realistic circular opening, and natural spacing between the sleeves and " +
+    "the torso. The sleeves must never look flat, collapsed, empty or stuck against the body. Preserve the " +
+    "garment's original sleeve length, width, cuffs, seams, fabric texture, construction and proportions. " +
+    "COMPLETELY remove every human part — no face, no hair, no skin, no hands, no neck, no mannequin pieces " +
+    "anywhere in the frame. The result must read as professional e-commerce ghost mannequin photography: " +
+    "symmetrical, structured, dimensional, clean and naturally shaped by an invisible human form.";
+
+/** Refiner disiplinini sahne tipine göre prompt'un sonuna ekler. */
+function applyKitRefinerContract(prompt, sceneType) {
+    const base = String(prompt || "").trim();
+    if (sceneType === "detail") {
+        return `${base}\n\n${KIT_PRODUCT_PRESERVATION_SUFFIX}${KIT_BACKGROUND_FIDELITY_SUFFIX}${KIT_MACRO_SUFFIX}`;
+    }
+    if (sceneType === "ghost") {
+        return `${base}\n\n${KIT_PRODUCT_PRESERVATION_SUFFIX}${KIT_BACKGROUND_FIDELITY_SUFFIX}${KIT_GHOST_SUFFIX}`;
+    }
+    return base;
 }
 
 // ─── Fal.ai GPT Image 2 Edit API call (detail + ghost sahneleri için) ───
@@ -697,8 +786,8 @@ const defaultPrompts = {
     changePose2: "transform to different energetic model pose, vibrant dynamic movement, fashion-forward stance, preserve garment details. Apply a clean editorial color preset with natural tones, balanced contrast, soft highlights, accurate whites, and professional fashion color grading. Avoid heavy filters, oversaturation, or stylized effects.",
     studio1: "transform to professional standing studio shot, pure white background #FFFFFF, professional indoor studio lighting - remove outdoor natural light completely, soft diffused artificial studio lights, high-fashion e-commerce style. Apply a clean editorial color preset with natural tones.",
     studio2: "transform to close-up medium shot on pure white background #FFFFFF, model actively showcasing a specific garment detail — pulling fabric to show stretch, adjusting a zipper, holding a collar, or demonstrating a feature. Camera zoomed in tight on the torso/detail area. Professional studio lighting, product feature demonstration style like Organic Basics or Lululemon close-ups.",
-    detailShot: "transform to extreme macro fabric detail shot of the EXACT SAME product — preserve the original color, pattern, texture, design, and every detail identically. Frame entirely filled with the product texture, no background visible. Camera pressed close, full-bleed composition. Do NOT alter or redesign the product in any way. Apply natural lighting only, no color filters.",
-    ghostMannequin: "transform to professional ghost mannequin product photo: completely remove all human parts - no model visible, create invisible mannequin effect with realistic internal garment structure, clean hollow neckline showing interior, preserve all fabric details and texture, pure white background #FFFFFF no shadows, centered, Amazon e-commerce catalog standard. Apply a clean editorial color preset with natural tones, balanced contrast, soft highlights, accurate whites, and professional fashion color grading. Avoid heavy filters, oversaturation, or stylized effects."
+    detailShot: "transform into a true macro photograph of the single most commercially valuable detail of this exact product — the weave or grain of the material, the stitching and seam work, the collar or cuff construction, the zipper, button, label or hardware, whichever genuinely sells this piece. The camera moves physically close with a 100mm macro lens at f/2.8–f/4 and that area fills the frame; the rest of the product may fall outside the crop or out of focus. Real macro optics, never a digital zoom of the source. Preserve the original colour, pattern, texture and every detail identically; do NOT alter or redesign the product in any way. Soft directional side-lighting, true-to-life colour, no filters.",
+    ghostMannequin: "transform to professional ghost mannequin product photo: completely remove all human parts - no face, no hair, no skin, no hands, no neck, no mannequin pieces. The garment is filled by an invisible body and holds full three-dimensional form: shoulders shaped, chest with real depth, collar standing open with a clean hollow neckline showing the interior, hem falling naturally, and sleeves carrying hollow tubular volume with a soft bend at the elbow and cuffs keeping their round opening, held slightly away from the torso — never flat or collapsed. Preserve all fabric details, texture, print placement, seams and proportions, pure white background #FFFFFF no shadows, centered, Amazon e-commerce catalog standard. Apply a clean editorial color preset with natural tones, balanced contrast, soft highlights, accurate whites, and professional fashion color grading. Avoid heavy filters, oversaturation, or stylized effects."
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -824,16 +913,15 @@ Generate 2 distinct ENERGETIC editorial pose prompts with dynamic movement.
 - Include professional fashion color grading
 - CRITICAL: PRESERVE the original environment/location/background from the source image. The model's surroundings, setting, and backdrop must remain the same — only the pose changes. Do NOT invent a new location or background.
 
-3) Product Detail Shot (Full-Frame Macro) – 1 Prompt:
-An extreme close-up detail shot where the ENTIRE frame is filled with the product's fabric and details — ZERO background visible.
-- CRITICAL: PRESERVE THE EXACT ORIGINAL PRODUCT. The garment's color, pattern, texture, stitching, design, logo, and every visual detail MUST remain 100% identical to the source image. DO NOT alter, reinterpret, redesign, or reimagine ANY aspect of the product. This is a PHOTO of the SAME product, just zoomed in.
-- THE ENTIRE CAMERA FRAME MUST BE 100% COVERED BY THE PRODUCT. No white space, no studio background, no surface, no edges, no gaps — NOTHING except the garment's material filling every pixel of the image.
-- FULL-BLEED composition: the fabric/textile must extend beyond all four edges of the frame, as if the camera is pressed right against the product
-- Show the richness of the EXISTING material exactly as it is: weave pattern, thread texture, stitching quality, fabric grain, button details, zipper teeth, label embossing, seam construction — all EXACTLY matching the original product
-- Macro lens photography: 100mm macro lens, f/2.8-f/4, extremely shallow depth of field with tack-sharp focus on texture details
-- Professional textile photography lighting: soft directional side-lighting to reveal fabric dimension and surface texture
-- Color accuracy is CRITICAL — the EXACT same color as the original product, true-to-life, no color shift, no filter
-- NO background, NO surface, NO negative space — the product texture IS the entire image
+3) Product Detail Shot (True Macro) – 1 Prompt:
+A true macro photograph of the single most commercially valuable detail of THIS specific product.
+- First decide silently WHICH area actually sells this product — the weave or grain of the material, the collar or cuff construction, the stitching and seam work, the zipper or button, the label or logo embossing, the print at its sharpest point, the hardware — then close in on THAT area and let it fill the frame.
+- This is a REAL macro shot taken on set with a macro lens (100mm, f/2.8–f/4), NOT a digital zoom and NOT an upscaled crop of the source image. The camera physically moves close; the rest of the product may fall outside the crop or out of the plane of focus.
+- CRITICAL: PRESERVE THE EXACT ORIGINAL PRODUCT. Colour, pattern, texture, stitching, design, logo and every visual detail stay 100% identical to the source image. Do NOT alter, reinterpret, redesign or reimagine anything, and do not invent details that are not visible in the source.
+- Describe the craftsmanship concretely: genuine material texture, believable micro-reflections, crisp micro-detail on thread, grain, seam construction, button edges, zipper teeth, label embossing.
+- The frame must be unmistakably a DIFFERENT photograph from the source: a different viewing angle, a different rotation of the product relative to the lens, a different camera height and a much closer camera distance, with physically coherent perspective and specular highlights for that new viewpoint.
+- Professional textile lighting: soft directional side-light that reveals dimension and surface texture. Colour accuracy is CRITICAL — the exact same colour as the original, no shift, no filter.
+- The background stays clean and uniform wherever it is visible; never grey, washed-out, gradient or vignetted, and never contaminated by the close camera.
 
 4, 5) Studio Poses (White Background) – 2 Prompts:
 Generate 2 white studio prompts. Each prompt must produce EXACTLY ONE single photo of ONE person — NEVER a collage, grid, multi-panel, split-screen, or multiple views. ONE image, ONE pose, ONE person.
@@ -845,13 +933,13 @@ Generate 2 white studio prompts. Each prompt must produce EXACTLY ONE single pho
 - CRITICAL: Each prompt generates a SINGLE photograph — NOT a mood board, NOT a lookbook page, NOT multiple angles side by side
 
 6) Ghost Mannequin – 1 Prompt:
-Professional AMAZON-STYLE ghost mannequin (invisible mannequin).
-- COMPLETELY remove the model - NO face, NO hair, NO skin, NO hands visible
-- Realistic internal garment structure with natural 3D fit
-- Clean hollow neckline with visible interior depth
-- Pure white background (#FFFFFF) - NO shadows, NO reflections
-- Centered, catalog-ready, Amazon e-commerce standard
-- Even, diffused studio lighting for clean product photography
+Professional AMAZON-STYLE ghost mannequin (invisible mannequin), built the way a real e-commerce studio builds it.
+- COMPLETELY remove the model — NO face, NO hair, NO skin, NO hands, NO neck, NO mannequin pieces anywhere.
+- The garment is filled by an INVISIBLE body and holds full three-dimensional form: shoulders shaped, chest with real depth, collar standing open with a clean hollow neckline showing the interior, hem falling naturally.
+- SLEEVE CONSTRUCTION (state this explicitly): sleeves are supported by invisible arms — clear internal volume, hollow tubular structure, a subtle bend at the elbow, cuffs keeping a realistic circular opening, natural spacing between the sleeves and the torso. Sleeves must never look flat, collapsed, empty or stuck against the body.
+- Preserve the garment's original colour, fabric, weave, print placement, sleeve length and width, cuffs, seams, construction and proportions exactly as in the source image.
+- Pure white background (#FFFFFF), even and seamless edge to edge — NO shadows, NO reflections, no gradient, no vignette.
+- Centred, catalog-ready, Amazon e-commerce standard, even diffused studio lighting.
 
 Start each prompt with "transform".
 
@@ -894,8 +982,11 @@ CRITICAL: Respond ONLY with a valid JSON object. No markdown, no code blocks, no
                     prompts.ghostMannequin || defaultPrompts.ghostMannequin,
                 ];
 
-                const imageGenerationPromises = imagePrompts.map(async (prompt, index) => {
+                const imageGenerationPromises = imagePrompts.map(async (rawPrompt, index) => {
                     try {
+                        // 🧩 detail + ghost sahneleri Refiner sözleşmesini alır
+                        // (kimlik korunumu + zemin sadakati + makro/hayalet inşası).
+                        const prompt = applyKitRefinerContract(rawPrompt, sceneTypes[index]);
                         const useNanoBanana = nanoBanana2Scenes.has(index);
                         console.log(`🎨 [KIT_V2] Generating ${sceneTypes[index]} via ${useNanoBanana ? 'Nano Banana 2' : 'GPT Image 2 (fal.ai, 9:16)'}...`);
                         const generatedUrl = useNanoBanana
@@ -1027,7 +1118,12 @@ router.post("/retry-kit-scene", async (req, res) => {
             4: defaultPrompts.detailShot,
             5: defaultPrompts.ghostMannequin,
         };
-        const prompt = promptMap[sceneIndex] || defaultPrompts.changePose1;
+        // 🧩 detail + ghost burada da Refiner sözleşmesini alır — yeniden
+        // deneme yolu ana akıştan ayrı, atlanırsa iki kalite ortaya çıkardı.
+        const prompt = applyKitRefinerContract(
+            promptMap[sceneIndex] || defaultPrompts.changePose1,
+            sceneType,
+        );
 
         // Generate the image — pose1/pose2/studio1/studio2 → Nano Banana 2, detail/ghost → GPT Image 2 (fal.ai, 9:16)
         const useNanoBanana = nanoBanana2Scenes.has(sceneIndex);

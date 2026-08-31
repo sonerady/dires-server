@@ -490,7 +490,8 @@ Create a professional ID photo prompt incorporating these details: "${originalPr
 }
 
 // Google Imagen 4 API URL
-const IMAGEN_4_API_URL = "https://fal.run/fal-ai/imagen4/preview/ultra";
+// ⚠️ 25 Ağu 2026: fal imagen4 ucunu kaldırdı (404) → nano-banana-2 t2i
+const IMAGEN_4_API_URL = "https://fal.run/fal-ai/nano-banana-2";
 
 // Google nano-banana ile model generate et (text-to-image) - Migrated to Fal.ai Imagen 4
 async function generateModelWithNanoBanana(prompt, gender, age, userId, hijabPrompt = null) {
@@ -521,7 +522,8 @@ async function generateModelWithNanoBanana(prompt, gender, age, userId, hijabPro
       prompt: enhancedPrompt,
       aspect_ratio: "3:4", // ID photo / portrait için dikey format
       output_format: "jpeg",
-      safety_filter_level: "block_only_high",
+      // nano-banana-2 şemasında safety_filter_level yok; resolution ayrı alan
+      resolution: "1K",
     };
 
     logger.log("📦 [FAL.AI] Request body:", requestBody);

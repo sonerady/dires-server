@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS banner_studio_results (
   options JSONB NOT NULL DEFAULT '{}'::jsonb,
   html TEXT NOT NULL,
   video_url TEXT,
+  -- Results kartlarındaki önizleme JPG'i (puppeteer ekran görüntüsü)
+  preview_url TEXT,
   credits_used INTEGER NOT NULL DEFAULT 0,
   processing_time_seconds INTEGER,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()

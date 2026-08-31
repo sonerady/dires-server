@@ -50,6 +50,25 @@ const {
 const {
   callOpenRouterGeminiFlash,
 } = require("../utils/promptEnhanceProvider");
+// 🌟 Otomatik global stil — stil seçmeyen üretimlere gizli "house style" katmanı
+const {
+  isAutoGlobalStyleEnabled,
+  pickAutoGlobalStyleProfile,
+  buildAutoStyleSoftBlock,
+  resolveProfileDisplayName,
+  resolveUserAgeNumber,
+  resolveAutoStyleMode,
+  buildAutoStyleUsagePatch,
+  countPriorSuccessfulAutoStyleUses,
+  buildRepeatedAutoStylePoseDirective,
+  buildAutoStyleGenderDirective,
+  isAutoGlobalStyleEnabledForPlatform,
+} = require("../utils/autoGlobalStyle");
+const { normalizeCreationMode } = require("../utils/creationMode");
+const {
+  STYLE_REFERENCE_PLATE_VARIANT,
+  isCurrentStyleReferencePlateUrl,
+} = require("../utils/styleReferenceImage");
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -107,6 +126,35 @@ function appendUniversalPhotorealism(prompt) {
 // Model: google/gemini-3-flash.
 // Hata durumunda 3 kez tekrar dener
 const REPLICATE_GEMINI_MODEL = "google/gemini-3-flash";
+
+// 🏷️ Ürün tipi — yalnız bilinen üç değer kabul edilir; gerisi yok sayılır ki
+// istemciden gelen serbest metin havuzu boşa düşürmesin.
+const PRODUCT_CATEGORIES = ["shoes", "jewelry", "clothing"];
+function normalizeProductCategory(raw) {
+  const v = String(raw || "").trim().toLowerCase();
+  return PRODUCT_CATEGORIES.includes(v) ? v : null;
+}
+
+// Alt tür yalnız kendi kategorisinin sözlüğünden kabul edilir; yanlış eşleşme
+// (ör. shoes + ring) filtreyi boş havuza düşürür.
+const PRODUCT_SUBTYPES = {
+  shoes: ["heels", "sneakers", "boots", "sandals", "flats", "loafers"],
+  jewelry: ["ring", "necklace", "earring", "bracelet", "watch", "anklet"],
+  clothing: ["dress","top","bottom","outerwear","knitwear","swimwear","lingerie","bag","accessory"],
+};
+// 🎨 Çekim tarzı SAYISAL enum (kullanıcı kararı 13 Ağu): 1 Editoryal ·
+// 2 Sanatsal · 3 E-ticaret. İstemci sayı ya da metin ("2") gönderebilir.
+function normalizeStyleApproach(raw) {
+  const n = parseInt(raw, 10);
+  // 4 = Sokak Stili (19 Ağu 2026)
+  return Number.isInteger(n) && n >= 1 && n <= 4 ? n : null;
+}
+function normalizeProductSubtype(rawCategory, rawSubtype) {
+  const cat = normalizeProductCategory(rawCategory);
+  if (!cat) return null;
+  const v = String(rawSubtype || "").trim().toLowerCase();
+  return PRODUCT_SUBTYPES[cat].includes(v) ? v : null;
+}
 async function callReplicateGeminiFlash(
   prompt,
   imageUrls = [],
@@ -243,17 +291,33 @@ async function getPromptEnhanceProvider() {
   return "gemini"; // default: OpenRouter
 }
 
-// Prompt enhance dispatcher — app_config seçimine göre OpenRouter veya Replicate.
-// Replicate'i koruyoruz (geri dönülebilir + OpenRouter başarısızsa güvenli fallback).
+// Prompt enhance dispatcher — 13 Ağu 2026 (kullanıcı kararı): app_config
+// ARTIK OKUNMAZ, sağlayıcı SABİT OpenRouter (gemini-3.7-flash). Replicate yalnız
+// OpenRouter başarısız olursa devreye giren güvenli fallback.
 async function callGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
+  // 17 Ağu 2026 (kullanıcı kararı): app_config.prompt_enhance_provider YENİDEN
+  // OKUNUYOR. 13 Ağu'da OpenRouter'a sabitlenmişti; bakiye bitince (402) her
+  // çağrı boşuna deneyip fallback'e düşüyordu. Artık config neredeyse oraya
+  // gidilir, diğeri yedektir.
   const provider = await getPromptEnhanceProvider();
-
-  if (provider === "replicate") {
-    logger.log("🔀 [PROMPT_ENHANCE] Provider: replicate (Replicate Gemini 3 Flash)");
-    return callReplicateGeminiFlash(prompt, imageUrls, maxRetries);
+  const useReplicateFirst = provider === "replicate";
+  logger.log(`🔀 [PROMPT_ENHANCE] Provider: ${useReplicateFirst ? "Replicate gemini-3-flash" : "OpenRouter gemini-3.7-flash"} — app_config: "${provider}"`);
+  if (useReplicateFirst) {
+    try {
+      return await callReplicateGeminiFlash(prompt, imageUrls, maxRetries);
+    } catch (err) {
+      console.error(
+        "⚠️ [PROMPT_ENHANCE] Replicate Gemini başarısız, OpenRouter'a fallback:",
+        err.message,
+      );
+      return callOpenRouterGeminiFlash(
+      prompt,
+      imageUrls,
+      maxRetries,
+      GEMINI_SYSTEM_INSTRUCTION,
+    );
+    }
   }
-
-  logger.log("🔀 [PROMPT_ENHANCE] Provider: gemini (OpenRouter Gemini 3 Flash)");
   try {
     return await callOpenRouterGeminiFlash(
       prompt,
@@ -263,7 +327,7 @@ async function callGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
     );
   } catch (err) {
     console.error(
-      "⚠️ [PROMPT_ENHANCE] OpenRouter Gemini başarısız, Replicate'e fallback yapılıyor:",
+      "⚠️ [PROMPT_ENHANCE] OpenRouter Gemini başarısız, Replicate'e fallback:",
       err.message,
     );
     return callReplicateGeminiFlash(prompt, imageUrls, maxRetries);
@@ -1185,6 +1249,7 @@ async function createPendingGeneration(
   // kullanıldı" sorusu sonradan hiçbir şekilde yanıtlanamıyor.
   styleProfileId = null,
   styleSource = null,
+  creationMode = null,
 ) {
   try {
     // User ID yoksa veya UUID formatında değilse, UUID oluştur
@@ -1235,6 +1300,7 @@ async function createPendingGeneration(
           quality_version: qualityVersion, // Kalite versiyonu kaydediliyor
           style_profile_id: styleProfileId,
           style_source: styleSource,
+          creation_mode: creationMode,
           created_at: new Date().toISOString(),
         },
       ])
@@ -4297,11 +4363,10 @@ function isStudioLockedStyleProfile(stylePrompt) {
   return STUDIO_LOCK_HINT_RE.test(stylePrompt);
 }
 
-// Bazı stil profilleri kompozisyonun zorunlu oyuncu sayısını tanımlar. Bu işaret
-// yalnız ilgili profil promptunda bulunur; diğer global stillerin casting akışını
-// değiştirmez. Serbest metindeki "subjects" gibi zayıf çoğul ifadeler yerine
-// deterministik bir kilit kullanıyoruz.
-function isFemaleMaleCoupleLockedStyleProfile(stylePrompt) {
+// Bazı stil profilleri kompozisyonun iki kişilik olduğunu açıkça işaretler.
+// Eski marker adı geriye uyumluluk için korunur; artık kadın/erkek veya romantik
+// eşleşme dayatmaz, yalnızca iki kişilik kompozisyon sinyali olarak kullanılır.
+function hasTwoPersonSubjectLock(stylePrompt) {
   return /SUBJECT_COUNT_LOCK:\s*COUPLE_FEMALE_MALE/i.test(
     String(stylePrompt || ""),
   );
@@ -4448,6 +4513,80 @@ async function upscaleResultImage(imageUrl, targetMp) {
 // ÇALIŞTIRILMAZ; ortam/ışık/kamera/poz zaten referans görselden kopyalanacağı için
 // prompt yalnızca (1) referans direktifi + kod plakası işareti, (2) ürün sadakati,
 // (3) kullanıcının seçim/detay girdilerinden oluşur.
+// 👗🎬 ANLAMLANDIRMA PASI (13 Ağu 2026, kullanıcı kararı — jewelry V7 ile aynı
+// desen): stil referansının HAM teknik verisi (DP spec'i + profil analiz notları)
+// NB2/NB Pro prompt'una OLDUĞU GİBİ yapıştırılmaz. Gemini önce bu malzemeyi tek
+// bir akıcı yaratıcı brief'e sentezler; buildStyleReferencePrompt ham iki blok
+// yerine bu sentezi gömer. Sentez başarısızsa ham bloklar fallback (üretim asla
+// bozulmaz). Uzunluk sınırı bilerek YOK (kullanıcı kuralı: Gemini'ye yapay kısa
+// karakter sınırı koyma).
+async function synthesizeGarmentStyleDirection({
+  styleReferenceUrl,
+  technicalAnalysis = null,
+  styleProfile = null, // { name, stylePrompt, imageCount } — kolaj profili modunda dolu
+  settings = {},
+  stamped = true,
+}) {
+  const materials = [];
+  if (styleProfile?.stylePrompt) {
+    materials.push(
+      `STYLE PROFILE NOTES (art-director analysis distilled from the reference frames):\n${styleProfile.stylePrompt}`,
+    );
+  }
+  if (technicalAnalysis) {
+    materials.push(
+      `TECHNICAL CAMERA & LIGHTING ANALYSIS (director-of-photography spec of the reference):\n${technicalAnalysis}`,
+    );
+  }
+  const isCollage = Boolean(styleProfile);
+  const modelBits = [
+    settings?.age ? `age presentation ${settings.age}` : null,
+    settings?.gender ? `gender presentation ${settings.gender}` : null,
+    settings?.ethnicity ? `heritage ${settings.ethnicity}` : null,
+  ].filter(Boolean);
+
+  const synthesisPrompt = `You are the creative director of a high-end fashion campaign. The attached image is a photographic STYLE REFERENCE${
+    stamped
+      ? ` (ignore the black "STYLE REFERENCE" code plate along its bottom edge — it is an input marker, not part of the photograph)`
+      : ""
+  }. ${
+    isCollage
+      ? "It is a collage grid of several frames that all belong to ONE brand aesthetic — treat the frames as examples of a photographic style, not sets to rebuild."
+      : "It is a single photograph whose shot conditions the new image must faithfully recreate."
+  }
+
+Write ONE flowing English creative direction for a NEW photorealistic fashion photograph in which a model wears the user's garment. The garment itself is defined elsewhere by separate product references — your direction covers everything EXCEPT the garment's design. Translate the reference's photographic identity into meaningful, actionable direction — interpret, fuse and rewrite; never paste analysis fragments verbatim and never use numbered spec labels. Weave naturally into prose:
+
+- ENVIRONMENT: ${
+    isCollage
+      ? "the FAMILY of places the frames share (architecture character, materials, urban/nature/indoor feel) — described so a NEW location of the same family can be invented, unless the frames share a plain studio set, which is then kept exactly as bare as shown."
+      : "the concrete visible elements of the location (type of place, architecture and materials, surfaces, furniture and fixed objects with their position, vegetation, depth layers) so the same kind of scene can be rebuilt rather than a vague look-alike."
+  }
+- LIGHT: direction, hardness, fill and shadow density, natural vs studio, time-of-day feel — and how it sculpts fabric and skin.
+- COLOR GRADE: the reference's exact grade/preset feel (palette, saturation, contrast curve and black level, white-balance bias, highlight roll-off, grain or fade), carried like a fixed preset baked into the file.
+- CAMERA: capture-device character (phone-shot vs professional vs film — keep whatever the reference is), focal-length feel, aperture and depth of field, camera height and angle, framing, crop and body coverage.
+- POSE & ENERGY: ${
+    isCollage
+      ? "the shared posing register, attitude, gaze energy and level of movement across the frames — the register a photographer would carry into the next frame of the same shoot, not any single literal gesture."
+      : "the subject's motion state and pose geometry (body orientation, weight distribution, limb configuration, head and gaze direction), plus any supporting object the pose depends on."
+  }${modelBits.length ? ` The model reads as ${modelBits.join(", ")}.` : ""}
+
+HARD RULES:
+- NEVER describe the reference wardrobe: no clothing, shoe, bag or accessory descriptions from the reference — the model's outfit comes exclusively from the user's separate product references.
+- Do NOT describe or preserve any reference person's facial identity or biometric likeness; direction about gaze and expression ENERGY is welcome, identity is off-limits.
+- PLAIN TEXT, flowing prose paragraphs, no headings, no lists, no markdown.
+- There is no character limit — write as richly and thoroughly as the shoot deserves; every sentence must add a concrete visual fact rather than repeating ideas.${
+    materials.length
+      ? `\n\nRAW ANALYSIS MATERIALS (internal notes about the same reference — fuse their facts into your direction, never quote them verbatim):\n\n${materials.join("\n\n")}`
+      : ""
+  }`;
+
+  const out = (
+    await callGeminiFlash(synthesisPrompt, [styleReferenceUrl], 2)
+  )?.trim();
+  return out || null;
+}
+
 function buildStyleReferencePrompt({
   settings = {},
   customDetail = null,
@@ -4456,6 +4595,11 @@ function buildStyleReferencePrompt({
   stamped = true,
   styleProfile = null, // { name, stylePrompt, imageCount } — stil profili (grid kolaj) modu
   technicalAnalysis = null, // Gemini'nin tekil referanstan çıkardığı teknik kamera/ışık analizi
+  // 👗🎬 Anlamlandırılmış sentez — varsa ham stylePrompt/technicalAnalysis
+  // blokları YERİNE bu gömülür (yukarıdaki synthesizeGarmentStyleDirection)
+  synthesizedDirection = null,
+  hasUserPose = false, // 🧍 Kullanıcı AÇIKÇA poz seçtiyse: kullanıcının pozu referans pozunu EZER
+  repeatPoseDirective = "", // Aynı gizli stil kullanıcıda tekrarlandıysa referans iskeletini kopyalama
 } = {}) {
   const refPointer = stamped
     ? `the attached image that carries a solid BLACK code plate along its bottom edge with the printed text "STYLE REFERENCE · CODE SR-1" (it is the LAST attached image)`
@@ -4464,14 +4608,15 @@ function buildStyleReferencePrompt({
   // Stüdyo/düz zemin profillerinde mekân ÇEŞİTLENDİRİLMEZ — birebir korunur.
   const studioLocked =
     !!styleProfile && isStudioLockedStyleProfile(styleProfile.stylePrompt);
-  const femaleMaleCoupleLocked =
+  const twoPersonProfileLocked =
     !!styleProfile &&
-    isFemaleMaleCoupleLockedStyleProfile(styleProfile.stylePrompt);
+    hasTwoPersonSubjectLock(styleProfile.stylePrompt);
   const profileName = styleProfile
     ? resolveStyleProfileNameForPrompt(styleProfile.name)
     : null;
 
   const sections = [];
+  const forceFreshPose = !hasUserPose && Boolean(repeatPoseDirective);
 
   // Kod plakası sızıntısına karşı EN BAŞTA sert kural — model bazen input'taki
   // plakayı çıktıya kopyalıyor; ilk cümle olarak yasaklamak en etkili yöntem.
@@ -4507,18 +4652,61 @@ EXCEPTION — STUDIO: If the frames share a plain/seamless studio setup (neutral
 
 ALLOWED INSPIRATION — NON-IDENTIFYING ONLY: Preserve the broad casting language that makes the style work with the garment: overall fashion archetype and presence, approximate adult age band, gaze direction/intensity, expression energy, confidence, attitude and grooming mood. Translate that direction onto the new person rather than copying a face. Similar campaign energy is correct; similar facial identity is a hard failure. Any explicit user age, gender, ethnicity, hair or model setting overrides the collage.`
     );
+
+    sections.push(`👥 SUBJECT COUNT & INTERACTION CONTINUITY (HIGH PRIORITY): Read the collage's recurring composition. If every relevant frame consistently shows TWO people together, the output must also contain exactly TWO clearly visible, newly cast people and preserve the same relationship/interaction language, adapted naturally to the user's garment. If the frames are consistently solo, keep a solo hero; if counts vary, do not invent a mandatory partner unless the profile carries an explicit two-person subject-count lock.
+
+The PRIMARY/HERO person follows all user-selected age, gender, identity, ethnicity, hair, body and pose settings and is the ONLY person who wears the user's product. Any supporting person remains secondary, is cast age-appropriately for the relationship shown, and wears a newly designed complementary outfit that fits the scene and pose without copying reference wardrobe, duplicating the user's product or obscuring its important details. Never delete a consistently required supporting person merely because another instruction says “model” in the singular.`);
   } else {
+    // 🧍 Poz kaynağı: kullanıcı AÇIKÇA poz seçtiyse KULLANICININ pozu referansı
+    // ezer — poz kilitleri (motion/seat/geometry) o durumda yazılmaz; referans
+    // yalnız sahne/ışık/grade/kamera verir. Poz seçilmediyse referans pozu
+    // ~%90 iskelet sadakatiyle korunur.
+    const poseBullet = hasUserPose
+      ? `- (the POSE is the exception: the user explicitly selected a pose — described elsewhere in this prompt — and that USER POSE OVERRIDES the reference pose entirely).`
+      : forceFreshPose
+        ? `- the same posing ENERGY and ATTITUDE, but with a deliberately DIFFERENT pose skeleton as required by the repeated-style directive below.`
+      : `- every visible person's exact pose, stance, gesture and body language — INCLUDING motion state, relative placement, physical contact and interaction geometry.`;
+
+    const poseLocks = hasUserPose
+      ? `
+
+🧍 USER POSE OVERRIDE (HIGHEST PRIORITY FOR THE HERO'S POSE): The user has explicitly chosen the PRIMARY/HERO model's pose — that instruction is the only source of the hero pose. Ignore the reference hero's limb geometry, motion and gestures rather than blending them into the user's pose. If the reference visibly contains a required supporting person, KEEP that person and adapt their pose naturally around the user's hero pose while retaining the reference relationship and interaction energy; never collapse the pair into a solo portrait. Stage the result within the reference's scene, light, grade and camera language. If the user's pose requires a supporting object (sitting, leaning), include a scene-appropriate one even if the reference has none.`
+      : forceFreshPose
+        ? ""
+      : `
+
+🎬 MOTION STATE LOCK (HIGH PRIORITY): First read every visible reference person's motion state and reproduce the group action exactly. If they are captured IN MOTION — walking mid-stride, stepping, turning, hair or fabric responding — rebuild the same coordinated motion and interaction phase. Do NOT convert moving people into a static catalog pose. If they are genuinely still, keep them still. Garment fidelity never justifies deleting a supporting person or freezing a moving interaction.
+
+🪑 POSE SUPPORT & FRAMING LOCK (HIGH PRIORITY): If the reference pose depends on a supporting object — a chair, stool, armchair, sofa, bench, steps, ledge, wall or railing — that object IS part of the concept: the output must include an equivalent (not necessarily identical) piece and keep the same interaction. Seated stays seated on a clearly visible seat; leaning stays leaning; perching stays perching. Rendering the subject standing after a seated reference, or removing the seat from the frame, is a failed result. Match the reference's body coverage too: if the reference shows the full body with feet in frame, the output shows the full body with feet in frame — do not crop away feet, limbs or the seat.
+
+🧍 POSE GEOMETRY MATCH (HIGH PRIORITY): Replicate the reference arrangement at roughly 90% fidelity — read every visible person as a skeleton and rebuild the SAME skeletons: each body orientation, weight distribution, limb configuration, hand placement, head tilt and gaze, plus the exact relative spacing, overlap, touch, support and interaction between people. Keep their scale and position within the frame. Only the micro-variation a photographer would capture between two consecutive shutter clicks is acceptable. Switching to a different pose family, removing a person, breaking their contact or flattening an interactive pair into an unrelated side-by-side lineup is a failed result.
+
+🧩 GARMENT-FIT ADAPTATION — THE ONLY SANCTIONED EXCEPTION TO THE LOCKS ABOVE: First check whether the reference pose, crop and staging can properly present the USER'S product. If they can, follow the locks exactly. If they genuinely cannot — the crop would cut the product out of frame (e.g. waist-up reference but the product is trousers, a long skirt or shoes), the pose would hide or distort the product's key features (a hand or crossed arms covering the print/neckline/closure, a seated fold crushing a structured silhouette, a turned back hiding a front design), or the pose physically conflicts with the garment's construction — then ADAPT, but only MINIMALLY and only as much as the product requires: widen the crop just enough to include the product, move a hand just enough to reveal the covered detail, open the fold just enough to let the silhouette read. Everything not forced by the product stays locked to the reference: the same scene, light, grade, camera character, subject placement, pose energy and overall attitude. The adaptation must look like the SAME photographer adjusting the SAME shot for a different garment — never a new concept. Never use this exception to redesign the pose or composition wholesale.`;
+
     sections.push(`⚠️ STYLE REFERENCE MODE — STRICT DIRECTIVES
 
 STYLE REFERENCE IMAGE: Among the attached images, ${refPointer} is the STYLE REFERENCE. It defines HOW the final photograph must look. Treat it as the single source of truth for staging and replicate from it, as faithfully as possible:
-- the exact environment and location (architecture, surfaces, background elements, depth layers),
+- the environment and location: the same KIND of place with its concept-defining elements (architecture, materials, surfaces, key furniture, background elements, depth layers) — a faithful new take on the SAME scene, never a different type of place,
 - the exact lighting (direction, hardness/softness, time-of-day feel, shadow and highlight behavior),
-- the exact color grade, contrast and overall atmosphere/mood,
-- the exact camera angle, focal-length feel, framing and crop,
-- the exact model pose, stance, gesture and body language.`);
+- the exact color grade, contrast and overall atmosphere/mood — including any recognizable filter/preset recipe, reproduced like a fixed preset baked into the file,
+- the exact camera language INCLUDING THE CAPTURE-DEVICE CHARACTER (a phone-shot look stays a phone-shot look, film stays film, medium format stays medium format), the camera angle, focal-length feel, framing, crop and body coverage,
+${poseBullet}
+…and NEVER the wardrobe: every reference person's clothing and accessories are completely ignored (see the WARDROBE SWAP rule below) — the PRIMARY/HERO model wears ONLY the user's attached product(s), while any composition-required supporting person wears a newly invented complementary outfit.${poseLocks}
+
+🎯 THEME FIDELITY, NOT PIXEL COPY: The output does not have to duplicate the reference frame pixel by pixel, but the allowed variation budget applies ONLY to incidental scene texture (exact pavement stones, individual leaves, cloud shapes, background passersby). The ${hasUserPose || forceFreshPose ? "COMPOSITION and the FRAMING are" : "POSE, the COMPOSITION and the FRAMING are"} NOT part of that variation budget — they follow the reference tightly per the locks above. Every element that DEFINES the concept must survive: ${hasUserPose ? "the user's chosen pose, " : forceFreshPose ? "the deliberately new pose required for this repeated use, " : "the motion state, the pose geometry, the seat/support and its interaction, "}the framing and body coverage, the kind of location with its signature elements, the light and the mood. When unsure whether something is concept-defining, keep it.`);
+
+    sections.push(`👥 EXACT SUBJECT-COUNT & INTERACTION LOCK (HIGHEST PRIORITY): Count the clearly visible people in the single style-reference photograph and reproduce that exact count. A solo reference produces one PRIMARY/HERO model. A two-person reference MUST produce exactly TWO clearly visible, newly cast people; preserve their relative placement, contact, support and interaction geometry as part of the pose, adapting it only as much as the user's garment or explicit primary-model pose requires. Never collapse a two-person reference into a solo portrait.
+
+The PRIMARY/HERO person follows every user-selected age, gender, identity, ethnicity, hair, body and pose setting and wears the user's product. The supporting person remains secondary, is newly cast and age-appropriate for the visible relationship, and wears a newly invented complementary outfit suited to the scene and pose. The supporting person must not copy reference wardrobe, wear or duplicate the user's product, or cover its defining details. User model settings apply to the PRIMARY/HERO person, not automatically to the supporting person.`);
   }
 
-  if (styleProfile?.stylePrompt) {
+  // 👗🎬 Sentez varsa ham analiz blokları (profil notları + DP spec'i) HİÇ
+  // yazılmaz — anlamlandırılmış tek brief onların yerine geçer. Sentez yoksa
+  // (fallback) eski ham bloklar aynen devam eder.
+  if (synthesizedDirection) {
+    sections.push(`CREATIVE DIRECTION (the reference's photographic identity, distilled by the creative director — follow it):
+${synthesizedDirection}`);
+  } else if (styleProfile?.stylePrompt) {
     sections.push(`STYLE PROFILE ANALYSIS (art-director notes distilled from the reference frames — follow them):
 ${sanitizeStylePromptForOutput(styleProfile.stylePrompt, studioLocked)}`);
   }
@@ -4526,7 +4714,13 @@ ${sanitizeStylePromptForOutput(styleProfile.stylePrompt, studioLocked)}`);
   // 🎯 Sadakat blokları — prompt'un geri kalanı ağırlıklı olarak YASAKLARDAN oluşuyor;
   // bu iki blok "neyi birebir taşı" tarafını dengeler (poz enerjisi ve grade/preset,
   // sonuçlarda en çok kaybedilen iki şeydi).
-  if (styleProfile) {
+  if (styleProfile && hasUserPose) {
+    // 🧍 Kullanıcı poz seçti: kolajın poz dili DEVRE DIŞI — kullanıcının pozu
+    // uygulanır; stil yalnız grade/preset katmanını verir.
+    sections.push(`🧍 USER POSE OVERRIDE (HIGHEST PRIORITY FOR THE HERO'S POSE): The user has explicitly chosen the PRIMARY/HERO model's pose — that instruction is the only source of the hero pose. Do NOT copy or blend the collage hero's limb geometry into it. If the collage consistently requires two people, keep the supporting person and stage them naturally around the user's hero pose with a compatible interaction; never remove the second person. Apply the style's lighting, grade and camera language to the full composition.
+
+🎯 GRADE & PRESET ADHERENCE (HIGH PRIORITY): Apply the reference color treatment as if it were a fixed preset baked into the file: the same palette and saturation level, the same contrast curve and black level (lifted/matte vs crushed), the same white-balance bias, the same highlight roll-off, the same grain/texture and any fade. The exposure key must match too — if the references are high-key and airy, the output is high-key and airy. A technically clean but differently graded image is a failure.`);
+  } else if (styleProfile) {
     sections.push(`🎯 POSE & ATTITUDE ADHERENCE (HIGH PRIORITY): The output must read as one more frame from the SAME shoot as the reference collage — a DIFFERENT frame, not a repeat of one. What you copy is the REGISTER, not the gesture:
 - ENERGY & ATTITUDE — copy this exactly. If the reference subjects are playful, cheeky and relaxed, the model is playful, cheeky and relaxed; if they are still and cool, the model is still and cool. A neutral, stiff catalog pose is a failure whenever the references are not neutral.
 - BODY-LANGUAGE RULES — copy these too: how casual the stance and weight shift are, whether the hands are busy/engaged or hanging, how much movement vs stillness there is, the head-tilt and shoulder habits, how direct or soft the gaze is.
@@ -4536,24 +4730,26 @@ ${sanitizeStylePromptForOutput(styleProfile.stylePrompt, studioLocked)}`);
 🎯 GRADE & PRESET ADHERENCE (HIGH PRIORITY): Apply the reference color treatment as if it were a fixed preset baked into the file: the same palette and saturation level, the same contrast curve and black level (lifted/matte vs crushed), the same white-balance bias, the same highlight roll-off, the same grain/texture and any fade. The exposure key must match too — if the references are high-key and airy, the output is high-key and airy. A technically clean but differently graded image is a failure.`);
   }
 
-  if (technicalAnalysis) {
+  if (technicalAnalysis && !synthesizedDirection) {
     sections.push(`TECHNICAL CAMERA & LIGHTING ANALYSIS (extracted from the style reference by a director of photography — follow these specs precisely):
 ${technicalAnalysis}`);
   }
 
   sections.push(`SCENE AND STAGING RULES:
 
-STRICT SEPARATION: Do NOT copy any clothing, product, accessory, jewelry, bag or shoe from the style reference. The style reference contributes ONLY ${
+👗 WARDROBE SWAP (NON-NEGOTIABLE — READ CAREFULLY): Every outfit worn in the style reference is COMPLETELY IGNORED. NOTHING from a reference wardrobe may appear in the output in recognizable form: not its silhouette, category, colors, fabric, neckline, sleeve or hem length, prints, buttons, shoes, bag, jewelry, glasses, hat or accessories. The PRIMARY/HERO model wears EXCLUSIVELY the user's attached product(s), fitted naturally into ${forceFreshPose ? "the mandatory new pose and the reference scene" : "the reference pose and scene"}, with the fabric draping and moving according to the USER'S product physics. If the reference composition requires a second person, that supporting person wears a NEWLY INVENTED, understated and complementary outfit appropriate to the scene, age and interaction — never the reference outfit and never the user's hero product. The supporting outfit must harmonize without competing with, duplicating or covering the hero garment. If any recognizable reference wardrobe leaks into the output, the result is FAILED. The style reference contributes ONLY ${
     styleProfile
       ? studioLocked
-        ? "the photographic STYLE (light, grade, camera, posing language) and the plain studio backdrop itself — never a one-off background prop"
-        : "the photographic STYLE (light, grade, camera, posing language and environment FAMILY) — never a specific pictured location or one-off background prop"
-      : "the scene, light, camera and pose"
+        ? "the photographic STYLE (light, grade, camera, posing language) and the plain studio backdrop itself — never a one-off background prop and never wardrobe"
+        : "the photographic STYLE (light, grade, camera, posing language and environment FAMILY) — never a specific pictured location, never a one-off background prop and never wardrobe"
+      : forceFreshPose
+        ? "the scene, light, camera and posing energy — never the literal pose skeleton and never wardrobe"
+        : "the scene, light, camera and pose — never wardrobe"
   }.
 
-🚫 IDENTITY PROTECTION (NON-NEGOTIABLE): Any person appearing in the style reference image (or in any of its frames, if it is a collage) must NEVER appear in the output. Generate a completely NEW, different model: a different face, different facial features, different identity. The output model must NOT be recognizable as, resemble, or be mistaken for the person in the style reference in ANY way — not their face, facial structure, distinctive marks, moles, scars or tattoos. Only broad non-identifying casting direction (fashion archetype, gaze and expression energy, attitude), plus the body pose, stance and staging, may inspire the output; their likeness is strictly off-limits.
+🚫 IDENTITY PROTECTION (NON-NEGOTIABLE): No person appearing in the style reference image or collage may reappear in the output. Generate completely NEW identities for the hero and every required supporting person: different faces, facial features and distinctive marks. No generated person may resemble or be mistaken for a reference person. Only broad non-identifying casting direction (fashion archetype, gaze and expression energy, attitude), plus ${forceFreshPose ? "the posing register and staging language" : "the body pose, stance, interaction and staging"}, may inspire the output; all reference likenesses are strictly off-limits.
 
-GARMENT SOURCE OF TRUTH: The other attached product photo(s) define the garment(s). Dress the model EXCLUSIVELY in these product(s) and reproduce them with catalog-grade fidelity — exact colors, prints and pattern scale, fabric texture and weight, stitching, seams, trims, hardware, closures, labels and proportions. Do not invent, restyle, recolor or omit any visible product detail.${
+GARMENT SOURCE OF TRUTH — HERO ONLY: The other attached product photo(s) are the ONLY source of what the PRIMARY/HERO model wears. Dress the hero EXCLUSIVELY in these product(s) and reproduce them with catalog-grade fidelity — exact colors, prints and pattern scale, fabric texture and weight, stitching, seams, trims, hardware, closures, labels and proportions. Do not invent, restyle, recolor or omit any visible product detail, and never blend the user's product with a reference outfit. A supporting person's newly designed outfit is allowed only because it is not the commercial product; it stays visually secondary.${
     isMultipleProducts
       ? " Multiple products are provided — the model wears them together as one coherent outfit, each piece reproduced faithfully."
       : ""
@@ -4568,7 +4764,7 @@ GARMENT SOURCE OF TRUTH: The other attached product photo(s) define the garment(
   // ── Kullanıcının seçim/detay girdileri ──
   if (hasModelReference) {
     sections.push(
-      `MODEL IDENTITY: The FIRST attached image is the model identity reference (provided by the user). Preserve THIS person's face, identity and skin tone exactly, while adopting the pose and staging of the style reference. The identity protection rule above still applies to the style-reference person — never blend their likeness into this model.`,
+      `PRIMARY/HERO MODEL IDENTITY: The FIRST attached image is the model identity reference provided by the user. Preserve THIS hero person's face, identity and skin tone exactly, while adopting ${forceFreshPose ? "the mandatory new pose and the staging language" : "the pose and staging"} of the style reference. The identity protection rule above still applies to every style-reference person, and any required supporting person must be newly cast — never blend a reference likeness into either person.`,
     );
   } else {
     const gender = typeof settings?.gender === "string" && settings.gender.trim()
@@ -4576,20 +4772,20 @@ GARMENT SOURCE OF TRUTH: The other attached product photo(s) define the garment(
       : null;
     const age = settings?.age ? String(settings.age).trim() : null;
     sections.push(
-      `MODEL: Create a brand-new, ${[age ? `${age}-year-old` : null, gender]
+      `PRIMARY/HERO MODEL: Create a brand-new, ${[age ? `${age}-year-old` : null, gender]
         .filter(Boolean)
         .join(" ")} AI-generated fashion model with natural, realistic skin texture — an entirely original person whose facial identity is clearly DIFFERENT from every person in the style reference.`.replace(/, +AI-generated/, " AI-generated"),
     );
   }
 
-  if (femaleMaleCoupleLocked) {
-    sections.push(`⚠️ REQUIRED TWO-PERSON ROMANTIC COUPLE — HIGHEST PRIORITY, NON-NEGOTIABLE: The final photograph MUST show exactly TWO clearly visible adult people together in the same frame: (1) the primary adult woman wearing the user-provided garment and (2) one adult male romantic partner positioned beside her. The male partner is mandatory in every output; a solo woman, an obscured man, a cropped-out man, or any image where the second person is merely implied is a failed result. Their body language must read unmistakably as a believable, refined romantic couple while remaining natural and editorial.
+  if (twoPersonProfileLocked) {
+    sections.push(`⚠️ REQUIRED TWO-PERSON COMPOSITION — HIGHEST PRIORITY, NON-NEGOTIABLE: The final photograph MUST show exactly TWO clearly visible, age-appropriate people together in the same frame. Preserve the reference's relationship and interaction language naturally — romantic partners only when the reference genuinely reads as romantic; otherwise siblings, friends, colleagues or another age-appropriate relationship. Do not impose a fixed woman/man pairing.
 
-The woman and the user garment remain the commercial hero. The man supports the composition in complementary, style-appropriate neutral clothing and must never cover, replace, duplicate, or wear the hero garment. Keep both faces photorealistic and completely separate from every identity in the style-reference collage. ${
+The PRIMARY/HERO person follows every user-selected model attribute and wears the user-provided garment. The second person supports the composition in a newly invented, complementary, style-appropriate outfit and must never cover, replace, duplicate or wear the hero garment. Keep both faces photorealistic and completely separate from every identity in the style-reference collage. ${
       hasModelReference
-        ? "Preserve the separately supplied woman's identity exactly; cast the male partner as a completely new person."
-        : "Cast both the woman and the man as completely new people."
-    } This TWO-PERSON requirement overrides every singular use of “model”, “person”, or “subject” elsewhere in the prompt.`);
+        ? "Preserve the separately supplied hero identity exactly; cast the supporting person as a completely new individual."
+        : "Cast both people as completely new individuals."
+    } This TWO-PERSON requirement overrides every singular use of “model”, “person”, or “subject” elsewhere in the prompt, while all user age, gender, ethnicity, hair and body settings apply specifically to the PRIMARY/HERO person.`);
   }
 
   const bodyShape =
@@ -4614,17 +4810,25 @@ The woman and the user garment remain the commercial hero. The man supports the 
 
   sections.push(
     `OUTPUT: One single hyper-realistic, professional fashion photograph, full-bleed edge to edge, with no added black bar or strip at any edge.${
-      femaleMaleCoupleLocked
-        ? " It contains exactly TWO visible adult people: the primary woman and her male romantic partner; never a solo model."
-        : ""
+      twoPersonProfileLocked
+        ? " It contains exactly TWO clearly visible, age-appropriate people: the PRIMARY/HERO model and one supporting person; never collapse this composition to a solo model."
+        : !styleProfile
+          ? " It contains exactly the same number of clearly visible people as the single style-reference photograph; a two-person reference remains a two-person result."
+          : " Follow the recurring subject count shown consistently across the style collage."
     } Natural skin texture, tack-sharp garment detail — every graphic, print and label that exists on the product is reproduced faithfully. ${
       hasModelReference
-        ? femaleMaleCoupleLocked
-          ? "The woman's face and identity come only from the separate user-provided model reference; the male partner has a newly cast identity. Neither comes from a style-reference person."
+        ? twoPersonProfileLocked
+          ? "The hero's face and identity come only from the separate user-provided model reference; the supporting person has a newly cast identity. Neither comes from a style-reference person."
           : "The face and identity come only from the separate user-provided model reference, never from a style-reference person."
-        : "The face is a newly cast identity, unmistakably different from every style-reference person, while retaining only the requested campaign gaze and attitude."
-    } Apart from the garment(s) (and the directives above), everything — scene, light, camera, framing, pose and mood — matches the style reference image.`,
+        : "The hero face is a newly cast identity, unmistakably different from every style-reference person, while retaining only the requested campaign gaze and attitude; every required supporting person is independently newly cast as well."
+    } ${forceFreshPose ? "Apart from the garment(s) and the deliberately different pose, the scene, light, camera, framing and mood match the style reference; the pose MUST follow the repeated-style variation rule and must not match the reference skeleton." : "Apart from the garment(s) (and the directives above), everything — scene, light, camera, framing, pose and mood — matches the style reference image."}`,
   );
+
+  // En son söz bu olsun: teknik analiz veya ortak staging metni eski poz
+  // iskeletini tekrar önceliklendiremesin.
+  if (repeatPoseDirective && !hasUserPose) {
+    sections.push(repeatPoseDirective);
+  }
 
   return sections.join("\n\n");
 }
@@ -4642,22 +4846,34 @@ async function stampStyleReferencePlate(rawBuf) {
   const SW = meta.width || 800;
   const SH = meta.height || 1200;
 
-  const PLATE_H = Math.min(150, Math.max(80, Math.round(SH * 0.09)));
+  const PLATE_H = Math.min(72, Math.max(40, Math.round(SH * 0.045)));
   const withPlate = await sharp(flattened)
     .extend({ bottom: PLATE_H, background: { r: 10, g: 10, b: 12 } })
     .toBuffer();
 
-  const plateFont = Math.min(58, Math.max(30, Math.round(SW / 20)));
-  const plateTextY = SH + Math.round(PLATE_H / 2) + Math.round(plateFont / 3);
+  const plateFont = Math.max(
+    16,
+    Math.min(28, Math.round(PLATE_H * 0.4), Math.round(SW / 26)),
+  );
+  const horizontalPadding = Math.max(12, Math.round(SW * 0.025));
+  const availableTextWidth = Math.max(1, SW - horizontalPadding * 2);
+  const plateTextWidth = Math.min(
+    availableTextWidth,
+    Math.round(plateFont * 18.5),
+  );
+  const plateTextY = SH + Math.round(PLATE_H / 2);
   const plateSvg = Buffer.from(`
 <svg xmlns="http://www.w3.org/2000/svg" width="${SW}" height="${SH + PLATE_H}">
   <text x="${Math.round(SW / 2)}" y="${plateTextY}"
         text-anchor="middle"
+        dominant-baseline="middle"
         font-family="Helvetica, Arial, sans-serif"
         font-size="${plateFont}"
         font-weight="700"
         fill="#FFFFFF"
-        letter-spacing="3">STYLE REFERENCE · CODE SR-1</text>
+        letter-spacing="1"
+        textLength="${plateTextWidth}"
+        lengthAdjust="spacingAndGlyphs">STYLE REFERENCE · CODE SR-1</text>
 </svg>
 `);
 
@@ -4842,7 +5058,19 @@ async function stripLeakedStylePlate(resultUrl, userId) {
   }
 }
 
+// 🖼️ Tek karelik stil profillerinin teknik analiz önbelleği (profil id → analiz).
+// Aynı gizli stil tekrar seçildiğinde Gemini çağrısı tekrarlanmaz. Süreç içi,
+// yeniden başlatmada sıfırlanır; üst sınır aşılırsa en eski kayıt düşer.
+const singleProfileTechAnalysisCache = new Map();
+const SINGLE_PROFILE_TECH_CACHE_MAX = 500;
+
 router.post("/generate", async (req, res) => {
+  // 🔎 Teşhis logu (21 Ağu): "polling 404: kayıt yok" vakalarında POST'un
+  // sunucuya ULAŞIP ulaşmadığını ayırt etmek için handler'ın İLK satırı.
+  // Başarısız generationId bu logda yoksa istek istemciden hiç çıkamamıştır.
+  logger.log(
+    `📥 [GENERATE] istek alındı gen:${String(req.body?.generationId || "-").slice(0, 8)} user:${String(req.body?.userId || "-").slice(0, 8)} imgs:${Array.isArray(req.body?.referenceImages) ? req.body.referenceImages.length : 0}`,
+  );
   // Kredi kontrolü ve düşme (kalite versiyonuna göre dinamik)
   let creditDeducted = false;
   let actualCreditDeducted = 10; // Default v1 için 10 kredi
@@ -4884,11 +5112,13 @@ router.post("/generate", async (req, res) => {
       modelPhoto = null,
       sizeReferenceImage = null, // 📏 SizeEditor'dan gelen boyut referans görseli (canvas çıktısı)
       kombinOriginalImages = null, // 📸 Kombin: grid'e ek olarak orijinal tekil ürün resimleri
+      kombinPieces = null, // 🏷️ Kombin: parça etiketleri [{cells:[1,..], category, subtype, color, pattern}] — hücreler 1-bazlı, kombinOriginalImages sırasıyla aynı
       angleOriginalImages = null, // 📐 Çoklu açı: grid'e ek olarak orijinal açı fotoğrafları (detay sadakati)
       isMultipleAnglesMode = false, // 📐 Aynı ürünün farklı açılarından oluşturulan grid
       multipleAnglesCount = 0, // 📐 Grid içindeki açı sayısı
       styleReferenceImage = null, // 🎬 Stil referansı: ortam/ışık/kamera/poz bu görselden birebir kopyalanır
       styleProfileId = null, // 🎬 Stil profili: kullanıcının kayıtlı marka stil preseti (grid kolaj olarak kullanılır)
+      creationMode = null, // 🚪 CreateModelPhotoScreen giriş modu: crystal | canvas
       editorialMode = false, // 🎞️ Editorial mod: dahili stil kolajları her üretime eklenir
       enableAutomaticTrialVariation = false, // Trial ilk varyasyonu backend completion'da başlatır
     } = req.body;
@@ -5342,6 +5572,12 @@ router.post("/generate", async (req, res) => {
       multipleAnglesCount,
       automaticTrialVariationRequested:
         enableAutomaticTrialVariation === true,
+      // 🏷️ 27 Ağu 2026: sınıflandırılan ürün kategorisi kalıcı kayda girer
+      // (shoes/clothing; takı rotası kendi damgasını basıyor). Geçmiş modalı
+      // kit görünürlüğünü ve gelecekteki analizleri buna dayandırır.
+      ...(req.body?.productCategory
+        ? { productCategory: normalizeProductCategory(req.body.productCategory) }
+        : {}),
       ...(sessionId && { sessionId: sessionId }),
     };
 
@@ -5370,6 +5606,7 @@ router.post("/generate", async (req, res) => {
             (styleReferenceImage.base64 || styleReferenceImage.uri)
           ? "upload"
           : null,
+      normalizeCreationMode(creationMode),
     );
 
     if (!pendingGeneration) {
@@ -5560,6 +5797,20 @@ router.post("/generate", async (req, res) => {
     let styleReferenceStamped = false;
     let styleProfileMeta = null; // { name, stylePrompt, imageCount } — stil profili modunda dolar
     let editorialCollagesForRequest = []; // 🎞️ Editorial mod: bu istekte eklenecek kolaj URL'leri
+    // 🌟 Otomatik global stil durumu:
+    //   autoStyleMode "full" → styleProfileId doldurulur, mevcut stil hattı aynen çalışır
+    //   autoStyleMode "soft" → Gemini prompt'u korunur, stil katmanı sona eklenir
+    let autoStyleMode = null; // null | "full" | "soft"
+    let autoStyleProfile = null; // seçilen global profil satırı
+    let autoStyleGridUrl = null; // soft modda isteğe eklenen plakalı kolaj URL'i
+    let autoStylePriorUseCount = 0; // aynı kullanıcı + aynı stil başarılı geçmişi
+    let autoStyleRepeatPoseDirective = "";
+    let autoStyleGenderDirective = "";
+    // 🖼️ TEK fotoğraflık stil profili: kolaj "aynı aileden FARKLI mekân icat et"
+    // kuralıyla değil, TEKİL REFERANS kurallarıyla işlenir (aynı tür mekân,
+    // ~%90 poz iskeleti, kamera cihazı + preset birebir). Kırpılan (auto)
+    // stillerin tamamı tek kare olduğu için asıl "referansa yakınlık" bu yoldan gelir.
+    let singleImageStyleProfileId = null;
     const styleReferenceRequested =
       styleReferenceImage &&
       (styleReferenceImage.base64 || styleReferenceImage.uri) &&
@@ -5643,6 +5894,183 @@ router.post("/generate", async (req, res) => {
       }
     }
 
+    // 🌟 OTOMATİK GLOBAL STİL — kullanıcı hiçbir stil kaynağı seçmediyse, küratörlü
+    // global çekim tarzlarından biri arka planda atanır ("house style"):
+    //   FULL → kullanıcı mekân/arka plan seçmedi (poz/saç/hava/saat olsa bile):
+    //          styleProfileId doldurulur, aşağıdaki MEVCUT stil hattı aynen çalışır.
+    //   SOFT → kullanıcı mekân/arka plan seçti: Gemini prompt'u AYNEN korunur
+    //          (kullanıcı seçimleri her zaman kazanır), stil yalnız ışık/grade/
+    //          kamera/poz-enerjisi katmanı olarak prompt sonuna eklenir.
+    // Editorial mod kullanıcının bilinçli tercihiyse ona dokunulmaz. Havuz boş
+    // ya da erişilemezse üretim sessizce normal akışına döner.
+    // 🚪 Ön kapı (CreateModelStartModal) kararı: kullanıcı "Sade"yi seçtiyse
+    // istemci `autoStyleEnabled: false` gönderir ve gizli stil ATANMAZ.
+    // ⚠️ Yalnızca AÇIK false devre dışı bırakır — undefined/eksik gelen istekler
+    // (ön kapıyı görmeyen eski build'ler, deeplink, diğer ekranlar) eskisi gibi
+    // davranmaya devam eder. Bu yüzden `!== false` kontrolü, truthy kontrolü değil.
+    // 🎛️ Sunucu ana şalteri (app_config.auto_global_style_enabled).
+    // false ise kullanıcı Kristal'i seçmiş olsa bile gizli stil ATANMAZ.
+    const autoStyleMasterEnabled = await isAutoGlobalStyleEnabledForPlatform(
+      req.body.platform || req.headers["x-platform"],
+    );
+    if (!autoStyleMasterEnabled) {
+      console.log(
+        "🎛️ [AUTO_STYLE] Ana şalter KAPALI (app_config.auto_global_style_enabled=false) → gizli stil atanmayacak",
+      );
+    }
+
+    const autoStyleAllowedByClient = req.body.autoStyleEnabled !== false;
+    if (!autoStyleAllowedByClient) {
+      console.log(
+        "🚪 [AUTO_STYLE] Kullanıcı ön kapıda 'Sade'yi seçti → gizli global stil atanmayacak",
+      );
+    }
+
+    const autoStyleEligible =
+      isAutoGlobalStyleEnabled() &&
+      autoStyleMasterEnabled &&
+      autoStyleAllowedByClient &&
+      !styleReferenceUrl &&
+      !styleReferenceImage &&
+      !styleProfileId &&
+      !editorialMode &&
+      !isColorChange &&
+      !isPoseChange &&
+      !isRefinerMode &&
+      !isEditMode &&
+      !req.body.isBackSideAnalysis;
+    if (autoStyleEligible) {
+      const autoHasUserScene = Boolean(
+        locationImage ||
+          settings?.location ||
+          settings?.locationEnhancedPrompt ||
+          settings?.locationId ||
+          settings?.backgroundColorHex,
+      );
+      const autoHasUserPose = Boolean(
+        poseImage ||
+          (typeof settings?.pose === "string" && settings.pose.trim()),
+      );
+      const autoHasUserHair = Boolean(
+        hairStyleImage || settings?.hairStyle || settings?.hairColor,
+      );
+      // Yalnız mekân/arka plan seçimi SOFT moda geçirir. Poz, saç, hava ve saat
+      // seçimleri FULL modda kalır ve kullanıcı kilitleriyle stilin üzerine yazılır.
+      const resolvedAutoStyleMode = resolveAutoStyleMode({
+        hasUserScene: autoHasUserScene,
+      });
+      // 👶 Yaş filtresi SADECE kullanıcı 18 altı yaş girdiyse devreye girer;
+      // 18+ ve yaşsız üretimler her zaman genel havuzdan seçer.
+      const autoUserAge = resolveUserAgeNumber(settings);
+      try {
+        const normalizedAutoCategory = normalizeProductCategory(
+          req.body?.productCategory,
+        );
+        const normalizedAutoSubtype = normalizeProductSubtype(
+          req.body?.productCategory,
+          req.body?.productSubtype,
+        );
+        const normalizedAutoApproach = normalizeStyleApproach(
+          req.body?.styleApproach,
+        );
+        logger.log(
+          `🏷️ [AUTO_STYLE] Havuz isteği: category=${normalizedAutoCategory || "-"} subtype=${normalizedAutoSubtype || "-"} approach=${normalizedAutoApproach ?? "-"} gender=${settings?.gender || "-"}`,
+        );
+        autoStyleProfile = await pickAutoGlobalStyleProfile({
+          // Stüdyo kilitli profillerin kimliği düz fon setinin kendisi —
+          // yalnız kullanıcının gerçek bir sahne/mekân seçimiyle çelişir.
+          // Poz veya saç seçimi tek başına stüdyo stillerini elememelidir.
+          excludeStudioLocked: autoHasUserScene,
+          userAge: autoUserAge,
+          // 🏷️ İstemci fotoğrafı yükler yüklemez /api/product-type/classify'a
+          // sorup tipi buraya yolluyor (shoes | jewelry | clothing). Gelmezse
+          // veya havuz eşiğin altındaysa genel havuz kullanılır.
+          productCategory: normalizedAutoCategory,
+          productSubtype: normalizedAutoSubtype,
+          styleApproach: normalizedAutoApproach,
+          // 🚻 Zıt gender ETİKETLİ stiller (örn. man seçiliyken woman etiketli
+          // Sokak Stili) havuz seçiminde elenir; etiketsiz stiller serbest.
+          userGender: settings?.gender ?? null,
+          // 🔁 Stil rotasyonu: bu kullanıcının daha önce kullandığı stiller
+          // mümkün oldukça yeniden seçilmez (havuz bitince kademeli sıfırlanır).
+          userId: pendingGeneration?.user_id || userId || null,
+        });
+        if (autoStyleProfile) {
+          autoStyleMode = resolvedAutoStyleMode;
+          autoStyleGenderDirective = buildAutoStyleGenderDirective({
+            gender: settings?.gender,
+            userAge: autoUserAge,
+          });
+          if (autoStyleMode === "full") {
+            styleProfileId = autoStyleProfile.id;
+          }
+
+          // Pending satırı henüz stile bağlanmadan önce geçmiş başarılı
+          // kullanımları say. Böylece mevcut pending kayıt kendini tekrar sanmaz.
+          try {
+            autoStylePriorUseCount = await countPriorSuccessfulAutoStyleUses({
+              userId: pendingGeneration?.user_id || userId,
+              styleProfileId: autoStyleProfile.id,
+              excludeResultId: pendingGeneration?.id || null,
+            });
+            autoStyleRepeatPoseDirective =
+              buildRepeatedAutoStylePoseDirective({
+                priorUseCount: autoStylePriorUseCount,
+                userHasPose: autoHasUserPose,
+              });
+            if (autoStyleRepeatPoseDirective) {
+              logger.log(
+                `🔁 [AUTO_STYLE] Aynı stil kullanıcıda ${autoStylePriorUseCount} kez başarılı kullanılmış — zorunlu yeni poz devrede`,
+              );
+            }
+          } catch (repeatCheckErr) {
+            autoStylePriorUseCount = 0;
+            autoStyleRepeatPoseDirective = "";
+            logger.warn(
+              "🔁 [AUTO_STYLE] Geçmiş stil kullanımı okunamadı; normal poz akışı:",
+              repeatCheckErr?.message,
+            );
+          }
+
+          // Pending satırı otomatik seçimden önce açılıyor. Seçilen profile geri
+          // bağlanmazsa admin kullanım sayıları ve önce/sonra örnekleri gizli
+          // stilleri hiç görmüyor. Açıkça seçilen profillerle aynı izleme
+          // semantiğini kullan; yazma hatası üretimi durdurmasın.
+          const autoUsagePatch = buildAutoStyleUsagePatch(autoStyleProfile);
+          if (autoUsagePatch && pendingGeneration?.id) {
+            try {
+              const { error: autoUsageErr } = await supabase
+                .from("reference_results")
+                .update(autoUsagePatch)
+                .eq("id", pendingGeneration.id);
+              if (autoUsageErr) {
+                logger.warn(
+                  "📊 [AUTO_STYLE] kullanım profili kaydedilemedi:",
+                  autoUsageErr.message,
+                );
+              }
+            } catch (autoUsageErr) {
+              logger.warn(
+                "📊 [AUTO_STYLE] kullanım profili yazılırken hata:",
+                autoUsageErr?.message,
+              );
+            }
+          }
+
+          logger.log(
+            `🌟 [AUTO_STYLE] "${resolveProfileDisplayName(autoStyleProfile.name) || autoStyleProfile.id}" ${autoStyleMode.toUpperCase()} modda atandı (pool:${autoStyleProfile.product_category || "-"}/${autoStyleProfile.product_subtype || "-"}+${autoStyleProfile.style_approach ?? "-"} scene:${autoHasUserScene} pose:${autoHasUserPose} hair:${autoHasUserHair} age:${autoUserAge ?? "yok"})`,
+          );
+        }
+      } catch (autoErr) {
+        autoStyleMode = null;
+        autoStyleProfile = null;
+        logger.warn(
+          "🌟 [AUTO_STYLE] Otomatik stil seçilemedi, normal akışa devam:",
+          autoErr?.message,
+        );
+      }
+    }
+
     // 🎬 STİL PROFİLİ — kullanıcının kayıtlı marka stil preseti. Doğrudan stil referansı
     // yüklenmediyse ve styleProfileId geldiyse: profildeki TÜM fotoğraflar (en fazla 6)
     // tek bir grid kolaja birleştirilir, SR-1 kod plakası basılır ve stil referansı
@@ -5674,10 +6102,13 @@ router.post("/generate", async (req, res) => {
         if (spErr || !styleProfileRow) {
           throw new Error("Style profile not found");
         }
-        // Global (küratörlü) profiller herkese açık; diğerlerinde sahiplik şart
+        // Global (küratörlü) profiller herkese açık; 'auto' (gizli otomatik
+        // havuz) profilleri de üretimde kullanılabilir — otomatik stil FULL
+        // modda styleProfileId'yi bu havuzdan doldurur. Diğerlerinde sahiplik şart.
         if (
           String(styleProfileRow.user_id) !== String(userId) &&
-          String(styleProfileRow.user_id) !== "global"
+          String(styleProfileRow.user_id) !== "global" &&
+          String(styleProfileRow.user_id) !== "auto"
         ) {
           throw new Error("Style profile is not owned by this user");
         }
@@ -5693,14 +6124,18 @@ router.post("/generate", async (req, res) => {
         // üretilir, URL'si profile yazılır; sonraki üretimler onu kullanır.
         // (Profile fotoğraf eklenip çıkarıldığında bu alan NULL'a çekiliyor.)
         let gridCount = profileUrls.length;
-        let cachedGridUrl = styleProfileRow.stamped_grid_url || null;
+        let cachedGridUrl = isCurrentStyleReferencePlateUrl(
+          styleProfileRow.stamped_grid_url,
+        )
+          ? styleProfileRow.stamped_grid_url
+          : null;
 
         if (!cachedGridUrl) {
           const built = await buildStyleProfileGrid(profileUrls);
           gridCount = built.count;
           const stampedGrid = await stampStyleReferencePlate(built.buffer);
 
-          const gridFileName = `style_profile_grid_${styleProfileRow.id}_${uuidv4().substring(0, 8)}.jpg`;
+          const gridFileName = `style_profile_grid_${styleProfileRow.id}_${STYLE_REFERENCE_PLATE_VARIANT}_${uuidv4().substring(0, 8)}.jpg`;
           const { error: gridUpErr } = await supabase.storage
             .from("reference")
             .upload(gridFileName, stampedGrid, {
@@ -5736,15 +6171,29 @@ router.post("/generate", async (req, res) => {
 
         styleReferenceUrl = cachedGridUrl;
         styleReferenceStamped = true;
-        styleProfileMeta = {
-          name: styleProfileRow.name || null,
-          stylePrompt: styleProfileRow.style_prompt || null,
-          imageCount: gridCount,
-        };
-        logger.log(
-          `🎬 [STYLE_PROFILE] "${resolveStyleProfileNameForPrompt(styleProfileRow.name) || "?"}" grid kolajı (${gridCount} kare) upload OK:`,
-          styleReferenceUrl,
-        );
+        if (profileUrls.length === 1) {
+          // 🖼️ TEK KARELİK PROFİL — kolaj modu yerine TEKİL REFERANS modu:
+          // styleProfileMeta boş bırakılır ki kompakt prompt "exact replication"
+          // dalına girsin (aynı tür mekân, ~%90 poz iskeleti, motion state,
+          // kamera cihazı + preset kilitleri). Teknik analiz aşağıdaki blokta
+          // üretilir ve profil bazında bellekte önbelleklenir.
+          styleProfileMeta = null;
+          singleImageStyleProfileId = styleProfileRow.id;
+          logger.log(
+            `🖼️ [STYLE_PROFILE] "${resolveStyleProfileNameForPrompt(styleProfileRow.name) || "?"}" TEK karelik — tekil referans modunda işlenecek:`,
+            styleReferenceUrl,
+          );
+        } else {
+          styleProfileMeta = {
+            name: styleProfileRow.name || null,
+            stylePrompt: styleProfileRow.style_prompt || null,
+            imageCount: gridCount,
+          };
+          logger.log(
+            `🎬 [STYLE_PROFILE] "${resolveStyleProfileNameForPrompt(styleProfileRow.name) || "?"}" grid kolajı (${gridCount} kare) upload OK:`,
+            styleReferenceUrl,
+          );
+        }
       } catch (profileErr) {
         logger.warn(
           "🎬 [STYLE_PROFILE] Profil işlenemedi, normal akışa dönülüyor:",
@@ -5755,14 +6204,82 @@ router.post("/generate", async (req, res) => {
       }
     }
 
+    // 🌟 SOFT otomatik stil: plakalı kolajı hazırla (önbellekten ya da kurarak).
+    // styleReferenceUrl BİLEREK doldurulmaz — aşağıdaki prompt dallanması normal
+    // Gemini hattında kalmalı; kolaj yalnız istek görsellerinin sonuna eklenir.
+    // Kolaj kurulamazsa soft blok metin-only devam eder (üretim asla bozulmaz).
+    if (autoStyleMode === "soft" && autoStyleProfile) {
+      try {
+        autoStyleGridUrl = isCurrentStyleReferencePlateUrl(
+          autoStyleProfile.stamped_grid_url,
+        )
+          ? autoStyleProfile.stamped_grid_url
+          : null;
+        if (!autoStyleGridUrl) {
+          const builtAutoGrid = await buildStyleProfileGrid(
+            autoStyleProfile.image_urls,
+          );
+          const stampedAutoGrid = await stampStyleReferencePlate(
+            builtAutoGrid.buffer,
+          );
+          const autoGridFileName = `style_profile_grid_${autoStyleProfile.id}_${STYLE_REFERENCE_PLATE_VARIANT}_${uuidv4().substring(0, 8)}.jpg`;
+          const { error: autoGridUpErr } = await supabase.storage
+            .from("reference")
+            .upload(autoGridFileName, stampedAutoGrid, {
+              contentType: "image/jpeg",
+              cacheControl: "3600",
+              upsert: true,
+            });
+          if (autoGridUpErr) {
+            throw new Error(`Supabase upload error: ${autoGridUpErr.message}`);
+          }
+          const { data: autoGridUrlData } = supabase.storage
+            .from("reference")
+            .getPublicUrl(autoGridFileName);
+          autoStyleGridUrl = autoGridUrlData.publicUrl;
+
+          // Kolaj önbelleğini profile yaz (style_profiles RLS'li — service role).
+          // Başarısız olursa yalnızca bir sonraki üretimde yeniden kurulur.
+          const autoStyleDb = createClient(
+            process.env.SUPABASE_URL,
+            process.env.SUPABASE_SERVICE_ROLE_KEY ||
+              process.env.SUPABASE_SERVICE_KEY ||
+              process.env.SUPABASE_ANON_KEY,
+            { auth: { autoRefreshToken: false, persistSession: false } },
+          );
+          const { error: autoCacheErr } = await autoStyleDb
+            .from("style_profiles")
+            .update({ stamped_grid_url: autoStyleGridUrl })
+            .eq("id", autoStyleProfile.id);
+          if (autoCacheErr) {
+            logger.warn(
+              "🌟 [AUTO_STYLE] kolaj önbelleği yazılamadı:",
+              autoCacheErr.message,
+            );
+          }
+        }
+        logger.log(
+          `🌟 [AUTO_STYLE] Soft mod kolajı hazır: ${autoStyleGridUrl}`,
+        );
+      } catch (autoGridErr) {
+        autoStyleGridUrl = null;
+        logger.warn(
+          "🌟 [AUTO_STYLE] Soft kolaj hazırlanamadı, metin-only devam:",
+          autoGridErr?.message,
+        );
+      }
+    }
+
     // 📊 Kullanım izleme: modele giden stil referansının NİHAİ adresi ancak
-    // burada belli oluyor (yüklemede tek görsel, profilde plakalı grid kolajı).
-    // Best-effort — yazılamazsa üretim etkilenmez, yalnızca rapordaki önizleme
-    // eksik kalır. Satır zaten pending olarak açılmış durumda.
-    if (styleReferenceUrl && pendingGeneration?.id) {
+    // burada belli oluyor (yüklemede tek görsel, profilde plakalı grid kolajı,
+    // otomatik soft stilde plakalı kolaj). Best-effort — yazılamazsa üretim
+    // etkilenmez, yalnızca rapordaki önizleme eksik kalır. Satır zaten pending
+    // olarak açılmış durumda.
+    const trackedStyleReferenceUrl = styleReferenceUrl || autoStyleGridUrl;
+    if (trackedStyleReferenceUrl && pendingGeneration?.id) {
       supabase
         .from("reference_results")
-        .update({ style_reference_url: styleReferenceUrl })
+        .update({ style_reference_url: trackedStyleReferenceUrl })
         .eq("id", pendingGeneration.id)
         .then(({ error: styleUrlErr }) => {
           if (styleUrlErr) {
@@ -5778,18 +6295,33 @@ router.post("/generate", async (req, res) => {
     // doğrudan yüklenen tekil referans için Gemini'den kamera/ışık/grade reçetesi çıkar.
     // Başarısız olursa sessizce devam edilir (nano-banana referansı yine de görüyor).
     let styleReferenceTechAnalysis = null;
-    if (styleReferenceUrl && !styleProfileMeta) {
+    // 🖼️ Tek karelik profil: analiz daha önce üretildiyse önbellekten al
+    if (
+      singleImageStyleProfileId &&
+      singleProfileTechAnalysisCache.has(singleImageStyleProfileId)
+    ) {
+      styleReferenceTechAnalysis = singleProfileTechAnalysisCache.get(
+        singleImageStyleProfileId,
+      );
+      logger.log(
+        `🖼️ [STYLE_PROFILE] Teknik analiz önbellekten kullanıldı (${singleImageStyleProfileId})`,
+      );
+    }
+    if (styleReferenceUrl && !styleProfileMeta && !styleReferenceTechAnalysis) {
       try {
         const TECH_ANALYSIS_PROMPT = `You are a director of photography. Analyze the attached fashion/style reference photograph and output a compact TECHNICAL REPLICATION SPEC so an AI image model can recreate the exact same shot conditions. Ignore the black "STYLE REFERENCE" code plate at the bottom edge — it is a marker, not part of the photo.
 
 Give concrete estimates in cinematographer language:
-1. CAMERA — estimated focal length (mm), estimated aperture & depth of field, camera height and angle relative to the subject, lens character (compression/distortion).
-2. FRAMING — crop (full-body/three-quarter/waist-up), headroom, negative space, composition.
+1. CAMERA & CAPTURE DEVICE — FIRST name the capture device outright, it changes everything downstream: modern smartphone (and which family it looks like — "iPhone-style computational capture", "Android flagship") / professional mirrorless or DSLR / compact point-and-shoot / analog 35mm film / medium format. Justify it in a few words from visible evidence (HDR-flattened shadows, phone-flash falloff, true optical bokeh, film grain/halation). Then estimated focal length (mm), estimated aperture & depth of field, camera height and angle relative to the subject, lens character (compression/distortion). A phone-shot look rebuilt as a studio camera shot misses the style completely — commit to a call.
+2. FRAMING — crop (full-body/three-quarter/waist-up), headroom, negative space, composition. State explicitly whether the subject's feet are inside the frame.
 3. LIGHTING — key direction & quality (hard/soft), fill & shadow density, rim/back light, natural vs studio, time-of-day feel.
-4. COLOR GRADE — palette, saturation, contrast curve, white balance bias, film-stock/preset character, grain.
+4. COLOR GRADE / PRESET RECIPE — if a filter or preset is clearly applied, IDENTIFY IT BY NAME as "closest to <name>" using real ecosystem vocabulary (VSCO A6/C1/HB1, Kodak Portra 400, Fuji 400H, Cinestill 800T, iPhone Photographic Styles...), or say "no preset, straight capture". Then ALWAYS give the rebuildable recipe: palette, saturation, contrast curve and black level, white balance bias, shadow/highlight tints, highlight roll-off, grain amount, any fade/halation/vignette. The output must carry this EXACT grade — a clean but differently graded image misses the style.
 5. POSE GEOMETRY — body orientation, weight distribution, limb placement, gaze direction (describe geometry only, never identity).
+6. MOTION STATE & POSE SUPPORT — name the state outright: standing still / walking mid-stride / turning / stepping / seated / leaning. If the subject is in motion, specify the stride phase (which leg is forward, weight in transition, back heel lifting, natural opposite arm swing) and the motion cues visible in the frame (hair or fabric responding to movement). If the subject is seated, perching or leaning, NAME the supporting object (chair, stool, bench, steps, ledge, wall) — the support is part of the pose. This is a HIGH-VALUE detail — a walking reference rebuilt as static, or a seated reference rebuilt standing without its seat, misses the shot entirely; do not leave this section vague.
+7. ENVIRONMENT INVENTORY — enumerate the CONCRETE visible elements of the location so the same place can be rebuilt, not merely a look-alike: the type of place, its architecture and materials (e.g. "weathered stone colonnade with Corinthian columns", "white brick wall, concrete floor"), surfaces underfoot, furniture and fixed objects with their position in frame (left/right/behind the subject), vegetation, depth layers from foreground to background, and any distinctive landmark features. Name each element in plain words — an element you do not name will be replaced by an invented one.
+8. SUBJECT COUNT & INTERACTION — state the exact number of clearly visible people in the reference. If there are two or more, describe their relative placement, physical contact, support and interaction geometry without describing identity or wardrobe. Explicitly say that this subject count and interaction must be preserved while the primary garment-wearing person remains the commercial hero.
 
-Do NOT describe the person's face/identity or the garments. PLAIN TEXT only, 100-180 words, numbered labels only, no markdown.`;
+Do NOT describe any person's face/identity or garments. PLAIN TEXT only, numbered labels only, no markdown. There is no hard length cap — cover every section thoroughly; every sentence must add a concrete technical fact rather than repeating ideas.`;
         styleReferenceTechAnalysis = (
           await callGeminiFlash(TECH_ANALYSIS_PROMPT, [styleReferenceUrl], 2)
         )?.trim() || null;
@@ -5797,6 +6329,21 @@ Do NOT describe the person's face/identity or the garments. PLAIN TEXT only, 100
           logger.log(
             `🎬 [STYLE REFERENCE] Teknik analiz hazır (${styleReferenceTechAnalysis.length} karakter)`,
           );
+          // 🖼️ Tek karelik profil analizini önbelleğe al — aynı gizli stil
+          // tekrar seçildiğinde Gemini çağrısı tekrarlanmaz.
+          if (singleImageStyleProfileId) {
+            if (
+              singleProfileTechAnalysisCache.size >=
+              SINGLE_PROFILE_TECH_CACHE_MAX
+            ) {
+              const oldestKey = singleProfileTechAnalysisCache.keys().next().value;
+              singleProfileTechAnalysisCache.delete(oldestKey);
+            }
+            singleProfileTechAnalysisCache.set(
+              singleImageStyleProfileId,
+              styleReferenceTechAnalysis,
+            );
+          }
         }
       } catch (techErr) {
         logger.warn(
@@ -5949,6 +6496,65 @@ Do NOT describe the person's face/identity or the garments. PLAIN TEXT only, 100
       // 🎬 STYLE REFERENCE MODE — Gemini enhanced-prompt hattı ATLANIR.
       // Ortam/ışık/kamera/poz referans görselden kopyalanacağı için kompakt,
       // deterministik prompt yeterli; sadece seçim/detay girdileri eklenir.
+
+      // 🧍 Kullanıcı POZ GÖRSELİ seçtiyse (metin poz yok): normal moddaki Gemini
+      // enhance atlandığı için poz görseli tarif edilmeden kalırdı — görsel fal'a
+      // da eklenmiyor. Kısa bir analizle metne çevirip settings.pose'a yaz: hem
+      // kompakt prompt'un USER POSE OVERRIDE bloğu hem sondaki instruction lock
+      // bu metni kullanır.
+      if (
+        poseImage &&
+        !(typeof settings?.pose === "string" && settings.pose.trim())
+      ) {
+        try {
+          const poseDesc = (
+            await callGeminiFlash(
+              `Describe the pose of the person in this image as a compact, actionable pose instruction for a fashion model: body orientation toward camera, weight distribution, arm and leg positions, hand placement, head tilt and gaze direction. PLAIN TEXT only, 40-80 words. Never describe the person's identity, face or garments.`,
+              [sanitizeImageUrl(String(poseImage).split("?")[0])],
+              2,
+            )
+          )?.trim();
+          if (poseDesc) {
+            settings = { ...(settings || {}), pose: poseDesc };
+            logger.log(
+              `🧍 [STYLE+POSE] Poz görseli tarif edildi (${poseDesc.length} karakter) — kullanıcı pozu stil pozunu ezecek`,
+            );
+          }
+        } catch (poseDescErr) {
+          logger.warn(
+            "🧍 [STYLE+POSE] Poz görseli tarif edilemedi, referans pozu kullanılacak:",
+            poseDescErr?.message,
+          );
+        }
+      }
+
+      // 👗🎬 ANLAMLANDIRMA PASI: ham analiz/profil notları final prompt'a
+      // yapıştırılmadan önce Gemini tek akıcı brief'e sentezler (jewelry V7
+      // ile aynı desen). Başarısızsa null kalır → builder ham blok fallback'ini
+      // kullanır, üretim asla bozulmaz.
+      let garmentStyleSynthesizedDirection = null;
+      try {
+        garmentStyleSynthesizedDirection =
+          await synthesizeGarmentStyleDirection({
+            styleReferenceUrl,
+            technicalAnalysis: styleReferenceTechAnalysis,
+            styleProfile: styleProfileMeta,
+            settings: settings || {},
+            stamped: styleReferenceStamped,
+          });
+        if (garmentStyleSynthesizedDirection) {
+          logger.log(
+            `👗🎬 [GARMENT STYLE SYNTH] Anlamlandırılmış yaratıcı brief hazır (${garmentStyleSynthesizedDirection.length} karakter) — ham analiz final prompt'a girmeyecek`,
+          );
+        }
+      } catch (synthErr) {
+        garmentStyleSynthesizedDirection = null;
+        logger.warn(
+          "👗🎬 [GARMENT STYLE SYNTH] Sentez başarısız — ham analiz blokları (eski yol) kullanılacak:",
+          synthErr?.message,
+        );
+      }
+
       enhancedPrompt = buildStyleReferencePrompt({
         settings: settings || {},
         customDetail,
@@ -5957,10 +6563,17 @@ Do NOT describe the person's face/identity or the garments. PLAIN TEXT only, 100
         stamped: styleReferenceStamped,
         styleProfile: styleProfileMeta,
         technicalAnalysis: styleReferenceTechAnalysis,
+        synthesizedDirection: garmentStyleSynthesizedDirection,
+        // 🧍 Kullanıcı poz seçtiyse kullanıcının pozu referans/kolaj pozunu ezer
+        hasUserPose: Boolean(
+          poseImage ||
+            (typeof settings?.pose === "string" && settings.pose.trim()),
+        ),
+        repeatPoseDirective: autoStyleRepeatPoseDirective,
       });
       backgroundRemovedImage = finalImage;
       logger.log(
-        `🎬 [STYLE REFERENCE] Kompakt prompt kullanılıyor (${enhancedPrompt.length} karakter) — Gemini enhancement atlandı`,
+        `🎬 [STYLE REFERENCE] Kompakt prompt kullanılıyor (${enhancedPrompt.length} karakter${garmentStyleSynthesizedDirection ? ", stil sentezi gömülü" : ", ham analiz fallback"}) — Gemini enhancement atlandı`,
       );
     } else if (!isPoseChange) {
       // 🖼️ NORMAL MODE - Arkaplan silme işlemi (paralel)
@@ -6064,6 +6677,37 @@ ${body}`;
       enhancedPrompt += `
 
 KOMBIN REFERENCE IMAGES: In addition to the main combined grid image, ${kombinOriginalImages.length} individual product photo(s) are attached — each showing one garment separately. Use the grid image to understand how the outfit pieces should appear together on the model, and use the individual photos for faithful per-item detail reproduction (exact colors, prints, stitching, trims, proportions). Do NOT invent or alter any garment detail that is not visible in the individual photos.`;
+
+      // 🏷️ Parça etiketleri varsa hücreleri isimlendir — model hangi hücrenin
+      // hangi ürün olduğunu (ve hangi hücrelerin AYNI ürünün farklı açıları
+      // olduğunu) sayım yerine açık etiketten öğrenir.
+      if (Array.isArray(kombinPieces) && kombinPieces.length > 0) {
+        const describe = (p) => {
+          const attrs = [p.color, p.pattern && p.pattern !== "solid" ? p.pattern : null]
+            .filter(Boolean)
+            .join(" ");
+          const noun = p.subtype || p.category || "item";
+          return attrs ? `${attrs} ${noun}` : noun;
+        };
+        const lines = kombinPieces
+          .filter((p) => Array.isArray(p?.cells) && p.cells.length > 0)
+          .map((p) => {
+            const cellsTxt = p.cells.map((c) => `Cell ${c}`).join(" & ");
+            return p.cells.length > 1
+              ? `${cellsTxt}: ${p.cells.length} different angles of the SAME ${describe(p)} — one single item, shown from multiple views.`
+              : `${cellsTxt}: ${describe(p)}.`;
+          });
+        if (lines.length > 0) {
+          enhancedPrompt += `
+
+GRID CELL MAP (cells numbered left-to-right, top-to-bottom):
+${lines.join("\n")}
+The outfit consists of exactly ${lines.length} distinct item(s). Dress the model in ALL of them together; never duplicate an item that appears in multiple cells.`;
+          logger.log(
+            `🏷️ [KOMBİN PIECES] ${lines.length} parça etiketi enhancedPrompt'a eklendi`,
+          );
+        }
+      }
       logger.log(
         `📸 [KOMBİN ORIG] enhancedPrompt'a ${kombinOriginalImages.length} tekil ürün direktifi eklendi`,
       );
@@ -6165,6 +6809,102 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
       }
     }
 
+    // 🌟 SOFT otomatik stil bloğu — kombin/açı/size direktiflerinden SONRA eklenir
+    // (editorial ile aynı sıralama gerekçesi: blok "önceki her talimat önceliklidir"
+    // diyor). Kullanıcının mekân/poz/saç/hava seçimleri Gemini prompt'unda aynen
+    // duruyor; stil yalnız ışık/grade/kamera/poz-enerjisi katmanı olarak biner.
+    if (autoStyleMode === "soft" && autoStyleProfile) {
+      try {
+        const softUserHasPose = Boolean(
+          poseImage ||
+            (typeof settings?.pose === "string" && settings.pose.trim()),
+        );
+        // 📍 Kullanıcı AÇIKÇA mekân seçtiyse: sahne o mekândır, stil o mekânın
+        // üzerine "treatment" olarak uygulanır — soft blok mekânı İSİMLE bağlar
+        // (adlandırılan öğe sürüklenmez).
+        const softUserHasLocation = Boolean(
+          locationImage ||
+            (typeof settings?.location === "string" &&
+              settings.location.trim()) ||
+            settings?.locationEnhancedPrompt ||
+            settings?.locationId,
+        );
+        const softUserLocationLabel =
+          typeof settings?.location === "string" && settings.location.trim()
+            ? settings.location.trim().slice(0, 120)
+            : null;
+        const softBlock = buildAutoStyleSoftBlock({
+          profileName: resolveProfileDisplayName(autoStyleProfile.name),
+          stylePrompt: autoStyleProfile.style_prompt,
+          imageCount: Array.isArray(autoStyleProfile.image_urls)
+            ? Math.min(autoStyleProfile.image_urls.length, 3)
+            : 1,
+          withImage: Boolean(autoStyleGridUrl),
+          userHasPose: softUserHasPose,
+          userHasLocation: softUserHasLocation,
+          userLocationLabel: softUserLocationLabel,
+        });
+        enhancedPrompt = `${enhancedPrompt || ""}\n\n${softBlock}`;
+        logger.log(
+          `🌟 [AUTO_STYLE] Soft stil bloğu prompt sonuna eklendi (${softBlock.length} karakter, görsel: ${autoStyleGridUrl ? "kolaj" : "YOK"})`,
+        );
+      } catch (softBlockErr) {
+        // Otomatik stil asla üretimi bozmamalı — blok eklenemezse normal devam.
+        logger.warn(
+          "🌟 [AUTO_STYLE] Soft blok eklenemedi, normal akışa devam:",
+          softBlockErr?.message,
+        );
+      }
+    }
+
+    // 🧍 Otomatik stil kullanılan HER üretimde (FULL + SOFT) poz-kıyafet uyumu
+    // sert kurala bağlanır; tarz 4 (Sokak Stili) ayrıca kimlik güvenlik duvarı
+    // alır (19 Ağu 2026, kullanıcı isteği — telif/benzerlik riski sıfırlanacak).
+    if (autoStyleProfile) {
+      enhancedPrompt = `${enhancedPrompt || ""}
+
+🧍 POSE ↔ GARMENT COMPATIBILITY (NON-NEGOTIABLE, OVERRIDES ANY POSE-COPY INSTRUCTION): The poses in the style reference are a STARTING POINT, never a template to copy verbatim. Before posing the model, check every pose element against the USER'S actual garment: hands go into pockets ONLY if this garment really has pockets; a thumb hooks a belt loop ONLY if belt loops exist; popping a collar, tugging a hood, playing with a zipper, cuff or drawstring happens ONLY if the garment has that feature; a pose that would crush, fold or hide the garment's defining silhouette or details is FORBIDDEN. Whenever a reference pose element conflicts with the garment's real construction, REPLACE it with a natural, equally confident alternative (hand relaxed at the side, resting on the hip, adjusting a sleeve that does exist) while keeping the same energy and attitude. Reproducing a reference pose that is physically impossible or unflattering for THIS garment is a hard failure.`;
+      if (Number(autoStyleProfile.style_approach) === 4) {
+        enhancedPrompt = `${enhancedPrompt}
+
+🚫 STREET-STYLE IDENTITY FIREWALL (ABSOLUTE, HIGHEST PRIORITY): This generation uses a street-style reference photograph of a REAL person. That person's face and identity are legally OFF-LIMITS. The output person must be a COMPLETELY DIFFERENT human being: rebuild every identity-bearing feature from scratch — face shape, facial proportions, eye shape and color, brows, nose, lips, cheekbones, jawline, hairline, skin tone may all differ, and the overall "type" must read as a different person entirely. The output must fail any same-person, look-alike or celebrity-match comparison with the reference person. If the user supplied their own model reference elsewhere in this prompt, THAT user-provided identity is the only allowed face source; otherwise cast a brand-new, unrecognizable photoreal person. Copying, approximating or subtly echoing the reference person's face is a hard failure with legal consequences — when in doubt, make the person MORE different, never less.
+
+👜 STREET-STYLE ACCESSORY MIRROR (OVERRIDES ANY "IGNORE REFERENCE ACCESSORIES" RULE FOR THIS GENERATION): Accessories are MIRRORED from the reference — strictly one-to-one, in BOTH directions. FIRST inventory exactly which accessories are ACTUALLY VISIBLE on the reference person (bag, jewelry, sunglasses/glasses, hat, scarf, belt, watch...). THEN: every accessory on that inventory carries over as the same KIND of piece, worn or carried the same way (a shoulder bag stays a shoulder bag on the same side, sunglasses held in hand stay in hand — NOT moved onto the face); and NOTHING outside that inventory may appear. ADDING an accessory the reference person is not visibly wearing is as much a failure as removing one — if the reference shows no sunglasses, the output has NO sunglasses; no hat means NO hat; no jewelry means NO jewelry. Never "complete" or "enrich" the look with extra styling. Render carried-over pieces as similar generic items — never brand-identical copies with visible logos — and never let any accessory cover or compete with the user's product's defining details.
+
+${
+  autoStyleMode === "soft"
+    ? // 📍 Kullanıcı MEKÂN seçti (20 Ağu, kullanıcı isteği): kompozisyon
+      // referanstan DONDURULUR, sahne kullanıcının mekânı olur ve o mekân
+      // kesinlikle amatör telefon çekimi dilinde işlenir. Eski fidelity lock
+      // burada kullanılamazdı — "aynı tür sokak sahnesi" derken kullanıcının
+      // mekân seçimiyle kafa kafaya çatışıyordu.
+      `🎬 STREET-STYLE COMPOSITION LOCK × USER'S LOCATION (ABSOLUTE, NON-NEGOTIABLE, OVERRIDES EVERY SCENE CUE FROM THE REFERENCE): The user explicitly selected a location, so this street-style shot is RE-STAGED at the user's location while the reference's photography stays frozen. Two hard rules apply simultaneously and neither may soften the other:
+(1) COMPOSITION IS FROZEN — copy the reference photograph's camera angle, camera height, focal-length feel, framing and crop, the subject's placement and scale in frame, the motion state, the foreground/background layering and the overall composition EXACTLY. Do not reframe, do not move the camera, do not "improve" or re-balance the composition in any way.
+(2) THE SCENE IS THE USER'S LOCATION — the environment, background, architecture, surfaces and atmosphere come ONLY from the user's chosen location described earlier in this prompt, fully present and recognizable. NOTHING of the reference's own street, buildings, walls, pavement, signage or scenery may appear, blend in or "leak" into the frame. Relocating back to the reference's scene, mixing the two places, or watering the user's location down into a generic street is a HARD FAILURE.
+(3) THE LOCATION IS SHOT STREET-STYLE — the user's location must be rendered in the SAME raw, candid, amateur smartphone language as the reference: handheld phone-camera realism, the reference's exact color grade, flash or natural-light character, grain, contrast and every visible photographic imperfection. It must look like someone spontaneously took THIS phone photo of the model AT the user's location — NEVER like a polished editorial, studio or cinematic rendering of that place.
+The final image must read as the SAME street-style photograph — same person-in-frame geometry, same camera, same grade — re-shot AT the user's chosen location.`
+    : `🎬 STREET-STYLE FIDELITY LOCK (EVERYTHING ELSE STAYS): Beyond the two sanctioned changes (the person's identity and the main garment) and the sanctioned pose adaptations for the garment, EVERYTHING that defines this photograph is preserved faithfully from the reference: the same theme and concept, the same kind of street/urban scene with its structural elements and depth, the same camera angle, focal-length feel, framing and crop, the same motion state and overall composition, the same lighting direction and quality, the same color grade, contrast, film/filter character and every visible photographic effect (grain, flare, motion blur of the background, bokeh character). The output must read as the SAME street-style shot re-taken with a different person wearing the user's product — never as a new concept, a new location type, a new camera setup or a differently graded photograph.`
+}`;
+      }
+      logger.log(
+        `🧍 [AUTO_STYLE] Poz-kıyafet uyum direktifi eklendi${Number(autoStyleProfile.style_approach) === 4 ? ` + Sokak Stili kimlik duvarı + ${autoStyleMode === "soft" ? "kompozisyon×kullanıcı-mekânı kilidi" : "fidelity lock"}` : ""}`,
+      );
+    }
+
+    // FULL modda buildStyleReferencePrompt içine eklenir. SOFT modda (ve FULL
+    // stil referansı kurulamadıysa) final promptta bulunmasını burada garanti et.
+    if (
+      autoStyleRepeatPoseDirective &&
+      !String(enhancedPrompt || "").includes(
+        "REPEATED HIDDEN STYLE — MANDATORY FRESH POSE",
+      )
+    ) {
+      enhancedPrompt = `${enhancedPrompt || ""}\n\n${autoStyleRepeatPoseDirective}`;
+      logger.log(
+        `🔁 [AUTO_STYLE] Tekrar stil poz çeşitlendirme emri final prompt'a eklendi (önceki kullanım: ${autoStylePriorUseCount})`,
+      );
+    }
+
     // 📷 ORTAK FOTOĞRAFİK GERÇEKÇİLİK TABANI
     // Gemini'nin çıktısı, stil-referansı gibi Gemini'yi atlayan dallar ve tüm
     // fallback promptları aynı noktada birleşir. Böylece hangi kalite modeli
@@ -6173,6 +6913,15 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
     logger.log(
       "📷 [PHOTOREALISM] Model/cilt/kumaş/ortam/ışık/kamera gerçekçiliği final prompt'a eklendi",
     );
+
+    // Gizli stil görselindeki kişinin cinsiyeti casting'i sürüklemesin. Bu blok
+    // stil + teknik analizden sonra, genel kullanıcı kilidinden hemen önce gelir.
+    if (autoStyleGenderDirective) {
+      enhancedPrompt = `${enhancedPrompt || ""}\n\n${autoStyleGenderDirective}`;
+      logger.log(
+        `⚥ [AUTO_STYLE] Kullanıcı cinsiyeti gizli stilin üstüne kilitlendi: ${settings?.gender}`,
+      );
+    }
 
     // 🔒 ADD DETAIL + ADVANCED SETTINGS SON KİLİT
     // Gemini bu alanları doğal brief'e dönüştürüyor; ancak uzun/yaratıcı prompt
@@ -6184,8 +6933,14 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
       settings: settings || {},
       customDetail,
       hasLocationReference: Boolean(locationImage),
-      hasPoseReference: Boolean(poseImage),
+      // 🧍 Stil modunda poz görseli isteğe EKLENMİYOR ve metne çevrilmiş
+      // durumda (settings.pose) — "attached pose reference" satırı orada
+      // yanlış hedef gösterirdi (model stil referansını poz sanabilir).
+      hasPoseReference: Boolean(poseImage) && !styleReferenceUrl,
       hasHairReference: Boolean(hairStyleImage),
+      // Stil kompozisyonu ek insan gerektirebilir. Kullanıcının model ayarları
+      // yalnız ürünü giyen ana/hero kişiye uygulanmalı; yardımcı kişiyi silmemeli.
+      primaryModelOnly: Boolean(styleReferenceUrl || autoStyleGridUrl),
     });
     if (userInstructionLock) {
       enhancedPrompt = appendUserInstructionLock(
@@ -6695,11 +7450,38 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
           );
         }
 
+        // 💇 Kullanıcının saç referansı FULL modu bozmaz. Modelin bu seçimi
+        // gerçekten görebilmesi için stil görselinden önce ayrıca eklenir;
+        // böylece style reference yine prompt'ta tarif edildiği gibi SON görseldir.
+        if (hairStyleImage) {
+          const hairReferenceUrl = sanitizeImageUrl(
+            String(hairStyleImage).split("?")[0],
+          );
+          if (/^https?:\/\//i.test(hairReferenceUrl)) {
+            imageInputArray = [...(imageInputArray || []), hairReferenceUrl];
+            logger.log(
+              "💇 [HAIR REFERENCE] imageInputArray'e stil referansından önce eklendi, toplam:",
+              imageInputArray.length,
+            );
+          }
+        }
+
         // 🎬 Style reference image — prompt "LAST attached image" dediği için HER ZAMAN en sona
         if (styleReferenceUrl) {
           imageInputArray = [...(imageInputArray || []), styleReferenceUrl];
           logger.log(
             "🎬 [STYLE REFERENCE] imageInputArray'e SON sıraya eklendi, toplam:",
+            imageInputArray.length,
+          );
+        }
+
+        // 🌟 Soft otomatik stil kolajı — prompt "LAST attached image" dediği için en sona.
+        // styleReferenceUrl ile aynı anda dolu olamaz (otomatik stil yalnız stil
+        // kaynağı seçilmediğinde devreye girer).
+        if (autoStyleGridUrl) {
+          imageInputArray = [...(imageInputArray || []), autoStyleGridUrl];
+          logger.log(
+            "🌟 [AUTO_STYLE] Soft kolaj imageInputArray'e SON sıraya eklendi, toplam:",
             imageInputArray.length,
           );
         }
@@ -7254,9 +8036,27 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
             retryImageInputArray = [combinedImageForReplicate];
           }
 
+          // 💇 Saç referansı retry'da da korunur ve stil görselinden önce kalır.
+          if (hairStyleImage) {
+            const retryHairReferenceUrl = sanitizeImageUrl(
+              String(hairStyleImage).split("?")[0],
+            );
+            if (/^https?:\/\//i.test(retryHairReferenceUrl)) {
+              retryImageInputArray = [
+                ...retryImageInputArray,
+                retryHairReferenceUrl,
+              ];
+            }
+          }
+
           // 🎬 Style reference — retry'da da prompt "LAST attached image" dediği için en sona ekle
           if (styleReferenceUrl) {
             retryImageInputArray = [...retryImageInputArray, styleReferenceUrl];
+          }
+
+          // 🌟 Soft otomatik stil kolajı — retry'da da en sona
+          if (autoStyleGridUrl) {
+            retryImageInputArray = [...retryImageInputArray, autoStyleGridUrl];
           }
 
           const retryRequestBody = {
@@ -7377,11 +8177,14 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
         ? finalResult.output[0]
         : finalResult.output;
 
-      // 🎬 Stil referansı / 🎞️ editorial modunda: sonuca sızmış olabilecek kod
-      // plakasını tespit et/kırp. İki akış da aynı plaka formatını kullanıyor
-      // (koyu bant + ortalanmış beyaz yazı) ve tespit o yazı imzasını arıyor.
+      // 🎬 Stil referansı / 🎞️ editorial / 🌟 otomatik soft stil modunda: sonuca
+      // sızmış olabilecek kod plakasını tespit et/kırp. Akışların hepsi aynı plaka
+      // formatını kullanıyor (koyu bant + ortalanmış beyaz yazı) ve tespit o yazı
+      // imzasını arıyor.
       if (
-        (styleReferenceUrl || editorialCollagesForRequest.length > 0) &&
+        (styleReferenceUrl ||
+          autoStyleGridUrl ||
+          editorialCollagesForRequest.length > 0) &&
         resultImageUrl
       ) {
         resultImageUrl = await stripLeakedStylePlate(resultImageUrl, userId);

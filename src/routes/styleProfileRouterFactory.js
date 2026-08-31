@@ -24,9 +24,26 @@
 
 const express = require("express");
 const axios = require("axios");
+const crypto = require("crypto");
 const { v4: uuidv4 } = require("uuid");
 const { createClient } = require("@supabase/supabase-js");
-const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
+const {
+  // 20 Ağu 2026 (kullanıcı kararı): eklenti/stil-profili işleri Luna'dan GERİ
+  // Replicate Gemini 3 Flash'a alındı — app_config'ten bağımsız Replicate-first,
+  // başarısızlıkta OpenRouter yedeği. Yerel adlar korunarak 15+ çağrı noktası
+  // değişmeden yönlendirildi.
+  callReplicateStyleFlash: callGeminiFlash,
+  callReplicateStyleVisionClassifier: callGeminiVisionClassifier,
+} = require("../utils/promptEnhanceProvider");
+const { parseEstimatedAgeResponse } = require("../utils/estimatedAge");
+const {
+  JEWELRY_CLEAN_VARIANT,
+  PRODUCT_SHOT_STYLE_APPROACH,
+  cleanAndPersistJewelryStyleImage,
+} = require("../utils/jewelryCleanStyleImage");
+// DB'de CDN sarmalı ya da render URL'si kayıtlı olabilir; fal'a HER ZAMAN
+// ham obje URL'si gitmeli, yoksa sağlayıcı görseli indiremiyor.
+const { getOriginalUrl } = require("../utils/imageOptimizer");
 
 // Service role şart: style_profiles RLS'li ve anon/authenticated'e policy yok.
 // .env'de anahtar adı SUPABASE_SERVICE_ROLE_KEY (Railway'de SUPABASE_SERVICE_KEY olabilir).
@@ -37,6 +54,14 @@ const supabase = createClient(
     process.env.SUPABASE_ANON_KEY,
   { auth: { autoRefreshToken: false, persistSession: false } },
 );
+
+// 🎨 Çekim tarzı kartlarının örnek görselleri — her istekte DB'ye gitmemek için
+// kısa ömürlü bellek önbelleği (ekran her açılışta bu ucu çağırıyor).
+const APPROACH_SAMPLE_TTL_MS = 10 * 60 * 1000;
+// 🎞️ Bir kart slotuna seçilebilecek en fazla görsel (24 Ağu 2026, kullanıcı
+// kararı). Uygulama her açılışta bunlardan rastgele birini gösteriyor.
+const MAX_CARDS_PER_SLOT = 5;
+const approachSampleCache = new Map();
 
 function createStyleProfileRouter({
   table,
@@ -107,7 +132,10 @@ function createStyleProfileRouter({
   // için ayrı ayrı uyguluyor (Google → başarısızsa Replicate), yani üst sınır
   // bunun iki katıdır. Yüksek tutuluyor: bu işler arka planda çalışıyor,
   // kullanıcı beklemiyor; yarım kalan bir başlık/etiket ise kalıcı hata olur.
-  const GEMINI_ATTEMPTS = 5;
+  // Replicate zaman zaman başarılı prediction içinde boş output döndürüyor.
+  // Başlık, etiket, kategori ve ana analiz gibi kalıcı profil görevleri bu
+  // geçici kesintide yarım kalmasın diye sağlayıcı çağrısını daha uzun dene.
+  const GEMINI_ATTEMPTS = 10;
 
   const PROFILE_NAME_MAX_CHARS = 32;
   // Kullanıcının elle yazabileceği başlık sınırı — istemcideki maxLength ile aynı
@@ -737,6 +765,45 @@ function createStyleProfileRouter({
     }
   }
 
+  // 👶 TAHMİNİ YAŞ — otomatik stil havuzu için (auto/global). Referans
+  // karelerdeki baskın öznenin yaşını TEK rakam olarak tahmin eder (örn. 27);
+  // autoGlobalStyle.js bunu YALNIZ kullanıcı 18 yaşından küçük bir yaş girdiğinde
+  // eşleşme için kullanır — yetişkin/yaşsız üretimlerde filtre yok.
+  // Best-effort: profil insert edilirken auto/global kayıtlarına varsayılan 30
+  // yazılır; geçerli bir tahmin gelirse bu değer gerçek tahminle değiştirilir.
+  async function classifyAndSaveEstimatedAge(profileId, imageUrls) {
+    try {
+      const prompt = `Estimate the age in years of the dominant person in the reference image. Return exactly one integer from 0 to 99. If no person is visible, return none.`;
+      const raw = await callGeminiVisionClassifier(
+        prompt,
+        imageUrls.slice(0, 3),
+        2,
+      );
+      const estimatedAge = parseEstimatedAgeResponse(raw);
+      if (estimatedAge === null) {
+        console.warn(
+          `👶 [STYLE_PROFILE] ${profileId} yaş cevabı çözülemedi; varsayılan 30 korunuyor:`,
+          String(raw || "").slice(0, 160),
+        );
+        return;
+      }
+      const { error } = await supabase
+        .from(TABLE)
+        .update({ estimated_age: estimatedAge })
+        .eq("id", profileId);
+      if (error) {
+        console.warn(
+          "👶 [STYLE_PROFILE] estimated_age yazılamadı (migration bekliyor olabilir):",
+          error.message,
+        );
+      } else {
+        console.log(`👶 [STYLE_PROFILE] ${profileId} tahmini yaş: ${estimatedAge}`);
+      }
+    } catch (err) {
+      console.warn("👶 [STYLE_PROFILE] yaş tahmini atlandı:", err?.message);
+    }
+  }
+
   // 1. AŞAMA — stil analizi. Profil bunun bitiminde "ready" olur; kullanıcının
   // kendi dili + İngilizce başlık/subtitle zaten insert anında yazılmış olur.
   // Kalan dillerin çevirisi bunu BEKLEMEZ (ayrı görev).
@@ -970,11 +1037,23 @@ function createStyleProfileRouter({
 
   // ─── Routes ───
 
-  // Profil oluştur: { userId, images: [{base64}|{uri}, ...], lang } (min 3)
+  // Profil oluştur: { userId, images, lang, productCategory, productSubtype,
+  // styleApproach, tags }. Eklentiden jewelry gelirse profil DB'ye yazılmadan
+  // önce her görselin takısız türevi Replicate üzerinden hazırlanır.
   // Title backend tarafından görsellerden otomatik ve dile göre üretilir.
   router.post("/", async (req, res) => {
     try {
-      const { userId, images, lang, userTitle: rawUserTitle } = req.body;
+      const {
+        userId,
+        images,
+        lang,
+        userTitle: rawUserTitle,
+        productCategory,
+        productSubtype,
+        styleApproach,
+        collection,
+        tags,
+      } = req.body;
       // Kullanıcının yazdığı başlık (opsiyonel). Geçersizse null → otomatik başlık.
       const userTitle = sanitizeUserTitle(rawUserTitle);
       if (!userId) {
@@ -1003,10 +1082,94 @@ function createStyleProfileRouter({
         images.map((img) => uploadStyleImage(img, userId)),
       );
 
+      const normalizedCategory = productCategory == null
+        ? null
+        : String(productCategory).trim().toLowerCase().slice(0, 40) || null;
+      const normalizedSubtype = productSubtype == null
+        ? null
+        : String(productSubtype).trim().toLowerCase().slice(0, 40) || null;
+      const parsedApproach = Number.parseInt(styleApproach, 10);
+      // 5 = Beyaz Stüdyo (26 Ağu 2026): giyimin 4. kartı, koleksiyon gruplu.
+      const normalizedApproach =
+        Number.isInteger(parsedApproach) && parsedApproach >= 1 && parsedApproach <= 5
+          ? parsedApproach
+          : null;
+      // 🏬 Koleksiyon etiketi ("zara", "cos"…) — Beyaz Stüdyo modalında
+      // gruplama anahtarı. Slug'a indirgenir; boşsa hiç yazılmaz.
+      const normalizedCollection =
+        typeof collection === "string"
+          ? collection.trim().toLowerCase().replace(/\s+/g, "-").slice(0, 40) || null
+          : null;
+      const normalizedTags = Array.isArray(tags)
+        ? tags
+            .filter((tag) => typeof tag === "string")
+            .map((tag) => tag.trim().toLowerCase())
+            .filter(Boolean)
+            .slice(0, 20)
+        : [];
+      // 🚻 Gender salt tablo ETİKETİDİR — stil analizine/promptuna girmez.
+      // Kullanıcı kuralı (19 Ağu 2026): yalnız giyim + Sokak Stili (4)
+      // kayıtlarında saklanıyordu.
+      // ⚠️ 24 Ağu 2026'da TARZ KOŞULU KALDIRILDI: cinsiyet artık yalnız havuz
+      // süzgeci değil, çekim tarzı KART GÖRSELLERİNİ de seçiyor. Editoryal'de
+      // (tarz 1) erkek/kadın kart gösterebilmek için etiketin orada da
+      // kaydedilmesi gerekiyor. Kısıt yalnız GİYİMDE kaldı.
+      const rawGender = String(req.body.gender || "").trim().toLowerCase();
+      const normalizedGender = ["woman", "man"].includes(rawGender)
+        ? rawGender
+        : null;
+      const shouldStoreGender =
+        TABLE === "style_profiles" &&
+        normalizedGender !== null &&
+        normalizedCategory === "clothing";
+      // Takı temizliği YALNIZ takı modunda ve yalnız model üstündeki tarzlarda
+      // yapılır. Ürün çekiminde (tarz 2) takı konunun kendisi — silinirse
+      // referans yok olur (kullanıcı kuralı, 17 Ağu 2026).
+      const isProductShotApproach =
+        normalizedApproach === PRODUCT_SHOT_STYLE_APPROACH;
+      const shouldCleanJewelry =
+        TABLE === "style_profiles" &&
+        ["auto", "global"].includes(String(userId)) &&
+        normalizedCategory === "jewelry" &&
+        !isProductShotApproach &&
+        // 🚶 Sokak Stili (4) giyim hattına ait — yanlışlıkla jewelry+4
+        // etiketlense bile temiz-türev ÜRETİLMEZ (19 Ağu 2026 kullanıcı kararı)
+        normalizedApproach !== 4;
+      const sourceFingerprint = crypto
+        .createHash("sha256")
+        .update(JSON.stringify(imageUrls))
+        .digest("hex");
+
+      let jewelryCleanImageUrls = null;
+      if (isProductShotApproach && normalizedCategory === "jewelry") {
+        console.log(
+          "💎 [STYLE_PROFILE] Ürün çekimi (tarz 2) — takı temizliği ATLANDI, orijinal kare korunuyor",
+        );
+      }
+      if (shouldCleanJewelry) {
+        console.log(
+          `💎 [STYLE_PROFILE] Jewelry kayıt: ${imageUrls.length} görsel profil kaydından önce temizleniyor`,
+        );
+        jewelryCleanImageUrls = await Promise.all(
+          imageUrls.map((imageUrl, index) =>
+            cleanAndPersistJewelryStyleImage({
+              imageUrl,
+              supabase,
+              objectPathWithoutExtension: `jewelry-clean/live/${sourceFingerprint.slice(0, 20)}-${JEWELRY_CLEAN_VARIANT}-${index + 1}`,
+            }),
+          ),
+        );
+        console.log("💎 [STYLE_PROFILE] Jewelry clean görselleri hazır");
+      }
+
+      // Jewelry analizinde de takısız kareyi kullan: stil promptuna referanstaki
+      // ürünün kendisi sızmasın. DB'de image_urls daima orijinali korur.
+      const analysisImageUrls = jewelryCleanImageUrls || imageUrls;
+
       // Hızlı ilk aşama: yalnızca kullanıcının dili + İngilizce title/subtitle.
       // Tam analiz ve kalan tüm diller response döndükten sonra arka planda tamamlanır.
       const initialMetadata = await generateInitialLocalizedMetadata(
-        imageUrls,
+        analysisImageUrls,
         lang,
         userTitle,
       );
@@ -1018,12 +1181,47 @@ function createStyleProfileRouter({
           name: initialMetadata.name,
           image_urls: imageUrls,
           status: "analyzing",
+          ...(TABLE === "style_profiles" && normalizedCategory
+            ? { product_category: normalizedCategory }
+            : {}),
+          ...(TABLE === "style_profiles" && normalizedSubtype
+            ? { product_subtype: normalizedSubtype }
+            : {}),
+          ...(TABLE === "style_profiles" && normalizedApproach !== null
+            ? { style_approach: normalizedApproach }
+            : {}),
+          ...(TABLE === "style_profiles" && normalizedCollection
+            ? { collection: normalizedCollection }
+            : {}),
+          ...(shouldStoreGender ? { gender: normalizedGender } : {}),
+          ...(TABLE === "style_profiles" && normalizedTags.length
+            ? { auto_tags: normalizedTags }
+            : {}),
+          ...(TABLE === "style_profiles" && ["auto", "global"].includes(String(userId))
+            ? { auto_pool: true }
+            : {}),
+          ...(shouldCleanJewelry
+            ? {
+                jewelry_clean_image_urls: jewelryCleanImageUrls,
+                jewelry_clean_source_fingerprint: sourceFingerprint,
+                jewelry_clean_stamped_grid_url: null,
+                jewelry_cleaned_at: new Date().toISOString(),
+                jewelry_clean_error: null,
+              }
+            : {}),
+          // Yaş servisi sonuç vermezse otomatik havuz kayıtları NULL kalmasın.
+          // Arka plandaki sınıflandırma geçerli bir tahmin üretirse üzerine yazar.
+          ...(["auto", "global"].includes(String(userId))
+            ? { estimated_age: 30 }
+            : {}),
         })
         .select()
         .single();
       if (insErr) throw new Error(insErr.message);
 
       // Kalan diller arka planda üretilecek — istemci/admin bunu sessizce yoklar.
+      // Not: 'auto' (gizli havuz) profilleri de çevrilir — admin ileride bir
+      // auto stili globale terfi ettirebilir; çeviriler hazır beklesin.
       await setTranslationsStatus(inserted.id, "pending");
 
       // Subtitle kolonu geriye dönük şemalarda olmayabilir; ilk metadata best-effort.
@@ -1042,7 +1240,7 @@ function createStyleProfileRouter({
       //  1) analiz → biter bitmez status "ready" olur, profil kullanılabilir
       //  2) kalan ~64 dilin çevirisi → sürerken profil zaten kullanılabilir
       setImmediate(() => {
-        analyzeProfileInBackground(inserted.id, imageUrls).catch(
+        analyzeProfileInBackground(inserted.id, analysisImageUrls).catch(
           (backgroundErr) => {
             console.error(
               "❌ [STYLE_PROFILE] analiz task başlatılamadı:",
@@ -1050,9 +1248,14 @@ function createStyleProfileRouter({
             );
           },
         );
+        // 👶 Tahmini yaş — yalnız otomatik havuz adayları (auto/global) için;
+        // kullanıcı profillerinde havuz seçimi olmadığından gereksiz.
+        if (["auto", "global"].includes(String(userId))) {
+          classifyAndSaveEstimatedAge(inserted.id, analysisImageUrls).catch(() => {});
+        }
         translateProfileInBackground(
           inserted.id,
-          imageUrls,
+          analysisImageUrls,
           initialMetadata.name,
           initialMetadata.subtitle,
           userTitle,
@@ -1536,6 +1739,795 @@ function createStyleProfileRouter({
     }
   });
 
+  // 🎯 Admin'in seçtiği sabit kart görselleri. Önce (kategori + alt tür) tam
+  // eşleşmesi, boş kalan slotlar için kategori geneli. Tablo henüz yoksa
+  // (migration çalıştırılmadıysa) sessizce boş döner — uygulama çalışmaya devam
+  // eder, yalnız kartlar havuz görselini gösterir.
+  const readApproachCards = async (category, subtype, gender = null) => {
+    const bySlot = {};
+    try {
+      let q = supabase
+        .from("style_approach_cards")
+        .select("product_subtype, gender, style_approach, image_url")
+        .eq("product_category", category);
+      q = subtype
+        ? q.or(`product_subtype.eq.${subtype},product_subtype.is.null`)
+        : q.is("product_subtype", null);
+      // 🚻 Cinsiyet (24 Ağu 2026): ürünün kadın/erkek giyimi olduğu tespit
+      // edildiyse o cinsiyetin görseli + cinsiyetsiz genel görsel okunur;
+      // tespit yoksa YALNIZ cinsiyetsiz satırlar (kadın kart erkek ürüne
+      // sızmasın).
+      q = gender
+        ? q.or(`gender.eq.${gender},gender.is.null`)
+        : q.is("gender", null);
+      const { data, error } = await q;
+      if (error) throw error;
+      // Her slot için EN ÖZEL grup kazanır — karışım yok:
+      // (alt tür + cinsiyet) > (cinsiyet) > (alt tür) > (genel).
+      // Cinsiyet alt türden DAHA belirleyici: kullanıcı kartlarda önce
+      // "kadın mı erkek mi" görmek istiyor.
+      // ⚠️ Slot başına 5 GÖRSEL olabilir (24 Ağu): tek URL değil DİZİ döner,
+      // uygulama her açılışta bunlardan rastgele birini gösteriyor.
+      const rank = (row) => (row.product_subtype ? 1 : 0) + (row.gender ? 2 : 0);
+      const bestRank = {};
+      for (const row of data || []) {
+        const slot = row.style_approach;
+        const r = rank(row);
+        if (bestRank[slot] === undefined || r > bestRank[slot]) {
+          bestRank[slot] = r;
+          bySlot[slot] = [];
+        }
+        if (r === bestRank[slot]) bySlot[slot].push(row.image_url);
+      }
+    } catch (err) {
+      console.warn(
+        "🎯 [APPROACH_CARDS] Seçili kart görselleri okunamadı (migration eksik olabilir):",
+        err.message,
+      );
+    }
+    return bySlot;
+  };
+
+  // 🎨 Çekim tarzı kartlarının ÖRNEK GÖRSELLERİ (17 Ağu 2026, kullanıcı isteği).
+  // Yükleme kartının altındaki 1/2/3 kartları artık jenerik yer tutucu yerine
+  // O TARZIN havuzundaki gerçek referans karelerini slayt olarak gösterir.
+  // Alt tür havuzu boşsa kategori havuzuna düşer — kart asla boş kalmaz.
+  router.get("/approach-samples", async (req, res) => {
+    try {
+      const category = String(req.query.category || "").trim().toLowerCase();
+      if (!category) {
+        return res
+          .status(400)
+          .json({ success: false, error: "category is required" });
+      }
+      const subtype = String(req.query.subtype || "").trim().toLowerCase() || null;
+      // 🚻 Ürünün hedef cinsiyeti (classify ucundan gelir). Sözlük dışı her
+      // değer yok sayılır ki kart seçimi beklenmedik bir etiketle boşa düşmesin.
+      const genderRaw = String(req.query.gender || "").trim().toLowerCase();
+      const gender = genderRaw === "woman" || genderRaw === "man" ? genderRaw : null;
+      const perApproach = Math.min(
+        Math.max(Number.parseInt(req.query.limit, 10) || 8, 1),
+        12,
+      );
+
+      const cacheKey = `${TABLE}|${category}|${subtype || "-"}|${gender || "-"}|${perApproach}`;
+      const cached = approachSampleCache.get(cacheKey);
+      if (cached && Date.now() - cached.at < APPROACH_SAMPLE_TTL_MS) {
+        return res.json({ ...cached.payload, cached: true });
+      }
+
+      // 🎯 Admin'in elle seçtiği SABİT kart görselleri her şeyin önünde gelir.
+      // Önce tam eşleşme (kategori+alt tür), sonra kategori geneli.
+      const curated = await readApproachCards(category, subtype, gender);
+
+      // Admin bir slotu seçmediyse kart boş kalmasın diye havuzdan kare gösterilir.
+      // ⚠️ Bu da SABİT olmalı (kullanıcı kararı 17 Ağu: "değişmesin") — rastgele
+      // değil, en yeni stil alınır; aynı havuzla her açılışta aynı kare gelir.
+      const fetchWindow = async (
+        approach,
+        withSubtype,
+        withGender = false,
+        fromCategory = category,
+      ) => {
+        let q = supabase
+          .from(TABLE)
+          .select("image_urls")
+          .in("user_id", ["auto", "global"])
+          .eq("product_category", fromCategory)
+          .eq("style_approach", approach)
+          .not("image_urls", "is", null)
+          .or("auto_pool.is.null,auto_pool.eq.true")
+          .order("created_at", { ascending: false })
+          .limit(perApproach);
+        if (withSubtype && subtype) q = q.eq("product_subtype", subtype);
+        // ⚠️ style_profiles.gender YALNIZ giyim + Sokak Stili (4) kayıtlarında
+        // dolu (bkz. add_style_profiles_gender_column.sql). Diğer tarzlarda bu
+        // süzgeç boş döner ve aşağıdaki kademe cinsiyetsiz havuza düşer.
+        if (withGender && gender) q = q.eq("gender", gender);
+        const { data } = await q;
+        return (data || [])
+          .map((row) => (Array.isArray(row.image_urls) ? row.image_urls[0] : null))
+          .filter((url) => typeof url === "string" && /^https?:\/\//i.test(url))
+          .slice(0, 1);
+      };
+
+      const samples = {};
+      const curatedSlots = [];
+      await Promise.all(
+        [1, 2, 3, 4, 5].map(async (approach) => {
+          // 1) Admin seçtiyse yalnız onun seçtikleri gösterilir.
+          // ⚠️ 17 Ağu'daki "tek ve sabit kare" kararı 24 Ağu'da TERSİNE
+          // çevrildi: monotonluk şikâyeti üzerine slota 5 görsele kadar
+          // seçilebiliyor ve istemci her açılışta sırayı karıştırıyor
+          // (StyleApproachPicker → SlidingArtwork).
+          if (curated[approach]?.length) {
+            samples[approach] = curated[approach];
+            curatedSlots.push(approach);
+            return;
+          }
+          // 2) Seçilmemiş slot: havuzdan kare göster ki kart boş kalmasın.
+          //    Kademe: (alt tür + cinsiyet) → (cinsiyet) → (alt tür) → genel.
+          let urls = gender ? await fetchWindow(approach, true, true) : [];
+          if (urls.length === 0 && gender) urls = await fetchWindow(approach, false, true);
+          if (urls.length === 0) urls = await fetchWindow(approach, true);
+          // Alt tür havuzu boşsa kategori geneline düş.
+          if (urls.length === 0) urls = await fetchWindow(approach, false);
+          samples[approach] = urls;
+        }),
+      );
+
+      // 👟 AYAKKABI = NORMAL GİYİM (27 Ağu 2026, kullanıcı kararı v2):
+      // ayakkabıya özgü kart görseli yoksa kart BULANIK ödünçle değil,
+      // GİYİMİN NET kartlarıyla dolar — kullanıcı ayakkabıda giyim tarz
+      // kartlarının aynen görünmesini istiyor. Curated giyim kartları önce,
+      // yoksa giyim havuzu (cinsiyet kademesiyle). Takı bu kuralın dışında.
+      if (category === "shoes") {
+        const clothingCurated = await readApproachCards("clothing", null, gender);
+        await Promise.all(
+          [1, 2, 3, 4, 5].map(async (approach) => {
+            if (samples[approach]?.length) return; // ayakkabıya özel varsa dokunma
+            if (clothingCurated[approach]?.length) {
+              samples[approach] = clothingCurated[approach];
+              return;
+            }
+            let urls = gender
+              ? await fetchWindow(approach, false, true, "clothing")
+              : [];
+            if (urls.length === 0) {
+              urls = await fetchWindow(approach, false, false, "clothing");
+            }
+            if (urls.length) samples[approach] = urls;
+          }),
+        );
+      }
+
+      // 🌫️ ÖDÜNÇ KARELER (26 Ağu 2026, kullanıcı kararı) — kendi havuzu BOŞ
+      // kalan tarzlar için (ör. giyimde style_approach=2 hiç kayıt yok).
+      // İstemci bunları BULANIK basıyor, kart boş gri kalmasın diye.
+      // ⚠️ Kartlarda gösterilen curated karelerin AYNISI OLAMAZ: aynı görselin
+      // net ve bulanık iki kopyası yan yana durmasın. Bu yüzden curated değil
+      // doğrudan EDİTORYAL HAVUZUNDAN taze kareler alınır.
+      const borrowed = {};
+      const emptyApproaches = [1, 2, 3, 4, 5].filter((a) => !samples[a]?.length);
+      if (emptyApproaches.length) {
+        const taken = new Set(Object.values(samples).flat());
+        // 🚻 Ödünç kareler de ürünün CİNSİYETİNE uyar (26 Ağu, kullanıcı):
+        // önce cinsiyet eşleşmesi denenir; havuz dar kalırsa (ör. erkek ürünü
+        // ama erkek editoryal az) cinsiyetsiz sorguya düşülür — kart hiç boş
+        // kalmasın. Editoryal havuzu etiketli: woman ~5.8k / man ~200.
+        const fetchBorrowPool = async (withGender, fromCategory = category) => {
+          let q = supabase
+            .from(TABLE)
+            .select("image_urls")
+            .in("user_id", ["auto", "global"])
+            .eq("product_category", fromCategory)
+            .eq("style_approach", 1)
+            .not("image_urls", "is", null)
+            .or("auto_pool.is.null,auto_pool.eq.true")
+            .order("created_at", { ascending: false })
+            .limit(60);
+          if (withGender && gender) q = q.eq("gender", gender);
+          const { data } = await q;
+          return (data || [])
+            .map((row) => (Array.isArray(row.image_urls) ? row.image_urls[0] : null))
+            .filter(
+              (url) =>
+                typeof url === "string" &&
+                /^https?:\/\//i.test(url) &&
+                !taken.has(url),
+            );
+        };
+        let pool = gender ? await fetchBorrowPool(true) : [];
+        // Her boş karta dolu bir dilim düşecek kadar kare yoksa genele düş
+        if (pool.length < emptyApproaches.length * perApproach) {
+          const generic = await fetchBorrowPool(false);
+          const seen = new Set(pool);
+          pool = pool.concat(generic.filter((u) => !seen.has(u)));
+        }
+        // 👟 AYAKKABI = NORMAL GİYİM (27 Ağu 2026, kullanıcı): ayakkabı havuzu
+        // incecik (≈11 kayıt) — kartlar bomboş kalıyordu. Kendi havuzu
+        // yetmezse GİYİM editoryal havuzundan ödünç alınır (takı BİLEREK
+        // hariç: takı görseli ayakkabı kartında, giyim görseli takı kartında
+        // yanıltıcı olur). Aynı cinsiyet kademesi burada da işler.
+        if (
+          category === "shoes" &&
+          pool.length < emptyApproaches.length * perApproach
+        ) {
+          const seen = new Set(pool);
+          const clothingPool = (
+            gender ? await fetchBorrowPool(true, "clothing") : []
+          ).concat(await fetchBorrowPool(false, "clothing"));
+          pool = pool.concat(
+            clothingPool.filter((u) => {
+              if (seen.has(u)) return false;
+              seen.add(u);
+              return true;
+            }),
+          );
+        }
+        // Her boş tarza AYRI dilim: iki boş kart aynı kareleri göstermesin.
+        emptyApproaches.forEach((approach, i) => {
+          const slice = pool.slice(i * perApproach, (i + 1) * perApproach);
+          if (slice.length) borrowed[approach] = slice;
+        });
+      }
+
+      const payload = { success: true, category, subtype, gender, samples, borrowed, curatedSlots };
+      approachSampleCache.set(cacheKey, { at: Date.now(), payload });
+      return res.json(payload);
+    } catch (err) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // ─── Beyaz Stüdyo koleksiyonları (26 Ağu 2026) ────────────────────────────
+  // Giyimin 4. tarz kartına (style_approach=5) tıklanınca açılan modal bu ucu
+  // çeker: havuzdaki beyaz stüdyo stilleri KOLEKSİYONA göre gruplu döner
+  // ("zara", "cos"…; etiketsizler "other"). Kullanıcının seçtiği stilin id'si
+  // üretime styleProfileId olarak gider — mevcut referans hattı, yeni yol yok.
+  router.get("/white-studio-styles", async (req, res) => {
+    try {
+      const genderRaw = String(req.query.gender || "").trim().toLowerCase();
+      const gender = genderRaw === "woman" || genderRaw === "man" ? genderRaw : null;
+      let q = supabase
+        .from(TABLE)
+        .select("id, name, image_urls, display_image_urls, collection, gender")
+        .in("user_id", ["auto", "global"])
+        .eq("product_category", "clothing")
+        .eq("style_approach", 5)
+        .eq("status", "completed")
+        .not("image_urls", "is", null)
+        .or("auto_pool.is.null,auto_pool.eq.true")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      const { data, error } = await q;
+      if (error) throw error;
+      const rows = (data || []).filter((row) => {
+        // Cinsiyet YUMUŞAK süzgeç: zıt etiketli stil elenir, etiketsiz kalır
+        if (!gender || !row.gender) return true;
+        return row.gender === gender;
+      });
+      const groups = new Map();
+      for (const row of rows) {
+        const key = row.collection || "other";
+        if (!groups.has(key)) groups.set(key, []);
+        const cover = Array.isArray(row.display_image_urls) && row.display_image_urls[0]
+          ? row.display_image_urls[0]
+          : Array.isArray(row.image_urls)
+            ? row.image_urls[0]
+            : null;
+        if (!cover) continue;
+        groups.get(key).push({ id: row.id, name: row.name || null, image: cover });
+      }
+      // "other" en sonda; kalanlar alfabetik — modalda sıra kararlı olsun.
+      const collections = [...groups.entries()]
+        .sort(([a], [b]) =>
+          a === "other" ? 1 : b === "other" ? -1 : a.localeCompare(b),
+        )
+        .map(([key, styles]) => ({ key, styles }));
+      return res.json({ success: true, gender, collections });
+    } catch (err) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // ─── Admin: kart görseli seçimi ───────────────────────────────────────────
+  // Admin panelde bir (kategori × alt tür) için üç tarzın seçili görselleri ve
+  // seçilebilecek havuz adayları. /admin öneki app.js'te requireAdmin ile korunuyor.
+  router.get("/admin/approach-cards", async (req, res) => {
+    try {
+      const category = String(req.query.category || "").trim().toLowerCase();
+      if (!category) {
+        return res
+          .status(400)
+          .json({ success: false, error: "category is required" });
+      }
+      const subtype =
+        String(req.query.subtype || "").trim().toLowerCase() || null;
+      const genderRaw = String(req.query.gender || "").trim().toLowerCase();
+      const gender = genderRaw === "woman" || genderRaw === "man" ? genderRaw : null;
+      // candidates=0 → aday sorguları HİÇ çalışmaz. Panel adayları artık
+      // sayfalanan /admin/approach-candidates ucundan çekiyor; burada tekrar
+      // çekmek boşuna dört sorgu demekti.
+      const skipCandidates = String(req.query.candidates || "") === "0";
+      const candidateLimit = Math.min(
+        Math.max(Number.parseInt(req.query.candidates, 10) || 60, 1),
+        200,
+      );
+
+      const { data: rows, error: cardsErr } = await supabase
+        .from("style_approach_cards")
+        .select("*")
+        .eq("product_category", category);
+      if (cardsErr) throw cardsErr;
+
+      // Panelde YALNIZ o an seçili (alt tür × cinsiyet) kombinasyonunun
+      // kayıtları gösterilir — "genel" sekmesi cinsiyetsiz satırları düzenler.
+      // ⚠️ Slot başına 5 GÖRSELE kadar (24 Ağu): tekil nesne değil DİZİ.
+      const selected = {};
+      for (const row of rows || []) {
+        if ((row.product_subtype || "") !== (subtype || "")) continue;
+        if ((row.gender || "") !== (gender || "")) continue;
+        (selected[row.style_approach] ||= []).push({
+          imageUrl: row.image_url,
+          styleProfileId: row.style_profile_id,
+          updatedAt: row.updated_at,
+        });
+      }
+      // Panelde sıra sabit kalsın (eklenme sırası).
+      for (const k of Object.keys(selected)) {
+        selected[k].sort((a, b) =>
+          String(a.updatedAt || "").localeCompare(String(b.updatedAt || "")),
+        );
+      }
+
+      // Seçim yapılacak havuz adayları — o tarzın gerçek stilleri.
+      const candidates = {};
+      await Promise.all(
+        (skipCandidates ? [] : [1, 2, 3, 4]).map(async (approach) => {
+          let q = supabase
+            .from(TABLE)
+            .select("id, image_urls, product_subtype, gender, created_at")
+            .in("user_id", ["auto", "global"])
+            .eq("product_category", category)
+            .eq("style_approach", approach)
+            .not("image_urls", "is", null)
+            .or("auto_pool.is.null,auto_pool.eq.true")
+            .order("created_at", { ascending: false })
+            .limit(candidateLimit);
+          if (subtype) q = q.eq("product_subtype", subtype);
+          const { data } = await q;
+          let list = (data || [])
+            .map((row) => ({
+              styleProfileId: row.id,
+              imageUrl: Array.isArray(row.image_urls) ? row.image_urls[0] : null,
+              subtype: row.product_subtype,
+              gender: row.gender ?? null,
+            }))
+            .filter((item) => typeof item.imageUrl === "string");
+          // 🚻 Cinsiyet sekmesindeyken aynı etiketli havuz stilleri BAŞA alınır
+          // (etiketsizler listeden düşmez: havuzun büyük kısmı etiketsiz, bkz.
+          // add_style_profiles_gender_column.sql).
+          if (gender) {
+            list = [
+              ...list.filter((item) => item.gender === gender),
+              ...list.filter((item) => item.gender !== gender),
+            ];
+          }
+          candidates[approach] = list;
+        }),
+      );
+
+      return res.json({ success: true, category, subtype, gender, selected, candidates });
+    } catch (err) {
+      return res.status(500).json({
+        success: false,
+        error: err.message,
+        hint: /style_approach_cards/.test(err.message || "")
+          ? "migrations/add_style_approach_cards.sql çalıştırılmamış olabilir"
+          : undefined,
+      });
+    }
+  });
+
+  // 📜 Sonsuz kaydırma için TEK TARZIN adayları, imleçle sayfalanır
+  // (24 Ağu 2026, kullanıcı isteği: "belli sayıda değil, infinite scroll").
+  //
+  // Neden ayrı uç: /admin/approach-cards dört tarzın adayını birden çekiyor ve
+  // sabit bir tavanla kesiyordu. Kapak görseli seçerken havuzun tamamı
+  // gezilebilmeli.
+  //
+  // ⚠️ CİNSİYET SIRALAMASI ve SAYFALAMA birlikte çalışsın diye imleç iki
+  // AŞAMA tutuyor: `0` = istenen cinsiyetle etiketli kayıtlar, `1` = geri
+  // kalanlar. PostgREST'te "gender = X önce gelsin" diye sıralayamadığımız
+  // için akış ikiye bölündü; istemci imleci sadece geri yolluyor.
+  router.get("/admin/approach-candidates", async (req, res) => {
+    try {
+      const category = String(req.query.category || "").trim().toLowerCase();
+      const approach = Number.parseInt(req.query.approach, 10);
+      if (!category || ![1, 2, 3, 4].includes(approach)) {
+        return res.status(400).json({
+          success: false,
+          error: "category and approach (1-4) are required",
+        });
+      }
+      const subtype =
+        String(req.query.subtype || "").trim().toLowerCase() || null;
+      const genderRaw = String(req.query.gender || "").trim().toLowerCase();
+      const gender =
+        genderRaw === "woman" || genderRaw === "man" ? genderRaw : null;
+      const limit = Math.min(
+        Math.max(Number.parseInt(req.query.limit, 10) || 48, 1),
+        100,
+      );
+
+      const [phaseRaw, offsetRaw] = String(req.query.cursor || "0:0").split(":");
+      let phase = Number.parseInt(phaseRaw, 10) || 0;
+      let offset = Number.parseInt(offsetRaw, 10) || 0;
+      const lastPhase = gender ? 1 : 0;
+
+      const buildQuery = () => {
+        let q = supabase
+          .from(TABLE)
+          .select("id, image_urls, product_subtype, gender, created_at")
+          .in("user_id", ["auto", "global"])
+          .eq("product_category", category)
+          .eq("style_approach", approach)
+          .not("image_urls", "is", null)
+          .or("auto_pool.is.null,auto_pool.eq.true")
+          .order("created_at", { ascending: false });
+        if (subtype) q = q.eq("product_subtype", subtype);
+        if (gender) {
+          q =
+            phase === 0
+              ? q.eq("gender", gender)
+              : q.or(`gender.neq.${gender},gender.is.null`);
+        }
+        return q;
+      };
+
+      const items = [];
+      // Bir aşama bittiğinde sayfa yarım kalmasın diye döngü: kalan kadarını
+      // sonraki aşamadan tamamlar.
+      while (items.length < limit && phase <= lastPhase) {
+        const need = limit - items.length;
+        const { data, error } = await buildQuery().range(
+          offset,
+          offset + need - 1,
+        );
+        if (error) throw error;
+        const mapped = (data || [])
+          .map((row) => ({
+            styleProfileId: row.id,
+            imageUrl: Array.isArray(row.image_urls) ? row.image_urls[0] : null,
+            subtype: row.product_subtype,
+            gender: row.gender ?? null,
+          }))
+          .filter((item) => typeof item.imageUrl === "string");
+        items.push(...mapped);
+
+        if (!data || data.length < need) {
+          phase += 1;
+          offset = 0;
+        } else {
+          offset += need;
+        }
+      }
+
+      // Sayfa dolmadıysa havuz bitmiştir; imleç null döner ve istemci durur.
+      const cursor =
+        items.length === limit && phase <= lastPhase ? `${phase}:${offset}` : null;
+
+      return res.json({ success: true, items, cursor });
+    } catch (err) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // Bir slotu ayarla (aynı slot tekrar gönderilirse üzerine yazar).
+  router.put("/admin/approach-cards", async (req, res) => {
+    try {
+      const category = String(req.body?.category || "").trim().toLowerCase();
+      const subtype =
+        String(req.body?.subtype || "").trim().toLowerCase() || null;
+      const genderRaw = String(req.body?.gender || "").trim().toLowerCase();
+      const gender = genderRaw === "woman" || genderRaw === "man" ? genderRaw : null;
+      const approach = Number.parseInt(req.body?.approach, 10);
+      const imageUrl = String(req.body?.imageUrl || "").trim();
+      const styleProfileId = req.body?.styleProfileId || null;
+
+      if (!category || !imageUrl || ![1, 2, 3, 4].includes(approach)) {
+        return res.status(400).json({
+          success: false,
+          error: "category, approach (1-4) and imageUrl are required",
+        });
+      }
+
+      // ⚠️ 24 Ağu: slot artık TEK görsel tutmuyor, en fazla 5 görsel tutuyor.
+      // Bu yüzden "üzerine yaz" değil "ekle" davranışı. Aynı görsel iki kez
+      // eklenemez (unique indeks) ve 5'ten fazlası reddedilir.
+      // NULL alt tür `.is()` ile, dolu alt tür `.eq()` ile aranır.
+      const slotFilter = (query) => {
+        let q = query
+          .eq("product_category", category)
+          .eq("style_approach", approach);
+        q = subtype ? q.eq("product_subtype", subtype) : q.is("product_subtype", null);
+        return gender ? q.eq("gender", gender) : q.is("gender", null);
+      };
+
+      const { data: existingRows, error: existingErr } = await slotFilter(
+        supabase.from("style_approach_cards").select("id, image_url"),
+      );
+      if (existingErr) throw existingErr;
+
+      const already = (existingRows || []).find((r) => r.image_url === imageUrl);
+      if (already) {
+        return res.json({ success: true, card: already, alreadySelected: true });
+      }
+      if ((existingRows || []).length >= MAX_CARDS_PER_SLOT) {
+        return res.status(409).json({
+          success: false,
+          error: `Bu slotta en fazla ${MAX_CARDS_PER_SLOT} görsel olabilir — önce birini kaldırın.`,
+          limit: MAX_CARDS_PER_SLOT,
+        });
+      }
+
+      const result = await supabase
+        .from("style_approach_cards")
+        .insert({
+          product_category: category,
+          product_subtype: subtype,
+          gender,
+          style_approach: approach,
+          image_url: imageUrl,
+          style_profile_id: styleProfileId,
+        })
+        .select()
+        .single();
+      if (result.error) {
+        // ⚠️ Eski tekil indeks (style_approach_cards_slot_idx) hâlâ duruyorsa
+        // ikinci görsel unique ihlaliyle patlar. Ham Postgres hatası yerine
+        // ne yapılacağını söyleyen bir mesaj dön.
+        if (/slot_idx|duplicate key/i.test(result.error.message || "")) {
+          return res.status(409).json({
+            success: false,
+            error:
+              "Bu slota ikinci görsel eklenemiyor: migrations/add_style_approach_cards_multi.sql henüz çalıştırılmamış.",
+          });
+        }
+        throw result.error;
+      }
+
+      approachSampleCache.clear(); // seçim anında görünsün
+      return res.json({ success: true, card: result.data });
+    } catch (err) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+
+  // ✏️ Kart görselini PROMPT ile yeniden üret (31 Ağu 2026, kullanıcı isteği)
+  //
+  // Akış: yönetici Türkçe yazar → metin İngilizce bir DÜZENLEME talimatına
+  // çevrilir → nano-banana-2/edit mevcut kareyi o talimatla yeniden üretir →
+  // sonuç `reference` bucket'ına yüklenir → slottaki satırın image_url'i yeni
+  // adrese döner. Kart aynı yerinde kalır, yalnız görseli değişir.
+  //
+  // ⚠️ ORAN KORUNUR: `aspect_ratio: "auto"` — kartlar 3:4 gösteriliyor, oran
+  // değişirse uygulamada kırpma bozuluyor. Model "aynı kadraj" talimatını da
+  // prompt içinde alıyor; ikisi birlikte güvence.
+  //
+  // ⚠️ Eski görsel bucket'ta BIRAKILIR. Aynı kare başka bir slotta ya da bir
+  // stil profilinde de kullanılıyor olabilir; silmek onları kırardı.
+  router.post("/admin/approach-cards/regenerate", async (req, res) => {
+    try {
+      const category = String(req.body?.category || "").trim().toLowerCase();
+      const subtype =
+        String(req.body?.subtype || "").trim().toLowerCase() || null;
+      const genderRaw = String(req.body?.gender || "").trim().toLowerCase();
+      const gender =
+        genderRaw === "woman" || genderRaw === "man" ? genderRaw : null;
+      const approach = Number.parseInt(req.body?.approach, 10);
+      const imageUrl = String(req.body?.imageUrl || "").trim();
+      const userPrompt = String(req.body?.prompt || "").trim();
+
+      if (!category || !imageUrl || ![1, 2, 3, 4].includes(approach)) {
+        return res.status(400).json({
+          success: false,
+          error: "category, approach (1-4) ve imageUrl zorunlu",
+        });
+      }
+      if (userPrompt.length < 3) {
+        return res
+          .status(400)
+          .json({ success: false, error: "Ne değişsin, birkaç kelimeyle yazın." });
+      }
+      const falApiKey = process.env.FAL_API_KEY || process.env.FAL_KEY;
+      if (!falApiKey) {
+        return res
+          .status(500)
+          .json({ success: false, error: "FAL_API_KEY tanımlı değil" });
+      }
+
+      // 1) Satır gerçekten bu slotta mı? Yalnız seçili kareler düzenlenebilir.
+      let rowQuery = supabase
+        .from("style_approach_cards")
+        .select("id, image_url")
+        .eq("product_category", category)
+        .eq("style_approach", approach)
+        .eq("image_url", imageUrl);
+      rowQuery = subtype
+        ? rowQuery.eq("product_subtype", subtype)
+        : rowQuery.is("product_subtype", null);
+      rowQuery = gender
+        ? rowQuery.eq("gender", gender)
+        : rowQuery.is("gender", null);
+      const { data: row, error: rowErr } = await rowQuery.maybeSingle();
+      if (rowErr) throw rowErr;
+      if (!row) {
+        return res.status(404).json({
+          success: false,
+          error: "Bu görsel bu slotta seçili değil — sayfayı yenileyin.",
+        });
+      }
+
+      // 2) Türkçe istek → İngilizce düzenleme talimatı.
+      // Çeviri ayrı bir adım DEĞİL: model hem çeviriyi hem "sadece bunu
+      // değiştir, gerisi aynı kalsın" çerçevesini tek çağrıda kuruyor.
+      // Başarısız olursa ham metinle devam edilir — yönetici zaten İngilizce
+      // yazmış olabilir, işi tamamen durdurmak gereksiz.
+      const instructionBrief = [
+        "You are writing a single image-editing instruction for an image editing model.",
+        "The admin's request below may be written in Turkish; translate its meaning into English.",
+        "Output ONLY the final English editing instruction, one paragraph, no preamble.",
+        "The instruction must state that everything not mentioned stays exactly as in the source image:",
+        "same subject, same product, same framing, same crop and aspect ratio, same camera angle.",
+        "Apply only the requested change.",
+        "",
+        `ADMIN REQUEST: ${userPrompt}`,
+      ].join("\n");
+
+      let editPrompt = "";
+      try {
+        editPrompt = String(
+          (await callGeminiFlash(instructionBrief, [], 2)) || "",
+        ).trim();
+      } catch (err) {
+        console.warn(
+          "⚠️ [APPROACH_CARD_REGEN] çeviri başarısız, ham metin kullanılıyor:",
+          err?.message,
+        );
+      }
+      if (!editPrompt) editPrompt = userPrompt;
+      // Oran güvencesi prompt'a her hâlükârda eklenir (model çevirisi bunu
+      // düşürmüş olabilir).
+      const finalPrompt = `${editPrompt}\n\nKeep the exact same framing, crop, aspect ratio and composition as the source image.`;
+
+      // 3) nano-banana-2 ile düzenle.
+      const sourceUrl = getOriginalUrl(imageUrl);
+      const falResponse = await axios.post(
+        "https://fal.run/fal-ai/nano-banana-2/edit",
+        {
+          prompt: finalPrompt,
+          image_urls: [sourceUrl],
+          num_images: 1,
+          aspect_ratio: "auto", // kaynağın oranı korunur
+          output_format: "jpeg",
+          resolution: "2K",
+          safety_tolerance: "6",
+        },
+        {
+          headers: {
+            Authorization: `Key ${falApiKey}`,
+            "Content-Type": "application/json",
+          },
+          timeout: 300000,
+        },
+      );
+      const producedUrl =
+        falResponse?.data?.images?.[0]?.url || falResponse?.data?.image?.url;
+      if (!producedUrl) {
+        throw new Error("fal geçerli bir görsel döndürmedi");
+      }
+
+      // 4) Bucket'a yaz. Yol her seferinde benzersiz: aynı adrese yazmak
+      // CDN'in uzun cache'i yüzünden eski kareyi geri getirirdi.
+      const download = await axios.get(producedUrl, {
+        responseType: "arraybuffer",
+        timeout: 180000,
+        maxContentLength: 100 * 1024 * 1024,
+        maxBodyLength: 100 * 1024 * 1024,
+      });
+      const contentType = String(
+        download.headers["content-type"] || "image/jpeg",
+      )
+        .split(";")[0]
+        .trim();
+      const ext = contentType.includes("png")
+        ? "png"
+        : contentType.includes("webp")
+          ? "webp"
+          : "jpg";
+      const objectPath = `${STORAGE_PREFIX}approach_${category}_${approach}_${Date.now()}_${uuidv4().substring(0, 8)}.${ext}`;
+      const { error: uploadErr } = await supabase.storage
+        .from("reference")
+        .upload(objectPath, Buffer.from(download.data), {
+          contentType,
+          cacheControl: "31536000",
+          upsert: false,
+        });
+      if (uploadErr) throw new Error(`Supabase upload: ${uploadErr.message}`);
+      const { data: publicData } = supabase.storage
+        .from("reference")
+        .getPublicUrl(objectPath);
+      const newUrl = publicData?.publicUrl;
+      if (!newUrl) throw new Error("Supabase public URL üretilemedi");
+
+      // 5) Slottaki satır yeni adrese döner (yeni satır açılmaz — kartın
+      // sırası ve sayısı aynı kalmalı).
+      const { error: updateErr } = await supabase
+        .from("style_approach_cards")
+        .update({ image_url: newUrl, style_profile_id: null })
+        .eq("id", row.id);
+      if (updateErr) throw updateErr;
+
+      approachSampleCache.clear(); // değişiklik uygulamada hemen görünsün
+      console.log(
+        `✏️ [APPROACH_CARD_REGEN] ${category}/${approach} güncellendi → ${objectPath}`,
+      );
+      return res.json({ success: true, imageUrl: newUrl, prompt: finalPrompt });
+    } catch (err) {
+      const detail =
+        err?.response?.data?.detail?.[0]?.msg ||
+        err?.response?.data?.error ||
+        err.message;
+      console.error("❌ [APPROACH_CARD_REGEN]", detail);
+      return res.status(500).json({ success: false, error: detail });
+    }
+  });
+
+  // Slotu temizle → kart yeniden havuz görseline döner.
+  router.delete("/admin/approach-cards", async (req, res) => {
+    try {
+      const category = String(req.body?.category || req.query.category || "")
+        .trim()
+        .toLowerCase();
+      const subtype =
+        String(req.body?.subtype || req.query.subtype || "")
+          .trim()
+          .toLowerCase() || null;
+      const genderRaw = String(req.body?.gender || req.query.gender || "")
+        .trim()
+        .toLowerCase();
+      const gender = genderRaw === "woman" || genderRaw === "man" ? genderRaw : null;
+      const approach = Number.parseInt(
+        req.body?.approach ?? req.query.approach,
+        10,
+      );
+      if (!category || ![1, 2, 3, 4].includes(approach)) {
+        return res
+          .status(400)
+          .json({ success: false, error: "category and approach (1-4) required" });
+      }
+      let q = supabase
+        .from("style_approach_cards")
+        .delete()
+        .eq("product_category", category)
+        .eq("style_approach", approach);
+      q = subtype ? q.eq("product_subtype", subtype) : q.is("product_subtype", null);
+      q = gender ? q.eq("gender", gender) : q.is("gender", null);
+      // imageUrl verilirse YALNIZ o görsel kaldırılır; verilmezse slot boşalır.
+      const imageUrl = String(req.body?.imageUrl || req.query.imageUrl || "").trim();
+      if (imageUrl) q = q.eq("image_url", imageUrl);
+      const { error } = await q;
+      if (error) throw error;
+      approachSampleCache.clear();
+      return res.json({ success: true });
+    } catch (err) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
   // 🌍 Global (küratörlü) stil profilleri — user_id = 'global' satırları.
   // Admin, normal POST / ucuna userId: "global" ile oluşturur; tüm kullanıcılara sunulur.
   router.get("/global", async (req, res) => {
@@ -1736,6 +2728,95 @@ function createStyleProfileRouter({
       if (error) throw new Error(error.message);
       return res.json({ success: true, profile: data });
     } catch (err) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // 🌟 ADMIN — otomatik stil havuzu metadata'sı: tags / product_category / auto_pool.
+  // Kolonlar add_auto_style_pool_columns.sql migration'ı ile gelir. Seçim şu an
+  // ortak havuzdan rastgele; kategori/tag ileride eşleme için kayıt altına alınır.
+  // Yalnızca gönderilen alanlar güncellenir.
+  router.patch("/:id/auto-meta", async (req, res) => {
+    try {
+      const {
+        userId, tags, productCategory, productSubtype, styleApproach,
+        autoPool, estimatedAge,
+      } = req.body;
+      const owned = await getOwnedProfile(req.params.id, userId);
+      if (owned.error) {
+        return res
+          .status(owned.status)
+          .json({ success: false, error: owned.error });
+      }
+
+      const patch = {};
+      if (tags !== undefined) {
+        if (!Array.isArray(tags) || tags.some((t) => typeof t !== "string")) {
+          return res
+            .status(400)
+            .json({ success: false, error: "tags must be a string array" });
+        }
+        // ⚠️ Vitrin aramasının çok dilli `tags` kolonuna DOKUNMA — otomatik
+        // havuz etiketleri ayrı `auto_tags` kolonunda tutulur.
+        patch.auto_tags = tags
+          .map((t) => t.trim().toLowerCase())
+          .filter(Boolean)
+          .slice(0, 20);
+      }
+      if (productCategory !== undefined) {
+        const normalized =
+          productCategory === null
+            ? null
+            : String(productCategory).trim().toLowerCase().slice(0, 40);
+        patch.product_category = normalized || null;
+      }
+      if (productSubtype !== undefined) {
+        // Alt tür serbest metin gelebilir; küçük harf + 40 karakter sınırı.
+        const normalizedSub =
+          productSubtype === null
+            ? null
+            : String(productSubtype).trim().toLowerCase().slice(0, 40);
+        patch.product_subtype = normalizedSub || null;
+      }
+      if (styleApproach !== undefined) {
+        // Sayısal enum 1..3; aralık dışı/boş değer null'a düşer (kolonda CHECK var).
+        const n = parseInt(styleApproach, 10);
+        patch.style_approach =
+          Number.isInteger(n) && n >= 1 && n <= 3 ? n : null;
+      }
+      if (autoPool !== undefined) {
+        patch.auto_pool = autoPool === null ? null : Boolean(autoPool);
+      }
+      if (estimatedAge !== undefined) {
+        if (estimatedAge === null) {
+          patch.estimated_age = null;
+        } else {
+          const parsedAge = parseInt(estimatedAge, 10);
+          if (!Number.isFinite(parsedAge) || parsedAge < 0 || parsedAge > 99) {
+            return res.status(400).json({
+              success: false,
+              error: "estimatedAge must be a number between 0 and 99 (or null)",
+            });
+          }
+          patch.estimated_age = parsedAge;
+        }
+      }
+      if (Object.keys(patch).length === 0) {
+        return res
+          .status(400)
+          .json({ success: false, error: "No fields to update" });
+      }
+
+      const { data, error } = await supabase
+        .from(TABLE)
+        .update(patch)
+        .eq("id", req.params.id)
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
+      return res.json({ success: true, profile: data });
+    } catch (err) {
+      console.error("❌ [STYLE_PROFILE] auto-meta error:", err?.message);
       return res.status(500).json({ success: false, error: err.message });
     }
   });

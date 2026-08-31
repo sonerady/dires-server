@@ -130,11 +130,16 @@ router.get("/app-config/version", async (req, res) => {
         trialCredits: 150,
         trialDurationDays: 3,
         paywallPricingVersion: "v1",
-        // 🎞️ Editorial mod — config satırı yoksa özellik açık kabul edilir
+        // 🎞️ Editorial mod — config satırı yoksa buton görünür ama VARSAYILAN
+        // KAPALI (19 Ağu 2026: ekran Kanvas/Normal açılmalı, kullanıcı kararı)
         editorialModeVisible: true,
-        editorialModeDefault: true,
+        editorialModeDefault: false,
         // Stil önerileri şeridi — varsayılan KAPALI
         styleSuggestionsVisible: false,
+        // Çekim modu ön kapısı ve otomatik stil ana şalteri — config satırı
+        // yoksa ikisi de AÇIK kabul edilir (bugünkü davranış).
+        createModelStartModalEnabled: true,
+        autoGlobalStyleEnabled: true,
         videoCredits: { ...DEFAULT_VIDEO_CREDITS },
         lang,
         fetchedAt: new Date().toISOString(),
@@ -159,11 +164,18 @@ router.get("/app-config/version", async (req, res) => {
       trialCredits: Number.isFinite(data.trial_credits) ? data.trial_credits : 150,
       trialDurationDays: Number.isFinite(data.trial_duration_days) ? data.trial_duration_days : 3,
       paywallPricingVersion: data.paywall_pricing_version === "v2" ? "v2" : "v1",
-      // 🎞️ Editorial mod — kolon henüz eklenmemişse (undefined) açık kabul et
+      // 🎞️ Editorial mod — buton görünürlüğü eski davranışta (yalnız açıkça
+      // false gizler); VARSAYILAN ise artık yalnız DB açıkça true derse AÇIK
+      // (19 Ağu 2026: ekran Kanvas/Normal açılmalı, kullanıcı kararı)
       editorialModeVisible: data.editorial_mode_visible !== false,
-      editorialModeDefault: data.editorial_mode_default !== false,
+      editorialModeDefault: data.editorial_mode_default === true,
       // Varsayılan KAPALI: sütun yoksa ya da false ise özellik gizli
       styleSuggestionsVisible: data.style_suggestions_visible === true,
+      // ⚠️ Bu ikisi varsayılan AÇIK: kolon henüz eklenmemişse (undefined)
+      // mevcut davranış korunmalı. Yalnız AÇIKÇA false kapatır.
+      createModelStartModalEnabled:
+        data.create_model_start_modal_enabled !== false,
+      autoGlobalStyleEnabled: data.auto_global_style_enabled !== false,
       videoCredits: normaliseVideoCredits(data.metadata),
       lang,
       fetchedAt: new Date().toISOString(),

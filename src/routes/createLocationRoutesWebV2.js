@@ -74,7 +74,8 @@ async function generateLocationWithImagen4Fast(prompt, userId) {
     console.log("Prompt:", prompt);
 
     const response = await fetch(
-      "https://fal.run/fal-ai/imagen4/preview/ultra",
+      // ⚠️ 25 Ağu 2026: fal imagen4 ucunu kaldırdı (404) → nano-banana-2 t2i
+      "https://fal.run/fal-ai/nano-banana-2",
       {
         method: "POST",
         headers: {
@@ -85,7 +86,8 @@ async function generateLocationWithImagen4Fast(prompt, userId) {
           prompt: `${prompt} The image should have vibrant colors, high contrast, excellent lighting, and sharp visual quality. No people, no humans, no figures, no mannequins, no characters, empty location, vacant space.`,
           aspect_ratio: "1:1",
           output_format: "jpeg",
-          safety_filter_level: "block_only_high",
+          // nano-banana-2 şemasında safety_filter_level yok; resolution ayrı alan
+          resolution: "1K",
         }),
       }
     );

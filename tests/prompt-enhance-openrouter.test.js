@@ -44,14 +44,33 @@ test("OpenRouter Gemini sends text first and preserves all image references", as
   }
 });
 
-test("every app-config prompt dispatcher maps gemini to OpenRouter", () => {
+// 17 Ağu 2026: sağlayıcı yeniden app_config.prompt_enhance_provider'dan okunuyor
+// (13 Ağu'daki "sabit OpenRouter" kararı geri alındı — OpenRouter bakiyesi bitince
+// her çağrı boşuna deneyip fallback'e düşüyordu). Her dispatcher config'i okumalı
+// ve İKİ sağlayıcıyı da tanımalı ki DB'den anahtar çevrilebilsin.
+test("every prompt dispatcher honours app_config and keeps both providers", () => {
   for (const relativePath of [
     "../src/utils/promptEnhanceProvider.js",
     "../src/routes/referenceBrowserRoutesV7.js",
+    "../src/routes/referenceJewelryBrowserRoutesV7.js",
     "../src/routes/generateProductKitRoutesV2.js",
   ]) {
     const source = fs.readFileSync(path.join(__dirname, relativePath), "utf8");
-    assert.ok(source.includes("Provider: gemini (OpenRouter"), relativePath);
-    assert.ok(source.includes("callOpenRouterGeminiFlash("), relativePath);
+    assert.ok(
+      source.includes("await getPromptEnhanceProvider()"),
+      `${relativePath}: config okunmuyor`,
+    );
+    assert.ok(
+      source.includes('provider === "replicate"'),
+      `${relativePath}: replicate dalı yok`,
+    );
+    assert.ok(
+      source.includes("callOpenRouterGeminiFlash("),
+      `${relativePath}: OpenRouter yolu yok`,
+    );
+    assert.ok(
+      /callReplicateGeminiFlash(Raw)?\(/.test(source),
+      `${relativePath}: Replicate yolu yok`,
+    );
   }
 });

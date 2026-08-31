@@ -44,6 +44,8 @@ const referenceBrowserRoutesV4 = require("./routes/referenceBrowserRoutesV4");
 const referenceBrowserRoutesV5 = require("./routes/referenceBrowserRoutesV5");
 const referenceBrowserRoutesV6 = require("./routes/referenceBrowserRoutesV6");
 const referenceBrowserRoutesV7 = require("./routes/referenceBrowserRoutesV7");
+const referenceJewelryBrowserRoutesV7 = require("./routes/referenceJewelryBrowserRoutesV7");
+const productTypeRoutes = require("./routes/productTypeRoutes");
 const styleProfileRoutes = require("./routes/styleProfileRoutes");
 const refinerStyleProfileRoutes = require("./routes/refinerStyleProfileRoutes");
 const styleInspirationRoutes = require("./routes/styleInspirationRoutes");
@@ -251,6 +253,8 @@ app.get("/api/status", (req, res) => {
 // Mevcut route tanımlamaları
 app.use("/api", backgroundGeneratorRouter);
 app.use("/api/images", imageRoutes);
+// 🏷️ Ürün tipi sınıflandırma (shoes/jewelry/clothing) — otomatik stil filtresi
+app.use("/api/product-type", productTypeRoutes);
 app.use("/api/generateFirstShoot", generateFirstShootRouter);
 app.use("/api/generatePhotoshoot", generatePhotoshootRouter);
 app.use("/api/getModel", getModelRouter);
@@ -344,6 +348,7 @@ app.use("/api/referenceBrowserV4", referenceBrowserRoutesV4);
 app.use("/api/referenceBrowserV5", referenceBrowserRoutesV5);
 app.use("/api/referenceBrowserV6", referenceBrowserRoutesV6);
 app.use("/api/referenceBrowserV7", referenceBrowserRoutesV7);
+app.use("/api/referenceJewelryBrowserV7", referenceJewelryBrowserRoutesV7);
 // Stil yönetimindeki okuma/yazma uçları yalnız oturum açmış admin tarafından
 // kullanılabilir. Public /global ve kullanıcı profili uçları aynı kalır.
 app.use("/api/style-profiles/admin", requireAdmin);

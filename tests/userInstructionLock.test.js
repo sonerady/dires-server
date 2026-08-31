@@ -50,6 +50,24 @@ test("adds reference-image requirements when Advanced Settings use references", 
   assert.match(lock, /HAIR REFERENCE/);
 });
 
+test("scopes model selections to the hero when style may require a partner", () => {
+  const lock = buildUserInstructionLock({
+    settings: {
+      age: "child",
+      gender: "man",
+      hairStyle: "short crop",
+      pose: "hands in pockets",
+    },
+    primaryModelOnly: true,
+  });
+
+  assert.match(lock, /PRIMARY\/HERO MODEL AGE: child/);
+  assert.match(lock, /PRIMARY\/HERO MODEL GENDER PRESENTATION: man/);
+  assert.match(lock, /PRIMARY\/HERO MODEL HAIR STYLE: short crop/);
+  assert.match(lock, /PRIMARY\/HERO MODEL POSE: hands in pockets/);
+  assert.match(lock, /do not delete a supporting person required by the style/);
+});
+
 test("appends the user lock without trimming a long model prompt", () => {
   const lock = buildUserInstructionLock({
     customDetail: "Show a clearly visible red silk scarf",
@@ -76,4 +94,20 @@ test("keeps a Turkish backside color-and-prop request after preservation text", 
   assert.match(full, /kıyafetin rengini kırmızıyla değiştir/);
   assert.match(full, /ADD DETAIL has priority if two user inputs conflict/);
   assert.match(full, /allowed exception to general product-preservation rules/);
+});
+
+test("uses jewelry terminology for jewelry generation locks", () => {
+  const lock = buildUserInstructionLock({
+    productCategory: "jewelry",
+    settings: {
+      productColor: "yellow gold",
+      bodyShape: "slim",
+      accessories: "minimal earrings",
+    },
+    hasPoseReference: true,
+  });
+
+  assert.match(lock, /jewelry's metal\/material color/i);
+  assert.match(lock, /featured jewelry placement/i);
+  assert.doesNotMatch(lock, /garment fit|garment's important details/i);
 });

@@ -33,13 +33,61 @@ const supabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-// Hız ve maliyet odaklı Nano Banana Lite edit modeli.
-const VARIATION_MODEL = "google/nano-banana-lite/edit";
-const VARIATION_MODEL_SETTINGS = {
+// 🎨 Varyasyon modeli — GPT Image 2, quality "low" (28 Ağu 2026). TÜM ekranlar:
+// hem Refiner'ın ürün varyantları hem CreateModelPhoto'nun poz varyantları.
+//
+// Model turu ve gerekçe: Nano Banana Lite → GPT "high" (çok yavaş/pahalı, geri
+// alındı) → nano-banana-2 (geri alındı) → Lite → Refiner'da GPT "low" → şimdi
+// her yerde GPT "low". Karar maliyetle de destekleniyor: fal fiyat tablosunda
+// GPT "low" 1024x1536 için $0,018/görsel; Lite ise token bazlı ($37,50/1M
+// görsel çıktı tokenı × 1K başına ~1.120 token) ≈ $0,042/görsel.
+//
+// ⚠️ ALAN ŞEMASI Lite'tan FARKLI: `aspect_ratio` ve `limit_generations` YOK;
+// yerine `image_size` (enum) ve `quality` var.
+// 🛟 GPT Image 2 zaman zaman 422 "Unprocessable Entity" dönüyor (girdi
+// görselinin en-boy oranı, boyutu ya da prompt uzunluğu yüzünden). O durumda
+// parti boş kalmasın diye ÜRETİM Nano Banana Lite ile tekrarlanır — kullanıcı
+// kararı, 28 Ağu 2026. Lite'ın alan şeması farklı, ayarları ayrı tutuluyor.
+const VARIATION_FALLBACK_MODEL = "google/nano-banana-lite/edit";
+const VARIATION_FALLBACK_SETTINGS = {
   num_images: 1,
   output_format: "jpeg",
   limit_generations: true,
 };
+const getVariationFallbackSettings = (aspectRatio) => ({
+  ...VARIATION_FALLBACK_SETTINGS,
+  ...(aspectRatio ? { aspect_ratio: aspectRatio } : {}),
+});
+
+const VARIATION_MODEL = "openai/gpt-image-2/edit";
+const VARIATION_QUALITY = "low";
+const VARIATION_MODEL_SETTINGS = {
+  num_images: 1,
+  output_format: "jpeg",
+  quality: VARIATION_QUALITY,
+};
+
+// GPT Image 2 oranı ENUM olarak alıyor; en yakın şekle yuvarlanır.
+// Tablo createRefiner.js'tekiyle BİREBİR aynı — iki yerde ayrışmasın.
+const mapRatioToGptImage2Size = (ratio) =>
+  ({
+    "21:9": "landscape_16_9",
+    "16:9": "landscape_16_9",
+    "3:2": "landscape_4_3",
+    "4:3": "landscape_4_3",
+    "5:4": "landscape_4_3",
+    "1:1": "square_hd",
+    "4:5": "portrait_4_3",
+    "3:4": "portrait_4_3",
+    "2:3": "portrait_4_3",
+    "9:16": "portrait_16_9",
+  })[String(ratio || "")] || "portrait_4_3";
+// 🔢 Parti başına üretilen kare sayısı. 28 Ağu 2026'da 2 → 3 çıkarıldı:
+// GPT Image 2 "low" görsel başı $0,018'e indiği için üçüncü kare partiyi
+// ~$0,054'e getiriyor — Lite'lı iki karelik eski partiden ($0,084) hâlâ ucuz.
+// ⚠️ Prompt üreticiler, yedek promptlar ve Results kart düzeni bu sayıya bağlı.
+const VARIATIONS_PER_BATCH = 3;
+
 const FREE_FIRST_VARIATION = true;
 const VARIATION_CREDIT_COST = 10;
 const TRIAL_VARIATION_BATCH_LIMIT = 5;
@@ -69,9 +117,11 @@ const normalizeVariationAspectRatio = (value) => {
     : null;
 };
 
+// Model ürün tipinden BAĞIMSIZ (bkz. VARIATION_MODEL notu); takıya özel olan
+// yalnız PROMPT tarafı — iki kare de makro, her biri farklı bir detayda.
 const getVariationModelSettings = (aspectRatio) => ({
   ...VARIATION_MODEL_SETTINGS,
-  ...(aspectRatio ? { aspect_ratio: aspectRatio } : {}),
+  image_size: mapRatioToGptImage2Size(aspectRatio),
 });
 
 // Gemini yaratıcı pozu/kadrajı seçer; referanstaki kimlik, ürün ve sahne
@@ -119,9 +169,140 @@ const ENVIRONMENT_PERSPECTIVE_SUFFIX =
   "The two variations must also use clearly different environmental perspectives from " +
   "each other while remaining physically consistent with the same location.";
 
+// 💍 ÜRÜN MODU (27 Ağu 2026, kullanıcı isteği) — Refiner çıktıları için.
+// Refiner karesinde manken yok: ortada temizlenmiş bir ÜRÜN var. Poz/mekân
+// çeşitlendirmesi burada anlamsız; kullanıcının istediği, ürün sayfasını
+// zenginleştiren İKİNCİ AÇI ve DETAY MAKRO kareleri.
+//   • Varyasyon 1 → aynı ürün, gerçekten farklı bir kamera açısı, daha yakın
+//   • Varyasyon 2 → ürünün en değerli detayına makro yakınlaşma
+// İkisinin birbirinden farklı olması zorunlu (aşağıdaki divergence bloğu).
+const PRODUCT_VARIATION_PRESERVATION_SUFFIX =
+  "Edit the provided reference image. The FIRST image is the finished catalog photograph of " +
+  "the product; it is the single source of truth for the product's identity. Preserve that " +
+  "product EXACTLY: the same object, same silhouette and proportions, same materials and " +
+  "finish, same colors and color temperature, same metal tone, same stones, same texture, " +
+  "same pattern, same stitching, same hardware, same engraving and the same branding. Do not " +
+  "restyle, redesign, simplify, embellish, resize or replace any part of the product, and do " +
+  "not invent details that are not visible in the references. Keep the same clean studio " +
+  "background, the same background color, the same soft even lighting and the same color " +
+  "grade as the reference. No people, no hands, no fingers, no model, no ears, no necks, no " +
+  "mannequin parts, no display busts, no stands, no props, no packaging, no fabric, no text, " +
+  "no logos of other brands, no watermark, no collage and no split frames. The output is one " +
+  "single photograph of that one product, finished to flawless high-end e-commerce retouch " +
+  "quality: razor-sharp focus on the product, crisp edges, clean surfaces free of dust, lint, " +
+  "scratches and fingerprints, and true-to-life color.\n\n" +
+  "BACKGROUND FIDELITY — REPRODUCE THE HERO'S BACKGROUND EXACTLY: The hero image already carries " +
+  "a finished catalog background; the output must show the SAME background, edge to edge. If it is " +
+  "pure white, the output background is the same pure, even, seamless white (#FFFFFF) across the " +
+  "whole frame — never grey, never cream, never beige, never washed-out or dulled, never a gradient, " +
+  "never vignetted or darker in the corners, with no visible seam, no horizon line, no dust, no " +
+  "noise and no soft falloff. If the hero background is a colour, reproduce that EXACT colour with " +
+  "the same hue, saturation and brightness across the entire frame — never faded, muted, darkened, " +
+  "pastelled, tinted by the product's reflections or shifted toward a neighbouring shade. This rule " +
+  "matters most in a close-up frame, where a near camera and shallow depth of field tend to grey " +
+  "down, blur or contaminate the background: keep it perfectly clean, uniform and fully saturated " +
+  "there too. Do not introduce any surface, table, floor, wall, backdrop edge, prop shadow or " +
+  "environmental colour cast that the hero image does not have.";
+
+const PRODUCT_DIVERGENCE_SUFFIX =
+  "\n\nMANDATORY SHOT-DIVERGENCE RULE: Compare against reference image 1 before editing. " +
+  "This frame must be unmistakably a DIFFERENT photograph of the same product, not a subtle " +
+  "adjustment or a re-crop of the hero. Change the camera position in three-dimensional space: " +
+  "the viewing angle, the rotation of the product relative to the lens, the camera height and " +
+  "the camera distance must all visibly differ from the hero, with physically coherent " +
+  "perspective, foreshortening and specular highlights for the new viewpoint. Simply zooming " +
+  "into the hero pixels, mirroring it, or nudging the crop is a failed edit. The product stays " +
+  "the visual subject and fills the frame confidently.";
+
 // ─────────────────────────────────────────────────────────────
 // Yardımcılar
 // ─────────────────────────────────────────────────────────────
+
+/**
+ * 💎 Takı sayılan kaynak kategorileri. Refiner kalıcı kayda sınıflandırıcının
+ * ÜST TİPİNİ ("jewelry") yazıyor; sahneleme kategorileri (earrings/rings/…)
+ * eski kayıtlarda görülebildiği için onlar da kabul ediliyor.
+ */
+const JEWELRY_SOURCE_CATEGORIES = new Set([
+  "jewelry",
+  "earrings",
+  "rings",
+  "necklaces",
+  "bracelets_chain",
+  "bracelets_bangle",
+]);
+
+/**
+ * 💎 Kayıtta kategori YOKSA (28 Ağu öncesi üretimler) ürünün takı olup
+ * olmadığını kaydın kendi prompt metninden çıkarır. Refiner prompt'ları ürünü
+ * adıyla anıyor ("every earring in the output…", "the prong setting…"), bu
+ * yüzden metin güvenilir bir ikinci kaynak.
+ *
+ * "ring" tek başına yanıltıcı (ring light, during…), o yüzden GÜÇLÜ sözcükler
+ * tek başına yeter; ZAYIF olanlar en az iki tane olmalı.
+ */
+const JEWELRY_STRONG = /\b(earrings?|necklaces?|pendants?|bracelets?|bangles?|anklets?|brooch(?:es)?|cufflinks?|jewell?ery|jewelry|gemstones?|milgrain|solitaire|leverback)\b/i;
+const JEWELRY_WEAK = /\b(rings?|bands?|clasp|bail|bezel|prongs?|carat|karat|facets?)\b/i;
+
+function looksLikeJewelryText(text) {
+  const raw = String(text || "").slice(0, 6000);
+  if (!raw) return false;
+  if (JEWELRY_STRONG.test(raw)) return true;
+  const weakHits = new Set(
+    (raw.match(new RegExp(JEWELRY_WEAK.source, "gi")) || []).map((w) =>
+      w.toLowerCase(),
+    ),
+  );
+  return weakHits.size >= 2;
+}
+
+/** İstek gövdesi ya da kaynak kaydın ayarları ürün modunu söyler. */
+function resolveProductVariationMode({ requested, sourceIsProductShot }) {
+  const raw = String(requested || "").trim().toLowerCase();
+  if (raw === "product") return true;
+  if (raw === "pose") return false;
+  // İstemci bir şey söylemediyse kaynak kaydın kendisi karar verir: Refiner
+  // çıktılarında settings.isRefinerMode === true.
+  return sourceIsProductShot === true;
+}
+
+/** Ürün modunda promptun sonuna korunum + ayrışma kuralları eklenir. */
+function finalizeProductVariationPrompt(prompt, { slot, jewelry = false } = {}) {
+  // 💎 TAKI: iki kare de MAKRO, her biri BAŞKA bir detayda (28 Ağu 2026,
+  // kullanıcı kararı). Takıda "ikinci katalog açısı" ticari olarak zayıf —
+  // alıcı taşı, montürü, kilidi, işçiliği yakından görmek istiyor.
+  const jewelrySlotSuffix =
+    slot === 3
+      ? "\n\nTHIS FRAME IS THE THIRD DETAIL MACRO: it closes in on yet another area, different from " +
+        "BOTH earlier macros — a different part, a different angle and a different crop. If the first " +
+        "two covered the stone and the clasp, this one goes to the chain links, the band profile, the " +
+        "gallery, the engraving or the pavé work. Nothing already shown may be repeated."
+      : slot === 2
+      ? "\n\nTHIS FRAME IS THE SECOND DETAIL MACRO: it must close in on a COMPLETELY DIFFERENT part of the piece than the first macro. If the first frame goes to the stone and its setting, this one goes elsewhere — the clasp or closure, the hinge, the post or back fitting, the bail, the gallery under the stone, the chain links, the band profile, the engraving or hallmark, the pavé or milgrain work. The two macros must never show the same area, the same angle or the same crop; a shopper should learn something new from this frame."
+      : "\n\nTHIS FRAME IS THE FIRST DETAIL MACRO: close in on the single most commercially valuable part of the piece — usually the main stone with its setting and prongs, or the signature design element that defines this product — and let that area fill the frame.";
+  const slotSuffix =
+    slot === 3
+      ? "\n\nTHIS FRAME IS THE THIRD ANGLE: one more genuinely different photograph of the same " +
+        "product — a viewing angle, camera height and distance that neither the hero nor the other " +
+        "two frames used. It must add information the others could not show."
+      : slot === 2
+      ? "\n\nTHIS FRAME IS THE DETAIL MACRO: move the camera genuinely close to the single " +
+        "most commercially valuable part of this product and let that area fill the frame. The " +
+        "whole product does not need to be visible. Render that area with real macro optics — " +
+        "true material texture, believable micro-reflections and crisp micro-detail — never an " +
+        "upscaled crop of the hero image. Keep the same background and lighting identity."
+      : "\n\nTHIS FRAME IS THE SECOND CATALOG ANGLE: show the whole product, or almost all of " +
+        "it, from a clearly different viewing angle than the hero and from a closer camera " +
+        "distance, so a shopper reads the shape, depth and construction the hero could not show.";
+  const jewelryMacroRule = jewelry
+    ? "\n\nMACRO REQUIREMENT — BOTH FRAMES OF THIS SET ARE MACRO: this is a true macro photograph taken with a real macro lens, not a digital zoom or an upscaled crop of the hero image. The camera physically moves close to the piece; the chosen detail fills the frame and the rest of the product may fall outside the crop or out of the plane of focus. Render real macro optics: genuine material texture, believable micro-reflections, crisp micro-detail on metal grain, facet edges, prong tips, solder seams, milgrain beads and engraving. Never a wide catalog shot."
+    : "";
+  return (
+    `${String(prompt || "").trim()}\n\n${PRODUCT_VARIATION_PRESERVATION_SUFFIX}` +
+    PRODUCT_DIVERGENCE_SUFFIX +
+    (jewelry ? jewelryMacroRule + jewelrySlotSuffix : slotSuffix)
+  );
+}
 
 /** Bu kaynak için gerçek parti sayısını, trial limitini ve ücreti hesaplar. */
 async function resolveVariationCost(userId, sourceGenerationId) {
@@ -275,8 +456,10 @@ references from the same shoot (product photos and other non-location references
       : ""
   }).
 
-Invent TWO fresh, premium e-commerce fashion-editorial frames from this exact same
-photoshoot. They must be commercially useful on a product detail page and visually
+Invent THREE fresh, premium e-commerce fashion-editorial frames from this exact same
+photoshoot. Each frame must have its OWN SUBJECT — not three versions of the same idea:
+one carries the full look, one carries the attitude and movement, and one carries the
+product's craftsmanship up close. Same shoot, same place, same light — different story. They must be commercially useful on a product detail page and visually
 strong enough for a current fashion lookbook. Do not reuse a fixed pose template and
 do not default to the same familiar stance on every request.
 
@@ -331,7 +514,18 @@ invent, infer or hallucinate the garment's back, even if the user note asks for 
 two complementary front-safe viewpoints and crop distances appropriate to this garment.`
   }
 
-Each final prompt must be a self-contained Nano Banana Lite image-editing brief.
+FRAME 3 IS A CLOSE, IN-SCENE PRODUCT DETAIL: the third prompt moves the camera in close on the
+garment as it is worn — the fabric falling at the shoulder, the collar and its stitching, a cuff, a
+pocket, a button placket, the hem, a belt or a strap — whatever detail genuinely sells this piece.
+It is a CLOSE-UP, not an extreme macro: the crop must still read as a photograph of a person wearing
+the garment, keeping a hand, a shoulder line, part of the torso or the fall of the fabric in frame,
+never an abstract wall of texture.
+CRITICAL — IT STAYS IN THE SAME SCENE: the third frame keeps the hero's environment, daylight,
+weather, colour grade and atmosphere. If the hero was shot outdoors, this close-up is still outdoors
+with that same background softly present behind the detail; if it was shot in a room, it stays in
+that room. Never a studio, never a white sweep, never a flat backdrop, never relit indoors.
+
+Each final prompt must be a self-contained image-editing brief for an image-to-image model.
 Explicitly anchor the edit to the reference person, garment and photoshoot. Preserve the
 identical face, hair, skin tone, body proportions, garment colour, fabric, cut, pattern,
 seams, closures and every product detail. Preserve the same location, set design, physical
@@ -353,7 +547,7 @@ Write each prompt in fluent natural English as a complete and richly visual phot
 brief. Do not put headings, bullets, numbering or meta-commentary inside either prompt.
 
 Return ONLY valid JSON, nothing else:
-{"prompts":["<first prompt>","<second prompt>"]}`;
+{"prompts":["<first prompt>","<second prompt>","<third prompt — the close, in-scene product detail>"]}`;
 
   try {
     const raw = await callGeminiFlash(instruction, imageUrls, 2);
@@ -365,8 +559,8 @@ Return ONLY valid JSON, nothing else:
       const parsed = JSON.parse(match[0]);
       const prompts = (parsed?.prompts || [])
         .filter((p) => typeof p === "string" && p.trim().length > 40)
-        .slice(0, 2);
-      if (prompts.length === 2) {
+        .slice(0, VARIATIONS_PER_BATCH);
+      if (prompts.length === VARIATIONS_PER_BATCH) {
         if (!hasBackReference) {
           const safeFallbacks = fallbackPrompts(false, safeNote);
           const safePrompts = prompts.map((prompt, index) => {
@@ -376,20 +570,24 @@ Return ONLY valid JSON, nothing else:
             );
             return safeFallbacks[index];
           });
-          logger.log("🤖 [VARIATION] Gemini iki front-safe prompt üretti");
+          logger.log(`🤖 [VARIATION] Gemini ${VARIATIONS_PER_BATCH} front-safe prompt üretti`);
           return safePrompts;
         }
-        logger.log("🤖 [VARIATION] Gemini iki prompt üretti");
+        logger.log(`🤖 [VARIATION] Gemini ${VARIATIONS_PER_BATCH} prompt üretti`);
         return prompts;
       }
-      if (prompts.length === 1) {
-        logger.warn("⚠️ [VARIATION] Gemini tek prompt döndü, fallback ile tamamlanıyor");
+      if (prompts.length > 0) {
+        // Eksik kalan slotlar yedek promptlarla tamamlanır (Gemini bazen 1-2
+        // prompt dönüyor; parti hep VARIATIONS_PER_BATCH kare olmalı).
+        logger.warn(
+          `⚠️ [VARIATION] Gemini ${prompts.length} prompt döndü, ${VARIATIONS_PER_BATCH}'e fallback ile tamamlanıyor`,
+        );
         const safeFallbacks = fallbackPrompts(hasBackReference, safeNote);
-        const firstPrompt =
-          !hasBackReference && requestsBackView(prompts[0])
-            ? safeFallbacks[0]
-            : prompts[0];
-        return [firstPrompt, safeFallbacks[1]];
+        return Array.from({ length: VARIATIONS_PER_BATCH }, (_, i) => {
+          const p = prompts[i];
+          if (!p) return safeFallbacks[i];
+          return !hasBackReference && requestsBackView(p) ? safeFallbacks[i] : p;
+        });
       }
     }
     logger.warn("⚠️ [VARIATION] Gemini yanıtı ayrıştırılamadı, fallback kullanılıyor");
@@ -398,6 +596,213 @@ Return ONLY valid JSON, nothing else:
   }
 
   return fallbackPrompts(hasBackReference, safeNote);
+}
+
+/**
+ * 💍 ÜRÜN MODU promptları (Refiner çıktıları).
+ *
+ * Sabit bir açı tarif etmiyoruz: hangi açının bu ürünü sattığını ve hangi
+ * detayın "en değerli" olduğunu görseli gören model bizden iyi biliyor. Biz
+ * yalnız iki karenin ROLÜNÜ (ikinci katalog açısı / detay makro) ve birbirinden
+ * farklı olma zorunluluğunu söylüyoruz.
+ */
+async function buildProductVariationPrompts({ imageUrls, note, jewelry = false }) {
+  const creativeVariationKey = uuidv4().slice(0, 8);
+  // 💎 Takıda iki kare de MAKRO ve BAŞKA BİR DETAY (28 Ağu 2026, kullanıcı
+  // kararı): ikinci katalog açısı takıda ticari olarak zayıf — alıcı taşı,
+  // montürü, kilidi ve işçiliği yakından görmek istiyor.
+  const roleBrief = jewelry
+    ? `PROMPT 1 — FIRST DETAIL MACRO: a true macro photograph of the single most valuable detail you
+identified (usually the main stone with its setting and prongs, or the signature design element
+that defines this piece). The camera physically moves close and that area fills the frame; the rest
+of the piece may fall outside the crop or out of focus. Describe the craftsmanship concretely —
+facet edges, prong tips, metal grain, micro-reflections — so it reads as a real macro shot taken on
+set, never a digital zoom.
+
+PROMPT 2 — SECOND DETAIL MACRO: another true macro, but on a COMPLETELY DIFFERENT part of the same
+piece. Pick from what this product actually has: the clasp or closure, the hinge, the earring post
+or butterfly back, the leverback, the bail, the gallery under the stone, the chain links, the band
+profile or its inner surface, the engraving or hallmark, the pavé or milgrain work, the side stones.
+It must not repeat the area, the angle or the crop of PROMPT 1.
+
+PROMPT 3 — THIRD DETAIL MACRO: a third true macro on yet another distinct area of the same piece,
+different from both PROMPT 1 and PROMPT 2 in the area shown, the angle and the crop.
+
+ALL THREE PROMPTS ARE MACRO. None may be a wide catalog shot of the whole piece. The three must
+close in on three different areas so the set teaches a shopper three different things about the
+craftsmanship.`
+    : `PROMPT 1 — SECOND CATALOG ANGLE: the same product photographed from a genuinely different
+camera position than the hero: a different viewing angle, a different rotation of the object
+relative to the lens, a different camera height and a closer camera distance, so the shopper
+finally reads the depth, the profile and the construction the hero angle could not show.
+Almost the whole product stays in frame. Choose the angle from this specific product; do not
+apply a fixed template.
+
+PROMPT 2 — DETAIL MACRO: a true macro photograph of the single most valuable detail you
+identified. The camera moves physically close to that area and it fills the frame; the rest
+of the product may fall outside the crop or out of the plane. Describe that detail
+concretely — the material texture, the micro-reflections, the craftsmanship — so the result
+reads as a real macro shot taken on set, never as a digital zoom into the hero image.
+
+PROMPT 3 — THIRD ANGLE OR SECOND DETAIL: one more genuinely different frame of the same product —
+either another catalog angle that shows a side neither the hero nor PROMPT 1 could show, or a macro
+on a DIFFERENT part than PROMPT 2. Pick whichever actually adds information for this product. It
+must not repeat the area, angle or crop of the other two.`;
+  const instruction = `You are the senior product photographer and retoucher for a
+world-class online store. Creative variation key: ${creativeVariationKey}. Use that key
+only as an internal diversity cue; never print or mention it.
+
+The FIRST image is the finished catalog photograph of a single product that was just
+produced. Any following images are the seller's own source photographs of the SAME
+product, useful only as extra evidence of its real construction, materials and details.
+
+Write TWO fresh product photographs of THAT EXACT SAME product, for the same product
+detail page. There is no model, no hands and no scene to art-direct — the product itself
+is the entire subject.
+
+First perform silent visual analysis: identify what the product is, its category, its
+silhouette, its materials and finish, its construction, and — most importantly — which
+single area carries the most commercial value for a buyer (the stone and its setting, the
+clasp or mechanism, the buckle, the sole unit, the weave or grain of the material, the
+engraving, the hinge, the stitching, the logo plate, whatever genuinely sells this piece).
+
+${roleBrief}
+
+THE TWO PROMPTS MUST BE UNMISTAKABLY DIFFERENT FROM EACH OTHER AND FROM THE HERO: different
+camera distance, different viewing angle, different visible area of the product and a
+different reason for a shopper to look. Two similar angles, or a wide shot plus its own crop,
+is a failure.
+
+Both prompts must explicitly command that the hero's background be reproduced EXACTLY: the same
+background colour across the whole frame, edge to edge. If it is pure white it must stay pure,
+even, seamless white — never grey, cream, washed-out, gradient or vignetted; if it is a colour it
+must keep the exact same hue, saturation and brightness — never faded, muted or tinted. Say this in
+the macro prompt too, and there especially: a close camera and shallow depth of field must not grey
+down, blur or contaminate the background. Neither prompt may introduce a table, surface, backdrop
+edge or environmental colour cast that the hero does not have.
+
+Both prompts must preserve the product with absolute fidelity: the same object, silhouette,
+proportions, materials, finish, colors, metal tone, stones, texture, pattern, stitching,
+hardware, engraving and branding, with nothing added, removed, restyled or invented. Both
+keep the hero's clean studio background, background color, soft even lighting and color
+grade. Neither may introduce a person, hand, ear, neck, mannequin, display bust, stand, prop,
+packaging, fabric, text or watermark. Each output is one single photograph of that one
+product, finished to flawless high-end e-commerce retouch quality: razor-sharp focus, crisp
+edges, clean surfaces free of dust, lint, scratches and fingerprints, true-to-life color.
+
+Each final prompt must be a self-contained image-editing brief for an image-to-image model, written in
+fluent natural English as a complete and richly visual photographer's brief. Avoid
+placeholders such as "a different angle": specify the newly chosen camera position, framing
+and visible detail concretely. No headings, bullets, numbering or meta-commentary inside
+either prompt. Never mention the creative variation key or this analysis process.
+${note ? `Additional direction from the user: ${note}\n` : ""}
+Return ONLY valid JSON, nothing else:
+{"prompts":["<first prompt>","<second prompt>","<third prompt>"]}`;
+
+  try {
+    const raw = await callGeminiFlash(instruction, imageUrls, 2);
+    console.log(
+      `🧠 [VARIATION/PRODUCT] Gemini raw response | key=${creativeVariationKey}:\n${String(raw || "")}`,
+    );
+    const match = String(raw || "").match(/\{[\s\S]*\}/);
+    if (match) {
+      const parsed = JSON.parse(match[0]);
+      const prompts = (parsed?.prompts || [])
+        .filter((p) => typeof p === "string" && p.trim().length > 40)
+        .slice(0, VARIATIONS_PER_BATCH);
+      if (prompts.length === VARIATIONS_PER_BATCH) {
+        logger.log(
+          `🤖 [VARIATION/PRODUCT] Gemini ${VARIATIONS_PER_BATCH} ürün promptu üretti`,
+        );
+        return prompts;
+      }
+      if (prompts.length > 0) {
+        logger.warn(
+          `⚠️ [VARIATION/PRODUCT] Gemini ${prompts.length} prompt döndü, ${VARIATIONS_PER_BATCH}'e tamamlanıyor`,
+        );
+        const fb = productFallbackPrompts(note, jewelry);
+        return Array.from(
+          { length: VARIATIONS_PER_BATCH },
+          (_, i) => prompts[i] || fb[i],
+        );
+      }
+    }
+    logger.warn(
+      "⚠️ [VARIATION/PRODUCT] Gemini yanıtı ayrıştırılamadı, fallback kullanılıyor",
+    );
+  } catch (err) {
+    logger.warn(
+      "⚠️ [VARIATION/PRODUCT] Gemini hatası, fallback kullanılıyor:",
+      err.message,
+    );
+  }
+  return productFallbackPrompts(note, jewelry);
+}
+
+/** Gemini ulaşılamazsa: yine iki FARKLI kare — ikinci açı + detay makro. */
+function productFallbackPrompts(note, jewelry = false) {
+  const shared =
+    "Photograph the SAME product from reference image 1 with absolute fidelity — identical " +
+    "object, silhouette, proportions, materials, finish, colors, texture, pattern, hardware " +
+    "and branding — on the SAME clean studio background with the SAME soft even lighting and " +
+    "color grade. No people, hands, mannequin parts, stands, props, packaging, text or " +
+    "watermark. Reproduce the hero's background EXACTLY, edge to edge: if it is pure white keep it " +
+    "pure, even, seamless white, and if it is a colour keep that exact hue, saturation and brightness " +
+    "— never grey, faded, washed-out, gradient or vignetted, not even behind a close macro subject. " +
+    "One single photorealistic product photograph, razor-sharp focus, crisp edges, clean dust-free " +
+    "surfaces, flawless high-end e-commerce retouch.";
+
+  const angles = [
+    "a three-quarter view from slightly above, with the product rotated so its depth and profile read clearly",
+    "a low three-quarter view close to the surface line, revealing the product's thickness and construction",
+    "a near-profile side view that shows the silhouette the frontal hero angle flattened",
+    "an elevated angled view that opens up the product's top surface and its interior construction",
+  ];
+  const details = [
+    "the product's most intricate craftsmanship area, filling the frame with true material texture and micro-reflections",
+    "the closure, setting or mechanism of the product, rendered in macro with crisp micro-detail",
+    "the surface material of the product in macro, where grain, weave, polish or facets become fully readable",
+  ];
+  const pick = (list) => list[Math.floor(Math.random() * list.length)];
+
+  // 💎 Takıda iki kare de makro; iki FARKLI bölge garantiye alınır.
+  if (jewelry) {
+    const details = [
+      "the main stone with its setting and prongs, filling the frame with crisp facet edges and bright light return",
+      "the clasp, closure or hinge of the piece, with the mechanism and polished metal grain fully readable",
+      "the chain links, band profile or inner surface, where the metal texture and finishing marks become fully readable",
+      "the pavé, milgrain, engraving or hallmark work, shot so the micro-craftsmanship reads clearly",
+    ];
+    const i = Math.floor(Math.random() * details.length);
+    const j = (i + 1) % details.length;
+    const k = (i + 2) % details.length;
+    const macro = (d) =>
+      `Shoot a true macro photograph of ${d}. The camera moves physically close so that area fills ` +
+      `the frame; the rest of the piece may fall outside the crop or out of focus. Real macro optics, ` +
+      `never a digital zoom of the hero image. ${shared}`;
+    const noted = (p) => (note ? `${p} Additional direction: ${note}` : p);
+    return [noted(macro(details[i])), noted(macro(details[j])), noted(macro(details[k]))];
+  }
+
+  const first =
+    `Re-photograph the product as a second catalog angle: ${pick(angles)}, with the camera ` +
+    `moved to a genuinely new position and brought closer than the hero shot, so perspective, ` +
+    `foreshortening and specular highlights are physically consistent with that new viewpoint. ` +
+    `Almost the whole product stays in frame. ${shared}`;
+
+  const second =
+    `Shoot a true macro detail of the product: ${pick(details)}. The camera moves physically ` +
+    `close so that area fills the frame; the rest of the product may fall outside the crop. ` +
+    `Render it with real macro optics rather than a digital zoom of the hero image. ${shared}`;
+
+  // 3. kare: bir başka açı — ilk ikisinin ne açısını ne kadrajını tekrarlar.
+  const third =
+    `Re-photograph the product from one more genuinely different camera position: ${pick(angles)}, ` +
+    `at a camera height and distance that differ from both other frames, so a shopper sees a side ` +
+    `neither of them showed. Almost the whole product stays in frame. ${shared}`;
+
+  const withNote = (p) => (note ? `${p} Additional direction: ${note}` : p);
+  return [withNote(first), withNote(second), withNote(third)];
 }
 
 /** Arka referans yokken Gemini çıktısındaki açık arka-poz taleplerini yakalar. */
@@ -463,15 +868,37 @@ function fallbackPrompts(hasBackReference, note) {
       `${secondFraming}. Ensure its silhouette, body angle and visual rhythm are clearly ` +
       `different from the other frame while keeping the garment unobstructed. ${shared}`;
 
+  // 3. kare: SAHNEDE KALAN yakın ürün detayı (28 Ağu 2026). Stüdyoya kaçmaz,
+  // makroya boğulmaz — hâlâ "giyen birinin fotoğrafı" gibi okunur.
+  const details = [
+    "the collar and shoulder line, with the stitching and the way the fabric falls",
+    "a cuff and the wearer's hand, showing the sleeve construction and the fabric's weight",
+    "the button placket and chest area, where the fabric texture and the seams read clearly",
+    "the hem or waist, showing how the garment drapes and finishes on the body",
+  ];
+  const third =
+    `Move the camera in CLOSE on ${details[Math.floor(Math.random() * details.length)]}. ` +
+    "This is a close-up, NOT an extreme macro: the crop must still read as a photograph of a " +
+    "person wearing the garment — keep a hand, a shoulder line, part of the torso or the fall of " +
+    "the fabric in frame, never an abstract wall of texture. It stays in the SAME environment as " +
+    "the reference: same location, same daylight or lamp light, same weather, same colour grade, " +
+    "with that background still softly present behind the detail. Never a studio, never a white " +
+    `sweep, never a flat backdrop, never relit indoors. ${shared}`;
+
   const withNote = (p) =>
     safeNote ? `${p} Additional direction: ${safeNote}` : p;
-  return [withNote(first), withNote(second)];
+  return [withNote(first), withNote(second), withNote(third)];
 }
 
 /** Gemini/fallback çıktısını üretim modeline gidecek nihai prompta dönüştürür. */
 function finalizeVariationPrompt(
   prompt,
-  { forceBackView = false, forbidBackView = false, backReferenceImageNumber } = {}
+  {
+    forceBackView = false,
+    forbidBackView = false,
+    backReferenceImageNumber,
+    inSceneDetail = false,
+  } = {}
 ) {
   const backViewSuffix = forceBackView
     ? `\n\nThis output MUST be a clear rear-facing e-commerce fashion photograph. ` +
@@ -487,10 +914,24 @@ function finalizeVariationPrompt(
       `a back view, rear-facing pose, turned-away pose, or invent any unseen rear garment ` +
       `construction. This rule overrides every earlier composition instruction or user note.`
     : "";
+  // 🔍 3. kare SAHNEDE KALAN yakın detay (28 Ağu 2026): Gemini'nin yazdığı
+  // metin ne olursa olsun backend "stüdyoya kaçma, aynı mekânda kal" diyor.
+  const inSceneDetailSuffix = inSceneDetail
+    ? "\n\nTHIS FRAME IS THE CLOSE, IN-SCENE PRODUCT DETAIL: move the camera in close on the garment " +
+      "as it is worn — the collar and its stitching, a cuff with the wearer's hand, the button placket, " +
+      "a pocket, the hem, a belt or a strap. It is a CLOSE-UP, not an extreme macro: the crop must still " +
+      "read as a photograph of a person wearing the garment, keeping a hand, a shoulder line, part of the " +
+      "torso or the fall of the fabric in frame — never an abstract wall of texture. " +
+      "IT STAYS IN THE SAME SCENE: same location, same daylight or lamp light, same weather, same colour " +
+      "grade and atmosphere as the reference, with that background still softly present behind the detail. " +
+      "If the reference was shot outdoors, this frame is still outdoors. Never a studio, never a white " +
+      "sweep, never a flat backdrop, never relit indoors, never a product-only packshot."
+    : "";
   return (
     `${String(prompt || "").trim()}\n\n${VARIATION_PRESERVATION_SUFFIX}` +
     POSE_DIVERGENCE_SUFFIX +
     ENVIRONMENT_PERSPECTIVE_SUFFIX +
+    inSceneDetailSuffix +
     backViewSuffix +
     noBackViewSuffix
   );
@@ -506,7 +947,7 @@ async function loadStoredSourceContext(userId, sourceGenerationId) {
     const { data, error } = await supabase
       .from("reference_results")
       .select(
-        "reference_images, location_image, pose_image, hair_style_image, aspect_ratio, settings",
+        "reference_images, location_image, pose_image, hair_style_image, aspect_ratio, settings, original_prompt, enhanced_prompt",
       )
       .eq("user_id", userId)
       .eq("generation_id", sourceGenerationId)
@@ -519,7 +960,13 @@ async function loadStoredSourceContext(userId, sourceGenerationId) {
         `⚠️ [VARIATION] Kaynak referansları okunamadı (${sourceGenerationId}):`,
         error.message,
       );
-      return { inputs: [], excludedLocationImages: [], aspectRatio: null };
+      return {
+        inputs: [],
+        excludedLocationImages: [],
+        aspectRatio: null,
+        isProductShot: false,
+        isJewelry: false,
+      };
     }
 
     let settings = data?.settings || {};
@@ -551,13 +998,35 @@ async function loadStoredSourceContext(userId, sourceGenerationId) {
       // "original" seçeneğinde alanı göndermemek gerekir; NB Lite bu durumda
       // edit kaynağının gerçek oranını varsayılan davranışıyla korur.
       aspectRatio: normalizeVariationAspectRatio(data?.aspect_ratio),
+      // 💍 Refiner çıktısı mı? Öyleyse çeşitlendirme ÜRÜN modunda çalışır
+      // (poz/mekân değil, ikinci açı + detay makro).
+      isProductShot: settings?.isRefinerMode === true,
+      // 💎 Takı mı? Takıda İKİ varyant da MAKRO olur (28 Ağu 2026, kullanıcı
+      // isteği): ikinci katalog açısı yerine iki FARKLI detayın makrosu.
+      // Önce kayıtlı kategori, o yoksa (eski üretimler) prompt metni.
+      isJewelry:
+        JEWELRY_SOURCE_CATEGORIES.has(
+          String(settings?.productCategory || "").toLowerCase(),
+        ) ||
+        JEWELRY_SOURCE_CATEGORIES.has(
+          String(settings?.productSubtype || "").toLowerCase(),
+        ) ||
+        looksLikeJewelryText(
+          `${settings?.productSubtype || ""} ${data?.enhanced_prompt || ""} ${data?.original_prompt || ""}`,
+        ),
     };
   } catch (error) {
     logger.warn(
       `⚠️ [VARIATION] Kaynak referans istisnası (${sourceGenerationId}):`,
       error?.message || error,
     );
-    return { inputs: [], excludedLocationImages: [], aspectRatio: null };
+    return {
+      inputs: [],
+      excludedLocationImages: [],
+      aspectRatio: null,
+      isProductShot: false,
+      isJewelry: false,
+    };
   }
 }
 
@@ -639,93 +1108,129 @@ async function runFalVariation(
   const startedAt = Date.now();
 
   try {
-    // Gemini'nin yazdığı ve Nano Banana Lite'a aynen gönderilen nihai prompt.
+    // Gemini'nin yazdığı ve modele aynen gönderilen nihai prompt.
     console.log(
-      `🍌 [VARIATION] Nano Banana Lite prompt | generation=${generationId} | ` +
+      `🎨 [VARIATION] GPT Image 2 prompt | generation=${generationId} | ` +
         `model=${VARIATION_MODEL} | input_images=${imageUrls.length} | ` +
-        `aspect_ratio=${aspectRatio || "source-default"}:\n${prompt}`
+        `image_size=${mapRatioToGptImage2Size(aspectRatio)} quality=${VARIATION_QUALITY}` +
+        ` (kaynak oran ${aspectRatio || "varsayılan"}):\n${prompt}`
     );
 
-    const { request_id } = await fal.queue.submit(VARIATION_MODEL, {
-      input: {
-        prompt,
-        image_urls: imageUrls,
-        ...getVariationModelSettings(aspectRatio),
-      },
+    // 🛟 Önce GPT Image 2; HERHANGİ bir hata gelirse AYNI prompt Nano Banana
+    // Lite ile bir kez tekrarlanır.
+    // ⚠️ 30 Ağu 2026 — eskiden yedek yalnız İKİ noktada devreye giriyordu:
+    // submit'in kendisi patlarsa ve kuyruk durumu FAILED dönerse. GPT Image 2'nin
+    // 422 "Unprocessable Entity"si ise çoğunlukla `queue.status`/`queue.result`
+    // çağrısından fırlıyor; o yol yedeğe UĞRAMADAN dış catch'e düşüyor ve
+    // varyant "failed" kalıyordu (kullanıcı raporu: parti yarım kalıyor).
+    // Artık submit + polling + sonuç okuma TEK denemede toplandı; bu denemenin
+    // her hatası yedeğe geçiriyor.
+    const submitAndWait = async (model, settings) => {
+      const { request_id } = await fal.queue.submit(model, {
+        input: {
+          prompt,
+          image_urls: imageUrls,
+          ...settings,
+        },
+      });
+      if (!request_id) throw new Error("fal request_id dönmedi");
+
+      await supabase
+        .from("variation_generations")
+        .update({
+          status: "processing",
+          fal_request_id: request_id,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("generation_id", generationId);
+
+      logger.log(
+        `⏳ [VARIATION] ${generationId} fal kuyruğuna girdi (${request_id}) | model=${model}`,
+      );
+
+      for (let poll = 0; poll < MAX_POLLS; poll++) {
+        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+
+        const statusResult = await fal.queue.status(model, {
+          requestId: request_id,
+          logs: false,
+        });
+
+        if (statusResult.status === "COMPLETED") {
+          const finalResult = await fal.queue.result(model, {
+            requestId: request_id,
+          });
+          const url = finalResult?.data?.images?.[0]?.url;
+          if (!url) throw new Error("Sonuçta görsel yok");
+          return url;
+        }
+
+        if (statusResult.status === "FAILED" || statusResult.status === "ERROR") {
+          throw new Error("varyasyon üretimi başarısız");
+        }
+      }
+
+      throw new Error("fal polling zaman aşımı");
+    };
+
+    let temporaryResultUrl;
+    try {
+      temporaryResultUrl = await submitAndWait(
+        VARIATION_MODEL,
+        getVariationModelSettings(aspectRatio),
+      );
+    } catch (gptError) {
+      const detail =
+        gptError?.body?.detail ||
+        gptError?.response?.data?.detail ||
+        gptError?.message ||
+        "bilinmeyen hata";
+      logger.warn(
+        `🛟 [VARIATION] GPT Image 2 başarısız (${String(detail).slice(0, 140)}) — ` +
+          `${generationId} Nano Banana Lite ile tekrarlanıyor`,
+      );
+      temporaryResultUrl = await submitAndWait(
+        VARIATION_FALLBACK_MODEL,
+        getVariationFallbackSettings(aspectRatio),
+      );
+    }
+
+    // fal.ai CDN adresi geçicidir. DB'ye yazmadan önce uygulamanın kalıcı
+    // Supabase bucket'ına taşı; upload başarısızsa geçici URL'yi kaydetme.
+    const persisted = await persistVariationImage({
+      supabase,
+      sourceUrl: temporaryResultUrl,
+      userId,
+      sourceGenerationId,
+      generationId,
     });
+    const resultUrl = persisted.publicUrl;
 
-    if (!request_id) throw new Error("fal request_id dönmedi");
-
-    await supabase
+    const seconds = Math.round((Date.now() - startedAt) / 1000);
+    const { error: completionUpdateError } = await supabase
       .from("variation_generations")
       .update({
-        status: "processing",
-        fal_request_id: request_id,
+        status: "completed",
+        result_image_url: resultUrl,
+        processing_time_seconds: seconds,
+        error_message: null,
         updated_at: new Date().toISOString(),
       })
       .eq("generation_id", generationId);
-
-    logger.log(`⏳ [VARIATION] ${generationId} fal kuyruğuna girdi (${request_id})`);
-
-    for (let poll = 0; poll < MAX_POLLS; poll++) {
-      await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
-
-      const statusResult = await fal.queue.status(VARIATION_MODEL, {
-        requestId: request_id,
-        logs: false,
-      });
-
-      if (statusResult.status === "COMPLETED") {
-        const finalResult = await fal.queue.result(VARIATION_MODEL, {
-          requestId: request_id,
-        });
-        const temporaryResultUrl = finalResult?.data?.images?.[0]?.url;
-        if (!temporaryResultUrl) throw new Error("Sonuçta görsel yok");
-
-        // fal.ai CDN adresi geçicidir. DB'ye yazmadan önce uygulamanın kalıcı
-        // Supabase bucket'ına taşı; upload başarısızsa geçici URL'yi kaydetme.
-        const persisted = await persistVariationImage({
-          supabase,
-          sourceUrl: temporaryResultUrl,
-          userId,
-          sourceGenerationId,
-          generationId,
-        });
-        const resultUrl = persisted.publicUrl;
-
-        const seconds = Math.round((Date.now() - startedAt) / 1000);
-        const { error: completionUpdateError } = await supabase
-          .from("variation_generations")
-          .update({
-            status: "completed",
-            result_image_url: resultUrl,
-            processing_time_seconds: seconds,
-            error_message: null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("generation_id", generationId);
-        if (completionUpdateError) {
-          throw new Error(
-            `Variation completion could not be saved: ${completionUpdateError.message}`,
-          );
-        }
-
-        logger.log(
-          `✅ [VARIATION] ${generationId} tamamlandı (${seconds} sn) | ` +
-            `bucket=${persisted.bucket} path=${persisted.storagePath}`,
-        );
-
-        // Kredi yalnız başarılı sonuçta düşer.
-        await deductVariationCredit(generationId, userId, creditCost);
-        return;
-      }
-
-      if (statusResult.status === "FAILED") {
-        throw new Error("Nano Banana Lite üretimi başarısız");
-      }
+    if (completionUpdateError) {
+      throw new Error(
+        `Variation completion could not be saved: ${completionUpdateError.message}`,
+      );
     }
 
-    throw new Error("fal polling zaman aşımı");
+    logger.log(
+      `✅ [VARIATION] ${generationId} tamamlandı (${seconds} sn) | ` +
+        `bucket=${persisted.bucket} path=${persisted.storagePath}`,
+    );
+
+    // Kredi yalnız başarılı sonuçta düşer.
+    await deductVariationCredit(generationId, userId, creditCost);
+    return;
   } catch (err) {
     logger.error(`❌ [VARIATION] ${generationId} hata:`, err.message);
     await supabase
@@ -783,10 +1288,18 @@ async function startAutomaticTrialVariation({
     "_",
   );
   const batchId = `trial_auto_${stableSourceId}`;
-  const generationIds = [
-    `var_auto_${stableSourceId}_1`,
-    `var_auto_${stableSourceId}_2`,
-  ];
+  // Deterministik id'ler: aynı completion iki kez işlense bile UNIQUE ikinci
+  // fal üretimini engelliyor. Sayı VARIATIONS_PER_BATCH'e bağlı.
+  const generationIds = Array.from(
+    { length: VARIATIONS_PER_BATCH },
+    (_, i) => `var_auto_${stableSourceId}_${i + 1}`,
+  );
+  // 💍 Refiner çıktısında ÜRÜN modu: manken/poz/arka-görünüm talimatları
+  // geçersiz — iki kare "ikinci katalog açısı" + "detay makro" olur. Model
+  // seçimi de buna bağlı (Refiner → GPT Image 2 "low"), o yüzden satırlar
+  // yazılmadan ÖNCE hesaplanmalı.
+  const productMode = sourceContext.isProductShot === true;
+
   // Önce deterministik pending satırlarını ayır. Prompt analizi uzun sürse bile
   // client processing kartını hemen görür; eşzamanlı ikinci worker UNIQUE'e takılır.
   const rows = generationIds.map((generationId, index) => ({
@@ -823,21 +1336,43 @@ async function startAutomaticTrialVariation({
   }
 
   let prompts;
-  let backAnalysis;
+  let backAnalysis = null;
   try {
-    backAnalysis = await analyzeBackReference(imageUrls);
-    const creativePrompts = await buildVariationPrompts({
-      imageUrls,
-      backAnalysis,
-      note: null,
-    });
-    prompts = creativePrompts.map((prompt, index) =>
-      finalizeVariationPrompt(prompt, {
-        forceBackView: backAnalysis.hasBackReference && index === 1,
-        forbidBackView: !backAnalysis.hasBackReference,
-        backReferenceImageNumber: backAnalysis.backReferenceImageNumber,
-      }),
-    );
+    if (productMode) {
+      logger.log(
+        `💍 [TRIAL_VARIATION] Ürün modu (Refiner kalıbı)${
+          sourceContext.isJewelry ? " · TAKI: iki kare de makro" : ""
+        } — kaynak: ${sourceGenerationId}`,
+      );
+      const jewelrySource = sourceContext.isJewelry === true;
+      const creativePrompts = await buildProductVariationPrompts({
+        imageUrls,
+        note: null,
+        jewelry: jewelrySource,
+      });
+      prompts = creativePrompts.map((prompt, index) =>
+        finalizeProductVariationPrompt(prompt, {
+          slot: index + 1,
+          jewelry: jewelrySource,
+        }),
+      );
+    } else {
+      backAnalysis = await analyzeBackReference(imageUrls);
+      const creativePrompts = await buildVariationPrompts({
+        imageUrls,
+        backAnalysis,
+        note: null,
+      });
+      prompts = creativePrompts.map((prompt, index) =>
+        finalizeVariationPrompt(prompt, {
+          forceBackView: backAnalysis.hasBackReference && index === 1,
+          forbidBackView: !backAnalysis.hasBackReference,
+          backReferenceImageNumber: backAnalysis.backReferenceImageNumber,
+          // 3. kare: sahnede kalan yakın ürün detayı
+          inSceneDetail: index === 2,
+        }),
+      );
+    }
 
     await Promise.all(
       prompts.map(async (prompt, index) => {
@@ -851,7 +1386,8 @@ async function startAutomaticTrialVariation({
               batchId,
               slot: index + 1,
               automaticTrial: true,
-              backReferenceAnalysis: backAnalysis,
+              variationMode: productMode ? "product" : "pose",
+              ...(backAnalysis ? { backReferenceAnalysis: backAnalysis } : {}),
             },
             updated_at: new Date().toISOString(),
           })
@@ -934,6 +1470,9 @@ router.post("/generate", async (req, res) => {
       extraImages = [],
       note = null,
       freeOnly = false,
+      // 💍 "product" → Refiner kalıbı (ikinci açı + detay makro).
+      // Gönderilmezse kaynak kaydın settings.isRefinerMode'u karar verir.
+      variationMode = null,
     } = req.body || {};
 
     if (!userId || !sourceGenerationId || !sourceImageUrl) {
@@ -1005,25 +1544,58 @@ router.post("/generate", async (req, res) => {
       }
     }
 
-    // 1) Gemini önce referans havuzunda gerçek bir arka kıyafet görünümü arar.
-    // 2) Sonra bu karara göre iki editoryal prompt yazar.
-    const backAnalysis = await analyzeBackReference(imageUrls);
-    const creativePrompts = await buildVariationPrompts({
-      imageUrls,
-      backAnalysis,
-      note,
+    // 💍 ÜRÜN MODU (Refiner) — manken yok, poz/arka-görünüm analizi anlamsız.
+    // Doğrudan iki ürün karesi yazılır: ikinci katalog açısı + detay makro.
+    const productMode = resolveProductVariationMode({
+      requested: variationMode,
+      sourceIsProductShot: sourceContext.isProductShot,
     });
-    // Bu dizi hem DB'ye yazılır hem fal çağrısına gider; loglanan ve
-    // saklanan prompt ile üretim modelinin aldığı prompt birebir aynıdır.
-    const prompts = creativePrompts.map((prompt, index) =>
-      finalizeVariationPrompt(prompt, {
-        // Arka referans bulunduysa ikinci üretimi backend seviyesinde de zorla.
-        forceBackView: backAnalysis.hasBackReference && index === 1,
-        // Referans yoksa iki üretimde de arka pozu backend seviyesinde yasakla.
-        forbidBackView: !backAnalysis.hasBackReference,
-        backReferenceImageNumber: backAnalysis.backReferenceImageNumber,
-      })
-    );
+
+    let backAnalysis = null;
+    let prompts;
+    if (productMode) {
+      logger.log(
+        `💍 [VARIATION] Ürün modu (Refiner kalıbı)${
+          sourceContext.isJewelry ? " · TAKI: iki kare de makro" : ""
+        } — kaynak: ${sourceGenerationId}`,
+      );
+      // 💎 Takıda iki kare de MAKRO (28 Ağu 2026): ikinci katalog açısı yerine
+      // iki FARKLI detayın makrosu.
+      const jewelrySource = sourceContext.isJewelry === true;
+      const creativePrompts = await buildProductVariationPrompts({
+        imageUrls,
+        note,
+        jewelry: jewelrySource,
+      });
+      prompts = creativePrompts.map((prompt, index) =>
+        finalizeProductVariationPrompt(prompt, {
+          slot: index + 1,
+          jewelry: jewelrySource,
+        }),
+      );
+    } else {
+      // 1) Gemini önce referans havuzunda gerçek bir arka kıyafet görünümü arar.
+      // 2) Sonra bu karara göre iki editoryal prompt yazar.
+      backAnalysis = await analyzeBackReference(imageUrls);
+      const creativePrompts = await buildVariationPrompts({
+        imageUrls,
+        backAnalysis,
+        note,
+      });
+      // Bu dizi hem DB'ye yazılır hem fal çağrısına gider; loglanan ve
+      // saklanan prompt ile üretim modelinin aldığı prompt birebir aynıdır.
+      prompts = creativePrompts.map((prompt, index) =>
+        finalizeVariationPrompt(prompt, {
+          // Arka referans bulunduysa ikinci üretimi backend seviyesinde de zorla.
+          forceBackView: backAnalysis.hasBackReference && index === 1,
+          // Referans yoksa arka pozu backend seviyesinde yasakla.
+          forbidBackView: !backAnalysis.hasBackReference,
+          backReferenceImageNumber: backAnalysis.backReferenceImageNumber,
+          // 3. kare: sahnede kalan yakın ürün detayı
+          inSceneDetail: index === 2,
+        }),
+      );
+    }
 
     const batchId = uuidv4();
     const generationIds = prompts.map(() => `var_${uuidv4()}`);
@@ -1044,7 +1616,8 @@ router.post("/generate", async (req, res) => {
         ...getVariationModelSettings(sourceAspectRatio),
         batchId,
         slot: i + 1,
-        backReferenceAnalysis: backAnalysis,
+        variationMode: productMode ? "product" : "pose",
+        ...(backAnalysis ? { backReferenceAnalysis: backAnalysis } : {}),
       },
     }));
 
@@ -1063,7 +1636,20 @@ router.post("/generate", async (req, res) => {
       `🎬 [VARIATION] parti ${batchId} başlatıldı | kaynak ${sourceGenerationId} | ` +
         `${variationIndex}. tur | ${creditCost === 0 ? "ÜCRETSİZ" : creditCost + " kredi"} | ` +
         `${imageUrls.length} girdi görseli | ` +
-        `back-reference=${backAnalysis.hasBackReference ? `image ${backAnalysis.backReferenceImageNumber}` : "none"}`
+        `mod=${
+          productMode
+            ? sourceContext.isJewelry
+              ? "ürün · TAKI (iki farklı detay makrosu)"
+              : "ürün (ikinci açı + detay makro)"
+            : "poz"
+        } | ` +
+        `back-reference=${
+          !backAnalysis
+            ? "yok (ürün modu)"
+            : backAnalysis.hasBackReference
+              ? `image ${backAnalysis.backReferenceImageNumber}`
+              : "none"
+        }`
     );
 
     // İki üretim paralel başlar; kredi yalnız İLK satırda (yani parti başına) düşer

@@ -7,6 +7,7 @@ const {
   isSupersededByNewerPaidSubscription,
 } = require("../utils/revenuecatSupersededProduct");
 const { applyRevenueCatTransfer } = require("../utils/revenuecatTransfer");
+const { applyRevenueCatBillingIssue } = require("../utils/revenuecatBillingIssue");
 
 const router = express.Router();
 
@@ -308,6 +309,23 @@ router.post("/webhookv3", async (req, res) => {
         type,
         user_id: switchUserId,
         product_id,
+      });
+    }
+
+    // 💳 BILLING_ISSUE — çekim başarısız, kullanıcı grace period'a girdi.
+    // Erişim/kredi/plan korunur; yalnız is_pro=false (filigran döner).
+    // Çekim kurtarılınca RENEWAL akışı is_pro'yu tekrar true yazar.
+    if (type === "BILLING_ISSUE") {
+      const billingResult = await applyRevenueCatBillingIssue({
+        supabase,
+        event,
+        logPrefix: "RC_WEBHOOK_V3",
+      });
+      return res.status(200).json({
+        success: true,
+        message: "Billing issue processed — watermark on, access preserved",
+        event_type: type,
+        ...billingResult,
       });
     }
 

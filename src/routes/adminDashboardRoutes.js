@@ -56,7 +56,7 @@ const FEATURE_CONFIG = {
   "virtual-model": {
     table: "reference_results",
     select:
-      "id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, kits",
+      "id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, creation_mode, kits",
     applyFilter: (query) =>
       query.not("settings->gender", "is", null).eq("visibility", true),
   },
@@ -141,9 +141,10 @@ router.get("/generations", async (req, res) => {
       limit = 20,
       status = "all",
       user_id = "",
+      style_profile_id = "",
     } = req.query;
 
-    console.log("[Admin] Query:", { feature, page, limit, status, user_id });
+    console.log("[Admin] Query:", { feature, page, limit, status, user_id, style_profile_id });
 
     const config = FEATURE_CONFIG[feature];
     if (!config) {
@@ -169,6 +170,17 @@ router.get("/generations", async (req, res) => {
     if (config.applyFilter) query = config.applyFilter(query);
     if (user_id) {
       query = query.eq("user_id", String(user_id));
+    }
+    // Çekim tarzı filtresi — style_profile_id kolonu yalnızca reference_results'ta var.
+    // "any" = tarz kullanılan tüm üretimler (kayıtlı profil ya da tek seferlik yükleme).
+    if (style_profile_id && config.table === "reference_results") {
+      if (style_profile_id === "any") {
+        query = query.not("style_source", "is", null);
+      } else if (style_profile_id === "upload") {
+        query = query.eq("style_source", "upload");
+      } else {
+        query = query.eq("style_profile_id", String(style_profile_id));
+      }
     }
     // Skip status filter for tables that don't have a status column
     const noStatusTables = ["product_stories", "product_unboxing_stories", "product_kits", "product_street_icon_kits"];

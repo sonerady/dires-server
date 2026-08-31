@@ -6,6 +6,13 @@ const Replicate = require("replicate");
 const { createCanvas, loadImage } = require("canvas");
 const { v4: uuidv4 } = require("uuid");
 const { supabase } = require("../supabaseClient");
+const downloadRoutes = require("./downloadRoutes");
+
+const {
+    checkUserDownloadAccess,
+    getLastSubscriptionPeriod,
+    addWatermarkToImage,
+} = downloadRoutes;
 
 // Replicate client initialization
 const replicate = new Replicate({
@@ -38,9 +45,15 @@ router.get("/test", (req, res) => {
 });
 
 router.post("/download", async (req, res) => {
-    const { imageUrl, format, pngType, colorSpace, userId } = req.body;
+    const { imageUrl, format, pngType, colorSpace, userId, lang } = req.body;
 
-    console.log("📥 [REFINER-DL] Request received:", { imageUrl, format, pngType, colorSpace });
+    console.log("📥 [REFINER-DL] Request received:", {
+        imageUrl,
+        format,
+        pngType,
+        colorSpace,
+        userId: userId?.slice?.(0, 8) || "anonymous",
+    });
 
     if (!imageUrl) {
         return res.status(400).json({ success: false, message: "Image URL is required" });
@@ -50,6 +63,27 @@ router.post("/download", async (req, res) => {
         let finalBuffer;
         let contentType;
         let fileExtension;
+
+        // Refiner indirmeleri eskiden normal /api/download/image kapısını
+        // tamamen atlıyordu. Yetkiyi client'tan gelen bir boolean'a güvenmeden
+        // users tablosundan doğrula; yalnızca ücretli (trial olmayan) PRO temiz
+        // dosya indirebilir.
+        const downloadAccess = await checkUserDownloadAccess(userId);
+        const addSubscriptionWatermark = !downloadAccess.canDownloadOriginal;
+        const watermarkLocalization = addSubscriptionWatermark
+            ? {
+                lang: lang || downloadAccess.preferredLanguage,
+                lastSubPeriod: await getLastSubscriptionPeriod(userId),
+            }
+            : {};
+        const applyDownloadWatermark = async (buffer) =>
+            addSubscriptionWatermark
+                ? addWatermarkToImage(buffer, watermarkLocalization)
+                : buffer;
+
+        console.log(
+            `🔐 [REFINER-DL] Download access: pro=${downloadAccess.isPro}, trial=${downloadAccess.isInTrial}, watermark=${addSubscriptionWatermark}`
+        );
 
         // 1. URL'den resmi indir
         console.log("⬇️ [REFINER-DL] Downloading original image...");
@@ -88,6 +122,7 @@ router.post("/download", async (req, res) => {
                         .trim()
                         .png()
                         .toBuffer();
+                    const downloadableBuffer = await applyDownloadWatermark(trimmedBuffer);
 
                     // Supabase'e yükle
                     console.log("📤 [REFINER-DL] Uploading to Supabase transparent-products bucket...");
@@ -96,7 +131,7 @@ router.post("/download", async (req, res) => {
 
                     const { error: uploadError } = await supabase.storage
                         .from("transparent-products")
-                        .upload(filename, trimmedBuffer, {
+                        .upload(filename, downloadableBuffer, {
                             contentType: "image/png",
                             cacheControl: "3600"
                         });
@@ -126,7 +161,8 @@ router.post("/download", async (req, res) => {
                 console.log("🖼️ [REFINER-DL] Format is PNG (RGBA) - Converting to PNG without background removal...");
 
                 try {
-                    const pngBuffer = await sharp(imageBuffer)
+                    const downloadImageBuffer = await applyDownloadWatermark(imageBuffer);
+                    const pngBuffer = await sharp(downloadImageBuffer)
                         .png()
                         .toBuffer();
 
@@ -145,8 +181,10 @@ router.post("/download", async (req, res) => {
             // PDF seçili ise
             console.log("📄 [REFINER-DL] Format is PDF - Generating PDF...");
 
+            const downloadImageBuffer = await applyDownloadWatermark(imageBuffer);
+
             // Get dimensions
-            const metadata = await sharp(imageBuffer).metadata();
+            const metadata = await sharp(downloadImageBuffer).metadata();
             const width = metadata.width;
             const height = metadata.height;
 
@@ -155,7 +193,7 @@ router.post("/download", async (req, res) => {
             const ctx = canvas.getContext("2d");
 
             // Load image into canvas
-            const img = await loadImage(imageBuffer);
+            const img = await loadImage(downloadImageBuffer);
             ctx.drawImage(img, 0, 0, width, height);
 
             const pdfBuffer = canvas.toBuffer("application/pdf");
@@ -191,7 +229,8 @@ router.post("/download", async (req, res) => {
         } else {
             // Default: JPG
             console.log("📸 [REFINER-DL] Format is JPG");
-            finalBuffer = await sharp(imageBuffer).jpeg({ quality: 95 }).toBuffer();
+            const downloadImageBuffer = await applyDownloadWatermark(imageBuffer);
+            finalBuffer = await sharp(downloadImageBuffer).jpeg({ quality: 95 }).toBuffer();
             contentType = "image/jpeg";
             fileExtension = "jpg";
         }

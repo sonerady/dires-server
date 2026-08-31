@@ -58,14 +58,21 @@ test("garments are reconstructed on the body and relit inside the final scene", 
   }
 });
 
-test("profile-level couple lock requires a visible woman and male partner", () => {
+test("two-person styles preserve the pair without fixed gender or romance", () => {
   for (const directive of [
     "SUBJECT_COUNT_LOCK:\\s*COUPLE_FEMALE_MALE",
-    "REQUIRED TWO-PERSON ROMANTIC COUPLE — HIGHEST PRIORITY, NON-NEGOTIABLE",
-    "exactly TWO clearly visible adult people together in the same frame",
-    "a solo woman, an obscured man, a cropped-out man",
+    "REQUIRED TWO-PERSON COMPOSITION — HIGHEST PRIORITY, NON-NEGOTIABLE",
+    "exactly TWO clearly visible, age-appropriate people together in the same frame",
+    "Do not impose a fixed woman/man pairing",
+    "The PRIMARY/HERO person follows every user-selected model attribute",
+    "The second person supports the composition in a newly invented, complementary, style-appropriate outfit",
     "This TWO-PERSON requirement overrides every singular use",
+    "EXACT SUBJECT-COUNT & INTERACTION LOCK",
+    "SUBJECT COUNT & INTERACTION — state the exact number",
   ]) {
     assert.ok(source.includes(directive), `include ${directive}`);
   }
+
+  assert.ok(!source.includes("REQUIRED TWO-PERSON ROMANTIC COUPLE"));
+  assert.ok(!source.includes("primary adult woman"));
 });

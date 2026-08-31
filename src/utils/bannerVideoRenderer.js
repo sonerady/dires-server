@@ -197,4 +197,36 @@ async function renderBannerVideo(html, arn) {
   }
 }
 
-module.exports = { renderBannerVideo };
+/**
+ * Banner'ın TEK karesini JPEG buffer olarak döndürür — Results kartlarındaki
+ * önizleme görseli. Video hattıyla aynı sayfa hazırlığını kullanır
+ * (animasyonlar duraklatılmış: ilk kare temiz yakalanır).
+ * @param {string} html  Banner HTML dokümanı
+ * @param {number} arn   Genişlik/yükseklik oranı
+ * @returns {Promise<Buffer>}
+ */
+async function renderBannerScreenshot(html, arn) {
+  const { width, height } = videoDimensions(arn || 4 / 5);
+  let browser = null;
+  try {
+    browser = await puppeteer.launch({
+      executablePath: resolveChromePath(),
+      headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--hide-scrollbars",
+        "--force-device-scale-factor=1",
+      ],
+    });
+    const page = await preparePage(browser, html, width, height);
+    return await page.screenshot({ type: "jpeg", quality: 82 });
+  } finally {
+    if (browser) {
+      await browser.close().catch(() => {});
+    }
+  }
+}
+
+module.exports = { renderBannerVideo, renderBannerScreenshot };

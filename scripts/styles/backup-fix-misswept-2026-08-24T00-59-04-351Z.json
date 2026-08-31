@@ -1,0 +1,324 @@
+{
+  "rows": [
+    {
+      "id": "0d16143a-b5c8-406b-9804-882ade810ace",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "3323ec73-00c4-40c7-840c-5c1b0354fb12",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "4268a363-5c22-4e71-a75e-cbb590b70090",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "4f5b043f-7fa6-4751-b455-e2f0c60a25aa",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "6f542d4e-fb81-4b4f-8dde-1e0ab1968b67",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "7abac869-460a-4287-aacf-3ad5c171f0d6",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "9e8a78ca-8b15-40c2-b434-83f721be9697",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "a1282415-7c38-4e40-bcf0-9399983ad6cc",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "a418adf0-8ac6-4e13-aaea-f6170884a2c7",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "a6ea0d64-94ef-406d-be5e-5c674cdd875a",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "c4c0a017-5848-4f50-b3b6-5feab8a1eac1",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "ce4b1cd3-2f21-4bf9-bdeb-e7c134518797",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "f0ac4f8b-fd21-4d14-b388-cdeb94dff2b7",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "fa391b98-5bb8-4ef3-b918-c00bd8234361",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "567acfb8-56f9-44e6-94f2-bb0adae856f7",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "7b699e6b-99ea-4d9f-8ca0-7c29113bdbb7",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "00dc5c1b-e3ab-40ee-9c6f-791b5badc1f5",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "3429c6f2-575f-4a76-ae4a-ee32bd1e69f3",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "377dfc7e-7c40-43fb-abe5-4385bf808095",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "4f7efdd7-12b9-42a8-be0e-0660d26f0eef",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "55f7835c-1868-44f7-87a6-11312f4cc201",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "56f50a63-da89-4201-87a5-169c9975da2a",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "5ab82037-126d-409a-bd25-04ce1eb49f82",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "5df77212-0434-473c-8fa2-93b816eb75e2",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "646de684-dc04-465f-9c33-b5ade3555eb6",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "6d5b516b-739b-4fce-a55f-9e3d191531fe",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "8271605e-31bd-4259-9e1b-7f6468a01252",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "a887980f-cb40-4101-91ac-26cc9b886da5",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "ba8994b9-e084-4eaf-afb3-cb9cefe41bfe",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "be0d33f5-3882-4486-a196-cd257fe8cf45",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "c61648ab-3283-4601-a44b-91b8a7c163a9",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "c682539b-09b3-434d-bc62-f9cfe58d6e3b",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "c6a4981e-0a93-46b8-91e5-8f29537a9419",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "c9b265fd-4987-4cd3-ade9-2552d34a3a03",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "d9efde56-c238-4204-b83d-db974d0967bb",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "deecce6f-e527-4c2e-8df8-e70319c6e56f",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "ffba294b-6c59-4ce4-a0d9-ea70912bb913",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "0a5e57e8-275d-4748-adbb-5becb003a15e",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "37b02988-6661-42c6-8b0e-b223cc282123",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "3a90eebb-a2da-4068-a43a-cb4d05f1b83e",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "43c02463-fe11-49b5-82c5-9f7644c41380",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "548b5ae1-e8c3-4649-a6e0-b47f9ef232f9",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "81a453d1-d1bc-458d-b418-3e3b1715812a",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "982acfe6-b75b-4dff-be07-5177a3fdf80c",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "9d16e49e-2226-42ef-bcba-675125e24093",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "24db0c2e-86f9-4168-8710-bbf75500b2b5",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "d6e4248d-69eb-41a9-bf32-a032c9822add",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "1790f30e-d89a-47ac-a2bd-f2648d1e0009",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "a8d7307c-d73a-431e-ac01-980b033a334f",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "6fb61fa7-8a4e-4420-a0d5-b45da36ced25",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "5e277b66-1221-4a2b-875e-ebe86946468d",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "5f008117-3bb6-4fc4-a7e6-cb5006118eec",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "afa4a532-5ebe-4489-842c-38f761e08391",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "f75c7768-e6eb-4655-a7b8-b6795d92e3e5",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "4eec24a6-6ca0-4202-8cc3-a6d2dda83ffe",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "bd8b2cc0-cb1f-4e7f-ab4b-35716da942f3",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "89e8a573-edf6-4da9-b3b4-b3636fcd3caa",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "3ab08815-f08c-41e5-a3a7-3b72529f415c",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "27f4b36a-2ead-4bf1-9690-fb7dbb0c4d1c",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "91fffb9d-7d6a-4b64-8cb7-25c2b4db6b35",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "5e8b91eb-44c8-4d4d-9b03-efd204f28f03",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "ed36cef1-2a8c-432c-85a4-12cc291fa2b7",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "1cf996a9-c261-495b-a631-2d4663d75a15",
+      "product_category": "clothing",
+      "style_approach": "1"
+    },
+    {
+      "id": "5cb17a52-5c86-4098-bea9-d83e45f98182",
+      "product_category": "clothing",
+      "style_approach": "1"
+    }
+  ]
+}

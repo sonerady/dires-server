@@ -494,13 +494,16 @@ Create a professional ID photo prompt incorporating these details: "${originalPr
   }
 }
 
-// Google Imagen 4 API URL
-const IMAGEN_4_API_URL = "https://fal.run/fal-ai/imagen4/preview/ultra";
+// ⚠️ 25 Ağu 2026: fal, `fal-ai/imagen4/preview/ultra` ucunu KALDIRDI (404
+// "Application imagen4 not found") ve model üretimi tamamen kırıldı. Kullanıcı
+// kararıyla nano-banana-2'ye geçildi — projenin geri kalanı zaten
+// nano-banana-2/edit kullanıyor, t2i ucu da aynı ailede.
+const MODEL_T2I_API_URL = "https://fal.run/fal-ai/nano-banana-2";
 
-// Google nano-banana ile model generate et (text-to-image) - Migrated to Fal.ai Imagen 4
+// nano-banana-2 ile model generate et (text-to-image)
 async function generateModelWithNanoBanana(prompt, gender, age, userId, hijabPrompt = null) {
   try {
-    logger.log("👤 [FAL.AI] Imagen 4 ile model generation başlatılıyor...");
+    logger.log("👤 [FAL.AI] nano-banana-2 ile model generation başlatılıyor...");
     logger.log("Original prompt:", prompt);
     logger.log("Gender:", gender);
     logger.log("Age:", age);
@@ -521,18 +524,20 @@ async function generateModelWithNanoBanana(prompt, gender, age, userId, hijabPro
 
     logger.log("Enhanced prompt:", enhancedPrompt);
 
-    // Imagen 4 için request body - Text-to-Image
+    // nano-banana-2 t2i request body. ⚠️ Şema imagen4'ten farklı:
+    // safety_filter_level yok (safety_tolerance var, varsayılan yeterli);
+    // resolution ayrı alan.
     const requestBody = {
       prompt: enhancedPrompt,
       aspect_ratio: "3:4", // ID photo / portrait için dikey format
       output_format: "jpeg",
-      safety_filter_level: "block_only_high",
+      resolution: "1K",
     };
 
     logger.log("📦 [FAL.AI] Request body:", requestBody);
 
     const response = await axios.post(
-      IMAGEN_4_API_URL,
+      MODEL_T2I_API_URL,
       requestBody,
       {
         headers: {

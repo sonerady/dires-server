@@ -16,6 +16,11 @@ const {
 } = require("../utils/styleReferenceImage");
 // 🔍 Sonuç netleştirme — model üretimiyle (referenceBrowserV7) ortak yardımcı
 const { applyResultUpscale } = require("../utils/resultUpscale");
+// 🎭 Trial'ın İLK çeşitlendirme partisi backend'de, completion anında başlar
+// (CreateModelPhotoScreen akışının aynısı — 27 Ağu 2026 kullanıcı isteği).
+// Refiner kaynağında varyasyon ÜRÜN modunda üretilir; variationRoutes bunu
+// reference_results.settings.isRefinerMode'dan kendisi anlıyor.
+const { startAutomaticTrialVariation } = require("./variationRoutes");
 
 // ───────────────────────────────────────────────────────────────────────────
 // 🔧 Refiner çekim tarzı direktifleri
@@ -132,6 +137,10 @@ const teamService = require("../services/teamService");
 const logger = require("../utils/logger");
 const { optimizeImageUrl } = require("../utils/imageOptimizer");
 const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
+const {
+  resolveBackgroundHex,
+  describeBackgroundForPrompt,
+} = require("../utils/resolveBackgroundHex");
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -208,7 +217,75 @@ async function isNewRefinerEnabled() {
 // referans karesinin AYNI istekte gitmesi gerekiyor. nano-banana-2 çoklu görseli ve
 // "şu ekteki kareyi referans al" talimatını doğru işliyor, bu yüzden referans/çekim
 // tarzı seçiliyken model buraya yönlendirilir.
-async function callNanoBanana2ForRefiner(prompt, imageUrls, maxRetries = 3) {
+// 📐 ÇIKTI ORANI (27 Ağu 2026, kullanıcı isteği) — üç API üç ayrı dil konuşuyor:
+//   • nano-banana-2  → `aspect_ratio` metni ("3:4"), Results'taki 10 oranın
+//                      hepsini birebir kabul ediyor
+//   • gpt-image-2    → `image_size` ENUM'u; yalnız birkaç şekil var, oran en
+//                      yakın enum'a yuvarlanır (referenceBrowserRoutesV7 ve
+//                      backSideCloset ile AYNI tablo — tek bir dil olsun)
+//   • gpt-image-1.5  → piksel ölçüsü; yalnız üç boy var (kare/dikey/yatay)
+// Bu yüzden istemciden gelen oran tek noktada normalize edilip her API'ye
+// kendi biçiminde veriliyor; eskiden oran hiç kullanılmıyordu (nb2 "3:4"e,
+// GPT "portrait_4_3"e sabitti) ve kullanıcının seçimi sessizce yok sayılıyordu.
+const REFINER_RATIOS = [
+  "21:9",
+  "16:9",
+  "3:2",
+  "4:3",
+  "5:4",
+  "1:1",
+  "4:5",
+  "3:4",
+  "2:3",
+  "9:16",
+];
+const DEFAULT_REFINER_RATIO = "3:4";
+
+function normalizeRefinerRatio(value) {
+  const raw = String(value || "").trim();
+  return REFINER_RATIOS.includes(raw) ? raw : DEFAULT_REFINER_RATIO;
+}
+
+function mapRatioToGptImage2Size(ratio) {
+  const mapping = {
+    "21:9": "landscape_16_9",
+    "16:9": "landscape_16_9",
+    "3:2": "landscape_4_3",
+    "4:3": "landscape_4_3",
+    "5:4": "landscape_4_3",
+    "1:1": "square_hd",
+    "4:5": "portrait_4_3",
+    "3:4": "portrait_4_3",
+    "2:3": "portrait_4_3",
+    "9:16": "portrait_16_9",
+  };
+  return mapping[ratio] || "portrait_4_3";
+}
+
+// GPT Image 1.5 yalnız üç piksel boyu kabul ediyor: kare, dikey, yatay.
+function mapRatioToGptImage15Size(ratio) {
+  const [w, h] = String(ratio || "")
+    .split(":")
+    .map((n) => Number(n) || 0);
+  if (!w || !h) return "1024x1536";
+  if (w === h) return "1024x1024";
+  return w > h ? "1536x1024" : "1024x1536";
+}
+
+/** Oranı sayıya çevirir (referans kareyi doğru tuvale dolgulamak için). */
+function refinerRatioValue(ratio) {
+  const [w, h] = String(ratio || "")
+    .split(":")
+    .map((n) => Number(n) || 0);
+  return w > 0 && h > 0 ? w / h : 3 / 4;
+}
+
+async function callNanoBanana2ForRefiner(
+  prompt,
+  imageUrls,
+  aspectRatio = DEFAULT_REFINER_RATIO,
+  maxRetries = 3,
+) {
   const nanoModel = "fal-ai/nano-banana-2/edit";
   let lastError = null;
 
@@ -223,7 +300,7 @@ async function callNanoBanana2ForRefiner(prompt, imageUrls, maxRetries = 3) {
           prompt,
           image_urls: imageUrls,
           output_format: "jpeg",
-          aspect_ratio: "3:4",
+          aspect_ratio: normalizeRefinerRatio(aspectRatio),
           num_images: 1,
           resolution: "2K",
         },
@@ -266,9 +343,15 @@ async function callNanoBanana2ForRefiner(prompt, imageUrls, maxRetries = 3) {
 //   false → fal-ai/gpt-image-1.5/edit (eski, pixel size, input_fidelity var)
 async function callFalAiGptImageEditForRefiner(
   prompt,
-  imageUrl,
+  imageUrlOrUrls,
+  aspectRatio = DEFAULT_REFINER_RATIO,
   maxRetries = 3,
 ) {
+  // Tek URL de dizi de kabul edilir (18 Ağu 2026): renk dizisinin renk
+  // kareleri + dizilim örneği artık GPT'ye de çoklu görsel olarak gidiyor.
+  const imageUrls = (
+    Array.isArray(imageUrlOrUrls) ? imageUrlOrUrls : [imageUrlOrUrls]
+  ).filter(Boolean);
   const useGpt2 = await isNewRefinerEnabled();
   const modelEndpoint = useGpt2
     ? "openai/gpt-image-2/edit"
@@ -277,27 +360,33 @@ async function callFalAiGptImageEditForRefiner(
 
   // GPT 2: image_size enum, input_fidelity kaldırıldı.
   // GPT 1.5: pixel size + input_fidelity: "high"
+  const safeRatio = normalizeRefinerRatio(aspectRatio);
   const input = useGpt2
     ? {
         prompt: prompt,
-        image_urls: [imageUrl],
-        image_size: "portrait_4_3",
+        image_urls: imageUrls,
+        image_size: mapRatioToGptImage2Size(safeRatio),
         quality: "medium",
         num_images: 1,
         output_format: "jpeg",
       }
     : {
         prompt: prompt,
-        image_urls: [imageUrl],
-        image_size: "1024x1536",
+        image_urls: imageUrls,
+        image_size: mapRatioToGptImage15Size(safeRatio),
         quality: "medium",
         input_fidelity: "high",
         num_images: 1,
         output_format: "jpeg",
       };
+  if (imageUrls.length > 1) {
+    logger.log(
+      `🎨 [FAL_AI_GPT_REFINER] ${imageUrls.length} görsel gönderiliyor (ürün + referanslar)`,
+    );
+  }
 
   logger.log(
-    `⚙️ [REFINER MODEL_SWITCH] app_config.is_new = ${useGpt2} → ${modelLabel} (${modelEndpoint})`,
+    `⚙️ [REFINER MODEL_SWITCH] app_config.is_new = ${useGpt2} → ${modelLabel} (${modelEndpoint}) | oran ${safeRatio} → image_size ${input.image_size}`,
   );
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -1484,6 +1573,10 @@ async function enhancePromptWithGemini(
   userId = null, // Compress için userId
   originalBase64Data = null, // Orijinal base64 verisi - URL'den tekrar indirmemek için
   styleReferenceActive = false, // 🎬 Çekim tarzı/referans devrede mi? (refiner)
+  // 🎨 Renk referans kareleri (plakalı URL'ler). Gemini bunları da GÖRSÜN ki
+  // yazdığı brief renkleri gerçekten o karelerden okusun; yalnız son modele
+  // göndermek yetmiyordu (18 Ağu 2026 kullanıcı isteği).
+  colorReferenceUrls = [],
 ) {
   try {
     logger.log("🤖 [GEMINI] Google Gemini ile prompt iyileştirme başlatılıyor");
@@ -2377,12 +2470,11 @@ Positioning: Arranged elegantly, chains untangled, clasps hidden or styled
 Background: Pure flat ${
         colorInputMode === "hex" ? backgroundColor : backgroundColor
       } background (solid, uniform color).
-Positioning & Presentation (CRITICAL): 
-  - SINGLE SHOE RULE: Even if the original photo shows a pair of shoes/slippers, your generated prompt MUST instruct to show ONLY ONE SINGLE shoe.
-  - STRICT SIDE PROFILE: This single shoe MUST be presented in a direct, technical side profile view (outer side) as the primary angle. This is the absolute industry standard for professional clean e-commerce product photography.
-  - The shoe must appear upright and stable, as if sitting on an invisible floor - NOT a flat lay or tilted angle.
+Positioning & Presentation:
+  - The footwear may be presented as a single shoe OR as a neatly composed pair — follow the STAGING directive appended at the end of this prompt when present; otherwise keep the presentation of the source photo (a pair stays a pair, a single stays single).
+  - Shoes stand upright and stable, as if sitting on an invisible floor — never tilted at a careless angle.
   - COMPLETELY remove any visible legs, feet, socks, or mannequin parts from the original photo.
-  - Ensure the shoe is perfectly centered in the frame.
+  - Keep the composition centered and balanced in the frame.
 Shadow & Reflection (CRITICAL):
   - Shadow: ${
     addShadow
@@ -3074,6 +3166,18 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
       ) {
         imageUrlsForReplicate.push(cleanImageUrl);
       }
+    }
+
+    // 🎨 Renk referans kareleri — plakalı hâlleriyle analize de girer, çünkü
+    // Gemini renkleri bu karelerden okuyup brief'e yazacak.
+    if (Array.isArray(colorReferenceUrls) && colorReferenceUrls.length) {
+      for (const refUrl of colorReferenceUrls) {
+        const clean = sanitizeImageUrl(refUrl);
+        if (clean?.startsWith("http")) imageUrlsForReplicate.push(clean);
+      }
+      logger.log(
+        `🎨 [GEMINI] ${colorReferenceUrls.length} renk referansı analize eklendi`,
+      );
     }
 
     // Pose, hair style ve location resimlerini de ekle
@@ -4127,6 +4231,11 @@ router.post("/generate", async (req, res) => {
       poseImage,
       hairStyleImage,
       isMultipleImages = false,
+      // 📐 Aynı ürünün farklı açıları (17 Ağu 2026 — Refiner'a CreateModelPhoto'daki
+      // özellik taşındı). Açıkken yüklenen kareler TEK ürünün farklı görünümleridir;
+      // model bunları ayrı ürün sanmasın diye prompt'a açık direktif eklenir.
+      isMultipleAnglesMode = false,
+      multipleAnglesCount = 0,
       isMultipleProducts: originalIsMultipleProducts,
       generationId, // Yeni parametre
       totalGenerations = 1, // Toplam generation sayısı (varsayılan 1)
@@ -4150,6 +4259,376 @@ router.post("/generate", async (req, res) => {
       // 🔍 Sonuç netleştirme kademesi (4 = kapalı)
       upscaleMp = 4,
     } = req.body;
+
+    // 📐 Çoklu açı bayrakları — body ya da settings üzerinden gelebilir
+    // (istemci sözleşmesi CreateModelPhoto ile aynı). Tek kare varken mod
+    // anlamsız; en fazla 6 açı kabul edilir (V7 rotasıyla aynı sınır).
+    const anglesCount = Math.min(
+      6,
+      Math.max(
+        0,
+        Math.floor(
+          Number(multipleAnglesCount || settings?.multipleAnglesCount || 0) || 0,
+        ),
+      ),
+    );
+    const anglesModeActive =
+      (Boolean(isMultipleAnglesMode) ||
+        Boolean(settings?.isMultipleAnglesMode)) &&
+      anglesCount > 1;
+
+    // 🏷️ Ürün kategorisi (19 Ağu 2026): istemci artık ayakkabıda sahneleme
+    // tarzını gönderiyor ve ayakkabı tarzlarının anlamı giyimden farklı.
+    // Gönderilmezse (eski istemciler) null kalır → giyim davranışı sürer.
+    const refinerProductCategory = (() => {
+      const raw = String(
+        req.body?.productCategory ?? settings?.productCategory ?? "",
+      ).toLowerCase();
+      return [
+        "shoes",
+        "jewelry",
+        "clothing",
+        "eyewear",
+        "earrings",
+        "rings",
+        "bracelets_chain",
+        "bracelets_bangle",
+        "necklaces",
+      ].includes(raw)
+        ? raw
+        : null;
+    })();
+    // 📐 Kullanıcının seçtiği çıktı oranı — hem modele hem sahneleme referans
+    // karesinin tuvaline uygulanır (ikisi AYNI tuvalde olmalı).
+    const refinerOutputRatio = normalizeRefinerRatio(ratio);
+    const isShoesStaging = refinerProductCategory === "shoes";
+    // 🕶️ Gözlük (19 Ağu 2026): sınıflandırıcıda üst tip değil clothing/eyewear
+    // alt türü — istemci sahneleme için productCategory="eyewear" gönderir.
+    const isEyewearStaging = refinerProductCategory === "eyewear";
+    // 💎 Küpe (27 Ağu 2026): sınıflandırıcıda jewelry/earring ALT TÜRÜ —
+    // istemci sahneleme için productCategory="earrings" gönderir. Gözlükle
+    // aynı swap çerçevesini kullanır ama tarzları YÖN kilidi:
+    //   1 ikisi de karşıdan · 2 biri karşıdan biri yandan · 3 ikisi de yandan.
+    // ⚠️ Renk dizisi (4) YOK.
+    const isEarringsStaging = refinerProductCategory === "earrings";
+    // 💍 Yüzük (27 Ağu 2026): jewelry/ring ALT TÜRÜ — küpeyle aynı kalıp,
+    // tarzlar yine YÖN kilidi:
+    //   1 açılı hero (varsayılan) · 2 dik önden · 3 üstten kuşbakışı.
+    const isRingsStaging = refinerProductCategory === "rings";
+    // 📿 Bileklik (27 Ağu 2026): İKİ ayrı set — sınıflandırıcının `productForm`
+    // alanı zincirli/esnek mi sert bilezik mi olduğunu söylüyor, istemci de
+    // sahneleme kategorisini ona göre gönderiyor. Zincirlide 3 = DÜZ UZATILMIŞ,
+    // sert bilezikte 3 = yatık üstten; ikisi aynı numarada başka şey demek.
+    const isBraceletChainStaging = refinerProductCategory === "bracelets_chain";
+    const isBraceletBangleStaging =
+      refinerProductCategory === "bracelets_bangle";
+    const isBraceletStaging = isBraceletChainStaging || isBraceletBangleStaging;
+    // 📿 Kolye (27 Ağu 2026): 1 önden simetrik · 2 açılı · 3 zincir yayı.
+    const isNecklacesStaging = refinerProductCategory === "necklaces";
+    // Takının kart seti olan alt türleri: swap çerçevesi + yön kilidi + rötuş
+    const isJewelryStaged =
+      isEarringsStaging ||
+      isRingsStaging ||
+      isBraceletStaging ||
+      isNecklacesStaging;
+    // Ayakkabı+gözlük+takı alt türleri aynı sahneleme altyapısını paylaşır
+    const isStagedCategory =
+      isShoesStaging || isEyewearStaging || isJewelryStaged;
+
+    // 🧺 Sahneleme tarzı.
+    // Giyim: 1 flatlay · 2 hayalet manken (varsayılan) · 3 renk dizisi.
+    // Ayakkabı (19 Ağu 2026): 1 tekli yan · 2 çift/hero (varsayılan) ·
+    // 3 yan yana çift · 4 renk dizisi.
+    // Hepsinde prompt'un sonuna bir blok eklenir; ayakkabıda 4 tarzın 4'ü de
+    // taban prompt'u geçersiz kılan override'dır.
+    const stagingStyleValue = (() => {
+      const raw = Number.parseInt(
+        req.body?.stagingStyle ?? settings?.stagingStyle,
+        10,
+      );
+      // Küpede renk dizisi kartı yok → 4 kabul edilmez; varsayılanı da
+      // "ikisi de karşıdan" (1), ghost manken (2) takıda anlamsız.
+      const allowed =
+        isStagedCategory && !isJewelryStaged ? [1, 2, 3, 4] : [1, 2, 3];
+      const fallback = isJewelryStaged ? 1 : 2;
+      return allowed.includes(raw) ? raw : fallback;
+    })();
+    // Renk dizisi tarzı kategoriye göre farklı numarada — tüm lineup mekanikleri
+    // (renkler, dizilim, referans kareler) bu bayrağa bakar.
+    // (Gözlük: 1 yandan · 2 önden (varsayılan) · 3 katlı üstten · 4 renk seçenekleri)
+    const lineupStagingActive = isJewelryStaged
+      ? // 💎 Takıda 3 = bir YÖN kartı (küpede "ikisi de yandan", yüzükte
+        // "üstten"), renk dizisi DEĞİL — yoksa yön kartı renk mekaniğini açardı.
+        false
+      : isStagedCategory
+        ? stagingStyleValue === 4
+        : stagingStyleValue === 3;
+    // 👕 GHOST (2) — taban prompt zaten hayalet manken kuruyor, ama KOLLAR
+    // sıklıkla yassı/çökük çıkıyordu. Kullanıcı talimatı (18 Ağu 2026): kollara
+    // görünmez kolun içeriden desteklediği hacim, dirsekte yumuşak kavis ve
+    // gövdeden doğal açıklık verilecek. Taban prompt'a dokunmadan (5 dalda
+    // tekrarlanıyor) tek noktadan ekleniyor.
+    const ghostSleeveDirective = `GHOST MANNEQUIN — SLEEVE CONSTRUCTION: For any garment with sleeves, always construct the sleeves as if they are naturally supported by an invisible mannequin's arms. The sleeves must have clear internal volume and a hollow, tubular three-dimensional structure rather than appearing flat, collapsed, or hanging straight down.
+
+Position both sleeves slightly outward from the torso with a natural mannequin-like arm pose. Introduce a subtle bend around the elbow area so the sleeves follow a soft, controlled curve instead of forming a rigid straight line. The sleeve openings and cuffs should preserve realistic circular or oval volume, clearly suggesting an invisible arm inside the garment.
+
+Maintain natural spacing between the sleeves and the body. Do not let the sleeves stick tightly against the torso, collapse inward, overlap the body unnaturally, or appear empty and flattened. Preserve the garment's original sleeve length, width, cuffs, seams, fabric texture, construction, and proportions.
+
+The final result should resemble professional e-commerce ghost mannequin photography: symmetrical, structured, dimensional, clean, and naturally shaped by an invisible human form.`;
+
+    // 🎨 Renk dizisinde kullanıcının seçtiği renkler (18 Ağu 2026): istemci
+    // yalnız ≥2 renk varken gönderiyor; burada da aynı eşik + temizlik var.
+    // Boş/geçersizse model renkleri kendisi seçer (eski davranış).
+    const lineupColors = (() => {
+      const raw = req.body?.lineupColors ?? settings?.lineupColors;
+      if (!Array.isArray(raw)) return [];
+      const seen = new Set();
+      const cleaned = [];
+      for (const item of raw) {
+        const name = String(item || "").trim().slice(0, 30);
+        if (!name) continue;
+        const key = name.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        cleaned.push(name);
+        if (cleaned.length >= 6) break;
+      }
+      return cleaned.length >= 2 ? cleaned : [];
+    })();
+
+    // Renk referans görseli tavanı — istemciyle aynı sınır.
+    const LINEUP_COLOR_REF_MAX = 6;
+
+    // 📸 Fotoğraftan gelen renk sayısı direktife BAŞTAN girmeli (18 Ağu 2026
+    // düzeltmesi): önceden kopya sayısı ve "yalnız bu renkler" cümlesi salt
+    // elle yazılan renklerden kuruluyordu; model "başka renk ekleme" emrine
+    // uyup fotoğraf renklerini elemekteydi. Sayı burada gövdeden okunur
+    // (yükleme daha sonra yapılır; nadir yükleme hatasında kopya sayısı bir
+    // fazla kalabilir — kabul edilen ödünleşim, log'da uyarısı var).
+    const lineupColorImageCount =
+      lineupStagingActive && Array.isArray(req.body?.lineupColorImages)
+        ? Math.min(req.body.lineupColorImages.length, LINEUP_COLOR_REF_MAX)
+        : 0;
+
+    // 🧩 Dizilim (18 Ağu 2026): renk dizisi kopyalarının sahnedeki yerleşimi.
+    // 1 çapraz kaskad (varsayılan/eski davranış) · 2 yan yana sıra ·
+    // 3 yelpaze · 4 ızgara. İstemci modaldan seçtiriyor; tanımsız/geçersizse 1.
+    // 5 = özel tarif: kullanıcının serbest metni ve/veya örnek fotoğrafı.
+    // Metin tek satıra indirilip 400 karaktere kırpılır (istemciyle aynı sınır);
+    // 5 seçilip ikisi de yoksa güvenle varsayılana düşülür.
+    const lineupArrangementCustomText = (() => {
+      const raw =
+        req.body?.lineupArrangementText ?? settings?.lineupArrangementText;
+      if (typeof raw !== "string") return "";
+      return raw
+        .replace(/[\r\n]+/g, " ")
+        .replace(/\s+/g, " ")
+        .replace(/"/g, "'")
+        .trim()
+        .slice(0, 400);
+    })();
+    const lineupArrangementImageInput =
+      req.body?.lineupArrangementImage &&
+      (req.body.lineupArrangementImage.base64 ||
+        req.body.lineupArrangementImage.uri)
+        ? req.body.lineupArrangementImage
+        : null;
+    const lineupArrangementValue = (() => {
+      const raw = Number.parseInt(
+        req.body?.lineupArrangement ?? settings?.lineupArrangement,
+        10,
+      );
+      if (raw === 5) {
+        return lineupArrangementCustomText || lineupArrangementImageInput
+          ? 5
+          : 1;
+      }
+      return [1, 2, 3, 4, 6, 7].includes(raw) ? raw : 1;
+    })();
+    const lineupCustomArrangementSentences = [
+      lineupArrangementCustomText
+        ? `The user described the desired arrangement in their own words — follow this brief faithfully: "${lineupArrangementCustomText}".`
+        : null,
+      lineupArrangementImageInput
+        ? `An additional LAYOUT REFERENCE photograph is attached (detailed below) — reproduce the way the items are positioned and spaced in it.`
+        : null,
+      `Whatever the arrangement, keep every copy's front fully readable, all copies at a consistent scale under identical lighting, and the composition balanced within the frame.`,
+    ]
+      .filter(Boolean)
+      .join(" ");
+    const lineupArrangementText = {
+      1: `Arrange them in a staggered diagonal cascade running from the upper left down to the lower right: each copy sits slightly lower and further right than the one before, overlapping the previous one just enough to layer them while keeping every garment's front fully readable. The copy nearest the viewer sits in front; the ones behind recede in order.`,
+      2: `Arrange them in one straight horizontal row, standing side by side on a shared baseline with even spacing and no overlap. Every copy is the same size, faces the camera straight on and sits at the same distance from it, so the row reads like a clean catalog strip.`,
+      3: `Arrange them in one tight overlapping row, exactly like marketplace colorway listings: every copy stands perfectly upright and front-facing with NO rotation, and each copy overlaps the previous one by roughly half its width, so the row reads like a neatly fanned deck of upright garments. The left-most copy is fully visible in front; each following copy sits slightly behind, its exposed half still clearly readable. Keep the overlap step even across the whole row.`,
+      4: `Arrange them in a tidy rectangular grid of equal rows and columns (for example two rows of three when there are six copies), aligned to straight horizontal and vertical axes with even gutters and no overlap. Every copy is identical in scale and orientation, like a product matrix sheet.`,
+      5: lineupCustomArrangementSentences,
+      6: `Arrange them in the classic marketplace "front focus" composition: ONE large hero copy stands in the front foreground, toward the left or center of the frame, clearly bigger and closest to the camera; ALL remaining copies line up behind it in one straight, evenly spaced back row of identical smaller copies. Every copy — hero and back row alike — stands upright and faces straight forward with no rotation. The hero copy must not hide the back row: each back-row copy stays clearly visible and readable.`,
+      7: `Arrange them in a staggered brick-pattern grid, like marketplace colorway collages: split the copies into two horizontal rows of nearly equal size, and shift the lower row sideways by half a step so its copies sit in the gaps of the upper row. Even spacing, no rotation, no more than a slight overlap between rows; every copy identical in scale and orientation, upright and front-facing.`,
+    }[lineupArrangementValue];
+    // Renk sırası cümlesi dizilime göre değişir — kullanıcının çip sırası
+    // sahnedeki okuma sırasına birebir eşlensin.
+    const lineupOrderPhrase = {
+      1: `ordered from the front copy to the back`,
+      2: `ordered from left to right`,
+      3: `ordered from left (the fully visible front copy) to right (the furthest back)`,
+      4: `ordered from left to right, top row first`,
+      5: `ordered in the natural reading order of the arrangement — front-most or left-most copy first`,
+      6: `with the FIRST color on the large front hero copy, then the remaining colors from left to right along the back row`,
+      7: `ordered from left to right, top row first, then the shifted lower row`,
+    }[lineupArrangementValue];
+
+    // Kopya sayısı ve renk seçimi cümleleri kullanıcı renklerine göre kurulur.
+    // Toplam = elle yazılanlar + fotoğraftan gelenler; sıra hep "önce yazılı
+    // renkler, sonra plaka sırasıyla fotoğraf renkleri".
+    const lineupTotalColorCount = lineupColors.length + lineupColorImageCount;
+    const lineupCopiesText = lineupTotalColorCount
+      ? `exactly ${lineupTotalColorCount} times`
+      : `five to six times`;
+    const lineupColorChoiceText = (() => {
+      if (lineupColors.length && lineupColorImageCount) {
+        return `Use exactly ${lineupTotalColorCount} colors, one per copy, ${lineupOrderPhrase}: the first ${lineupColors.length} copies take these named colors in this order — ${lineupColors.join(", ")} — and the remaining ${lineupColorImageCount} copies each take their color from the attached COLOR reference photographs in plate order (COLOR 1, COLOR 2, and so on). Interpret each named value faithfully — a hex code is the exact target hue, and a color name applies even when written in another language. Render every one as a real textile dye of that shade, and do not add, skip or substitute any color.`;
+      }
+      if (lineupColors.length) {
+        return `Use exactly these colors, one per copy, ${lineupOrderPhrase}: ${lineupColors.join(", ")}. Interpret each value faithfully — a hex code is the exact target hue, and a color name applies even when written in another language. Render each one as a real textile dye of that shade, and do not add, skip or substitute any color.`;
+      }
+      if (lineupColorImageCount) {
+        return `Dye the copies using the attached COLOR reference photographs, one photograph per copy, ${lineupOrderPhrase} and matching plate order (COLOR 1 first, then COLOR 2, and so on). Do not add, skip or substitute any color.`;
+      }
+      return `Choose a coherent, commercially plausible color range for this garment type.`;
+    })();
+
+    // 👟 Ayakkabı sahneleme direktifleri (19 Ağu 2026). Dizilim/renk metinleri
+    // giyimle ortak kalıptan gelir; "garment/textile" kelimeleri ayakkabıya
+    // çevrilir ki model kumaş diliyle yanıltılmasın. Gölge cümlesi kullanıcının
+    // Gölge ayarına bağlı (istemci ayakkabıda varsayılanı AÇIK kurar).
+    // 🎨 Kullanıcının seçtiği zemin rengi (28 Ağu 2026, canlı şikâyet):
+    // sahneleme promptları zemini "pure-white" diye SABİT yazıyordu ve bu yol
+    // Gemini'nin renk anlatan promptunu tamamen değiştirdiği için kullanıcının
+    // seçtiği renk (ör. #FF0000) modele hiç ulaşmıyordu — çıktı hep beyaz.
+    // Senkron tarif: bu blok model çağrısından çok önce kuruluyor.
+    const stagingBg = describeBackgroundForPrompt(settings);
+    // Beyazda bugünkü ifadeyi bire bir koru; renkte hex'i yaz.
+    const stagingBgPhrase = stagingBg.isWhite
+      ? "pure-white"
+      : `solid ${stagingBg.label}`;
+    // ⚠️ Sahneleme referans karesinin zemini BEYAZ. Modele "temel sahneyi
+    // birebir yeniden oluştur" dediğimiz için, renk seçildiğinde zeminin
+    // referanstan AYRILMASI gerektiğini açıkça söylemek şart — yoksa model
+    // beyaza demirliyor (canlı şikâyet, 28 Ağu 2026). Rengin ürüne değil
+    // yalnız zemine uygulandığı da ayrıca vurgulanıyor: önceki denemede model
+    // "kırmızı"yı taşa uygulayıp zemini beyaz bırakmıştı.
+    const stagingBackgroundOverride = stagingBg.isWhite
+      ? ""
+      : `\n\nBACKGROUND COLOUR OVERRIDE — THIS OVERRULES THE BASE SCENE: the base scene's backdrop is white, but the OUTPUT background must be ${stagingBgPhrase}, filled edge to edge across the entire frame with that exact colour — flat, uniform, seamless, no gradient, no vignette, no white corners and no trace of the reference backdrop. Copy the base scene's composition, pose and lighting, NOT its background colour. This colour applies ONLY to the backdrop: the product itself keeps its own materials, metal tone, stones and finish exactly as in the user's photograph — never tint, recolour or restyle any part of the product to match the background.`;
+
+    const shoeShadowText = (settings?.addShadow ?? false)
+      ? " Ground the composition with a soft, flat contact shadow directly beneath each sole."
+      : " Absolutely no shadow — the shoes sit on a completely clean, shadowless background.";
+    const eyewearShadowText = (settings?.addShadow ?? false)
+      ? " Ground the composition with a soft, subtle contact shadow directly beneath the frame."
+      : " Absolutely no shadow — the sunglasses sit on a completely clean, shadowless background.";
+    // 💎 Takı (küpe/yüzük) — gölge varsayılanı KAPALI (istemci de takıda
+    // gölge varsayılanına dokunmuyor).
+    const jewelryStagedNoun = isRingsStaging
+      ? "ring"
+      : isBraceletStaging
+        ? "bracelet"
+        : isNecklacesStaging
+          ? "necklace"
+          : "earrings";
+    const jewelryShadowText = (settings?.addShadow ?? false)
+      ? ` Ground the composition with a soft, barely-there contact shadow beneath the ${jewelryStagedNoun}.`
+      : ` Absolutely no shadow and no reflection — the ${jewelryStagedNoun} sit${
+          isRingsStaging || isBraceletStaging || isNecklacesStaging ? "s" : ""
+        } against a completely clean, shadowless ${stagingBgPhrase} background.`;
+    const shoeLineupArrangementText = (lineupArrangementText || "")
+      .replace(/garments?/g, "shoe")
+      .replace(/upright shoe(s)?/g, "upright shoes");
+    const shoeLineupColorChoiceText = (lineupColorChoiceText || "")
+      .replace(/a real textile dye/g, "a genuine factory colorway")
+      .replace(/real textile dye/g, "genuine factory colorway");
+    const shoeStagingDirective =
+      stagingStyleValue === 1
+        ? `STAGING OVERRIDE — SINGLE SHOE, SIDE PROFILE (this instruction replaces any earlier presentation instruction): Show ONLY ONE single shoe, even if the source photograph shows a pair. STRICT COUNT RULE: the finished photograph contains EXACTLY ONE shoe in the entire frame — the pair's second shoe must NOT appear anywhere, not partially, not blurred, not in the background, not as a reflection. If the source photograph shows two shoes, pick the one whose outer side reads most clearly and render only that one; the other shoe simply does not exist in the output. Present it in a direct, technical side-profile view (outer side), upright and stable as if standing on an invisible floor — never flat-lay, never tilted. Center it in the frame with generous even margins. Remove any legs, feet, socks or mannequin parts. Keep every material, stitch, sole detail, lace and logo exactly as in the source photograph.${shoeShadowText}`
+        : stagingStyleValue === 2
+          ? `STAGING OVERRIDE — PAIR, MATCH THE REFERENCE (this instruction takes priority over every earlier composition or framing description): Recreate the EXACT composition of the attached STAGING · REFERENCE photograph using the user's shoe. Same number of shoes, same stance on the ground, same facing directions, same camera angle, same spacing, same framing — copy the reference's arrangement one-to-one and do NOT invent, adjust or "improve" the composition in any way. The source photograph's own pose, stance and camera angle are IRRELEVANT and must NOT be reproduced — only the STAGING · REFERENCE defines them. The ONLY thing that changes from the reference is the product itself: every shoe in the output is the user's own shoe from the source photograph, with its exact shape, materials, colors, stitching, soles, laces and branding. Render a true left and right of the same pair, never a mirrored duplicate. No legs, feet, socks or mannequin parts.${shoeShadowText}`
+          : stagingStyleValue === 3
+            ? `STAGING OVERRIDE — SIDE-BY-SIDE PAIR, MATCH THE REFERENCE (this instruction takes priority over every earlier composition or framing description): Recreate the EXACT composition of the attached STAGING · REFERENCE photograph using the user's shoe. Same number of shoes, same stance on the ground, same facing directions, same camera angle, same spacing, same framing — copy the reference's arrangement one-to-one and do NOT invent, adjust or "improve" the composition in any way. The source photograph's own pose, stance and camera angle are IRRELEVANT and must NOT be reproduced — only the STAGING · REFERENCE defines them. The ONLY thing that changes from the reference is the product itself: every shoe in the output is the user's own shoe from the source photograph, with its exact shape, materials, colors, stitching, soles, laces and branding. Render a true left and right of the same pair, never a mirrored duplicate. No legs, feet, socks or mannequin parts.${shoeShadowText}`
+            : stagingStyleValue === 4
+              ? `STAGING OVERRIDE — COLOR LINEUP (this instruction replaces any earlier flat-lay or pair instruction): Build a single marketplace-style colorway lineup of this exact same shoe, in the visual language of large e-commerce catalog listings.
+
+EVERY COPY IS A CLEAN PROFILE SHOT: Each copy in the lineup is ONE single shoe of the same model, shown in an identical side-profile view, upright and stable on an invisible floor — same angle, same scale, same lighting for every copy. No feet, legs or mannequin parts anywhere.
+
+Repeat the identical shoe — same silhouette, panels, stitching, sole unit, lacing system, eyelets, branding and proportions — ${lineupCopiesText} across the frame, each copy in a different colorway of the same model. ${shoeLineupArrangementText}
+
+REALISTIC COLORWAYS — THE COLOR IS THE MATERIAL, NOT PAINT: Each copy must look like the very same shoe genuinely manufactured in that colorway and photographed under the same light — never like a flat color filled in over a shape. Dye the upper's actual materials believably: leather keeps its grain and sheen, suede keeps its nap, canvas keeps its weave, mesh keeps its texture — all clearly visible through the new color. Panel seams, overlays, eyelet rows and topstitching keep their own subtle shading and depth in every colorway. Soles, midsoles, laces and hardware take colors that are commercially plausible for that colorway of this model — they may stay neutral (white, black, gum) or match the upper, but must always look like a real factory release. Under no circumstances should any copy look posterized, flat, vector-like, plastic, or as if a solid color layer was pasted onto a silhouette.
+
+Light every copy identically and shoot them all from the same side-profile angle, so the ONLY difference between them is the colorway. ${shoeLineupColorChoiceText} Keep the background a clean, uniform white surface and let the lineup read instantly as one shoe offered in multiple colorways.
+
+FILL THE FRAME EDGE TO EDGE: Whatever the number of copies, the lineup must span the FULL WIDTH of the image — the left-most copy begins at the far left edge of the frame and the right-most copy ends at the far right edge, with only a slim, equal margin on each side. Scale the copies together so they fill the frame; never leave a large empty band on any side. Distribute the spacing evenly and keep the whole group vertically centred.
+
+ABSOLUTELY NO ADDED TEXT: The finished photograph must contain no added text of any kind — no captions, labels, color names, numbers, code plates, tags, watermarks, logos or graphic overlays anywhere in the frame or on the background. The ONLY exception is branding that is genuinely part of the shoe's own design — that stays exactly as it is on every copy. Never write the color names onto or near the copies.`
+              : null;
+
+    // 🕶️ Gözlük sahneleme: 1-3 swap çerçevesiyle çalışır (direktif gerekmez);
+    // yalnız 4 (renk seçenekleri) klasik lineup direktifi kullanır.
+    const eyewearLineupArrangementText = (lineupArrangementText || "")
+      .replace(/garments?/g, "pair of sunglasses");
+    const eyewearLineupColorChoiceText = (lineupColorChoiceText || "")
+      .replace(/a real textile dye/g, "a genuine factory frame colorway")
+      .replace(/real textile dye/g, "genuine factory frame colorway");
+    const eyewearStagingDirective =
+      stagingStyleValue === 4
+        ? `STAGING OVERRIDE — FRAME COLORWAYS (this instruction replaces any earlier composition instruction): Build a single marketplace-style colorway lineup of this exact same pair of sunglasses, in the visual language of large e-commerce catalog listings.
+
+EVERY COPY IS A CLEAN FRONTAL SHOT: Each copy in the lineup is the same sunglasses model, unfolded, shown from an identical straight frontal view — same angle, same scale, same lighting for every copy. No faces, heads or mannequin parts anywhere.
+
+Repeat the identical sunglasses — same frame shape, lens shape, hinges, nose pads, temples and proportions — ${lineupCopiesText} across the frame, each copy in a different frame colorway of the same model. ${eyewearLineupArrangementText}
+
+REALISTIC COLORWAYS — THE COLOR IS THE ACETATE, NOT PAINT: Each copy must look like the very same sunglasses genuinely manufactured in that frame colorway and photographed under the same light. Acetate keeps its gloss and depth, matte finishes keep their softness, patterns like tortoise shell keep their natural mottling. Lenses keep a consistent, commercially plausible tint across copies unless a colorway genuinely calls for a different lens. Hinges and metal details stay metallic. Never posterized, flat, vector-like or plastic-looking.
+
+Light every copy identically and shoot them all from the same frontal angle, so the ONLY difference between them is the frame colorway. ${eyewearLineupColorChoiceText} Keep the background a clean, uniform white surface and let the lineup read instantly as one model offered in multiple colorways.
+
+FILL THE FRAME EDGE TO EDGE: Whatever the number of copies, the lineup must span the FULL WIDTH of the image with only a slim, equal margin on each side. Scale the copies together so they fill the frame; never leave a large empty band on any side. Keep the whole group vertically centred.
+
+ABSOLUTELY NO ADDED TEXT: The finished photograph must contain no added text of any kind — no captions, labels, color names, numbers, code plates, tags, watermarks, logos or graphic overlays. The ONLY exception is branding genuinely part of the sunglasses' own design. Never write the color names onto or near the copies.`
+        : null;
+
+    // ⚠️ 27 Ağu 2026 canlı bulgu: TAKI üretimlerinde (yüzük/küpe/kolye) bu
+    // zincir giyim dalına düşüyor ve stagingStyle=2 varsayılanı yüzünden
+    // prompt'un sonuna "GHOST MANNEQUIN — SLEEVE CONSTRUCTION" ekleniyordu.
+    // Kolsuz bir yüzüğe kol talimatı gitmesi saçma; takının tamamı bu
+    // zincirden çıkarıldı. Kart seti olan alt türler (küpe/yüzük) zaten
+    // swap çerçevesiyle çalışıyor, ayrı bir direktife ihtiyaçları yok.
+    const isJewelryCategoryStaging =
+      refinerProductCategory === "jewelry" || isJewelryStaged;
+    const stagingDirective = isShoesStaging
+      ? shoeStagingDirective
+      : isEyewearStaging
+        ? eyewearStagingDirective
+        : isJewelryCategoryStaging
+          ? null
+        : stagingStyleValue === 2
+        ? ghostSleeveDirective
+        : stagingStyleValue === 1
+        ? `STAGING OVERRIDE — FLAT LAY (this instruction replaces any earlier ghost-mannequin or invisible-body instruction): Photograph the garment laid completely flat, seen straight from directly above at a perfect 90° top-down angle. The garment rests on the surface with no interior volume, no invisible body, no lifted or three-dimensional shaping. Arrange it neatly and symmetrically: shoulders squared, sleeves laid smoothly alongside or gently folded at a natural angle, body panel flat and wrinkle-free, hem straight. Keep the fabric's own texture, weave and printed details fully legible. Light it evenly and softly so the surface reads as a clean plane with only a faint contact shadow beneath the fabric edges.`
+        : stagingStyleValue === 3
+          ? `STAGING OVERRIDE — COLOR LINEUP (this instruction replaces any earlier flat-lay or laid-flat instruction): Build a single marketplace-style colorway lineup of this exact same garment, in the visual language of large e-commerce catalog listings.
+
+EVERY COPY IS A GHOST-MANNEQUIN SHOT: Each garment in the lineup is filled by an invisible body and holds its full three-dimensional form — shoulders shaped, chest with real depth, collar standing open with visible interior, sleeves carrying hollow tubular volume with a soft bend at the elbow and cuffs keeping their round opening, hem falling naturally. Even if the attached source photograph shows the garment laid flat on a surface, REBUILD it standing in ghost-mannequin form; nothing in the output lies flat.
+
+Repeat the identical product — same cut, silhouette, construction, collar, buttons, seams, stitching, print placement and proportions — ${lineupCopiesText} across the frame, each copy in a different color of the same fabric. ${lineupArrangementText}
+
+REALISTIC DYEING — THE COLOR IS THE FABRIC, NOT PAINT: Each copy must look like the very same garment genuinely manufactured in that color and photographed under the same light — never like a flat color filled in over a shape. Carry the full tonal structure of real cloth into every color: folds and creases stay as deeper, richer shades of that hue; raised areas and the light-facing side keep brighter, slightly desaturated highlights; seams, plackets, collar edges and cuffs keep their own subtle shading and the thin shadow lines where panels meet. The weave, grain and surface texture of the fabric stay visible through the color at every point, exactly as sharply as in the original photograph.
+
+Let each dye behave the way it really would: deep colors absorb light and reveal form mainly through soft sheen and shadow separation, pale colors show their folds through gentle grey-toned shading rather than washing out to blank white, and saturated colors keep believable variation instead of a single uniform tone. Buttons, labels, interior facings, topstitching and any hardware keep their own real materials and colors unless that component is genuinely dyed with the garment. Under no circumstances should any copy look posterized, flat, vector-like, plastic, or as if a solid color layer was pasted onto a silhouette.
+
+Light every copy identically and shoot them from the same straight-on frontal angle, so the ONLY difference between them is color. ${lineupColorChoiceText} Keep the background a clean, uniform white surface and let the lineup read instantly as one product offered in multiple colors.
+
+FILL THE FRAME EDGE TO EDGE: Whatever the number of copies, the lineup must span the FULL WIDTH of the image — the left-most copy begins at the far left edge of the frame and the right-most copy ends at the far right edge, with only a slim, equal margin on each side. Scale the copies up or down together so they fill the frame: with few copies make each one larger, with many copies make each one smaller, but never leave a large empty white band on the left, the right, the top or the bottom. Distribute the horizontal spacing evenly and keep the whole group vertically centred, so the composition reads as a balanced, deliberately framed catalog shot rather than a small cluster floating in an oversized empty canvas.
+
+ABSOLUTELY NO ADDED TEXT: The finished photograph must contain no added text of any kind — no captions, labels, color names, numbers, code plates, tags, watermarks, logos or graphic overlays anywhere in the frame or on the background. The ONLY exception is lettering that is genuinely part of the garment's own design (a printed slogan, brand print or woven label belonging to the product itself) — that stays exactly as it is on every copy. Never write the color names onto or near the copies.`
+          : null;
 
     // Kalite versiyonu kontrolü (settings'ten al) - Refiner modunda v1'e zorla
     const qualityVersion = isRefinerMode
@@ -4484,11 +4963,55 @@ router.post("/generate", async (req, res) => {
     );
     logger.log(`🔍 [DEBUG] Generation ID tipi: ${typeof finalGenerationId}`);
 
+    // 🎨 Arka plan renginin HEX karşılığı (28 Ağu 2026, kullanıcı isteği).
+    // Kullanıcı rengi kendi dilinde serbest metin yazıyor ("Beyaz", "Branco");
+    // sonucu SimpleImageModal'da açarken zemini ve filigran gradyanlarını o
+    // renge boyayabilmek için hex'i ÜRETİM ANINDA bir kez çözüp kayda yazıyoruz.
+    // Çözülemezse null kalır — istemci o zaman eski bulanık zemine düşer.
+    // ⚠️ Yalnız Refiner akışında: zemin rengi sadece orada seçiliyor.
+    let resolvedBackgroundHex = null;
+    if (isRefinerMode && settings?.backgroundColor) {
+      try {
+        resolvedBackgroundHex = await resolveBackgroundHex(
+          settings.backgroundColor,
+          settings?.colorInputMode || "text",
+        );
+        logger.log(
+          `🎨 [BG_HEX] "${settings.backgroundColor}" → ${resolvedBackgroundHex || "çözülemedi"}`,
+        );
+      } catch (bgHexError) {
+        logger.warn(
+          "⚠️ [BG_HEX] Hex çözümlenemedi, zemin eski davranışta kalacak:",
+          bgHexError?.message || bgHexError,
+        );
+      }
+    }
+
     // SessionId ve totalGenerations'ı settings'e ekle (completion'da kredi için gerekli)
     const settingsWithSession = {
       ...settings,
+      ...(resolvedBackgroundHex
+        ? { backgroundColorHex: resolvedBackgroundHex }
+        : {}),
       totalGenerations: totalGenerations, // Pay-on-success için gerekli
       ...(sessionId && { sessionId: sessionId }),
+      // 🎭 İstemci trial kullanıcısında bunu true gönderir; completion anında
+      // ilk ücretsiz varyasyon partisi backend'de başlar (uygulama arka planda
+      // olsa bile). Trial değilse variationRoutes zaten kendisi eliyor.
+      automaticTrialVariationRequested:
+        req.body?.enableAutomaticTrialVariation === true,
+      // 🏷️ Ürün kategorisi kalıcı kayda girer (28 Ağu 2026) — çeşitlendirme
+      // takı olup olmadığını buradan okuyor (takıda iki kare de makro).
+      // İstemci `settings.productCategory` zaten gönderiyor; sahneleme
+      // kategorisi (earrings/rings/…) de gelirse o da yazılır ki eski
+      // istemcilerde bilgi tamamen kaybolmasın.
+      ...(settings?.productCategory || req.body?.productCategory
+        ? {
+            productCategory: String(
+              settings?.productCategory || req.body?.productCategory,
+            ).toLowerCase(),
+          }
+        : {}),
     };
 
     // Kalite versiyonunu ayrı bir değişken olarak al
@@ -4798,6 +5321,238 @@ router.post("/generate", async (req, res) => {
       }
     }
 
+    // 🎨 RENK REFERANS GÖRSELLERİ (18 Ağu 2026, kullanıcı isteği)
+    // Kullanıcı renk dizisi için renk örneği fotoğrafı yükleyebiliyor. Her kare
+    // altına "COLOR 1 · REFERENCE" gibi siyah plaka basılır (stil referansıyla
+    // aynı mekanizma) ve modele EK GİRDİ olarak gönderilir; prompt da plakaya
+    // atıfla hangi kopyanın hangi kareden renk alacağını söyler.
+    let lineupColorRefUrls = [];
+    if (
+      isRefinerMode &&
+      lineupStagingActive &&
+      Array.isArray(req.body?.lineupColorImages) &&
+      req.body.lineupColorImages.length > 0
+    ) {
+      const rawRefs = req.body.lineupColorImages.slice(0, LINEUP_COLOR_REF_MAX);
+      for (let i = 0; i < rawRefs.length; i++) {
+        const item = rawRefs[i];
+        try {
+          let buf;
+          if (item?.base64) {
+            const cleaned = String(item.base64).replace(
+              /^data:image\/\w+;base64,/,
+              "",
+            );
+            buf = Buffer.from(cleaned, "base64");
+          } else if (item?.uri) {
+            const resp = await axios.get(item.uri, {
+              responseType: "arraybuffer",
+              timeout: 25000,
+            });
+            buf = Buffer.from(resp.data);
+          }
+          if (!buf) continue;
+
+          const stamped = await stampStyleReferencePlate(
+            buf,
+            `COLOR ${i + 1} · REFERENCE`,
+          );
+          const fileName = `temp_${Date.now()}_refiner_color_ref${i + 1}_${userId || "anonymous"}_${uuidv4().substring(0, 8)}.jpg`;
+          const { error: upErr } = await supabase.storage
+            .from("reference")
+            .upload(fileName, stamped, {
+              contentType: "image/jpeg",
+              upsert: false,
+            });
+          if (upErr) throw upErr;
+          const { data: urlData } = supabase.storage
+            .from("reference")
+            .getPublicUrl(fileName);
+          lineupColorRefUrls.push(urlData.publicUrl);
+        } catch (colorRefErr) {
+          logger.warn(
+            `🎨 [REFINER COLOR REF] ${i + 1}. renk görseli hazırlanamadı, atlanıyor:`,
+            colorRefErr?.message,
+          );
+        }
+      }
+      if (lineupColorRefUrls.length) {
+        logger.log(
+          `🎨 [REFINER COLOR REF] ${lineupColorRefUrls.length} renk referansı plakalandı ve yüklendi`,
+        );
+      }
+    }
+
+    // 🧩 DİZİLİM ÖRNEK FOTOĞRAFI (18 Ağu 2026) — özel tarifte (5) kullanıcı
+    // istediği yerleşimi gösteren bir örnek kare yükleyebiliyor. Renk
+    // referanslarıyla aynı mekanizma: "LAYOUT · REFERENCE" plakası basılıp
+    // yüklenir, modele ek girdi olarak gider; prompt yalnız YERLEŞİMİN
+    // kopyalanacağını söyler (ürünü/rengi değil).
+    let lineupLayoutRefUrl = null;
+    if (
+      isRefinerMode &&
+      lineupStagingActive &&
+      lineupArrangementValue === 5 &&
+      lineupArrangementImageInput
+    ) {
+      try {
+        let buf;
+        if (lineupArrangementImageInput.base64) {
+          const cleaned = String(lineupArrangementImageInput.base64).replace(
+            /^data:image\/\w+;base64,/,
+            "",
+          );
+          buf = Buffer.from(cleaned, "base64");
+        } else if (lineupArrangementImageInput.uri) {
+          const resp = await axios.get(lineupArrangementImageInput.uri, {
+            responseType: "arraybuffer",
+            timeout: 25000,
+          });
+          buf = Buffer.from(resp.data);
+        }
+        if (buf) {
+          const stamped = await stampStyleReferencePlate(
+            buf,
+            `LAYOUT · REFERENCE`,
+          );
+          const fileName = `temp_${Date.now()}_refiner_layout_ref_${userId || "anonymous"}_${uuidv4().substring(0, 8)}.jpg`;
+          const { error: upErr } = await supabase.storage
+            .from("reference")
+            .upload(fileName, stamped, {
+              contentType: "image/jpeg",
+              upsert: false,
+            });
+          if (upErr) throw upErr;
+          const { data: urlData } = supabase.storage
+            .from("reference")
+            .getPublicUrl(fileName);
+          lineupLayoutRefUrl = urlData.publicUrl;
+          logger.log(
+            `🧩 [REFINER LAYOUT REF] dizilim örneği plakalandı ve yüklendi`,
+          );
+        }
+      } catch (layoutRefErr) {
+        logger.warn(
+          `🧩 [REFINER LAYOUT REF] dizilim örneği hazırlanamadı, metinle devam:`,
+          layoutRefErr?.message,
+        );
+      }
+    }
+
+    // 👟 Sahneleme örneği (19 Ağu 2026, kullanıcı isteği): ayakkabıda seçilen
+    // tarzın ÖRNEK KARESİ (kartta gösterilen görselin aynısı) modele kompozisyon
+    // referansı olarak gider — tarif yalnız metinle kalmıyor. Yalnız 1-3;
+    // renk dizisinde (4) örnek karedeki 4 sabit renk kullanıcının renk
+    // seçimiyle çelişirdi, o tarz kendi renk/dizilim mekaniğini kullanıyor.
+    // Statik dosyalar bir kez yüklenir, URL süreç boyunca cache'lenir.
+    let stagingExampleRefUrl = null;
+    if (
+      isRefinerMode &&
+      isStagedCategory &&
+      [1, 2, 3].includes(stagingStyleValue)
+    ) {
+      try {
+        if (!global.__refinerStagingRefCache) global.__refinerStagingRefCache = {};
+        // ⚠️ Oran anahtarın PARÇASI: aynı kare farklı tuvale dolgulanınca
+        // farklı bir görsel oluyor, tek anahtarla önbelleklenemez.
+        const cacheKey = `${refinerProductCategory}_${stagingStyleValue}_${refinerOutputRatio}`;
+        if (global.__refinerStagingRefCache[cacheKey]) {
+          stagingExampleRefUrl = global.__refinerStagingRefCache[cacheKey];
+        } else {
+          const exampleFileMaps = {
+            shoes: { 1: "single_profile.jpg", 2: "pair_hero.jpg", 3: "pair_side.jpg" },
+            eyewear: { 1: "side.jpg", 2: "front.jpg", 3: "folded_top.jpg" },
+            // 💎 Küpe kareleri istemcideki kartların BİREBİR aynısı
+            // (client/assets/refiner/earrings/{front,mixed,side}.jpg)
+            earrings: { 1: "1.jpg", 2: "2.jpg", 3: "3.jpg" },
+            // 💍 Yüzük kareleri de aynı şekilde
+            // (client/assets/refiner/rings/{hero,upright,top}.jpg)
+            rings: { 1: "1.jpg", 2: "2.jpg", 3: "3.jpg" },
+            // 📿 Bileklik — biçime göre İKİ ayrı klasör
+            bracelets_chain: { 1: "1.jpg", 2: "2.jpg", 3: "3.jpg" },
+            bracelets_bangle: { 1: "1.jpg", 2: "2.jpg", 3: "3.jpg" },
+            // 📿 Kolye (client/assets/refiner/necklaces/{front,angled,drape}.jpg)
+            necklaces: { 1: "1.jpg", 2: "2.jpg", 3: "3.jpg" },
+          };
+          const exampleFiles = exampleFileMaps[refinerProductCategory];
+          const localPath = path.join(
+            __dirname,
+            `../../assets/refiner-staging/${refinerProductCategory}`,
+            exampleFiles[stagingStyleValue],
+          );
+          const buf = fs.readFileSync(localPath);
+          // 📐 Referans, ÇIKTIYLA AYNI TUVALE dolgulanır (19 Ağu canlı test
+          // bulgusu): farklı oranda referans + farklı oranda çıktı, modeli
+          // tuvali doldurmak için kompozisyonu yeniden kurmaya zorluyordu
+          // (ayakkabıyı dikme/yatırma bundan besleniyor). Aynı tuval = birebir
+          // konum kopyası.
+          // ⚠️ 27 Ağu 2026: tuval artık SABİT 3:4 değil, kullanıcının seçtiği
+          // oran. Kare örnek + yatay oran seçilirse yanlardan, dikey oran
+          // seçilirse üst/alttan dolgulanır (contain).
+          const sharpLib = require("sharp");
+          const meta = await sharpLib(buf).metadata();
+          const targetAspect = refinerRatioValue(refinerOutputRatio);
+          const sourceAspect = meta.width / meta.height;
+          let padTop = 0;
+          let padBottom = 0;
+          let padLeft = 0;
+          let padRight = 0;
+          if (sourceAspect > targetAspect) {
+            // Kaynak hedeften GENİŞ → üst/alta boşluk
+            const targetH = Math.ceil(meta.width / targetAspect);
+            const padTotal = Math.max(0, targetH - meta.height);
+            padTop = Math.floor(padTotal / 2);
+            padBottom = padTotal - padTop;
+          } else if (sourceAspect < targetAspect) {
+            // Kaynak hedeften DAR → sağ/sola boşluk
+            const targetW = Math.ceil(meta.height * targetAspect);
+            const padTotal = Math.max(0, targetW - meta.width);
+            padLeft = Math.floor(padTotal / 2);
+            padRight = padTotal - padLeft;
+          }
+          const padTotalAll = padTop + padBottom + padLeft + padRight;
+          const padded =
+            padTotalAll > 0
+              ? await sharpLib(buf)
+                  .extend({
+                    top: padTop,
+                    bottom: padBottom,
+                    left: padLeft,
+                    right: padRight,
+                    background: "#FFFFFF",
+                  })
+                  .jpeg({ quality: 92 })
+                  .toBuffer()
+              : buf;
+          const stamped = await stampStyleReferencePlate(
+            padded,
+            `STAGING · REFERENCE`,
+          );
+          const fileName = `refiner_staging_ref_${refinerProductCategory}_${stagingStyleValue}_${uuidv4().substring(0, 8)}.jpg`;
+          const { error: upErr } = await supabase.storage
+            .from("reference")
+            .upload(fileName, stamped, {
+              contentType: "image/jpeg",
+              upsert: false,
+            });
+          if (upErr) throw upErr;
+          const { data: urlData } = supabase.storage
+            .from("reference")
+            .getPublicUrl(fileName);
+          stagingExampleRefUrl = urlData.publicUrl;
+          global.__refinerStagingRefCache[cacheKey] = stagingExampleRefUrl;
+          logger.log(
+            `👟 [REFINER STAGING REF] tarz ${stagingStyleValue} örneği ${refinerOutputRatio} tuvaline dolgulanıp yüklendi`,
+          );
+        }
+      } catch (stagingRefErr) {
+        logger.warn(
+          `👟 [REFINER STAGING REF] örnek kare hazırlanamadı, metinle devam:`,
+          stagingRefErr?.message,
+        );
+      }
+    }
+
     if (isColorChange || isPoseChange || isRefinerMode) {
       // 🎨 COLOR CHANGE MODE, 🕺 POSE CHANGE MODE veya 🔧 REFINER MODE - Özel prompt'lar
       if (isColorChange) {
@@ -4842,6 +5597,7 @@ router.post("/generate", async (req, res) => {
           userId, // Compress için userId
           originalBase64ForGemini, // 🚀 Orijinal base64 - URL indirmesi atlanacak
           !!refinerStyleRefUrl, // 🎬 Çekim tarzı aktif mi?
+          lineupColorRefUrls, // 🎨 Renk referans kareleri (plakalı)
         );
 
         // 🔧 Çekim tarzı seçiliyse direktifler prompt'un ÖNÜNE eklenir —
@@ -4857,6 +5613,83 @@ router.post("/generate", async (req, res) => {
               `🔧 [REFINER STYLE] Direktifler prompt'a eklendi (+${styleDirectives.length} karakter)`,
             );
           }
+        }
+
+        // 📐 ÇOKLU AÇI — grid'deki kareler AYNI ürünün farklı görünümleri.
+        // Bu satır olmadan model grid'i "birden fazla ürün" sanıp kolaj üretiyor.
+        if (anglesModeActive) {
+          enhancedPrompt += `
+
+MULTIPLE-ANGLE PRODUCT REFERENCE: The composite grid contains ${anglesCount} views of the same single product. Use every cell only to reconstruct that one product faithfully from all visible sides — its exact colors, prints, stitching, trims, hardware, texture and proportions. The final photograph shows ONE instance of the product, never multiple items, duplicates or a collage.`;
+          logger.log(
+            `📐 [REFINER MULTIPLE ANGLES] ${anglesCount} açılık tek ürün direktifi eklendi`,
+          );
+        }
+
+        // 🧺 SAHNELEME TARZI (18 Ağu 2026, kullanıcı isteği)
+        // Taban prompt her dalda "ghost mannequin" diyor. Buraya eklenen blok:
+        //   • flatlay / renk dizisi → o talimatı AÇIKÇA geçersiz kılar
+        //     (son okunan talimat kazanır)
+        //   • hayalet manken       → onu DESTEKLER; kolların yassı/çökük
+        //     çıkmaması için hacim, dirsek kavisi ve gövde açıklığı detayı
+        // Taban prompt 5 ayrı dalda tekrarlandığı için oralara dokunmak yerine
+        // tek noktadan ekleme tercih edildi; bu blok Gemini hangi dalda prompt
+        // ürettiyse üretsin çalışır.
+        // 🎨 Renk referans kareleri varsa, plakalarıyla birlikte prompt'a
+        // tanıtılır — model hangi kopyanın rengini nereden alacağını bilsin.
+        if (stagingDirective && lineupColorRefUrls.length > 0) {
+          // Yazılı renkler dizinin başını aldığında plaka renkleri KALAN
+          // kopyalara oturur — "COLOR 1 = ilk kopya" cümlesi yazılı renklerle
+          // çelişiyordu (18 Ağu 2026 düzeltmesi).
+          const plateTargetText = lineupColors.length
+            ? `The named colors listed in the lineup instruction take the first ${lineupColors.length} copies; the plate colors take the remaining copies in plate order — COLOR 1 for the first copy after the named ones, COLOR 2 for the next, continuing in the lineup's stated reading order.`
+            : `COLOR 1 dyes the first copy in the lineup's stated reading order, COLOR 2 the next, and so on in plate order.`;
+          enhancedPrompt += `\n\nCOLOR REFERENCE IMAGES: ${lineupColorRefUrls.length} additional photograph(s) are attached purely as color swatches. Each one carries a black code plate along its bottom edge reading "COLOR 1 · REFERENCE", "COLOR 2 · REFERENCE" and so on. Read the dominant color from each of those photographs and dye one copy of the ${isShoesStaging ? "shoe" : isEyewearStaging ? "sunglasses frame" : "garment"} in that exact shade. ${plateTargetText} Every plate color MUST appear in the lineup — never drop a plate color. Take ONLY the color from these references: ignore their garment shape, cut, print, styling, background, lighting and framing entirely, and never let any part of them appear in the output. The code plates themselves belong to the input and must not be rendered in the final photograph.`;
+          logger.log(
+            `🎨 [REFINER COLOR REF] ${lineupColorRefUrls.length} renk referansı direktifi prompt'a eklendi`,
+          );
+        }
+
+        // 🧩 Dizilim örneği varsa modele tanıtılır — yalnız yerleşim kopyalanır
+        if (stagingDirective && lineupLayoutRefUrl) {
+          enhancedPrompt += `\n\nLAYOUT REFERENCE IMAGE: one additional photograph is attached purely as an arrangement guide. It carries a black code plate along its bottom edge reading "LAYOUT · REFERENCE". Copy ONLY how the items in that photograph are positioned — their placement, spacing, overlap, angles and reading order — and arrange the ${isShoesStaging ? "shoe" : isEyewearStaging ? "sunglasses" : "garment"} copies the same way. Ignore that photograph's products, colors, materials, background, lighting and framing entirely, and never let any part of it appear in the output. The code plate belongs to the input and must not be rendered in the final photograph.`;
+          logger.log(
+            `🧩 [REFINER LAYOUT REF] dizilim referansı direktifi prompt'a eklendi`,
+          );
+        }
+
+        // 👟 Sahneleme örneği modele tanıtılır — yalnız KOMPOZİSYON kopyalanır
+        if (stagingDirective && stagingExampleRefUrl) {
+          enhancedPrompt += `\n\nSTAGING REFERENCE IMAGE: the FIRST attached image is the product source photograph; the LAST attached image — the one carrying a black code plate reading "STAGING · REFERENCE" along its bottom edge — is a staging example. Work in this exact order: (1) read the composition from the STAGING · REFERENCE image and lock it: how many shoes, how they stand on the ground, the camera's viewing angle, the shoes' facing directions, their spacing and the framing; (2) DISCARD the source photograph's own pose, arrangement and camera angle entirely — the source photo contributes ONLY the product's identity (shape, materials, colors, stitching, soles, branding), never its composition; (3) rebuild the scene in the locked reference composition using the user's shoe. If the composition of your output differs from the STAGING · REFERENCE photograph, the output is WRONG. Ignore the reference shoe's model, shape, colors, materials and branding entirely, and never let any part of that reference shoe appear in the output. The code plate belongs to the input and must not be rendered in the final photograph.`;
+          logger.log(
+            `👟 [REFINER STAGING REF] sahneleme referansı direktifi prompt'a eklendi`,
+          );
+        }
+
+        if (stagingDirective) {
+          enhancedPrompt += `\n\n${stagingDirective}`;
+          // 👟 Kompozisyon otoritesi REFERANS karedir — taban prompt'un kendi
+          // çerçeveleme cümleleri modeli saptırıyordu (19 Ağu canlı test): en
+          // başa tek satırlık otorite bildirimi konur. 21 Ağu: tekli tarz (1)
+          // da dahil edildi — kaynak foto çiftken sonuçta 2 ayakkabı çıkıyordu;
+          // referans karede TEK ayakkabı olduğu için otorite sayı hatasını da
+          // kilitler ("how many shoes" kompozisyonun parçası).
+          if (
+            isShoesStaging &&
+            stagingExampleRefUrl &&
+            [1, 2, 3].includes(stagingStyleValue)
+          ) {
+            enhancedPrompt = `COMPOSITION AUTHORITY: The attached "STAGING · REFERENCE" photograph defines this image's composition. Copy its arrangement, stance, camera angle and framing EXACTLY; ignore any other composition or framing wording anywhere in this prompt.\n\n${enhancedPrompt}`;
+          }
+          logger.log(
+            `🧺 [REFINER STAGING] Sahneleme tarzı ${stagingStyleValue}${isShoesStaging ? " (shoes)" : ""} direktifi eklendi (+${stagingDirective.length} karakter)${
+              lineupStagingActive
+                ? lineupColors.length
+                  ? ` — kullanıcı renkleri: ${lineupColors.join(", ")}`
+                  : " — renkler otomatik"
+                : ""
+            }`,
+          );
         }
       } else if (isPoseChange) {
         logger.log(
@@ -5076,27 +5909,263 @@ router.post("/generate", async (req, res) => {
     logger.log("📝 [BACKEND MAIN] Original prompt:", promptText);
     logger.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
 
-    // 🔧 REFINER MODE
-    //   • Çekim tarzı / referans YOKSA  → GPT Image (tek görsel, mevcut davranış)
-    //   • Çekim tarzı / referans VARSA   → nano-banana-2 (ürün + referans aynı istekte)
-    // GPT Image uçları tek görsel aldığı için referans o yolda fal'a HİÇ gitmiyordu.
+    // 🔧 REFINER MODE — model seçimi (18 Ağu 2026, kullanıcı kararı):
+    //   • Herhangi bir REFERANS varsa (çekim tarzı, renk kareleri, dizilim
+    //     örneği) → nano-banana-2, hepsi tek istekte çoklu görsel olarak.
+    //   • Referanssız düz netleştirme → GPT Image (tek görsel).
     if (isRefinerMode) {
-      const useNb2ForStyle = !!refinerStyleRefUrl;
+      // 👟 Ayakkabı sahnelemesi GPT Image ile (19 Ağu 2026, kullanıcı kararı,
+      // 2. deneme — bu kez swap çerçevesi + 3:4 hizalı referansla birlikte).
+      // Swap modunun girdileri ([referans, ürün]) ve prompt'u GPT'ye de aynen
+      // gidiyor; GPT çıktısı portrait_4_3 = referans tuvaliyle uyumlu.
+      // Model seçimi (19 Ağu): ayakkabı → GPT Image, gözlük → nb2 (kullanıcı
+      // kararı); diğer kategoriler referans varken nb2 (eski davranış).
+      // ⚠️ 28 Ağu 2026: takı ana üretimi kısa süre GPT Image 2 "medium"a
+      // alındı, sonra kullanıcı kararıyla GERİ ALINDI — takıda ANA ÜRETİM
+      // yine nano-banana-2. GPT yalnız ÇEŞİTLENDİRME tarafında ("low",
+      // variationRoutes.js). Ayakkabı hâlâ GPT'de (19 Ağu kararı).
+      const useNb2ForStyle =
+        (!!refinerStyleRefUrl ||
+          lineupColorRefUrls.length > 0 ||
+          !!lineupLayoutRefUrl ||
+          !!stagingExampleRefUrl) &&
+        !isShoesStaging;
       logger.log(
         useNb2ForStyle
-          ? "🔧 [REFINER MODE] Çekim tarzı aktif → nano-banana-2 (2 görsel) kullanılacak"
+          ? `🔧 [REFINER MODE] Çoklu görsel (${[
+              refinerStyleRefUrl ? "çekim tarzı" : null,
+              lineupColorRefUrls.length
+                ? `${lineupColorRefUrls.length} renk referansı`
+                : null,
+              lineupLayoutRefUrl ? "dizilim referansı" : null,
+              stagingExampleRefUrl ? "sahneleme örneği" : null,
+            ]
+              .filter(Boolean)
+              .join(" + ")}) → nano-banana-2 kullanılacak`
           : "🔧 [REFINER MODE] GPT Image 2 API kullanılacak...",
       );
       logger.log("🔧 [REFINER MODE] Final Image URL:", finalImage);
 
       try {
-        // Referans varsa ürün + stil referansı birlikte gider (referans SON sırada)
+        // Sıra: ürün → stil referansı → renk referansları (plaka sırasıyla)
+        // → dizilim referansı. Kareler prompt'ta plaka adıyla anılıyor,
+        // sıra o yüzden korunur.
+        let nb2Inputs = [
+          finalImage,
+          ...(refinerStyleRefUrl ? [refinerStyleRefUrl] : []),
+          ...lineupColorRefUrls,
+          ...(lineupLayoutRefUrl ? [lineupLayoutRefUrl] : []),
+          ...(stagingExampleRefUrl ? [stagingExampleRefUrl] : []),
+        ];
+        let refinerFinalPrompt = enhancedPrompt;
+
+        // 👟 TERS ÇERÇEVE (19 Ağu 2026, canlı testler sonrası): "ürünü referans
+        // gibi sahnele" görevi modellerde tutarsız kalıyordu — kompozisyon
+        // referansa değil kaynak fotoğrafa demirliyordu. Görev tersine
+        // çevrildi: REFERANS kare taban sahnedir (İLK görsel), model onu
+        // birebir korur ve içindeki ayakkabıyı İKİNCİ görseldeki ürünle
+        // DEĞİŞTİRİR (nesne değiştirme — modellerin en güçlü işi). Bu modda
+        // Gemini'nin kompozisyon anlatan taban prompt'u KULLANILMAZ; kalite
+        // cümleleri kısa blokla korunur.
+        if (
+          isStagedCategory &&
+          stagingExampleRefUrl &&
+          [1, 2, 3].includes(stagingStyleValue)
+        ) {
+          nb2Inputs = [stagingExampleRefUrl, finalImage];
+          const swapNoun = isShoesStaging
+            ? "shoe"
+            : isEarringsStaging
+              ? "earring"
+              : isRingsStaging
+                ? "ring"
+                : isBraceletStaging
+                  ? "bracelet"
+                  : isNecklacesStaging
+                    ? "necklace"
+                    : "pair of sunglasses";
+          const swapRefNoun = isShoesStaging
+            ? "the white reference sneakers"
+            : isEarringsStaging
+              ? "the yellow-gold reference earrings"
+              : isRingsStaging
+                ? "the yellow-gold reference ring with the green stone"
+                : isBraceletChainStaging
+                  ? "the yellow-gold reference diamond tennis bracelet"
+                  : isBraceletBangleStaging
+                    ? "the yellow-gold reference bangle with the flower motif"
+                    : isNecklacesStaging
+                      ? "the yellow-gold reference necklace with the pink stone pendant"
+                      : "the black reference sunglasses";
+          const swapIdentity = isShoesStaging
+            ? "its exact shape, silhouette, panels, materials, colors, stitching, sole design, laces, eyelets and branding"
+            : isEarringsStaging
+              ? "its exact silhouette and proportions, metal color and finish (yellow gold, rose gold, white gold, silver, plated or oxidised — whatever the user's photograph shows), fitting type (stud, hook, leverback, hoop, clip), stone shape, cut, size, color and clarity, setting type (prong, bezel, pavé, channel), drop or chain length, engraving, enamel, pearl or bead detail and any branding"
+              : isRingsStaging
+                ? "its exact band shape, width, thickness and profile, metal color and finish (yellow gold, rose gold, white gold, silver, two-tone, plated or oxidised — whatever the user's photograph shows), centre stone shape, cut, size, color and clarity, setting and prong type, gallery and shoulder construction, any side stones, pavé, milgrain, texture, engraving and branding"
+                : isNecklacesStaging
+                  ? "its exact chain type, link shape and repeat pattern, chain thickness and length, metal color and finish (yellow gold, rose gold, white gold, silver, plated or oxidised — whatever the user's photograph shows) or its real non-metal material (cord, leather, silk, beads, pearls), the pendant's exact shape, size and construction, every stone's shape, cut, size and color, the setting and bezel type, the bail, any charms, engraving and branding, and the clasp type"
+                  : isBraceletStaging
+                  ? "its exact construction and proportions, metal color and finish (yellow gold, rose gold, white gold, silver, two-tone, plated or oxidised — whatever the user's photograph shows) or its real non-metal material (leather, cord, silk, beads, pearls, resin, enamel), link or bead shape and repeat pattern, width and thickness, every stone's shape, cut, size and color, setting type, charms, motifs, clasp or closure type, engraving and branding"
+                  : "its exact frame shape, silhouette, materials, colors, lens shape and tint, hinges, nose pads and branding";
+          const swapPairRule = isShoesStaging
+            ? " If the pair requires a left and a right shoe, render a true left and right of the user's model, never a mirrored duplicate."
+            : isEarringsStaging
+              ? " Both earrings in the output are the SAME model from the user's photograph and identical to each other. If the user's photograph shows only ONE earring, build the pair by mirroring that single earring — never invent a different second design, and never mix two designs in one frame."
+              : isRingsStaging
+                ? " Exactly ONE ring appears in the output — the user's ring. Even if the user's photograph shows several rings or a stacked set, pick the single main ring and render only that one; no second ring, no partial ring, no reflection of another ring anywhere in the frame."
+                : isBraceletStaging
+                  ? " Exactly ONE bracelet appears in the output — the user's bracelet. Even if the user's photograph shows a stack or several pieces, pick the single main bracelet and render only that one."
+                  : isNecklacesStaging
+                    ? " Exactly ONE necklace appears in the output — the user's necklace, with exactly ONE pendant. Even if the user's photograph shows layered necklaces or several pieces, pick the single main necklace and render only that one."
+                    : "";
+          const swapForbidden = isShoesStaging
+            ? "FORBIDDEN POSES: do not tilt, lift, lean or rotate any shoe differently from the base scene; do not raise a shoe to display its sole; do not stand any shoe on its heel or toe. Every sole stays flat on the ground exactly as in the base scene."
+            : isEarringsStaging
+              ? "FORBIDDEN POSES: do not rotate, swing, tilt, flip or re-orient either earring differently from the base scene; do not lay them down flat, do not overlap them, do not change the gap between them, do not hang them from anything, and do not add a display bust, stand, card, box, hand, ear or model. Each earring hangs freely and vertically in exactly the position, scale and facing direction it has in the base scene."
+              : isNecklacesStaging
+                ? "FORBIDDEN POSES: do not change how the necklace is arranged or which way it faces relative to the base scene. The chain is ONE single continuous strand — never let it twist, tangle, kink, double back, coil, cross over itself or split into two strands, and never change its length or the pendant's position on it. Never add a neck, bust, stand, hand, box, cushion or any other holder."
+                : isBraceletChainStaging
+                ? "FORBIDDEN POSES: do not change how the bracelet is arranged — if the base scene shows it fastened in a closed loop it stays a closed loop, and if the base scene shows it laid out straight it stays perfectly straight. Never coil it, never let it twist, kink, cross over itself or pile up, and never add a wrist, hand, arm, display bar, stand, bust, box or cushion. The bracelet lies exactly as it does in the base scene."
+                : isBraceletBangleStaging
+                  ? "FORBIDDEN POSES: do not tilt, rotate or re-orient the bangle differently from the base scene; do not stand it upright when the base scene lays it down, and do not lay it down when the base scene stands it upright. The bangle is RIGID — never open it, never bend, flatten, stretch or straighten it, and never turn it into a flexible chain. Never add a wrist, hand, arm, stand, bust, box or cushion."
+                  : isRingsStaging
+                    ? "FORBIDDEN POSES: do not tilt, rotate or re-orient the ring differently from the base scene; do not stand it upright when the base scene shows it from above, and do not lay it down when the base scene stands it upright; do not change how much of the band's circle is visible. Never add a finger, hand, ring stand, cone, cushion, box or any other holder — the ring rests exactly as it does in the base scene."
+                    : "FORBIDDEN POSES: do not fold, unfold, tilt or rotate the sunglasses differently from the base scene; keep the temple arms exactly as open or folded as they are in the base scene.";
+          // 💎 YÖN KİLİDİ (27 Ağu 2026, kullanıcı isteği): takıda kartların TEK
+          // anlamı yön — hangi parçanın nereye baktığı tek tek yazılır, yoksa
+          // model kaynak fotoğrafın yönünü taşıyor.
+          const ringOrientationLock = isRingsStaging
+            ? `\n\nORIENTATION LOCK — THIS IS THE WHOLE POINT OF THE SHOT: ${
+                stagingStyleValue === 1
+                  ? "The ring stands upright and is tilted EXACTLY 45° toward the camera, with the camera about 30° above the ring — the classic angled catalog hero view. The top of the setting and the centre stone face the camera at that 45° angle, the band sweeps back and away, and the full circle of the band reads as an ellipse in natural perspective. This is NOT 0° (dead-frontal upright) and NOT 90° (top-down); it is the 45° three-quarter hero."
+                  : stagingStyleValue === 2
+                    ? "The ring stands upright at EXACTLY 0° rotation with the camera at the ring's own level (0° elevation), photographed dead-straight from the FRONT: the band reads as a full, near-perfect circle facing the camera with its opening completely visible, and the centre stone sits at top dead centre pointing straight up. The height of the setting, the prongs and the gallery under the stone read clearly from the front. No tilt whatsoever, no three-quarter rotation, no downward camera."
+                    : "The camera is EXACTLY 90° above the ring, looking straight down — a true top-down view. The ring lies flat, its band reads as a wide ellipse across the frame, and the whole top surface of the setting with all four prongs is fully visible from above. Not 45°, not a tilted hero: a full overhead shot."
+              } The user's own photograph may show the ring at a completely different angle — that is IRRELEVANT and must be discarded. The viewing angle comes ONLY from the base scene. If the ring's orientation in your output differs from the base scene, the output is WRONG.`
+            : "";
+          // 📿 Bileklik yön/duruş kilidi — zincirli ve sert bilezik AYRI:
+          // aynı numara ikisinde başka bir kare demek.
+          const braceletOrientationLock = isBraceletChainStaging
+            ? `\n\nARRANGEMENT LOCK — THIS IS THE WHOLE POINT OF THE SHOT: ${
+                stagingStyleValue === 1
+                  ? "The bracelet is FASTENED and laid in a CLOSED LOOP, photographed at EXACTLY 0° — the camera dead-on to the plane of the loop: the loop reads as a clean, symmetrical horizontal oval, the clasp sits at top dead centre, and the links are evenly distributed all the way around with no twist and no overlap. Not laid out straight, not tilted into perspective."
+                  : stagingStyleValue === 2
+                    ? "The bracelet stays FASTENED in a CLOSED LOOP but the loop is tilted EXACTLY 45° away from the camera plane and runs diagonally through the frame, so it reads as a three-dimensional ring of links in real perspective — the far side of the loop visibly smaller and higher than the near side. Not a flat 0° oval and not laid out straight."
+                    : "The bracelet is UNFASTENED and laid out perfectly STRAIGHT along a diagonal of about 45° across the frame, corner to corner, showing its FULL LENGTH end to end: every link readable in one straight line, both halves of the open clasp visible at the two ends. Zero curvature — no loop, no arc, no coil, no S-shape, no bend anywhere along its length."
+              } The user's own photograph may show the bracelet coiled, bunched, curled or arranged in any other way — that is IRRELEVANT and must be discarded. The arrangement comes ONLY from the base scene. If the arrangement in your output differs from the base scene, the output is WRONG.`
+            : isBraceletBangleStaging
+              ? `\n\nORIENTATION LOCK — THIS IS THE WHOLE POINT OF THE SHOT: This piece is a RIGID bangle: it keeps its fixed round shape and can never be stretched, opened flat or laid out in a line. ${
+                  stagingStyleValue === 1
+                    ? "It is tilted EXACTLY 45° toward the camera with the camera about 30° above it — the classic angled catalog hero view — so its full circle reads as an ellipse in natural perspective and the decorative motif faces the camera at that 45° angle. Not 0° (dead-frontal upright) and not 90° (flat top-down)."
+                    : stagingStyleValue === 2
+                      ? "It stands upright at EXACTLY 0° rotation with the camera at the bangle's own level, photographed dead-straight from the FRONT: the bangle reads as a clean near-circular ring facing the camera with its opening fully visible, the decorative motif centred at top dead centre and the hinge or closure visible on the band. No tilt at all, no three-quarter rotation, no downward camera."
+                      : "The camera is about 75° above the bangle while it lies flat — a near-overhead view — so the bangle reads as a WIDE horizontal ellipse across the frame and the whole top face of the band, with the decorative motif, is fully visible from above. Not the 45° hero tilt and not an upright stance."
+                } The user's own photograph may show the bangle at a completely different angle — that is IRRELEVANT and must be discarded. The viewing angle comes ONLY from the base scene. If the bangle's orientation in your output differs from the base scene, the output is WRONG.`
+              : "";
+          // 📿 Kolye sunum kilidi — kartların TEK anlamı bu üç sunum.
+          const necklaceOrientationLock = isNecklacesStaging
+            ? `\n\nPRESENTATION LOCK — THIS IS THE WHOLE POINT OF THE SHOT: ${
+                stagingStyleValue === 1
+                  ? "The necklace is photographed at EXACTLY 0° — dead-on frontal: the chain runs across the upper part of the frame in a clean symmetric V, both sides mirroring each other and reaching toward the top corners, and the pendant hangs at the exact horizontal centre below it with its front face and stone in a plane perpendicular to the lens, pointing straight at the camera. Every chain link is readable and nothing is twisted. No tilt, no diagonal sweep."
+                  : stagingStyleValue === 2
+                    ? "The pendant is rotated EXACTLY 45° toward its own side and the chain runs diagonally across the upper frame, so the DEPTH of the bail, the thickness of the bezel and the side wall of the pendant read clearly while the stone still catches light. 0° (flat frontal) is WRONG here and so is a full 90° edge-on turn: it is the 45° three-quarter."
+                    : "The chain sweeps across the WHOLE frame in one wide, shallow diagonal arc of about 30° from one edge to the other, so its links are readable along the entire length, and the pendant hangs off-centre in the lower area with the camera about 30° above it. Not a symmetric V, not a tight centred composition."
+              } The user's own photograph may show the necklace coiled, bunched, folded or arranged in any other way — that is IRRELEVANT and must be discarded. The arrangement comes ONLY from the base scene. If the arrangement in your output differs from the base scene, the output is WRONG.`
+            : "";
+          const eyewearOrientationLock = isEyewearStaging
+            ? `\n\nORIENTATION LOCK — THIS IS THE WHOLE POINT OF THE SHOT: ${
+                stagingStyleValue === 1
+                  ? "The sunglasses are rotated EXACTLY 90° around their vertical axis — a true side profile with the temple arms open. At 90° the lens fronts are completely edge-on and invisible; the camera sees the temple arm, the hinge and the side of the frame in full length. 45° or 60° is WRONG."
+                  : stagingStyleValue === 2
+                    ? "The sunglasses are at EXACTLY 0° rotation — a dead-on frontal view, temple arms open, both lenses fully facing the camera in a plane perpendicular to the lens axis, the bridge at the exact centre and the frame perfectly level. No tilt, no rotation, no three-quarter."
+                    : "The camera is EXACTLY 90° above the sunglasses, looking straight down, and the temple arms are FOLDED closed over the lenses. A true overhead view of the folded frame — not an upright stance and not a three-quarter angle."
+              } The user's own photograph may show the sunglasses at a completely different angle — that is IRRELEVANT and must be discarded. The angle comes ONLY from the base scene. If the angle in your output differs, the output is WRONG.`
+            : "";
+          const earringOrientationLock = isEarringsStaging
+            ? `\n\nORIENTATION LOCK — THIS IS THE WHOLE POINT OF THE SHOT: ${
+                stagingStyleValue === 1
+                  ? "BOTH earrings are at EXACTLY 0° rotation — a dead-on frontal view at eye level. Each earring's front face and stone table lie in a plane perpendicular to the lens axis, pointing straight at the camera; the fitting is seen from the front. The two are perfectly symmetrical and mirror-identical, side by side at the same height with an even gap. Neither earring is rotated even slightly; 0° means 0°, not 10° and not a three-quarter view."
+                  : stagingStyleValue === 2
+                    ? "The LEFT earring is at EXACTLY 0° rotation — dead-on frontal, its front face and stone table pointing straight at the lens. The RIGHT earring is rotated EXACTLY 90° around its own vertical axis — a FULL quarter turn into a true side profile. At 90° the right earring's front face is completely edge-on and therefore invisible; the camera sees only its side: the thickness of the setting, the side silhouette of the stone and the hinge or post of the fitting. 45°, 60° or 75° is WRONG — a partly turned right earring is a failed output. The difference between the two earrings must be obvious at a glance: one flat frontal, one pure profile. Both stay at the same height and scale with an even gap."
+                    : "BOTH earrings are rotated EXACTLY 90° around their own vertical axes, both turned the SAME way, so each is a true side profile: front faces completely edge-on and invisible, only the side of the setting, the thickness of the stone and the curve and hinge of the fitting facing the camera. Neither earring stays frontal and neither stops at a partial 45° turn. Same height, same scale, even gap."
+              } The user's own photograph may show the earrings at completely different angles — that is IRRELEVANT and must be discarded. The facing directions come ONLY from the base scene. If the facing direction of either earring in your output differs from the base scene, the output is WRONG.`
+            : "";
+          // 💎 Takı rötuşu — kullanıcı isteği: sonuç referans kare kadar temiz,
+          // pürüzsüz ve rötuşlanmış olmalı.
+          const jewelryRetouchBlock = isJewelryStaged
+            ? `\n\nJEWELRY RETOUCH — MATCH THE REFERENCE FINISH EXACTLY: The finished photograph must be as flawlessly retouched as the base scene — a high-end online jewelry store product render. Metal is perfectly polished with clean, crisp specular highlights and smooth continuous surfaces: no dents, no scratches, no tool marks, no tarnish, no fingerprints, no dust, no lint, no glue residue, no solder marks. Stones are perfectly clean and brilliant with bright light return and crisp facet edges: no cloudiness, no smudges, no added inclusions, no colour cast. Every edge of the piece is razor sharp against the ${stagingBgPhrase} background, with smooth anti-aliased outlines and no halo, no cut-out fringe and no leftover pixels from the original background. Nothing from the user's shooting environment survives: no fingers, hands, tweezers, ears, hair, display busts, stands, cards, boxes, pouches, fabric, tape, price tags, reflections of a room, colour casts from surrounding objects or background gradients. Keep the piece's real proportions and real materials — retouch it, never redesign it, and never smooth away genuine design texture such as hammering, milgrain, engraving or pavé.`
+            : "";
+          // 👟 TEKLİ tarzda sayı kilidi (21 Ağu, canlı şikâyet): kullanıcının
+          // fotoğrafı ÇİFT gösterince model swap sırasında ikinciyi de
+          // taşıyabiliyordu — "same product count" tek başına yetmedi, açık
+          // ve tekrarlı bir TEK-AYAKKABI kilidi gerekiyor.
+          const swapCountRule =
+            isShoesStaging && stagingStyleValue === 1
+              ? `\n\nPRODUCT COUNT LOCK — EXACTLY ONE SHOE: The base scene contains exactly ONE single shoe, therefore the finished photograph must contain exactly ONE single shoe. The user's photograph may show a PAIR — use it ONLY to read the product's design, and render just ONE shoe in the base scene's pose. The second shoe must NOT appear anywhere in the output: not beside, not behind, not partially cropped at the edge, not blurred in the background, not as a reflection or shadow of a second shoe. If two shoes are visible in your output, the output is WRONG — count the shoes before finishing and remove any extra.`
+              : "";
+          // 🔒 27 Ağu 2026 (canlı bulgu): yön kilidi prompt'un SONUNDAYDI ve
+          // model onu "öneri" gibi okuyup açıyı yarım uyguluyordu (küpenin sağ
+          // tanesi 90° yerine ~45° dönüyordu). Kilit artık prompt'un EN BAŞINDA,
+          // sabit metin olarak duruyor ve "harfi harfine uygula, yeniden
+          // yorumlama" diye çerçeveleniyor. Sonda da kısa bir hatırlatma kalıyor.
+          const stagingOrientationLock =
+            eyewearOrientationLock +
+            earringOrientationLock +
+            ringOrientationLock +
+            braceletOrientationLock +
+            necklaceOrientationLock;
+          const orientationHeadline = stagingOrientationLock
+            ? `ORIENTATION SPEC — READ THIS FIRST AND APPLY IT LITERALLY.
+
+This is a fixed technical specification, not a suggestion or a starting point. Do NOT reinterpret it, soften it, average it with the source photograph, or "improve" it. Every angle below is exact: when it says 0° it means dead-on, and when it says 90° it means a FULL quarter turn, not a partial one. Angles are measured on the product itself, not on the camera unless stated. If any angle in your output differs from this specification, the output is WRONG and must be redone — check each angle before you finish.
+${stagingOrientationLock.trim()}
+
+Now carry out the edit described below WITHOUT breaking a single line of the specification above.
+
+`
+            : "";
+
+          refinerFinalPrompt = `${orientationHeadline}PRODUCT SWAP INTO STAGED SCENE:
+
+The FIRST attached image (carrying a black "STAGING · REFERENCE" code plate) is the BASE SCENE. Recreate it EXACTLY — the same product count, the same stance and resting position, the same camera angle, the same spacing, the same framing${
+            stagingBg.isWhite
+              ? ", the same clean white background"
+              : ""
+          } and soft studio lighting. Do not change the composition in any way.${stagingBackgroundOverride}
+
+The SECOND attached image shows the user's product. REPLACE ${swapRefNoun} in the base scene with the user's product: every ${swapNoun} in the output is the user's product, carrying ${swapIdentity} with complete fidelity. No part of the reference product's design may survive in the output — it only lends its pose and composition.${swapPairRule}${swapCountRule}
+
+CANVAS MAPPING: both the base scene and your output share the same ${refinerOutputRatio} canvas — place the product at the SAME position, scale and angle within the frame as in the base scene. ${swapForbidden}${
+            stagingOrientationLock
+              ? "\n\nREMINDER: the ORIENTATION SPEC at the very top of this prompt outranks every sentence below it. Re-read it and verify each stated angle in your output before finishing."
+              : ""
+          }${jewelryRetouchBlock}
+
+Finish quality: flawless professional e-commerce catalog photo — sharp focus everywhere, no blur, no bokeh, true-to-life colors, clean surfaces free of dust and scuffs, photorealistic premium retail look. Remove any body parts or mannequin pieces. The black code plate belongs to the input and must NOT appear in the output.${
+            isShoesStaging
+              ? shoeShadowText
+              : isJewelryStaged
+                ? jewelryShadowText
+                : eyewearShadowText
+          }`;
+          logger.log(
+            `👟 [REFINER STAGING SWAP] Ters çerçeve: referans taban sahne + ürün değişimi (${refinerProductCategory} tarz ${stagingStyleValue})`,
+          );
+        }
+
         const gptImageResult = useNb2ForStyle
-          ? await callNanoBanana2ForRefiner(enhancedPrompt, [
-              finalImage,
-              refinerStyleRefUrl,
-            ])
-          : await callFalAiGptImageEditForRefiner(enhancedPrompt, finalImage);
+          ? await callNanoBanana2ForRefiner(
+              refinerFinalPrompt,
+              nb2Inputs,
+              refinerOutputRatio,
+            )
+          : await callFalAiGptImageEditForRefiner(
+              refinerFinalPrompt,
+              // 👟🕶️ Sahnelemeli kategorilerde referanslar GPT'ye de gider
+              isStagedCategory && nb2Inputs.length > 1 ? nb2Inputs : finalImage,
+              refinerOutputRatio,
+            );
 
         logger.log(
           `✅ [REFINER MODE] ${useNb2ForStyle ? "nano-banana-2" : "GPT Image 2"} başarılı:`,
@@ -5139,6 +6208,28 @@ router.post("/generate", async (req, res) => {
         const refinerFinalUrl =
           refinerUpdated?.result_image_url || upscaleOutcome.imageUrl;
 
+        // 🎭 Trial otomasyonu — referenceBrowserRoutesV7'deki kalıbın aynısı:
+        // sonuç DB'ye yazılır yazılmaz ilk iki varyant backend'de başlar,
+        // uygulama arka planda ya da kapalı olsa bile devam eder. Kaynak
+        // Refiner çıktısı olduğu için varyasyonlar ÜRÜN modunda üretilir
+        // (ikinci katalog açısı + detay makro).
+        if (
+          settingsWithSession?.automaticTrialVariationRequested === true &&
+          refinerFinalUrl
+        ) {
+          startAutomaticTrialVariation({
+            userId,
+            sourceGenerationId: finalGenerationId,
+            sourceImageUrl: refinerFinalUrl,
+            referenceImages: referenceImageUrls || [],
+          }).catch((error) => {
+            logger.error(
+              `❌ [TRIAL_VARIATION] Refiner otomatik başlatma hatası (${finalGenerationId}):`,
+              error?.message || error,
+            );
+          });
+        }
+
         // Response döndür (imageUrl eklendi - RefinerScreen için)
         return res.json({
           success: true,
@@ -5157,6 +6248,11 @@ router.post("/generate", async (req, res) => {
             prompt: enhancedPrompt,
             generationId: finalGenerationId,
             isRefinerMode: true,
+            // 🎨 Zemin rengi hex'i (28 Ağu 2026): SimpleImageModal bu kareyi
+            // açtığında bulanık görsel yerine DÜZ bu rengi basıyor. Üretim
+            // anında çözülüp settings'e yazıldı; taze sonuç için buradan da
+            // döndürülüyor ki istemci geçmişi beklemeden kullanabilsin.
+            backgroundColorHex: resolvedBackgroundHex || null,
             apiUsed: useNb2ForStyle ? "nano-banana-2" : "gpt-image-2",
             styleReferenceApplied: useNb2ForStyle,
             // 🔍 Uygulanan netleştirme kademesi (yoksa null)
@@ -5245,6 +6341,11 @@ router.post("/generate", async (req, res) => {
           logger.log("📤 [BACK_SIDE] Image input array:", imageInputArray);
         } else if (
           (isMultipleImages && referenceImages.length > 1) ||
+          // 📐 ÇOKLU AÇI (17 Ağu 2026 bug'ı): Refiner `isMultipleImages: false`
+          // gönderiyor, bu yüzden aşağıdaki tek-resim dalına düşülüyor ve modele
+          // SADECE referenceImages[0] gidiyordu — kullanıcı 5 açı seçse bile tek
+          // fotoğraf işleniyordu. Açı modunda tüm kareler gönderilmeli.
+          (anglesModeActive && referenceImages.length > 1) ||
           (modelReferenceImage &&
             (referenceImages.length > 0 || combinedImageForReplicate))
         ) {
@@ -5266,13 +6367,23 @@ router.post("/generate", async (req, res) => {
             });
           }
 
-          if (isMultipleImages && referenceImages.length > 1) {
+          if (
+            (isMultipleImages || anglesModeActive) &&
+            referenceImages.length > 1
+          ) {
+            // Açı modunda kareler aynı ürünün farklı görünümleri; hepsi modele
+            // gider, prompt'taki MULTIPLE-ANGLE direktifi tek ürün olduğunu söyler.
             const normalizedProducts = referenceImages.map((img) => ({
               ...img,
               uri: sanitizeImageUrl(img.uri || img),
               type: img?.type || "product",
             }));
             sortedImages.push(...normalizedProducts);
+            if (anglesModeActive && !isMultipleImages) {
+              logger.log(
+                `📐 [REFINER MULTIPLE ANGLES] ${normalizedProducts.length} açı karesinin TAMAMI modele gönderiliyor`,
+              );
+            }
           } else if (referenceImages.length > 0 || combinedImageForReplicate) {
             const productSource =
               typeof combinedImageForReplicate === "string" &&

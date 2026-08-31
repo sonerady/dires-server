@@ -176,6 +176,15 @@ function buildEditorialPromptBlock({
       ? `The LAST ${collageCount} attached images (each is a white-background grid of many small photographs)`
       : `The LAST attached image (a white-background grid of many small photographs)`;
 
+  // 🚫 + 🎭 Kimlik duvarı ve casting yönü (20 Ağu 2026, kullanıcı isteği):
+  // Sokak Stili'ndeki IDENTITY FIREWALL editoryalde de birebir uygulanır —
+  // kullanıcının ürün fotoğrafındaki kişi dahil hiçbir referans yüzü çıktıya
+  // taşınamaz. Casting: editoryal karaktere uygun çarpıcı, güzel kemik yapılı,
+  // vahşi bakışlı GERÇEKÇİ yüzler (jenerik katalog güzelliği değil).
+  const IDENTITY_FIREWALL = `🚫 EDITORIAL IDENTITY FIREWALL (ABSOLUTE, HIGHEST PRIORITY): Any person visible in ANY attached reference image — including the person wearing the garment in the USER'S OWN product photo — is legally OFF-LIMITS as a face source. The output model must be a COMPLETELY DIFFERENT human being: rebuild every identity-bearing feature from scratch — face shape, facial proportions, eye shape and colour, brows, nose, lips, cheekbones, jawline, hairline — so the output fails any same-person, look-alike or celebrity-match comparison with every reference person. If the user supplied an explicit MODEL REFERENCE elsewhere in this prompt, that user-provided identity is the ONLY allowed face source; otherwise cast a brand-new, unrecognizable photoreal person. Copying, approximating or subtly echoing a reference person's face is a hard failure with legal consequences — when in doubt, make the person MORE different, never less.`;
+
+  const EDITORIAL_CASTING = `🎭 EDITORIAL CASTING — FIERCE, SCULPTED FACES: Cast the new model the way a top editorial casting director would: a striking, memorable, high-fashion face with beautiful, strong bone structure — sculpted cheekbones, a defined jawline, an elegant brow line and an intense, magnetic gaze with real attitude. Avoid safe, generic, commercial "catalog prettiness"; the face must read as a discovered runway model in a serious campaign. Keep it fully PHOTOREALISTIC — real skin texture with visible pores and natural micro-detail, no beautification blur, no plastic smoothness — and always obey the user's explicit gender, age and model-attribute selections stated earlier in this prompt; this casting direction shapes the CHARACTER of the face, never those selections.`;
+
   const sections = [];
 
   // ── GÖRSELSİZ MOD ──────────────────────────────────────────────
@@ -197,7 +206,8 @@ ${notes.join("\n\n")}`);
     sections.push(`🎲 VARY EVERY TIME (IMPORTANT): This same repertoire is applied to EVERY generation, so there is a strong risk of converging on the same handful of looks. Deliberately choose a DIFFERENT combination of techniques than the most obvious or most average one.${variation ? `\n${variation}` : ""}
 Whatever you choose must still serve the user's garment and the user's stated choices — variety in CRAFT, never in CONTENT.`);
 
-    sections.push(`MODEL IDENTITY: The model is an entirely original, AI-generated person. Do not reproduce any real or recognisable individual.`);
+    sections.push(IDENTITY_FIREWALL);
+    sections.push(EDITORIAL_CASTING);
 
     return sections.join("\n\n");
   }
@@ -234,6 +244,9 @@ ${cleanedAnalyses.join("\n\n")}`);
 
   sections.push(`🎲 VARY EVERY TIME (IMPORTANT): These exact reference collages are attached to EVERY generation, so there is a strong risk of converging on the same handful of looks. Deliberately choose a DIFFERENT combination of techniques from the repertoire than the most obvious or most average one. Do not default to the same lighting, lens and pose you would usually pick.${variation ? `\n${variation}` : ""}
 Whatever you choose must still serve the user's garment and the user's stated choices — variety in CRAFT, never in CONTENT.`);
+
+  sections.push(IDENTITY_FIREWALL);
+  sections.push(EDITORIAL_CASTING);
 
   return sections.join("\n\n");
 }
