@@ -7,7 +7,10 @@ const sharp = require("sharp");
 const { fal } = require("@fal-ai/client");
 const teamService = require("../services/teamService");
 const { optimizeKitImages } = require("../utils/imageOptimizer");
-const { callOpenRouterGeminiFlash } = require("../utils/promptEnhanceProvider");
+const {
+    callDeepSeekFlashRaw,
+    isInvalidInputError,
+} = require("../utils/promptEnhanceProvider");
 
 // Fal.ai client config (detail + ghost sahneleri için GPT Image 2 queue SDK)
 fal.config({
@@ -83,7 +86,12 @@ async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) 
             );
 
             const data = response.data;
-            if (data.error) throw new Error(data.error);
+            // Obje gövdede mesaj "[object Object]" olmasın — E006 imzası kaybolur.
+            if (data.error) {
+                throw new Error(
+                    typeof data.error === "string" ? data.error : JSON.stringify(data.error),
+                );
+            }
             if (data.status !== "succeeded") throw new Error(`Prediction failed with status: ${data.status}`);
 
             let outputText = "";
@@ -96,6 +104,12 @@ async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) 
             return outputText.trim();
         } catch (error) {
             console.error(`❌ [KIT_V2_GEMINI] Attempt ${attempt} failed:`, error.message);
+            // 🚫 E006 "input was invalid": determinist ret — tekrar denenmez,
+            // dispatcher doğrudan DeepSeek'e geçer (1 Eyl 2026 kullanıcı kararı).
+            if (isInvalidInputError(error)) {
+                console.error("🚫 [KIT_V2_GEMINI] Geçersiz girdi (E006) — tekrar denenmiyor");
+                throw error;
+            }
             if (attempt === maxRetries) throw error;
             const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
             await new Promise(resolve => setTimeout(resolve, waitTime));
@@ -128,27 +142,27 @@ async function callGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
   // çağrı boşuna deneyip fallback'e düşüyordu. Artık config neredeyse oraya
   // gidilir, diğeri yedektir.
   const provider = await getPromptEnhanceProvider();
-  const useReplicateFirst = provider === "replicate";
-  console.log(`🔀 [KIT_V2_PROMPT_ENHANCE] Provider: ${useReplicateFirst ? "Replicate gemini-3-flash" : "OpenRouter gemini-3.7-flash"} — app_config: "${provider}"`);
-  if (useReplicateFirst) {
-    try {
-      return await callReplicateGeminiFlash(prompt, imageUrls, maxRetries);
-    } catch (err) {
-      console.error(
-        "⚠️ [KIT_V2_PROMPT_ENHANCE] Replicate Gemini başarısız, OpenRouter'a fallback:",
-        err.message,
-      );
-      return callOpenRouterGeminiFlash(prompt, imageUrls, maxRetries);
-    }
-  }
+  // 1 Eyl 2026: OpenRouter kaldırıldı — "deepseek" dışındaki her değer Replicate.
+  const useReplicateFirst = provider !== "deepseek";
+  console.log(`🔀 [KIT_V2_PROMPT_ENHANCE] Provider: ${useReplicateFirst ? "Replicate gemini-3-flash" : "DeepSeek"} — app_config: "${provider}"`);
+  const stages = {
+    replicate: () => callReplicateGeminiFlash(prompt, imageUrls, maxRetries),
+    // Yedek çağrıda deneme sayısı kısılır: istek zaten gecikmiş durumda.
+    deepseek: () =>
+      callDeepSeekFlashRaw(prompt, imageUrls, Math.min(maxRetries, 2)),
+  };
+  const primary = useReplicateFirst ? "replicate" : "deepseek";
+  const fallback = useReplicateFirst ? "deepseek" : "replicate";
+
   try {
-    return await callOpenRouterGeminiFlash(prompt, imageUrls, maxRetries);
-  } catch (err) {
+    return await stages[primary]();
+  } catch (primaryErr) {
+    // 🚫 E006 geldiyse tekrar denenmedi — doğrudan diğer sağlayıcıya geçilir.
+    const invalidInput = isInvalidInputError(primaryErr);
     console.error(
-      "⚠️ [KIT_V2_PROMPT_ENHANCE] OpenRouter Gemini başarısız, Replicate'e fallback:",
-      err.message,
+      `⚠️ [KIT_V2_PROMPT_ENHANCE] ${primary} başarısız${invalidInput ? " (geçersiz girdi/E006 — tekrar denenmedi)" : ""}: ${primaryErr.message} → yedek: ${fallback}`,
     );
-    return callReplicateGeminiFlash(prompt, imageUrls, maxRetries);
+    return stages[fallback]();
   }
 }
 

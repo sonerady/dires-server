@@ -340,12 +340,29 @@ const ROTATION_EXCLUDE_MAX = 200; // PostgREST URL uzunluğu için dışlama lis
 async function pickAutoGlobalStyleProfile({
   excludeStudioLocked = false,
   userAge = null, // resolveUserAgeNumber çıktısı — null = yaş seçilmemiş
-  productCategory = null, // "shoes" | "jewelry" | "clothing" | null
-  productSubtype = null, // "ring" | "sneakers" | ... | null
+  productCategory: rawProductCategory = null, // "shoes" | "jewelry" | "clothing" | null
+  productSubtype: rawProductSubtype = null, // "ring" | "sneakers" | ... | null
   styleApproach = null, // "editorial" | "ecommerce" | "lifestyle" | "studio" | null
   userGender = null, // settings.gender ham değeri — burada etikete çözülür
   userId = null, // 🔁 stil rotasyonu için: bu kullanıcının kullandıkları dışlanır
 } = {}) {
+  // 👟 AYAKKABI → KIYAFET HAVUZU (1 Eyl 2026, kullanıcı kararı): ayakkabının
+  // AYRI bir otomatik stil havuzu yok. 'shoes' etiketli havuz 11 stilde kalmıştı
+  // ve CATEGORY_MIN_POOL (40) eşiğini hiçbir zaman geçemediği için zaten her
+  // üretimde genel havuza düşüyordu — yani ayakkabı isteği pratikte rastgele bir
+  // kıyafet stili alıyordu. Artık bu KURAL: ayakkabı doğrudan kıyafet havuzundan
+  // seçer. Alt tür (sneakers/heels/...) kıyafet sözlüğünde karşılığı olmadığı için
+  // düşürülür; ürünün gerçek tipi (settings.productCategory) değişmez, burada
+  // yalnız stil havuzu seçimi kıyafete kayar.
+  const isShoesRequest =
+    String(rawProductCategory || "").trim().toLowerCase() === "shoes";
+  const productCategory = isShoesRequest ? "clothing" : rawProductCategory;
+  const productSubtype = isShoesRequest ? null : rawProductSubtype;
+  if (isShoesRequest) {
+    logger.log(
+      "👟 [AUTO_STYLE] 'shoes' isteği kıyafet havuzuna yönlendirildi (ayakkabıya özel havuz yok)",
+    );
+  }
   const db = getServiceClient();
   // 🚻 Gender ETİKET eşleşmesi: kullanıcı man seçtiyse woman etiketli stil,
   // woman seçtiyse man etiketli stil hiçbir kademede (fallback dahil)

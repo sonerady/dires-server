@@ -1,12 +1,16 @@
 // ───────────────────────────────────────────────────────────────────────────
 // Prompt Enhance Provider — tek merkezi dispatcher
 //
-// Tüm route'lar prompt enhance için Gemini Flash'ı buradan çağırır.
+// Tüm route'lar prompt enhance için buradan çağrı yapar.
 // app_config.prompt_enhance_provider değerine göre seçim yapılır:
-//   "gemini"    (default) → OpenRouter üzerinden google/gemini-3.7-flash
-//   "replicate"           → Replicate üzerinden google/gemini-3-flash (eski davranış)
+//   "replicate" (varsayılan) → Replicate üzerinden google/gemini-3-flash
+//   "deepseek"               → DeepSeek (vision varsa v4-flash-vision-exp)
 //
-// OpenRouter başarısız olursa güvenli fallback olarak Replicate denenir.
+// ⚠️ 1 Eyl 2026 (kullanıcı kararı): DOĞRUDAN OPENROUTER YOLU TAMAMEN KALDIRILDI
+// (hesap artık kullanılmıyor). Geriye iki sağlayıcı kaldı ve biri diğerinin
+// yedeği: Replicate ⇄ DeepSeek. Eski "gemini" config değeri artık Replicate'e
+// eşlenir. (fal üzerinden giden "openrouter/router/vision" GEÇİDİ bundan
+// bağımsızdır — o fal faturasına yazılır ve yerinde durur.)
 // Sağlayıcı seçimi kısa süreli (60 sn) cache'lenir; her çağrıda DB'ye gidilmez.
 // ───────────────────────────────────────────────────────────────────────────
 
@@ -20,12 +24,6 @@ const supabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } },
 );
 
-// 13 Ağu 2026 (kullanıcı kararı): prompt enhance + stil sentezi Gemini 3.7 Flash.
-// Slug OpenRouter /api/v1/models listesinden doğrulandı.
-const OPENROUTER_GEMINI_MODEL = "google/gemini-3.7-flash";
-// 19 Ağu 2026 (kullanıcı kararı): EKLENTİ/stil-profili akışı Luna'ya taşındı —
-// Luna 30 Tem'deki %80 indirimle en ucuz seçenek ($0.20/$1.20 per 1M).
-const OPENROUTER_LUNA_MODEL = "openai/gpt-5.6-luna";
 const REPLICATE_GEMINI_MODEL = "google/gemini-3-flash";
 
 // 🎯 Ortak system instruction — tüm prompt-enhance tüketicileri için kalite
@@ -37,6 +35,37 @@ Write in fluent, natural English as flowing narrative prose, like a world-class 
 When reference images are involved, treat the product/garment reference as the immutable source of truth — its colors, patterns, construction, proportions and details are reproduced exactly, never redesigned. Translate any raw parameter values you encounter (hex codes, underscore_keys, non-English labels) into natural English photographic language; they must never appear verbatim in your output.
 
 Aim for imagery with genuine editorial character: decisive light, a confident grade, intentional composition — the kind of frame that belongs to a current high-end campaign, never a generic stock photo.`;
+
+// 🚫 GEÇERSİZ GİRDİ (E006) — TEKRAR DENEME YOK, DOĞRUDAN DEEPSEEK
+// (1 Eyl 2026 kullanıcı kararı)
+//
+// Replicate/Gemini bazı isteklere "Async prediction failed: ModelError: The input
+// was invalid. Please try again with different inputs. (E006)" döndürüyor. Bu
+// DETERMİNİSTİK bir rettir: aynı prompt + aynı görsellerle tekrar denemek her
+// seferinde aynı cevabı verir, sadece 3 deneme + backoff kadar gecikme üretir.
+// Bu yüzden bu imza görülür görülmez deneme yapılmaz; iş beklemeden diğer
+// sağlayıcıya (Replicate ⇄ DeepSeek) geçer.
+function extractErrorText(error) {
+  const raw = error?.response?.data?.error;
+  return [
+    error?.message,
+    typeof raw === "string" ? raw : raw?.message,
+    error?.response?.data?.detail,
+    typeof error?.response?.data === "string" ? error.response.data : null,
+  ]
+    .filter((v) => typeof v === "string" && v)
+    .join(" ");
+}
+
+function isInvalidInputError(error) {
+  const text = extractErrorText(error).toLowerCase();
+  if (!text) return false;
+  return (
+    /\(?\be006\b\)?/.test(text) ||
+    text.includes("input was invalid") ||
+    text.includes("invalid input")
+  );
+}
 
 const VISION_CLASSIFIER_SYSTEM_INSTRUCTION = `You are a precise visual classifier, not a prompt writer. Follow the requested output format exactly. Return only the classification value requested by the user, with no prose, explanation, punctuation, markdown, or additional words.`;
 
@@ -80,78 +109,6 @@ async function getPromptEnhanceProvider() {
 
   _providerCache = { value: provider, at: now };
   return provider;
-}
-
-// ─── OpenRouter Gemini Flash ───
-async function callOpenRouterGeminiFlash(
-  prompt,
-  imageUrls = [],
-  maxRetries = 3,
-  systemInstruction = GEMINI_SYSTEM_INSTRUCTION,
-  generationOptions = {},
-) {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
-    throw new Error("OPENROUTER_API_KEY environment variable is not set");
-  }
-  const userContent = [
-    { type: "text", text: prompt },
-    ...(imageUrls || [])
-      .filter(Boolean)
-      .map((url) => ({ type: "image_url", image_url: { url } })),
-  ];
-  const messages = [];
-  if (systemInstruction) {
-    messages.push({ role: "system", content: systemInstruction });
-  }
-  messages.push({ role: "user", content: userContent });
-
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      const routedModel = generationOptions.model || OPENROUTER_GEMINI_MODEL;
-      console.log(
-        `🤖 [OPENROUTER-GEMINI] attempt ${attempt}/${maxRetries} (model: ${routedModel}, images: ${userContent.length - 1})`,
-      );
-      const response = await axios.post(
-        "https://openrouter.ai/api/v1/chat/completions",
-        {
-          model: routedModel,
-          messages,
-          temperature: generationOptions.temperature ?? 1,
-          top_p: generationOptions.topP ?? 0.95,
-          max_tokens: generationOptions.maxOutputTokens ?? 65535,
-          reasoning: { effort: "low", exclude: true },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-            "HTTP-Referer": process.env.OPENROUTER_SITE_URL || "https://diress.ai",
-            "X-OpenRouter-Title": "Diress",
-          },
-          timeout: 120000,
-        },
-      );
-      const content = response.data?.choices?.[0]?.message?.content;
-      const outputText = (Array.isArray(content)
-        ? content
-            .map((part) => (typeof part === "string" ? part : part?.text || ""))
-            .join("")
-        : content || ""
-      ).trim();
-      if (!outputText) throw new Error("OpenRouter Gemini response is empty");
-
-      console.log(`✅ [OPENROUTER-GEMINI] Başarılı (attempt ${attempt})`);
-      return outputText;
-    } catch (error) {
-      const detail = error.response?.data?.error?.message || error.message;
-      console.error(`❌ [OPENROUTER-GEMINI] attempt ${attempt} failed:`, detail);
-      if (attempt === maxRetries) throw error;
-      const baseWaitTime = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
-      const waitTime = baseWaitTime + Math.floor(Math.random() * 750);
-      await new Promise((resolve) => setTimeout(resolve, waitTime));
-    }
-  }
 }
 
 // ─── DeepSeek (eklenti stil akışı — 22 Ağu 2026 kullanıcı kararı) ───
@@ -269,7 +226,13 @@ async function callReplicateGeminiFlashRaw(
       );
 
       const data = response.data;
-      if (data.error) throw new Error(data.error);
+      // Replicate hata gövdesi obje de olabilir; string'e çevirmezsek mesaj
+      // "[object Object]" olur ve E006 imzası kaybolur.
+      if (data.error) {
+        throw new Error(
+          typeof data.error === "string" ? data.error : JSON.stringify(data.error),
+        );
+      }
       if (data.status !== "succeeded") {
         throw new Error(`Prediction failed with status: ${data.status}`);
       }
@@ -286,6 +249,14 @@ async function callReplicateGeminiFlashRaw(
       return outputText.trim();
     } catch (error) {
       console.error(`❌ [REPLICATE-GEMINI] attempt ${attempt} failed:`, error.message);
+      // E006 "input was invalid": aynı girdiyle tekrar denemek anlamsız —
+      // döngü kırılır, dispatcher DeepSeek'e geçer.
+      if (isInvalidInputError(error)) {
+        console.error(
+          "🚫 [REPLICATE-GEMINI] Geçersiz girdi (E006) — tekrar denenmiyor",
+        );
+        throw error;
+      }
       if (attempt === maxRetries) throw error;
       // Aynı profil için paralel başlayan başlık/etiket/kategori görevleri aynı
       // anda tekrar Replicate'e yüklenmesin; exponential backoff'a jitter ekle.
@@ -297,88 +268,38 @@ async function callReplicateGeminiFlashRaw(
 }
 
 // ─── Dispatcher ───
-// 17 Ağu 2026 (kullanıcı kararı): app_config.prompt_enhance_provider YENİDEN
-// OKUNUYOR. 13 Ağu'da sağlayıcı OpenRouter'a sabitlenmişti; OpenRouter bakiyesi
-// bitince (402) her çağrı önce 10 boş denemeyle sürünüp sonra fallback'e
-// düşüyordu. Artık config ne diyorsa ORAYA gidilir, diğeri yalnız yedektir —
-// böylece sağlayıcı değiştirmek için kod deploy'u gerekmez, DB'den yeter.
-//   "replicate" → Replicate google/gemini-3-flash (yedek: OpenRouter)
-//   "gemini"    → OpenRouter google/gemini-3.7-flash (yedek: Replicate)
+// 1 Eyl 2026 (kullanıcı kararı): OpenRouter kaldırıldı. Geriye iki sağlayıcı
+// kaldı ve app_config.prompt_enhance_provider hangisinin ÖNCE deneneceğini
+// seçer; diğeri her zaman yedektir:
+//   "replicate" (varsayılan) → Replicate google/gemini-3-flash (yedek: DeepSeek)
+//   "deepseek"               → DeepSeek (yedek: Replicate)
+// Eski "gemini" değeri artık Replicate'e eşlenir — DB'de kalmış olması üretimi
+// bozmaz, yalnız log'a not düşülür.
 async function callGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
   const provider = await getPromptEnhanceProvider();
-  const useReplicateFirst = provider === "replicate";
+  const useReplicateFirst = provider !== "deepseek";
   console.log(
-    `🔀 [PROMPT_ENHANCE] Provider: ${useReplicateFirst ? "Replicate (gemini-3-flash)" : "OpenRouter (gemini-3.7-flash)"} — app_config: "${provider}"`,
+    `🔀 [PROMPT_ENHANCE] Provider: ${useReplicateFirst ? `Replicate (${REPLICATE_GEMINI_MODEL})` : "DeepSeek"} — app_config: "${provider}"`,
   );
-  if (useReplicateFirst) {
-    try {
-      return await callReplicateGeminiFlashRaw(prompt, imageUrls, maxRetries);
-    } catch (err) {
-      console.error(
-        "⚠️ [PROMPT_ENHANCE] Replicate Gemini başarısız, OpenRouter'a fallback:",
-        err.message,
-      );
-      return callOpenRouterGeminiFlash(prompt, imageUrls, maxRetries);
-    }
-  }
-  try {
-    return await callOpenRouterGeminiFlash(prompt, imageUrls, maxRetries);
-  } catch (err) {
-    console.error(
-      "⚠️ [PROMPT_ENHANCE] OpenRouter Gemini başarısız, Replicate'e fallback:",
-      err.message,
-    );
-    return callReplicateGeminiFlashRaw(prompt, imageUrls, maxRetries);
-  }
-}
 
-// ─── Luna (stil-profili / eklenti akışı) ───
-// 19 Ağu 2026: auto-style eklentisinden gelen profil oluşturma işleri
-// (stil sentezi, başlık, etiket, kategori, yaş tahmini) Luna'ya gider —
-// app_config'ten BAĞIMSIZ (o ayar üretim prompt-enhance'ini yönetmeye devam
-// eder). Luna başarısız olursa eski Gemini zinciri devreye girer ki profil
-// oluşturma asla bloklanmasın.
-async function callLunaFlash(prompt, imageUrls = [], maxRetries = 3) {
-  try {
-    console.log(`🌙 [LUNA-STYLE] Stil işi Luna'ya gidiyor (${OPENROUTER_LUNA_MODEL})`);
-    return await callOpenRouterGeminiFlash(
-      prompt,
-      imageUrls,
-      maxRetries,
-      GEMINI_SYSTEM_INSTRUCTION,
-      { model: OPENROUTER_LUNA_MODEL },
-    );
-  } catch (err) {
-    console.error(
-      "⚠️ [LUNA-STYLE] Luna başarısız, Gemini zincirine fallback:",
-      err.message,
-    );
-    return callGeminiFlash(prompt, imageUrls, maxRetries);
-  }
-}
+  const stages = {
+    replicate: () => callReplicateGeminiFlashRaw(prompt, imageUrls, maxRetries),
+    // Yedek çağrıda deneme sayısı kısılır: istek zaten gecikmiş durumda.
+    deepseek: () =>
+      callDeepSeekFlashRaw(prompt, imageUrls, Math.min(maxRetries, 2)),
+  };
+  const primary = useReplicateFirst ? "replicate" : "deepseek";
+  const fallback = useReplicateFirst ? "deepseek" : "replicate";
 
-async function callLunaVisionClassifierRaw(prompt, imageUrls = [], maxRetries = 3) {
   try {
-    console.log(`🌙 [LUNA-CLASSIFIER] Sınıflandırma Luna'ya gidiyor`);
-    return await callOpenRouterGeminiFlash(
-      prompt,
-      imageUrls,
-      maxRetries,
-      VISION_CLASSIFIER_SYSTEM_INSTRUCTION,
-      {
-        model: OPENROUTER_LUNA_MODEL,
-        temperature: 0,
-        // Luna'nın görünmez reasoning tokenları bütçeden düşebiliyor
-        // (13 Ağu dersi) — reasoning zaten exclude, bütçe yine de geniş.
-        maxOutputTokens: 300,
-      },
-    );
-  } catch (err) {
+    return await stages[primary]();
+  } catch (primaryErr) {
+    // 🚫 E006 geldiyse tekrar denenmedi — doğrudan diğer sağlayıcıya geçilir.
+    const invalidInput = isInvalidInputError(primaryErr);
     console.error(
-      "⚠️ [LUNA-CLASSIFIER] Luna başarısız, Gemini zincirine fallback:",
-      err.message,
+      `⚠️ [PROMPT_ENHANCE] ${primary} başarısız${invalidInput ? " (geçersiz girdi/E006 — tekrar denenmedi)" : ""}: ${primaryErr.message} → yedek: ${fallback}`,
     );
-    return callGeminiVisionClassifier(prompt, imageUrls, maxRetries);
+    return stages[fallback]();
   }
 }
 
@@ -386,7 +307,7 @@ async function callLunaVisionClassifierRaw(prompt, imageUrls = [], maxRetries = 
 // 22 Ağu 2026 (kullanıcı kararı): eklentinin prompt üretimi DeepSeek'e taşındı
 // ("en azından şimdilik") — maliyet Replicate Gemini'nin ~yarısı/dörtte biri.
 // app_config'ten BAĞIMSIZ. DeepSeek başarısız olursa eski zincir devrededir
-// (Replicate Gemini → OpenRouter) ki profil oluşturma asla bloklanmasın.
+// (yedek: Replicate Gemini) ki profil oluşturma asla bloklanmasın.
 // (20 Ağu kararı olan Replicate-first bu kararla değiştirildi.)
 async function callReplicateStyleFlash(prompt, imageUrls = [], maxRetries = 3) {
   try {
@@ -398,28 +319,10 @@ async function callReplicateStyleFlash(prompt, imageUrls = [], maxRetries = 3) {
       deepseekErr.message,
     );
   }
-  try {
-    console.log(
-      `🔁 [REPLICATE-STYLE] Stil işi Replicate'e gidiyor (${REPLICATE_GEMINI_MODEL})`,
-    );
-    return await callReplicateGeminiFlashRaw(prompt, imageUrls, maxRetries);
-  } catch (err) {
-    console.error(
-      "⚠️ [REPLICATE-STYLE] Replicate başarısız, OpenRouter'a fallback:",
-      err.message,
-    );
-    // ⚠️ OpenRouter bakiyesi çok düşük (20 Ağu): 65535 token'lık varsayılan
-    // istek "can only afford ~8589" ile reddediliyor ve 10 deneme boşa
-    // yanıyordu. Yedekte bütçe 8000'e çekilir (bu limitte istek GEÇER) ve
-    // deneme sayısı 2 ile sınırlanır — yedek sessiz ve işlevsel kalır.
-    return callOpenRouterGeminiFlash(
-      prompt,
-      imageUrls,
-      Math.min(maxRetries, 2),
-      GEMINI_SYSTEM_INSTRUCTION,
-      { maxOutputTokens: 8000 },
-    );
-  }
+  console.log(
+    `🔁 [REPLICATE-STYLE] Stil işi Replicate'e gidiyor (${REPLICATE_GEMINI_MODEL})`,
+  );
+  return callReplicateGeminiFlashRaw(prompt, imageUrls, maxRetries);
 }
 
 async function callReplicateStyleVisionClassifier(
@@ -449,28 +352,13 @@ async function callReplicateStyleVisionClassifier(
       deepseekErr.message,
     );
   }
-  try {
-    console.log(`🔁 [REPLICATE-STYLE-CLASSIFIER] Sınıflandırma Replicate'e gidiyor`);
-    return await callReplicateGeminiFlashRaw(
-      prompt,
-      imageUrls,
-      maxRetries,
-      generationOptions,
-    );
-  } catch (err) {
-    console.error(
-      "⚠️ [REPLICATE-STYLE-CLASSIFIER] Replicate başarısız, OpenRouter'a fallback:",
-      err.message,
-    );
-    // Bütçe zaten 256 token (bakiyeye sığar); yalnız deneme sayısı kırpılır.
-    return callOpenRouterGeminiFlash(
-      prompt,
-      imageUrls,
-      Math.min(maxRetries, 2),
-      VISION_CLASSIFIER_SYSTEM_INSTRUCTION,
-      generationOptions,
-    );
-  }
+  console.log(`🔁 [REPLICATE-STYLE-CLASSIFIER] Sınıflandırma Replicate'e gidiyor`);
+  return callReplicateGeminiFlashRaw(
+    prompt,
+    imageUrls,
+    maxRetries,
+    generationOptions,
+  );
 }
 
 // Kısa, yapılandırılmış görsel sınıflandırma görevleri için prompt-yazarı
@@ -489,67 +377,47 @@ async function callGeminiVisionClassifier(
     systemInstruction: VISION_CLASSIFIER_SYSTEM_INSTRUCTION,
   };
 
-  // Sağlayıcı app_config'ten (17 Ağu 2026) — prompt enhance ile aynı ayar.
+  // Sağlayıcı app_config'ten — prompt enhance ile aynı ayar (OpenRouter 1 Eyl'de
+  // kaldırıldı; "deepseek" dışındaki her değer Replicate demektir).
   const provider = await getPromptEnhanceProvider();
-  const useReplicateFirst = provider === "replicate";
+  const useReplicateFirst = provider !== "deepseek";
   console.log(
-    `🔀 [VISION_CLASSIFIER] Provider: ${useReplicateFirst ? "Replicate" : "OpenRouter"} — app_config: "${provider}"`,
+    `🔀 [VISION_CLASSIFIER] Provider: ${useReplicateFirst ? "Replicate" : "DeepSeek"} — app_config: "${provider}"`,
   );
-  if (useReplicateFirst) {
-    try {
-      return await callReplicateGeminiFlashRaw(
+
+  const stages = {
+    replicate: () =>
+      callReplicateGeminiFlashRaw(prompt, imageUrls, maxRetries, generationOptions),
+    deepseek: () =>
+      callDeepSeekFlashRaw(
         prompt,
         imageUrls,
-        maxRetries,
-        generationOptions,
-      );
-    } catch (err) {
-      console.error(
-        "⚠️ [VISION_CLASSIFIER] Replicate başarısız, OpenRouter'a fallback:",
-        err.message,
-      );
-      return callOpenRouterGeminiFlash(
-        prompt,
-        imageUrls,
-        maxRetries,
+        Math.min(maxRetries, 2),
         VISION_CLASSIFIER_SYSTEM_INSTRUCTION,
         generationOptions,
-      );
-    }
-  }
+      ),
+  };
+  const primary = useReplicateFirst ? "replicate" : "deepseek";
+  const fallback = useReplicateFirst ? "deepseek" : "replicate";
+
   try {
-    return await callOpenRouterGeminiFlash(
-      prompt,
-      imageUrls,
-      maxRetries,
-      VISION_CLASSIFIER_SYSTEM_INSTRUCTION,
-      generationOptions,
-    );
+    return await stages[primary]();
   } catch (err) {
     console.error(
-      "⚠️ [VISION_CLASSIFIER] OpenRouter başarısız, Replicate'e fallback:",
-      err.message,
+      `⚠️ [VISION_CLASSIFIER] ${primary} başarısız${isInvalidInputError(err) ? " (geçersiz girdi/E006 — tekrar denenmedi)" : ""}: ${err.message} → yedek: ${fallback}`,
     );
-    return callReplicateGeminiFlashRaw(
-      prompt,
-      imageUrls,
-      maxRetries,
-      generationOptions,
-    );
+    return stages[fallback]();
   }
 }
 
 module.exports = {
   callDeepSeekFlashRaw,
+  isInvalidInputError,
   callGeminiFlash,
   callGeminiVisionClassifier,
-  callLunaFlash,
-  callLunaVisionClassifier: callLunaVisionClassifierRaw,
   callReplicateStyleFlash,
   callReplicateStyleVisionClassifier,
   getPromptEnhanceProvider,
-  callOpenRouterGeminiFlash,
-  OPENROUTER_GEMINI_MODEL,
   GEMINI_SYSTEM_INSTRUCTION,
   VISION_CLASSIFIER_SYSTEM_INSTRUCTION,
 };

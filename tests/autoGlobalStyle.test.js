@@ -296,3 +296,25 @@ test("keeps a hair reference before the final hidden-style image", () => {
   assert.ok(hairIndex >= 0);
   assert.ok(styleIndex > hairIndex);
 });
+
+test("routes shoes requests into the clothing pool without a subtype", () => {
+  const source = fs.readFileSync(
+    path.join(__dirname, "../src/utils/autoGlobalStyle.js"),
+    "utf8",
+  );
+
+  assert.match(
+    source,
+    /const productCategory = isShoesRequest \? "clothing" : rawProductCategory/,
+  );
+  assert.match(
+    source,
+    /const productSubtype = isShoesRequest \? null : rawProductSubtype/,
+  );
+  // Yönlendirme, kategoriyi okuyan HER kademeden (jewelry-clean kontrolü dahil)
+  // önce yapılmalı; aksi halde 'shoes' etiketi filtrelere sızar.
+  const remapIndex = source.indexOf("const isShoesRequest =");
+  const jewelryCleanIndex = source.indexOf("const requiresJewelryClean =");
+  assert.ok(remapIndex >= 0);
+  assert.ok(remapIndex < jewelryCleanIndex);
+});
