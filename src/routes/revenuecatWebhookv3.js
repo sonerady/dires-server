@@ -1018,9 +1018,18 @@ router.post("/webhookv3", async (req, res) => {
     // Trial→Paid conversion: kullanıcı trial'dan ücretli pakete geçti.
     // (a) RENEWAL + is_trial_conversion=true (NEW SUB)
     // (b) PRODUCT_CHANGE + period_type !== TRIAL (Tam Sürüme Geç → ücretli pakete geçiş)
+    // 🛡️ Bakiye SIFIRLAMA yalnızca DB'de gerçekten trial'da olan kullanıcılar için
+    // geçerlidir. wasInTrial=false ise ortada "atılacak trial kredisi" yoktur;
+    // credit_balance satın alınmış/birikmiş gerçek kredidir ve ASLA sıfırlanmamalıdır.
+    // Eskiden `isTrialConversion === true` bayrağı TEK BAŞINA bu dala düşürüyordu;
+    // RevenueCat plan değişimi / NEW SUB event'lerinde bu bayrağı ücretli kullanıcılar
+    // için de true gönderdiğinden birikmiş bakiye (ör. 13900) paket tutarına (2400)
+    // sıfırlanıyordu. Kanıtlı vaka: user 5f28b060… (16 Tem 2026) ~11.500 kredi kaybetti.
+    // Artık her iki koşul da wasInTrial===true guard'ının arkasında.
     const isConvertingFromTrial =
-      isTrialConversion === true ||
-      (type === "PRODUCT_CHANGE" && wasInTrial && period_type !== "TRIAL");
+      wasInTrial === true &&
+      (isTrialConversion === true ||
+        (type === "PRODUCT_CHANGE" && period_type !== "TRIAL"));
 
     // Credit calculation
     // ⚠️ isTrialContinuation'da bakiyeyi HİÇ YAZMIYORUZ (aşağıda updateFields'a

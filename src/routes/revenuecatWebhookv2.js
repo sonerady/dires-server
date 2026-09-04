@@ -1013,9 +1013,18 @@ router.post("/webhookv2", async (req, res) => {
     //   (b) PRODUCT_CHANGE + period_type !== TRIAL — kullanıcı trial'dayken "Tam Sürüme Geç"
     //       bastı, yeni ürün artık paid (period_type=NORMAL)
     // Bu durumda mevcut bakiyeyi SIFIRLA + yeni paket kredisi yaz.
+    // 🛡️ Bakiye SIFIRLAMA yalnızca DB'de gerçekten trial'da olan kullanıcılar için
+    // geçerlidir. wasInTrial=false ise ortada "atılacak trial kredisi" yoktur;
+    // credit_balance satın alınmış/birikmiş gerçek kredidir ve ASLA sıfırlanmamalıdır.
+    // Eskiden `isTrialConversion === true` bayrağı TEK BAŞINA bu dala düşürüyordu;
+    // RevenueCat plan değişimi / NEW SUB event'lerinde bu bayrağı ücretli kullanıcılar
+    // için de true gönderdiğinden birikmiş bakiye paket tutarına sıfırlanıyordu.
+    // (Aynı hata v3'te de vardı; kanıtlı vaka: user 5f28b060… 16 Tem 2026 ~11.500 kredi.)
+    // Artık her iki koşul da wasInTrial===true guard'ının arkasında.
     const isConvertingFromTrial =
-      isTrialConversion === true ||
-      (type === "PRODUCT_CHANGE" && wasInTrial && period_type !== "TRIAL");
+      wasInTrial === true &&
+      (isTrialConversion === true ||
+        (type === "PRODUCT_CHANGE" && period_type !== "TRIAL"));
 
     // Credit calculation
     // ⚠️ isTrialContinuation'da bakiyeyi HİÇ YAZMIYORUZ (aşağıda updateFields'a
