@@ -209,6 +209,9 @@ app.use(
 const lemonsqueezyWebhook = require("./routes/lemonsqueezyWebhook");
 app.use("/api/lemonsqueezy", express.raw({ type: "application/json" }), lemonsqueezyWebhook);
 
+// Resend signatures must be checked against the original bytes, before JSON parsing.
+app.use("/api/support/inbound", express.raw({ type: "application/json", limit: "1mb" }), require("./routes/supportWebhookRoutes").createSupportWebhookRouter(require("./lib/supportMailRuntime")));
+
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
@@ -492,7 +495,7 @@ app.use("/api/banner-studio", bannerStudioRoutes);
 
 // Support routes
 const supportRoutes = require("./routes/supportRoutes");
-app.use("/api/support", requireBrowser, requireAuth, supportRoutes);
+app.use("/api/support", supportRoutes);
 
 // Team routes
 app.use("/api/teams", teamRoutes);
