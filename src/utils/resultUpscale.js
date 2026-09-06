@@ -10,6 +10,7 @@ const axios = require("axios");
 const { createClient } = require("@supabase/supabase-js");
 const logger = require("./logger");
 const teamService = require("../services/teamService");
+const { UPSCALE_CREDITS } = require("./generationCredits");
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -24,7 +25,7 @@ const RESULT_UPSCALE_ALLOWED_MP = [8, 16, 32, 64, 128];
 // 🔍 Netleştirme kredi tarifesi — RefinerScreen'deki tabloyla aynı mantık:
 // taban 10 kredi, kademe başına maliyetle orantılı artış. 4 MP zaten "kapalı"
 // olduğu için burada yer almaz (ek işlem yapılmaz → ücret de yok).
-const RESULT_UPSCALE_CREDIT_BY_MP = { 8: 20, 16: 40, 32: 80, 64: 120, 128: 240 };
+const RESULT_UPSCALE_CREDIT_BY_MP = UPSCALE_CREDITS;
 
 // Netleştirme için krediyi atomic olarak düşer. Yetersizse false döner ve
 // çağıran taraf netleştirmeyi hiç başlatmaz (üretim yine de teslim edilir).
@@ -45,12 +46,12 @@ async function chargeUpscaleCredits(userId, targetMp) {
       return { charged: 0, ok: false };
     }
 
-    const { error } = await supabase.rpc("deduct_user_credit", {
+    const { data, error } = await supabase.rpc("deduct_user_credit", {
       user_id: creditOwnerId,
       credit_amount: cost,
     });
-    if (error) {
-      logger.warn("💳 [UPSCALE-CREDIT] Kredi düşülemedi:", error.message);
+    if (error || data === false || data?.success === false) {
+      logger.warn("💳 [UPSCALE-CREDIT] Kredi düşülemedi:", error?.message || "rejected");
       return { charged: 0, ok: false };
     }
     logger.log(`💳 [UPSCALE-CREDIT] ${cost} kredi düşüldü (${targetMp} MP)`);
@@ -138,53 +139,50 @@ async function upscaleResultImage(imageUrl, targetMp) {
   return typeof url === "string" && url.startsWith("http") ? url : null;
 }
 
-// 🔍 Ortak sarmalayıcı — kredi → aşama işareti → netleştirme → aşama temizliği.
-// Hata durumunda ORİJİNAL sonuçla devam edilir; üretim asla kaybolmaz.
-// Dönüş: { imageUrl, appliedMp, preUpscaleUrl }
+// Temel üretim önce ödenir; MP ücreti yalnızca başarılı netleştirmeden sonra
+// kesilir. Başarısız/boş/zaman aşımına uğrayan MP işlemi ücretlendirilmez.
 async function applyResultUpscale({
   imageUrl,
   upscaleMp,
   userId,
   generationId,
+  ensureBaseCharge,
   logTag = "RESULT UPSCALE",
 }) {
-  const result = { imageUrl, appliedMp: null, preUpscaleUrl: null };
-  if (!imageUrl || !RESULT_UPSCALE_ALLOWED_MP.includes(Number(upscaleMp))) {
-    return result;
-  }
+  const result = { imageUrl, appliedMp: null, preUpscaleUrl: null, creditsCharged: 0 };
+  const cost = RESULT_UPSCALE_CREDIT_BY_MP[Number(upscaleMp)];
+  if (!imageUrl || !cost || !userId || userId === "anonymous_user") return result;
 
   try {
-    // Önce kredi: yetersizse netleştirme hiç başlatılmaz, üretim sonucu
-    // olduğu gibi teslim edilir (kullanıcı üretimini kaybetmez).
+    // Callback mevcut üretim ücretini ve creditDeducted kontrolünü kullanır.
+    // Bu kesinti onaylanmadan MP bakiyesine dokunulmaz.
+    if (typeof ensureBaseCharge !== "function" || !(await ensureBaseCharge())) {
+      throw new Error("BASE_GENERATION_CREDIT_UNAVAILABLE");
+    }
+    const available = await teamService.getEffectiveCredits(userId);
+    if ((available.creditBalance || 0) < cost) {
+      throw new Error("UPSCALE_CREDIT_UNAVAILABLE");
+    }
+
+    await markGenerationStage(generationId, userId, "upscaling");
+    const upscaled = await upscaleResultImage(imageUrl, upscaleMp);
+    if (!upscaled) throw new Error("UPSCALE_EMPTY_RESULT");
+
+    // İşlem sırasında bakiye değişmiş olabilir; gerçek kesinti tekrar atomik
+    // RPC üzerinden yapılır. Kesinti reddedilirse orijinal sonuç teslim edilir.
     const charge = await chargeUpscaleCredits(userId, upscaleMp);
     if (!charge.ok) throw new Error("UPSCALE_CREDIT_UNAVAILABLE");
 
-    logger.log(
-      `🔍 [${logTag}] Sonuç ${upscaleMp} MP'ye yükseltiliyor (${charge.charged} kredi)...`,
-    );
-    // İstemci polling'i "Netleştiriliyor…" rozetini bu işaretten okur.
-    await markGenerationStage(generationId, userId, "upscaling");
-
-    const startedAt = Date.now();
-    const upscaled = await upscaleResultImage(imageUrl, upscaleMp);
-    if (upscaled) {
-      result.preUpscaleUrl = imageUrl;
-      result.imageUrl = upscaled;
-      result.appliedMp = Number(upscaleMp);
-      logger.log(
-        `✅ [${logTag}] ${result.appliedMp} MP tamamlandı (${Date.now() - startedAt}ms)`,
-      );
-    }
-    // Aşama işaretini temizle — kart "Netleştiriliyor…" ile takılı kalmasın
-    await markGenerationStage(generationId, userId, null);
+    result.preUpscaleUrl = imageUrl;
+    result.imageUrl = upscaled;
+    result.appliedMp = Number(upscaleMp);
+    result.creditsCharged = charge.charged;
+    logger.log(`✅ [${logTag}] ${result.appliedMp} MP tamamlandı (${charge.charged} kredi)`);
   } catch (err) {
-    logger.warn(
-      `⚠️ [${logTag}] Netleştirme başarısız, orijinal sonuç kullanılıyor:`,
-      err?.message,
-    );
+    logger.warn(`⚠️ [${logTag}] Orijinal sonuç kullanılıyor:`, err?.message);
+  } finally {
     await markGenerationStage(generationId, userId, null);
   }
-
   return result;
 }
 

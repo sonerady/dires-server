@@ -5,7 +5,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const axios = require("axios");
 const logger = require("../utils/logger");
 const { optimizeImageUrl } = require("../utils/imageOptimizer");
-const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
+const { callGeminiFlash, callReplicateStyleFlash } = require("../utils/promptEnhanceProvider");
 
 // Gemini API için istemci oluştur
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -305,11 +305,15 @@ IMPORTANT: The prompt must include:
 
 Analyze the image and return the JSON response:`;
 
-    // Replicate Gemini API çağrısı - resim URL'sini direkt gönder
+    // 🐋 5 Eyl 2026 (kullanıcı kararı): Model Oluştur fotoğraf analizi DeepSeek'e
+    // gidiyor — ürün fotoğrafı yükleme (product-type/classify) ile aynı
+    // sağlayıcı ve vision modeli (deepseek-v4-flash-vision-exp). Endpoint aynı
+    // (/analyze-image), yalnız LLM rotası değişti. DeepSeek başarısız olursa
+    // eski Replicate Gemini zinciri devrede (callReplicateStyleFlash).
     const imageUrls = uploadedImageUrl.startsWith("http") ? [uploadedImageUrl] : [];
-    let responseText = await callReplicateGeminiFlash(promptText, imageUrls, 3);
+    let responseText = await callReplicateStyleFlash(promptText, imageUrls, 3);
 
-    logger.log("📊 Replicate Gemini image analysis result:", responseText);
+    logger.log("📊 [DEEPSEEK/analyze-image] image analysis result:", responseText);
 
     // JSON parse et
     try {

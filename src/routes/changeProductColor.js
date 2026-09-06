@@ -1,3 +1,4 @@
+const { getGenerationCreditCost } = require("../utils/generationCredits");
 const express = require("express");
 const router = express.Router();
 // Updated: Using Google Gemini API for prompt generation
@@ -16,6 +17,7 @@ const {
 const teamService = require("../services/teamService");
 const logger = require("../utils/logger");
 const { optimizeImageUrl } = require("../utils/imageOptimizer");
+const { applyResultUpscale } = require("../utils/resultUpscale");
 const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
 
 // 🎨 varyPoses=true durumunda her color variation için kullanılan statik "güzel poz" havuzu.
@@ -912,13 +914,13 @@ async function deductCreditOnSuccess(generationId, userId) {
       }
     );
 
-    if (updateError) {
+    if (updateError || updateResult === false || updateResult?.success === false) {
       console.error(`❌ Kredi düşme hatası:`, updateError);
       return false;
     }
 
     const newBalance =
-      updateResult?.new_balance || currentCredit - totalCreditCost;
+      updateResult?.new_balance ?? currentCredit - totalCreditCost;
     logger.log(
       `✅ ${totalCreditCost} kredi başarıyla düşüldü (${isTeamCredit ? 'team owner' : 'user'}: ${creditOwnerId}). Yeni bakiye: ${newBalance}`
     );
@@ -1036,6 +1038,21 @@ async function updateGenerationStatus(
       } catch (bucketError) {
         console.error("❌ User bucket kaydetme hatası:", bucketError);
         // Hata durumunda orijinal URL'yi kullan
+      }
+    }
+
+    // 🔍 Netleştirme uygulandıysa öncesi kareyi de bucket'a kalıcılaştır
+    // (fal.media URL'leri geçici; SimpleImageModal öncesi/sonrası sürgüsü ve
+    // thumbnail bu URL'yi uzun vadede kullanır) — V7 ile aynı davranış.
+    if (status === "completed" && finalUpdates.upscaled_mp && updates.pre_upscale_image_url) {
+      try {
+        const savedPre = await saveResultImageToUserBucket(
+          updates.pre_upscale_image_url,
+          userId
+        );
+        if (savedPre) finalUpdates.pre_upscale_image_url = savedPre;
+      } catch (preErr) {
+        console.error("❌ Pre-upscale bucket kaydetme hatası:", preErr);
       }
     }
 
@@ -3741,6 +3758,7 @@ router.post("/generate", async (req, res) => {
   try {
     let {
       ratio,
+      upscaleMp = 4,
       promptText,
       referenceImages,
       settings,
@@ -3848,6 +3866,20 @@ router.post("/generate", async (req, res) => {
 
     // userId'yi scope için ata
     userId = requestUserId;
+
+    // Bir istek bir görsel üretir; temel ücret ve seçilen MP birlikte doğrulanır.
+    if (userId && userId !== "anonymous_user") {
+      const requiredCredit = getGenerationCreditCost(qualityVersion, upscaleMp);
+      const effective = await teamService.getEffectiveCredits(userId);
+      const availableCredit = effective.creditBalance || 0;
+      if (availableCredit < requiredCredit) {
+        return res.status(402).json({
+          success: false,
+          result: { message: "Yetersiz kredi", requiredCredit, currentCredit: availableCredit },
+        });
+      }
+    }
+
 
     if (modelReferenceImage) {
       logger.log(
@@ -5289,18 +5321,33 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
 
       // ✅ Status'u completed'e güncelle
       // fal.ai returns output as array, always use the first image
-      const resultImageUrl = Array.isArray(finalResult.output)
+      let resultImageUrl = Array.isArray(finalResult.output)
         ? finalResult.output[0]
         : finalResult.output;
+      const upscaleOutcome = await applyResultUpscale({
+        imageUrl: resultImageUrl,
+        upscaleMp,
+        userId,
+        generationId: finalGenerationId,
+        ensureBaseCharge: () => deductCreditOnSuccess(finalGenerationId, userId),
+        logTag: "COLOR UPSCALE",
+      });
+      resultImageUrl = upscaleOutcome.imageUrl;
       const updatedGeneration = await updateGenerationStatus(finalGenerationId, userId, "completed", {
         enhanced_prompt: enhancedPrompt,
         result_image_url: resultImageUrl,
         replicate_prediction_id: initialResult.id,
         processing_time_seconds: processingTime,
+        ...(upscaleOutcome.appliedMp && {
+          upscaled_mp: upscaleOutcome.appliedMp,
+          pre_upscale_image_url: upscaleOutcome.preUpscaleUrl,
+        }),
       });
       // updateGenerationStatus Supabase bucket'e kaydedip DB'yi günceller,
       // dönen kayıttaki result_image_url artık Supabase URL'sidir (fal.media değil)
       const finalResultImageUrl = updatedGeneration?.result_image_url || resultImageUrl;
+      const thumbnailSourceUrl = updatedGeneration?.pre_upscale_image_url ||
+        upscaleOutcome.preUpscaleUrl || finalResultImageUrl;
 
       // 💳 KREDI GÜNCELLEME SIRASI
       // Kredi düşümü updateGenerationStatus içinde tetikleniyor (pay-on-success).
@@ -5328,7 +5375,9 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
         result: {
           // Supabase bucket URL kullan (fal.media yerine)
           imageUrl: finalResultImageUrl,
-          imageUrlThumbnail: finalResultImageUrl ? optimizeImageUrl(finalResultImageUrl, { width: 500, height: 500, quality: 80 }) : null,
+          upscaledMp: upscaleOutcome.appliedMp,
+          preUpscaleImageUrl: updatedGeneration?.pre_upscale_image_url || upscaleOutcome.preUpscaleUrl,
+          imageUrlThumbnail: thumbnailSourceUrl ? optimizeImageUrl(thumbnailSourceUrl, { width: 500, height: 500, quality: 80 }) : null,
           originalPrompt: promptText,
           enhancedPrompt: enhancedPrompt,
           replicateData: finalResult,
@@ -6030,7 +6079,8 @@ router.get("/generation-status/:generationId", async (req, res) => {
       }
     }
 
-    const thumbnailUrl = generation.result_image_url ? optimizeImageUrl(generation.result_image_url, { width: 500, height: 500, quality: 80 }) : null;
+    const thumbnailSource = generation.pre_upscale_image_url || generation.result_image_url;
+    const thumbnailUrl = thumbnailSource ? optimizeImageUrl(thumbnailSource, { width: 500, height: 500, quality: 80 }) : null;
     if (finalStatus === "completed") {
       logger.log(`🖼️ [THUMBNAIL] Generation ${generation.generation_id}: original=${generation.result_image_url?.substring(0, 60)} | thumbnail=${thumbnailUrl?.substring(0, 80)}`);
     }
@@ -6047,6 +6097,8 @@ router.get("/generation-status/:generationId", async (req, res) => {
         status: finalStatus,
         resultImageUrl: generation.result_image_url,
         resultImageThumbnail: thumbnailUrl,
+        upscaledMp: generation.upscaled_mp || null,
+        preUpscaleImageUrl: generation.pre_upscale_image_url || null,
         originalPrompt: generation.original_prompt,
         enhancedPrompt: generation.enhanced_prompt,
         settings: generation.settings || {}, // Settings bilgisini de ekle
@@ -6174,7 +6226,9 @@ router.get("/pending-generations/:userId", async (req, res) => {
             generationId: gen.generation_id,
             status: gen.status,
             resultImageUrl: gen.result_image_url,
-            resultImageThumbnail: gen.result_image_url ? optimizeImageUrl(gen.result_image_url, { width: 500, height: 500, quality: 80 }) : null,
+            upscaledMp: gen.upscaled_mp || null,
+            preUpscaleImageUrl: gen.pre_upscale_image_url || null,
+            resultImageThumbnail: gen.result_image_url ? optimizeImageUrl(gen.pre_upscale_image_url || gen.result_image_url, { width: 500, height: 500, quality: 80 }) : null,
             originalPrompt: gen.original_prompt,
             enhancedPrompt: gen.enhanced_prompt,
             errorMessage: null, // error_message kolonu yok
@@ -6302,7 +6356,9 @@ router.get("/user-generations/:userId", async (req, res) => {
             userEmail: gen.users?.email || null, // Team workspace için user email
             status: gen.status,
             resultImageUrl: gen.result_image_url,
-            resultImageThumbnail: gen.result_image_url ? optimizeImageUrl(gen.result_image_url, { width: 500, height: 500, quality: 80 }) : null,
+            upscaledMp: gen.upscaled_mp || null,
+            preUpscaleImageUrl: gen.pre_upscale_image_url || null,
+            resultImageThumbnail: gen.result_image_url ? optimizeImageUrl(gen.pre_upscale_image_url || gen.result_image_url, { width: 500, height: 500, quality: 80 }) : null,
             originalPrompt: gen.original_prompt,
             enhancedPrompt: gen.enhanced_prompt,
             referenceImages: gen.reference_images,
@@ -6491,6 +6547,8 @@ async function processBulkColorItem({
   qualityVersion,
   sessionId,
   index,
+  upscaleMp = 4,
+  ratio = "9:16",
   varyPoses = false, // YENI (opsiyonel): true → her renk için farklı poz, false → orjinal pozu koru
 }) {
   const generationId = uuidv4();
@@ -6538,7 +6596,7 @@ async function processBulkColorItem({
       null,
       null,
       null,
-      "9:16",
+      ratio,
       false,
       false,
       generationId,
@@ -6555,7 +6613,7 @@ async function processBulkColorItem({
       originalImageUrl: referenceUrl,
       targetColor,
       settings: baseSettings,
-      aspectRatio: "9:16",
+      aspectRatio: ratio,
       qualityVersion,
       creditsUsed: creditCost,
     });
@@ -6589,7 +6647,7 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
       prompt,
       image_urls: [referenceUrl],
       output_format: "png",
-      aspect_ratio: "9:16",
+      aspect_ratio: ratio === "original" ? "auto" : ratio,
       num_images: 1,
       resolution: "2K",
       safety_tolerance: "6",
@@ -6644,7 +6702,19 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
       );
     }
 
-    const resultUrl = images[0].url;
+    // Başarılı görselin temel ücretini burada doğrula; batch toplamı yalnızca
+    // gerçekten ödenmiş kalemlerden oluşsun (4 MP dahil).
+    const basePaid = userId === "anonymous_user" || await deductCreditOnSuccess(generationId, userId);
+    if (!basePaid) throw new Error("BASE_GENERATION_CREDIT_UNAVAILABLE");
+    const upscaleOutcome = await applyResultUpscale({
+      imageUrl: images[0].url,
+      upscaleMp,
+      userId,
+      generationId,
+      ensureBaseCharge: async () => basePaid,
+      logTag: "BULK COLOR UPSCALE",
+    });
+    const resultUrl = upscaleOutcome.imageUrl;
     const falRequestId = falResponse.data.request_id || null;
     const processingTime = Math.floor((Date.now() - startedAt) / 1000);
 
@@ -6654,10 +6724,16 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
     // NOT: bulk-mode columnları (is_bulk_mode/bulk_session_id) artık sadece color_change_generations'a yazılıyor.
     const updatedRow = await updateGenerationStatus(generationId, userId, "completed", {
       result_image_url: resultUrl,
+      ...(upscaleOutcome.appliedMp && {
+        upscaled_mp: upscaleOutcome.appliedMp,
+        pre_upscale_image_url: upscaleOutcome.preUpscaleUrl,
+      }),
       replicate_prediction_id: falRequestId,
       processing_time_seconds: processingTime,
     });
     const finalImageUrl = updatedRow?.result_image_url || resultUrl;
+    const thumbnailSourceUrl = updatedRow?.pre_upscale_image_url ||
+      upscaleOutcome.preUpscaleUrl || finalImageUrl;
 
     // color_change_generations tablosunu Supabase URL + bulk metadata ile senkronize et
     // (migration: color_change_bulk_columns_migration.sql)
@@ -6676,10 +6752,11 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
       status: "succeeded",
       generationId,
       imageUrl: finalImageUrl,
-      imageUrlThumbnail: finalImageUrl
-        ? optimizeImageUrl(finalImageUrl, { width: 500, height: 500, quality: 80 })
+      imageUrlThumbnail: thumbnailSourceUrl
+        ? optimizeImageUrl(thumbnailSourceUrl, { width: 500, height: 500, quality: 80 })
         : null,
-      creditsCharged: creditCost,
+      upscaledMp: upscaleOutcome.appliedMp,
+      creditsCharged: (userId === "anonymous_user" ? 0 : creditCost) + upscaleOutcome.creditsCharged,
     };
   } catch (err) {
     logger.log(
@@ -6711,6 +6788,8 @@ router.post("/generate-bulk", async (req, res) => {
       qualityVersion: rawQuality,
       sessionId: rawSessionId,
       items,
+      upscaleMp = 4,
+      ratio = "9:16",
       varyPoses: rawVaryPoses, // YENI (opsiyonel, production'da gelmeyebilir)
     } = req.body || {};
     const varyPoses = rawVaryPoses === true;
@@ -6758,7 +6837,7 @@ router.post("/generate-bulk", async (req, res) => {
 
     const qualityVersion = rawQuality === "v2" ? "v2" : "v1";
     const sessionId = rawSessionId || uuidv4();
-    const costPerItem = qualityVersion === "v2" ? 35 : 10;
+    const costPerItem = getGenerationCreditCost(qualityVersion, upscaleMp);
     const requiredCredits = items.length * costPerItem;
 
     // Team-aware effective credits ile front-load kontrol
@@ -6798,6 +6877,8 @@ router.post("/generate-bulk", async (req, res) => {
           qualityVersion,
           sessionId,
           index: i,
+          upscaleMp,
+          ratio,
           varyPoses,
         })
       )
@@ -6851,6 +6932,8 @@ router.post("/generate-bulk-async", async (req, res) => {
       qualityVersion: rawQuality,
       sessionId: rawSessionId,
       items,
+      upscaleMp = 4,
+      ratio = "9:16",
       varyPoses: rawVaryPoses, // YENI (opsiyonel, production'da gelmeyebilir)
     } = req.body || {};
     const varyPoses = rawVaryPoses === true;
@@ -6896,7 +6979,7 @@ router.post("/generate-bulk-async", async (req, res) => {
 
     const qualityVersion = rawQuality === "v2" ? "v2" : "v1";
     const sessionId = rawSessionId || uuidv4();
-    const costPerItem = qualityVersion === "v2" ? 35 : 10;
+    const costPerItem = getGenerationCreditCost(qualityVersion, upscaleMp);
     const requiredCredits = items.length * costPerItem;
 
     // Credit precheck (1 kez)
@@ -6959,6 +7042,8 @@ router.post("/generate-bulk-async", async (req, res) => {
           qualityVersion,
           sessionId,
           index: i,
+          upscaleMp,
+          ratio,
           varyPoses,
         });
         const batch = bulkColorBatches.get(sessionId);

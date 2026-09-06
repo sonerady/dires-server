@@ -1,3 +1,4 @@
+const { getGenerationCreditCost } = require("../utils/generationCredits");
 const express = require("express");
 const router = express.Router();
 // Updated: Using Google Gemini API for prompt generation
@@ -995,13 +996,13 @@ async function deductCreditOnSuccess(generationId, userId) {
       }
     );
 
-    if (updateError) {
+    if (updateError || updateResult === false || updateResult?.success === false) {
       console.error(`❌ Kredi düşme hatası:`, updateError);
       return false;
     }
 
     const newBalance =
-      updateResult?.new_balance || currentCredit - totalCreditCost;
+      updateResult?.new_balance ?? currentCredit - totalCreditCost;
     logger.log(
       `✅ ${totalCreditCost} kredi başarıyla düşüldü (${isTeamCredit ? 'team owner' : 'user'}: ${creditOwnerId}). Yeni bakiye: ${newBalance}`
     );
@@ -4181,6 +4182,20 @@ router.post("/generate", async (req, res) => {
     // userId'yi scope için ata
     userId = requestUserId;
 
+    // Bir istek bir görsel üretir; temel ücret ve seçilen MP birlikte doğrulanır.
+    if (userId && userId !== "anonymous_user") {
+      const requiredCredit = getGenerationCreditCost(qualityVersion, upscaleMp);
+      const effective = await teamService.getEffectiveCredits(userId);
+      const availableCredit = effective.creditBalance || 0;
+      if (availableCredit < requiredCredit) {
+        return res.status(402).json({
+          success: false,
+          result: { message: "Yetersiz kredi", requiredCredit, currentCredit: availableCredit },
+        });
+      }
+    }
+
+
     if (modelReferenceImage) {
       logger.log(
         "🧍 [BACKEND] Model referans görseli tespit edildi:",
@@ -5723,6 +5738,7 @@ router.post("/generate", async (req, res) => {
         upscaleMp,
         userId,
         generationId: finalGenerationId,
+        ensureBaseCharge: () => deductCreditOnSuccess(finalGenerationId, userId),
         logTag: "BACKSIDE UPSCALE",
       });
       resultImageUrl = upscaleOutcome.imageUrl;

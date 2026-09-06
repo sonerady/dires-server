@@ -878,6 +878,14 @@ async function addWatermarkToImage(imageSource, localization = {}) {
 
     console.log(`🎨 [DOWNLOAD API] ${stamps} filigran basıldı (font ${Math.round(fontSize)}px)`);
 
+    // 🖥️ Web görüntüleme modu (?wm=tiles): yalnız DIRESS döşemesi görsele gömülür;
+    // üst/alt bantlar, PRO çağrısı ve açıklamalar web'de istemci tarafında çizilir.
+    if (localization.tilesOnly) {
+      const tilesBuffer = canvas.toBuffer("image/png");
+      console.log("✅ [DOWNLOAD API] Yalnız döşeme filigranı (web view), boyut:", tilesBuffer.length);
+      return tilesBuffer;
+    }
+
     // 14 duraklı kosinüs-ease alfa — düz iki duraklı fade bant kenarında çizgi bırakıyor
     const FADE_STOPS = [
       [0.0, 0.0], [0.077, 0.015], [0.154, 0.057], [0.231, 0.126],
@@ -1304,6 +1312,8 @@ router.get("/image", async (req, res) => {
           lastSubPeriod: await getLastSubscriptionPeriod(userId),
           // Denemedeki kullanıcı farklı metin görür (bkz. isTrialWatermark)
           isInTrial: downloadAccess.isInTrial === true,
+          // Web önizlemesi: bantsız, yalnız döşeme (metinler istemcide)
+          tilesOnly: String(req.query.wm || "").toLowerCase() === "tiles",
         };
       }
 
