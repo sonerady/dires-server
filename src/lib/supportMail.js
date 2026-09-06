@@ -5,7 +5,7 @@ const { dkimVerify } = require('mailauth/lib/dkim/verify');
 const SUPPORT_EMAIL = 'support@diress.ai';
 const OWNER_EMAIL = process.env.SUPPORT_OWNER_EMAIL || 'skozayy@gmail.com';
 const FROM = `Diress Support <${SUPPORT_EMAIL}>`;
-const WEBHOOK_URL = process.env.SUPPORT_WEBHOOK_URL || 'https://api.diress.ai/api/support/inbound';
+const WEBHOOK_URL = process.env.SUPPORT_WEBHOOK_URL || 'https://dires-server-production.up.railway.app/api/support/inbound';
 const MAX_RAW = 25 * 1024 * 1024;
 const MAX_ATTACHMENTS = 10 * 1024 * 1024;
 const cleanHeader = value => String(value || '').replace(/[\r\n\x00-\x1f]/g, ' ').trim().slice(0, 200);

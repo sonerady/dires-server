@@ -4,7 +4,7 @@
 
 - Web `/contact` and RN `FeedbackModal` submit to `POST /api/support/send`.
 - Forms send only to the configured owner inbox, with a private `agent+<token>@diress.ai` reply address.
-- Resend delivers inbound events to `POST https://api.diress.ai/api/support/inbound`.
+- Resend delivers inbound events to `POST https://dires-server-production.up.railway.app/api/support/inbound`.
 - Direct mail to `support@diress.ai` opens a conversation and reaches the owner inbox.
 - Owner replies must come from the configured owner address, carry a valid aligned DKIM signature covering the full body and From/To/Subject, and address the private conversation token.
 - Customer replies are sent as `Diress Support <support@diress.ai>` with a separate `reply+<token>@diress.ai` return address. Only the conversation's customer can use that route.
@@ -28,7 +28,7 @@ Optional overrides:
 
 - `SUPPORT_OWNER_EMAIL`: owner's personal mailbox (defaults to the previously configured support recipient).
 - `RESEND_SUPPORT_WEBHOOK_SECRET`: pin the Resend signing secret. When omitted, the server retrieves the secret for the exact fixed webhook URL using its server-only Resend API key, and caches it for five minutes.
-- `SUPPORT_WEBHOOK_URL`: defaults to `https://api.diress.ai/api/support/inbound`.
+- `SUPPORT_WEBHOOK_URL`: defaults to `https://dires-server-production.up.railway.app/api/support/inbound`.
 
 Do not put secrets in client environment variables, source control, or browser storage.
 
