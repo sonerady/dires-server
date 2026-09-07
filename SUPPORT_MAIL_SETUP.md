@@ -48,3 +48,11 @@ Once DNS and deployment are ready, submit a support request from a controlled cu
 Resend webhook retries receive HTTP 503 on transient storage/provider failures. The database claims one delivery at a time and persists the exact outbound payload for deterministic retries. Sent payloads are cleared; routing metadata remains private.
 
 Resend's idempotency window is 24 hours. Ambiguous deliveries older than 23 hours move to `review` rather than risking a second email. Investigate those rows and the Resend send log before retrying manually. Inbox messages are plain text with a corporate footer; original private headers and quoted owner addresses are not forwarded. Attachments are supported up to 10 MB total, with a 25 MB raw-message limit. Larger messages remain in Resend for manual handling.
+
+## Support request diagnostics
+
+The contact form and native FeedbackModal send a bounded allowlist of platform, app version/build, OS/device, language and screen details. Web build IDs come from the Vercel commit SHA; web screen details exclude query strings. Access tokens are sent only in the Authorization header and are never stored in diagnostics or email bodies.
+
+When a Supabase session is supplied, the server verifies it independently of the general auth-enforcement flag, then resolves the application user ID, account email/name, plan and registration date through `users.supabase_user_id`. Invalid sessions are rejected. Without a session, no supplied user ID is treated as verified. A client-reported ID is separately labeled for legacy/native diagnostics.
+
+The initial snapshot is stored in the existing private support conversation (`support_context`) and included only in owner-directed messages, including later customer replies. The admin reply parser removes both the server footer and mail-app diagnostic footer. Mailto entry points in web/mobile settings and native settings append client-reported diagnostics to the draft. An email composed outside Diress cannot supply its current application version/platform automatically.

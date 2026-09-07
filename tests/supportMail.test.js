@@ -74,3 +74,30 @@ test('owner DKIM cannot be replayed to a different envelope recipient', async ()
  const f=fixture();await f.service.submit(form());const m=await f.inbound({from:OWNER_EMAIL,to:'someone@example.com',signed:true});m.event.data.to=[f.sent[0].payload.replyTo];await f.service.receive(m.event);assert.equal(f.sent.length,1);
 });
 test('webhook events other than receiving are ignored',async()=>{const f=fixture();assert.deepEqual(await f.service.receive({type:'email.delivered'}),{ignored:true});assert.equal(f.sent.length,0);});
+test('initial request diagnostics persist for owner follow-ups and never appear in customer replies', async () => {
+  const f = fixture();
+  const context = { account: { userId: 'private-user-id', authUserId: 'verified-auth-id', email: 'customer@example.com', plan: 'Pro' }, client: { platform: 'android', appVersion: '1.7.7', buildVersion: '108' } };
+  const input = form();
+  await f.service.submit(input, context);
+  assert.match(f.sent[0].payload.text, /User ID: private-user-id/);
+  assert.match(f.sent[0].payload.text, /Platform: android/);
+  await assert.rejects(f.service.submit(input, { ...context, account: { ...context.account, authUserId: 'another-account' } }), /already used/);
+  const reply = await f.inbound({ from: OWNER_EMAIL, to: f.sent[0].payload.replyTo, signed: true, body: `Your issue is fixed.\n\n${f.sent[0].payload.text.slice(f.sent[0].payload.text.indexOf('--- Diress Support ---'))}` });
+  await f.service.receive(reply.event);
+  assert.ok(!f.sent[1].payload.text.includes('private-user-id'));
+  assert.ok(!f.sent[1].payload.text.includes('android'));
+  assert.match(f.sent[1].payload.text, /Your issue is fixed/);
+  const followup = await f.inbound({ to: f.sent[1].payload.replyTo, body: 'One more question' });
+  await f.service.receive(followup.event);
+  assert.match(f.sent[2].payload.text, /User ID: private-user-id/);
+  assert.match(f.sent[2].payload.text, /Build: 108/);
+});
+test('mail-app diagnostics reach the owner but are removed from an unquoted admin reply', async () => {
+  const f = fixture();
+  const customer = await f.inbound({ body: 'Help please\n\n--- Diress Support Context ---\nPlatform: ios\nApp version: 1.7.7\nUser ID (client-reported): device-user' });
+  await f.service.receive(customer.event);
+  assert.match(f.sent[0].payload.text, /App version: 1.7.7/);
+  const reply = await f.inbound({ from: OWNER_EMAIL, to: f.sent[0].payload.replyTo, signed: true, body: 'Here is the fix.\n\n--- Diress Support Context ---\nUser ID: device-user' });
+  await f.service.receive(reply.event);
+  assert.ok(!f.sent[1].payload.text.includes('device-user'));
+});

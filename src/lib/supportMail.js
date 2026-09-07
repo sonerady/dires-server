@@ -1,4 +1,5 @@
 const { createHash, randomBytes, randomUUID } = require('node:crypto');
+const { formatSupportContext } = require('./supportContext');
 const { simpleParser } = require('mailparser');
 const { dkimVerify } = require('mailauth/lib/dkim/verify');
 
@@ -53,13 +54,15 @@ function createSupportMail({ resend, store, download = fetch, verifyDkim = dkimV
   }
   const headers = id => messageId(id) ? { 'In-Reply-To': id, References: id } : undefined;
   function toOwner(ticket, text, attachments = []) {
-    return { from: FROM, to: OWNER_EMAIL, replyTo: replyAddress('agent', ticket), subject: `[Diress #${ticket.id.slice(0, 8)}] ${ticket.subject}`, text: `${text}\n\n--- Diress Support ---\nCustomer: ${ticket.customer_email}\nReply above this line to respond as ${SUPPORT_EMAIL}.\n`, headers: headers(ticket.last_agent_message_id), ...(attachments.length ? { attachments } : {}) };
+    return { from: FROM, to: OWNER_EMAIL, replyTo: replyAddress('agent', ticket), subject: `[Diress #${ticket.id.slice(0, 8)}] ${ticket.subject}`, text: `${text}\n\n--- Diress Support ---\nCustomer: ${ticket.customer_email}\n${formatSupportContext(ticket.support_context)}Reply above this line to respond as ${SUPPORT_EMAIL}.\n`, headers: headers(ticket.last_agent_message_id), ...(attachments.length ? { attachments } : {}) };
   }
-  async function submit(body) {
+  async function submit(body, context = null) {
     const form = validateForm(body);
     if (form.email.endsWith('@diress.ai')) throw Object.assign(new Error('Use the customer email address'), { status: 400, code: 'INVALID_SUPPORT_MESSAGE' });
-    const hash = createHash('sha256').update(JSON.stringify([form.email, form.subject, form.message, form.name])).digest('hex');
-    const ticket = await store.createConversation(createTicket(form.requestId, form.email, form.subject, { request_hash: hash }));
+    const hashInput = [form.email, form.subject, form.message, form.name];
+    if (context?.account) hashInput.push(context.account.authUserId);
+    const hash = createHash('sha256').update(JSON.stringify(hashInput)).digest('hex');
+    const ticket = await store.createConversation(createTicket(form.requestId, form.email, form.subject, { request_hash: hash, support_context: context }));
     if (ticket.request_hash !== hash) throw Object.assign(new Error('Request ID was already used'), { status: 409 });
     await store.deliver(`form:${ticket.id}`, async () => toOwner(ticket, `${form.name ? `${form.name}\n\n` : ''}${form.message}`), send);
     return { success: true, ticketId: ticket.id };
@@ -104,7 +107,7 @@ function createSupportMail({ resend, store, download = fetch, verifyDkim = dkimV
         const ownerDomain = sender.split('@')[1];
         if (!verification.results?.some(r => r.status?.result === 'pass' && r.signingDomain?.toLowerCase() === ownerDomain && ['from', 'to', 'subject'].every(h => r.signingHeaders?.keys?.toLowerCase().split(':').map(x => x.trim()).includes(h)) && r.signatureTimeValid !== false && !r.canonBodyLengthLimited)) return null;
         // Send only the new reply; never forward the personal mailbox's headers or quoted routing tokens.
-        text = privateText(text.split(/\n(?:--- Diress Support ---|Reply above this line)/)[0]).trim();
+        text = privateText(text.split(/\n(?:--- Diress Support(?: Context)? ---|Reply above this line)/)[0]).trim();
         if (!text && !attachments.length) return null;
         await store.updateConversation(ticket.id, { last_agent_message_id: messageId(parsed.messageId) || null });
         return { from: FROM, to: ticket.customer_email, replyTo: replyAddress('reply', ticket), subject: /^re:/i.test(ticket.subject) ? ticket.subject : `Re: ${ticket.subject}`, text: `${text}\n\nDiress Support\nhttps://diress.ai`, headers: headers(ticket.last_customer_message_id), ...(attachments.length ? { attachments } : {}) };
