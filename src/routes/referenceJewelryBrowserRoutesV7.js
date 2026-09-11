@@ -4,6 +4,7 @@ const { getModelCreationProvider } = require("../services/modelCreationConfig");
 const { buildModelHairDirection } = require("../utils/modelHairDirection");
 const { normalizeModelProfile, buildModelProfileDirective } = require("../utils/modelProfile");
 const { applyAutoPoolModel } = require("../utils/autoPoolModel");
+const { getLegacyFlags } = require("../utils/legacyModelUsers");
 const { getGpt25Quality, getV2Model, gpt25ImageSize } = require("../utils/gpt25Edit");
 const { SUNBURST_EDIT_MODEL, usesNb2ForModelCreation, usesSunburstForModelCreation, isSunburstContentRejection } = require("../utils/modelCreationModel");
 const { getGenerationCreditCost } = require("../utils/generationCredits");
@@ -5108,8 +5109,24 @@ router.post("/generate", async (req, res) => {
 
     // 🎲 "Yapay Zekaya Bırak": model seçilmediyse ve yaş 18+ ise havuzdan rastgele
     // model kullanılır (bkz. utils/autoPoolModel.js).
+    // 🧷 Eski model filtresi (admin → Legacy Users): bu kullanıcılar için hem V2
+    // nano-banana-pro 2K'ya gider hem de "Yapay Zekaya Bırak" havuzdan model ATAMAZ.
+    let legacyFlags = { useNbproV2: false, skipAutoPoolModel: false, isLegacy: false };
+    try {
+      // ⚠️ `userId` bu noktadan SONRA atanıyor; istekten gelen id kullanılmalı.
+      legacyFlags = await getLegacyFlags(supabase, requestUserId, logger);
+      if (legacyFlags.isLegacy) {
+        logger.log(
+          `🧷 [LEGACY USER] eski model davranışı (nbproV2:${legacyFlags.useNbproV2}, havuzAtlama:${legacyFlags.skipAutoPoolModel})`,
+        );
+      }
+    } catch (error) {
+      logger.warn("🧷 [LEGACY USER] bayraklar okunamadı:", error.message);
+    }
+
     if (
       !modelPhoto &&
+      !legacyFlags.skipAutoPoolModel &&
       !isEditMode &&
       !isRefinerMode &&
       !isColorChange &&
@@ -7735,7 +7752,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
         // Reference Browser'a özel xhigh; boyut ~3,7 MP tablo (gpt25Edit).
         // app_config.v2_model = "nbpro" ise doğrudan nano-banana-pro. GPT hata verirse
         // kalan denemeler aşağıdaki nano-banana-pro akışına düşer (her zaman yedek).
-        if (isV2 && !req.body.isBackSideAnalysis && !v2GptFailed && getV2Model() === "gpt25") {
+        if (isV2 && !req.body.isBackSideAnalysis && !v2GptFailed && !legacyFlags.useNbproV2 && getV2Model() === "gpt25") {
           try {
             const v2Quality = "xhigh";
             const sanitizedV2Urls = await ensureMaxAspectRatio3to1ForInput(imageInputArray, userId);

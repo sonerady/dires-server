@@ -159,6 +159,7 @@ const adminDashboardRoutes = require("./routes/adminDashboardRoutes");
 const adminAuthRoutes = require("./routes/adminAuthRoutes");
 const adminBulkEmailRoutes = require("./routes/adminBulkEmailRoutes");
 const adminAsoRoutes = require("./routes/adminAsoRoutes");
+const adminLegacyUserRoutes = require("./routes/adminLegacyUserRoutes");
 const { startAsoCron } = require("./services/asoTracker");
 const { requireAdmin } = require("./middleware/requireAdmin");
 // User Visibility routes import
@@ -324,6 +325,7 @@ app.use("/api/admin-dashboard", adminAuthRoutes);
 app.use("/api/admin-dashboard", requireAdmin, adminDashboardRoutes);
 app.use("/api/admin-dashboard", requireAdmin, adminBulkEmailRoutes);
 app.use("/api/admin-dashboard", requireAdmin, adminAsoRoutes);
+app.use("/api/admin-dashboard", requireAdmin, adminLegacyUserRoutes);
 startAsoCron();
 
 // Social Studio — Instagram içerik otomasyonu (admin token ile korunur)

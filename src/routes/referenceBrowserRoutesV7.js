@@ -4,6 +4,7 @@ const { getModelCreationProvider } = require("../services/modelCreationConfig");
 const { buildModelHairDirection } = require("../utils/modelHairDirection");
 const { normalizeModelProfile, buildModelProfileDirective } = require("../utils/modelProfile");
 const { applyAutoPoolModel } = require("../utils/autoPoolModel");
+const { getLegacyFlags } = require("../utils/legacyModelUsers");
 const { getGpt25Quality, gpt25ImageSize } = require("../utils/gpt25Edit");
 const { SUNBURST_EDIT_MODEL, usesNb2ForModelCreation, usesSunburstForModelCreation, isSunburstContentRejection } = require("../utils/modelCreationModel");
 const { getGenerationCreditCost } = require("../utils/generationCredits");
@@ -5039,8 +5040,24 @@ router.post("/generate", async (req, res) => {
     // model MUTLAKA havuzdan (`model_pool`) rastgele seçilir — kullanıcının kendi
     // modellerinden DEĞİL (11 Eyl 2026 kullanıcı kararı). Yalnızca model çekimi
     // akışı için geçerli; edit/refiner/renk/poz/arka taraf modlarında dokunulmaz.
+    // 🧷 Eski model filtresi (admin → Legacy Users): bu kullanıcılar için hem V2
+    // nano-banana-pro 2K'ya gider hem de "Yapay Zekaya Bırak" havuzdan model ATAMAZ.
+    let legacyFlags = { useNbproV2: false, skipAutoPoolModel: false, isLegacy: false };
+    try {
+      // ⚠️ `userId` bu noktadan SONRA atanıyor; istekten gelen id kullanılmalı.
+      legacyFlags = await getLegacyFlags(supabase, requestUserId, logger);
+      if (legacyFlags.isLegacy) {
+        logger.log(
+          `🧷 [LEGACY USER] eski model davranışı (nbproV2:${legacyFlags.useNbproV2}, havuzAtlama:${legacyFlags.skipAutoPoolModel})`,
+        );
+      }
+    } catch (error) {
+      logger.warn("🧷 [LEGACY USER] bayraklar okunamadı:", error.message);
+    }
+
     if (
       !modelPhoto &&
+      !legacyFlags.skipAutoPoolModel &&
       !isEditMode &&
       !isRefinerMode &&
       !isColorChange &&
@@ -7703,7 +7720,7 @@ The final image must read as the SAME street-style photograph — same person-in
         // HER ZAMAN GPT Image 2.5 Sunburst + quality "xhigh" ile üretilir;
         // app_config.v2_model bu rotayı etkilemez. GPT hata verirse kalan denemeler
         // aşağıdaki nano-banana-pro 2K akışına düşer (her zaman yedek).
-        if (isV2 && !req.body.isBackSideAnalysis && !v2GptFailed) {
+        if (isV2 && !req.body.isBackSideAnalysis && !v2GptFailed && !legacyFlags.useNbproV2) {
           try {
             const v2Quality = "xhigh";
             const sanitizedV2Urls = await ensureMaxAspectRatio3to1ForInput(imageInputArray, userId);

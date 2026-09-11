@@ -99,7 +99,14 @@ test('NB2 input strips GPT sizing/quality without mutating edit images or source
 // Reference Browser V2: GPT 2.5 Sunburst xhigh önce, hata → nano-banana-pro.
 for(const name of ['referenceBrowserRoutesV7','referenceJewelryBrowserRoutesV7'])test(`${name}: V2 submits Sunburst xhigh independently of shared quality, nano-banana-pro stays as fallback`,async()=>{
  const r=read(name);
- assert.ok(r.source.includes('getV2Model() === "gpt25"'),'v2 model switch');
+ // 11 Eyl 2026: Reference Browser'da V2 her zaman Sunburst xhigh (app_config.v2_model'den bağımsız);
+ // takı rotası ayarı kullanmayı sürdürür.
+ if(name==='referenceBrowserRoutesV7'){
+  assert.ok(!r.source.includes('getV2Model() === "gpt25"'),'reference browser V2 koşulsuz olmalı');
+  assert.ok(r.source.includes('if (isV2 && !req.body.isBackSideAnalysis && !v2GptFailed && !legacyFlags.useNbproV2) {'),'koşulsuz V2 dalı (yalnız legacy filtresi hariç)');
+ } else {
+  assert.ok(r.source.includes('getV2Model() === "gpt25"'),'v2 model switch');
+ }
  assert.ok(r.source.includes('v2GptFailed = true'),'v2 fallback flag');
  assert.ok(r.source.includes('const falModel = "fal-ai/nano-banana-pro/edit"'),'nb pro retained');
  const fn=r.nodes.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='callFalAiGptImage2Edit');
@@ -110,6 +117,7 @@ for(const name of ['referenceBrowserRoutesV7','referenceJewelryBrowserRoutesV7']
  const refs=['https://test/product','https://test/style'];
  Object.assign(ctx,{
   isV2:true,req:{body:{}},v2GptFailed:false,getV2Model:()=> 'gpt25',
+  legacyFlags:{useNbproV2:false,skipAutoPoolModel:false,isLegacy:false}, // legacy filtresi kapalı kullanıcı
   getGpt25QualityV2:()=> 'low',getGpt25Quality:()=> 'medium',
   ensureMaxAspectRatio3to1ForInput:async urls=>urls,
   imageInputArray:refs,userId:'fixture',enhancedPrompt:'Preserve the garment and selected style.',
