@@ -1,7 +1,9 @@
+const { supabaseAdmin: modelPoolDb } = require("../supabaseClient");
 const { LOCATION_DIRECTION, stampLocationReference, resolveUploadedLocationReference } = require("../services/referenceLocation");
 const { getModelCreationProvider } = require("../services/modelCreationConfig");
 const { buildModelHairDirection } = require("../utils/modelHairDirection");
 const { normalizeModelProfile, buildModelProfileDirective } = require("../utils/modelProfile");
+const { applyAutoPoolModel } = require("../utils/autoPoolModel");
 const { getGpt25Quality, getGpt25QualityV2, getV2Model, gpt25ImageSize } = require("../utils/gpt25Edit");
 const { SUNBURST_EDIT_MODEL, usesNb2ForModelCreation, usesSunburstForModelCreation, isSunburstContentRejection } = require("../utils/modelCreationModel");
 const { getGenerationCreditCost } = require("../utils/generationCredits");
@@ -5033,6 +5035,48 @@ router.post("/generate", async (req, res) => {
       editorialMode = false, // 🎞️ Editorial mod: dahili stil kolajları her üretime eklenir
       enableAutomaticTrialVariation = false, // Trial ilk varyasyonu backend completion'da başlatır
     } = req.body;
+
+    // 🎲 "Yapay Zekaya Bırak": kullanıcı model seçmediyse ve istenen yaş 18+ ise
+    // model MUTLAKA havuzdan (`model_pool`) rastgele seçilir — kullanıcının kendi
+    // modellerinden DEĞİL (11 Eyl 2026 kullanıcı kararı). Yalnızca model çekimi
+    // akışı için geçerli; edit/refiner/renk/poz/arka taraf modlarında dokunulmaz.
+    if (
+      !modelPhoto &&
+      !isEditMode &&
+      !isRefinerMode &&
+      !isColorChange &&
+      !isPoseChange &&
+      !req.body?.isBackSideAnalysis
+    ) {
+      try {
+        const autoPool = await applyAutoPoolModel({
+          supabase: modelPoolDb,
+          gender: settings?.gender,
+          age: settings?.age,
+          logger,
+        });
+        if (!autoPool) {
+          logger.log(
+            `🎲 [AUTO POOL MODEL] uygulanmadı (cinsiyet:${settings?.gender || "-"}, yaş:${settings?.age || "-"})`,
+          );
+        }
+        if (autoPool) {
+          modelPhoto = autoPool.modelPhoto;
+          // Havuz modelinin ölçü profili YALNIZCA kullanıcı kendi beden/ölçü
+          // tercihini girmediyse uygulanır; kullanıcının seçimi her zaman önceliklidir.
+          const userChoseBody =
+            (typeof settings?.bodyShape === "string" && settings.bodyShape.trim()) ||
+            (settings?.type === "custom_measurements" && settings?.measurements);
+          modelProfile = userChoseBody ? modelProfile : autoPool.modelProfile;
+          logger.log(
+            `🎲 [AUTO POOL MODEL] Model seçilmemiş → havuzdan rastgele model kullanıldı (id:${autoPool.poolModelId}, cinsiyet:${settings?.gender || "-"}, yaş:${settings?.age || "-"})`,
+          );
+        }
+      } catch (error) {
+        logger.warn("🎲 [AUTO POOL MODEL] uygulanamadı:", error.message);
+      }
+    }
+
     try { modelProfile = normalizeModelProfile(modelPhoto ? modelProfile : null); }
     catch (error) { return res.status(400).json({ success: false, error: error.message }); }
 
