@@ -5114,7 +5114,8 @@ router.post("/generate", async (req, res) => {
     let legacyFlags = { useNbproV2: false, skipAutoPoolModel: false, isLegacy: false };
     try {
       // ⚠️ `userId` bu noktadan SONRA atanıyor; istekten gelen id kullanılmalı.
-      legacyFlags = await getLegacyFlags(supabase, requestUserId, logger);
+      // The admin-managed list is protected by RLS; anon reads return no rows.
+      legacyFlags = await getLegacyFlags(modelPoolDb || supabase, requestUserId, logger);
       if (legacyFlags.isLegacy) {
         logger.log(
           `🧷 [LEGACY USER] eski model davranışı (nbproV2:${legacyFlags.useNbproV2}, havuzAtlama:${legacyFlags.skipAutoPoolModel})`,
