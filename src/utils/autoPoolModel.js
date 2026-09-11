@@ -1,7 +1,10 @@
 /**
  * "Yapay Zekaya Bırak" (model seçilmemiş) üretimlerde otomatik havuz modeli.
  *
- * 11 Eyl 2026 (kullanıcı kararı): kullanıcı model seçmeyip "Yapay Zekaya Bırak"
+ * 12 Eyl 2026: automatic pool assignment is disabled for everyone, in V1 and V2.
+ * Explicitly selected models are handled by the routes and remain unchanged.
+ *
+ * Önceki davranış — 11 Eyl 2026: kullanıcı model seçmeyip "Yapay Zekaya Bırak"
  * derse ve istenen yaş 18+ ise, model KESİNLİKLE `model_pool` tablosundan
  * seçilir — kullanıcının kendi oluşturduğu modellerden değil. Seçim, o cinsiyete
  * uygun havuz satırları arasından RASTGELE yapılır. 18 yaş altında havuz
@@ -9,6 +12,7 @@
  * davranış korunur ve modeli görsel üretim modeli kendisi kurgular.
  */
 const POOL_MIN_AGE = 18;
+const AUTO_POOL_MODEL_ENABLED = false;
 
 /** "22" | "young" | "adult" | "child" → sayı; çözülemezse null. */
 function parseAge(value) {
@@ -66,6 +70,8 @@ async function pickRandomPoolModel({ supabase, gender, logger = console }) {
  * @returns {Promise<{modelPhoto, modelProfile, poolModelId}|null>} uygulanmadıysa null
  */
 async function applyAutoPoolModel({ supabase, gender, age, logger = console }) {
+  // Temporary global pause: do not even query model_pool.
+  if (!AUTO_POOL_MODEL_ENABLED) return null;
   const parsed = parseAge(age);
   // Yaş çözülemiyorsa yetişkin varsayılır: 18 altı yalnızca kullanıcı AÇIKÇA
   // küçük bir yaş seçtiğinde oluşur; aksi halde havuz devreye girmeli.

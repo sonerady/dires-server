@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert");
-const { applyAutoPoolModel, parseAge, normalizeGender, POOL_MIN_AGE } = require("../src/utils/autoPoolModel");
+const { applyAutoPoolModel, pickRandomPoolModel, parseAge, normalizeGender, POOL_MIN_AGE } = require("../src/utils/autoPoolModel");
 
 const rows = [
   { id: "w1", image_url: "https://cdn/w1.jpg", age: "22", gender: "woman", model_profile: { heightCm: 175 } },
@@ -35,11 +35,11 @@ test("cinsiyet normalize", () => {
   assert.equal(normalizeGender("woman"), "woman");
 });
 
-test("18+ ise havuzdan cinsiyete uygun model seçilir", async () => {
-  const result = await applyAutoPoolModel({ supabase: fakeDb(), gender: "man", age: "26", logger: silent });
+test("havuz seçicisi gerektiğinde cinsiyete uygun kayıt bulabilir", async () => {
+  const result = await pickRandomPoolModel({ supabase: fakeDb(), gender: "man", logger: silent });
   assert.ok(result);
-  assert.equal(result.poolModelId, "m1");
-  assert.equal(result.modelPhoto, "https://cdn/m1.jpg");
+  assert.equal(result.id, "m1");
+  assert.equal(result.image_url, "https://cdn/m1.jpg");
 });
 
 test("18 yaş altında havuz kullanılmaz", async () => {
@@ -51,15 +51,18 @@ test("18 yaş altında havuz kullanılmaz", async () => {
 test("17 yaşındaki havuz satırı seçilmez, seçim rastgeledir", async () => {
   const picked = new Set();
   for (let i = 0; i < 60; i++) {
-    const r = await applyAutoPoolModel({ supabase: fakeDb(), gender: "woman", age: "24", logger: silent });
-    picked.add(r.poolModelId);
+    const r = await pickRandomPoolModel({ supabase: fakeDb(), gender: "woman", logger: silent });
+    picked.add(r.id);
   }
   assert.ok(!picked.has("w17"), "17 yaşındaki havuz modeli seçilmemeli");
   assert.deepEqual([...picked].sort(), ["w1", "w2"]);
 });
 
-test("yaş bilinmiyorsa yetişkin varsayılır ve havuz uygulanır", async () => {
-  const r = await applyAutoPoolModel({ supabase: fakeDb(), gender: "woman", age: null, logger: silent });
-  assert.ok(r);
-  assert.ok(["w1", "w2"].includes(r.poolModelId));
+test("otomatik model ataması herkes için kapalıdır ve havuz hiç okunmaz", async () => {
+  const calls = [];
+  for (const gender of ["woman", "man", null]) for (const age of ["26", "45", "12", null]) {
+    const result = await applyAutoPoolModel({supabase: fakeDb(calls), gender, age, logger: silent});
+    assert.equal(result, null);
+  }
+  assert.deepEqual(calls, []);
 });
