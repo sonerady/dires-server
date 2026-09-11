@@ -89,6 +89,7 @@ for (const route of ['referenceBrowserRoutesV7.js', 'referenceJewelryBrowserRout
       return replicateResponse;
     })()`, {
       modelCreationOptions: {qualityVersion: 'v1'}, modelCreationProvider: 'gpt',
+      isTrialUser: false, // 🎁 trial kullanıcıda kalite xhigh'a çıkar; bu senaryo normal kullanıcı
       req: {body: {}}, isV2: false, qualityVersion: 'v1', isPoseChange: false,
       isColorChange: false, isEditMode: false, isRefinerMode: false,
       usesSunburstForModelCreation, usesNb2ForModelCreation, isSunburstContentRejection, SUNBURST_EDIT_MODEL,

@@ -7387,6 +7387,19 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
       locationReferenceUrl = await uploadReferenceImageToSupabase(`data:image/jpeg;base64,${labelled.toString("base64")}`, userId);
       enhancedPrompt = `${enhancedPrompt}\n\n${LOCATION_DIRECTION}`;
     }
+    // 🎁 TRIAL: deneme süresindeki kullanıcıların NORMAL üretimleri her zaman "xhigh".
+    let isTrialUser = false;
+    try {
+      const { data: trialRow } = await supabase
+        .from("users")
+        .select("is_in_trial")
+        .eq("id", userId)
+        .maybeSingle();
+      isTrialUser = trialRow?.is_in_trial === true;
+      if (isTrialUser) logger.log("🎁 [TRIAL QUALITY] Deneme kullanıcısı → kalite xhigh");
+    } catch (error) {
+      logger.warn("🎁 [TRIAL QUALITY] trial durumu okunamadı:", error.message);
+    }
     let sunburstRejected = false;
     let v2GptFailed = false; // V2: GPT 2.5 high başarısız → kalan denemeler nano-banana-pro
     // Snapshot once per generation so admin changes never switch an active retry.
@@ -7626,6 +7639,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
               3,
               useSunburst ? SUNBURST_EDIT_MODEL : "openai/gpt-image-2/edit",
               aspectRatioForRequest,
+              isTrialUser ? "xhigh" : undefined, // 🎁 trial → xhigh (yalnız Sunburst'te etkili)
             );
 
             replicateResponse = {
