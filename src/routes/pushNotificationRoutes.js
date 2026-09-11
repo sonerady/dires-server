@@ -3,15 +3,15 @@ const router = express.Router();
 const { supabase } = require("../supabaseClient");
 const { sendPushNotification } = require("../services/pushNotificationService");
 const { Expo } = require("expo-server-sdk");
+const notificationLocales = require("../../locales/notifications.json");
 
 const expo = new Expo();
 
 // Helper: Normalize language code
 function normalizeLanguageCode(language) {
   if (!language) return "en";
-  const normalized = language.split("-")[0].toLowerCase();
-  const supportedLanguages = ["en", "tr", "es", "fr", "de", "it", "ja", "ko", "pt", "ru", "zh"];
-  return supportedLanguages.includes(normalized) ? normalized : "en";
+  const normalized = String(language).replace(/_/g, "-").split("-")[0].toLowerCase();
+  return Object.hasOwn(notificationLocales, normalized) ? normalized : "en";
 }
 
 // 1. Save Device Token

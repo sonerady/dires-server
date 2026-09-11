@@ -8,6 +8,34 @@ const { sendGenerationCompletedNotification, buildGenerationCompletedPush, local
 const env = { ONESIGNAL_APP_ID: 'app-1', ONESIGNAL_REST_API_KEY: 'Key secret' };
 const GEN = '3f6c9a2e-1b2d-4c5e-9f7a-0123456789ab';
 
+test('standalone server ships all app notification translations without reading client files', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const vm = require('node:vm');
+  const { createRequire } = require('node:module');
+  const file = require.resolve('../src/services/pushNotificationService');
+  const localRequire = createRequire(file);
+  const module = { exports: {} };
+  vm.runInNewContext(fs.readFileSync(file, 'utf8'), {
+    module, exports: module.exports, console, process,
+    require(id) {
+      if (id === 'fs' || id === 'path') throw new Error('Client filesystem access is unavailable in deployment');
+      if (id === '../supabaseClient') return { supabase: {} };
+      if (id === 'expo-server-sdk') return { Expo: class {} };
+      return localRequire(id);
+    },
+  }, { filename: file });
+  const catalog = require('../locales/notifications.json');
+  assert.equal(Object.keys(catalog).length, 70);
+  for (const [lang, text] of Object.entries(catalog)) {
+    const push = module.exports.buildGenerationCompletedPush('app', 'user', GEN, { language: lang });
+    assert.equal(push.contents.en, text.generationCompletedBody, lang);
+    assert.equal(push.data.language, lang);
+    const source = JSON.parse(fs.readFileSync(path.join(__dirname, '../../client/locales', `${lang}.json`), 'utf8')).notification;
+    assert.deepEqual(text, source, `${lang}: bundled catalog stays in sync`);
+  }
+});
+
 test('payload targets the user external_id with the server-picked language text', () => {
   const push = buildGenerationCompletedPush('app-1', 'user-1', GEN, { source: 'v7', language: 'tr-TR' });
   assert.deepEqual(push.include_aliases, { external_id: ['user-1'] });

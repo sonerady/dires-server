@@ -1,37 +1,14 @@
 const { Expo } = require("expo-server-sdk");
 const { supabase } = require("../supabaseClient");
-const path = require("path");
-const fs = require("fs");
+const notifications = require("../../locales/notifications.json");
 
 const expo = new Expo();
+// Shipped with the server: a standalone deployment has no sibling client folder.
+const translations = Object.fromEntries(Object.entries(notifications).map(([lang, notification]) => [lang, { notification }]));
 
-// Locales dosyalarını yükle
-const localesPath = path.join(__dirname, "../../../client/locales");
-const translations = {};
-
-try {
-  const localeFiles = ["en", "tr", "es", "fr", "de", "it", "ja", "ko", "pt", "ru", "zh"];
-  localeFiles.forEach((locale) => {
-    const filePath = path.join(localesPath, `${locale}.json`);
-    if (fs.existsSync(filePath)) {
-      const content = fs.readFileSync(filePath, "utf8");
-      translations[locale] = JSON.parse(content);
-    }
-  });
-  console.log(`✅ [LOCALES] ${Object.keys(translations).length} dil yüklendi`);
-} catch (error) {
-  console.error("❌ [LOCALES] Locales yükleme hatası:", error);
-}
-
-// Dil kodunu normalize et (tr-TR -> tr, en-US -> en)
 function normalizeLanguageCode(language) {
-  if (!language) return "en";
-  // İlk 2 karakteri al (tr-TR -> tr, en-US -> en)
-  const normalized = language.split("-")[0].toLowerCase();
-  // Desteklenen diller listesi
-  const supportedLanguages = ["en", "tr", "es", "fr", "de", "it", "ja", "ko", "pt", "ru", "zh"];
-  // Eğer desteklenen dillerden biri değilse "en" döndür
-  return supportedLanguages.includes(normalized) ? normalized : "en";
+  const normalized = String(language || "en").toLowerCase().replace(/_/g, "-").split("-")[0];
+  return translations[normalized] ? normalized : "en";
 }
 
 // Notification metinlerini al
@@ -140,29 +117,18 @@ async function sendPushNotification(userId, title, body, data = {}) {
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const GENERATION_PUSH_TYPE = "generation_completed";
 
-// 70 dilin tamamı: OneSignal, headings/contents içindeki dil haritasından
-// aboneliğin diline uyanı seçer, yoksa "en"e düşer. Böylece sunucu tarafında
-// dil tespiti gerekmez; kullanıcı dilini değiştirse bile doğru metin gider.
+// All 70 languages ship with the backend. The resolved app language selects
+// the text before sending it to OneSignal.
 let generationPushTexts = null;
 function loadGenerationPushTexts() {
   if (generationPushTexts) return generationPushTexts;
   const headings = {};
   const contents = {};
-  try {
-    for (const file of fs.readdirSync(localesPath)) {
-      if (!file.endsWith(".json")) continue;
-      const lang = file.slice(0, -5);
-      if (lang === "web") continue;
-      try {
-        const n = JSON.parse(fs.readFileSync(path.join(localesPath, file), "utf8"))?.notification;
-        if (n?.generationCompletedTitle && n?.generationCompletedBody) {
-          headings[lang] = n.generationCompletedTitle;
-          contents[lang] = n.generationCompletedBody;
-        }
-      } catch (_) {}
+  for (const [lang, n] of Object.entries(notifications)) {
+    if (n.generationCompletedTitle && n.generationCompletedBody) {
+      headings[lang] = n.generationCompletedTitle;
+      contents[lang] = n.generationCompletedBody;
     }
-  } catch (error) {
-    console.error("❌ [NOTIFICATION] Generation push metinleri yüklenemedi:", error);
   }
   if (!headings.en) headings.en = "Your generation is ready!";
   if (!contents.en) contents.en = "Your model photo is ready. Tap to see the results.";
@@ -186,8 +152,8 @@ function localizedGenerationText(language) {
  * 1. OneSignal kullanıcı profili `properties.language` — istemci her sync'te
  *    (AppState değişimi, 30 sn, dil değişimi) i18n dilini OneSignal.User.setLanguage
  *    ile yazar; Pro/Free fark etmez, 70 dilin hepsi olduğu gibi gider.
- * 2. users.preferred_language — save-device-token ile güncellenir ama 11 dile
- *    normalize edilir (desteklenmeyen dil → "en").
+ * 2. users.preferred_language — save-device-token ile güncellenir; paketlenmiş
+ *    bildirim kataloğundaki 70 dil desteklenir.
  * 3. acquisition_push_enrollments.language — yalnız kampanya kimliği geçerli
  *    (yeni, satın almamış) kullanıcılarda güncellenir; Pro'da bayatlar.
  */
@@ -316,4 +282,3 @@ module.exports = {
   localizedGenerationText,
   GENERATION_PUSH_TYPE,
 };
-
