@@ -17,7 +17,10 @@
  * Havuz tükenince history sıfırlanır. Seç (pick): "tüm modeller" listesinden
  * seçilen model kitaplığa kopyalanır (varsa yeniden kullanılır).
  */
-const POOL_SLOTS = 3;
+// 11 Eyl 2026: her kullanıcıya cinsiyet başına havuzdan 6 model atanır (eskiden 3).
+const POOL_SLOTS = 6;
+// Starter (üretilen) üçlü slot 0..2'yi kullanır; havuz kopyaları istemcide bunun ardından sıralanır.
+const STARTER_SLOTS = 3;
 const copyKey = (poolId, userId, tag) => `pool:${poolId}:${userId}:${tag}`;
 const checked = (result) => { if (result.error) throw result.error; return result.data; };
 /** Tohumlu, deterministik karıştırma (mulberry32 + Fisher–Yates). */
@@ -200,14 +203,14 @@ function createModelPool({ db, createPortrait, regeneratePortrait = null, genera
     return checked(await q) || [];
   }
 
-  /** Kullanıcıda o cinsiyet için atama yoksa 3 rastgele model ata (kalıcı). */
+  /** Kullanıcıda o cinsiyet için eksik atama varsa POOL_SLOTS'a (6) tamamlayacak kadar rastgele model ata (kalıcı). */
   async function ensure(userId, gender, languageCode = null) {
     const current = await assignments(userId, gender);
     if (current.length >= POOL_SLOTS) return current;
     const picked = await pickRandom(userId, gender, new Set(current.map(a => a.pool_model_id)), POOL_SLOTS - current.length);
     if (!picked) return current;
     const usedSlots = new Set(current.map(a => a.slot));
-    const freeSlots = [0, 1, 2].filter(s => !usedSlots.has(s));
+    const freeSlots = Array.from({ length: POOL_SLOTS }, (_, s) => s).filter(s => !usedSlots.has(s));
     for (let i = 0; i < picked.length; i++) {
       const slot = freeSlots[i];
       const copy = await copyToLibrary(userId, picked[i], `s${slot}`, languageCode);
@@ -245,9 +248,9 @@ function createModelPool({ db, createPortrait, regeneratePortrait = null, genera
     return copy;
   }
 
-  /** Starter snapshot ile aynı şekil: slot 3..5 sanal; status daima completed. */
+  /** Starter snapshot ile aynı şekil: slot 3..8 sanal (STARTER_SLOTS + havuz slotu); status daima completed. */
   function toJobs(rows, languageCode = null) {
-    return rows.filter(a => a.model).map(a => { const model = toUserCopy(a.model); return { gender: a.gender, slot: POOL_SLOTS + a.slot, status: 'completed', name: model.name, canRetry: false, pool: true, poolModelId: a.pool_model_id, model }; });
+    return rows.filter(a => a.model).map(a => { const model = toUserCopy(a.model); return { gender: a.gender, slot: STARTER_SLOTS + a.slot, status: 'completed', name: model.name, canRetry: false, pool: true, poolModelId: a.pool_model_id, model }; });
   }
 
   return { POOL_SLOTS, count, available, clip, list, ensure, reshuffle, pick, assignments, toJobs, copyKey, localizedName, reprocess, reprocessOne, reprocessState, takenNames };

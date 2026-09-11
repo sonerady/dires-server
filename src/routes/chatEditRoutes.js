@@ -1,4 +1,4 @@
-const { GPT25_EDIT_MODEL, buildEditInput } = require("../utils/gpt25Edit");
+const { GPT25_EDIT_MODEL, buildEditInput, probeImageDims } = require("../utils/gpt25Edit");
 const express = require("express");
 const router = express.Router();
 const { createClient } = require("@supabase/supabase-js");
@@ -386,11 +386,17 @@ IMPORTANT: Output ONLY the enhanced prompt text, nothing else. No explanations, 
     const qualitySuffix = " Render in ultra-high 4K resolution with maximum detail, sharp textures, and photorealistic quality.";
     const promptWithQuality = enhancedPrompt + qualitySuffix;
 
+    // 📐 Düzenleme aracı: istemci oran göndermiyorsa çıktı KAYNAK görselin oranında olmalı
+    // (eskiden sabit 9:16'ya zorlanıyordu). Kaynak boyutu okunup GPT 2.5 ~4 MP tablosundaki
+    // en yakın orana çözülür (gpt25Edit source_size); okunamazsa fal 'auto'.
+    const sourceSize = aspectRatio ? null : await probeImageDims(originalImageUrl);
+    if (sourceSize) console.log(`📐 [CHAT-EDIT] Kaynak ${sourceSize.width}x${sourceSize.height} → oran kaynağa göre`);
     const falRequestBody = {
       prompt: promptWithQuality,
       image_urls: hasSelections ? [originalImageUrl, maskedImageUrl] : [originalImageUrl],
       output_format: "png",
-      aspect_ratio: aspectRatio || "9:16",
+      aspect_ratio: aspectRatio || "auto",
+      ...(sourceSize ? { source_size: sourceSize } : {}),
       num_images: 1,
       resolution: "2K",
       safety_tolerance: safetyTolerance,

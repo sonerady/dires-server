@@ -44,36 +44,36 @@ const _from = fakeDb;
 const seed = (db, gender, n) => { for (let i = 0; i < n; i++) db.tables.model_pool.push({ id: db.tables.model_pool.length + 1, name: `${gender}${i}`, gender, age: 'young', image_url: `https://x/${gender}${i}.jpg`, model_profile: {}, active: true, created_at: new Date().toISOString() }); };
 const U = '11111111-1111-4111-8111-111111111111';
 
-test('ensure assigns three random models once and keeps them stable', async () => {
-  const db = fakeDb(); seed(db, 'woman', 6); seed(db, 'man', 2);
+test('ensure assigns six random models once and keeps them stable', async () => {
+  const db = fakeDb(); seed(db, 'woman', 12); seed(db, 'man', 2);
   const pool = createModelPool({ db, createPortrait: async () => ({}), random: l => l });
   assert.equal(await pool.available('woman'), true);
   assert.equal(await pool.available('man'), false);
   const first = await pool.ensure(U, 'woman');
-  assert.equal(first.length, 3);
-  assert.equal(db.tables.user_models.length, 3);
+  assert.equal(first.length, 6);
+  assert.equal(db.tables.user_models.length, 6);
   assert.ok(db.tables.user_models.every(m => m.user_id === U && m.status === 'completed' && m.replicate_id.startsWith('pool:')));
   const again = await pool.ensure(U, 'woman');
   assert.deepEqual(again.map(a => a.pool_model_id), first.map(a => a.pool_model_id));
-  assert.equal(db.tables.user_models.length, 3, 'no duplicate copies');
+  assert.equal(db.tables.user_models.length, 6, 'no duplicate copies');
   const jobs = pool.toJobs(again);
-  assert.deepEqual(jobs.map(j => j.slot), [3, 4, 5]);
+  assert.deepEqual(jobs.map(j => j.slot), [3, 4, 5, 6, 7, 8]);
   assert.ok(jobs.every(j => j.status === 'completed' && j.pool && j.model?.image_url));
 });
 
-test('reshuffle replaces the trio with unseen models and removes only pool copies', async () => {
-  const db = fakeDb(); seed(db, 'woman', 7);
+test('reshuffle replaces the set with unseen models and removes only pool copies', async () => {
+  const db = fakeDb(); seed(db, 'woman', 13);
   db.tables.user_models.push({ id: 5, user_id: U, name: 'Own', gender: 'woman', replicate_id: 'fal-own', status: 'completed', image_url: 'https://x/own.jpg' });
   const pool = createModelPool({ db, createPortrait: async () => ({}), random: l => l });
   const first = (await pool.ensure(U, 'woman')).map(a => a.pool_model_id);
   const { changed, assignments } = await pool.reshuffle(U, 'woman');
   assert.equal(changed, true);
   const second = assignments.map(a => a.pool_model_id);
-  assert.equal(second.length, 3);
-  assert.ok(second.every(id => !first.includes(id)), 'all three differ from the first trio');
+  assert.equal(second.length, 6);
+  assert.ok(second.every(id => !first.includes(id)), 'all six differ from the first set');
   assert.ok(db.tables.user_models.some(m => m.id === 5), "user's own model survives");
-  assert.equal(db.tables.user_models.filter(m => String(m.replicate_id).startsWith('pool:')).length, 3, 'old copies removed');
-  // Pool exhausted (7 models, 6 seen): history resets and only the current trio is excluded.
+  assert.equal(db.tables.user_models.filter(m => String(m.replicate_id).startsWith('pool:')).length, 6, 'old copies removed');
+  // Pool exhausted (13 models, 12 seen): history resets and only the current set is excluded.
   const third = (await pool.reshuffle(U, 'woman')).assignments.map(a => a.pool_model_id);
   assert.ok(third.every(id => !second.includes(id)));
 });
@@ -102,7 +102,7 @@ test('clip stores the portrait with the detected or requested gender and dedupes
 });
 
 test('unnamed pool models (11 Sep 2026): copies are unnamed with age 22, legacy names are hidden, a user rename survives', async () => {
-  const db = fakeDb(); seed(db, 'woman', 3);
+  const db = fakeDb(); seed(db, 'woman', 6);
   db.tables.model_pool[0].names = { en: 'Ava', tr: 'Defne', ja: '葵' };
   const pool = createModelPool({ db, createPortrait: async () => ({}), random: l => l });
   const rows = await pool.ensure(U, 'woman', 'tr-TR');

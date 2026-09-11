@@ -1930,7 +1930,8 @@ function createStyleProfileRouter({
       // net ve bulanık iki kopyası yan yana durmasın. Bu yüzden curated değil
       // doğrudan EDİTORYAL HAVUZUNDAN taze kareler alınır.
       const borrowed = {};
-      const emptyApproaches = [1, 2, 3, 4, 5].filter((a) => !samples[a]?.length);
+      // 💎 6 = takıda "Standart" (11 Eyl 2026): kendi havuzu yok, editoryalden ödünç kare alır.
+      const emptyApproaches = [1, 2, 3, 4, 5, 6].filter((a) => !samples[a]?.length);
       if (emptyApproaches.length) {
         const taken = new Set(Object.values(samples).flat());
         // 🚻 Ödünç kareler de ürünün CİNSİYETİNE uyar (26 Ağu, kullanıcı):

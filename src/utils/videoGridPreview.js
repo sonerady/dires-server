@@ -11,6 +11,7 @@
  */
 
 const axios = require("axios");
+const { GPT25_EDIT_MODEL, buildEditInput } = require("./gpt25Edit");
 const { v4: uuidv4 } = require("uuid");
 
 // 🧩 Prompt — nano-banana-2'ye gönderilen 6 sahneli grid talimatı.
@@ -93,7 +94,7 @@ async function persistGridToSupabase(supabase, falUrl) {
   }
 }
 
-// 🧩 Komple pipeline — nano-banana-2 çağrısı + Supabase persist + log.
+// 🧩 Komple pipeline — GPT Image 2.5 (yedek nano-banana-2) çağrısı + Supabase persist + log.
 // Hata durumunda { success:false, error } döner (caller fallback yapabilir).
 async function generateVideoGridPreview({
   supabase,
@@ -111,38 +112,35 @@ async function generateVideoGridPreview({
 
   const prompt = buildGridPrompt(userPrompt);
 
+  // 🎨 Birincil: GPT Image 2.5 Sunburst (kalite app_config.gpt25_quality → medium, 9:16 → ~3,7 MP
+  // tablo boyutu). Hata verirse eski model nano-banana-2/edit yedek (11 Eyl 2026).
+  const requestBody = {
+    prompt,
+    image_urls: [sourceUrl],
+    output_format: "png",
+    aspect_ratio: "9:16",
+    num_images: 1,
+    resolution: "2K",
+    safety_tolerance: "6",
+  };
+  const headers = { Authorization: `Key ${falApiKey}`, "Content-Type": "application/json" };
   let nanoResponse;
+  let usedModel = GPT25_EDIT_MODEL;
   try {
-    console.log(`🧩 [${logTag}] nano-banana-2 çağrılıyor`);
-    nanoResponse = await axios.post(
-      "https://fal.run/fal-ai/nano-banana-2/edit",
-      {
-        prompt,
-        image_urls: [sourceUrl],
-        output_format: "png",
-        aspect_ratio: "9:16",
-        num_images: 1,
-        resolution: "2K",
-        safety_tolerance: "6",
-      },
-      {
-        headers: {
-          Authorization: `Key ${falApiKey}`,
-          "Content-Type": "application/json",
-        },
-        timeout: 300000,
-      },
-    );
-  } catch (err) {
-    console.error(
-      `❌ [${logTag}] nano-banana hata:`,
-      err?.response?.data || err?.message,
-    );
-    return {
-      success: false,
-      error: err?.message || "nano-banana failed",
-    };
+    console.log(`🧩 [${logTag}] ${GPT25_EDIT_MODEL} çağrılıyor`);
+    nanoResponse = await axios.post(`https://fal.run/${GPT25_EDIT_MODEL}`, buildEditInput(GPT25_EDIT_MODEL, requestBody), { headers, timeout: 300000 });
+    if (!nanoResponse?.data?.images?.[0]?.url) throw new Error("GPT Image 2.5 returned no image");
+  } catch (gptErr) {
+    console.warn(`🛟 [${logTag}] GPT Image 2.5 başarısız (${gptErr?.response?.data?.detail || gptErr?.message}); nano-banana-2'ye geçiliyor`);
+    usedModel = "fal-ai/nano-banana-2/edit";
+    try {
+      nanoResponse = await axios.post(`https://fal.run/${usedModel}`, requestBody, { headers, timeout: 300000 });
+    } catch (err) {
+      console.error(`❌ [${logTag}] nano-banana hata:`, err?.response?.data || err?.message);
+      return { success: false, error: err?.message || "nano-banana failed" };
+    }
   }
+  console.log(`🧩 [${logTag}] grid modeli: ${usedModel}`);
 
   const falGridUrl = nanoResponse?.data?.images?.[0]?.url;
   const falRequestId = nanoResponse?.data?.request_id || null;

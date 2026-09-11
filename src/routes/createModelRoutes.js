@@ -1527,19 +1527,24 @@ router.put("/update-model/:modelId", async (req, res) => {
 
     logger.log("🔄 Model güncelleme isteği:", { modelId, modelName });
 
-    // Model adı validasyonu
-    if (typeof modelName !== "string" || modelName.trim().length === 0) {
+    // Model adı validasyonu — 11 Eyl 2026: yalnız profil güncellemesi (ör. vücut ölçüsü
+    // modalından gelen ölçüler) için ad zorunlu değil; ad gönderilmezse dokunulmaz.
+    const hasName = modelName !== undefined && modelName !== null;
+    if (hasName && (typeof modelName !== "string" || modelName.trim().length === 0)) {
       return res.status(400).json({
         success: false,
         error: "Model name cannot be empty",
       });
     }
+    if (!hasName && modelProfile === undefined) {
+      return res.status(400).json({ success: false, error: "Nothing to update" });
+    }
 
-    // Model adını güncelle
+    // Model adını / profilini güncelle
     const { data, error } = await supabase
       .from("user_models")
       .update({
-        name: modelName.trim(),
+        ...(hasName ? { name: modelName.trim() } : {}),
         ...(modelProfile !== undefined ? { model_profile: modelProfile } : {}),
         updated_at: new Date().toISOString(),
       })

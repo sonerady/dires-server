@@ -103,13 +103,26 @@ const CATEGORIES = Object.keys(SUBTYPES);
 // vermesi gerekiyor.
 const CONTEXT_PREFIX = {
   outfit: `These images are SEPARATE PIECES of ONE outfit that a single model will wear together.
-Do NOT classify them one by one. Judge the COMPLETE LOOK:
-- category: the category that defines the outfit (the garments outweigh bags/shoes/accessories)
-- subtype: the garment that defines the silhouette
+Do NOT classify them one by one and do NOT count pieces. Judge the COMPLETE LOOK:
+- category — apply these rules IN ORDER, the first that matches wins:
+  1. If ANY piece is a garment (dress, top, bottom, outerwear, knitwear, swimwear,
+     lingerie) → category is "clothing". This holds even if the garment is a
+     single piece and the other pieces are several earrings, necklaces, rings,
+     bracelets, shoes or bags: ONE garment always outweighs ANY number of
+     jewelry, footwear or accessory pieces, because the outfit is photographed
+     as a clothing look worn on a model.
+  2. Else if ANY piece is a bag, belt, hat, scarf, eyewear or watch → "clothing".
+  3. Else if ALL pieces are footwear → "shoes".
+  4. Else (ALL pieces are jewelry) → "jewelry".
+- subtype: the garment that defines the silhouette (when category is clothing,
+  never a jewelry subtype)
 - color / pattern: of that defining garment
 - gender: who the COMPLETE outfit is merchandised for — woman or man, never
   "unisex". If pieces seem to conflict, the garments that cover the torso and
   legs decide; a single ambiguous accessory must not flip the answer.
+- ALSO add a "pieces" field to the JSON: an array with ONE entry PER IMAGE, in
+  the order given, each exactly one of "clothing", "shoes", "jewelry"
+  (e.g. {"category":"clothing", ..., "pieces":["clothing","jewelry","jewelry"]}).
 `,
   angles: `These images are DIFFERENT ANGLES / DETAIL SHOTS of the SAME single product.
 Classify that ONE product. Use every angle together — a detail that is only
@@ -189,6 +202,19 @@ const GENDER_ALIASES = {
   male: "man",
 };
 
+/** Kombin güvencesi: parçalardan biri giyim → clothing, yoksa ayakkabı → shoes, hepsi takı → jewelry. */
+function applyOutfitGuard({ category, subtype, form, pieces }, ctx) {
+  if (ctx !== "outfit" || !Array.isArray(pieces) || pieces.length === 0) return { category, subtype, form, override: null };
+  const forced = pieces.includes("clothing") ? "clothing" : pieces.includes("shoes") ? "shoes" : "jewelry";
+  if (forced === category) return { category, subtype, form, override: null };
+  return {
+    category: forced,
+    subtype: SUBTYPES[forced].includes(subtype) ? subtype : null,
+    form: null,
+    override: `${category} → ${forced}`,
+  };
+}
+
 /** Serbest metin cevabı güvenli değerlere indirger. */
 function normalize(raw) {
   const text = String(raw || "").toLowerCase();
@@ -204,10 +230,13 @@ function normalize(raw) {
   // moda dışı ürünlerde tarz kartları GÖSTERİLMEZ. Varsayılan TRUE —
   // model alanı atlarsa davranış eskisi gibi kalır (fail-open).
   let wearable = true;
+  // 🧩 Kombin: görsel başına parça kategorisi (outfit bağlamında istenir)
+  let pieces = null;
   try {
     const match = text.match(/\{[\s\S]*\}/);
     if (match) {
       const obj = JSON.parse(match[0]);
+      if (Array.isArray(obj.pieces)) pieces = obj.pieces.map((x) => String(x || "").trim().toLowerCase()).filter((x) => CATEGORIES.includes(x));
       category = String(obj.category || "").trim();
       subtype = String(obj.subtype || "").trim();
       form = String(obj.form || "").trim().toLowerCase() || null;
@@ -252,7 +281,7 @@ function normalize(raw) {
   // dönmüyoruz — havuzun ve uygulamanın varsayılanı kadın.
   const genderFallbackUsed = !gender;
   if (!gender) gender = GENDER_FALLBACK;
-  return { category, subtype, form, color, pattern, gender, genderFallbackUsed, wearable };
+  return { category, subtype, form, color, pattern, gender, genderFallbackUsed, wearable, pieces };
 }
 
 // ⚠️ Aynı anda kaç görsel yollanacağı sınırlı: her görsel token maliyeti ve
@@ -394,12 +423,21 @@ router.post("/classify", async (req, res) => {
       provider === "fal"
         ? await callLunaVision(images, 1, ctx)
         : await callDeepSeekClassify(images, ctx);
-    const { category, subtype, form, color, pattern, gender, genderFallbackUsed, wearable } =
+    let { category, subtype, form, color, pattern, gender, genderFallbackUsed, wearable, pieces } =
       normalize(raw);
+    // 🧩 KOMBİN GÜVENCESİ (11 Eyl 2026, kullanıcı isteği): 1 giyim + 2 takı gibi
+    // kombinlerde model çoğunluğa bakıp "jewelry" diyebiliyordu; tarz kartları da
+    // takı kartlarına dönüyordu. Parçalardan biri bile giyim/ayakkabı ise kombin
+    // GİYİM'dir (takı kartları yalnız TÜM parçalar takıysa). Model "pieces" alanını
+    // döndürdüyse sunucu tarafında zorlanır; döndürmediyse prompt kuralına güvenilir.
+    const guarded = applyOutfitGuard({ category, subtype, form, pieces }, ctx);
+    ({ category, subtype, form } = guarded);
+    const outfitOverride = guarded.override;
     logger.log(
       `🏷️ [PRODUCT_TYPE] ${category}/${subtype || "-"}${form ? `/${form}` : ""} ${color || "-"}/${pattern || "-"} ` +
         `${gender}${genderFallbackUsed ? " (fallback)" : ""}${wearable ? "" : " GİYİLEMEZ"} ` +
-        `(${images.length} görsel${ctx ? ", " + ctx : ""}, ${Date.now() - started}ms, ${provider === "fal" ? "fal/luna" : "deepseek"})`,
+        `(${images.length} görsel${ctx ? ", " + ctx : ""}, ${Date.now() - started}ms, ${provider === "fal" ? "fal/luna" : "deepseek"})` +
+        (outfitOverride ? ` ⚠️ kombin düzeltmesi: ${outfitOverride} [${pieces.join(",")}]` : ""),
     );
     return res.json({
       success: true,
@@ -432,3 +470,4 @@ router.post("/classify", async (req, res) => {
 });
 
 module.exports = router;
+module.exports._test = { normalize, applyOutfitGuard, CONTEXT_PREFIX };

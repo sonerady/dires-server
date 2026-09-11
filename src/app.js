@@ -120,6 +120,7 @@ const customHairStyleRoutes = require("./routes/customHairStyleRoutes");
 const customHairStyleRoutesWeb = require("./routes/customHairStyleRoutesWeb");
 // Pose Favorites routes import
 const poseFavoritesRoutes = require("./routes/poseFavoritesRoutes");
+const detailHistoryRoutes = require("./routes/detailHistoryRoutes");
 const poseFavoritesRoutesWeb = require("./routes/poseFavoritesRoutesWeb");
 // Hair Style Favorites routes import
 const hairStyleFavoritesRoutes = require("./routes/hairStyleFavoritesRoutes");
@@ -413,6 +414,7 @@ app.use("/api/customHairStyleWeb", requireBrowser, requireAuth, customHairStyleR
 
 // Pose Favorites routes ekle
 app.use("/api/pose-favorites", poseFavoritesRoutes);
+app.use("/api/detail-history", detailHistoryRoutes); // "Detay Ekle" geçmişi (kullanıcı bazlı, sunucuda)
 app.use("/api/pose-favoritesWeb", requireBrowser, requireAuth, poseFavoritesRoutesWeb);
 
 // Hair Style Favorites routes ekle
