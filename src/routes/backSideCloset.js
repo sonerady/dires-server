@@ -1,3 +1,5 @@
+const { GPT25_EDIT_MODEL, buildEditInput, gpt25NearestRatio, probeImageDims, getGpt25QualityV2 } = require("../utils/gpt25Edit");
+const { startGenerationHeartbeat } = require("../services/generationRecovery");
 const { getGenerationCreditCost } = require("../utils/generationCredits");
 const express = require("express");
 const router = express.Router();
@@ -184,7 +186,8 @@ async function callFalAiGptImage2Edit(
 async function callFalAiGptImageEditForRefiner(
   prompt,
   imageUrl,
-  maxRetries = 3
+  maxRetries = 3,
+  aspectRatio = "auto"
 ) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -197,17 +200,14 @@ async function callFalAiGptImageEditForRefiner(
 
       // fal.queue.submit ile GPT Image 1.5'e istek gönder
       const { request_id } = await fal.queue.submit(
-        "fal-ai/gpt-image-1.5/edit",
+        GPT25_EDIT_MODEL,
         {
-          input: {
-            prompt: prompt,
-            image_urls: [imageUrl], // Single image for refiner
-            image_size: "1024x1536", // Portrait size for e-commerce - ALWAYS fixed regardless of user ratio
-            quality: "medium", // medium for balanced quality/speed
-            input_fidelity: "high", // preserve product details
-            num_images: 1,
+          input: buildEditInput(GPT25_EDIT_MODEL, {
+            prompt,
+            image_urls: [imageUrl],
+            aspect_ratio: aspectRatio, // ~4 MP sabit boyut tablosundan (gpt25Edit)
             output_format: "jpeg",
-          },
+          }),
         }
       );
 
@@ -1221,7 +1221,8 @@ async function updateGenerationStatus(
 
 // Aspect ratio formatını düzelten yardımcı fonksiyon
 function formatAspectRatio(ratioStr) {
-  const validRatios = ["1:1", "4:3", "3:4", "16:9", "9:16", "21:9"];
+  // GPT Image 2.5 sabit boyut tablosu (gpt25Edit) 10 oranın hepsini karşılıyor — daraltma yok.
+  const validRatios = ["21:9", "16:9", "3:2", "4:3", "5:4", "1:1", "4:5", "3:4", "2:3", "9:16"];
 
   try {
     // "original" veya tanımsız değerler için varsayılan oran
@@ -4020,6 +4021,7 @@ async function pollReplicateResultWithRetry(predictionId, maxRetries = 3) {
 }
 
 router.post("/generate", async (req, res) => {
+  let stopHeartbeat = () => {};
   // Kredi kontrolü ve düşme (kalite versiyonuna göre dinamik)
   let creditDeducted = false;
   let actualCreditDeducted = 10; // Default v1 için 10 kredi
@@ -4516,6 +4518,7 @@ router.post("/generate", async (req, res) => {
 
     // 🔄 Status'u processing'e güncelle
     await updateGenerationStatus(finalGenerationId, userId, "processing");
+    stopHeartbeat = startGenerationHeartbeat(supabase, finalGenerationId, userId);
 
     // 📊 Back side modunda back_side_generations tablosuna da kaydet
     if (req.body.isBackSideAnalysis) {
@@ -4672,7 +4675,18 @@ router.post("/generate", async (req, res) => {
     logger.log("Supabase'den alınan final resim URL'si:", finalImage);
 
     // Aspect ratio'yu formatla
-    const formattedRatio = formatAspectRatio(ratio || "9:16");
+    let formattedRatio = formatAspectRatio(ratio || "9:16");
+    // 📐 "Orijinal" oran: kaynak görselin boyutu okunup GPT 2.5 tablosundaki en
+    // yakın orana çözülür (eskiden sessizce 9:16'ya düşüyordu).
+    if (!ratio || ratio === "original") {
+      const probeUrl = finalImage || referenceImageUrls?.[0];
+      const dims = probeUrl ? await probeImageDims(probeUrl) : null;
+      const nearest = dims ? gpt25NearestRatio(dims.width, dims.height) : null;
+      if (nearest) {
+        formattedRatio = nearest;
+        logger.log(`📐 [ORIGINAL RATIO] Kaynak ${dims.width}x${dims.height} → en yakın oran ${nearest}`);
+      }
+    }
     logger.log(
       `İstenen ratio: ${ratio}, formatlanmış ratio: ${formattedRatio}`
     );
@@ -4959,7 +4973,9 @@ router.post("/generate", async (req, res) => {
         // GPT Image 1.5 ile görsel oluştur
         const gptImageResult = await callFalAiGptImageEditForRefiner(
           enhancedPrompt,
-          finalImage
+          finalImage,
+          3,
+          formattedRatio
         );
 
         logger.log(
@@ -5089,6 +5105,9 @@ router.post("/generate", async (req, res) => {
     let selectedFalModel = null;
     let finalPromptForModel = null;
     let isNanoBananaProSelected = false;
+    // 🛟 Birincil model GPT Image 2.5; hata verirse kalan denemeler eski nano
+    // banana modeliyle (v1 → nano-banana-2, v2 → nano-banana-pro) yapılır.
+    let useNbFallback = false;
 
     for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
       try {
@@ -5194,10 +5213,13 @@ router.post("/generate", async (req, res) => {
         // daha iyi takip ediyor.
         //   v1 → fal-ai/nano-banana-2/edit
         //   v2 → fal-ai/nano-banana-pro/edit (üst kademe, 35 kredilik farkın karşılığı)
-        const falModel = isV2
+        // 🎨 Birincil: GPT Image 2.5 (kalite app_config.gpt25_quality, boyut ~4 MP
+        // tablosu). Hata durumunda nano banana'ya düşülür (catch bloğu).
+        const nbFallbackModel = isV2
           ? "fal-ai/nano-banana-pro/edit"
           : "fal-ai/nano-banana-2/edit";
-        const isNanoBananaPro = isV2;
+        const falModel = useNbFallback ? nbFallbackModel : GPT25_EDIT_MODEL;
+        const isNanoBananaPro = isV2 && falModel !== GPT25_EDIT_MODEL;
         selectedFalModel = falModel;
         isNanoBananaProSelected = isNanoBananaPro;
 
@@ -5278,6 +5300,8 @@ router.post("/generate", async (req, res) => {
           resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
           safety_tolerance: "6",
           ...(isNanoBananaPro && qualityParam ? { quality: qualityParam } : {}),
+          // GPT 2.5 + v2 → app_config.gpt25_quality_v2 (varsayılan high)
+          ...(falModel === GPT25_EDIT_MODEL && isV2 ? { quality: getGpt25QualityV2() } : {}),
         });
 
         if (isPoseChange) {
@@ -5314,7 +5338,7 @@ router.post("/generate", async (req, res) => {
 
         const nanoResponse = await axios.post(
           `https://fal.run/${falModel}`,
-          requestBody,
+          buildEditInput(falModel, requestBody),
           {
             headers: {
               Authorization: `Key ${process.env.FAL_API_KEY}`,
@@ -5361,6 +5385,17 @@ router.post("/generate", async (req, res) => {
           `❌ Fal.ai nano-banana API attempt ${attempt} failed:`,
           apiError.message
         );
+
+        // 🛟 GPT Image 2.5 başarısız → kalan denemeler nano banana ile (eski davranış)
+        if (!useNbFallback && selectedFalModel === GPT25_EDIT_MODEL && attempt <= maxRetries) {
+          useNbFallback = true;
+          totalRetryAttempts++;
+          retryReasons.push(`gpt25_failed:${String(apiError.message || "").substring(0, 80)}`);
+          logger.warn(
+            `🛟 [GPT25→NB] GPT Image 2.5 başarısız (${apiError.message}); nano banana'ya geçiliyor (attempt ${attempt + 1})`
+          );
+          continue;
+        }
 
         // 120 saniye timeout hatası ise direkt failed yap ve retry yapma
         if (
@@ -5637,7 +5672,7 @@ router.post("/generate", async (req, res) => {
 
           const retryResponse = await axios.post(
             `https://fal.run/${retryModel}`,
-            retryRequestBody,
+            buildEditInput(retryModel, retryRequestBody),
             {
               headers: {
                 Authorization: `Key ${process.env.FAL_API_KEY}`,
@@ -5957,6 +5992,8 @@ router.post("/generate", async (req, res) => {
         status: "failed",
       },
     });
+  } finally {
+    stopHeartbeat();
   }
 });
 

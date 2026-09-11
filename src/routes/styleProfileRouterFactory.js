@@ -2715,7 +2715,9 @@ function createStyleProfileRouter({
       const { data, error } = await supabase
         .from(TABLE)
         .select(
-          "id, name, subtitle, tags, category_slug, image_urls, display_image_urls, source_profile_id, status, created_at",
+          TABLE === "style_profiles"
+            ? "id, name, subtitle, tags, category_slug, image_urls, display_image_urls, source_profile_id, status, created_at"
+            : "id, name, subtitle, image_urls, status, created_at",
         )
         .eq("user_id", "global")
         .eq("status", "ready")

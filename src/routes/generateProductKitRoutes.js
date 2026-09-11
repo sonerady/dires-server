@@ -7,6 +7,7 @@ const sharp = require("sharp");
 const teamService = require("../services/teamService");
 const { optimizeKitImages } = require("../utils/imageOptimizer");
 const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
+const { generateKitImage, getKitRoute } = require("../utils/kitImageRoute");
 
 // Supabase client
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -174,97 +175,8 @@ async function getOptimizedImageUrl(imageUrl) {
 //     }
 // }
 
-// Replicate GPT Image 1.5 Edit API call
-// Always sends BOTH result image and reference image together
-async function callReplicateGptImageEdit(prompt, resultImageUrl, referenceImageUrl, maxRetries = 3) {
-    const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
-
-    if (!REPLICATE_API_TOKEN) {
-        throw new Error("REPLICATE_API_TOKEN environment variable is not set");
-    }
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            console.log(`🎨 [KIT_REPLICATE] Image generation attempt ${attempt}/${maxRetries}`);
-            console.log(`🎨 [KIT_REPLICATE] Prompt: ${prompt.substring(0, 100)}...`);
-
-            const response = await axios.post(
-                "https://api.replicate.com/v1/models/openai/gpt-image-1.5/predictions",
-                {
-                    input: {
-                        prompt: prompt,
-                        input_images: [resultImageUrl, referenceImageUrl],
-                        aspect_ratio: "2:3",
-                        quality: "low",
-                        number_of_images: 1,
-                    }
-                },
-                {
-                    headers: {
-                        "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
-                        "Content-Type": "application/json",
-                    },
-                    timeout: 30000,
-                }
-            );
-
-            const prediction = response.data;
-
-            if (!prediction.id) {
-                throw new Error("Replicate did not return a prediction ID");
-            }
-
-            console.log(`⏳ [KIT_REPLICATE] Prediction created, id: ${prediction.id}`);
-
-            let maxPolls = 60;
-            for (let poll = 0; poll < maxPolls; poll++) {
-                const statusResponse = await axios.get(
-                    `https://api.replicate.com/v1/predictions/${prediction.id}`,
-                    {
-                        headers: {
-                            "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
-                            "Content-Type": "application/json",
-                        },
-                        timeout: 15000,
-                    }
-                );
-
-                const result = statusResponse.data;
-                console.log(`⏳ [KIT_REPLICATE] Poll ${poll + 1}/${maxPolls}, status: ${result.status}`);
-
-                if (result.status === "succeeded") {
-                    const output = result.output;
-                    if (output) {
-                        const imageUrl = Array.isArray(output) ? output[0] : output;
-                        if (imageUrl) {
-                            console.log(`✅ [KIT_REPLICATE] Image generated successfully`);
-                            return imageUrl;
-                        }
-                    }
-                    throw new Error("No image URL in succeeded result");
-                }
-
-                if (result.status === "failed" || result.status === "canceled") {
-                    throw new Error(`Replicate prediction ${result.status}: ${result.error || "unknown error"}`);
-                }
-
-                await new Promise(resolve => setTimeout(resolve, 2000));
-            }
-
-            throw new Error("Replicate GPT Image polling timeout");
-
-        } catch (error) {
-            console.error(`❌ [KIT_REPLICATE] Attempt ${attempt} failed:`, error.message);
-
-            if (attempt === maxRetries) {
-                throw error;
-            }
-
-            const waitTime = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
-            await new Promise(resolve => setTimeout(resolve, waitTime));
-        }
-    }
-}
+// Kit görsel üretimi — ortak yol (utils/kitImageRoute.js):
+// GPT Image 2.5 (medium) → hata olursa Nano Banana 2 (→ pro); sıra app_config.kit_route ile seçilir.
 
 
 // Save generated image to user bucket
@@ -587,7 +499,7 @@ async function getUserKitCount(userId) {
 
 router.post("/generate-product-kit", async (req, res) => {
     const startTime = Date.now();
-    const KIT_GENERATION_COST = 50; // Cost per kit generation
+    const KIT_GENERATION_COST = 30; // Cost per kit generation (tüm kitler ortak 30 kredi)
 
     try {
         const { imageUrl, recordId, userId, teamAware } = req.body;
@@ -779,7 +691,12 @@ Ghost_Mannequin_Prompt: [your generated prompt]
         const imageGenerationPromises = imagePrompts.map(async (prompt, index) => {
             try {
                 console.log(`🎨 [PRODUCT_KIT] Generating ${imageTypes[index]} with BOTH result and reference images...`);
-                const generatedUrl = await callReplicateGptImageEdit(prompt, optimizedResultUrl, optimizedReferenceUrl);
+                const generatedUrl = await generateKitImage({
+                    prompt,
+                    imageUrls: [optimizedResultUrl, optimizedReferenceUrl],
+                    aspectRatio: "2:3",
+                    tag: "PRODUCT_KIT",
+                });
 
                 // Save to user bucket
                 const savedUrl = await saveGeneratedImageToUserBucket(
@@ -918,13 +835,7 @@ router.get("/ecommerce-stats/:userId", async (req, res) => {
         if (error) throw error;
 
         // Get kit cost based on user registration date
-        let kitCost = 50;
-        try {
-            const { data: userData } = await supabase.from("users").select("created_at").eq("id", effectiveUserId).single();
-            if (userData?.created_at && new Date(userData.created_at) >= new Date("2026-03-07T00:00:00Z")) {
-                kitCost = 80;
-            }
-        } catch (e) {}
+        const kitCost = 30; // tüm kitler ortak 30 kredi
 
         res.json({
             success: true,

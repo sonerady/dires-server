@@ -7,6 +7,7 @@ const sharp = require("sharp");
 const { fal } = require("@fal-ai/client");
 const teamService = require("../services/teamService");
 const { optimizeKitImages } = require("../utils/imageOptimizer");
+const { generateKitImage, getKitRoute } = require("../utils/kitImageRoute");
 const {
     callDeepSeekFlashRaw,
     isInvalidInputError,
@@ -29,8 +30,9 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 });
 
 // ─── Constants ───
-const KIT_GENERATION_COST_OLD = 50;  // Users registered before cutoff date
-const KIT_GENERATION_COST_NEW = 80;  // Users registered on/after cutoff date
+// Tüm kitler ortak 30 kredi (Eyl 2026): GPT Image 2.5 medium ile birim maliyet NB2'nin ~1/4'ü.
+const KIT_GENERATION_COST_OLD = 30;
+const KIT_GENERATION_COST_NEW = 30;
 const NEW_PRICING_CUTOFF = new Date("2026-03-07T00:00:00Z");
 const FREE_TIER_LIMIT = 2;
 const sceneTypes = ["pose1", "pose2", "studio1", "studio2", "detail", "ghost"];
@@ -365,209 +367,18 @@ function applyKitRefinerContract(prompt, sceneType) {
     return base;
 }
 
-// ─── Fal.ai GPT Image 2 Edit API call (detail + ghost sahneleri için) ───
-async function callFalAiGptImage2ForKit(prompt, resultImageUrl, referenceImageUrl, userId, maxRetries = 2) {
-    // GPT Image 2'nin 3:1 aspect constraint'i — input resimleri pad'le
-    const sanitizedUrls = await ensureMaxAspectRatio3to1ForKitInput(
-        [resultImageUrl, referenceImageUrl],
+// ─── Kit görsel üretimi: ortak yol (utils/kitImageRoute.js) ───
+// Tüm sahneler GPT Image 2.5 (medium) → hata olursa Nano Banana 2 (→ pro).
+// Sıra app_config.kit_route ile değiştirilebilir ("gpt" | "nb2").
+const KIT_V2_ASPECT_RATIO = "9:16";
+async function generateKitV2Scene(prompt, resultImageUrl, referenceImageUrl, userId) {
+    // GPT Image girişleri ≤ 3:1 olmalı — pad'le (pad gerekmiyorsa URL aynen döner)
+    const inputUrls = await ensureMaxAspectRatio3to1ForKitInput(
+        [resultImageUrl, referenceImageUrl].filter(Boolean),
         userId
     );
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            console.log(`🎨 [KIT_V2_GPT2] attempt ${attempt}/${maxRetries}, images: ${sanitizedUrls.length}`);
-
-            const { request_id } = await fal.queue.submit("openai/gpt-image-2/edit", {
-                input: {
-                    prompt: prompt,
-                    image_urls: sanitizedUrls,
-                    image_size: "portrait_16_9", // 9:16 dikey (detail + ghost default)
-                    quality: "medium",
-                    num_images: 1,
-                    output_format: "jpeg",
-                },
-            });
-
-            if (!request_id) throw new Error("Fal.ai did not return a request_id");
-            console.log(`⏳ [KIT_V2_GPT2] Request submitted, request_id: ${request_id}`);
-
-            const maxPolls = 60;
-            for (let poll = 0; poll < maxPolls; poll++) {
-                const statusResult = await fal.queue.status("openai/gpt-image-2/edit", {
-                    requestId: request_id,
-                    logs: false,
-                });
-
-                if (statusResult.status === "COMPLETED") {
-                    const finalResult = await fal.queue.result("openai/gpt-image-2/edit", {
-                        requestId: request_id,
-                    });
-                    if (finalResult.data?.images?.length > 0) {
-                        console.log(`✅ [KIT_V2_GPT2] Image generated successfully`);
-                        return finalResult.data.images[0].url;
-                    }
-                    throw new Error("No images in completed result");
-                }
-
-                if (statusResult.status === "FAILED") {
-                    throw new Error("Fal.ai GPT Image 2 generation failed");
-                }
-
-                await new Promise((resolve) => setTimeout(resolve, 2000));
-            }
-
-            throw new Error("Fal.ai GPT Image 2 polling timeout");
-        } catch (error) {
-            console.error(`❌ [KIT_V2_GPT2] Attempt ${attempt} failed:`, error.message);
-            if (attempt === maxRetries) throw error;
-            const waitTime = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
-            await new Promise((resolve) => setTimeout(resolve, waitTime));
-        }
-    }
+    return generateKitImage({ prompt, imageUrls: inputUrls, aspectRatio: KIT_V2_ASPECT_RATIO, tag: "KIT_V2" });
 }
-
-// ─── Replicate GPT Image 1.5 Edit API call ───
-async function callReplicateGptImageEdit(prompt, resultImageUrl, referenceImageUrl, maxRetries = 3) {
-    const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
-    if (!REPLICATE_API_TOKEN) throw new Error("REPLICATE_API_TOKEN environment variable is not set");
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            console.log(`🎨 [KIT_V2] Image generation attempt ${attempt}/${maxRetries}`);
-
-            const response = await axios.post(
-                "https://api.replicate.com/v1/models/openai/gpt-image-1.5/predictions",
-                {
-                    input: {
-                        prompt: prompt,
-                        input_images: [resultImageUrl, referenceImageUrl],
-                        aspect_ratio: "2:3",
-                        quality: "low",
-                        number_of_images: 1,
-                    }
-                },
-                {
-                    headers: {
-                        "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
-                        "Content-Type": "application/json",
-                    },
-                    timeout: 30000,
-                }
-            );
-
-            const prediction = response.data;
-            if (!prediction.id) throw new Error("Replicate did not return a prediction ID");
-
-            console.log(`⏳ [KIT_V2] Prediction created, id: ${prediction.id}`);
-
-            let maxPolls = 60;
-            for (let poll = 0; poll < maxPolls; poll++) {
-                const statusResponse = await axios.get(
-                    `https://api.replicate.com/v1/predictions/${prediction.id}`,
-                    {
-                        headers: { "Authorization": `Bearer ${REPLICATE_API_TOKEN}`, "Content-Type": "application/json" },
-                        timeout: 30000,
-                    }
-                );
-
-                const result = statusResponse.data;
-                if (result.status === "succeeded") {
-                    const output = result.output;
-                    if (output) {
-                        const imageUrl = Array.isArray(output) ? output[0] : output;
-                        if (imageUrl) {
-                            console.log(`✅ [KIT_V2] Image generated successfully`);
-                            return imageUrl;
-                        }
-                    }
-                    throw new Error("No image URL in succeeded result");
-                }
-
-                if (result.status === "failed" || result.status === "canceled") {
-                    throw new Error(`Replicate prediction ${result.status}: ${result.error || "unknown error"}`);
-                }
-
-                await new Promise(resolve => setTimeout(resolve, 2000));
-            }
-
-            throw new Error("Replicate GPT Image polling timeout");
-        } catch (error) {
-            console.error(`❌ [KIT_V2] Attempt ${attempt} failed:`, error.message);
-            if (attempt === maxRetries) throw error;
-            const waitTime = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
-            await new Promise(resolve => setTimeout(resolve, waitTime));
-        }
-    }
-}
-
-// ─── Fal.ai Nano Banana 2 API call with fallback (nano-banana-2 → nano-banana-pro) ───
-async function callNanoBanana2(prompt, resultImageUrl, referenceImageUrl, maxRetries = 3, aspectRatio = "9:16") {
-    const FAL_API_KEY = process.env.FAL_API_KEY;
-    if (!FAL_API_KEY) throw new Error("FAL_API_KEY environment variable is not set");
-
-    const legacyMap = { "1024x1024": "1:1", "1536x1024": "3:2", "1024x1536": "2:3" };
-    const resolvedAspectRatio = legacyMap[aspectRatio] || aspectRatio || "2:3";
-
-    const models = [
-        { name: "nano-banana-2", url: "https://fal.run/fal-ai/nano-banana-2/edit" },
-        { name: "nano-banana-pro", url: "https://fal.run/fal-ai/nano-banana-pro/edit" },
-    ];
-
-    for (const model of models) {
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                console.log(`🍌 [KIT_V2_FAL] ${model.name} attempt ${attempt}/${maxRetries}`);
-
-                const response = await axios.post(
-                    model.url,
-                    {
-                        prompt: prompt,
-                        image_urls: [resultImageUrl, referenceImageUrl],
-                        aspect_ratio: resolvedAspectRatio,
-                        resolution: "1K",
-                        output_format: "jpeg",
-                        safety_tolerance: "6",
-                        num_images: 1,
-                    },
-                    {
-                        headers: {
-                            "Authorization": `Key ${FAL_API_KEY}`,
-                            "Content-Type": "application/json",
-                        },
-                        timeout: 300000, // 5 min — fal.run is synchronous
-                    }
-                );
-
-                const output = response.data;
-                if (output.images && output.images.length > 0 && output.images[0].url) {
-                    console.log(`✅ [KIT_V2_FAL] ${model.name} image generated successfully`);
-                    return output.images[0].url;
-                }
-
-                throw new Error("No image URL in Fal.ai response");
-            } catch (error) {
-                const errMsg = error.response?.data?.detail || error.message || "unknown error";
-                console.error(`❌ [KIT_V2_FAL] ${model.name} attempt ${attempt} failed:`, errMsg);
-                const isCapacityError = typeof errMsg === "string" && (errMsg.includes("E003") || errMsg.includes("unavailable") || errMsg.includes("capacity") || errMsg.includes("overloaded"));
-                if (isCapacityError) {
-                    console.log(`⚡ [KIT_V2_FAL] ${model.name} capacity error, skipping to fallback immediately`);
-                    break;
-                }
-                if (attempt === maxRetries) break;
-                const waitTime = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
-                await new Promise(resolve => setTimeout(resolve, waitTime));
-            }
-        }
-        console.log(`⚠️ [KIT_V2_FAL] ${model.name} failed, trying next model...`);
-    }
-
-    throw new Error("All Nano Banana models failed on Fal.ai (nano-banana-2 and nano-banana-pro)");
-}
-
-// Scene dağılımı:
-//   0, 1 (pose1, pose2), 2, 3 (studio1, studio2) → Nano Banana 2 (fal.ai)
-//   4 (detail), 5 (ghost) → GPT Image 2 (fal.ai)
-const nanoBanana2Scenes = new Set([0, 1, 2, 3]); // pose1, pose2, studio1, studio2
 
 // ─── Save generated image to user bucket ───
 async function saveGeneratedImageToUserBucket(imageUrl, userId, imageType) {
@@ -1001,11 +812,8 @@ CRITICAL: Respond ONLY with a valid JSON object. No markdown, no code blocks, no
                         // 🧩 detail + ghost sahneleri Refiner sözleşmesini alır
                         // (kimlik korunumu + zemin sadakati + makro/hayalet inşası).
                         const prompt = applyKitRefinerContract(rawPrompt, sceneTypes[index]);
-                        const useNanoBanana = nanoBanana2Scenes.has(index);
-                        console.log(`🎨 [KIT_V2] Generating ${sceneTypes[index]} via ${useNanoBanana ? 'Nano Banana 2' : 'GPT Image 2 (fal.ai, 9:16)'}...`);
-                        const generatedUrl = useNanoBanana
-                            ? await callNanoBanana2(prompt, optimizedResultUrl, optimizedReferenceUrl)
-                            : await callFalAiGptImage2ForKit(prompt, optimizedResultUrl, optimizedReferenceUrl, userId);
+                        console.log(`🎨 [KIT_V2] Generating ${sceneTypes[index]} via kit route (${getKitRoute()}, 9:16)...`);
+                        const generatedUrl = await generateKitV2Scene(prompt, optimizedResultUrl, optimizedReferenceUrl, userId);
 
                         const savedUrl = await saveGeneratedImageToUserBucket(
                             generatedUrl,
@@ -1139,12 +947,9 @@ router.post("/retry-kit-scene", async (req, res) => {
             sceneType,
         );
 
-        // Generate the image — pose1/pose2/studio1/studio2 → Nano Banana 2, detail/ghost → GPT Image 2 (fal.ai, 9:16)
-        const useNanoBanana = nanoBanana2Scenes.has(sceneIndex);
-        console.log(`🔄 [KIT_V2_RETRY] Using ${useNanoBanana ? 'Nano Banana 2' : 'GPT Image 2 (fal.ai, 9:16)'} for scene ${sceneIndex} (${sceneType})`);
-        const generatedUrl = useNanoBanana
-            ? await callNanoBanana2(prompt, optimizedResultUrl, optimizedReferenceUrl)
-            : await callFalAiGptImage2ForKit(prompt, optimizedResultUrl, optimizedReferenceUrl, userId);
+        // Generate the image — kit route (GPT Image 2.5 medium → NB2 fallback, 9:16)
+        console.log(`🔄 [KIT_V2_RETRY] Using kit route (${getKitRoute()}, 9:16) for scene ${sceneIndex} (${sceneType})`);
+        const generatedUrl = await generateKitV2Scene(prompt, optimizedResultUrl, optimizedReferenceUrl, userId);
         const savedUrl = await saveGeneratedImageToUserBucket(generatedUrl, userId || "anonymous", sceneType);
 
         // Save to reference_results.kits at correct position

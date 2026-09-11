@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
+const { generateKitImage } = require("../utils/kitImageRoute");
 const { createClient } = require("@supabase/supabase-js");
 const { v4: uuidv4 } = require("uuid");
 const sharp = require("sharp");
@@ -177,68 +178,19 @@ async function addLabelToImage(imageUrl, labelText) {
 }
 
 // Fal.ai Nano Banana API call with fallback (Nano Banana 2 → Nano Banana Pro)
+// Kit görseli — ortak kit yolu (utils/kitImageRoute): GPT Image 2.5 Sunburst (medium, ~4 MP
+// tablo boyutu); hata olursa Nano Banana 2 → nano-banana-pro yedeği. Diğer kitlerle aynı.
+// İmza eski NB fonksiyonuyla aynı tutuldu (çağıran yerler değişmedi).
 async function callReplicateNanoBananaPro(prompt, resultImageUrl, referenceImageUrl, maxRetries = 3, imageSize = "9:16") {
-    const FAL_API_KEY = process.env.FAL_API_KEY;
-    if (!FAL_API_KEY) throw new Error("FAL_API_KEY environment variable is not set");
-
     const legacyMap = { "1024x1024": "1:1", "1536x1024": "3:2", "1024x1536": "2:3" };
     const aspectRatio = legacyMap[imageSize] || imageSize || "9:16";
-
-    const models = [
-        { name: "nano-banana-2", url: "https://fal.run/fal-ai/nano-banana-2/edit" },
-        { name: "nano-banana-pro", url: "https://fal.run/fal-ai/nano-banana-pro/edit" },
-    ];
-
-    for (const model of models) {
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                console.log(`🍌 [UNBOXING_FAL] ${model.name} attempt ${attempt}/${maxRetries}`);
-                console.log(`🍌 [UNBOXING_FAL] Prompt: ${prompt.substring(0, 100)}...`);
-
-                const response = await axios.post(
-                    model.url,
-                    {
-                        prompt: prompt,
-                        image_urls: [resultImageUrl, referenceImageUrl],
-                        aspect_ratio: aspectRatio,
-                        resolution: "1K",
-                        output_format: "jpeg",
-                        safety_tolerance: "6",
-                        num_images: 1,
-                    },
-                    {
-                        headers: {
-                            "Authorization": `Key ${FAL_API_KEY}`,
-                            "Content-Type": "application/json",
-                        },
-                        timeout: 300000,
-                    }
-                );
-
-                const output = response.data;
-                if (output.images && output.images.length > 0 && output.images[0].url) {
-                    console.log(`✅ [UNBOXING_FAL] ${model.name} image generated successfully`);
-                    return output.images[0].url;
-                }
-
-                throw new Error("No image URL in Fal.ai response");
-            } catch (error) {
-                const errMsg = error.response?.data?.detail || error.message || "unknown error";
-                console.error(`❌ [UNBOXING_FAL] ${model.name} attempt ${attempt} failed:`, errMsg);
-                const isCapacityError = typeof errMsg === "string" && (errMsg.includes("E003") || errMsg.includes("unavailable") || errMsg.includes("capacity") || errMsg.includes("overloaded"));
-                if (isCapacityError) {
-                    console.log(`⚡ [UNBOXING_FAL] ${model.name} capacity error, skipping to fallback immediately`);
-                    break;
-                }
-                if (attempt === maxRetries) break;
-                const waitTime = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
-                await new Promise(resolve => setTimeout(resolve, waitTime));
-            }
-        }
-        console.log(`⚠️ [UNBOXING_FAL] ${model.name} failed, trying next model...`);
-    }
-
-    throw new Error("All Nano Banana models failed on Fal.ai (nano-banana-2 and nano-banana-pro)");
+    console.log(`🎨 [UNBOXING_FAL] kit route → GPT Image 2.5 (NB2 yedek), aspect: ${aspectRatio}`);
+    return generateKitImage({
+        prompt,
+        imageUrls: [resultImageUrl, referenceImageUrl],
+        aspectRatio,
+        tag: "UNBOXING",
+    });
 }
 
 // Save generated image to user bucket
@@ -599,7 +551,7 @@ async function getUserUnboxingCount(userId) {
 // ═══════════════════════════════════════════════════════
 router.post("/generate-unboxing-story", async (req, res) => {
     const startTime = Date.now();
-    const UNBOXING_GENERATION_COST = 80; // 6 scenes = 80 credits
+    const UNBOXING_GENERATION_COST = 30; // tüm kitler ortak 30 kredi
     const FREE_TIER_LIMIT = 2; // First 2 generations free
 
     try {

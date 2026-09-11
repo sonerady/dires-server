@@ -4,6 +4,11 @@ const router = express.Router();
 const { v4: uuidv4 } = require("uuid");
 const { supabase } = require("../supabaseClient"); // Halihazırda BE tarafında supabaseClient.js var
 
+async function provisionPush(userId, body) {
+  try { return await require('../services/acquisitionPush').getAcquisitionPush().provision(userId, body); }
+  catch (error) { console.warn('[Acquisition push] Enrollment unavailable:', error.message); return null; }
+}
+
 const ALLOWED_PLATFORMS = new Set(["ios", "android", "web"]);
 const ALLOWED_THEMES = new Set(["light", "dark"]);
 
@@ -132,6 +137,7 @@ router.post("/registerAnonymousUser", async (req, res) => {
           userId,
           creditBalance: 0,
           isNewUser: true,
+          acquisitionPushToken: await provisionPush(userId, req.body),
         });
       } else {
         // Kullanıcı zaten var - device ID güncelle
@@ -194,6 +200,7 @@ router.post("/registerAnonymousUser", async (req, res) => {
         userId,
         creditBalance: 0,
         isNewUser: true,
+        acquisitionPushToken: await provisionPush(userId, req.body),
       });
     }
   } catch (error) {

@@ -12,7 +12,7 @@ const ALLOWED_THEMES = new Set(["light", "dark"]);
 
 router.post("/update-metadata", async (req, res) => {
   try {
-    const { userId, appVersion, platform, themeMode } = req.body || {};
+    const { userId, appVersion, previousAppVersion, platform, themeMode } = req.body || {};
 
     if (!userId) {
       return res.status(400).json({ success: false, message: "userId is required" });
@@ -21,6 +21,10 @@ router.post("/update-metadata", async (req, res) => {
     const updates = {};
     if (typeof appVersion === "string" && appVersion.length > 0 && appVersion.length <= 32) {
       updates.app_version = appVersion;
+    }
+    // Güncelleme tespiti: istemci bir önceki sürümü de bildirir (varsa)
+    if (typeof previousAppVersion === "string" && previousAppVersion.length > 0 && previousAppVersion.length <= 32) {
+      updates.previous_app_version = previousAppVersion;
     }
     if (typeof platform === "string" && ALLOWED_PLATFORMS.has(platform)) {
       updates.platform = platform;

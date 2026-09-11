@@ -20,7 +20,7 @@ const supabase = createClient(
 
 const RESULT_UPSCALE_MODEL_VERSION =
   "b998e77850c393ccddb1a4c32e5c298c91f89f2af9d9fc72bb85e1949fd80ae3";
-const RESULT_UPSCALE_ALLOWED_MP = [8, 16, 32, 64, 128];
+const RESULT_UPSCALE_ALLOWED_MP = [4, 8, 16, 32, 64, 128];
 
 // 🔍 Netleştirme kredi tarifesi — RefinerScreen'deki tabloyla aynı mantık:
 // taban 10 kredi, kademe başına maliyetle orantılı artış. 4 MP zaten "kapalı"
@@ -149,6 +149,8 @@ async function applyResultUpscale({
   ensureBaseCharge,
   logTag = "RESULT UPSCALE",
 }) {
+  // Not: GPT 2.5 (Sunburst) sonuçları için otomatik 4 MP Pruna "netleştirme"
+  // geçişi kaldırıldı — yalnızca kullanıcının seçtiği (>4 MP) kademe uygulanır.
   const result = { imageUrl, appliedMp: null, preUpscaleUrl: null, creditsCharged: 0 };
   const cost = RESULT_UPSCALE_CREDIT_BY_MP[Number(upscaleMp)];
   if (!imageUrl || !cost || !userId || userId === "anonymous_user") return result;
@@ -165,7 +167,7 @@ async function applyResultUpscale({
     }
 
     await markGenerationStage(generationId, userId, "upscaling");
-    const upscaled = await upscaleResultImage(imageUrl, upscaleMp);
+    const upscaled = await upscaleResultImage(result.imageUrl, upscaleMp);
     if (!upscaled) throw new Error("UPSCALE_EMPTY_RESULT");
 
     // İşlem sırasında bakiye değişmiş olabilir; gerçek kesinti tekrar atomik

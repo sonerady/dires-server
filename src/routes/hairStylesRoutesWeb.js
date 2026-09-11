@@ -6,8 +6,8 @@ const crypto = require("crypto");
 const { v4: uuidv4 } = require("uuid");
 const { optimizeImageUrl } = require("../utils/imageOptimizer");
 
-// Hair style kartları dikey olduğu için 600x1200 boyutunda optimize et
-const optimizeHairStyleImageUrl = (imageUrl) => optimizeImageUrl(imageUrl, { width: 600, height: 1200, quality: 80 });
+// Preserve the complete hairstyle inside the preview bounds; never crop its sides.
+const optimizeHairStyleImageUrl = (imageUrl) => optimizeImageUrl(imageUrl, { width: 600, height: 1200, quality: 80, fit: "scale-down" });
 
 // Hair styles JSON dosyalarının yolları
 const WOMAN_HAIR_STYLES_FILE = path.join(

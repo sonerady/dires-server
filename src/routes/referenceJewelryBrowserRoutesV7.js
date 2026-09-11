@@ -1,3 +1,9 @@
+const { LOCATION_DIRECTION, stampLocationReference, resolveUploadedLocationReference } = require("../services/referenceLocation");
+const { getModelCreationProvider } = require("../services/modelCreationConfig");
+const { buildModelHairDirection } = require("../utils/modelHairDirection");
+const { normalizeModelProfile, buildModelProfileDirective } = require("../utils/modelProfile");
+const { getGpt25Quality, getGpt25QualityV2, getV2Model, gpt25ImageSize } = require("../utils/gpt25Edit");
+const { SUNBURST_EDIT_MODEL, usesNb2ForModelCreation, usesSunburstForModelCreation, isSunburstContentRejection } = require("../utils/modelCreationModel");
 const { getGenerationCreditCost } = require("../utils/generationCredits");
 const { applyResultUpscale } = require("../utils/resultUpscale");
 const express = require("express");
@@ -627,20 +633,28 @@ async function callFalAiGptImage2Edit(
   imageUrls,
   imageSize = "portrait_4_3",
   maxRetries = 3,
+  model = "openai/gpt-image-2/edit",
+  sunburstRatio = null,
+  qualityOverride = null, // V2: app_config.gpt25_quality_v2 (varsayılan high)
 ) {
+  if (model === SUNBURST_EDIT_MODEL && (!imageUrls?.length || imageUrls.length > 16)) {
+    throw new Error("Sunburst model creation requires 1–16 reference images");
+  }
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       logger.log(
-        `🎨 [FAL_AI_GPT2_V1] attempt ${attempt}/${maxRetries}, image_size: ${imageSize}, images: ${imageUrls?.length || 0}`,
+        `🎨 [FAL_AI_GPT2_V1] attempt ${attempt}/${maxRetries}, model: ${model}, image_size: ${imageSize}, images: ${imageUrls?.length || 0}`,
       );
       logger.log(`🎨 [FAL_AI_GPT2_V1] Prompt: ${prompt.substring(0, 100)}...`);
 
-      const { request_id } = await fal.queue.submit("openai/gpt-image-2/edit", {
+      /* GPT 2.5 (Sunburst): fal preset adı yerine orana göre sabit piksel boyutu (utils/gpt25Edit GPT25_IMAGE_SIZES) */
+      const effectiveImageSize = model === SUNBURST_EDIT_MODEL ? gpt25ImageSize(sunburstRatio) : imageSize;
+      const { request_id } = await fal.queue.submit(model, {
         input: {
           prompt: prompt,
           image_urls: imageUrls,
-          image_size: imageSize,
-          quality: "medium", // low/medium/high
+          image_size: effectiveImageSize,
+          quality: model === SUNBURST_EDIT_MODEL ? (qualityOverride || getGpt25Quality()) : "medium", // GPT 2.5: V2 → gpt25_quality_v2 (high), V1 → gpt25_quality (medium)
           num_images: 1,
           output_format: "jpeg",
         },
@@ -654,9 +668,9 @@ async function callFalAiGptImage2Edit(
         `⏳ [FAL_AI_GPT2_V1] Request submitted, request_id: ${request_id}`,
       );
 
-      const maxPolls = 60;
+      const maxPolls = model === SUNBURST_EDIT_MODEL ? 180 : 60;
       for (let poll = 0; poll < maxPolls; poll++) {
-        const statusResult = await fal.queue.status("openai/gpt-image-2/edit", {
+        const statusResult = await fal.queue.status(model, {
           requestId: request_id,
           logs: false,
         });
@@ -667,7 +681,7 @@ async function callFalAiGptImage2Edit(
 
         if (statusResult.status === "COMPLETED") {
           const finalResult = await fal.queue.result(
-            "openai/gpt-image-2/edit",
+            model,
             {
               requestId: request_id,
             },
@@ -697,6 +711,8 @@ async function callFalAiGptImage2Edit(
         `❌ [FAL_AI_GPT2_V1] Attempt ${attempt} failed:`,
         error.message,
       );
+
+      if (model === SUNBURST_EDIT_MODEL && isSunburstContentRejection(error)) throw error;
 
       if (attempt === maxRetries) {
         throw error;
@@ -2691,12 +2707,16 @@ DEFAULT POSE: No specific pose was provided — you have full creative freedom o
     // referanstaki kişinin kimliği aynen korunur. Rastgele esin eksenleri
     // sadece model seçilmediğinde devreye girer.
     const hasModelReference = Boolean(modelReferenceImageUrl);
+    const modelHairDirection = buildModelHairDirection({
+      hasModelReference, settings, hairStyleImage,
+      isEditMode, isRefinerMode, isColorChange, isPoseChange, isBackSideAnalysis,
+    });
     const faceDescriptionSection = isJewelryPromptMode
       ? ""
       : hasModelReference
       ? `
 
-    MODEL IDENTITY (USER-PROVIDED — PRESERVE EXACTLY): The user has provided a specific model reference image (attached) — THIS exact person is the model who wears the garment. Preserve their face, facial features, identity, skin tone, apparent age, and hair exactly as seen in the model reference image. In your prompt, describe the model faithfully FROM that reference in natural photographic language (face shape, eyes, hair, expression as they actually appear) so the image model reproduces the same person. Do NOT invent, alter, beautify, age, or replace any facial feature — the final photograph must be unmistakably the same person as in the model reference.`
+    MODEL IDENTITY (USER-PROVIDED — PRESERVE EXACTLY): The user has provided a specific model reference image (attached) — THIS exact person is the model who wears the garment. Preserve their face, facial features, identity, skin tone and apparent age exactly as seen in the model reference image. ${modelHairDirection || "Preserve their reference hairstyle unless explicit user hair or hijab instructions override it."} In your prompt, describe the model faithfully FROM that reference in natural photographic language (face shape, eyes and expression as they actually appear) so the image model reproduces the same person. Do NOT invent, alter, beautify, age, or replace any facial feature — the final photograph must be unmistakably the same person as in the model reference.`
       : `
 
     FACE DESCRIPTION (UNIQUENESS REQUIRED): Invent a completely ORIGINAL, photoreal, age-appropriate face for the ${baseModelText} — never a stock, template, or recycled description, and never the same face twice across generations. As loose inspiration ONLY for this generation (recombine, alter, or discard any of them freely): face shape leaning "${faceAxes.shape}", eye character around "${faceAxes.eyes}", a distinctive touch such as "${faceAxes.detail}", and an expression of "${faceAxes.expression}". Do NOT restate these fragments verbatim — compose your own flowing description covering face shape, eyes, brows, nose, lips, jawline, and expression, so every generation features a clearly different, unique, and photogenic human face.`;
@@ -5065,6 +5085,7 @@ router.post("/generate", async (req, res) => {
       // Session deduplication
       sessionId = null, // Aynı batch request'leri tanımlıyor
       modelPhoto = null,
+      modelProfile = null,
       sizeReferenceImage = null, // 📏 SizeEditor'dan gelen boyut referans görseli (canvas çıktısı)
       kombinOriginalImages = null, // 📸 Kombin: grid'e ek olarak orijinal tekil ürün resimleri
       angleOriginalImages = null, // 📐 Çoklu açı: grid'e ek olarak orijinal açı fotoğrafları (detay sadakati)
@@ -5076,6 +5097,8 @@ router.post("/generate", async (req, res) => {
       editorialMode = false, // 🎞️ Editorial mod: dahili stil kolajları her üretime eklenir
       enableAutomaticTrialVariation = false, // Trial ilk varyasyonu backend completion'da başlatır
     } = req.body;
+    try { modelProfile = normalizeModelProfile(modelPhoto ? modelProfile : null); }
+    catch (error) { return res.status(400).json({ success: false, error: error.message }); }
 
     // Stil referansı/profili sahne, arka plan, ışık ve atmosferin tek kaynağıdır.
     // Eski client sürümleri SelectLocation mount olduğunda varsayılan #FFFFFF
@@ -6874,6 +6897,17 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
       );
     }
 
+    // Apply after enhancement and style-reference bypasses, before explicit user locks.
+    const modelHairDirection = buildModelHairDirection({
+      hasModelReference: Boolean(modelReferenceImage),
+      settings, hairStyleImage,
+      isEditMode, isRefinerMode, isColorChange, isPoseChange,
+      isBackSideAnalysis: req.body.isBackSideAnalysis,
+    });
+    if (modelHairDirection) {
+      enhancedPrompt = `${enhancedPrompt || ""}\n\n${modelHairDirection}`;
+    }
+
     // 🔒 ADD DETAIL + ADVANCED SETTINGS SON KİLİT
     // Gemini bu alanları doğal brief'e dönüştürüyor; ancak uzun/yaratıcı prompt
     // içinde bazılarını yumuşatabiliyor. Görüntü modeline giden metnin EN SONUNDA
@@ -6984,6 +7018,14 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
     // }
 
     logger.log("📝 [BACKEND MAIN] Original prompt:", promptText);
+    // Apply after all prompt rewrites, including style-reference bypass paths.
+    if (modelPhoto && !isEditMode && !isRefinerMode && !isColorChange && !isPoseChange && !req.body.isBackSideAnalysis) {
+      const profileDirective = buildModelProfileDirective(modelProfile);
+      if (profileDirective) {
+        enhancedPrompt = `${enhancedPrompt}\n\n${profileDirective}`;
+        settings = { ...settings, modelProfile };
+      }
+    }
     logger.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
 
     // 🔧 REFINER MODE: Use GPT Image 1.5 instead of nano-banana
@@ -7294,6 +7336,23 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
     // içerik filtresine takılmaya devam ediyorsa, yaş/ten ibareleri temizlenmiş
     // prompt'la BİR ekstra deneme yapılır (maxRetries + 1. tur).
     let sanitizedRetryUsed = false;
+    let locationReferenceUrl = null;
+    const uploadedLocationImage = await resolveUploadedLocationReference({ supabase, imageUrl: locationImage, userId });
+    if (uploadedLocationImage) {
+      const response = await axios.get(uploadedLocationImage, { responseType: "arraybuffer", timeout: 30000 });
+      const labelled = await stampLocationReference(Buffer.from(response.data));
+      locationReferenceUrl = await uploadReferenceImageToSupabase(`data:image/jpeg;base64,${labelled.toString("base64")}`, userId);
+      enhancedPrompt = `${enhancedPrompt}\n\n${LOCATION_DIRECTION}`;
+    }
+    let sunburstRejected = false;
+    let v2GptFailed = false; // V2: GPT 2.5 high başarısız → kalan denemeler nano-banana-pro
+    // Snapshot once per generation so admin changes never switch an active retry.
+    const modelCreationOptions = {
+      qualityVersion,
+      isBackSideAnalysis: req.body.isBackSideAnalysis,
+      isPoseChange, isColorChange, isEditMode, isRefinerMode,
+    };
+    const modelCreationProvider = await getModelCreationProvider(modelCreationOptions);
 
     for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
       try {
@@ -7376,6 +7435,8 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
           // Tek resim modu: Birleştirilmiş tek resim
           imageInputArray = [combinedImageForReplicate];
         }
+
+        if (locationReferenceUrl) imageInputArray = [...imageInputArray, locationReferenceUrl];
 
         // 📸 Kombin originals — tekil ürün URL'lerini grid resminin yanına ek referans olarak ekle
         if (kombinOriginalUrls && kombinOriginalUrls.length > 0) {
@@ -7477,19 +7538,29 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
 
         // 🎨 Model dallanması:
         //   backSide analysis   → HER ZAMAN GPT Image 2 (v1 + v2, is_gpt bayrağından bağımsız)
-        //   v1 (non-backside)   → app_config.is_gpt: true → GPT Image 2, false → nano-banana-2
+        //   model creation v1   → app_model_generation_config: gpt / gemini
+        //   other legacy v1     → app_config.is_gpt: GPT Image 2 / nano-banana-2
         //   v2 (non-backside)   → aşağıdaki nano-banana-pro akışı devam eder.
         if (req.body.isBackSideAnalysis || !isV2) {
-          const useGpt = req.body.isBackSideAnalysis
-            ? true
-            : await isGptEnabledForV1();
+          const useSunburst = usesSunburstForModelCreation(modelCreationOptions, modelCreationProvider);
+          const useNb2 = usesNb2ForModelCreation(modelCreationOptions, modelCreationProvider);
+          const useGpt = useNb2
+            ? false
+            : useSunburst || req.body.isBackSideAnalysis
+              ? true
+              : await isGptEnabledForV1();
           logger.log(
-            req.body.isBackSideAnalysis
+            useNb2
+              ? `⚙️ [MODEL_SWITCH] Model creation V1 → nano-banana-2 (no automatic upscale)`
+              : useSunburst
+              ? `⚙️ [MODEL_SWITCH] Model creation V1 → ${SUNBURST_EDIT_MODEL}`
+              : req.body.isBackSideAnalysis
               ? `⚙️ [MODEL_SWITCH] backSideAnalysis → GPT Image 2 (zorunlu)`
               : `⚙️ [V1 MODEL_SWITCH] app_config.is_gpt = ${useGpt} → ${useGpt ? "GPT Image 2" : "nano-banana-2"}`,
           );
 
-          if (useGpt) {
+          if (useGpt && !sunburstRejected) {
+            try {
             // ── GPT Image 2 yolu ──
             const gptImageSize = mapRatioToGptImage2Size(aspectRatioForRequest);
 
@@ -7509,11 +7580,14 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
               enhancedPrompt,
               sanitizedImageUrls,
               gptImageSize,
+              3,
+              useSunburst ? SUNBURST_EDIT_MODEL : "openai/gpt-image-2/edit",
+              aspectRatioForRequest,
             );
 
             replicateResponse = {
               data: {
-                id: `gpt2-${uuidv4()}`,
+                id: `${useSunburst ? "sunburst" : "gpt2"}-${uuidv4()}`,
                 status: "succeeded",
                 output: [gptResultUrl],
                 urls: { get: null },
@@ -7524,7 +7598,16 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
               `✅ [V1 GPT2] Başarılı, retry loop'tan çıkılıyor (attempt ${attempt})`,
             );
             break;
-          } else {
+            } catch (error) {
+              if (!useSunburst || !isSunburstContentRejection(error)) throw error;
+              // Fall through immediately in this attempt. Subsequent retries stay
+              // on NB2; keep the existing prompt, references and safety settings.
+              sunburstRejected = true;
+              retryReasons.push("Sunburst content checker 422 → NB2");
+              logger.log("[MODEL_SWITCH] Sunburst content rejection → NB2 (no GPT retry)");
+            }
+          }
+          {
             // ── nano-banana-2 yolu ──
             const nanoModel = "fal-ai/nano-banana-2/edit";
             // 🧠 Render öncesi muhakeme — app_config.nb2_thinking_level ile yönetilir
@@ -7588,6 +7671,38 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
               nanoResponse.data?.error ||
               "nano-banana-2 returned no images";
             throw new Error(`nano-banana-2 failed: ${errMsg}`);
+          }
+        }
+
+        // 🎨 V2 (35 kredi) — 11 Eyl 2026: birincil model GPT Image 2.5 Sunburst, kalite
+        // app_config.gpt25_quality_v2 (varsayılan high), boyut ~3,7 MP tablo (gpt25Edit).
+        // app_config.v2_model = "nbpro" ise doğrudan nano-banana-pro. GPT hata verirse
+        // kalan denemeler aşağıdaki nano-banana-pro akışına düşer (her zaman yedek).
+        if (isV2 && !req.body.isBackSideAnalysis && !v2GptFailed && getV2Model() === "gpt25") {
+          try {
+            const v2Quality = getGpt25QualityV2();
+            const sanitizedV2Urls = await ensureMaxAspectRatio3to1ForInput(imageInputArray, userId);
+            logger.log(
+              `🎨 [V2 GPT25] ${SUNBURST_EDIT_MODEL} quality=${v2Quality}, ratio=${aspectRatioForRequest}, images: ${sanitizedV2Urls?.length || 0}`,
+            );
+            const v2ResultUrl = await callFalAiGptImage2Edit(
+              enhancedPrompt,
+              sanitizedV2Urls,
+              mapRatioToGptImage2Size(aspectRatioForRequest),
+              2,
+              SUNBURST_EDIT_MODEL,
+              aspectRatioForRequest,
+              v2Quality,
+            );
+            replicateResponse = {
+              data: { id: `sunburst-v2-${uuidv4()}`, status: "succeeded", output: [v2ResultUrl], urls: { get: null } },
+            };
+            logger.log(`✅ [V2 GPT25] Başarılı, retry loop'tan çıkılıyor (attempt ${attempt})`);
+            break;
+          } catch (error) {
+            v2GptFailed = true;
+            retryReasons.push(`V2 GPT 2.5 failed → nano-banana-pro: ${String(error?.message || "").substring(0, 80)}`);
+            logger.warn(`🛟 [V2 GPT25→NBPRO] GPT Image 2.5 başarısız (${error?.message}); nano-banana-pro'ya geçiliyor`);
           }
         }
 
@@ -8002,6 +8117,8 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
               ];
             }
           }
+
+          if (locationReferenceUrl) retryImageInputArray = [...retryImageInputArray, locationReferenceUrl];
 
           // 🎬 Style reference — retry'da da prompt "LAST attached image" dediği için en sona ekle
           if (styleReferenceUrl) {

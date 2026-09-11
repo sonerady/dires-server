@@ -1,0 +1,2106 @@
+{
+  "version": 1,
+  "languages": {
+    "en": [
+      {
+        "title": "💡 Got an idea?",
+        "body": "Give your product a fresh look. Find a plan that fits."
+      },
+      {
+        "title": "✨ Ready for your first shoot?",
+        "body": "See your product on a model. Find a plan to get started."
+      },
+      {
+        "title": "🌿 A fresh scene awaits",
+        "body": "Studio or sunset? Find a plan for your next product shoot."
+      },
+      {
+        "title": "👗 Try a different angle",
+        "body": "Show your product details with new poses. Explore the plans."
+      },
+      {
+        "title": "📸 Bring the studio to you",
+        "body": "Skip the studio setup. Choose a plan for your product photos."
+      },
+      {
+        "title": "🎨 A little shop refresh",
+        "body": "Give your collection a consistent look. Explore the plans."
+      },
+      {
+        "title": "🚀 Got your next product?",
+        "body": "Try new ideas with one photo. Find the plan that fits you."
+      }
+    ],
+    "tr": [
+      {
+        "title": "💡 Bir fikrin mi var?",
+        "body": "Ürününe yeni bir görünüm ver. Sana uygun paketi keşfet."
+      },
+      {
+        "title": "✨ İlk çekimine ne dersin?",
+        "body": "Ürününü bir model üzerinde gör. İlk adım için paketlere bak."
+      },
+      {
+        "title": "🌿 Ürününe yeni bir sahne",
+        "body": "Stüdyo ya da gün batımı? Çekimine uygun paketi keşfet."
+      },
+      {
+        "title": "👗 Bir de bu açıdan bak",
+        "body": "Farklı pozlarla ürününün detaylarını göster. Paketlere göz at."
+      },
+      {
+        "title": "📸 Stüdyoyu sana getirelim",
+        "body": "Çekim hazırlığına takılma. Ürün fotoğrafların için paket seç."
+      },
+      {
+        "title": "🎨 Mağazana küçük bir dokunuş",
+        "body": "Koleksiyonuna uyumlu bir görünüm ver. Paketlere göz at."
+      },
+      {
+        "title": "🚀 Sıradaki ürünün hazır mı?",
+        "body": "Bir fotoğrafla yeni fikirler dene. Sana uygun paketi bul."
+      }
+    ],
+    "af": [
+      {
+        "title": "💡 Het jy ’n idee?",
+        "body": "Gee jou produk ’n vars voorkoms. Vind jou pakket."
+      },
+      {
+        "title": "✨ Jou eerste fotosessie?",
+        "body": "Sien jou produk op ’n model. Verken die pakkette."
+      },
+      {
+        "title": "🌿 ’n Nuwe agtergrond",
+        "body": "Ateljee of sonsondergang? Vind ’n pakket vir jou foto’s."
+      },
+      {
+        "title": "👗 Probeer ’n ander hoek",
+        "body": "Wys besonderhede met nuwe poses. Kyk na die pakkette."
+      },
+      {
+        "title": "📸 Die ateljee kom na jou",
+        "body": "Foto’s sonder ’n ateljee-opstelling. Kies jou pakket."
+      },
+      {
+        "title": "🎨 ’n Vars winkelvoorkoms",
+        "body": "Gee jou versameling ’n eenvormige styl. Verken die pakkette."
+      },
+      {
+        "title": "🚀 Jou volgende produk?",
+        "body": "Probeer idees met een foto. Vind die pakket vir jou."
+      }
+    ],
+    "ar": [
+      {
+        "title": "💡 عندك فكرة؟",
+        "body": "امنح منتجك إطلالة جديدة. اكتشف الباقة المناسبة لك."
+      },
+      {
+        "title": "✨ جاهز لأول جلسة تصوير؟",
+        "body": "شاهد منتجك على عارض أزياء. اكتشف باقات البداية."
+      },
+      {
+        "title": "🌿 مشهد جديد لمنتجك",
+        "body": "استوديو أم غروب؟ اختر باقة تناسب صور منتجاتك."
+      },
+      {
+        "title": "👗 جرّب زاوية مختلفة",
+        "body": "أظهر التفاصيل بوضعيات جديدة. ألقِ نظرة على الباقات."
+      },
+      {
+        "title": "📸 الاستوديو أقرب إليك",
+        "body": "صور منتجات دون تجهيز استوديو. اختر باقتك."
+      },
+      {
+        "title": "🎨 لمسة جديدة لمتجرك",
+        "body": "امنح مجموعتك أسلوبًا متناسقًا. اكتشف الباقات."
+      },
+      {
+        "title": "🚀 ما منتجك القادم؟",
+        "body": "جرّب أفكارًا جديدة بصورة واحدة. اعثر على باقتك."
+      }
+    ],
+    "am": [
+      {
+        "title": "💡 ሀሳብ አለህ?",
+        "body": "ለምርትህ አዲስ መልክ ስጠው። የሚስማማህን ጥቅል ምረጥ።"
+      },
+      {
+        "title": "✨ ለመጀመሪያ ፎቶህ ዝግጁ ነህ?",
+        "body": "ምርትህን በሞዴል ላይ ተመልከት። ጥቅሎቹን እይ።"
+      },
+      {
+        "title": "🌿 ለምርትህ አዲስ ዳራ",
+        "body": "ስቱዲዮ ወይስ ፀሐይ ስትጠልቅ? ለፎቶህ ጥቅል ምረጥ።"
+      },
+      {
+        "title": "👗 ከሌላ አቅጣጫ ሞክር",
+        "body": "በአዲስ አቀማመጥ ዝርዝሮችን አሳይ። ጥቅሎቹን እይ።"
+      },
+      {
+        "title": "📸 ስቱዲዮው ወደ አንተ ይመጣል",
+        "body": "ስቱዲዮ ሳታዘጋጅ ፎቶ ፍጠር። ጥቅልህን ምረጥ።"
+      },
+      {
+        "title": "🎨 ለሱቅህ አዲስ መልክ",
+        "body": "ለስብስብህ ወጥ የሆነ መልክ ስጥ። ጥቅሎቹን እይ።"
+      },
+      {
+        "title": "🚀 ቀጣዩ ምርትህ ዝግጁ ነው?",
+        "body": "በአንድ ፎቶ አዲስ ሀሳቦችን ሞክር። የሚስማማህን ጥቅል አግኝ።"
+      }
+    ],
+    "az": [
+      {
+        "title": "💡 Bir fikrin var?",
+        "body": "Məhsuluna yeni görünüş ver. Sənə uyğun paketi tap."
+      },
+      {
+        "title": "✨ İlk çəkilişinə hazırsan?",
+        "body": "Məhsulunu model üzərində gör. Başlamaq üçün paketlərə bax."
+      },
+      {
+        "title": "🌿 Məhsuluna yeni səhnə",
+        "body": "Studiya, yoxsa gün batımı? Çəkilişin üçün paket seç."
+      },
+      {
+        "title": "👗 Bir də bu bucaqdan bax",
+        "body": "Yeni pozalarla detalları göstər. Paketləri kəşf et."
+      },
+      {
+        "title": "📸 Studiyanı sənə gətirək",
+        "body": "Studiya hazırlığına vaxt itirmə. Fotoların üçün paket seç."
+      },
+      {
+        "title": "🎨 Mağazana kiçik toxunuş",
+        "body": "Kolleksiyana uyğun üslub ver. Paketlərə nəzər sal."
+      },
+      {
+        "title": "🚀 Növbəti məhsulun hazırdır?",
+        "body": "Bir foto ilə yeni fikirlər sına. Sənə uyğun paketi tap."
+      }
+    ],
+    "be": [
+      {
+        "title": "💡 Ёсць ідэя?",
+        "body": "Надай тавару новы выгляд. Знайдзі свой тарыф."
+      },
+      {
+        "title": "✨ Твая першая фотасесія?",
+        "body": "Паглядзі на тавар на мадэлі. Пазнаёмся з тарыфамі."
+      },
+      {
+        "title": "🌿 Новы фон для твайго тавару",
+        "body": "Студыя ці захад сонца? Абяры тарыф для сваіх фота."
+      },
+      {
+        "title": "👗 Паспрабуй іншы ракурс",
+        "body": "Пакажы дэталі ў новых позах. Паглядзі тарыфы."
+      },
+      {
+        "title": "📸 Студыя бліжэй да цябе",
+        "body": "Фота без падрыхтоўкі студыі. Абяры свой тарыф."
+      },
+      {
+        "title": "🎨 Абнаві сваю краму",
+        "body": "Надай калекцыі адзіны стыль. Пазнаёмся з тарыфамі."
+      },
+      {
+        "title": "🚀 Твой наступны тавар?",
+        "body": "Паспрабуй ідэі з адным фота. Знайдзі свой тарыф."
+      }
+    ],
+    "bg": [
+      {
+        "title": "💡 Имаш идея?",
+        "body": "Дай нов облик на продукта си. Намери подходящ план."
+      },
+      {
+        "title": "✨ Първата ти фотосесия?",
+        "body": "Виж продукта си върху модел. Разгледай плановете."
+      },
+      {
+        "title": "🌿 Нова сцена за продукта ти",
+        "body": "Студио или залез? Избери план за своите снимки."
+      },
+      {
+        "title": "👗 Опитай друг ъгъл",
+        "body": "Покажи детайлите с нови пози. Виж плановете."
+      },
+      {
+        "title": "📸 Студиото идва при теб",
+        "body": "Снимки без подготовка на студио. Избери своя план."
+      },
+      {
+        "title": "🎨 Освежи магазина си",
+        "body": "Дай на колекцията единен стил. Разгледай плановете."
+      },
+      {
+        "title": "🚀 Следващият ти продукт?",
+        "body": "Пробвай идеи с една снимка. Намери своя план."
+      }
+    ],
+    "bn": [
+      {
+        "title": "💡 নতুন কোনো ভাবনা আছে?",
+        "body": "তোমার পণ্যকে নতুন রূপ দাও। মানানসই প্যাকেজ খুঁজে নাও।"
+      },
+      {
+        "title": "✨ প্রথম ফটোশুটের জন্য তৈরি?",
+        "body": "মডেলের গায়ে তোমার পণ্য দেখো। শুরু করতে প্যাকেজ বেছে নাও।"
+      },
+      {
+        "title": "🌿 পণ্যের জন্য নতুন দৃশ্য",
+        "body": "স্টুডিও না সূর্যাস্ত? তোমার ছবির জন্য প্যাকেজ দেখো।"
+      },
+      {
+        "title": "👗 অন্য দিক থেকেও দেখো",
+        "body": "নতুন ভঙ্গিতে পণ্যের খুঁটিনাটি দেখাও। প্যাকেজগুলো ঘুরে দেখো।"
+      },
+      {
+        "title": "📸 স্টুডিও এবার তোমার কাছে",
+        "body": "স্টুডিও সাজানো ছাড়াই ছবি বানাও। তোমার প্যাকেজ বেছে নাও।"
+      },
+      {
+        "title": "🎨 দোকানে একটু নতুন ছোঁয়া",
+        "body": "সংগ্রহে মানানসই সাজ দাও। প্যাকেজগুলো দেখে নাও।"
+      },
+      {
+        "title": "🚀 পরের পণ্যটি কি তৈরি?",
+        "body": "একটি ছবি দিয়ে নতুন ভাবনা চেষ্টা করো। প্যাকেজ খুঁজে নাও।"
+      }
+    ],
+    "ca": [
+      {
+        "title": "💡 Tens una idea?",
+        "body": "Dona un aire nou al teu producte. Troba el teu pla."
+      },
+      {
+        "title": "✨ La teva primera sessió?",
+        "body": "Mira el teu producte en un model. Descobreix els plans."
+      },
+      {
+        "title": "🌿 Un escenari nou",
+        "body": "Estudi o posta de sol? Tria un pla per a les teves fotos."
+      },
+      {
+        "title": "👗 Prova un altre angle",
+        "body": "Mostra els detalls amb noves poses. Explora els plans."
+      },
+      {
+        "title": "📸 L’estudi ve a tu",
+        "body": "Fotos sense muntar un estudi. Tria el teu pla."
+      },
+      {
+        "title": "🎨 Un toc per a la teva botiga",
+        "body": "Dona un estil coherent a la col·lecció. Descobreix els plans."
+      },
+      {
+        "title": "🚀 El teu pròxim producte?",
+        "body": "Prova idees amb una foto. Troba el pla que et va bé."
+      }
+    ],
+    "cs": [
+      {
+        "title": "💡 Máš nápad?",
+        "body": "Dej produktu nový vzhled. Najdi si vhodný tarif."
+      },
+      {
+        "title": "✨ Tvoje první focení?",
+        "body": "Prohlédni si produkt na modelu. Objev naše tarify."
+      },
+      {
+        "title": "🌿 Nová scéna pro tvůj produkt",
+        "body": "Studio, nebo západ slunce? Vyber tarif pro své fotky."
+      },
+      {
+        "title": "👗 Zkus jiný úhel",
+        "body": "Ukaž detaily v nových pózách. Prohlédni si tarify."
+      },
+      {
+        "title": "📸 Studio přijde za tebou",
+        "body": "Fotky bez chystání studia. Vyber si svůj tarif."
+      },
+      {
+        "title": "🎨 Oživ svůj obchod",
+        "body": "Dej kolekci jednotný styl. Objev naše tarify."
+      },
+      {
+        "title": "🚀 Tvůj další produkt?",
+        "body": "Vyzkoušej nápady s jednou fotkou. Najdi si svůj tarif."
+      }
+    ],
+    "da": [
+      {
+        "title": "💡 Har du en idé?",
+        "body": "Giv dit produkt et nyt look. Find dit abonnement."
+      },
+      {
+        "title": "✨ Din første fotosession?",
+        "body": "Se dit produkt på en model. Udforsk abonnementerne."
+      },
+      {
+        "title": "🌿 En ny kulisse",
+        "body": "Studie eller solnedgang? Find et abonnement til dine fotos."
+      },
+      {
+        "title": "👗 Prøv en anden vinkel",
+        "body": "Vis detaljerne med nye positurer. Se abonnementerne."
+      },
+      {
+        "title": "📸 Studiet kommer til dig",
+        "body": "Fotos uden at sætte et studie op. Vælg dit abonnement."
+      },
+      {
+        "title": "🎨 Et frisk pust til butikken",
+        "body": "Giv kollektionen en fælles stil. Udforsk abonnementerne."
+      },
+      {
+        "title": "🚀 Dit næste produkt?",
+        "body": "Prøv nye idéer med ét foto. Find dit abonnement."
+      }
+    ],
+    "de": [
+      {
+        "title": "💡 Hast du eine Idee?",
+        "body": "Gib deinem Produkt einen neuen Look. Finde deinen Tarif."
+      },
+      {
+        "title": "✨ Dein erstes Shooting?",
+        "body": "Zeig dein Produkt an einem Model. Entdecke die Tarife."
+      },
+      {
+        "title": "🌿 Eine neue Kulisse",
+        "body": "Studio oder Sonnenuntergang? Finde den Tarif für deine Bilder."
+      },
+      {
+        "title": "👗 Mal ein anderer Blick",
+        "body": "Zeig Details mit neuen Posen. Schau dir die Tarife an."
+      },
+      {
+        "title": "📸 Das Studio kommt zu dir",
+        "body": "Produktfotos ohne Studioaufbau? Entdecke die Tarife."
+      },
+      {
+        "title": "🎨 Frischer Wind im Shop",
+        "body": "Ein stimmiger Look für deine Kollektion. Finde deinen Tarif."
+      },
+      {
+        "title": "🚀 Dein nächstes Produkt?",
+        "body": "Probiere Ideen mit einem Foto aus. Finde deinen Tarif."
+      }
+    ],
+    "el": [
+      {
+        "title": "💡 Έχεις μια ιδέα;",
+        "body": "Δώσε νέα όψη στο προϊόν σου. Βρες το πακέτο σου."
+      },
+      {
+        "title": "✨ Η πρώτη σου φωτογράφιση;",
+        "body": "Δες το προϊόν σου σε μοντέλο. Ανακάλυψε τα πακέτα."
+      },
+      {
+        "title": "🌿 Ένα νέο σκηνικό",
+        "body": "Στούντιο ή ηλιοβασίλεμα; Διάλεξε πακέτο για τις φωτογραφίες σου."
+      },
+      {
+        "title": "👗 Δοκίμασε άλλη γωνία",
+        "body": "Δείξε λεπτομέρειες με νέες πόζες. Δες τα πακέτα."
+      },
+      {
+        "title": "📸 Το στούντιο έρχεται σε σένα",
+        "body": "Φωτογραφίες χωρίς στήσιμο στούντιο. Βρες το πακέτο σου."
+      },
+      {
+        "title": "🎨 Ανανέωσε το κατάστημά σου",
+        "body": "Δώσε στη συλλογή σου ενιαίο στυλ. Ανακάλυψε τα πακέτα."
+      },
+      {
+        "title": "🚀 Το επόμενο προϊόν σου;",
+        "body": "Δοκίμασε ιδέες με μία φωτογραφία. Βρες το πακέτο σου."
+      }
+    ],
+    "es": [
+      {
+        "title": "💡 ¿Tienes una idea?",
+        "body": "Dale otro aire a tu producto. Encuentra tu plan."
+      },
+      {
+        "title": "✨ ¿Tu primera sesión?",
+        "body": "Mira tu producto en un modelo. Elige un plan para empezar."
+      },
+      {
+        "title": "🌿 Un escenario para ti",
+        "body": "¿Estudio o atardecer? Descubre planes para tus fotos."
+      },
+      {
+        "title": "👗 Prueba otro ángulo",
+        "body": "Muestra los detalles con nuevas poses. Explora los planes."
+      },
+      {
+        "title": "📸 Tu estudio, más cerca",
+        "body": "Crea fotos sin montar un estudio. Encuentra tu plan."
+      },
+      {
+        "title": "🎨 Un toque para tu tienda",
+        "body": "Dale un estilo común a tu colección. Descubre los planes."
+      },
+      {
+        "title": "🚀 ¿Tu próximo producto?",
+        "body": "Prueba ideas con una foto. Elige el plan que va contigo."
+      }
+    ],
+    "et": [
+      {
+        "title": "💡 Kas sul on idee?",
+        "body": "Anna oma tootele värske ilme. Leia sobiv pakett."
+      },
+      {
+        "title": "✨ Sinu esimene pildistamine?",
+        "body": "Vaata oma toodet modelli seljas. Tutvu pakettidega."
+      },
+      {
+        "title": "🌿 Uus taust sinu tootele",
+        "body": "Stuudio või päikeseloojang? Leia oma fotodele sobiv pakett."
+      },
+      {
+        "title": "👗 Proovi teist vaatenurka",
+        "body": "Näita detaile uute poosidega. Vaata pakette."
+      },
+      {
+        "title": "📸 Stuudio tuleb sinu juurde",
+        "body": "Fotod ilma stuudiot üles seadmata. Vali oma pakett."
+      },
+      {
+        "title": "🎨 Värskenda oma poodi",
+        "body": "Anna kollektsioonile ühtne stiil. Tutvu pakettidega."
+      },
+      {
+        "title": "🚀 Sinu järgmine toode?",
+        "body": "Proovi uusi ideid ühe fotoga. Leia sobiv pakett."
+      }
+    ],
+    "eu": [
+      {
+        "title": "💡 Ideiarik baduzu?",
+        "body": "Eman itxura berria zure produktuari. Aurkitu zure plana."
+      },
+      {
+        "title": "✨ Zure lehen argazki saioa?",
+        "body": "Ikusi zure produktua modelo batean. Ezagutu planak."
+      },
+      {
+        "title": "🌿 Eszenatoki berri bat",
+        "body": "Estudioa ala ilunabarra? Aukeratu zure argazkietarako plana."
+      },
+      {
+        "title": "👗 Probatu beste angelu bat",
+        "body": "Erakutsi xehetasunak jarrera berriekin. Begiratu planak."
+      },
+      {
+        "title": "📸 Estudioa zuregana dator",
+        "body": "Argazkiak estudioa prestatu gabe. Aukeratu zure plana."
+      },
+      {
+        "title": "🎨 Berritu zure dendaren itxura",
+        "body": "Eman estilo bateratua bildumari. Ezagutu planak."
+      },
+      {
+        "title": "🚀 Zure hurrengo produktua?",
+        "body": "Probatu ideiak argazki batekin. Aurkitu zure plana."
+      }
+    ],
+    "fa": [
+      {
+        "title": "💡 ایده‌ای داری؟",
+        "body": "به محصولت ظاهری تازه بده. بستهٔ مناسب خودت را پیدا کن."
+      },
+      {
+        "title": "✨ اولین عکاسی‌ات چطور؟",
+        "body": "محصولت را روی مدل ببین. بسته‌های شروع را بررسی کن."
+      },
+      {
+        "title": "🌿 صحنه‌ای تازه برای محصولت",
+        "body": "استودیو یا غروب؟ بسته‌ای برای عکس‌هایت انتخاب کن."
+      },
+      {
+        "title": "👗 از زاویه‌ای دیگر ببین",
+        "body": "جزئیات را با ژست‌های تازه نشان بده. بسته‌ها را ببین."
+      },
+      {
+        "title": "📸 استودیو پیش تو می‌آید",
+        "body": "بدون آماده‌سازی استودیو عکس بساز. بسته‌ات را انتخاب کن."
+      },
+      {
+        "title": "🎨 تغییری کوچک در فروشگاهت",
+        "body": "به مجموعه‌ات سبکی هماهنگ بده. بسته‌ها را کشف کن."
+      },
+      {
+        "title": "🚀 محصول بعدی‌ات آماده است؟",
+        "body": "با یک عکس ایده‌های تازه را امتحان کن. بسته‌ات را پیدا کن."
+      }
+    ],
+    "fi": [
+      {
+        "title": "💡 Onko sinulla idea?",
+        "body": "Anna tuotteellesi uusi ilme. Löydä sopiva paketti."
+      },
+      {
+        "title": "✨ Ensimmäinen kuvauksesi?",
+        "body": "Näe tuotteesi mallin yllä. Tutustu paketteihin."
+      },
+      {
+        "title": "🌿 Uusi tausta tuotteellesi",
+        "body": "Studio vai auringonlasku? Löydä kuviisi sopiva paketti."
+      },
+      {
+        "title": "👗 Kokeile toista kulmaa",
+        "body": "Näytä yksityiskohdat uusilla poseerauksilla. Katso paketit."
+      },
+      {
+        "title": "📸 Studio tulee luoksesi",
+        "body": "Kuvia ilman studion pystytystä. Valitse sopiva paketti."
+      },
+      {
+        "title": "🎨 Raikasta kauppasi ilmettä",
+        "body": "Anna mallistollesi yhtenäinen tyyli. Tutustu paketteihin."
+      },
+      {
+        "title": "🚀 Seuraava tuotteesi?",
+        "body": "Kokeile ideoita yhdellä kuvalla. Löydä sopiva paketti."
+      }
+    ],
+    "fil": [
+      {
+        "title": "💡 May ideya ka ba?",
+        "body": "Bigyan ng bagong hitsura ang produkto mo. Hanapin ang plan mo."
+      },
+      {
+        "title": "✨ Handa sa unang shoot?",
+        "body": "Tingnan ang produkto mo sa isang modelo. Piliin ang plan mo."
+      },
+      {
+        "title": "🌿 Bagong tagpo para sa iyo",
+        "body": "Studio o paglubog ng araw? Tuklasin ang mga photo plan."
+      },
+      {
+        "title": "👗 Subukan ang ibang anggulo",
+        "body": "Ipakita ang detalye sa bagong pose. Tingnan ang mga plan."
+      },
+      {
+        "title": "📸 Mas malapit na ang studio",
+        "body": "Mga larawan nang walang setup ng studio. Pumili ng plan."
+      },
+      {
+        "title": "🎨 Bagong dating ng tindahan",
+        "body": "Bagay-bagay na estilo para sa koleksiyon. Tuklasin ang mga plan."
+      },
+      {
+        "title": "🚀 Handa na ang susunod?",
+        "body": "Subukan ang mga ideya gamit ang isang larawan. Hanapin ang plan mo."
+      }
+    ],
+    "fr": [
+      {
+        "title": "💡 Une idée en tête ?",
+        "body": "Offre un nouveau look à ton produit. Trouve ton forfait."
+      },
+      {
+        "title": "✨ Ton premier shooting ?",
+        "body": "Vois ton produit sur un modèle. Découvre les forfaits."
+      },
+      {
+        "title": "🌿 Un nouveau décor",
+        "body": "Studio ou coucher de soleil ? Trouve ton forfait photo."
+      },
+      {
+        "title": "👗 Un autre angle de vue",
+        "body": "Révèle les détails avec de nouvelles poses. Vois les forfaits."
+      },
+      {
+        "title": "📸 Le studio vient à toi",
+        "body": "Des photos sans installer de studio. Découvre les forfaits."
+      },
+      {
+        "title": "🎨 Un petit coup de neuf",
+        "body": "Un style harmonieux pour ta collection. Choisis ton forfait."
+      },
+      {
+        "title": "🚀 Ton prochain produit ?",
+        "body": "Explore des idées avec une photo. Trouve ton forfait."
+      }
+    ],
+    "gl": [
+      {
+        "title": "💡 Tes unha idea?",
+        "body": "Dálle un novo aire ao teu produto. Atopa o teu plan."
+      },
+      {
+        "title": "✨ A túa primeira sesión?",
+        "body": "Mira o teu produto nun modelo. Descubre os plans."
+      },
+      {
+        "title": "🌿 Un novo escenario",
+        "body": "Estudo ou solpor? Escolle un plan para as túas fotos."
+      },
+      {
+        "title": "👗 Proba outro ángulo",
+        "body": "Mostra os detalles con novas poses. Explora os plans."
+      },
+      {
+        "title": "📸 O estudo vén a ti",
+        "body": "Fotos sen montar un estudo. Escolle o teu plan."
+      },
+      {
+        "title": "🎨 Un toque para a túa tenda",
+        "body": "Dálle un estilo coherente á colección. Descubre os plans."
+      },
+      {
+        "title": "🚀 O teu próximo produto?",
+        "body": "Proba ideas cunha foto. Atopa o plan que che vai ben."
+      }
+    ],
+    "gu": [
+      {
+        "title": "💡 કોઈ નવો વિચાર છે?",
+        "body": "તમારા ઉત્પાદનને નવો દેખાવ આપો. યોગ્ય પેકેજ શોધો."
+      },
+      {
+        "title": "✨ પહેલા ફોટોશૂટ માટે તૈયાર?",
+        "body": "તમારું ઉત્પાદન મોડેલ પર જુઓ. શરૂઆત માટે પેકેજ પસંદ કરો."
+      },
+      {
+        "title": "🌿 ઉત્પાદન માટે નવું દૃશ્ય",
+        "body": "સ્ટુડિયો કે સૂર્યાસ્ત? તમારા ફોટા માટે પેકેજ શોધો."
+      },
+      {
+        "title": "👗 બીજા ખૂણેથી જોઈ જુઓ",
+        "body": "નવા પોઝથી વિગતો બતાવો. પેકેજ પર નજર નાખો."
+      },
+      {
+        "title": "📸 સ્ટુડિયો હવે તમારી પાસે",
+        "body": "સ્ટુડિયો ગોઠવ્યા વિના ફોટા બનાવો. તમારું પેકેજ પસંદ કરો."
+      },
+      {
+        "title": "🎨 દુકાનમાં નવો રંગ",
+        "body": "સંગ્રહને એકસરખી શૈલી આપો. પેકેજ જુઓ."
+      },
+      {
+        "title": "🚀 આગલું ઉત્પાદન તૈયાર છે?",
+        "body": "એક ફોટાથી નવા વિચારો અજમાવો. યોગ્ય પેકેજ શોધો."
+      }
+    ],
+    "he": [
+      {
+        "title": "💡 יש לך רעיון?",
+        "body": "מראה חדש למוצר שלך מתחיל כאן. זה הזמן לגלות את המסלולים."
+      },
+      {
+        "title": "✨ הצילום הראשון שלך?",
+        "body": "אפשר לראות את המוצר על דוגמן. המסלולים מחכים לך."
+      },
+      {
+        "title": "🌿 סצנה חדשה למוצר שלך",
+        "body": "סטודיו או שקיעה? יש מסלול לצילומי המוצרים שלך."
+      },
+      {
+        "title": "👗 מה דעתך על זווית אחרת?",
+        "body": "פוזות חדשות מבליטות פרטים. אפשר להכיר את המסלולים."
+      },
+      {
+        "title": "📸 הסטודיו מגיע אליך",
+        "body": "תמונות בלי להקים סטודיו. כדאי למצוא מסלול שמתאים לך."
+      },
+      {
+        "title": "🎨 רענון קטן לחנות שלך",
+        "body": "סגנון אחיד לקולקציה שלך. זה הזמן להכיר את המסלולים."
+      },
+      {
+        "title": "🚀 המוצר הבא שלך מוכן?",
+        "body": "תמונה אחת, רעיונות חדשים. אפשר למצוא את המסלול שלך."
+      }
+    ],
+    "hi": [
+      {
+        "title": "💡 कोई नया ख़याल है?",
+        "body": "अपने प्रोडक्ट को नया रूप दो। अपने लिए पैकेज चुनो।"
+      },
+      {
+        "title": "✨ पहले फोटोशूट के लिए तैयार?",
+        "body": "अपने प्रोडक्ट को मॉडल पर देखो। शुरुआत के लिए पैकेज चुनो।"
+      },
+      {
+        "title": "🌿 प्रोडक्ट के लिए नया नज़ारा",
+        "body": "स्टूडियो या ढलता सूरज? अपनी तस्वीरों के लिए पैकेज देखो।"
+      },
+      {
+        "title": "👗 एक नए कोण से देखो",
+        "body": "नए पोज़ से प्रोडक्ट की बारीकियाँ दिखाओ। पैकेज देखो।"
+      },
+      {
+        "title": "📸 स्टूडियो अब तुम्हारे पास",
+        "body": "स्टूडियो सजाए बिना तस्वीरें बनाओ। अपना पैकेज चुनो।"
+      },
+      {
+        "title": "🎨 दुकान में नया रंग",
+        "body": "कलेक्शन को एक जैसा अंदाज़ दो। पैकेज पर नज़र डालो।"
+      },
+      {
+        "title": "🚀 अगला प्रोडक्ट तैयार है?",
+        "body": "एक फोटो से नए ख़याल आज़माओ। अपने लिए पैकेज ढूँढो।"
+      }
+    ],
+    "hr": [
+      {
+        "title": "💡 Imaš ideju?",
+        "body": "Daj proizvodu nov izgled. Pronađi paket za sebe."
+      },
+      {
+        "title": "✨ Tvoje prvo snimanje?",
+        "body": "Pogledaj proizvod na modelu. Istraži pakete."
+      },
+      {
+        "title": "🌿 Nova scena za tvoj proizvod",
+        "body": "Studio ili zalazak sunca? Odaberi paket za svoje fotografije."
+      },
+      {
+        "title": "👗 Isprobaj drugi kut",
+        "body": "Pokaži detalje novim pozama. Pogledaj pakete."
+      },
+      {
+        "title": "📸 Studio dolazi k tebi",
+        "body": "Fotografije bez pripreme studija. Odaberi svoj paket."
+      },
+      {
+        "title": "🎨 Osvježi svoju trgovinu",
+        "body": "Daj kolekciji ujednačen stil. Istraži pakete."
+      },
+      {
+        "title": "🚀 Tvoj sljedeći proizvod?",
+        "body": "Isprobaj ideje uz jednu fotografiju. Pronađi svoj paket."
+      }
+    ],
+    "hu": [
+      {
+        "title": "💡 Van egy ötleted?",
+        "body": "Adj új külsőt a termékednek. Találd meg a csomagod."
+      },
+      {
+        "title": "✨ Az első fotózásod?",
+        "body": "Nézd meg a terméked egy modellen. Fedezd fel a csomagokat."
+      },
+      {
+        "title": "🌿 Új háttér a termékednek",
+        "body": "Stúdió vagy naplemente? Válassz csomagot a fotóidhoz."
+      },
+      {
+        "title": "👗 Próbálj másik szöget",
+        "body": "Mutasd meg a részleteket új pózokkal. Nézd meg a csomagokat."
+      },
+      {
+        "title": "📸 A stúdió hozzád jön",
+        "body": "Fotók stúdióépítés nélkül. Válaszd ki a csomagod."
+      },
+      {
+        "title": "🎨 Frissítsd fel az üzleted",
+        "body": "Adj egységes stílust a kollekciódnak. Fedezd fel a csomagokat."
+      },
+      {
+        "title": "🚀 A következő terméked?",
+        "body": "Próbálj ki ötleteket egy fotóval. Találd meg a csomagod."
+      }
+    ],
+    "hy": [
+      {
+        "title": "💡 Գաղափա՞ր ունես",
+        "body": "Թարմ տեսք տուր ապրանքիդ։ Գտիր քո փաթեթը։"
+      },
+      {
+        "title": "✨ Առաջին նկարահանո՞ւմդ",
+        "body": "Տես ապրանքդ մոդելի վրա։ Ծանոթացիր փաթեթներին։"
+      },
+      {
+        "title": "🌿 Նոր միջավայր ապրանքիդ համար",
+        "body": "Ստուդիա՞, թե՞ մայրամուտ։ Ընտրիր փաթեթ քո լուսանկարների համար։"
+      },
+      {
+        "title": "👗 Փորձիր այլ անկյունից",
+        "body": "Ցույց տուր մանրամասները նոր դիրքերով։ Դիտիր փաթեթները։"
+      },
+      {
+        "title": "📸 Ստուդիան գալիս է քեզ մոտ",
+        "body": "Լուսանկարներ՝ առանց ստուդիա պատրաստելու։ Ընտրիր քո փաթեթը։"
+      },
+      {
+        "title": "🎨 Թարմացրու քո խանութը",
+        "body": "Հավաքածուիդ միասնական ոճ տուր։ Ծանոթացիր փաթեթներին։"
+      },
+      {
+        "title": "🚀 Հաջորդ ապրանքդ պատրա՞ստ է",
+        "body": "Փորձիր գաղափարներ մեկ լուսանկարով։ Գտիր քո փաթեթը։"
+      }
+    ],
+    "id": [
+      {
+        "title": "💡 Punya ide baru?",
+        "body": "Beri produkmu tampilan segar. Temukan paket yang cocok."
+      },
+      {
+        "title": "✨ Siap untuk foto pertamamu?",
+        "body": "Lihat produkmu dikenakan model. Pilih paket untuk mulai."
+      },
+      {
+        "title": "🌿 Latar baru untuk produkmu",
+        "body": "Studio atau senja? Temukan paket untuk foto produkmu."
+      },
+      {
+        "title": "👗 Coba sudut lain, yuk",
+        "body": "Tampilkan detail dengan pose baru. Lihat pilihan paketnya."
+      },
+      {
+        "title": "📸 Studio hadir di dekatmu",
+        "body": "Buat foto tanpa menata studio. Pilih paketmu."
+      },
+      {
+        "title": "🎨 Segarkan tampilan tokomu",
+        "body": "Beri koleksimu gaya yang selaras. Jelajahi paketnya."
+      },
+      {
+        "title": "🚀 Produk berikutnya siap?",
+        "body": "Coba ide baru dari satu foto. Temukan paket yang pas."
+      }
+    ],
+    "is": [
+      {
+        "title": "💡 Ertu með hugmynd?",
+        "body": "Gefðu vörunni nýtt útlit. Finndu áskrift sem hentar."
+      },
+      {
+        "title": "✨ Fyrsta myndatakan þín?",
+        "body": "Sjáðu vöruna á fyrirsætu. Skoðaðu áskriftirnar."
+      },
+      {
+        "title": "🌿 Nýtt umhverfi fyrir vöruna",
+        "body": "Stúdíó eða sólsetur? Finndu áskrift fyrir myndirnar þínar."
+      },
+      {
+        "title": "👗 Prófaðu annað sjónarhorn",
+        "body": "Sýndu smáatriðin með nýjum stellingum. Skoðaðu áskriftirnar."
+      },
+      {
+        "title": "📸 Stúdíóið kemur til þín",
+        "body": "Myndir án þess að setja upp stúdíó. Veldu áskrift."
+      },
+      {
+        "title": "🎨 Frískaðu upp á verslunina",
+        "body": "Gefðu línunni samræmt útlit. Skoðaðu áskriftirnar."
+      },
+      {
+        "title": "🚀 Næsta varan þín?",
+        "body": "Prófaðu hugmyndir með einni mynd. Finndu þína áskrift."
+      }
+    ],
+    "it": [
+      {
+        "title": "💡 Hai un’idea?",
+        "body": "Dai un nuovo look al tuo prodotto. Trova il tuo piano."
+      },
+      {
+        "title": "✨ Il tuo primo shooting?",
+        "body": "Guarda il prodotto su un modello. Scopri i piani."
+      },
+      {
+        "title": "🌿 Una nuova scena per te",
+        "body": "Studio o tramonto? Trova un piano per le tue foto."
+      },
+      {
+        "title": "👗 Prova un altro angolo",
+        "body": "Mostra i dettagli con nuove pose. Dai un’occhiata ai piani."
+      },
+      {
+        "title": "📸 Lo studio arriva da te",
+        "body": "Foto senza allestire uno studio. Scegli il tuo piano."
+      },
+      {
+        "title": "🎨 Un ritocco al negozio",
+        "body": "Dai uno stile coerente alla collezione. Scopri i piani."
+      },
+      {
+        "title": "🚀 Il prossimo prodotto?",
+        "body": "Prova nuove idee con una foto. Trova il piano per te."
+      }
+    ],
+    "ja": [
+      {
+        "title": "💡 新しいアイデア、ある？",
+        "body": "商品を新しい表情に。あなたに合うプランを見つけよう。"
+      },
+      {
+        "title": "✨ 初めての撮影、してみない？",
+        "body": "商品をモデルが着た姿に。まずはプランを見てみよう。"
+      },
+      {
+        "title": "🌿 商品に新しい背景を",
+        "body": "スタジオ、それとも夕焼け？撮影に合うプランを探そう。"
+      },
+      {
+        "title": "👗 別の角度から見てみよう",
+        "body": "新しいポーズで商品の細部まで。プランをチェックしよう。"
+      },
+      {
+        "title": "📸 スタジオをもっと身近に",
+        "body": "スタジオの準備なしで商品写真を。自分に合うプランを選ぼう。"
+      },
+      {
+        "title": "🎨 お店の雰囲気を少し新しく",
+        "body": "コレクションに統一感を。プランをのぞいてみよう。"
+      },
+      {
+        "title": "🚀 次の商品、決まった？",
+        "body": "一枚の写真からアイデアを広げよう。ぴったりのプランを探して。"
+      }
+    ],
+    "ka": [
+      {
+        "title": "💡 იდეა გაქვს?",
+        "body": "შესძინე პროდუქტს ახალი იერი. იპოვე შენი პაკეტი."
+      },
+      {
+        "title": "✨ შენი პირველი ფოტოსესია?",
+        "body": "ნახე პროდუქტი მოდელზე. გაეცანი პაკეტებს."
+      },
+      {
+        "title": "🌿 ახალი ფონი პროდუქტისთვის",
+        "body": "სტუდია თუ მზის ჩასვლა? შეარჩიე პაკეტი შენი ფოტოებისთვის."
+      },
+      {
+        "title": "👗 სცადე სხვა კუთხიდან",
+        "body": "აჩვენე დეტალები ახალი პოზებით. ნახე პაკეტები."
+      },
+      {
+        "title": "📸 სტუდია შენთან მოდის",
+        "body": "ფოტოები სტუდიის მოწყობის გარეშე. აირჩიე შენი პაკეტი."
+      },
+      {
+        "title": "🎨 განაახლე შენი მაღაზია",
+        "body": "შეუქმენი კოლექციას ერთიანი სტილი. გაეცანი პაკეტებს."
+      },
+      {
+        "title": "🚀 შენი შემდეგი პროდუქტი?",
+        "body": "სცადე იდეები ერთი ფოტოთი. იპოვე შენი პაკეტი."
+      }
+    ],
+    "kk": [
+      {
+        "title": "💡 Бір ойың бар ма?",
+        "body": "Өніміңе жаңа көрініс бер. Өзіңе лайық тарифті таңда."
+      },
+      {
+        "title": "✨ Алғашқы фотосессияң?",
+        "body": "Өніміңді модельден көр. Тарифтермен таныс."
+      },
+      {
+        "title": "🌿 Өніміңе жаңа орта",
+        "body": "Студия ма, күннің батуы ма? Фотоңа лайық тариф таңда."
+      },
+      {
+        "title": "👗 Басқа қырынан көр",
+        "body": "Жаңа позалармен өнімнің бөлшектерін көрсет. Тарифтерді қара."
+      },
+      {
+        "title": "📸 Студия саған келеді",
+        "body": "Студия дайындамай фото жаса. Өзіңе лайық тариф таңда."
+      },
+      {
+        "title": "🎨 Дүкеніңе жаңа леп",
+        "body": "Коллекцияңа біртұтас стиль бер. Тарифтерді қара."
+      },
+      {
+        "title": "🚀 Келесі өнімің дайын ба?",
+        "body": "Бір фотомен жаңа ойларды сына. Өзіңе лайық тариф тап."
+      }
+    ],
+    "km": [
+      {
+        "title": "💡 មានគំនិតថ្មីទេ?",
+        "body": "ផ្ដល់រូបរាងថ្មីដល់ផលិតផលអ្នក។ ជ្រើសកញ្ចប់ដែលសមនឹងអ្នក។"
+      },
+      {
+        "title": "✨ ត្រៀមថតលើកដំបូងហើយឬនៅ?",
+        "body": "មើលផលិតផលអ្នកនៅលើម៉ូដែល។ ស្វែងរកកញ្ចប់ដើម្បីចាប់ផ្ដើម។"
+      },
+      {
+        "title": "🌿 ផ្ទៃខាងក្រោយថ្មី",
+        "body": "ស្ទូឌីយោ ឬថ្ងៃលិច? ជ្រើសកញ្ចប់សម្រាប់រូបផលិតផលអ្នក។"
+      },
+      {
+        "title": "👗 សាកមើលពីមុំផ្សេង",
+        "body": "បង្ហាញព័ត៌មានលម្អិតតាមក្បាច់ថ្មី។ មើលកញ្ចប់របស់យើង។"
+      },
+      {
+        "title": "📸 ស្ទូឌីយោមកជិតអ្នក",
+        "body": "បង្កើតរូបដោយមិនរៀបចំស្ទូឌីយោ។ ជ្រើសកញ្ចប់អ្នក។"
+      },
+      {
+        "title": "🎨 រូបរាងថ្មីសម្រាប់ហាងអ្នក",
+        "body": "ឱ្យបណ្ដុំផលិតផលមានស្ទីលស៊ីគ្នា។ ស្វែងរកកញ្ចប់របស់អ្នក។"
+      },
+      {
+        "title": "🚀 ផលិតផលបន្ទាប់ត្រៀមហើយ?",
+        "body": "សាកគំនិតថ្មីពីរូបមួយ។ ជ្រើសកញ្ចប់ដែលសមនឹងអ្នក។"
+      }
+    ],
+    "kn": [
+      {
+        "title": "💡 ಹೊಸ ಆಲೋಚನೆ ಇದೆಯೇ?",
+        "body": "ನಿಮ್ಮ ಉತ್ಪನ್ನಕ್ಕೆ ಹೊಸ ರೂಪ ನೀಡಿ. ಸೂಕ್ತ ಪ್ಯಾಕೇಜ್ ಹುಡುಕಿ."
+      },
+      {
+        "title": "✨ ಮೊದಲ ಫೋಟೋಶೂಟ್‌ಗೆ ಸಿದ್ಧವೇ?",
+        "body": "ನಿಮ್ಮ ಉತ್ಪನ್ನವನ್ನು ಮಾಡೆಲ್ ಮೇಲೆ ನೋಡಿ. ಪ್ಯಾಕೇಜ್ ಆಯ್ಕೆಮಾಡಿ."
+      },
+      {
+        "title": "🌿 ಉತ್ಪನ್ನಕ್ಕೆ ಹೊಸ ಹಿನ್ನೆಲೆ",
+        "body": "ಸ್ಟುಡಿಯೋ ಅಥವಾ ಸೂರ್ಯಾಸ್ತ? ನಿಮ್ಮ ಫೋಟೋಗಳಿಗೆ ಪ್ಯಾಕೇಜ್ ನೋಡಿ."
+      },
+      {
+        "title": "👗 ಬೇರೆ ಕೋನದಿಂದ ನೋಡಿ",
+        "body": "ಹೊಸ ಭಂಗಿಗಳಲ್ಲಿ ವಿವರಗಳನ್ನು ತೋರಿಸಿ. ಪ್ಯಾಕೇಜ್‌ಗಳನ್ನು ನೋಡಿ."
+      },
+      {
+        "title": "📸 ಸ್ಟುಡಿಯೋ ನಿಮ್ಮ ಬಳಿ",
+        "body": "ಸ್ಟುಡಿಯೋ ಸಜ್ಜುಗೊಳಿಸದೆ ಫೋಟೋ ಮಾಡಿ. ನಿಮ್ಮ ಪ್ಯಾಕೇಜ್ ಆರಿಸಿ."
+      },
+      {
+        "title": "🎨 ಅಂಗಡಿಗೆ ಹೊಸ ಕಳೆ",
+        "body": "ನಿಮ್ಮ ಸಂಗ್ರಹಕ್ಕೆ ಹೊಂದುವ ಶೈಲಿ ನೀಡಿ. ಪ್ಯಾಕೇಜ್‌ಗಳನ್ನು ನೋಡಿ."
+      },
+      {
+        "title": "🚀 ಮುಂದಿನ ಉತ್ಪನ್ನ ಸಿದ್ಧವೇ?",
+        "body": "ಒಂದು ಫೋಟೋದಿಂದ ಹೊಸ ಆಲೋಚನೆ ಪ್ರಯತ್ನಿಸಿ. ಸೂಕ್ತ ಪ್ಯಾಕೇಜ್ ಆರಿಸಿ."
+      }
+    ],
+    "ko": [
+      {
+        "title": "💡 떠오른 아이디어가 있나요?",
+        "body": "제품에 새로운 느낌을 더해 보세요. 맞는 요금제를 찾아보세요."
+      },
+      {
+        "title": "✨ 첫 촬영, 함께 해볼까요?",
+        "body": "모델이 착용한 제품을 만나보세요. 시작할 요금제를 골라보세요."
+      },
+      {
+        "title": "🌿 제품을 위한 새로운 배경",
+        "body": "스튜디오, 아니면 노을? 다음 촬영에 맞는 요금제를 찾아보세요."
+      },
+      {
+        "title": "👗 다른 각도도 살펴봐요",
+        "body": "새로운 포즈로 제품의 디테일을 보여주세요. 요금제를 확인해 보세요."
+      },
+      {
+        "title": "📸 스튜디오가 가까워져요",
+        "body": "스튜디오 준비 없이 제품 사진을 만들어 보세요. 요금제를 골라보세요."
+      },
+      {
+        "title": "🎨 스토어에 작은 변화",
+        "body": "컬렉션에 통일된 스타일을 더해 보세요. 요금제를 둘러보세요."
+      },
+      {
+        "title": "🚀 다음 제품은 정했나요?",
+        "body": "사진 한 장으로 새 아이디어를 시도해 보세요. 맞는 요금제를 찾아보세요."
+      }
+    ],
+    "ky": [
+      {
+        "title": "💡 Бир оюң барбы?",
+        "body": "Товарыңа жаңы көрүнүш бер. Өзүңө ылайык тарифти тап."
+      },
+      {
+        "title": "✨ Алгачкы тартууга даярсыңбы?",
+        "body": "Товарыңды моделдин үстүнөн көр. Тарифтер менен тааныш."
+      },
+      {
+        "title": "🌿 Товарыңа жаңы чөйрө",
+        "body": "Студиябы же күндүн батышыбы? Сүрөтүңө ылайык тариф танда."
+      },
+      {
+        "title": "👗 Башка бурчтан кара",
+        "body": "Жаңы позалар менен деталдарды көрсөт. Тарифтерди кара."
+      },
+      {
+        "title": "📸 Студия сага келет",
+        "body": "Студия даярдабай сүрөт жаса. Өзүңө тариф танда."
+      },
+      {
+        "title": "🎨 Дүкөнүңө жаңы дем",
+        "body": "Коллекцияңа бирдиктүү стиль бер. Тарифтер менен тааныш."
+      },
+      {
+        "title": "🚀 Кийинки товарың даярбы?",
+        "body": "Бир сүрөт менен жаңы ойлорду сына. Өзүңө тариф тап."
+      }
+    ],
+    "lo": [
+      {
+        "title": "💡 ມີໄອເດຍໃໝ່ບໍ?",
+        "body": "ໃຫ້ສິນຄ້າມີຮູບໂສມໃໝ່. ເລືອກແພັກເກດທີ່ເໝາະກັບເຈົ້າ."
+      },
+      {
+        "title": "✨ ພ້ອມຖ່າຍຮູບຄັ້ງທຳອິດບໍ?",
+        "body": "ເບິ່ງສິນຄ້າເທິງຕົວແບບ. ລອງເບິ່ງແພັກເກດເພື່ອເລີ່ມ."
+      },
+      {
+        "title": "🌿 ສາກໃໝ່ໃຫ້ສິນຄ້າ",
+        "body": "ສະຕູດິໂອ ຫຼື ຕາເວັນຕົກ? ເລືອກແພັກເກດສຳລັບຮູບ."
+      },
+      {
+        "title": "👗 ລອງເບິ່ງຈາກອີກມຸມ",
+        "body": "ສະແດງລາຍລະອຽດດ້ວຍທ່າໃໝ່. ເບິ່ງແພັກເກດຂອງເຮົາ."
+      },
+      {
+        "title": "📸 ສະຕູດິໂອຢູ່ໃກ້ເຈົ້າ",
+        "body": "ສ້າງຮູບໂດຍບໍ່ຕ້ອງຈັດສະຕູດິໂອ. ເລືອກແພັກເກດຂອງເຈົ້າ."
+      },
+      {
+        "title": "🎨 ເພີ່ມສີສັນໃຫ້ຮ້ານ",
+        "body": "ໃຫ້ສິນຄ້າໃນຊຸດມີສະໄຕລ໌ທີ່ເຂົ້າກັນ. ລອງເບິ່ງແພັກເກດ."
+      },
+      {
+        "title": "🚀 ສິນຄ້າຕໍ່ໄປພ້ອມບໍ?",
+        "body": "ລອງໄອເດຍຈາກຮູບດຽວ. ຊອກຫາແພັກເກດທີ່ເໝາະກັບເຈົ້າ."
+      }
+    ],
+    "lt": [
+      {
+        "title": "💡 Turi idėją?",
+        "body": "Suteik prekei naują įvaizdį. Rask sau tinkamą planą."
+      },
+      {
+        "title": "✨ Pirmoji tavo fotosesija?",
+        "body": "Pamatyk savo prekę ant modelio. Peržiūrėk planus."
+      },
+      {
+        "title": "🌿 Naujas fonas tavo prekei",
+        "body": "Studija ar saulėlydis? Rask planą savo nuotraukoms."
+      },
+      {
+        "title": "👗 Išbandyk kitą kampą",
+        "body": "Parodyk detales naujomis pozomis. Atrask planus."
+      },
+      {
+        "title": "📸 Studija atkeliauja pas tave",
+        "body": "Nuotraukos be studijos įrengimo. Pasirink savo planą."
+      },
+      {
+        "title": "🎨 Atnaujink parduotuvės stilių",
+        "body": "Suteik kolekcijai vientisą stilių. Peržiūrėk planus."
+      },
+      {
+        "title": "🚀 Kita tavo prekė?",
+        "body": "Išbandyk idėjas su viena nuotrauka. Rask savo planą."
+      }
+    ],
+    "lv": [
+      {
+        "title": "💡 Tev ir ideja?",
+        "body": "Piešķir precei jaunu izskatu. Atrodi piemērotu plānu."
+      },
+      {
+        "title": "✨ Tava pirmā fotosesija?",
+        "body": "Apskati savu preci uz modeļa. Iepazīsti plānus."
+      },
+      {
+        "title": "🌿 Jauns fons tavai precei",
+        "body": "Studija vai saulriets? Atrodi plānu savām fotogrāfijām."
+      },
+      {
+        "title": "👗 Izmēģini citu leņķi",
+        "body": "Parādi detaļas ar jaunām pozām. Apskati plānus."
+      },
+      {
+        "title": "📸 Studija nāk pie tevis",
+        "body": "Fotogrāfijas bez studijas iekārtošanas. Izvēlies savu plānu."
+      },
+      {
+        "title": "🎨 Atsvaidzini savu veikalu",
+        "body": "Piešķir kolekcijai vienotu stilu. Iepazīsti plānus."
+      },
+      {
+        "title": "🚀 Tava nākamā prece?",
+        "body": "Izmēģini idejas ar vienu foto. Atrodi piemērotu plānu."
+      }
+    ],
+    "mk": [
+      {
+        "title": "💡 Имаш идеја?",
+        "body": "Дај му нов изглед на производот. Најди пакет за тебе."
+      },
+      {
+        "title": "✨ Твоето прво фотографирање?",
+        "body": "Погледни го производот на модел. Разгледај ги пакетите."
+      },
+      {
+        "title": "🌿 Нова сцена за производот",
+        "body": "Студио или зајдисонце? Избери пакет за твоите фотографии."
+      },
+      {
+        "title": "👗 Пробај друг агол",
+        "body": "Покажи детали со нови пози. Погледни ги пакетите."
+      },
+      {
+        "title": "📸 Студиото доаѓа кај тебе",
+        "body": "Фотографии без подготовка на студио. Избери го твојот пакет."
+      },
+      {
+        "title": "🎨 Освежи ја продавницата",
+        "body": "Дај ѝ на колекцијата усогласен стил. Разгледај ги пакетите."
+      },
+      {
+        "title": "🚀 Твојот следен производ?",
+        "body": "Пробај идеи со една фотографија. Најди го твојот пакет."
+      }
+    ],
+    "ml": [
+      {
+        "title": "💡 പുതിയ ആശയമുണ്ടോ?",
+        "body": "ഉൽപ്പന്നത്തിന് പുതുമ നൽകൂ. അനുയോജ്യമായ പാക്കേജ് കണ്ടെത്തൂ."
+      },
+      {
+        "title": "✨ ആദ്യ ഫോട്ടോഷൂട്ടിന് തയ്യാറോ?",
+        "body": "ഉൽപ്പന്നം മോഡലിൽ കാണൂ. തുടങ്ങാൻ ഒരു പാക്കേജ് തിരഞ്ഞെടുക്കൂ."
+      },
+      {
+        "title": "🌿 ഉൽപ്പന്നത്തിന് പുതിയ പശ്ചാത്തലം",
+        "body": "സ്റ്റുഡിയോ അതോ അസ്തമയം? ഫോട്ടോകൾക്കായി പാക്കേജ് കണ്ടെത്തൂ."
+      },
+      {
+        "title": "👗 മറ്റൊരു കോണിൽ നോക്കൂ",
+        "body": "പുതിയ പോസുകളിൽ വിശദാംശങ്ങൾ കാണിക്കൂ. പാക്കേജുകൾ നോക്കൂ."
+      },
+      {
+        "title": "📸 സ്റ്റുഡിയോ നിങ്ങളിലേക്ക്",
+        "body": "സ്റ്റുഡിയോ ഒരുക്കാതെ ഫോട്ടോ സൃഷ്ടിക്കൂ. പാക്കേജ് തിരഞ്ഞെടുക്കൂ."
+      },
+      {
+        "title": "🎨 കടയ്ക്ക് ഒരു പുതുമ",
+        "body": "ശേഖരത്തിന് ഒത്തിണങ്ങിയ ശൈലി നൽകൂ. പാക്കേജുകൾ നോക്കൂ."
+      },
+      {
+        "title": "🚀 അടുത്ത ഉൽപ്പന്നം തയ്യാറോ?",
+        "body": "ഒരു ഫോട്ടോയിൽ പുതിയ ആശയങ്ങൾ പരീക്ഷിക്കൂ. പാക്കേജ് കണ്ടെത്തൂ."
+      }
+    ],
+    "mn": [
+      {
+        "title": "💡 Санаа байна уу?",
+        "body": "Бүтээгдэхүүндээ шинэ төрх өг. Өөрт тохирох багцаа сонго."
+      },
+      {
+        "title": "✨ Анхны зураг авалтдаа бэлэн?",
+        "body": "Бүтээгдэхүүнээ загвар өмсөгч дээр хар. Багцуудтай танилц."
+      },
+      {
+        "title": "🌿 Бүтээгдэхүүнд шинэ орчин",
+        "body": "Студи эсвэл нар жаргах үе? Зурагтаа тохирох багцаа ол."
+      },
+      {
+        "title": "👗 Өөр өнцгөөс хараад үз",
+        "body": "Шинэ байрлалаар деталиа харуул. Багцуудыг үзээрэй."
+      },
+      {
+        "title": "📸 Студи чамд ойрхон",
+        "body": "Студи бэлдэхгүйгээр зураг бүтээ. Өөрийн багцыг сонго."
+      },
+      {
+        "title": "🎨 Дэлгүүртээ шинэ өнгө нэм",
+        "body": "Цуглуулгадаа нэгдсэн хэв маяг өг. Багцуудыг үзээрэй."
+      },
+      {
+        "title": "🚀 Дараагийн бараа чинь бэлэн?",
+        "body": "Нэг зургаар шинэ санааг турш. Өөрт тохирох багцаа ол."
+      }
+    ],
+    "mr": [
+      {
+        "title": "💡 एखादी नवी कल्पना आहे?",
+        "body": "तुमच्या उत्पादनाला नवा लूक द्या. योग्य पॅकेज शोधा."
+      },
+      {
+        "title": "✨ पहिल्या फोटोशूटसाठी तयार?",
+        "body": "तुमचे उत्पादन मॉडेलवर पाहा. सुरुवातीसाठी पॅकेज निवडा."
+      },
+      {
+        "title": "🌿 उत्पादनासाठी नवी पार्श्वभूमी",
+        "body": "स्टुडिओ की सूर्यास्त? तुमच्या फोटोंसाठी पॅकेज पाहा."
+      },
+      {
+        "title": "👗 वेगळ्या कोनातून पाहा",
+        "body": "नव्या पोझमधून तपशील दाखवा. पॅकेजवर नजर टाका."
+      },
+      {
+        "title": "📸 स्टुडिओ आता तुमच्याजवळ",
+        "body": "स्टुडिओ न सजवताही फोटो तयार करा. तुमचे पॅकेज निवडा."
+      },
+      {
+        "title": "🎨 दुकानाला नवा साज",
+        "body": "संग्रहाला एकसंध शैली द्या. पॅकेज पाहा."
+      },
+      {
+        "title": "🚀 पुढचे उत्पादन तयार आहे?",
+        "body": "एका फोटोने नव्या कल्पना आजमावा. योग्य पॅकेज शोधा."
+      }
+    ],
+    "ms": [
+      {
+        "title": "💡 Ada idea baharu?",
+        "body": "Beri produk anda rupa baharu. Cari pelan yang sesuai."
+      },
+      {
+        "title": "✨ Sedia untuk foto pertama?",
+        "body": "Lihat produk anda pada model. Pilih pelan untuk bermula."
+      },
+      {
+        "title": "🌿 Latar baharu untuk produk",
+        "body": "Studio atau senja? Cari pelan untuk foto produk anda."
+      },
+      {
+        "title": "👗 Cuba sudut berbeza",
+        "body": "Tunjukkan butiran dengan gaya baharu. Terokai pelan kami."
+      },
+      {
+        "title": "📸 Studio dekat dengan anda",
+        "body": "Hasilkan foto tanpa menyediakan studio. Pilih pelan anda."
+      },
+      {
+        "title": "🎨 Segarkan rupa kedai anda",
+        "body": "Beri koleksi anda gaya yang seragam. Terokai pelan kami."
+      },
+      {
+        "title": "🚀 Produk seterusnya sedia?",
+        "body": "Cuba idea baharu dengan satu foto. Cari pelan yang sesuai."
+      }
+    ],
+    "ne": [
+      {
+        "title": "💡 कुनै नयाँ सोच छ?",
+        "body": "उत्पादनलाई नयाँ रूप दिनुहोस्। मिल्दो प्याकेज खोज्नुहोस्।"
+      },
+      {
+        "title": "✨ पहिलो फोटोसुटका लागि तयार?",
+        "body": "उत्पादन मोडेलमा हेर्नुहोस्। सुरु गर्न प्याकेज छान्नुहोस्।"
+      },
+      {
+        "title": "🌿 उत्पादनलाई नयाँ पृष्ठभूमि",
+        "body": "स्टुडियो वा सूर्यास्त? आफ्ना फोटोका लागि प्याकेज हेर्नुहोस्।"
+      },
+      {
+        "title": "👗 अर्को कोणबाट हेरौँ",
+        "body": "नयाँ पोजमा विवरण देखाउनुहोस्। प्याकेजहरू हेर्नुहोस्।"
+      },
+      {
+        "title": "📸 स्टुडियो तपाईंकै नजिक",
+        "body": "स्टुडियो नसजाई फोटो बनाउनुहोस्। आफ्नो प्याकेज छान्नुहोस्।"
+      },
+      {
+        "title": "🎨 पसलमा नयाँ रङ",
+        "body": "सङ्ग्रहलाई मिल्दो शैली दिनुहोस्। प्याकेजहरू हेर्नुहोस्।"
+      },
+      {
+        "title": "🚀 अर्को उत्पादन तयार छ?",
+        "body": "एउटा फोटोबाट नयाँ सोच आजमाउनुहोस्। मिल्दो प्याकेज खोज्नुहोस्।"
+      }
+    ],
+    "nl": [
+      {
+        "title": "💡 Heb je een idee?",
+        "body": "Geef je product een frisse look. Vind je abonnement."
+      },
+      {
+        "title": "✨ Je eerste fotoshoot?",
+        "body": "Bekijk je product op een model. Ontdek de abonnementen."
+      },
+      {
+        "title": "🌿 Een nieuw decor",
+        "body": "Studio of zonsondergang? Vind je fotoabonnement."
+      },
+      {
+        "title": "👗 Een andere kijk",
+        "body": "Laat details zien met nieuwe poses. Bekijk de abonnementen."
+      },
+      {
+        "title": "📸 De studio komt naar je toe",
+        "body": "Foto’s zonder een studio op te bouwen. Kies je abonnement."
+      },
+      {
+        "title": "🎨 Een frisse winkelstijl",
+        "body": "Geef je collectie één stijl. Ontdek de abonnementen."
+      },
+      {
+        "title": "🚀 Je volgende product?",
+        "body": "Probeer ideeën met één foto. Vind je abonnement."
+      }
+    ],
+    "no": [
+      {
+        "title": "💡 Har du en idé?",
+        "body": "Gi produktet ditt et nytt uttrykk. Finn abonnementet ditt."
+      },
+      {
+        "title": "✨ Din første fotoshoot?",
+        "body": "Se produktet ditt på en modell. Utforsk abonnementene."
+      },
+      {
+        "title": "🌿 En ny kulisse",
+        "body": "Studio eller solnedgang? Finn et abonnement for bildene dine."
+      },
+      {
+        "title": "👗 Prøv en annen vinkel",
+        "body": "Vis detaljene med nye positurer. Se abonnementene."
+      },
+      {
+        "title": "📸 Studioet kommer til deg",
+        "body": "Bilder uten å rigge et studio. Velg abonnementet ditt."
+      },
+      {
+        "title": "🎨 Frisk opp butikken",
+        "body": "Gi kolleksjonen en helhetlig stil. Utforsk abonnementene."
+      },
+      {
+        "title": "🚀 Ditt neste produkt?",
+        "body": "Prøv nye ideer med ett bilde. Finn abonnementet ditt."
+      }
+    ],
+    "pa": [
+      {
+        "title": "💡 ਕੋਈ ਨਵਾਂ ਖ਼ਿਆਲ ਹੈ?",
+        "body": "ਆਪਣੇ ਉਤਪਾਦ ਨੂੰ ਨਵਾਂ ਰੂਪ ਦਿਓ। ਢੁਕਵਾਂ ਪੈਕੇਜ ਲੱਭੋ।"
+      },
+      {
+        "title": "✨ ਪਹਿਲੇ ਫੋਟੋਸ਼ੂਟ ਲਈ ਤਿਆਰ?",
+        "body": "ਆਪਣਾ ਉਤਪਾਦ ਮਾਡਲ ਉੱਤੇ ਦੇਖੋ। ਸ਼ੁਰੂਆਤ ਲਈ ਪੈਕੇਜ ਚੁਣੋ।"
+      },
+      {
+        "title": "🌿 ਉਤਪਾਦ ਲਈ ਨਵਾਂ ਦ੍ਰਿਸ਼",
+        "body": "ਸਟੂਡੀਓ ਜਾਂ ਸੂਰਜ ਡੁੱਬਣ ਦਾ ਵੇਲਾ? ਫੋਟੋਆਂ ਲਈ ਪੈਕੇਜ ਦੇਖੋ।"
+      },
+      {
+        "title": "👗 ਕਿਸੇ ਹੋਰ ਕੋਣ ਤੋਂ ਦੇਖੋ",
+        "body": "ਨਵੇਂ ਪੋਜ਼ ਨਾਲ ਬਾਰੀਕੀਆਂ ਦਿਖਾਓ। ਪੈਕੇਜਾਂ ਉੱਤੇ ਨਜ਼ਰ ਮਾਰੋ।"
+      },
+      {
+        "title": "📸 ਸਟੂਡੀਓ ਹੁਣ ਤੁਹਾਡੇ ਕੋਲ",
+        "body": "ਸਟੂਡੀਓ ਸਜਾਏ ਬਿਨਾਂ ਫੋਟੋਆਂ ਬਣਾਓ। ਆਪਣਾ ਪੈਕੇਜ ਚੁਣੋ।"
+      },
+      {
+        "title": "🎨 ਦੁਕਾਨ ਨੂੰ ਨਵੀਂ ਦਿੱਖ",
+        "body": "ਸੰਗ੍ਰਹਿ ਨੂੰ ਇੱਕਸਾਰ ਸ਼ੈਲੀ ਦਿਓ। ਪੈਕੇਜ ਦੇਖੋ।"
+      },
+      {
+        "title": "🚀 ਅਗਲਾ ਉਤਪਾਦ ਤਿਆਰ ਹੈ?",
+        "body": "ਇੱਕ ਫੋਟੋ ਨਾਲ ਨਵੇਂ ਖ਼ਿਆਲ ਅਜ਼ਮਾਓ। ਢੁਕਵਾਂ ਪੈਕੇਜ ਲੱਭੋ।"
+      }
+    ],
+    "pl": [
+      {
+        "title": "💡 Masz pomysł?",
+        "body": "Nadaj produktowi nowy wygląd. Znajdź plan dla siebie."
+      },
+      {
+        "title": "✨ Twoja pierwsza sesja?",
+        "body": "Zobacz produkt na modelu. Poznaj dostępne plany."
+      },
+      {
+        "title": "🌿 Nowa sceneria dla produktu",
+        "body": "Studio czy zachód słońca? Wybierz plan do swoich zdjęć."
+      },
+      {
+        "title": "👗 Spójrz z innej strony",
+        "body": "Pokaż detale w nowych pozach. Sprawdź plany."
+      },
+      {
+        "title": "📸 Studio bliżej ciebie",
+        "body": "Zdjęcia bez urządzania studia. Wybierz swój plan."
+      },
+      {
+        "title": "🎨 Odśwież swój sklep",
+        "body": "Nadaj kolekcji spójny styl. Poznaj plany."
+      },
+      {
+        "title": "🚀 Twój kolejny produkt?",
+        "body": "Wypróbuj pomysły z jednym zdjęciem. Znajdź swój plan."
+      }
+    ],
+    "pt": [
+      {
+        "title": "💡 Tem uma ideia?",
+        "body": "Dê um novo visual ao seu produto. Encontre seu plano."
+      },
+      {
+        "title": "✨ Sua primeira sessão?",
+        "body": "Veja seu produto em um modelo. Conheça os planos."
+      },
+      {
+        "title": "🌿 Um novo cenário",
+        "body": "Estúdio ou pôr do sol? Encontre um plano para suas fotos."
+      },
+      {
+        "title": "👗 Que tal outro ângulo?",
+        "body": "Mostre detalhes com novas poses. Explore os planos."
+      },
+      {
+        "title": "📸 O estúdio vai até você",
+        "body": "Fotos sem montar um estúdio. Escolha seu plano."
+      },
+      {
+        "title": "🎨 Um toque na sua loja",
+        "body": "Dê um visual consistente à coleção. Conheça os planos."
+      },
+      {
+        "title": "🚀 Qual é o próximo produto?",
+        "body": "Experimente ideias com uma foto. Encontre seu plano."
+      }
+    ],
+    "rm": [
+      {
+        "title": "💡 Has ti in’idea?",
+        "body": "Dà a tes product in nov aspect. Chatta l’abunament adattà."
+      },
+      {
+        "title": "✨ Tias emprimas fotografias?",
+        "body": "Vesair tes product sin in model? Guarda ils abunaments."
+      },
+      {
+        "title": "🌿 In nov fund per tes product",
+        "body": "Studio u tramunt dal sulegl? Tscherna tes abunament."
+      },
+      {
+        "title": "👗 Emprova in auter angul",
+        "body": "Mussa ils detagls cun novas posas. Guarda ils abunaments."
+      },
+      {
+        "title": "📸 Il studio vegn tar tai",
+        "body": "Fotografias senza preparar in studio. Tscherna tes abunament."
+      },
+      {
+        "title": "🎨 In nov stil per tia butia",
+        "body": "Dà a tia collecziun in stil unitar. Scuvra ils abunaments."
+      },
+      {
+        "title": "🚀 Tes proxim product?",
+        "body": "Emprova ideas cun ina fotografia. Chatta tes abunament."
+      }
+    ],
+    "ro": [
+      {
+        "title": "💡 Ai o idee?",
+        "body": "Dă produsului un aspect nou. Găsește planul potrivit."
+      },
+      {
+        "title": "✨ Prima ta ședință foto?",
+        "body": "Vezi produsul pe un model. Descoperă planurile."
+      },
+      {
+        "title": "🌿 Un decor nou pentru tine",
+        "body": "Studio sau apus? Alege un plan pentru fotografiile tale."
+      },
+      {
+        "title": "👗 Încearcă un alt unghi",
+        "body": "Arată detaliile în poziții noi. Explorează planurile."
+      },
+      {
+        "title": "📸 Studioul vine la tine",
+        "body": "Fotografii fără amenajarea unui studio. Alege-ți planul."
+      },
+      {
+        "title": "🎨 Un nou aer în magazin",
+        "body": "Dă colecției un stil unitar. Descoperă planurile."
+      },
+      {
+        "title": "🚀 Următorul tău produs?",
+        "body": "Încearcă idei cu o fotografie. Găsește planul potrivit."
+      }
+    ],
+    "ru": [
+      {
+        "title": "💡 Есть идея?",
+        "body": "Подари товару новый образ. Найди подходящий тариф."
+      },
+      {
+        "title": "✨ Твоя первая фотосессия?",
+        "body": "Посмотри на товар на модели. Выбери тариф для старта."
+      },
+      {
+        "title": "🌿 Новая сцена для товара",
+        "body": "Студия или закат? Подбери тариф для своих фото."
+      },
+      {
+        "title": "👗 Попробуй другой ракурс",
+        "body": "Покажи детали в новых позах. Загляни в тарифы."
+      },
+      {
+        "title": "📸 Студия ближе, чем кажется",
+        "body": "Фото без подготовки студии. Выбери свой тариф."
+      },
+      {
+        "title": "🎨 Освежи свой магазин",
+        "body": "Придай коллекции единый стиль. Познакомься с тарифами."
+      },
+      {
+        "title": "🚀 Какой товар следующий?",
+        "body": "Попробуй идеи с одним фото. Найди свой тариф."
+      }
+    ],
+    "si": [
+      {
+        "title": "💡 අලුත් අදහසක් තියෙනවද?",
+        "body": "ඔබේ නිෂ්පාදනයට අලුත් පෙනුමක් දෙන්න. ගැළපෙන පැකේජය සොයන්න."
+      },
+      {
+        "title": "✨ පළමු ඡායාරූපයට සූදානම්ද?",
+        "body": "නිෂ්පාදනය නිරූපිකාවක මත බලන්න. ආරම්භයට පැකේජයක් තෝරන්න."
+      },
+      {
+        "title": "🌿 නිෂ්පාදනයට අලුත් පසුබිමක්",
+        "body": "චිත්‍රාගාරයක් ද හිරු බැසීම ද? ඡායාරූප සඳහා පැකේජයක් තෝරන්න."
+      },
+      {
+        "title": "👗 වෙනත් කෝණයකින් බලමු",
+        "body": "අලුත් ඉරියව්වලින් විස්තර පෙන්වන්න. පැකේජ බලන්න."
+      },
+      {
+        "title": "📸 චිත්‍රාගාරය ඔබ ළඟට",
+        "body": "චිත්‍රාගාරයක් නොසකසා ඡායාරූප සාදන්න. පැකේජයක් තෝරන්න."
+      },
+      {
+        "title": "🎨 ඔබේ වෙළඳසැලට අලුත් හැඩයක්",
+        "body": "එකතුවට ගැළපෙන එකම රටාවක් දෙන්න. පැකේජ බලන්න."
+      },
+      {
+        "title": "🚀 ඊළඟ නිෂ්පාදනය සූදානම්ද?",
+        "body": "එක ඡායාරූපයකින් අලුත් අදහස් අත්හදා බලන්න. පැකේජයක් සොයන්න."
+      }
+    ],
+    "sk": [
+      {
+        "title": "💡 Máš nápad?",
+        "body": "Daj produktu nový vzhľad. Nájdi si vhodný balík."
+      },
+      {
+        "title": "✨ Tvoje prvé fotenie?",
+        "body": "Pozri si produkt na modeli. Objav naše balíky."
+      },
+      {
+        "title": "🌿 Nová scéna pre tvoj produkt",
+        "body": "Štúdio alebo západ slnka? Vyber si balík na svoje fotky."
+      },
+      {
+        "title": "👗 Skús iný uhol",
+        "body": "Ukáž detaily v nových pózach. Pozri si balíky."
+      },
+      {
+        "title": "📸 Štúdio príde za tebou",
+        "body": "Fotky bez prípravy štúdia. Vyber si svoj balík."
+      },
+      {
+        "title": "🎨 Oživ svoj obchod",
+        "body": "Daj kolekcii jednotný štýl. Objav naše balíky."
+      },
+      {
+        "title": "🚀 Tvoj ďalší produkt?",
+        "body": "Vyskúšaj nápady s jednou fotkou. Nájdi si svoj balík."
+      }
+    ],
+    "sl": [
+      {
+        "title": "💡 Imaš idejo?",
+        "body": "Daj izdelku nov videz. Poišči paket zase."
+      },
+      {
+        "title": "✨ Tvoje prvo fotografiranje?",
+        "body": "Oglej si izdelek na modelu. Razišči pakete."
+      },
+      {
+        "title": "🌿 Novo ozadje za tvoj izdelek",
+        "body": "Studio ali sončni zahod? Izberi paket za svoje fotografije."
+      },
+      {
+        "title": "👗 Poskusi drug zorni kot",
+        "body": "Pokaži podrobnosti z novimi pozami. Oglej si pakete."
+      },
+      {
+        "title": "📸 Studio pride k tebi",
+        "body": "Fotografije brez priprave studia. Izberi svoj paket."
+      },
+      {
+        "title": "🎨 Osveži svojo trgovino",
+        "body": "Daj kolekciji enoten slog. Razišči pakete."
+      },
+      {
+        "title": "🚀 Tvoj naslednji izdelek?",
+        "body": "Preizkusi ideje z eno fotografijo. Poišči paket zase."
+      }
+    ],
+    "sr": [
+      {
+        "title": "💡 Имаш идеју?",
+        "body": "Дај производу нов изглед. Пронађи пакет за себе."
+      },
+      {
+        "title": "✨ Твоје прво снимање?",
+        "body": "Погледај производ на моделу. Истражи пакете."
+      },
+      {
+        "title": "🌿 Нова сцена за твој производ",
+        "body": "Студио или залазак сунца? Изабери пакет за своје фотографије."
+      },
+      {
+        "title": "👗 Испробај други угао",
+        "body": "Покажи детаље новим позама. Погледај пакете."
+      },
+      {
+        "title": "📸 Студио долази код тебе",
+        "body": "Фотографије без припреме студија. Изабери свој пакет."
+      },
+      {
+        "title": "🎨 Освежи своју продавницу",
+        "body": "Дај колекцији уједначен стил. Истражи пакете."
+      },
+      {
+        "title": "🚀 Твој следећи производ?",
+        "body": "Испробај идеје уз једну фотографију. Пронађи свој пакет."
+      }
+    ],
+    "sv": [
+      {
+        "title": "💡 Har du en idé?",
+        "body": "Ge din produkt ett nytt uttryck. Hitta ditt abonnemang."
+      },
+      {
+        "title": "✨ Din första fotografering?",
+        "body": "Se din produkt på en modell. Utforska abonnemangen."
+      },
+      {
+        "title": "🌿 En ny bakgrund",
+        "body": "Studio eller solnedgång? Hitta ett abonnemang för dina bilder."
+      },
+      {
+        "title": "👗 Prova en annan vinkel",
+        "body": "Visa detaljer med nya poser. Ta en titt på abonnemangen."
+      },
+      {
+        "title": "📸 Studion kommer till dig",
+        "body": "Bilder utan att bygga en studio. Välj ditt abonnemang."
+      },
+      {
+        "title": "🎨 Fräscha upp din butik",
+        "body": "Ge kollektionen en enhetlig stil. Utforska abonnemangen."
+      },
+      {
+        "title": "🚀 Din nästa produkt?",
+        "body": "Testa nya idéer med en bild. Hitta ditt abonnemang."
+      }
+    ],
+    "sw": [
+      {
+        "title": "💡 Una wazo jipya?",
+        "body": "Ipe bidhaa yako mwonekano mpya. Tafuta kifurushi chako."
+      },
+      {
+        "title": "✨ Picha yako ya kwanza?",
+        "body": "Ona bidhaa yako ikivaliwa na mwanamitindo. Chagua kifurushi."
+      },
+      {
+        "title": "🌿 Mandhari mapya kwa bidhaa",
+        "body": "Studio au machweo? Tafuta kifurushi cha picha zako."
+      },
+      {
+        "title": "👗 Jaribu pembe nyingine",
+        "body": "Onyesha maelezo kwa mitindo mipya ya pozi. Angalia vifurushi."
+      },
+      {
+        "title": "📸 Studio inakujia",
+        "body": "Picha bila kuandaa studio. Chagua kifurushi chako."
+      },
+      {
+        "title": "🎨 Duka lako, sura mpya",
+        "body": "Leta mwonekano mmoja kwenye mkusanyiko. Gundua vifurushi."
+      },
+      {
+        "title": "🚀 Bidhaa inayofuata tayari?",
+        "body": "Jaribu mawazo kwa picha moja. Tafuta kifurushi kinachokufaa."
+      }
+    ],
+    "ta": [
+      {
+        "title": "💡 புதிய யோசனை உள்ளதா?",
+        "body": "தயாரிப்புக்குப் புதிய தோற்றம் தரலாம். ஏற்ற திட்டத்தைத் தேர்ந்தெடு."
+      },
+      {
+        "title": "✨ முதல் படப்பிடிப்புக்குத் தயாரா?",
+        "body": "தயாரிப்பை மாடலில் பார். தொடங்க ஒரு திட்டத்தைத் தேர்ந்தெடு."
+      },
+      {
+        "title": "🌿 தயாரிப்புக்குப் புதிய பின்னணி",
+        "body": "ஸ்டுடியோவா, மாலைச் சூரியனா? படங்களுக்கு ஏற்ற திட்டத்தைத் தேடு."
+      },
+      {
+        "title": "👗 வேறு கோணத்தில் பார்ப்போமா?",
+        "body": "புதிய போஸ்களில் விவரங்களைக் காட்டு. திட்டங்களைப் பார்."
+      },
+      {
+        "title": "📸 ஸ்டுடியோ உன் அருகில்",
+        "body": "ஸ்டுடியோ அமைக்காமல் படங்கள் உருவாக்கு. உன் திட்டத்தைத் தேர்ந்தெடு."
+      },
+      {
+        "title": "🎨 கடைக்குச் சிறு புதுமை",
+        "body": "தொகுப்புக்கு ஒரே பாணியைத் தா. திட்டங்களைப் பார்."
+      },
+      {
+        "title": "🚀 அடுத்த தயாரிப்பு தயாரா?",
+        "body": "ஒரு படத்தில் புதிய யோசனைகளை முயற்சி செய். ஏற்ற திட்டத்தைத் தேடு."
+      }
+    ],
+    "te": [
+      {
+        "title": "💡 కొత్త ఆలోచన ఉందా?",
+        "body": "నీ ఉత్పత్తికి కొత్త రూపం ఇవ్వు. సరైన ప్యాకేజీని ఎంచుకో."
+      },
+      {
+        "title": "✨ తొలి ఫోటోషూట్‌కు సిద్ధమా?",
+        "body": "నీ ఉత్పత్తిని మోడల్‌పై చూడు. మొదలుపెట్టేందుకు ప్యాకేజీ ఎంచుకో."
+      },
+      {
+        "title": "🌿 ఉత్పత్తికి కొత్త నేపథ్యం",
+        "body": "స్టూడియోనా, సూర్యాస్తమయమా? ఫోటోల కోసం ప్యాకేజీలు చూడు."
+      },
+      {
+        "title": "👗 మరో కోణంలో చూద్దామా?",
+        "body": "కొత్త భంగిమల్లో వివరాలు చూపించు. ప్యాకేజీలు చూడు."
+      },
+      {
+        "title": "📸 స్టూడియో నీ దగ్గరికే",
+        "body": "స్టూడియో సిద్ధం చేయకుండానే ఫోటోలు సృష్టించు. ప్యాకేజీ ఎంచుకో."
+      },
+      {
+        "title": "🎨 దుకాణానికి కొత్త కళ",
+        "body": "కలెక్షన్‌కు ఒకే శైలిని ఇవ్వు. ప్యాకేజీలు చూడు."
+      },
+      {
+        "title": "🚀 తర్వాతి ఉత్పత్తి సిద్ధమా?",
+        "body": "ఒక ఫోటోతో కొత్త ఆలోచనలు ప్రయత్నించు. సరైన ప్యాకేజీని వెతుకు."
+      }
+    ],
+    "th": [
+      {
+        "title": "💡 มีไอเดียใหม่ไหม?",
+        "body": "เติมลุคใหม่ให้สินค้าของคุณ มองหาแพ็กเกจที่ใช่กัน"
+      },
+      {
+        "title": "✨ พร้อมถ่ายภาพแรกหรือยัง?",
+        "body": "ดูสินค้าของคุณบนตัวแบบ แล้วเลือกแพ็กเกจเพื่อเริ่มต้น"
+      },
+      {
+        "title": "🌿 ฉากใหม่ให้สินค้าคุณ",
+        "body": "สตูดิโอหรือแสงเย็น? เลือกแพ็กเกจสำหรับภาพสินค้ากัน"
+      },
+      {
+        "title": "👗 ลองมองอีกมุมกัน",
+        "body": "โชว์รายละเอียดด้วยท่าโพสใหม่ ลองดูแพ็กเกจของเรา"
+      },
+      {
+        "title": "📸 สตูดิโออยู่ใกล้คุณ",
+        "body": "สร้างภาพโดยไม่ต้องจัดสตูดิโอ เลือกแพ็กเกจที่เหมาะกับคุณ"
+      },
+      {
+        "title": "🎨 เติมสีสันให้ร้านคุณ",
+        "body": "ให้คอลเลกชันมีสไตล์ที่เข้ากัน ลองดูแพ็กเกจของเรา"
+      },
+      {
+        "title": "🚀 สินค้าชิ้นต่อไปพร้อมไหม?",
+        "body": "ลองไอเดียใหม่จากภาพเดียว ค้นหาแพ็กเกจที่เหมาะกับคุณ"
+      }
+    ],
+    "uk": [
+      {
+        "title": "💡 Маєш ідею?",
+        "body": "Дай товару новий образ. Знайди свій тариф."
+      },
+      {
+        "title": "✨ Твоя перша фотосесія?",
+        "body": "Побач свій товар на моделі. Обери тариф для початку."
+      },
+      {
+        "title": "🌿 Нове тло для твого товару",
+        "body": "Студія чи захід сонця? Знайди тариф для своїх фото."
+      },
+      {
+        "title": "👗 Спробуй інший ракурс",
+        "body": "Покажи деталі в нових позах. Переглянь тарифи."
+      },
+      {
+        "title": "📸 Студія ближче до тебе",
+        "body": "Фото без облаштування студії. Обери свій тариф."
+      },
+      {
+        "title": "🎨 Освіжи свою крамницю",
+        "body": "Дай колекції єдиний стиль. Познайомся з тарифами."
+      },
+      {
+        "title": "🚀 Який товар наступний?",
+        "body": "Спробуй ідеї з одним фото. Знайди свій тариф."
+      }
+    ],
+    "ur": [
+      {
+        "title": "💡 کوئی خیال ہے؟",
+        "body": "اپنی پروڈکٹ کو نیا انداز دیں۔ اپنے لیے پیکیج چنیں۔"
+      },
+      {
+        "title": "✨ پہلے فوٹو شوٹ کے لیے تیار؟",
+        "body": "پروڈکٹ کو ماڈل پر دیکھیں۔ آغاز کے لیے پیکیج چنیں۔"
+      },
+      {
+        "title": "🌿 پروڈکٹ کے لیے نیا منظر",
+        "body": "اسٹوڈیو یا غروب؟ اپنی تصاویر کے لیے پیکیج دیکھیں۔"
+      },
+      {
+        "title": "👗 ایک نیا زاویہ آزمائیں",
+        "body": "نئے پوز سے تفصیلات دکھائیں۔ پیکیجز پر نظر ڈالیں۔"
+      },
+      {
+        "title": "📸 اسٹوڈیو آپ کے پاس",
+        "body": "اسٹوڈیو سجائے بغیر تصاویر بنائیں۔ اپنا پیکیج چنیں۔"
+      },
+      {
+        "title": "🎨 آپ کی دکان میں نیا رنگ",
+        "body": "کلیکشن کو یکساں انداز دیں۔ پیکیجز دیکھیں۔"
+      },
+      {
+        "title": "🚀 اگلی پروڈکٹ تیار ہے؟",
+        "body": "ایک تصویر سے نئے خیال آزمائیں۔ موزوں پیکیج چنیں۔"
+      }
+    ],
+    "uz": [
+      {
+        "title": "💡 Biror g‘oyang bormi?",
+        "body": "Mahsulotingga yangi ko‘rinish ber. Mos tarifni top."
+      },
+      {
+        "title": "✨ Ilk suratingga tayyormisan?",
+        "body": "Mahsulotingni modelda ko‘r. Boshlash uchun tariflarni ko‘r."
+      },
+      {
+        "title": "🌿 Mahsuloting uchun yangi fon",
+        "body": "Studiya yoki quyosh botishi? Suratlaring uchun tarif tanla."
+      },
+      {
+        "title": "👗 Boshqa burchakdan qarab ko‘r",
+        "body": "Yangi pozalar bilan detallarni ko‘rsat. Tariflarni ko‘r."
+      },
+      {
+        "title": "📸 Studiya sening yoningda",
+        "body": "Studiya tayyorlamay surat yarat. O‘zingga mos tarif tanla."
+      },
+      {
+        "title": "🎨 Do‘koningga yangi ruh",
+        "body": "To‘plamingga uyg‘un uslub ber. Tariflar bilan tanish."
+      },
+      {
+        "title": "🚀 Yangi mahsuloting tayyormi?",
+        "body": "Bir surat bilan yangi g‘oyalarni sina. Mos tarifni top."
+      }
+    ],
+    "vi": [
+      {
+        "title": "💡 Bạn có ý tưởng mới?",
+        "body": "Cho sản phẩm diện mạo mới. Tìm gói phù hợp với bạn."
+      },
+      {
+        "title": "✨ Buổi chụp đầu tiên nhé?",
+        "body": "Ngắm sản phẩm trên người mẫu. Chọn gói để bắt đầu."
+      },
+      {
+        "title": "🌿 Một khung cảnh mới",
+        "body": "Studio hay hoàng hôn? Tìm gói cho buổi chụp của bạn."
+      },
+      {
+        "title": "👗 Thử một góc nhìn khác",
+        "body": "Khoe chi tiết với tư thế mới. Khám phá các gói."
+      },
+      {
+        "title": "📸 Studio đến gần bạn hơn",
+        "body": "Tạo ảnh mà không cần dựng studio. Chọn gói của bạn."
+      },
+      {
+        "title": "🎨 Làm mới cửa hàng một chút",
+        "body": "Cho bộ sưu tập phong cách đồng nhất. Xem các gói nhé."
+      },
+      {
+        "title": "🚀 Sản phẩm tiếp theo là gì?",
+        "body": "Thử ý tưởng từ một bức ảnh. Tìm gói phù hợp với bạn."
+      }
+    ],
+    "zh": [
+      {
+        "title": "💡 有新点子了吗？",
+        "body": "给商品换个新面貌，找到适合你的套餐。"
+      },
+      {
+        "title": "✨ 来试试第一次拍摄吧",
+        "body": "看看商品穿在模特身上的样子，选个套餐开始吧。"
+      },
+      {
+        "title": "🌿 给商品换个新场景",
+        "body": "影棚还是日落？为下一次商品拍摄挑个套餐吧。"
+      },
+      {
+        "title": "👗 换个角度看看",
+        "body": "用新姿势展示商品细节，来看看有哪些套餐。"
+      },
+      {
+        "title": "📸 让影棚离你更近",
+        "body": "不用布置影棚也能制作商品照片，选个合适的套餐吧。"
+      },
+      {
+        "title": "🎨 给店铺添点新意",
+        "body": "让整个系列风格更统一，来看看适合你的套餐。"
+      },
+      {
+        "title": "🚀 下一件商品准备好了吗？",
+        "body": "从一张照片尝试新点子，找到适合你的套餐。"
+      }
+    ],
+    "zu": [
+      {
+        "title": "💡 Unombono omusha?",
+        "body": "Nika umkhiqizo wakho ukubukeka okusha. Thola iphakheji yakho."
+      },
+      {
+        "title": "✨ Isithombe sakho sokuqala?",
+        "body": "Bona umkhiqizo wakho kumodeli. Khetha iphakheji yokuqala."
+      },
+      {
+        "title": "🌿 Indawo entsha yomkhiqizo",
+        "body": "Isitudiyo noma ukushona kwelanga? Bheka amaphakheji ezithombe."
+      },
+      {
+        "title": "👗 Zama elinye i-engeli",
+        "body": "Veza imininingwane ngokuma okusha. Bheka amaphakheji."
+      },
+      {
+        "title": "📸 Isitudiyo siseduze nawe",
+        "body": "Izithombe ngaphandle kokulungisa isitudiyo. Khetha iphakheji."
+      },
+      {
+        "title": "🎨 Vuselela isitolo sakho",
+        "body": "Nika iqoqo lakho isitayela esifanayo. Bheka amaphakheji."
+      },
+      {
+        "title": "🚀 Umkhiqizo olandelayo?",
+        "body": "Zama imibono ngesithombe esisodwa. Thola iphakheji ekufanele."
+      }
+    ]
+  },
+  "source": "New campaign copy. Localized feature variants reuse the app’s existing product descriptions; never reuse legacy non-Pro campaigns."
+}

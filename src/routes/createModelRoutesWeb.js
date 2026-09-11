@@ -1,11 +1,15 @@
+const { starterPortraitInput, MODEL_T2I_API_URL } = require("../utils/starterPortraitInput");
+const { textModelCastingDirection, REFERENCE_ID_PHOTO_PROMPT } = require('../utils/modelPortraitPrompts');
+const { generateStarterModelNames } = require('../utils/starterModelNames');
 const express = require("express");
+const { normalizeModelProfile } = require("../utils/modelProfile");
 const router = express.Router();
-const { supabase } = require("../supabaseClient");
+const { supabase, supabaseAdmin } = require("../supabaseClient");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const axios = require("axios");
 const logger = require("../utils/logger");
 const { optimizeImageUrl } = require("../utils/imageOptimizer");
-const { callGeminiFlash, callReplicateStyleFlash } = require("../utils/promptEnhanceProvider");
+const { callGeminiFlash, callReplicateStyleFlash, callStructuredText } = require("../utils/promptEnhanceProvider");
 
 // Gemini API için istemci oluştur
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -23,7 +27,8 @@ async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) 
 async function uploadModelImageToSupabaseStorage(
   imageUrl,
   userId,
-  replicateId
+  replicateId,
+  signal
 ) {
   try {
     logger.log("📤 Model resmi Supabase storage'a yükleniyor...");
@@ -32,7 +37,7 @@ async function uploadModelImageToSupabaseStorage(
     logger.log("Replicate ID:", replicateId);
 
     // Replicate'den resmi indir
-    const imageResponse = await fetch(imageUrl);
+    const imageResponse = await fetch(imageUrl, { signal });
     if (!imageResponse.ok) {
       throw new Error(`Resim indirilemedi: ${imageResponse.status}`);
     }
@@ -420,6 +425,9 @@ IMPORTANT: Always respond in ENGLISH only, regardless of the input language. If 
 
 Generate a detailed ENGLISH prompt for creating professional ID photos.
 
+NEW MODEL CASTING DIRECTION:
+${textModelCastingDirection(age)}
+
 🎯 ID PHOTO REQUIREMENTS:
 - Professional passport/ID photo style
 - Clean white background (pure white, no texture)
@@ -486,21 +494,17 @@ Create a professional ID photo prompt incorporating these details: "${originalPr
     const ageDescription = age === "newborn" ? "newborn baby (0-3 months old)" : age === "baby" ? "baby toddler (1-2 years old)" : age === "child" ? "child (3-12 years old)" : `${age} year old`;
     const fallbackPrompt = `Professional ID photo style portrait of a ${ageDescription} ${gender === "woman" ? "female" : "male"
       } person wearing a clean white t-shirt. Shot straight on with direct camera angle against a pure white background. The subject looks directly at the camera with a neutral, professional expression. Studio lighting, passport photo style, clean white background, white t-shirt, frontal view, high quality. Crystal clear, sharp focus throughout. NO borders, NO frames, NO text, NO watermarks, NO overlays, clean image only. ${originalPrompt ? `Additional details: ${originalPrompt}` : ""
-      }`;
+      } ${textModelCastingDirection(age)}`;
 
     logger.log("🔄 Fallback prompt kullanılıyor:", fallbackPrompt);
     return fallbackPrompt;
   }
 }
 
-// Google Imagen 4 API URL
-// ⚠️ 25 Ağu 2026: fal imagen4 ucunu kaldırdı (404) → nano-banana-2 t2i
-const IMAGEN_4_API_URL = "https://fal.run/fal-ai/nano-banana-2";
-
-// Google nano-banana ile model generate et (text-to-image) - Migrated to Fal.ai Imagen 4
-async function generateModelWithNanoBanana(prompt, gender, age, userId, hijabPrompt = null) {
+// Model portraits use Nano Banana 2 at 1K; uploaded identities use its edit endpoint.
+async function generateModelPortrait(prompt, gender, age, userId, hijabPrompt = null) {
   try {
-    logger.log("👤 [FAL.AI] Imagen 4 ile model generation başlatılıyor...");
+    logger.log("👤 [FAL.AI] Nano Banana 2 (1K) ile model generation başlatılıyor...");
     logger.log("Original prompt:", prompt);
     logger.log("Gender:", gender);
     logger.log("Age:", age);
@@ -521,19 +525,12 @@ async function generateModelWithNanoBanana(prompt, gender, age, userId, hijabPro
 
     logger.log("Enhanced prompt:", enhancedPrompt);
 
-    // Imagen 4 için request body - Text-to-Image
-    const requestBody = {
-      prompt: enhancedPrompt,
-      aspect_ratio: "3:4", // ID photo / portrait için dikey format
-      output_format: "jpeg",
-      // nano-banana-2 şemasında safety_filter_level yok; resolution ayrı alan
-      resolution: "1K",
-    };
+    const requestBody = starterPortraitInput(enhancedPrompt);
 
     logger.log("📦 [FAL.AI] Request body:", requestBody);
 
     const response = await axios.post(
-      IMAGEN_4_API_URL,
+      MODEL_T2I_API_URL,
       requestBody,
       {
         headers: {
@@ -573,10 +570,10 @@ async function generateModelWithNanoBanana(prompt, gender, age, userId, hijabPro
         replicateId: result.request_id || `fal-${Date.now()}`,
       };
     } else {
-      throw new Error("Fal.ai Nano Banana'dan model görsel çıkışı alınamadı");
+      throw new Error("Fal.ai Nano Banana 2'dan model görsel çıkışı alınamadı");
     }
   } catch (error) {
-    console.error("Fal.ai Nano Banana model generation hatası:", error.message);
+    console.error("Fal.ai Nano Banana 2 model generation hatası:", error.message);
     if (error.response && error.response.data) {
       console.error("Fal.ai Details:", error.response.data);
     }
@@ -594,17 +591,7 @@ async function transformImageToIDPhoto(imageUrl, userId, hijabPrompt = null) {
     logger.log("Hijab prompt:", hijabPrompt ? "provided" : "none");
 
     // Hazır transform prompt - ID photo'ya dönüştürme
-    let transformPrompt = `Transform this image into a professional ID photo style portrait. The person should be wearing a clean white t-shirt against a pure white background. Shot straight on with direct camera angle. Professional studio lighting with even illumination, no shadows. Neutral, professional facial expression looking directly at the camera.
-
-CRITICAL SHARPNESS REQUIREMENTS:
-- Crystal clear, razor-sharp focus throughout the entire image
-- NO blur, NO motion blur, NO depth of field blur, NO soft focus
-- NO dreamy effects, NO artistic blur, NO background blur
-- Maximum sharpness and clarity on face, hair, clothing, and background
-- Professional studio photography sharpness standards
-- High definition, crisp details, perfect focus
-
-Clean composition with proper ID photo proportions. NO borders, NO frames, NO text, NO watermarks, NO overlays. Pure white background, white t-shirt, frontal view, passport photo style, professional quality.`;
+    let transformPrompt = REFERENCE_ID_PHOTO_PROMPT;
 
     // Hijab prompt varsa transform prompt'a ekle
     if (hijabPrompt) {
@@ -630,6 +617,8 @@ Clean composition with proper ID photo proportions. NO borders, NO frames, NO te
     const requestBody = {
       prompt: transformPrompt,
       image_urls: [imageUrl],
+      aspect_ratio: "3:4",
+      resolution: "1K",
       output_format: "jpeg",
       num_images: 1,
     };
@@ -707,7 +696,8 @@ async function saveModelToDatabase(
   userId,
   isPublic = false,
   termsAccepted = null,
-  originalImageUrl = null
+  originalImageUrl = null,
+  modelProfile = {}
 ) {
   try {
     logger.log("💾 Model Supabase'e kaydediliyor...");
@@ -719,6 +709,7 @@ async function saveModelToDatabase(
 
     const insertData = {
       name: name,
+      model_profile: modelProfile,
       original_prompt: originalPrompt,
       enhanced_prompt: enhancedPrompt,
       image_url: imageUrl, // Supabase storage'dan gelen public URL (transform edilmiş)
@@ -753,6 +744,12 @@ async function saveModelToDatabase(
       throw error;
     }
 
+    if (supabaseAdmin) {
+      try {
+        const history = await supabaseAdmin.rpc("record_model_gender_history", { p_user_id: userId, p_gender: gender });
+        if (history.error) throw history.error;
+      } catch (_) { /* The portrait is already saved; enrollment must not break manual creation. */ }
+    }
     logger.log("✅ Model Supabase'e kaydedildi:", data.id);
     return data;
   } catch (error) {
@@ -921,6 +918,10 @@ router.post("/create-model", async (req, res) => {
       hijabPrompt = null, // Tesettür modu prompt'u
     } = req.body;
 
+    let modelProfile;
+    try { modelProfile = normalizeModelProfile(req.body.modelProfile); }
+    catch (error) { return res.status(400).json({ success: false, error: error.message }); }
+
     logger.log("🚀 Create model işlemi başlatıldı");
     logger.log("Model Name:", modelName);
     logger.log("Original prompt:", prompt);
@@ -967,7 +968,7 @@ router.post("/create-model", async (req, res) => {
       });
     }
 
-    if (!modelName || modelName.trim().length === 0) {
+    if (typeof modelName !== "string" || modelName.trim().length === 0) {
       return res.status(400).json({
         success: false,
         error: "Model name is required",
@@ -1021,40 +1022,17 @@ router.post("/create-model", async (req, res) => {
 
       logger.log("✅ Using user-provided model name:", modelName.trim());
 
-      // 2. nano-banana ile image-to-image transformation (ID photo'ya dönüştür)
-      try {
-        imagenResult = await transformImageToIDPhoto(
-          uploadedImageUrl,
-          actualUserId,
-          hijabPrompt
-        );
-      } catch (transformError) {
-        console.error(
-          "❌ Image transformation başarısız, Gemini + text-to-image fallback kullanılıyor:",
-          transformError.message
-        );
-
-        // Fallback: Zaten analiz edilmiş gender/age kullan, text-to-image yap
-        logger.log(
-          "🔄 Fallback: Text-to-image ile generation (detected values ile)..."
-        );
-
-        // Zaten detect edilen values'ları kullan
-        const enhancedPrompt = analysisResult.enhancedPrompt;
-
-        // Text-to-image ile generate et (detected gender/age ile)
-        imagenResult = await generateModelWithNanoBanana(
-          enhancedPrompt,
-          detectedGender,
-          detectedAge,
-          actualUserId,
-          hijabPrompt
-        );
-      }
+      // A supplied identity must always stay attached to the image-edit request.
+      // Propagate edit failures instead of inventing another person from text.
+      imagenResult = await transformImageToIDPhoto(
+        uploadedImageUrl,
+        actualUserId,
+        hijabPrompt
+      );
     } else {
       // Text prompt varsa: Text-to-image
       logger.log("✍️ Text prompt modu: Generation işlemi başlatılıyor");
-      imagenResult = await generateModelWithNanoBanana(
+      imagenResult = await generateModelPortrait(
         prompt,
         gender,
         finalAge,
@@ -1126,7 +1104,8 @@ router.post("/create-model", async (req, res) => {
       actualUserId,
       isPublic,
       termsAccepted, // Şartları kabul etme durumu
-      uploadedImageUrl // Orijinal yüklenen resim URL'i (null olabilir)
+      uploadedImageUrl, // Orijinal yüklenen resim URL'i (null olabilir)
+      modelProfile // Saved metadata only; never sent to portrait analysis/generation.
     );
 
     logger.log("✅ Create model işlemi tamamlandı");
@@ -1136,6 +1115,7 @@ router.post("/create-model", async (req, res) => {
       message: "Model başarıyla oluşturuldu",
       data: {
         id: savedModel.id,
+        modelProfile: savedModel.model_profile,
         name: savedModel.name,
         imageUrl: savedModel.image_url, // Modal için normal boyut
         imageUrlOptimized: optimizeModelImageUrl(savedModel.image_url), // FlatList için küçük boyut
@@ -1253,6 +1233,35 @@ router.post("/analyze-image", async (req, res) => {
   }
 });
 
+router.use(require("./starterModelRoutes")({
+  // 🧑‍🤝‍🧑 Model havuzu: eklentiden gelen kişi fotoğrafı → elle model oluşturma ile
+  // AYNI yol (yükle → Gemini analiz → nano-banana edit vesikalık). Profil ölçüleri
+  // otomatik modellerdeki kurgusal preset.
+  createPortrait: async ({ imageUri, languageCode = "en", regionCode = "US" }) => {
+    const owner = "model-pool";
+    const uploadedImageUrl = await uploadImageToSupabase(imageUri, owner);
+    const analysis = await analyzeImageAndGeneratePrompt(uploadedImageUrl, null, languageCode, regionCode, []);
+    const gender = analysis?.detectedGender === "man" ? "man" : analysis?.detectedGender === "woman" ? "woman" : null;
+    const portrait = await transformImageToIDPhoto(uploadedImageUrl, owner, null);
+    return {
+      name: analysis?.suggestedName || "Model", gender, age: analysis?.detectedAge != null ? String(analysis.detectedAge) : "young",
+      imageUrl: portrait.imageUrl, originalImageUrl: uploadedImageUrl, modelProfile: {},
+    };
+  },
+  generatePoolNames: (input) => require("../utils/poolModelNames").generatePoolModelNames(input),
+  generateNames: (gender, languageCode, options) => generateStarterModelNames(
+    (prompt) => callStructuredText(prompt, options), gender, languageCode, options,
+  ),
+  generate: async (prompt, userId, { signal } = {}) => {
+    const response = await axios.post(MODEL_T2I_API_URL, starterPortraitInput(prompt), { headers: { Authorization: `Key ${process.env.FAL_API_KEY}` }, timeout: 300000, signal });
+    const imageUrl = response.data?.images?.[0]?.url;
+    if (!imageUrl) throw new Error("Portrait provider returned no image");
+    const stored = await uploadModelImageToSupabaseStorage(imageUrl, userId, require("crypto").randomUUID(), signal);
+    if (signal?.aborted) throw signal.reason;
+    return stored.publicUrl;
+  },
+}));
+
 // GET USER'S MODELS
 router.get("/user-models/:userId", async (req, res) => {
   try {
@@ -1344,6 +1353,18 @@ router.delete("/delete-model/:modelId", async (req, res) => {
     const { modelId } = req.params;
 
     logger.log("🗑️ Model silme işlemi başlatıldı - ID:", modelId);
+
+    // Remember this gender before deletion so removing a manual model cannot re-enroll it.
+    if (supabaseAdmin) {
+      const existing = await supabaseAdmin.from("user_models").select("user_id,gender").eq("id", modelId).maybeSingle();
+      if (existing.error) throw existing.error;
+      if (existing.data) {
+        const history = await supabaseAdmin.rpc("record_model_gender_history", {
+          p_user_id: existing.data.user_id, p_gender: existing.data.gender,
+        });
+        if (history.error) throw history.error;
+      }
+    }
 
     // Model'i veritabanından sil
     const { data, error } = await supabase
@@ -1449,11 +1470,16 @@ router.put("/update-model/:modelId", async (req, res) => {
   try {
     const { modelId } = req.params;
     const { modelName } = req.body;
+    let modelProfile;
+    if (Object.prototype.hasOwnProperty.call(req.body, 'modelProfile')) {
+      try { modelProfile = normalizeModelProfile(req.body.modelProfile); }
+      catch (error) { return res.status(400).json({ success: false, error: error.message }); }
+    }
 
     logger.log("🔄 Model güncelleme isteği:", { modelId, modelName });
 
     // Model adı validasyonu
-    if (!modelName || modelName.trim().length === 0) {
+    if (typeof modelName !== "string" || modelName.trim().length === 0) {
       return res.status(400).json({
         success: false,
         error: "Model name cannot be empty",
@@ -1465,6 +1491,7 @@ router.put("/update-model/:modelId", async (req, res) => {
       .from("user_models")
       .update({
         name: modelName.trim(),
+        ...(modelProfile !== undefined ? { model_profile: modelProfile } : {}),
         updated_at: new Date().toISOString(),
       })
       .eq("id", modelId)

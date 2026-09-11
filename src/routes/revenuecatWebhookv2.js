@@ -144,7 +144,7 @@ const getCreditsForPackage = (productId) => {
 router.post("/webhookv2", async (req, res) => {
   try {
     console.log("🔗 RevenueCat Webhook Received!");
-    console.log("Headers:", req.headers);
+    console.log("Webhook request:", { contentType: req.headers["content-type"] });
 
     // 🔒 WEBHOOK DOĞRULAMA — REVENUECAT_WEBHOOK_AUTH env tanımlıysa ZORUNLU.
     // Tanımlı değilse eski davranış (pass-through) korunur → kademeli/güvenli geçiş.

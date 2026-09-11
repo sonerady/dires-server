@@ -7,6 +7,7 @@ const sharp = require("sharp");
 const teamService = require("../services/teamService");
 const { resolveCanonicalGenerationId } = require("../utils/canonicalGenerationId");
 const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
+const { generateKitImage, getKitRoute } = require("../utils/kitImageRoute");
 
 // Supabase client
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -100,102 +101,8 @@ async function getOptimizedImageUrl(imageUrl) {
     }
 }
 
-// Replicate GPT Image 1.5 Edit API call
-async function callReplicateGptImageEdit(prompt, resultImageUrl, referenceImageUrl, maxRetries = 3, imageSize = "1024x1536") {
-    const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
-
-    if (!REPLICATE_API_TOKEN) {
-        throw new Error("REPLICATE_API_TOKEN environment variable is not set");
-    }
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            console.log(`🎨 [FASHION_REPLICATE] Image generation attempt ${attempt}/${maxRetries}`);
-            console.log(`🎨 [FASHION_REPLICATE] Prompt: ${prompt.substring(0, 100)}...`);
-
-            // Map size format to Replicate aspect_ratio
-            const sizeToAspectRatio = { "1024x1024": "1:1", "1536x1024": "3:2", "1024x1536": "2:3" };
-            const aspectRatio = sizeToAspectRatio[imageSize] || "2:3";
-
-            const response = await axios.post(
-                "https://api.replicate.com/v1/models/openai/gpt-image-1.5/predictions",
-                {
-                    input: {
-                        prompt: prompt,
-                        input_images: [resultImageUrl, referenceImageUrl],
-                        aspect_ratio: aspectRatio,
-                        quality: "low",
-                        number_of_images: 1,
-                    }
-                },
-                {
-                    headers: {
-                        "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
-                        "Content-Type": "application/json",
-                    },
-                    timeout: 30000,
-                }
-            );
-
-            const prediction = response.data;
-
-            if (!prediction.id) {
-                throw new Error("Replicate did not return a prediction ID");
-            }
-
-            console.log(`⏳ [FASHION_REPLICATE] Prediction created, id: ${prediction.id}`);
-
-            // Poll for result
-            let maxPolls = 60;
-            for (let poll = 0; poll < maxPolls; poll++) {
-                const statusResponse = await axios.get(
-                    `https://api.replicate.com/v1/predictions/${prediction.id}`,
-                    {
-                        headers: {
-                            "Authorization": `Bearer ${REPLICATE_API_TOKEN}`,
-                            "Content-Type": "application/json",
-                        },
-                        timeout: 15000,
-                    }
-                );
-
-                const result = statusResponse.data;
-                console.log(`⏳ [FASHION_REPLICATE] Poll ${poll + 1}/${maxPolls}, status: ${result.status}`);
-
-                if (result.status === "succeeded") {
-                    // Replicate GPT Image returns output as URL string or array
-                    const output = result.output;
-                    if (output) {
-                        const imageUrl = Array.isArray(output) ? output[0] : output;
-                        if (imageUrl) {
-                            console.log(`✅ [FASHION_REPLICATE] Image generated successfully`);
-                            return imageUrl;
-                        }
-                    }
-                    throw new Error("No image URL in succeeded result");
-                }
-
-                if (result.status === "failed" || result.status === "canceled") {
-                    throw new Error(`Replicate prediction ${result.status}: ${result.error || "unknown error"}`);
-                }
-
-                await new Promise(resolve => setTimeout(resolve, 2000));
-            }
-
-            throw new Error("Replicate GPT Image polling timeout");
-
-        } catch (error) {
-            console.error(`❌ [FASHION_REPLICATE] Attempt ${attempt} failed:`, error.message);
-
-            if (attempt === maxRetries) {
-                throw error;
-            }
-
-            const waitTime = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
-            await new Promise(resolve => setTimeout(resolve, waitTime));
-        }
-    }
-}
+// Kit görsel üretimi — ortak yol (utils/kitImageRoute.js):
+// GPT Image 2.5 (medium) → hata olursa Nano Banana 2 (→ pro); sıra app_config.kit_route ile seçilir.
 
 // Save generated image to user bucket
 async function saveGeneratedImageToUserBucket(imageUrl, userId, imageType) {
@@ -499,7 +406,7 @@ async function getUserFashionCount(userId) {
 // ═══════════════════════════════════════════════════════
 router.post("/generate-fashion-kit", async (req, res) => {
     const startTime = Date.now();
-    const FASHION_GENERATION_COST = 20; // 5 scenes = 20 credits
+    const FASHION_GENERATION_COST = 30; // tüm kitler ortak 30 kredi
     const FREE_TIER_LIMIT = 2; // First 2 generations free
 
     try {
@@ -692,7 +599,13 @@ Scene_5: [prompt]`;
             try {
                 console.log(`🎨 [FASHION] Generating scene ${index + 1} (${sceneTypes[index]})...`);
                 const userImageSize = up.aspect_ratio || "1024x1536";
-                const generatedUrl = await callReplicateGptImageEdit(prompt, optimizedResultUrl, optimizedReferenceUrl, 3, userImageSize);
+                console.log(`🎨 [FASHION] kit route: ${getKitRoute()}, aspect: ${userImageSize}`);
+                const generatedUrl = await generateKitImage({
+                    prompt,
+                    imageUrls: [optimizedResultUrl, optimizedReferenceUrl],
+                    aspectRatio: userImageSize,
+                    tag: "FASHION",
+                });
 
                 const savedUrl = await saveGeneratedImageToUserBucket(
                     generatedUrl,

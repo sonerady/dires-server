@@ -1,3 +1,4 @@
+const { GPT25_EDIT_MODEL, buildEditInput } = require("../utils/gpt25Edit");
 const express = require("express");
 const router = express.Router();
 // Updated: Using Google Gemini API for prompt generation
@@ -3733,7 +3734,7 @@ router.post("/generate", async (req, res) => {
 
     // V2 model seçimi (Pro model)
     const isV2 = req.body.quality === "v2";
-    const falModel = isV2 // req.body'de quality varsa v2 kontrolü yap
+    const falModel = isEditMode || (isPoseChange && !isV2) ? GPT25_EDIT_MODEL : isV2 // Other callers retain their existing route
       ? "fal-ai/nano-banana-pro/edit"
       : "google/nano-banana-lite/edit";
 
@@ -3860,7 +3861,7 @@ router.post("/generate", async (req, res) => {
         // Fal.ai API çağrısı
         const response = await axios.post(
           `https://fal.run/${falModel}`,
-          requestBody,
+          buildEditInput(falModel, requestBody),
           {
             headers: {
               Authorization: `Key ${process.env.FAL_API_KEY}`,

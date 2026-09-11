@@ -1,3 +1,5 @@
+const { GPT25_EDIT_MODEL, buildEditInput, gpt25NearestRatio, probeImageDims, getGpt25QualityV2 } = require("../utils/gpt25Edit");
+const { startGenerationHeartbeat } = require("../services/generationRecovery");
 const { getGenerationCreditCost } = require("../utils/generationCredits");
 const express = require("express");
 const router = express.Router();
@@ -338,10 +340,7 @@ async function callNanoBanana2ForRefiner(
   throw lastError || new Error("nano-banana-2 failed");
 }
 
-// Fal.ai GPT Image Edit API call using SDK (for Refiner mode - Ghost Mannequin style).
-// app_config.is_new bayrağına göre model seçilir:
-//   true  → openai/gpt-image-2/edit  (yeni, image_size enum, input_fidelity yok)
-//   false → fal-ai/gpt-image-1.5/edit (eski, pixel size, input_fidelity var)
+// All Refiner variants use GPT Image 2.5 Sunburst, independent of app_config.
 async function callFalAiGptImageEditForRefiner(
   prompt,
   imageUrlOrUrls,
@@ -353,42 +352,9 @@ async function callFalAiGptImageEditForRefiner(
   const imageUrls = (
     Array.isArray(imageUrlOrUrls) ? imageUrlOrUrls : [imageUrlOrUrls]
   ).filter(Boolean);
-  const useGpt2 = await isNewRefinerEnabled();
-  const modelEndpoint = useGpt2
-    ? "openai/gpt-image-2/edit"
-    : "fal-ai/gpt-image-1.5/edit";
-  const modelLabel = useGpt2 ? "GPT Image 2" : "GPT Image 1.5";
-
-  // GPT 2: image_size enum, input_fidelity kaldırıldı.
-  // GPT 1.5: pixel size + input_fidelity: "high"
-  const safeRatio = normalizeRefinerRatio(aspectRatio);
-  const input = useGpt2
-    ? {
-        prompt: prompt,
-        image_urls: imageUrls,
-        image_size: mapRatioToGptImage2Size(safeRatio),
-        quality: "medium",
-        num_images: 1,
-        output_format: "jpeg",
-      }
-    : {
-        prompt: prompt,
-        image_urls: imageUrls,
-        image_size: mapRatioToGptImage15Size(safeRatio),
-        quality: "medium",
-        input_fidelity: "high",
-        num_images: 1,
-        output_format: "jpeg",
-      };
-  if (imageUrls.length > 1) {
-    logger.log(
-      `🎨 [FAL_AI_GPT_REFINER] ${imageUrls.length} görsel gönderiliyor (ürün + referanslar)`,
-    );
-  }
-
-  logger.log(
-    `⚙️ [REFINER MODEL_SWITCH] app_config.is_new = ${useGpt2} → ${modelLabel} (${modelEndpoint}) | oran ${safeRatio} → image_size ${input.image_size}`,
-  );
+  const modelEndpoint = GPT25_EDIT_MODEL;
+  const modelLabel = "GPT Image 2.5";
+  const input = buildEditInput(modelEndpoint, {prompt, image_urls: imageUrls, aspect_ratio: normalizeRefinerRatio(aspectRatio), output_format: "jpeg"});
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -1047,7 +1013,7 @@ async function saveToRefinerGenerations({
   qualityVersion = "v1",
   falRequestId = null,
   processingTimeSeconds = null,
-  creditsUsed = 20,
+  creditsUsed = qualityVersion === "v2" ? 35 : 10,
 }) {
   try {
     const { data, error } = await supabase
@@ -1451,7 +1417,8 @@ async function updateGenerationStatus(
 
 // Aspect ratio formatını düzelten yardımcı fonksiyon
 function formatAspectRatio(ratioStr) {
-  const validRatios = ["1:1", "4:3", "3:4", "16:9", "9:16", "21:9"];
+  // GPT Image 2.5 sabit boyut tablosu (gpt25Edit) 10 oranın hepsini karşılıyor — daraltma yok.
+  const validRatios = ["21:9", "16:9", "3:2", "4:3", "5:4", "1:1", "4:5", "3:4", "2:3", "9:16"];
 
   try {
     // "original" veya tanımsız değerler için varsayılan oran
@@ -4214,6 +4181,7 @@ async function pollReplicateResultWithRetry(predictionId, maxRetries = 3) {
 }
 
 router.post("/generate", async (req, res) => {
+  let stopHeartbeat = () => {};
   // Kredi kontrolü ve düşme (kalite versiyonuna göre dinamik)
   let creditDeducted = false;
   let actualCreditDeducted = 10; // Default v1 için 10 kredi
@@ -4301,7 +4269,8 @@ router.post("/generate", async (req, res) => {
     })();
     // 📐 Kullanıcının seçtiği çıktı oranı — hem modele hem sahneleme referans
     // karesinin tuvaline uygulanır (ikisi AYNI tuvalde olmalı).
-    const refinerOutputRatio = normalizeRefinerRatio(ratio);
+    // "original" seçiliyse ürün görseli yüklendikten sonra kaynağın oranına en yakın tablo oranına çözülür (aşağıda).
+    let refinerOutputRatio = normalizeRefinerRatio(ratio);
     const isShoesStaging = refinerProductCategory === "shoes";
     // 🕶️ Gözlük (19 Ağu 2026): sınıflandırıcıda üst tip değil clothing/eyewear
     // alt türü — istemci sahneleme için productCategory="eyewear" gönderir.
@@ -5087,6 +5056,7 @@ ABSOLUTELY NO ADDED TEXT: The finished photograph must contain no added text of 
 
     // 🔄 Status'u processing'e güncelle
     await updateGenerationStatus(finalGenerationId, userId, "processing");
+    stopHeartbeat = startGenerationHeartbeat(supabase, finalGenerationId, userId);
 
     // 📊 Refiner modunda refiner_generations tablosuna da kaydet
     if (isRefinerMode) {
@@ -5237,7 +5207,20 @@ ABSOLUTELY NO ADDED TEXT: The finished photograph must contain no added text of 
     logger.log("Supabase'den alınan final resim URL'si:", finalImage);
 
     // Aspect ratio'yu formatla
-    const formattedRatio = formatAspectRatio(ratio || "9:16");
+    let formattedRatio = formatAspectRatio(ratio || "9:16");
+    // 📐 "Orijinal" oran: kaynak görselin boyutu okunup GPT 2.5 tablosundaki en
+    // yakın orana çözülür; böylece model çıktısı, sahneleme tuvali ve prompt
+    // aynı oranı konuşur (eskiden sessizce 3:4 / 9:16'ya düşüyordu).
+    if (!ratio || ratio === "original") {
+      const probeUrl = finalImage || referenceImageUrls?.[0];
+      const dims = probeUrl ? await probeImageDims(probeUrl) : null;
+      const nearest = dims ? gpt25NearestRatio(dims.width, dims.height) : null;
+      if (nearest) {
+        formattedRatio = nearest;
+        refinerOutputRatio = nearest;
+        logger.log(`📐 [ORIGINAL RATIO] Kaynak ${dims.width}x${dims.height} → en yakın oran ${nearest}`);
+      }
+    }
     logger.log(
       `İstenen ratio: ${ratio}, formatlanmış ratio: ${formattedRatio}`,
     );
@@ -5924,48 +5907,15 @@ MULTIPLE-ANGLE PRODUCT REFERENCE: The composite grid contains ${anglesCount} vie
     logger.log("📝 [BACKEND MAIN] Original prompt:", promptText);
     logger.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
 
-    // 🔧 REFINER MODE — model seçimi (18 Ağu 2026, kullanıcı kararı):
-    //   • Herhangi bir REFERANS varsa (çekim tarzı, renk kareleri, dizilim
-    //     örneği) → nano-banana-2, hepsi tek istekte çoklu görsel olarak.
-    //   • Referanssız düz netleştirme → GPT Image (tek görsel).
+    // Every Refiner mode uses GPT 2.5, including style, staging and color references.
     if (isRefinerMode) {
-      // 👟 Ayakkabı sahnelemesi GPT Image ile (19 Ağu 2026, kullanıcı kararı,
-      // 2. deneme — bu kez swap çerçevesi + 3:4 hizalı referansla birlikte).
-      // Swap modunun girdileri ([referans, ürün]) ve prompt'u GPT'ye de aynen
-      // gidiyor; GPT çıktısı portrait_4_3 = referans tuvaliyle uyumlu.
-      // Model seçimi (19 Ağu): ayakkabı → GPT Image, gözlük → nb2 (kullanıcı
-      // kararı); diğer kategoriler referans varken nb2 (eski davranış).
-      // ⚠️ 28 Ağu 2026: takı ana üretimi kısa süre GPT Image 2 "medium"a
-      // alındı, sonra kullanıcı kararıyla GERİ ALINDI — takıda ANA ÜRETİM
-      // yine nano-banana-2. GPT yalnız ÇEŞİTLENDİRME tarafında ("low",
-      // variationRoutes.js). Ayakkabı hâlâ GPT'de (19 Ağu kararı).
-      const useNb2ForStyle =
-        (!!refinerStyleRefUrl ||
-          lineupColorRefUrls.length > 0 ||
-          !!lineupLayoutRefUrl ||
-          !!stagingExampleRefUrl) &&
-        !isShoesStaging;
-      logger.log(
-        useNb2ForStyle
-          ? `🔧 [REFINER MODE] Çoklu görsel (${[
-              refinerStyleRefUrl ? "çekim tarzı" : null,
-              lineupColorRefUrls.length
-                ? `${lineupColorRefUrls.length} renk referansı`
-                : null,
-              lineupLayoutRefUrl ? "dizilim referansı" : null,
-              stagingExampleRefUrl ? "sahneleme örneği" : null,
-            ]
-              .filter(Boolean)
-              .join(" + ")}) → nano-banana-2 kullanılacak`
-          : "🔧 [REFINER MODE] GPT Image 2 API kullanılacak...",
-      );
       logger.log("🔧 [REFINER MODE] Final Image URL:", finalImage);
 
       try {
         // Sıra: ürün → stil referansı → renk referansları (plaka sırasıyla)
         // → dizilim referansı. Kareler prompt'ta plaka adıyla anılıyor,
         // sıra o yüzden korunur.
-        let nb2Inputs = [
+        let refinerInputs = [
           finalImage,
           ...(refinerStyleRefUrl ? [refinerStyleRefUrl] : []),
           ...lineupColorRefUrls,
@@ -5987,7 +5937,7 @@ MULTIPLE-ANGLE PRODUCT REFERENCE: The composite grid contains ${anglesCount} vie
           stagingExampleRefUrl &&
           [1, 2, 3].includes(stagingStyleValue)
         ) {
-          nb2Inputs = [stagingExampleRefUrl, finalImage];
+          refinerInputs = [stagingExampleRefUrl, finalImage];
           const swapNoun = isShoesStaging
             ? "shoe"
             : isEarringsStaging
@@ -6169,22 +6119,8 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
           );
         }
 
-        const gptImageResult = useNb2ForStyle
-          ? await callNanoBanana2ForRefiner(
-              refinerFinalPrompt,
-              nb2Inputs,
-              refinerOutputRatio,
-            )
-          : await callFalAiGptImageEditForRefiner(
-              refinerFinalPrompt,
-              // 👟🕶️ Sahnelemeli kategorilerde referanslar GPT'ye de gider
-              isStagedCategory && nb2Inputs.length > 1 ? nb2Inputs : finalImage,
-              refinerOutputRatio,
-            );
-
-        logger.log(
-          `✅ [REFINER MODE] ${useNb2ForStyle ? "nano-banana-2" : "GPT Image 2"} başarılı:`,
-          gptImageResult,
+        const gptImageResult = await callFalAiGptImageEditForRefiner(
+          refinerFinalPrompt, refinerInputs, refinerOutputRatio,
         );
 
         // 🔍 NETLEŞTİRME ADIMI — Results'taki MP butonu 4'ten büyük seçildiyse
@@ -6269,8 +6205,8 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
             // anında çözülüp settings'e yazıldı; taze sonuç için buradan da
             // döndürülüyor ki istemci geçmişi beklemeden kullanabilsin.
             backgroundColorHex: resolvedBackgroundHex || null,
-            apiUsed: useNb2ForStyle ? "nano-banana-2" : "gpt-image-2",
-            styleReferenceApplied: useNb2ForStyle,
+            apiUsed: "gpt-image-2.5",
+            styleReferenceApplied: !!refinerStyleRefUrl,
             // 🔍 Uygulanan netleştirme kademesi (yoksa null)
             upscaledMp: upscaleOutcome.appliedMp || null,
             preUpscaleImageUrl:
@@ -6281,7 +6217,7 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
         });
       } catch (refinerError) {
         console.error(
-          `❌ [REFINER MODE] ${useNb2ForStyle ? "nano-banana-2" : "GPT Image 2"} hatası:`,
+          `❌ [REFINER MODE] GPT Image 2.5 hatası:`,
           refinerError.message,
         );
 
@@ -6330,6 +6266,7 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
     let totalRetryAttempts = 0;
     let retryReasons = [];
 
+    const falModel = GPT25_EDIT_MODEL;
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         logger.log(
@@ -6435,10 +6372,7 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
         const isV2 = qualityVersion === "v2";
         // For fal.ai, we use nano-banana/edit for v1 and nano-banana-pro/edit for v2
         // Back side analysis modunda her zaman nano-banana-pro kullan
-        const falModel =
-          isV2 || req.body.isBackSideAnalysis
-            ? "fal-ai/nano-banana-pro/edit"
-            : "google/nano-banana-lite/edit";
+
 
         logger.log(
           `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model: ${falModel}`,
@@ -6456,8 +6390,8 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
         );
 
         // Back side analysis veya v2 modunda quality "2K" olarak ayarla
-        const qualityParam =
-          isV2 || req.body.isBackSideAnalysis ? "2K" : undefined;
+        // GPT 2.5: v2 → app_config.gpt25_quality_v2 (high), v1 → gpt25_quality (buildEditInput)
+        const qualityParam = isV2 ? getGpt25QualityV2() : undefined;
 
         if (isPoseChange) {
           // POSE CHANGE MODE - Farklı input parametreleri
@@ -6505,7 +6439,7 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
         // Fal.ai API çağrısı
         const response = await axios.post(
           `https://fal.run/${falModel}`,
-          requestBody,
+          buildEditInput(falModel, requestBody),
           {
             headers: {
               Authorization: `Key ${process.env.FAL_API_KEY}`,
@@ -6826,7 +6760,7 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
 
           const retryResponse = await axios.post(
             `https://fal.run/${falModel}`,
-            retryRequestBody,
+            buildEditInput(falModel, retryRequestBody),
             {
               headers: {
                 Authorization: `Key ${process.env.FAL_API_KEY}`,
@@ -7133,6 +7067,8 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
         status: "failed",
       },
     });
+  } finally {
+    stopHeartbeat();
   }
 });
 

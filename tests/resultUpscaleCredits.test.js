@@ -7,7 +7,7 @@ const pricing = require('../src/utils/generationCredits');
 const source = fs.readFileSync(path.join(__dirname, '../src/utils/resultUpscale.js'), 'utf8');
 
 function setup({ balance = 1000, base = 10, providerError = false, emptyOutput = false, missingToken = false, rejectDebit = false, afterProvider } = {}) {
-  const state = { balance, debits: [], events: [], settings: {}, providerCalls: 0 };
+  const state = { balance, debits: [], events: [], settings: {}, providerCalls: 0, providerInputs: [] };
   const query = () => ({
     select() { return this; }, eq() { return this; },
     limit: async () => ({ data: [{ settings: state.settings }] }),
@@ -35,11 +35,12 @@ function setup({ balance = 1000, base = 10, providerError = false, emptyOutput =
       if (name === '@supabase/supabase-js') return { createClient: () => db };
       if (name === '../services/teamService') return { getEffectiveCredits: async () => ({ creditOwnerId: 'team-owner', creditBalance: state.balance }) };
       if (name === 'axios') return {
-        post: async () => {
+        post: async (_url, body) => {
+          state.providerInputs.push(body.input);
           state.providerCalls++;
           state.events.push('provider');
           if (providerError) throw Error('provider timeout');
-          afterProvider?.(state);
+          await afterProvider?.(state);
           return { data: { status: 'succeeded', output: emptyOutput ? [] : 'https://test/upscaled.jpg' } };
         },
       };
@@ -140,3 +141,4 @@ test('bulk sum includes only successfully applied MP fees', async () => {
   const total = [success, failed, standard].reduce((sum, r) => sum + 10 + r.creditsCharged, 0);
   assert.equal(total, 70);
 });
+

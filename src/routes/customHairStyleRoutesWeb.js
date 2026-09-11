@@ -23,8 +23,8 @@ async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) 
 
 const { optimizeImageUrl } = require("../utils/imageOptimizer");
 
-// Hair style kartları dikey olduğu için 600x1200 boyutunda optimize et
-const optimizeHairStyleImageUrl = (imageUrl) => optimizeImageUrl(imageUrl, { width: 600, height: 1200, quality: 80 });
+// Preserve the complete hairstyle inside the preview bounds; never crop its sides.
+const optimizeHairStyleImageUrl = (imageUrl) => optimizeImageUrl(imageUrl, { width: 600, height: 1200, quality: 80, fit: "scale-down" });
 
 // Delay fonksiyonu
 function delay(ms) {

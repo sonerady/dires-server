@@ -1,5 +1,7 @@
 // app.js
 require("dotenv").config();
+// Install before route/SDK imports: legacy console calls must redact secrets too.
+require("./utils/logRedaction").installLogRedaction();
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -268,6 +270,7 @@ app.use("/api/imageEnhancementWeb", requireBrowser, requireAuth, imageEnhancemen
 app.use("/api/faceSwap", faceSwapRouter);
 app.use("/api", getUserRouter);
 app.use("/api/push-notifications", pushNotificationRoutes);
+app.use("/api/acquisition-push", require("./routes/acquisitionPushRoutes"));
 app.use("/api", notificationRoutes);
 app.use("/api/notificationsWeb", requireBrowser, requireAuth, notificationRoutesWeb);
 app.use("/api/uploadImage", uploadImageRouter);
@@ -506,6 +509,9 @@ app.use("/api/whats-new", whatsNewRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, "0.0.0.0", () => {
+  require("./services/oneSignalMarketingScheduler").startOneSignalMarketingScheduler();
+  const { supabaseAdmin, supabase } = require("./supabaseClient");
+  require("./services/generationRecovery").startGenerationRecovery(supabaseAdmin || supabase);
   console.log(`Server is running on port ${PORT}`);
   console.log("🔄 Server reloaded with Refiner Download routes!");
   console.log(`Server is accessible at http://localhost:${PORT}`);

@@ -33,21 +33,9 @@ const supabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-// 🎨 Varyasyon modeli — GPT Image 2, quality "low" (28 Ağu 2026). TÜM ekranlar:
-// hem Refiner'ın ürün varyantları hem CreateModelPhoto'nun poz varyantları.
-//
-// Model turu ve gerekçe: Nano Banana Lite → GPT "high" (çok yavaş/pahalı, geri
-// alındı) → nano-banana-2 (geri alındı) → Lite → Refiner'da GPT "low" → şimdi
-// her yerde GPT "low". Karar maliyetle de destekleniyor: fal fiyat tablosunda
-// GPT "low" 1024x1536 için $0,018/görsel; Lite ise token bazlı ($37,50/1M
-// görsel çıktı tokenı × 1K başına ~1.120 token) ≈ $0,042/görsel.
-//
-// ⚠️ ALAN ŞEMASI Lite'tan FARKLI: `aspect_ratio` ve `limit_generations` YOK;
-// yerine `image_size` (enum) ve `quality` var.
-// 🛟 GPT Image 2 zaman zaman 422 "Unprocessable Entity" dönüyor (girdi
-// görselinin en-boy oranı, boyutu ya da prompt uzunluğu yüzünden). O durumda
-// parti boş kalmasın diye ÜRETİM Nano Banana Lite ile tekrarlanır — kullanıcı
-// kararı, 28 Ağu 2026. Lite'ın alan şeması farklı, ayarları ayrı tutuluyor.
+// All variation clients use GPT Image 2.5 Sunburst Edit at low quality.
+// Sunburst accepts image_size and quality; input_fidelity is not in its API schema.
+// Keep the existing Nano Banana Lite fallback and its separate input settings.
 const VARIATION_FALLBACK_MODEL = "google/nano-banana-lite/edit";
 const VARIATION_FALLBACK_SETTINGS = {
   num_images: 1,
@@ -59,7 +47,7 @@ const getVariationFallbackSettings = (aspectRatio) => ({
   ...(aspectRatio ? { aspect_ratio: aspectRatio } : {}),
 });
 
-const VARIATION_MODEL = "openai/gpt-image-2/edit";
+const VARIATION_MODEL = "openai/gpt-image-2.5/sunburst/edit";
 const VARIATION_QUALITY = "low";
 const VARIATION_MODEL_SETTINGS = {
   num_images: 1,
@@ -82,10 +70,7 @@ const mapRatioToGptImage2Size = (ratio) =>
     "2:3": "portrait_4_3",
     "9:16": "portrait_16_9",
   })[String(ratio || "")] || "portrait_4_3";
-// 🔢 Parti başına üretilen kare sayısı. 28 Ağu 2026'da 2 → 3 çıkarıldı:
-// GPT Image 2 "low" görsel başı $0,018'e indiği için üçüncü kare partiyi
-// ~$0,054'e getiriyor — Lite'lı iki karelik eski partiden ($0,084) hâlâ ucuz.
-// ⚠️ Prompt üreticiler, yedek promptlar ve Results kart düzeni bu sayıya bağlı.
+// Three independently prompted photographs per variation batch.
 const VARIATIONS_PER_BATCH = 3;
 
 const FREE_FIRST_VARIATION = true;
@@ -1232,21 +1217,13 @@ async function runFalVariation(
   try {
     // Gemini'nin yazdığı ve modele aynen gönderilen nihai prompt.
     console.log(
-      `🎨 [VARIATION] GPT Image 2 prompt | generation=${generationId} | ` +
+      `🎨 [VARIATION] GPT Image 2.5 Sunburst prompt | generation=${generationId} | ` +
         `model=${VARIATION_MODEL} | input_images=${imageUrls.length} | ` +
         `image_size=${mapRatioToGptImage2Size(aspectRatio)} quality=${VARIATION_QUALITY}` +
         ` (kaynak oran ${aspectRatio || "varsayılan"}):\n${prompt}`
     );
 
-    // 🛟 Önce GPT Image 2; HERHANGİ bir hata gelirse AYNI prompt Nano Banana
-    // Lite ile bir kez tekrarlanır.
-    // ⚠️ 30 Ağu 2026 — eskiden yedek yalnız İKİ noktada devreye giriyordu:
-    // submit'in kendisi patlarsa ve kuyruk durumu FAILED dönerse. GPT Image 2'nin
-    // 422 "Unprocessable Entity"si ise çoğunlukla `queue.status`/`queue.result`
-    // çağrısından fırlıyor; o yol yedeğe UĞRAMADAN dış catch'e düşüyor ve
-    // varyant "failed" kalıyordu (kullanıcı raporu: parti yarım kalıyor).
-    // Artık submit + polling + sonuç okuma TEK denemede toplandı; bu denemenin
-    // her hatası yedeğe geçiriyor.
+    // Keep submit, polling and result retrieval on the same selected model.
     const submitAndWait = async (model, settings) => {
       const { request_id } = await fal.queue.submit(model, {
         input: {
@@ -1308,7 +1285,7 @@ async function runFalVariation(
         gptError?.message ||
         "bilinmeyen hata";
       logger.warn(
-        `🛟 [VARIATION] GPT Image 2 başarısız (${String(detail).slice(0, 140)}) — ` +
+        `🛟 [VARIATION] GPT Image 2.5 Sunburst başarısız (${String(detail).slice(0, 140)}) — ` +
           `${generationId} Nano Banana Lite ile tekrarlanıyor`,
       );
       temporaryResultUrl = await submitAndWait(
@@ -1416,10 +1393,8 @@ async function startAutomaticTrialVariation({
     { length: VARIATIONS_PER_BATCH },
     (_, i) => `var_auto_${stableSourceId}_${i + 1}`,
   );
-  // 💍 Refiner çıktısında ÜRÜN modu: manken/poz/arka-görünüm talimatları
-  // geçersiz — iki kare "ikinci katalog açısı" + "detay makro" olur. Model
-  // seçimi de buna bağlı (Refiner → GPT Image 2 "low"), o yüzden satırlar
-  // yazılmadan ÖNCE hesaplanmalı.
+  // Refiner uses product-angle/detail prompts rather than model poses.
+  // Resolve the prompt type before saving rows; all variations use the same model.
   const productMode = sourceContext.isProductShot === true;
 
   // Önce deterministik pending satırlarını ayır. Prompt analizi uzun sürse bile

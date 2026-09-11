@@ -166,7 +166,8 @@ async function callDeepSeekFlashRaw(
             Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
           },
-          timeout: 120000,
+          timeout: generationOptions.timeoutMs ?? 120000,
+          signal: generationOptions.signal,
         },
       );
       const outputText = (response.data?.choices?.[0]?.message?.content || "").trim();
@@ -221,7 +222,8 @@ async function callReplicateGeminiFlashRaw(
             "Content-Type": "application/json",
             Prefer: "wait",
           },
-          timeout: 120000,
+          timeout: generationOptions.timeoutMs ?? 120000,
+          signal: generationOptions.signal,
         },
       );
 
@@ -410,8 +412,29 @@ async function callGeminiVisionClassifier(
   }
 }
 
+// Short JSON tasks must not inherit the English photographic-prompt instruction
+// or its large token budget and multi-minute retry chain.
+async function callStructuredText(prompt, { signal } = {}) {
+  const systemInstruction = "Follow the user's requested JSON format and language exactly. Return only valid JSON, without markdown, commentary or additional text.";
+  const options = { systemInstruction, maxOutputTokens: 512, temperature: 0.7, timeoutMs: 20000, signal };
+  const provider = await getPromptEnhanceProvider();
+  const stages = {
+    deepseek: () => callDeepSeekFlashRaw(prompt, [], 1, systemInstruction, options),
+    replicate: () => callReplicateGeminiFlashRaw(prompt, [], 1, options),
+  };
+  const primary = provider === "deepseek" ? "deepseek" : "replicate";
+  if (signal?.aborted) throw signal.reason;
+  try { return await stages[primary](); }
+  catch (error) {
+    if (signal?.aborted) throw error;
+    return stages[primary === "deepseek" ? "replicate" : "deepseek"]();
+  }
+}
+
 module.exports = {
+  callStructuredText,
   callDeepSeekFlashRaw,
+  callReplicateGeminiFlashRaw,
   isInvalidInputError,
   callGeminiFlash,
   callGeminiVisionClassifier,

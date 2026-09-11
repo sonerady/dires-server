@@ -1,3 +1,4 @@
+const { GPT25_EDIT_MODEL, buildEditInput, gpt25NearestRatio, probeImageDims, getGpt25QualityV2 } = require("../utils/gpt25Edit");
 const express = require("express");
 const router = express.Router();
 // Updated: Using Google Gemini API for prompt generation
@@ -59,7 +60,7 @@ fal.config({
 });
 
 // App-level config bayrağı: Supabase `app_config` tablosunda is_new = true ise
-// Refiner GPT Image 2 kullanır, false ise eski GPT Image 1.5'e düşer.
+// Refiner GPT Image 2 kullanır, false ise eski GPT Image 2.5'e düşer.
 // Hata/kolon yoksa default olarak `true` döner — güvenli fallback (yeni model).
 async function isNewRefinerEnabled() {
   try {
@@ -88,45 +89,16 @@ async function isNewRefinerEnabled() {
   return true; // default: yeni model (GPT Image 2)
 }
 
-// Fal.ai GPT Image Edit API call using SDK (for Refiner mode - Ghost Mannequin style).
-// app_config.is_new bayrağına göre model seçilir:
-//   true  → openai/gpt-image-2/edit  (yeni, image_size enum, input_fidelity yok)
-//   false → fal-ai/gpt-image-1.5/edit (eski, pixel size, input_fidelity var)
+// All Refiner variants use GPT Image 2.5 Sunburst, independent of app_config.
 async function callFalAiGptImageEditForRefiner(
   prompt,
   imageUrl,
   maxRetries = 3,
+  aspectRatio = "auto",
 ) {
-  const useGpt2 = await isNewRefinerEnabled();
-  const modelEndpoint = useGpt2
-    ? "openai/gpt-image-2/edit"
-    : "fal-ai/gpt-image-1.5/edit";
-  const modelLabel = useGpt2 ? "GPT Image 2" : "GPT Image 1.5";
-
-  // GPT 2: image_size enum, input_fidelity kaldırıldı.
-  // GPT 1.5: pixel size + input_fidelity: "high"
-  const input = useGpt2
-    ? {
-        prompt: prompt,
-        image_urls: [imageUrl],
-        image_size: "portrait_4_3",
-        quality: "medium",
-        num_images: 1,
-        output_format: "jpeg",
-      }
-    : {
-        prompt: prompt,
-        image_urls: [imageUrl],
-        image_size: "1024x1536",
-        quality: "medium",
-        input_fidelity: "high",
-        num_images: 1,
-        output_format: "jpeg",
-      };
-
-  logger.log(
-    `⚙️ [REFINER MODEL_SWITCH] app_config.is_new = ${useGpt2} → ${modelLabel} (${modelEndpoint})`,
-  );
+  const modelEndpoint = GPT25_EDIT_MODEL;
+  const modelLabel = "GPT Image 2.5";
+  const input = buildEditInput(modelEndpoint, {prompt, image_urls: Array.isArray(imageUrl) ? imageUrl : [imageUrl], aspect_ratio: aspectRatio, output_format: "jpeg"});
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -1121,7 +1093,8 @@ async function updateGenerationStatus(
 
 // Aspect ratio formatını düzelten yardımcı fonksiyon
 function formatAspectRatio(ratioStr) {
-  const validRatios = ["1:1", "4:3", "3:4", "16:9", "9:16", "21:9"];
+  // GPT Image 2.5 sabit boyut tablosu (gpt25Edit) 10 oranın hepsini karşılıyor — daraltma yok.
+  const validRatios = ["21:9", "16:9", "3:2", "4:3", "5:4", "1:1", "4:5", "3:4", "2:3", "9:16"];
 
   try {
     // "original" veya tanımsız değerler için varsayılan oran
@@ -4417,7 +4390,19 @@ router.post("/generate", async (req, res) => {
     logger.log("Supabase'den alınan final resim URL'si:", finalImage);
 
     // Aspect ratio'yu formatla
-    const formattedRatio = formatAspectRatio(ratio || "9:16");
+    let formattedRatio = formatAspectRatio(ratio || "9:16");
+    // 📐 "Orijinal" oran: kaynak görselin boyutu okunup GPT 2.5 tablosundaki en
+    // yakın orana çözülür; böylece model çıktısı, sahneleme tuvali ve prompt
+    // aynı oranı konuşur (eskiden sessizce 3:4 / 9:16'ya düşüyordu).
+    if (!ratio || ratio === "original") {
+      const probeUrl = finalImage || referenceImageUrls?.[0];
+      const dims = probeUrl ? await probeImageDims(probeUrl) : null;
+      const nearest = dims ? gpt25NearestRatio(dims.width, dims.height) : null;
+      if (nearest) {
+        formattedRatio = nearest;
+        logger.log(`📐 [ORIGINAL RATIO] Kaynak ${dims.width}x${dims.height} → en yakın oran ${nearest}`);
+      }
+    }
     logger.log(
       `İstenen ratio: ${ratio}, formatlanmış ratio: ${formattedRatio}`,
     );
@@ -4691,19 +4676,21 @@ router.post("/generate", async (req, res) => {
     logger.log("📝 [BACKEND MAIN] Original prompt:", promptText);
     logger.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
 
-    // 🔧 REFINER MODE: Use GPT Image 1.5 instead of nano-banana
+    // 🔧 REFINER MODE: Use GPT Image 2.5 instead of nano-banana
     if (isRefinerMode) {
-      logger.log("🔧 [REFINER MODE] GPT Image 1.5 API kullanılacak...");
+      logger.log("🔧 [REFINER MODE] GPT Image 2.5 API kullanılacak...");
       logger.log("🔧 [REFINER MODE] Final Image URL:", finalImage);
 
       try {
-        // GPT Image 1.5 ile görsel oluştur
+        // GPT Image 2.5 ile görsel oluştur
         const gptImageResult = await callFalAiGptImageEditForRefiner(
           enhancedPrompt,
           finalImage,
+          3,
+          formattedRatio,
         );
 
-        logger.log("✅ [REFINER MODE] GPT Image 1.5 başarılı:", gptImageResult);
+        logger.log("✅ [REFINER MODE] GPT Image 2.5 başarılı:", gptImageResult);
 
         // Generation'ı completed olarak güncelle (result_image_url ile - updateGenerationStatus içinde Supabase'e kaydediliyor)
         await updateGenerationStatus(finalGenerationId, userId, "completed", {
@@ -4722,12 +4709,12 @@ router.post("/generate", async (req, res) => {
             prompt: enhancedPrompt,
             generationId: finalGenerationId,
             isRefinerMode: true,
-            apiUsed: "gpt-image-1.5",
+            apiUsed: "gpt-image-2.5",
           },
         });
       } catch (refinerError) {
         console.error(
-          "❌ [REFINER MODE] GPT Image 1.5 hatası:",
+          "❌ [REFINER MODE] GPT Image 2.5 hatası:",
           refinerError.message,
         );
 
@@ -4776,6 +4763,7 @@ router.post("/generate", async (req, res) => {
     let totalRetryAttempts = 0;
     let retryReasons = [];
 
+    const falModel = GPT25_EDIT_MODEL;
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         logger.log(
@@ -4865,10 +4853,7 @@ router.post("/generate", async (req, res) => {
         const isV2 = qualityVersion === "v2";
         // For fal.ai, we use nano-banana/edit for v1 and nano-banana-pro/edit for v2
         // Back side analysis modunda her zaman nano-banana-pro kullan
-        const falModel =
-          isV2 || req.body.isBackSideAnalysis
-            ? "fal-ai/nano-banana-pro/edit"
-            : "google/nano-banana-lite/edit";
+
 
         logger.log(
           `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model: ${falModel}`,
@@ -4886,8 +4871,8 @@ router.post("/generate", async (req, res) => {
         );
 
         // Back side analysis veya v2 modunda quality "2K" olarak ayarla
-        const qualityParam =
-          isV2 || req.body.isBackSideAnalysis ? "2K" : undefined;
+        // GPT 2.5: v2 → app_config.gpt25_quality_v2 (high), v1 → gpt25_quality (buildEditInput)
+        const qualityParam = isV2 ? getGpt25QualityV2() : undefined;
 
         if (isPoseChange) {
           // POSE CHANGE MODE - Farklı input parametreleri
@@ -4935,7 +4920,7 @@ router.post("/generate", async (req, res) => {
         // Fal.ai API çağrısı
         const response = await axios.post(
           `https://fal.run/${falModel}`,
-          requestBody,
+          buildEditInput(falModel, requestBody),
           {
             headers: {
               Authorization: `Key ${process.env.FAL_API_KEY}`,
@@ -5256,7 +5241,7 @@ router.post("/generate", async (req, res) => {
 
           const retryResponse = await axios.post(
             `https://fal.run/${falModel}`,
-            retryRequestBody,
+            buildEditInput(falModel, retryRequestBody),
             {
               headers: {
                 Authorization: `Key ${process.env.FAL_API_KEY}`,

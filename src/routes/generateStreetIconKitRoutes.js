@@ -17,27 +17,12 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
     },
 });
 
-// @fal-ai/client for GPT Image 2 (queue-based edit API)
+// @fal-ai/client (GPT Image 2.5 queue edit API — utils/kitImageRoute.js)
 const { fal } = require("@fal-ai/client");
+const { generateKitImage, getKitRoute } = require("../utils/kitImageRoute");
 fal.config({ credentials: process.env.FAL_API_KEY });
 
 // ─── GPT Image 2 helpers (same pattern as V7 referenceBrowserRoutes) ──────────
-function mapRatioToGptImage2Size(ratio) {
-    const mapping = {
-        "21:9": "landscape_16_9",
-        "16:9": "landscape_16_9",
-        "3:2": "landscape_4_3",
-        "4:3": "landscape_4_3",
-        "5:4": "landscape_4_3",
-        "1:1": "square_hd",
-        "4:5": "portrait_4_3",
-        "3:4": "portrait_4_3",
-        "2:3": "portrait_4_3",
-        "9:16": "portrait_16_9",
-    };
-    return mapping[ratio] || "portrait_16_9"; // default 9:16 — street icon is vertical editorial
-}
-
 // GPT Image 2 rejects input images with aspect ratio > 3:1 (even close like 2.997).
 // Trigger 2.9, target 2.5 for safety buffer. Pads the short edge with white.
 async function ensureMaxAspectRatio3to1ForInput(imageUrls, userId) {
@@ -92,53 +77,6 @@ async function ensureMaxAspectRatio3to1ForInput(imageUrls, userId) {
         }
     }
     return processed;
-}
-
-// Fal.ai GPT Image 2 Edit — queue submit + poll until complete
-async function callFalAiGptImage2Edit(prompt, imageUrls, imageSize = "portrait_16_9", maxRetries = 3) {
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            console.log(`🎨 [STREET_ICON_GPT2] attempt ${attempt}/${maxRetries}, image_size: ${imageSize}, images: ${imageUrls?.length || 0}`);
-            console.log(`🎨 [STREET_ICON_GPT2] Prompt: ${prompt.substring(0, 100)}...`);
-
-            const { request_id } = await fal.queue.submit("openai/gpt-image-2/edit", {
-                input: {
-                    prompt,
-                    image_urls: imageUrls,
-                    image_size: imageSize,
-                    quality: "medium",
-                    num_images: 1,
-                    output_format: "jpeg",
-                },
-            });
-
-            if (!request_id) throw new Error("Fal.ai did not return a request_id");
-            console.log(`⏳ [STREET_ICON_GPT2] request_id: ${request_id}`);
-
-            const maxPolls = 60;
-            for (let poll = 0; poll < maxPolls; poll++) {
-                const status = await fal.queue.status("openai/gpt-image-2/edit", { requestId: request_id, logs: false });
-                console.log(`⏳ [STREET_ICON_GPT2] poll ${poll + 1}/${maxPolls}: ${status.status}`);
-
-                if (status.status === "COMPLETED") {
-                    const final = await fal.queue.result("openai/gpt-image-2/edit", { requestId: request_id });
-                    if (final.data?.images?.length > 0) {
-                        console.log(`✅ [STREET_ICON_GPT2] Image generated`);
-                        return final.data.images[0].url;
-                    }
-                    throw new Error("No images in completed GPT Image 2 result");
-                }
-                if (status.status === "FAILED") throw new Error("Fal.ai GPT Image 2 generation failed");
-                await new Promise((r) => setTimeout(r, 2000));
-            }
-            throw new Error("Fal.ai GPT Image 2 polling timeout");
-        } catch (error) {
-            console.error(`❌ [STREET_ICON_GPT2] attempt ${attempt} failed:`, error.message);
-            if (attempt === maxRetries) throw error;
-            const wait = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
-            await new Promise((r) => setTimeout(r, wait));
-        }
-    }
 }
 
 // ─── Scene definitions ───────────────────────────────────────────────────────
@@ -320,86 +258,10 @@ async function getOptimizedImageUrl(imageUrl) {
     }
 }
 
-// GPT Image 2 → nano-banana-2 fallback wrapper.
-// Strategy: GPT Image 2 gets 2 attempts. If both fail, fall back to
-// `callReplicateNanoBananaPro` (which itself tries nano-banana-2 first,
-// nano-banana-pro as its own secondary fallback).
-async function callGptImage2WithNanoFallback(prompt, imageUrls, gptImageSize, aspectRatio) {
-    try {
-        return await callFalAiGptImage2Edit(prompt, imageUrls, gptImageSize, 2);
-    } catch (gptErr) {
-        console.warn(
-            `⚠️ [STREET_ICON_FALLBACK] GPT Image 2 failed after 2 attempts — falling back to nano-banana-2: ${gptErr.message}`
-        );
-        const resultUrl = imageUrls[0];
-        const referenceUrl = imageUrls[1] || imageUrls[0];
-        return await callReplicateNanoBananaPro(prompt, resultUrl, referenceUrl, 2, aspectRatio);
-    }
-}
-
-// Fal.ai Nano Banana Pro (Google Gemini 3 Pro Image) call — same model as Real Life Kit
-async function callReplicateNanoBananaPro(prompt, resultImageUrl, referenceImageUrl, maxRetries = 3, imageSize = "9:16") {
-    const FAL_API_KEY = process.env.FAL_API_KEY;
-    if (!FAL_API_KEY) throw new Error("FAL_API_KEY environment variable is not set");
-
-    const legacyMap = { "1024x1024": "1:1", "1536x1024": "3:2", "1024x1536": "2:3" };
-    const aspectRatio = legacyMap[imageSize] || imageSize || "9:16";
-
-    const models = [
-        { name: "nano-banana-2", url: "https://fal.run/fal-ai/nano-banana-2/edit" },
-        { name: "nano-banana-pro", url: "https://fal.run/fal-ai/nano-banana-pro/edit" },
-    ];
-
-    for (const model of models) {
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                console.log(`🍌 [STREET_ICON_FAL] ${model.name} attempt ${attempt}/${maxRetries}`);
-                console.log(`🍌 [STREET_ICON_FAL] Prompt: ${prompt.substring(0, 100)}...`);
-
-                const response = await axios.post(
-                    model.url,
-                    {
-                        prompt: prompt,
-                        image_urls: [resultImageUrl, referenceImageUrl],
-                        aspect_ratio: aspectRatio,
-                        resolution: "1K",
-                        output_format: "jpeg",
-                        safety_tolerance: "6",
-                        num_images: 1,
-                    },
-                    {
-                        headers: {
-                            "Authorization": `Key ${FAL_API_KEY}`,
-                            "Content-Type": "application/json",
-                        },
-                        timeout: 300000,
-                    }
-                );
-
-                const output = response.data;
-                if (output.images && output.images.length > 0 && output.images[0].url) {
-                    console.log(`✅ [STREET_ICON_FAL] ${model.name} image generated successfully`);
-                    return output.images[0].url;
-                }
-
-                throw new Error("No image URL in Fal.ai response");
-            } catch (error) {
-                const errMsg = error.response?.data?.detail || error.message || "unknown error";
-                console.error(`❌ [STREET_ICON_FAL] ${model.name} attempt ${attempt} failed:`, errMsg);
-                const isCapacityError = typeof errMsg === "string" && (errMsg.includes("E003") || errMsg.includes("unavailable") || errMsg.includes("capacity") || errMsg.includes("overloaded"));
-                if (isCapacityError) {
-                    console.log(`⚡ [STREET_ICON_FAL] ${model.name} capacity error, skipping to fallback immediately`);
-                    break;
-                }
-                if (attempt === maxRetries) break;
-                const waitTime = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
-                await new Promise(resolve => setTimeout(resolve, waitTime));
-            }
-        }
-        console.log(`⚠️ [STREET_ICON_FAL] ${model.name} failed, trying next model...`);
-    }
-
-    throw new Error("All Nano Banana models failed on Fal.ai (nano-banana-2 and nano-banana-pro)");
+// Kit görsel üretimi — ortak yol (utils/kitImageRoute.js):
+// GPT Image 2.5 (medium) → hata olursa Nano Banana 2 (→ pro); sıra app_config.kit_route ile seçilir.
+async function generateStreetIconScene(prompt, imageUrls, aspectRatio) {
+    return generateKitImage({ prompt, imageUrls, aspectRatio, tag: "STREET_ICON" });
 }
 
 // Save generated image to user bucket
@@ -718,7 +580,7 @@ async function getUserStreetIconCount(userId) {
 // ═══════════════════════════════════════════════════════
 router.post("/generate-street-icon", async (req, res) => {
     const startTime = Date.now();
-    const STREET_ICON_GENERATION_COST = 60; // 6 scenes = 60 credits
+    const STREET_ICON_GENERATION_COST = 30; // tüm kitler ortak 30 kredi
     const FREE_TIER_LIMIT = 2; // First 2 generations free
 
     try {
@@ -1008,18 +870,17 @@ CRITICAL: Respond ONLY with a valid JSON object. No markdown, no code blocks, no
             prompts[i] || DEFAULT_FALLBACK_PROMPTS[i]
         );
 
-        // GPT Image 2 (fal queue) — input images must be ≤ 3:1, so pad once,
+        // GPT Image 2.5 (fal queue) — input images must be ≤ 3:1, so pad once,
         // reuse for all 6 scenes. Aspect ratio string maps to the enum.
         const inputUrls = [optimizedResultUrl, optimizedReferenceUrl].filter(Boolean);
         const sanitizedInputUrls = await ensureMaxAspectRatio3to1ForInput(inputUrls, userId);
         const userImageSize = up.aspect_ratio || "9:16";
-        const gptImageSize = mapRatioToGptImage2Size(userImageSize);
-        console.log(`🎨 [STREET_ICON] Using GPT Image 2, image_size: ${gptImageSize}, inputs: ${sanitizedInputUrls.length}`);
+        console.log(`🎨 [STREET_ICON] kit route: ${getKitRoute()}, aspect: ${userImageSize}, inputs: ${sanitizedInputUrls.length}`);
 
         const imageGenerationPromises = scenePrompts.map(async (prompt, index) => {
             try {
                 console.log(`🎨 [STREET_ICON] Generating scene ${index + 1} (${SCENE_TYPES[index]})...`);
-                const generatedUrl = await callGptImage2WithNanoFallback(prompt, sanitizedInputUrls, gptImageSize, userImageSize);
+                const generatedUrl = await generateStreetIconScene(prompt, sanitizedInputUrls, userImageSize);
 
                 const savedUrl = await saveGeneratedImageToUserBucket(
                     generatedUrl,
@@ -1226,12 +1087,11 @@ router.post("/retry-street-icon-scene", async (req, res) => {
         const optimizedResultUrl = await getOptimizedImageUrl(imageUrl);
         const optimizedReferenceUrl = await getOptimizedImageUrl(referenceImageUrl);
 
-        // GPT Image 2 edit — pad inputs to ≤ 3:1, map ratio to enum
+        // GPT Image 2.5 edit — pad inputs to ≤ 3:1
         const retryInputs = [optimizedResultUrl, optimizedReferenceUrl].filter(Boolean);
         const sanitizedRetryInputs = await ensureMaxAspectRatio3to1ForInput(retryInputs, userId);
-        const gptRetrySize = mapRatioToGptImage2Size(aspectRatio);
-
-        const generatedUrl = await callGptImage2WithNanoFallback(prompt, sanitizedRetryInputs, gptRetrySize, aspectRatio);
+        console.log(`🔄 [STREET_ICON_RETRY] kit route: ${getKitRoute()}, aspect: ${aspectRatio}`);
+        const generatedUrl = await generateStreetIconScene(prompt, sanitizedRetryInputs, aspectRatio);
 
         const savedUrl = await saveGeneratedImageToUserBucket(
             generatedUrl,

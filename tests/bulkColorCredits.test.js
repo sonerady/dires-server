@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const gpt25 = require('../src/utils/gpt25Edit');
 const source = fs.readFileSync(path.join(__dirname, '../src/routes/changeProductColor.js'), 'utf8');
 const start = source.indexOf('async function processBulkColorItem(');
 const end = source.indexOf('router.post("/generate-bulk",', start);
@@ -10,6 +11,7 @@ const end = source.indexOf('router.post("/generate-bulk",', start);
 for (const [quality, fee, paid, expected] of [['v1', 40, true, 50], ['v2', 40, true, 75], ['v2', 0, true, 35], ['v1', 0, false, 0]]) {
   test(`bulk ${quality}, MP fee ${fee}, base paid ${paid}: correct item total`, async () => {
     const context = {
+      ...gpt25, probeImageDims: async () => null,
       Date, console, process: { env: { FAL_API_KEY: 'test' } },
       uuidv4: () => 'generation', sanitizeImageUrl: url => url,
       logger: { log() {} }, createPendingGeneration: async () => {},

@@ -1,110 +1,64 @@
 const express = require("express");
 const router = express.Router();
 const { supabase } = require("../supabaseClient");
+const { decideWhatsNew } = require("../utils/whatsNew");
 
 /**
- * What's New Modal Kontrolü
+ * "Yenilikler" sayfa-modalı — app_config.whats_new_* ile uzaktan yönetilir.
  *
- * Bu endpoint, kullanıcının "What's New" modalını görüp görmemesi gerektiğini belirler.
- * Sadece güncelleme yayınlandıktan SONRA kayıt olmuş kullanıcılara modal gösterilir.
- * Eski kullanıcılara (güncelleme öncesi kayıt olanlara) gösterilmez.
+ * GET /api/whats-new/config
+ *   client=ios|android|desktop|web  (desktop = Mac shell; app_config satırı olarak ios kullanılır)
+ *   lang=tr                          (HTML dili; fallback: ana dil → default → en)
+ *   appVersion=1.7.8                 (web'de yok)
+ *   previousAppVersion=1.7.6         (istemcinin sakladığı bir önceki sürüm; audience=updated için)
+ *   seenVersion=1.7.7                (istemcinin en son gördüğü whats_new_version)
+ *
+ * Yanıt: { success, show, reason, data: { version, audience, dismissible, title, html, lang, rtl } | null }
+ * Sunucu 60 sn önbellekler; kolon değişince deploy gerekmez.
  */
+const CACHE_TTL_MS = 60 * 1000;
+const cache = new Map(); // platform → { at, row }
 
-// Güncelleme yayınlanma tarihi - Bu tarihi her güncelleme için değiştir
-// Bu tarihten SONRA kayıt olan kullanıcılar modalı görecek
-const WHATS_NEW_CUTOFF_DATE = "2026-02-06T00:00:00.000Z"; // 6 Şubat 2026
+const CLIENT_TO_PLATFORM_ROW = { ios: "ios", android: "android", desktop: "ios", web: "ios" };
+const WHATS_NEW_COLUMNS =
+  "platform, whats_new_enabled, whats_new_version, whats_new_audience, whats_new_dismissible, whats_new_platforms, whats_new_title, whats_new_html";
 
-/**
- * GET /api/whats-new/should-show
- *
- * Query params:
- * - userId: Kullanıcı ID'si
- * - appVersion: Uygulama versiyonu (opsiyonel, gelecekte kullanılabilir)
- *
- * Response:
- * - showWhatsNew: boolean - Modal gösterilmeli mi?
- * - reason: string - Neden gösterilip gösterilmediği (debug için)
- */
-router.get("/should-show", async (req, res) => {
+async function loadRow(platformRow) {
+  const hit = cache.get(platformRow);
+  if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.row;
+  const { data, error } = await supabase
+    .from("app_config")
+    .select(WHATS_NEW_COLUMNS)
+    .eq("platform", platformRow)
+    .order("updated_at", { ascending: false, nullsLast: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  cache.set(platformRow, { at: Date.now(), row: data || null });
+  return data || null;
+}
+
+router.get("/config", async (req, res) => {
   try {
-    const { userId, appVersion } = req.query;
-
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        error: "userId is required",
-        showWhatsNew: false,
-      });
-    }
-
-    console.log(`🆕 [WHATS_NEW] Checking for user: ${userId}, appVersion: ${appVersion}`);
-
-    // Kullanıcının kayıt tarihini al
-    const { data: userData, error: userError } = await supabase
-      .from("users")
-      .select("created_at, id")
-      .eq("id", userId)
-      .single();
-
-    if (userError || !userData) {
-      console.log(`🆕 [WHATS_NEW] User not found: ${userId}`, userError);
-      return res.json({
-        success: true,
-        showWhatsNew: false,
-        reason: "user_not_found",
-      });
-    }
-
-    const userCreatedAt = new Date(userData.created_at);
-    const cutoffDate = new Date(WHATS_NEW_CUTOFF_DATE);
-
-    console.log(`🆕 [WHATS_NEW] User created at: ${userCreatedAt.toISOString()}`);
-    console.log(`🆕 [WHATS_NEW] Cutoff date: ${cutoffDate.toISOString()}`);
-
-    // Kullanıcı güncelleme tarihinden SONRA mı kayıt olmuş?
-    if (userCreatedAt >= cutoffDate) {
-      // Yeni kullanıcı - modal göster
-      console.log(`🆕 [WHATS_NEW] ✅ New user - should show modal`);
-      return res.json({
-        success: true,
-        showWhatsNew: true,
-        reason: "new_user",
-        userCreatedAt: userData.created_at,
-        cutoffDate: WHATS_NEW_CUTOFF_DATE,
-      });
-    } else {
-      // Eski kullanıcı - modal gösterme
-      console.log(`🆕 [WHATS_NEW] ❌ Existing user - should NOT show modal`);
-      return res.json({
-        success: true,
-        showWhatsNew: false,
-        reason: "existing_user",
-        userCreatedAt: userData.created_at,
-        cutoffDate: WHATS_NEW_CUTOFF_DATE,
-      });
-    }
-  } catch (error) {
-    console.error("🆕 [WHATS_NEW] Error:", error);
-    return res.status(500).json({
-      success: false,
-      error: error.message,
-      showWhatsNew: false,
+    const client = String(req.query.client || req.query.platform || "ios").toLowerCase();
+    const platformRow = CLIENT_TO_PLATFORM_ROW[client] || "ios";
+    const row = await loadRow(platformRow);
+    const decision = decideWhatsNew(row, {
+      client,
+      lang: req.query.lang,
+      appVersion: req.query.appVersion,
+      previousAppVersion: req.query.previousAppVersion,
+      seenVersion: req.query.seenVersion,
     });
+    res.set("Cache-Control", "no-store");
+    return res.json({ success: true, show: decision.show, reason: decision.reason, data: decision.show ? decision.payload : null });
+  } catch (error) {
+    console.error("🆕 [WHATS_NEW] config error:", error?.message || error);
+    return res.status(500).json({ success: false, show: false, reason: "error", data: null });
   }
 });
 
-/**
- * POST /api/whats-new/update-cutoff
- *
- * Admin endpoint - Cutoff tarihini güncelle (opsiyonel, gelecekte kullanılabilir)
- * Şimdilik sadece kod içinde sabit olarak tanımlı
- */
-router.post("/update-cutoff", async (req, res) => {
-  // Bu endpoint gelecekte admin panelinden cutoff tarihini güncellemek için kullanılabilir
-  return res.status(501).json({
-    success: false,
-    error: "Not implemented. Update WHATS_NEW_CUTOFF_DATE in whatsNewRoutes.js manually.",
-  });
-});
+// Eski istemciler (yorumda kalmış App.js kodu) için geriye dönük uyumluluk: artık hiç göstermez.
+router.get("/should-show", (req, res) => res.json({ success: true, showWhatsNew: false, reason: "deprecated_use_config" }));
 
 module.exports = router;

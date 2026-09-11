@@ -1,3 +1,4 @@
+const { createReferenceLocation } = require("../services/referenceLocation");
 const express = require("express");
 const router = express.Router();
 // Updated: Using Google Gemini API for prompt and tag generation
@@ -554,7 +555,8 @@ async function saveLocationToDatabase(
   isPublic = false,
   generatedTitle = null,
   locationType = "unknown",
-  tags = null
+  tags = null,
+  strict = false
 ) {
   try {
     console.log("💾 Location Supabase'e kaydediliyor...");
@@ -584,6 +586,8 @@ async function saveLocationToDatabase(
     if (error) {
       console.error("Supabase kayıt hatası:", error);
       console.error("Error details:", JSON.stringify(error, null, 2));
+
+      if (strict) throw error;
 
       // Eğer tablo mevcut değilse, geçici olarak sahte data döndür
       if (
@@ -673,6 +677,14 @@ router.post("/create-location", async (req, res) => {
           error: "Invalid user ID format. UUID required.",
           details: `Received: ${actualUserId}`,
         });
+      }
+    }
+
+    if (req.body.referenceImage) {
+      try {
+        return res.json(await createReferenceLocation({ ...req.body, userId: actualUserId, uploadImage: uploadImageToSupabaseStorage, saveLocation: saveLocationToDatabase }));
+      } catch (error) {
+        return res.status(error.status || 502).json({ success: false, error: error.message });
       }
     }
 

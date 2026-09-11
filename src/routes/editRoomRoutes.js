@@ -1,3 +1,4 @@
+const { GPT25_EDIT_MODEL, buildEditInput, probeImageDims } = require("../utils/gpt25Edit");
 const express = require("express");
 const router = express.Router();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
@@ -182,11 +183,11 @@ async function enhancePromptWithGemini(
 
     // Basit prompt talimatı
     const promptForGemini = `
-You are creating a prompt for FLUX Kontext, an AI image editing tool. Look at the provided image and the user's request: "${originalPrompt}"
+You are creating a prompt for GPT Image 2.5, an AI image editing tool. Look at the provided image and the user's request: "${originalPrompt}"
 
 FLUX KONTEXT PROMPT OPTIMIZATION (CRITICAL FOR BEST RESULTS):
 
-You are generating a prompt for FLUX Kontext, a surgical image editing model. Follow these MANDATORY guidelines:
+You are generating a prompt for GPT Image 2.5, a surgical image editing model. Follow these MANDATORY guidelines:
 
 🔧 PROMPT STRUCTURE (EXACTLY 3 CLAUSES):
 1) [MAIN_ACTION] - Start with precise action verb (Change/Transform/Add/Remove/Replace) + specific target
@@ -213,12 +214,12 @@ Essential to prevent unwanted artifacts. Always include "while keeping" + specif
 - All original garment details not being changed
 - Construction, fit, and proportions
 
-IMPORTANT INSTRUCTION: Generate ONLY a single, flowing FLUX Kontext prompt following the 3-clause structure. Do not include explanations, introductions, or commentary. The prompt should be surgical and specific, not descriptive scene creation.
+IMPORTANT INSTRUCTION: Generate ONLY a single, flowing GPT Image 2.5 prompt following the 3-clause structure. Do not include explanations, introductions, or commentary. The prompt should be surgical and specific, not descriptive scene creation.
 
 LANGUAGE NORMALIZATION RULES:
 - Translate every word and phrase that is not in English (e.g., colors, locations, garment descriptors) into English in the generated prompt. Example: convert "beyaz studio" to "white studio". The final prompt MUST be entirely in English.
 
-Based on the user's request and the image, create a FLUX Kontext edit prompt that will accomplish exactly what they asked for.
+Based on the user's request and the image, create a GPT Image 2.5 edit prompt that will accomplish exactly what they asked for.
     `;
 
     console.log(
@@ -263,7 +264,7 @@ Based on the user's request and the image, create a FLUX Kontext edit prompt tha
     let enhancedPrompt = result.response.text().trim();
 
     console.log(
-      "🤖 [BACKEND GEMINI] Gemini'nin ürettiği FLUX Kontext prompt:",
+      "🤖 [BACKEND GEMINI] Gemini'nin ürettiği GPT Image 2.5 prompt:",
       enhancedPrompt
     );
 
@@ -552,39 +553,25 @@ router.post("/generate", async (req, res) => {
     console.log("📝 [BACKEND MAIN] Original prompt:", promptText);
     console.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
 
-    // Replicate API'ye istek gönder - tek referans görseli kullan
-    const fluxInput = {
-      prompt: enhancedPrompt,
-      input_image: referenceImageUrl, // Tek referans görseli
-    };
+    /* "Girdi ile aynı" seçiliyse kaynak oranına en yakın ~4 MP tablo boyutu (gpt25Edit) */
+    const sourceSize = match_input_image ? await probeImageDims(referenceImageUrl) : null;
 
-    // EditRoom'da "original" ratio seçilmişse match_input_image kullan, yoksa aspect_ratio
-    if (match_input_image) {
-      fluxInput.match_input_image = true;
-      console.log(
-        "✅ Original ratio seçildi - match_input_image: true kullanılıyor"
-      );
-    } else {
-      fluxInput.aspect_ratio = formattedRatio;
-      console.log(
-        `✅ Sabit ratio seçildi - aspect_ratio: ${formattedRatio} kullanılıyor`
-      );
-    }
-
-    const replicateResponse = await axios.post(
-      "https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-pro/predictions",
-      {
-        input: fluxInput,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.REPLICATE_API_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-      }
+    // Retain the legacy response envelope while generation runs directly on Fal.
+    const generated = await axios.post(
+      `https://fal.run/${GPT25_EDIT_MODEL}`,
+      buildEditInput(GPT25_EDIT_MODEL, {
+        prompt: enhancedPrompt,
+        image_urls: [referenceImageUrl],
+        aspect_ratio: match_input_image ? "auto" : formattedRatio,
+        ...(sourceSize ? { source_size: sourceSize } : {}),
+        output_format: "png",
+      }),
+      {headers: {Authorization: `Key ${process.env.FAL_API_KEY}`, "Content-Type": "application/json"}, timeout: 300000},
     );
-
-    const initialResult = replicateResponse.data;
+    const resultUrl = generated.data?.images?.[0]?.url;
+    const initialResult = resultUrl
+      ? {id: `gpt25-${uuidv4()}`, status: "succeeded", output: resultUrl}
+      : {error: "GPT Image 2.5 returned no image"};
     console.log("Replicate API başlangıç yanıtı:", initialResult);
 
     if (!initialResult.id) {
@@ -625,7 +612,7 @@ router.post("/generate", async (req, res) => {
     }
 
     // Prediction durumunu polling ile takip et
-    const finalResult = await pollReplicateResult(initialResult.id);
+    const finalResult = initialResult;
 
     console.log("Replicate final result:", finalResult);
 
@@ -649,7 +636,7 @@ router.post("/generate", async (req, res) => {
         }
       }
 
-      // Flux sonucunu doğrudan döndür (face-swap yok)
+      // Return the edited image using the existing client response shape.
       const responseData = {
         success: true,
         result: {

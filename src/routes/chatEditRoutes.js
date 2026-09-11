@@ -1,3 +1,4 @@
+const { GPT25_EDIT_MODEL, buildEditInput } = require("../utils/gpt25Edit");
 const express = require("express");
 const router = express.Router();
 const { createClient } = require("@supabase/supabase-js");
@@ -378,8 +379,8 @@ IMPORTANT: Output ONLY the enhanced prompt text, nothing else. No explanations, 
     timings.geminiEnd = Date.now();
     console.log(`✨ [CHAT-EDIT] Enhanced prompt: "${enhancedPrompt.substring(0, 200)}..."`);
 
-    // ── 6. Call fal.ai nano-banana-2 API ──
-    console.log("🎯 [CHAT-EDIT] Calling fal.ai nano-banana-2...");
+    // ── 6. Call fal.ai GPT Image 2.5 API ──
+    console.log("🎯 [CHAT-EDIT] Calling fal.ai GPT Image 2.5 medium...");
     timings.falStart = Date.now();
 
     const qualitySuffix = " Render in ultra-high 4K resolution with maximum detail, sharp textures, and photorealistic quality.";
@@ -405,8 +406,8 @@ IMPORTANT: Output ONLY the enhanced prompt text, nothing else. No explanations, 
         );
 
         const falResponse = await axios.post(
-          "https://fal.run/fal-ai/nano-banana-2/edit",
-          falRequestBody,
+          `https://fal.run/${GPT25_EDIT_MODEL}`,
+          buildEditInput(GPT25_EDIT_MODEL, falRequestBody),
           {
             headers: {
               Authorization: `Key ${process.env.FAL_API_KEY}`,

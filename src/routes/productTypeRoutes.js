@@ -410,6 +410,7 @@ router.post("/classify", async (req, res) => {
       color,
       pattern,
       productGender: gender,
+      genderDetected: !genderFallbackUsed,
       // false → istemci tarz kartlarını gizler (moda dışı ürün)
       wearable,
     });
