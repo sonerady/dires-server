@@ -9,6 +9,8 @@ const settings = source.slice(source.indexOf('const getVariationModelSettings'),
 const start = source.indexOf('async function runFalVariation(');
 const run = source.slice(start, source.indexOf('/**\n * Ana model üretimi', start));
 const SUNBURST = 'openai/gpt-image-2.5/sunburst/edit';
+// Varyantlar 11 Eyl 2026'dan beri diğer üretimlerle aynı ~4 MP boyut tablosunu kullanıyor.
+const { gpt25ImageSize, gpt25NearestRatio, probeImageDims } = require('../src/utils/gpt25Edit');
 function harness({ failPrimary = false } = {}) {
   const calls = [], updates = [], charges = [];
   const queue = {
@@ -19,6 +21,7 @@ function harness({ failPrimary = false } = {}) {
   const noop = () => {};
   const exports = vm.runInNewContext(`${constants}\n${settings}\n${run}\n({runFalVariation, getVariationModelSettings})`, {
     fal: { queue }, logger: { log: noop, warn: noop, error: noop }, console: { log: noop },
+    gpt25ImageSize, gpt25NearestRatio, probeImageDims,
     setTimeout: cb => { cb(); return 0; },
     supabase: { from: () => ({ update: value => { updates.push(value); return { eq: async () => ({ error: null }) }; } }) },
     persistVariationImage: async () => ({ publicUrl: 'https://example.com/saved.jpg', bucket: 'test', storagePath: 'test.jpg' }),
@@ -33,7 +36,7 @@ test('variation submit, status and result use Sunburst with quality low and pres
   assert.deepEqual(h.calls.map(c => c.model), [SUNBURST, SUNBURST, SUNBURST]);
   const input = h.calls[0].options.input;
   assert.equal(input.quality, 'low');
-  assert.equal(input.image_size, 'portrait_16_9');
+  assert.deepEqual(input.image_size, { width: 1440, height: 2560 }); // 9:16 → ~3,7 MP
   assert.equal(input.num_images, 1);
   assert.equal(input.output_format, 'jpeg');
   assert.equal(input.input_fidelity, undefined, 'Sunburst has no input_fidelity field in its schema');
@@ -44,8 +47,8 @@ test('variation submit, status and result use Sunburst with quality low and pres
 });
 test('source aspect ratio mapping and low quality are retained in every saved variation setting in every saved variation setting', () => {
   const h = harness();
-  for (const [ratio, size] of [['1:1','square_hd'], ['4:3','landscape_4_3'], ['16:9','landscape_16_9'], ['3:4','portrait_4_3'], ['9:16','portrait_16_9']]) {
-    assert.equal(h.getVariationModelSettings(ratio).image_size, size);
+  for (const [ratio, size] of [['1:1',{width:2000,height:2000}], ['4:3',{width:2304,height:1728}], ['16:9',{width:2560,height:1440}], ['3:4',{width:1728,height:2304}], ['9:16',{width:1440,height:2560}]]) {
+    assert.deepEqual(h.getVariationModelSettings(ratio).image_size, size);
     assert.equal(h.getVariationModelSettings(ratio).quality, 'low');
   }
 });

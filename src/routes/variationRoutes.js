@@ -23,6 +23,11 @@ const {
 } = require("../utils/variationFlow");
 const { persistVariationImage } = require("../utils/variationStorage");
 const { optimizeForThumbnail } = require("../utils/imageOptimizer");
+const {
+  gpt25ImageSize,
+  gpt25NearestRatio,
+  probeImageDims,
+} = require("../utils/gpt25Edit");
 const { collectInputImages } = require("../utils/variationInputImages");
 
 fal.config({ credentials: process.env.FAL_API_KEY });
@@ -55,21 +60,29 @@ const VARIATION_MODEL_SETTINGS = {
   quality: VARIATION_QUALITY,
 };
 
-// GPT Image 2 oranı ENUM olarak alıyor; en yakın şekle yuvarlanır.
-// Tablo createRefiner.js'tekiyle BİREBİR aynı — iki yerde ayrışmasın.
-const mapRatioToGptImage2Size = (ratio) =>
-  ({
-    "21:9": "landscape_16_9",
-    "16:9": "landscape_16_9",
-    "3:2": "landscape_4_3",
-    "4:3": "landscape_4_3",
-    "5:4": "landscape_4_3",
-    "1:1": "square_hd",
-    "4:5": "portrait_4_3",
-    "3:4": "portrait_4_3",
-    "2:3": "portrait_4_3",
-    "9:16": "portrait_16_9",
-  })[String(ratio || "")] || "portrait_4_3";
+// 11 Eyl 2026 (kullanıcı kararı): varyantlar artık GPT Image 2'nin ENUM boyutlarını
+// (square_hd/portrait_4_3 ~1 MP) değil, diğer üretimlerle AYNI ~4 MP tablosunu
+// kullanıyor (utils/gpt25Edit.js → GPT25_IMAGE_SIZES: 1:1 2000×2000, 9:16
+// 1440×2560, 16:9 2560×1440, 3:4 1728×2304 …). Tabloda karşılığı olmayan uç
+// oranlar (4:1, 1:4, 8:1, 1:8) "auto" gider; zorlama yuvarlama yapılmaz.
+const mapVariationRatioToSize = (ratio) => gpt25ImageSize(ratio);
+
+// Varyantlara çoğunlukla "Orijinal" oran geliyor (aspect_ratio kaydedilmiyor →
+// null). Bu durumda kaynak görselin gerçek en-boy oranı ölçülüp ~4 MP tablodaki
+// EN YAKIN orana oturtulur; ölçüm başarısızsa "auto" gider. NB Lite yedeğine
+// yine ORİJİNAL değer (null) verilir — Lite kaynağın oranını kendi korur.
+async function resolveVariationSizeRatio(aspectRatio, sourceImageUrl) {
+  if (aspectRatio) return aspectRatio;
+  if (!sourceImageUrl) return null;
+  const dims = await probeImageDims(sourceImageUrl);
+  const nearest = dims ? gpt25NearestRatio(dims.width, dims.height) : null;
+  if (nearest) {
+    logger.log(
+      `🎭 [VARIATION] "Orijinal" oran çözüldü: ${dims.width}×${dims.height} → ${nearest}`,
+    );
+  }
+  return nearest;
+}
 // Three independently prompted photographs per variation batch.
 const VARIATIONS_PER_BATCH = 3;
 
@@ -106,7 +119,7 @@ const normalizeVariationAspectRatio = (value) => {
 // yalnız PROMPT tarafı — iki kare de makro, her biri farklı bir detayda.
 const getVariationModelSettings = (aspectRatio) => ({
   ...VARIATION_MODEL_SETTINGS,
-  image_size: mapRatioToGptImage2Size(aspectRatio),
+  image_size: mapVariationRatioToSize(aspectRatio),
 });
 
 // Gemini yaratıcı pozu/kadrajı seçer; referanstaki kimlik, ürün ve sahne
@@ -1211,6 +1224,7 @@ async function runFalVariation(
   imageUrls,
   creditCost,
   aspectRatio,
+  sizeRatio = null, // "Orijinal" için ölçülmüş ~4 MP oranı; yoksa aspectRatio
 ) {
   const startedAt = Date.now();
 
@@ -1219,7 +1233,7 @@ async function runFalVariation(
     console.log(
       `🎨 [VARIATION] GPT Image 2.5 Sunburst prompt | generation=${generationId} | ` +
         `model=${VARIATION_MODEL} | input_images=${imageUrls.length} | ` +
-        `image_size=${mapRatioToGptImage2Size(aspectRatio)} quality=${VARIATION_QUALITY}` +
+        `image_size=${JSON.stringify(mapVariationRatioToSize(sizeRatio || aspectRatio))} quality=${VARIATION_QUALITY}` +
         ` (kaynak oran ${aspectRatio || "varsayılan"}):\n${prompt}`
     );
 
@@ -1276,7 +1290,7 @@ async function runFalVariation(
     try {
       temporaryResultUrl = await submitAndWait(
         VARIATION_MODEL,
-        getVariationModelSettings(aspectRatio),
+        getVariationModelSettings(sizeRatio || aspectRatio),
       );
     } catch (gptError) {
       const detail =
@@ -1378,6 +1392,7 @@ async function startAutomaticTrialVariation({
     excludedImages: sourceContext.excludedLocationImages,
   });
   const sourceAspectRatio = sourceContext.aspectRatio;
+  const sourceSizeRatio = await resolveVariationSizeRatio(sourceAspectRatio, sourceImageUrl);
   if (imageUrls.length === 0) {
     return { started: false, reason: "no_images" };
   }
@@ -1411,7 +1426,7 @@ async function startAutomaticTrialVariation({
     credits_used: 0,
     settings: {
       model: VARIATION_MODEL,
-      ...getVariationModelSettings(sourceAspectRatio),
+      ...getVariationModelSettings(sourceSizeRatio || sourceAspectRatio),
       batchId,
       slot: index + 1,
       automaticTrial: true,
@@ -1483,7 +1498,7 @@ async function startAutomaticTrialVariation({
             prompt,
             settings: {
               model: VARIATION_MODEL,
-              ...getVariationModelSettings(sourceAspectRatio),
+              ...getVariationModelSettings(sourceSizeRatio || sourceAspectRatio),
               batchId,
               slot: index + 1,
               automaticTrial: true,
@@ -1517,6 +1532,7 @@ async function startAutomaticTrialVariation({
       imageUrls,
       0,
       sourceAspectRatio,
+      sourceSizeRatio,
     );
   });
 
@@ -1594,6 +1610,7 @@ router.post("/generate", async (req, res) => {
       excludedImages: sourceContext.excludedLocationImages,
     });
     const sourceAspectRatio = sourceContext.aspectRatio;
+    const sourceSizeRatio = await resolveVariationSizeRatio(sourceAspectRatio, sourceImageUrl);
 
     if (imageUrls.length === 0) {
       return res
@@ -1718,7 +1735,7 @@ router.post("/generate", async (req, res) => {
       credits_used: i === 0 ? creditCost : 0,
       settings: {
         model: VARIATION_MODEL,
-        ...getVariationModelSettings(sourceAspectRatio),
+        ...getVariationModelSettings(sourceSizeRatio || sourceAspectRatio),
         batchId,
         slot: i + 1,
         variationMode: productMode ? "product" : "pose",
@@ -1777,6 +1794,7 @@ router.post("/generate", async (req, res) => {
         imageUrls,
         i === 0 ? creditCost : 0,
         sourceAspectRatio,
+        sourceSizeRatio,
       );
     });
 
