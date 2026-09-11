@@ -96,8 +96,8 @@ test('NB2 input strips GPT sizing/quality without mutating edit images or source
  assert.equal(input.aspect_ratio, 'original');
 });
 
-// V2 model üretimi: GPT 2.5 Sunburst high önce, hata → nano-banana-pro (app_config.v2_model ile seçilebilir)
-for(const name of ['referenceBrowserRoutesV7','referenceJewelryBrowserRoutesV7'])test(`${name}: V2 goes to Sunburst with gpt25_quality_v2 first, nano-banana-pro stays as fallback`,async()=>{
+// Reference Browser V2: GPT 2.5 Sunburst xhigh önce, hata → nano-banana-pro.
+for(const name of ['referenceBrowserRoutesV7','referenceJewelryBrowserRoutesV7'])test(`${name}: V2 submits Sunburst xhigh independently of shared quality, nano-banana-pro stays as fallback`,async()=>{
  const r=read(name);
  assert.ok(r.source.includes('getV2Model() === "gpt25"'),'v2 model switch');
  assert.ok(r.source.includes('v2GptFailed = true'),'v2 fallback flag');
@@ -105,7 +105,21 @@ for(const name of ['referenceBrowserRoutesV7','referenceJewelryBrowserRoutesV7']
  const fn=r.nodes.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='callFalAiGptImage2Edit');
  const calls=[];const ctx={...api,SUNBURST_EDIT_MODEL:api.GPT25_EDIT_MODEL,isSunburstContentRejection:()=>false,logger:{log(){}},console:{error(){}},setTimeout:(cb)=>{cb();return 0;},fal:{queue:{submit:async(model,{input})=>{calls.push({model,input});return{request_id:'x'};},status:async()=>({status:'COMPLETED'}),result:async()=>({data:{images:[{url:'https://test/out'}]}})}}};
  vm.createContext(ctx);vm.runInContext(r.code(fn),ctx);
- await ctx.callFalAiGptImage2Edit('p',['https://test/a'],'portrait_16_9',1,api.GPT25_EDIT_MODEL,'9:16','high');
- assert.equal(calls[0].input.quality,'high');assert.deepEqual(calls[0].input.image_size,{width:1440,height:2560});
+ const branch=r.nodes.find(n=>n.type==='IfStatement'&&r.code(n.test).includes('!v2GptFailed'));
+ assert.ok(branch,'V2 generation dispatch');
+ const refs=['https://test/product','https://test/style'];
+ Object.assign(ctx,{
+  isV2:true,req:{body:{}},v2GptFailed:false,getV2Model:()=> 'gpt25',
+  getGpt25QualityV2:()=> 'low',getGpt25Quality:()=> 'medium',
+  ensureMaxAspectRatio3to1ForInput:async urls=>urls,
+  imageInputArray:refs,userId:'fixture',enhancedPrompt:'Preserve the garment and selected style.',
+  aspectRatioForRequest:'9:16',mapRatioToGptImage2Size:()=> 'portrait_16_9',
+  uuidv4:()=> 'fixture',retryReasons:[],
+ });
+ const result=await vm.runInContext(`(async()=>{let replicateResponse;for(let attempt=1;attempt<=1;attempt++){${r.code(branch)}}return replicateResponse;})()`,ctx);
+ assert.equal(result.data.output[0],'https://test/out');
+ assert.equal(calls.length,1);assert.equal(calls[0].model,api.GPT25_EDIT_MODEL);
+ assert.equal(calls[0].input.quality,'xhigh');assert.deepEqual(calls[0].input.image_size,{width:1440,height:2560});
+ assert.deepEqual(Array.from(calls[0].input.image_urls),refs);assert.equal(calls[0].input.prompt,ctx.enhancedPrompt);
  assert.equal(api.GPT25_DEFAULT_QUALITY_V2,'high');assert.equal(api.V2_DEFAULT_MODEL,'gpt25');
 });

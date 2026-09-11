@@ -4,7 +4,7 @@ const { getModelCreationProvider } = require("../services/modelCreationConfig");
 const { buildModelHairDirection } = require("../utils/modelHairDirection");
 const { normalizeModelProfile, buildModelProfileDirective } = require("../utils/modelProfile");
 const { applyAutoPoolModel } = require("../utils/autoPoolModel");
-const { getGpt25Quality, getGpt25QualityV2, getV2Model, gpt25ImageSize } = require("../utils/gpt25Edit");
+const { getGpt25Quality, getV2Model, gpt25ImageSize } = require("../utils/gpt25Edit");
 const { SUNBURST_EDIT_MODEL, usesNb2ForModelCreation, usesSunburstForModelCreation, isSunburstContentRejection } = require("../utils/modelCreationModel");
 const { getGenerationCreditCost } = require("../utils/generationCredits");
 const { applyResultUpscale } = require("../utils/resultUpscale");
@@ -616,7 +616,7 @@ async function callFalAiGptImage2Edit(
   maxRetries = 3,
   model = "openai/gpt-image-2/edit",
   sunburstRatio = null,
-  qualityOverride = null, // V2: app_config.gpt25_quality_v2 (varsayılan high)
+  qualityOverride = null, // Reference Browser V2: xhigh
 ) {
   if (model === SUNBURST_EDIT_MODEL && (!imageUrls?.length || imageUrls.length > 16)) {
     throw new Error("Sunburst model creation requires 1–16 reference images");
@@ -635,7 +635,7 @@ async function callFalAiGptImage2Edit(
           prompt: prompt,
           image_urls: imageUrls,
           image_size: effectiveImageSize,
-          quality: model === SUNBURST_EDIT_MODEL ? (qualityOverride || getGpt25Quality()) : "medium", // GPT 2.5: V2 → gpt25_quality_v2 (high), V1 → gpt25_quality (medium) · eski modeller: medium
+          quality: model === SUNBURST_EDIT_MODEL ? (qualityOverride || getGpt25Quality()) : "medium", // GPT 2.5: V2 → xhigh, V1 → gpt25_quality · eski modeller: medium
           num_images: 1,
           output_format: "jpeg",
         },
@@ -7684,12 +7684,12 @@ The final image must read as the SAME street-style photograph — same person-in
         }
 
         // 🎨 V2 (35 kredi) — 11 Eyl 2026: birincil model GPT Image 2.5 Sunburst, kalite
-        // app_config.gpt25_quality_v2 (varsayılan high), boyut ~3,7 MP tablo (gpt25Edit).
+        // Reference Browser'a özel xhigh; boyut ~3,7 MP tablo (gpt25Edit).
         // app_config.v2_model = "nbpro" ise doğrudan nano-banana-pro. GPT hata verirse
         // kalan denemeler aşağıdaki nano-banana-pro akışına düşer (her zaman yedek).
         if (isV2 && !req.body.isBackSideAnalysis && !v2GptFailed && getV2Model() === "gpt25") {
           try {
-            const v2Quality = getGpt25QualityV2();
+            const v2Quality = "xhigh";
             const sanitizedV2Urls = await ensureMaxAspectRatio3to1ForInput(imageInputArray, userId);
             logger.log(
               `🎨 [V2 GPT25] ${SUNBURST_EDIT_MODEL} quality=${v2Quality}, ratio=${aspectRatioForRequest}, images: ${sanitizedV2Urls?.length || 0}`,
