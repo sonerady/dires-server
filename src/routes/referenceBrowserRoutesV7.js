@@ -4,7 +4,7 @@ const { getModelCreationProvider } = require("../services/modelCreationConfig");
 const { buildModelHairDirection } = require("../utils/modelHairDirection");
 const { normalizeModelProfile, buildModelProfileDirective } = require("../utils/modelProfile");
 const { applyAutoPoolModel } = require("../utils/autoPoolModel");
-const { getGpt25Quality, getV2Model, gpt25ImageSize } = require("../utils/gpt25Edit");
+const { getGpt25Quality, gpt25ImageSize } = require("../utils/gpt25Edit");
 const { SUNBURST_EDIT_MODEL, usesNb2ForModelCreation, usesSunburstForModelCreation, isSunburstContentRejection } = require("../utils/modelCreationModel");
 const { getGenerationCreditCost } = require("../utils/generationCredits");
 const { applyResultUpscale } = require("../utils/resultUpscale");
@@ -7354,7 +7354,7 @@ The final image must read as the SAME street-style photograph — same person-in
       enhancedPrompt = `${enhancedPrompt}\n\n${LOCATION_DIRECTION}`;
     }
     let sunburstRejected = false;
-    let v2GptFailed = false; // V2: GPT 2.5 high başarısız → kalan denemeler nano-banana-pro
+    let v2GptFailed = false; // V2: GPT 2.5 xhigh başarısız → kalan denemeler nano-banana-pro
     // Snapshot once per generation so admin changes never switch an active retry.
     const modelCreationOptions = {
       qualityVersion,
@@ -7683,11 +7683,11 @@ The final image must read as the SAME street-style photograph — same person-in
           }
         }
 
-        // 🎨 V2 (35 kredi) — 11 Eyl 2026: birincil model GPT Image 2.5 Sunburst, kalite
-        // Reference Browser'a özel xhigh; boyut ~3,7 MP tablo (gpt25Edit).
-        // app_config.v2_model = "nbpro" ise doğrudan nano-banana-pro. GPT hata verirse
-        // kalan denemeler aşağıdaki nano-banana-pro akışına düşer (her zaman yedek).
-        if (isV2 && !req.body.isBackSideAnalysis && !v2GptFailed && getV2Model() === "gpt25") {
+        // 🎨 V2 (35 kredi) — 11 Eyl 2026 (kullanıcı kararı): Reference Browser'da V2
+        // HER ZAMAN GPT Image 2.5 Sunburst + quality "xhigh" ile üretilir;
+        // app_config.v2_model bu rotayı etkilemez. GPT hata verirse kalan denemeler
+        // aşağıdaki nano-banana-pro 2K akışına düşer (her zaman yedek).
+        if (isV2 && !req.body.isBackSideAnalysis && !v2GptFailed) {
           try {
             const v2Quality = "xhigh";
             const sanitizedV2Urls = await ensureMaxAspectRatio3to1ForInput(imageInputArray, userId);
