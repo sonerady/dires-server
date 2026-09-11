@@ -1,4 +1,4 @@
-const { GPT25_EDIT_MODEL, buildEditInput, probeImageDims } = require("../utils/gpt25Edit");
+const { NB2_EDIT_MODEL, buildNb2EditInput } = require("../utils/nb2ToolEdit");
 const express = require("express");
 const router = express.Router();
 const { createClient } = require("@supabase/supabase-js");
@@ -379,24 +379,19 @@ IMPORTANT: Output ONLY the enhanced prompt text, nothing else. No explanations, 
     timings.geminiEnd = Date.now();
     console.log(`✨ [CHAT-EDIT] Enhanced prompt: "${enhancedPrompt.substring(0, 200)}..."`);
 
-    // ── 6. Call fal.ai GPT Image 2.5 API ──
-    console.log("🎯 [CHAT-EDIT] Calling fal.ai GPT Image 2.5 medium...");
+    // ── 6. Call fal.ai Nano Banana 2 API ──
+    console.log("🎯 [CHAT-EDIT] Calling fal.ai Nano Banana 2...");
     timings.falStart = Date.now();
 
     const qualitySuffix = " Render in ultra-high 4K resolution with maximum detail, sharp textures, and photorealistic quality.";
     const promptWithQuality = enhancedPrompt + qualitySuffix;
 
-    // 📐 Düzenleme aracı: istemci oran göndermiyorsa çıktı KAYNAK görselin oranında olmalı
-    // (eskiden sabit 9:16'ya zorlanıyordu). Kaynak boyutu okunup GPT 2.5 ~4 MP tablosundaki
-    // en yakın orana çözülür (gpt25Edit source_size); okunamazsa fal 'auto'.
-    const sourceSize = aspectRatio ? null : await probeImageDims(originalImageUrl);
-    if (sourceSize) console.log(`📐 [CHAT-EDIT] Kaynak ${sourceSize.width}x${sourceSize.height} → oran kaynağa göre`);
+    // NB2 auto keeps the source aspect ratio when the user has not selected one.
     const falRequestBody = {
       prompt: promptWithQuality,
       image_urls: hasSelections ? [originalImageUrl, maskedImageUrl] : [originalImageUrl],
       output_format: "png",
       aspect_ratio: aspectRatio || "auto",
-      ...(sourceSize ? { source_size: sourceSize } : {}),
       num_images: 1,
       resolution: "2K",
       safety_tolerance: safetyTolerance,
@@ -412,8 +407,8 @@ IMPORTANT: Output ONLY the enhanced prompt text, nothing else. No explanations, 
         );
 
         const falResponse = await axios.post(
-          `https://fal.run/${GPT25_EDIT_MODEL}`,
-          buildEditInput(GPT25_EDIT_MODEL, falRequestBody),
+          `https://fal.run/${NB2_EDIT_MODEL}`,
+          buildNb2EditInput(falRequestBody),
           {
             headers: {
               Authorization: `Key ${process.env.FAL_API_KEY}`,

@@ -1,4 +1,5 @@
-const { GPT25_EDIT_MODEL, buildEditInput, gpt25NearestRatio, probeImageDims, getGpt25QualityV2 } = require("../utils/gpt25Edit");
+const { NB2_EDIT_MODEL, buildNb2EditInput } = require("../utils/nb2ToolEdit");
+const { GPT25_EDIT_MODEL, buildEditInput, gpt25NearestRatio, probeImageDims } = require("../utils/gpt25Edit");
 const { startGenerationHeartbeat } = require("../services/generationRecovery");
 const { getGenerationCreditCost } = require("../utils/generationCredits");
 const express = require("express");
@@ -5104,10 +5105,6 @@ router.post("/generate", async (req, res) => {
     // Bu iki değeri dış kapsamda tutuyoruz.
     let selectedFalModel = null;
     let finalPromptForModel = null;
-    let isNanoBananaProSelected = false;
-    // 🛟 Birincil model GPT Image 2.5; hata verirse kalan denemeler eski nano
-    // banana modeliyle (v1 → nano-banana-2, v2 → nano-banana-pro) yapılır.
-    let useNbFallback = false;
 
     for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
       try {
@@ -5205,23 +5202,9 @@ router.post("/generate", async (req, res) => {
         const qualityVersion = isRefinerMode
           ? "v1"
           : settings?.qualityVersion || settings?.quality_version || "v1";
-        const isV2 = qualityVersion === "v2";
-        // 🍌 BACKSIDE MODEL SEÇİMİ — GPT Image 2'den nano banana'ya geçildi.
-        // GPT Image 2, "modeli 180° döndür" talimatını çoğu zaman uygulamıyor,
-        // modelin yüzü öne dönük kalıyordu (canlıda bildirildi). Nano banana
-        // ailesi bu tür mekânsal/oryantasyon talimatlarını belirgin şekilde
-        // daha iyi takip ediyor.
-        //   v1 → fal-ai/nano-banana-2/edit
-        //   v2 → fal-ai/nano-banana-pro/edit (üst kademe, 35 kredilik farkın karşılığı)
-        // 🎨 Birincil: GPT Image 2.5 (kalite app_config.gpt25_quality, boyut ~4 MP
-        // tablosu). Hata durumunda nano banana'ya düşülür (catch bloğu).
-        const nbFallbackModel = isV2
-          ? "fal-ai/nano-banana-pro/edit"
-          : "fal-ai/nano-banana-2/edit";
-        const falModel = useNbFallback ? nbFallbackModel : GPT25_EDIT_MODEL;
-        const isNanoBananaPro = isV2 && falModel !== GPT25_EDIT_MODEL;
+        // All tool versions and retries use Nano Banana 2 directly.
+        const falModel = NB2_EDIT_MODEL;
         selectedFalModel = falModel;
-        isNanoBananaProSelected = isNanoBananaPro;
 
         logger.log(
           `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model: ${falModel}`
@@ -5285,12 +5268,7 @@ router.post("/generate", async (req, res) => {
         logger.log(`📋 [FAL_PROMPT] Fal.ai'ya giden prompt (${finalPrompt.length} karakter):`, finalPrompt);
         finalPromptForModel = finalPrompt;
 
-        // Back side analysis veya v2 modunda quality "2K" olarak ayarla
-        const qualityParam =
-          isV2 || req.body.isBackSideAnalysis ? "2K" : undefined;
-
-        // 🍌 Nano banana ortak gövdesi. quality "2K" yalnızca nano-banana-pro
-        // (v2) tarafından destekleniyor — v1'de gönderilmiyor.
+        // Shared NB2 payload retains all front/back reference images.
         const buildNanoRequestBody = () => ({
           prompt: finalPrompt,
           image_urls: imageInputArray,
@@ -5299,9 +5277,6 @@ router.post("/generate", async (req, res) => {
           num_images: 1,
           resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
           safety_tolerance: "6",
-          ...(isNanoBananaPro && qualityParam ? { quality: qualityParam } : {}),
-          // GPT 2.5 + v2 → app_config.gpt25_quality_v2 (varsayılan high)
-          ...(falModel === GPT25_EDIT_MODEL && isV2 ? { quality: getGpt25QualityV2() } : {}),
         });
 
         if (isPoseChange) {
@@ -5338,7 +5313,7 @@ router.post("/generate", async (req, res) => {
 
         const nanoResponse = await axios.post(
           `https://fal.run/${falModel}`,
-          buildEditInput(falModel, requestBody),
+          buildNb2EditInput(requestBody),
           {
             headers: {
               Authorization: `Key ${process.env.FAL_API_KEY}`,
@@ -5385,17 +5360,6 @@ router.post("/generate", async (req, res) => {
           `❌ Fal.ai nano-banana API attempt ${attempt} failed:`,
           apiError.message
         );
-
-        // 🛟 GPT Image 2.5 başarısız → kalan denemeler nano banana ile (eski davranış)
-        if (!useNbFallback && selectedFalModel === GPT25_EDIT_MODEL && attempt <= maxRetries) {
-          useNbFallback = true;
-          totalRetryAttempts++;
-          retryReasons.push(`gpt25_failed:${String(apiError.message || "").substring(0, 80)}`);
-          logger.warn(
-            `🛟 [GPT25→NB] GPT Image 2.5 başarısız (${apiError.message}); nano banana'ya geçiliyor (attempt ${attempt + 1})`
-          );
-          continue;
-        }
 
         // 120 saniye timeout hatası ise direkt failed yap ve retry yapma
         if (
@@ -5653,7 +5617,7 @@ router.post("/generate", async (req, res) => {
 
           // İlk denemedeki nihai prompt (arka görünüm direktifi dahil) ve aynı
           // model kullanılır — retry'ın ilk denemeden zayıf olmaması için.
-          const retryModel = selectedFalModel || "fal-ai/nano-banana-2/edit";
+          const retryModel = selectedFalModel || NB2_EDIT_MODEL;
           const retryPrompt = finalPromptForModel || enhancedPrompt;
           const retryRequestBody = {
             prompt: retryPrompt,
@@ -5663,7 +5627,6 @@ router.post("/generate", async (req, res) => {
             num_images: 1,
             resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
             safety_tolerance: "6",
-            ...(isNanoBananaProSelected ? { quality: "2K" } : {}),
           };
 
           logger.log(
@@ -5672,7 +5635,7 @@ router.post("/generate", async (req, res) => {
 
           const retryResponse = await axios.post(
             `https://fal.run/${retryModel}`,
-            buildEditInput(retryModel, retryRequestBody),
+            buildNb2EditInput(retryRequestBody),
             {
               headers: {
                 Authorization: `Key ${process.env.FAL_API_KEY}`,

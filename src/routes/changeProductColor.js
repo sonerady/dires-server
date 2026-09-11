@@ -1,4 +1,5 @@
-const { GPT25_EDIT_MODEL, buildEditInput, gpt25NearestRatio, probeImageDims, getGpt25QualityV2 } = require("../utils/gpt25Edit");
+const { NB2_EDIT_MODEL, buildNb2EditInput } = require("../utils/nb2ToolEdit");
+const { GPT25_EDIT_MODEL, buildEditInput, gpt25NearestRatio, probeImageDims } = require("../utils/gpt25Edit");
 const { getGenerationCreditCost } = require("../utils/generationCredits");
 const express = require("express");
 const router = express.Router();
@@ -4756,14 +4757,8 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
     let totalRetryAttempts = 0;
     let retryReasons = [];
 
-    // 🎨 Birincil model her modda GPT Image 2.5 (kalite app_config.gpt25_quality, boyut ~4 MP tablosu).
-    // Hata verirse kalan denemeler eski model nano-banana-2 ile yapılır (aşağıdaki catch).
-    // v1 → nano-banana-2, v2 → nano-banana-pro (eski v2 modeli) yedeği
-    const NB2_FALLBACK_MODEL = "fal-ai/nano-banana-2/edit";
-    const NBPRO_FALLBACK_MODEL = "fal-ai/nano-banana-pro/edit";
-    const isV2Request = (settings?.qualityVersion || settings?.quality_version || qualityVersion) === "v2";
-    const NB_FALLBACK_MODEL = isV2Request ? NBPRO_FALLBACK_MODEL : NB2_FALLBACK_MODEL;
-    let falModel = GPT25_EDIT_MODEL;
+    // All tool versions and retries use Nano Banana 2 directly.
+    const falModel = NB2_EDIT_MODEL;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -4851,9 +4846,6 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
         const qualityVersion = isRefinerMode
           ? "v1"
           : settings?.qualityVersion || settings?.quality_version || "v1";
-        const isV2 = qualityVersion === "v2";
-        // For fal.ai, we use nano-banana/edit for v1 and nano-banana-2/edit for v2
-        // Back side analysis modunda her zaman nano-banana-2 kullan
 
 
         logger.log(
@@ -4866,11 +4858,6 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
         logger.log(`📏 [FAL_PROMPT] Enhanced prompt uzunluğu: ${enhancedPrompt.length} karakter`);
         logger.log(`📋 [FAL_PROMPT] Fal.ai'ya giden prompt (${enhancedPrompt.length} karakter):`, enhancedPrompt);
 
-        // Back side analysis veya v2 modunda quality "2K" olarak ayarla
-        // NB pro için "2K"; GPT 2.5'te v2 → app_config.gpt25_quality_v2 (high), v1 → gpt25_quality
-        const qualityParam = falModel === GPT25_EDIT_MODEL
-          ? (isV2 ? getGpt25QualityV2() : undefined)
-          : (isV2 || req.body.isBackSideAnalysis ? "2K" : undefined);
 
         // 🔎 Web search sadece nano-banana-2'de destekleniyor (v1 nano-banana
         // input şemasında yok). Hedef rengi (örn. marka/moda rengi) web'den
@@ -4889,7 +4876,6 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
             num_images: 1,
             resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
             safety_tolerance: "6",
-            ...(qualityParam ? { quality: qualityParam } : {}), // GPT v2 → high; NB pro → 2K
             ...webSearchParam,
           };
           logger.log(
@@ -4909,7 +4895,6 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
             num_images: 1,
             resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
             safety_tolerance: "6",
-            ...(qualityParam ? { quality: qualityParam } : {}), // GPT v2 → high; NB pro → 2K
             ...webSearchParam,
           };
         }
@@ -4929,7 +4914,7 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
         // Fal.ai API çağrısı
         const response = await axios.post(
           `https://fal.run/${falModel}`,
-          buildEditInput(falModel, requestBody),
+          buildNb2EditInput(requestBody),
           {
             headers: {
               Authorization: `Key ${process.env.FAL_API_KEY}`,
@@ -5005,17 +4990,6 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
           `❌ Fal.ai nano-banana API attempt ${attempt} failed:`,
           apiError.message
         );
-
-        // 🛟 GPT Image 2.5 başarısız → kalan denemeler nano-banana-2 ile (eski davranış)
-        if (falModel === GPT25_EDIT_MODEL && attempt < maxRetries) {
-          falModel = NB_FALLBACK_MODEL;
-          totalRetryAttempts++;
-          retryReasons.push(`gpt25_failed:${String(apiError.message || "").substring(0, 80)}`);
-          logger.warn(
-            `🛟 [GPT25→NB2] GPT Image 2.5 başarısız (${apiError.message}); ${NB_FALLBACK_MODEL}'e geçiliyor (attempt ${attempt + 1}/${maxRetries})`
-          );
-          continue;
-        }
 
         // 120 saniye timeout hatası ise direkt failed yap ve retry yapma
         if (
@@ -5255,7 +5229,6 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
             num_images: 1,
             resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
             safety_tolerance: "6",
-            ...(falModel === GPT25_EDIT_MODEL && isV2Request ? { quality: getGpt25QualityV2() } : {}),
             ...(falModel.includes("nano-banana-2")
               ? { enable_web_search: true }
               : {}),
@@ -5267,7 +5240,7 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
 
           const retryResponse = await axios.post(
             `https://fal.run/${falModel}`,
-            buildEditInput(falModel, retryRequestBody),
+            buildNb2EditInput(retryRequestBody),
             {
               headers: {
                 Authorization: `Key ${process.env.FAL_API_KEY}`,
@@ -6589,10 +6562,8 @@ async function processBulkColorItem({
   const generationId = uuidv4();
   const startedAt = Date.now();
   const isV2 = qualityVersion === "v2";
-  // 🎨 Birincil model her versiyonda GPT Image 2.5; hata verirse kalan
-  // denemeler eski model nano-banana-2 ile (aşağıdaki catch).
-  const NB2_FALLBACK_MODEL = isV2 ? "fal-ai/nano-banana-pro/edit" : "fal-ai/nano-banana-2/edit"; // v2 yedeği nano-banana-pro
-  let falModel = GPT25_EDIT_MODEL;
+  // Bulk color follows the same direct NB2 policy as single generation.
+  const falModel = NB2_EDIT_MODEL;
   const creditCost = isV2 ? 35 : 10;
 
   const baseSettings = {
@@ -6679,19 +6650,14 @@ CRITICAL: The recoloring is SELECTIVE — only the dominant color is replaced; e
 
 PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silhouette, model pose, lighting, and composition. Photorealistic result with natural lighting.${poseDirective}`;
 
-    /* "Orijinal" oran: GPT 2.5 için kaynak görselin oranına en yakın ~4 MP tablo boyutu (gpt25Edit) */
-    /* "Orijinal" oran: GPT 2.5 için kaynak görselin oranına en yakın ~4 MP tablo boyutu (gpt25Edit) */
-    const sourceSize = ratio === "original" ? await probeImageDims(referenceUrl) : null;
     const buildRequestBody = () => ({
       prompt,
       image_urls: [referenceUrl],
       output_format: "png",
       aspect_ratio: ratio === "original" ? "auto" : ratio,
-      ...(sourceSize ? { source_size: sourceSize } : {}),
       num_images: 1,
       resolution: "2K",
       safety_tolerance: "6",
-      ...(falModel === GPT25_EDIT_MODEL && isV2 ? { quality: getGpt25QualityV2() } : {}),
       ...(falModel.includes("nano-banana-2")
         ? { enable_web_search: true }
         : {}),
@@ -6704,7 +6670,7 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
         const requestBody = buildRequestBody();
         falResponse = await axios.post(
           `https://fal.run/${falModel}`,
-          buildEditInput(falModel, requestBody),
+          buildNb2EditInput(requestBody),
           {
             headers: {
               Authorization: `Key ${process.env.FAL_API_KEY}`,
@@ -6716,15 +6682,6 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
         break;
       } catch (err) {
         const status = err.response?.status;
-        // 🛟 GPT Image 2.5 başarısız → kalan denemeler nano-banana-2 ile (eski davranış)
-        if (falModel === GPT25_EDIT_MODEL && attempt < maxRetries) {
-          falModel = NB2_FALLBACK_MODEL;
-          console.warn(
-            `🛟 [BULK_COLOR] Item ${index}: GPT Image 2.5 başarısız (status=${status}, ${err.message}); nano-banana-2'ye geçiliyor`
-          );
-          await new Promise((r) => setTimeout(r, 1000));
-          continue;
-        }
         // FAL 422 (validation) bazen flaky — özellikle aynı bulk batch'te bazı item'lar
         // başarılı olurken bazıları 422 alabiliyor (transient). Retry listesine eklendi.
         const retryable =

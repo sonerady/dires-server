@@ -1,4 +1,5 @@
-const { GPT25_EDIT_MODEL, buildEditInput, gpt25NearestRatio, probeImageDims, getGpt25QualityV2 } = require("../utils/gpt25Edit");
+const { NB2_EDIT_MODEL, buildNb2EditInput } = require("../utils/nb2ToolEdit");
+const { GPT25_EDIT_MODEL, buildEditInput, gpt25NearestRatio, probeImageDims } = require("../utils/gpt25Edit");
 const express = require("express");
 const router = express.Router();
 // Updated: Using Google Gemini API for prompt generation
@@ -4696,10 +4697,6 @@ router.post("/generate", async (req, res) => {
     const maxRetries = 3;
     let totalRetryAttempts = 0;
     let retryReasons = [];
-    // 🛟 Birincil model GPT Image 2.5; hata verirse kalan denemeler eski model
-    // nano-banana-2 ile yapılır. selectedFalModel "failed status" retry bloğu için.
-    const NB2_FALLBACK_MODEL = "fal-ai/nano-banana-2/edit";
-    let useNbFallback = false;
     let selectedFalModel = null;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -4788,12 +4785,8 @@ router.post("/generate", async (req, res) => {
         const qualityVersion = isRefinerMode
           ? "v1"
           : settings?.qualityVersion || settings?.quality_version || "v1";
-        const isV2 = qualityVersion === "v2";
-        // For fal.ai, we use nano-banana/edit for v1 and nano-banana-2/edit for v2
-        // Back side analysis modunda her zaman nano-banana-2 kullan
-        // 🎨 Birincil: GPT Image 2.5 (kalite app_config.gpt25_quality, boyut ~4 MP
-        // tablosu). Hata durumunda nano-banana-2'ye düşülür (catch bloğu).
-        const falModel = useNbFallback ? (isV2 ? "fal-ai/nano-banana-pro/edit" : NB2_FALLBACK_MODEL) : GPT25_EDIT_MODEL;
+        // All tool versions and retries use Nano Banana 2 directly.
+        const falModel = NB2_EDIT_MODEL;
         selectedFalModel = falModel;
 
         logger.log(
@@ -4806,11 +4799,6 @@ router.post("/generate", async (req, res) => {
         logger.log(`📏 [FAL_PROMPT] Enhanced prompt uzunluğu: ${enhancedPrompt.length} karakter`);
         logger.log(`📋 [FAL_PROMPT] Fal.ai'ya giden prompt (${enhancedPrompt.length} karakter):`, enhancedPrompt);
 
-        // Back side analysis veya v2 modunda quality "2K" olarak ayarla
-        // NB için "2K"; GPT 2.5'te v2 → app_config.gpt25_quality_v2 (high)
-        const qualityParam = falModel === GPT25_EDIT_MODEL
-          ? (isV2 ? getGpt25QualityV2() : undefined)
-          : (isV2 || req.body.isBackSideAnalysis ? "2K" : undefined);
 
         if (isPoseChange) {
           // POSE CHANGE MODE - Farklı input parametreleri
@@ -4858,7 +4846,7 @@ router.post("/generate", async (req, res) => {
         // Fal.ai API çağrısı
         const response = await axios.post(
           `https://fal.run/${falModel}`,
-          buildEditInput(falModel, requestBody),
+          buildNb2EditInput(requestBody),
           {
             headers: {
               Authorization: `Key ${process.env.FAL_API_KEY}`,
@@ -4934,17 +4922,6 @@ router.post("/generate", async (req, res) => {
           `❌ Fal.ai nano-banana API attempt ${attempt} failed:`,
           apiError.message
         );
-
-        // 🛟 GPT Image 2.5 başarısız → kalan denemeler nano-banana-2 ile (eski davranış)
-        if (!useNbFallback && selectedFalModel === GPT25_EDIT_MODEL && attempt < maxRetries) {
-          useNbFallback = true;
-          totalRetryAttempts++;
-          retryReasons.push(`gpt25_failed:${String(apiError.message || "").substring(0, 80)}`);
-          logger.warn(
-            `🛟 [GPT25→NB2] GPT Image 2.5 başarısız (${apiError.message}); nano-banana-2'ye geçiliyor (attempt ${attempt + 1}/${maxRetries})`
-          );
-          continue;
-        }
 
         // 120 saniye timeout hatası ise direkt failed yap ve retry yapma
         if (
@@ -5187,13 +5164,13 @@ router.post("/generate", async (req, res) => {
           };
 
           logger.log(
-            `🔄 Retry ${retryAttempt}: Yeni prediction oluşturuluyor... (Model: ${selectedFalModel || NB2_FALLBACK_MODEL})`
+            `🔄 Retry ${retryAttempt}: Yeni prediction oluşturuluyor... (Model: ${selectedFalModel || NB2_EDIT_MODEL})`
           );
 
-          const retryModel = selectedFalModel || NB2_FALLBACK_MODEL;
+          const retryModel = selectedFalModel || NB2_EDIT_MODEL;
           const retryResponse = await axios.post(
             `https://fal.run/${retryModel}`,
-            buildEditInput(retryModel, retryRequestBody),
+            buildNb2EditInput(retryRequestBody),
             {
               headers: {
                 Authorization: `Key ${process.env.FAL_API_KEY}`,

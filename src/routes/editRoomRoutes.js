@@ -1,4 +1,4 @@
-const { GPT25_EDIT_MODEL, buildEditInput, probeImageDims } = require("../utils/gpt25Edit");
+const { NB2_EDIT_MODEL, buildNb2EditInput } = require("../utils/nb2ToolEdit");
 const express = require("express");
 const router = express.Router();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
@@ -113,7 +113,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Aspect ratio formatını düzelten yardımcı fonksiyon
 function formatAspectRatio(ratioStr) {
-  // GPT Image 2.5 sabit boyut tablosu (gpt25Edit) 10 oranın hepsini karşılıyor — daraltma yok.
+  // These UI ratios are all supported directly by Nano Banana 2.
   const validRatios = ["21:9", "16:9", "3:2", "4:3", "5:4", "1:1", "4:5", "3:4", "2:3", "9:16"];
 
   try {
@@ -184,11 +184,11 @@ async function enhancePromptWithGemini(
 
     // Basit prompt talimatı
     const promptForGemini = `
-You are creating a prompt for GPT Image 2.5, an AI image editing tool. Look at the provided image and the user's request: "${originalPrompt}"
+You are creating a prompt for Nano Banana 2, an AI image editing tool. Look at the provided image and the user's request: "${originalPrompt}"
 
-FLUX KONTEXT PROMPT OPTIMIZATION (CRITICAL FOR BEST RESULTS):
+IMAGE EDIT PROMPT OPTIMIZATION (CRITICAL FOR BEST RESULTS):
 
-You are generating a prompt for GPT Image 2.5, a surgical image editing model. Follow these MANDATORY guidelines:
+You are generating a prompt for Nano Banana 2, a surgical image editing model. Follow these MANDATORY guidelines:
 
 🔧 PROMPT STRUCTURE (EXACTLY 3 CLAUSES):
 1) [MAIN_ACTION] - Start with precise action verb (Change/Transform/Add/Remove/Replace) + specific target
@@ -215,12 +215,12 @@ Essential to prevent unwanted artifacts. Always include "while keeping" + specif
 - All original garment details not being changed
 - Construction, fit, and proportions
 
-IMPORTANT INSTRUCTION: Generate ONLY a single, flowing GPT Image 2.5 prompt following the 3-clause structure. Do not include explanations, introductions, or commentary. The prompt should be surgical and specific, not descriptive scene creation.
+IMPORTANT INSTRUCTION: Generate ONLY a single, flowing Nano Banana 2 prompt following the 3-clause structure. Do not include explanations, introductions, or commentary. The prompt should be surgical and specific, not descriptive scene creation.
 
 LANGUAGE NORMALIZATION RULES:
 - Translate every word and phrase that is not in English (e.g., colors, locations, garment descriptors) into English in the generated prompt. Example: convert "beyaz studio" to "white studio". The final prompt MUST be entirely in English.
 
-Based on the user's request and the image, create a GPT Image 2.5 edit prompt that will accomplish exactly what they asked for.
+Based on the user's request and the image, create a Nano Banana 2 edit prompt that will accomplish exactly what they asked for.
     `;
 
     console.log(
@@ -265,7 +265,7 @@ Based on the user's request and the image, create a GPT Image 2.5 edit prompt th
     let enhancedPrompt = result.response.text().trim();
 
     console.log(
-      "🤖 [BACKEND GEMINI] Gemini'nin ürettiği GPT Image 2.5 prompt:",
+      "🤖 [BACKEND GEMINI] Gemini'nin ürettiği Nano Banana 2 prompt:",
       enhancedPrompt
     );
 
@@ -554,25 +554,23 @@ router.post("/generate", async (req, res) => {
     console.log("📝 [BACKEND MAIN] Original prompt:", promptText);
     console.log("✨ [BACKEND MAIN] Enhanced prompt:", enhancedPrompt);
 
-    /* "Girdi ile aynı" seçiliyse kaynak oranına en yakın ~4 MP tablo boyutu (gpt25Edit) */
-    const sourceSize = match_input_image ? await probeImageDims(referenceImageUrl) : null;
+    // NB2 auto keeps the source aspect ratio for "match input".
 
     // Retain the legacy response envelope while generation runs directly on Fal.
     const generated = await axios.post(
-      `https://fal.run/${GPT25_EDIT_MODEL}`,
-      buildEditInput(GPT25_EDIT_MODEL, {
+      `https://fal.run/${NB2_EDIT_MODEL}`,
+      buildNb2EditInput({
         prompt: enhancedPrompt,
         image_urls: [referenceImageUrl],
         aspect_ratio: match_input_image ? "auto" : formattedRatio,
-        ...(sourceSize ? { source_size: sourceSize } : {}),
         output_format: "png",
       }),
       {headers: {Authorization: `Key ${process.env.FAL_API_KEY}`, "Content-Type": "application/json"}, timeout: 300000},
     );
     const resultUrl = generated.data?.images?.[0]?.url;
     const initialResult = resultUrl
-      ? {id: `gpt25-${uuidv4()}`, status: "succeeded", output: resultUrl}
-      : {error: "GPT Image 2.5 returned no image"};
+      ? {id: `nb2-${uuidv4()}`, status: "succeeded", output: resultUrl}
+      : {error: "Nano Banana 2 returned no image"};
     console.log("Replicate API başlangıç yanıtı:", initialResult);
 
     if (!initialResult.id) {

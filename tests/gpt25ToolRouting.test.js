@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 const parser = require('../../client/node_modules/@babel/parser');
-const api = require('../src/utils/gpt25Edit');
+const api = { ...require('../src/utils/gpt25Edit'), ...require('../src/utils/nb2ToolEdit') };
 function read(name) {
  const source=fs.readFileSync(path.join(__dirname,'../src/routes',name+'.js'),'utf8');
  const ast=parser.parse(source,{sourceType:'script'}), nodes=[];
@@ -13,38 +13,30 @@ function read(name) {
 }
 const original={prompt:'Preserve source; use selected pose',image_urls:['https://test/source','https://test/product'],aspect_ratio:'9:16',resolution:'2K',input_fidelity:'high',safety_tolerance:'6',enable_web_search:true,num_images:1,output_format:'png'};
 function assertGpt(input){assert.equal(input.quality,'medium');assert.deepEqual(Array.from(input.image_urls),original.image_urls);for(const key of ['input_fidelity','resolution','aspect_ratio','enable_web_search','safety_tolerance'])assert.equal(key in input,false,key);assert.equal(input.prompt,original.prompt);assert.equal(input.image_size.width/input.image_size.height,9/16);}
-for(const name of ['changePose','changePoseWeb','changeProductColor','changeProductColorWeb']){
- const route=read(name);
- test(`${name}: main and retry go to GPT 2.5 first (all versions), fall back to NB2 on error`,async()=>{
-  const selectors=route.nodes.filter(n=>n.type==='VariableDeclarator'&&n.id.name==='falModel'&&n.init);
-  assert.ok(selectors.length>=1);
-  for(const version of ['v1','v2'])for(const node of selectors){
-   const ctx={...api,settings:{qualityVersion:version},qualityVersion:version,isV2:version==='v2',req:{body:{isBackSideAnalysis:version==='v2'}},process:{env:{FAL_API_KEY:'fixture'}},requestBody:original,retryRequestBody:original,NB2_FALLBACK_MODEL:'fal-ai/nano-banana-2/edit'};
-   const model=vm.runInNewContext(route.code(node.init),ctx);
-   assert.equal(model,api.GPT25_EDIT_MODEL);
-   const calls=route.nodes.filter(n=>n.type==='CallExpression'&&n.callee?.object?.name==='axios'&&n.callee?.property?.name==='post'&&route.code(n.arguments[0]).includes('${falModel}'));
-   assert.ok(calls.length>=1);
-   for(const fm of [api.GPT25_EDIT_MODEL,'fal-ai/nano-banana-2/edit'])for(const call of calls){let sent;await vm.runInNewContext(route.code(call),{...ctx,falModel:fm,axios:{post:async(url,input)=>{sent={url,input};}}});assert.equal(sent.url,'https://fal.run/'+fm);fm===api.GPT25_EDIT_MODEL?assertGpt(sent.input):assert.equal(sent.input,original);}
+for (const name of ['changePose', 'changePoseWeb', 'changeProductColor', 'changeProductColorWeb', 'backSideCloset', 'backSideClosetWeb']) {
+ const route = read(name);
+ test(`${name}: single, bulk and retry calls use NB2 directly for both quality versions`, async () => {
+  const selectors = route.nodes.filter(n => n.type === 'VariableDeclarator' && n.id.name === 'falModel' && n.init);
+  assert.ok(selectors.length);
+  const calls = route.nodes.filter(n => n.type === 'CallExpression' && n.callee?.object?.name === 'axios' && n.callee?.property?.name === 'post' && /\$\{(?:falModel|retryModel)\}/.test(route.code(n.arguments[0])));
+  assert.equal(calls.length, name.startsWith('changeProductColor') ? 3 : 2, 'main, failed-status retry, and bulk where applicable');
+  for (const qualityVersion of ['v1', 'v2']) {
+   const ctx = {...api, qualityVersion, settings: {qualityVersion}, isV2: qualityVersion === 'v2', req: {body: {}}, process: {env: {FAL_API_KEY: 'fixture'}}, requestBody: original, retryRequestBody: original};
+   for (const node of selectors) assert.equal(vm.runInNewContext(route.code(node.init), ctx), api.NB2_EDIT_MODEL);
+   const retries = route.nodes.filter(n => n.type === 'VariableDeclarator' && n.id.name === 'retryModel');
+   for (const node of retries) for (const selectedFalModel of [null, api.NB2_EDIT_MODEL]) assert.equal(vm.runInNewContext(route.code(node.init), {...ctx, selectedFalModel}), api.NB2_EDIT_MODEL);
+   for (const call of calls) {
+    let sent;
+    await vm.runInNewContext(route.code(call), {...ctx, falModel: api.NB2_EDIT_MODEL, retryModel: api.NB2_EDIT_MODEL, axios: {post: async (url, input) => {sent = {url, input};}}});
+    assert.equal(sent.url, 'https://fal.run/fal-ai/nano-banana-2/edit');
+    assert.deepEqual(Array.from(sent.input.image_urls), original.image_urls);
+    assert.equal(sent.input.prompt, original.prompt);
+    assert.equal(sent.input.aspect_ratio, '9:16');
+    assert.equal(sent.input.resolution, '2K');
+    for (const key of ['quality', 'image_size', 'input_fidelity', 'source_size']) assert.equal(key in sent.input, false, key);
+   }
   }
-  // hata durumunda NB2'ye düşüş catch bloğunda
-  assert.ok(route.source.includes('falModel = NB_FALLBACK_MODEL'),'nb fallback switch');
-  // v2 → yedek nano-banana-pro, v1 → nano-banana-2
-  assert.ok(route.source.includes('isV2Request ? NBPRO_FALLBACK_MODEL : NB2_FALLBACK_MODEL'),'v2 nbpro fallback');
- });
-}
-for(const name of ['backSideCloset','backSideClosetWeb']){
- const route=read(name);
- test(`${name}: GPT 2.5 first, nano banana fallback on error`,async()=>{
-  const selectors=route.nodes.filter(n=>n.type==='VariableDeclarator'&&n.id.name==='falModel'&&n.init&&route.code(n.init).includes('GPT25_EDIT_MODEL'));
-  assert.equal(selectors.length,1);
-  const node=selectors[0];
-  const base={...api,isV2:false,req:{body:{}},process:{env:{FAL_API_KEY:'fixture'}},NB2_FALLBACK_MODEL:'fal-ai/nano-banana-2/edit',nbFallbackModel:'fal-ai/nano-banana-2/edit'};
-  assert.equal(vm.runInNewContext(route.code(node.init),{...base,useNbFallback:false}),api.GPT25_EDIT_MODEL);
-  assert.equal(vm.runInNewContext(route.code(node.init),{...base,useNbFallback:true}),'fal-ai/nano-banana-2/edit');
-  const calls=route.nodes.filter(n=>n.type==='CallExpression'&&n.callee?.object?.name==='axios'&&n.callee?.property?.name==='post'&&route.code(n.arguments[0]).includes('${falModel}'));
-  assert.ok(calls.length>=1);
-  for(const fm of [api.GPT25_EDIT_MODEL,'fal-ai/nano-banana-2/edit'])for(const call of calls){let sent;await vm.runInNewContext(route.code(call),{...base,falModel:fm,requestBody:original,axios:{post:async(url,input)=>{sent={url,input};}}});assert.equal(sent.url,'https://fal.run/'+fm);fm===api.GPT25_EDIT_MODEL?assertGpt(sent.input):assert.equal(sent.input,original);}
-  assert.ok(route.source.includes('useNbFallback = true'),'nb fallback switch');
+  assert.equal(route.nodes.filter(n => n.type === 'AssignmentExpression' && n.left.name === 'falModel').length, 0, 'errors cannot switch to a different provider');
  });
 }
 for(const name of ['createRefiner','createRefinerWeb'])test(`${name}: reference images and ratio survive medium GPT queue submit/status/result`,async()=>{
@@ -59,14 +51,49 @@ for(const name of ['createRefiner','createRefinerWeb'])test(`${name}: reference 
   let passed;await vm.runInNewContext('(async()=>'+route.code(dispatch.init)+')()', {refinerFinalPrompt:'staging',refinerInputs:urls,refinerOutputRatio:'16:9',callFalAiGptImageEditForRefiner:async(...args)=>{passed=args;}});assert.equal(passed[1],urls);
  }
 });
-test('Edit room V4 forces GPT 2.5 for editing even when a legacy V2 flag is present',()=>{
- const r=read('referenceBrowserRoutesV4'),selector=r.nodes.find(n=>n.type==='VariableDeclarator'&&n.id.name==='falModel');
- for(const isV2 of [false,true])assert.equal(vm.runInNewContext(r.code(selector.init),{...api,isV2,isEditMode:true}),api.GPT25_EDIT_MODEL);
+test('Edit room V4 uses NB2 for tools and retains other generation routes', async () => {
+ const r = read('referenceBrowserRoutesV4');
+ const toolSelector = r.nodes.find(n => n.type === 'VariableDeclarator' && n.id.name === 'isNb2Tool');
+ const modelSelector = r.nodes.find(n => n.type === 'VariableDeclarator' && n.id.name === 'falModel');
+ for (const isV2 of [false, true]) {
+  for (const mode of ['edit', 'pose', 'color', 'backside', 'normal']) {
+   const ctx = {...api, isV2, isEditMode: mode === 'edit', isPoseChange: mode === 'pose', isColorChange: mode === 'color', req: {body: {isBackSideAnalysis: mode === 'backside'}}};
+   const isNb2Tool = vm.runInNewContext(r.code(toolSelector.init), ctx);
+   const model = vm.runInNewContext(r.code(modelSelector.init), {...ctx, isNb2Tool});
+   assert.equal(model, mode === 'normal' ? (isV2 ? 'fal-ai/nano-banana-pro/edit' : 'google/nano-banana-lite/edit') : api.NB2_EDIT_MODEL);
+  }
+ }
+ const call = r.nodes.find(n => n.type === 'CallExpression' && n.callee?.object?.name === 'axios' && n.callee?.property?.name === 'post' && r.code(n.arguments[0]).includes('${falModel}'));
+ let sent;
+ await vm.runInNewContext(r.code(call), {...api, falModel: api.NB2_EDIT_MODEL, requestBody: original, process: {env: {FAL_API_KEY: 'fixture'}}, axios: {post: async (url, input) => {sent = {url, input};}}});
+ assert.equal(sent.url, 'https://fal.run/'+api.NB2_EDIT_MODEL);
+ assert.equal(sent.input.resolution, '2K');
+ assert.deepEqual(sent.input.image_urls, original.image_urls);
 });
-for(const name of ['chatEditRoutes','editRoomRoutes'])test(`${name}: actual Fal call uses medium Sunburst and retains image inputs`,async()=>{
- const r=read(name),call=r.nodes.find(n=>n.type==='CallExpression'&&n.callee?.object?.name==='axios'&&n.callee?.property?.name==='post'&&r.code(n.arguments[0]).includes('GPT25_EDIT_MODEL'));
- let sent;await vm.runInNewContext(r.code(call),{...api,process:{env:{FAL_API_KEY:'fixture'}},falRequestBody:original,enhancedPrompt:original.prompt,referenceImageUrl:original.image_urls[0],formattedRatio:'9:16',match_input_image:false,sourceSize:null,axios:{post:async(url,input)=>{sent={url,input};return{};}}});
- assert.equal(sent.url,'https://fal.run/'+api.GPT25_EDIT_MODEL);assert.equal(sent.input.quality,'medium');assert.equal('input_fidelity'in sent.input,false);assert.equal(sent.input.image_urls[0],original.image_urls[0]);if(name==='chatEditRoutes')assert.equal(sent.input.image_urls.length,2);
+for (const name of ['chatEditRoutes', 'editRoomRoutes']) test(`${name}: NB2 receives edit references and original or selected ratio`, async () => {
+ const r = read(name), call = r.nodes.find(n => n.type === 'CallExpression' && n.callee?.object?.name === 'axios' && n.callee?.property?.name === 'post' && r.code(n.arguments[0]).includes('NB2_EDIT_MODEL'));
+ assert.ok(call);
+ for (const originalRatio of [false, true]) {
+  let sent;
+  await vm.runInNewContext(r.code(call), {...api, process: {env: {FAL_API_KEY: 'fixture'}}, falRequestBody: {...original, aspect_ratio: originalRatio ? 'auto' : '9:16'}, enhancedPrompt: original.prompt, referenceImageUrl: original.image_urls[0], formattedRatio: '9:16', match_input_image: originalRatio, axios: {post: async (url, input) => {sent = {url, input}; return {};}}});
+  assert.equal(sent.url, 'https://fal.run/'+api.NB2_EDIT_MODEL);
+  assert.equal(sent.input.resolution, '2K');
+  assert.equal(sent.input.aspect_ratio, originalRatio ? 'auto' : '9:16');
+  assert.equal('quality' in sent.input, false);
+  assert.deepEqual(Array.from(sent.input.image_urls), name === 'chatEditRoutes' ? original.image_urls : original.image_urls.slice(0, 1));
+ }
+});
+
+test('NB2 input strips GPT sizing/quality without mutating edit images or source ratio choice', () => {
+ const input = {...original, aspect_ratio: 'original', quality: 'high', source_size: {width: 1800, height: 2400}, image_size: {width: 1440, height: 2560}};
+ const output = api.buildNb2EditInput(input);
+ assert.equal(output.aspect_ratio, 'auto');
+ assert.equal(output.resolution, '2K');
+ assert.deepEqual(output.image_urls, input.image_urls);
+ assert.equal(output.enable_web_search, true);
+ for (const key of ['quality', 'source_size', 'image_size', 'input_fidelity']) assert.equal(key in output, false);
+ assert.equal(input.quality, 'high');
+ assert.equal(input.aspect_ratio, 'original');
 });
 
 // V2 model üretimi: GPT 2.5 Sunburst high önce, hata → nano-banana-pro (app_config.v2_model ile seçilebilir)

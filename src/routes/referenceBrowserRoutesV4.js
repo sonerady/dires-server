@@ -1,4 +1,5 @@
-const { GPT25_EDIT_MODEL, buildEditInput } = require("../utils/gpt25Edit");
+const { buildEditInput } = require("../utils/gpt25Edit");
+const { NB2_EDIT_MODEL, buildNb2EditInput } = require("../utils/nb2ToolEdit");
 const express = require("express");
 const router = express.Router();
 // Updated: Using Google Gemini API for prompt generation
@@ -3735,7 +3736,8 @@ router.post("/generate", async (req, res) => {
 
     // V2 model seçimi (Pro model)
     const isV2 = req.body.quality === "v2";
-    const falModel = isEditMode || (isPoseChange && !isV2) ? GPT25_EDIT_MODEL : isV2 // Other callers retain their existing route
+    const isNb2Tool = isEditMode || isPoseChange || isColorChange || req.body.isBackSideAnalysis;
+    const falModel = isNb2Tool ? NB2_EDIT_MODEL : isV2
       ? "fal-ai/nano-banana-pro/edit"
       : "google/nano-banana-lite/edit";
 
@@ -3862,7 +3864,7 @@ router.post("/generate", async (req, res) => {
         // Fal.ai API çağrısı
         const response = await axios.post(
           `https://fal.run/${falModel}`,
-          buildEditInput(falModel, requestBody),
+          falModel === NB2_EDIT_MODEL ? buildNb2EditInput(requestBody) : buildEditInput(falModel, requestBody),
           {
             headers: {
               Authorization: `Key ${process.env.FAL_API_KEY}`,
