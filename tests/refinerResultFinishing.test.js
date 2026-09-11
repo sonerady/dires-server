@@ -32,20 +32,26 @@ function setup(failure) {
 const request = {isRefinerMode: true, settings: {productCategory: 'jewelry', productSubtype: 'ring'}};
 const options = {request, imageUrl: 'https://test/gpt.jpg', userId: 'device-account', generationId: 'main', upscaleMp: 4};
 
-test('non-garment classifier and staging categories opt in, including clothing/eyewear and clothing/accessory', () => {
+test('only eyewear and jewelry classifier/staging categories opt in', () => {
   const {shouldFinishRefinerMain: eligible} = setup();
-  for (const [category, subtype] of [['clothing','eyewear'], ['clothing','bag'], ['clothing','accessory'], ['shoes','sneakers'], ['jewelry','ring']]) {
+  for (const [category, subtype] of [['clothing','eyewear'], ['jewelry','ring'], ['jewelry','necklace'], ['jewelry','earring'], ['jewelry','bracelet'], ['jewelry','anklet']]) {
     assert.equal(eligible({isRefinerMode: true, settings: {productCategory: category, productSubtype: subtype}}), true, `${category}/${subtype}`);
   }
-  for (const category of ['eyewear', 'rings', 'earrings', 'necklaces', 'bracelets_chain', 'bracelets_bangle']) {
+  for (const category of ['eyewear', 'jewelry', 'rings', 'earrings', 'necklaces', 'bracelets_chain', 'bracelets_bangle']) {
     assert.equal(eligible({isRefinerMode: true, productCategory: category}), true, category);
   }
 });
 
-test('all actual garments, unknown categories, non-Refiner requests and variants stay excluded', () => {
+test('garments, shoes, bags, other accessories, unknown types and variants stay excluded', () => {
   const {shouldFinishRefinerMain: eligible} = setup();
   for (const subtype of ['dress', 'top', 'bottom', 'outerwear', 'knitwear', 'swimwear', 'lingerie', null]) {
     assert.equal(eligible({isRefinerMode: true, settings: {productCategory: 'clothing', productSubtype: subtype}}), false, subtype);
+  }
+  for (const category of ['clothing', 'shoes', 'bag', 'accessory', 'accessories', 'watch', 'unknown']) {
+    assert.equal(eligible({isRefinerMode: true, productCategory: category}), false, category);
+  }
+  for (const subtype of ['dress', 'bag', 'accessory', 'sneakers', 'watch', 'unknown']) {
+    assert.equal(eligible({isRefinerMode: true, settings: {productCategory: 'jewelry', productSubtype: subtype}}), false, `subtype overrides category: ${subtype}`);
   }
   for (const req of [{}, {isRefinerMode:true}, {...request, isRefinerMode:false}, {...request, isVariant:true}, {...request, isVariation:true}, {...request, settings:{...request.settings, isVariation:true}}]) assert.equal(eligible(req), false);
 });
@@ -81,11 +87,14 @@ test('explicit higher MP choice remains available after successful included fini
   assert.equal(result.creditsCharged, 40);
 });
 
-test('garment results do not trigger automatic Pruna processing', async () => {
-  const h = setup();
-  const result = await h.finishRefinerMainResult({...options, request:{isRefinerMode:true, settings:{productCategory:'clothing', productSubtype:'dress'}}});
-  assert.equal(h.calls.length, 0);
-  assert.equal(result.imageUrl, options.imageUrl);
+test('garment, shoe, bag and accessory results do not trigger automatic Pruna processing', async () => {
+  for (const [productCategory, productSubtype] of [['clothing','dress'], ['shoes','sneakers'], ['clothing','bag'], ['clothing','accessory']]) {
+    const h = setup();
+    const result = await h.finishRefinerMainResult({...options, request:{isRefinerMode:true, settings:{productCategory, productSubtype}}});
+    assert.equal(h.calls.length, 0, `${productCategory}/${productSubtype}`);
+    assert.equal(result.imageUrl, options.imageUrl);
+    assert.equal(result.appliedMp, null);
+  }
 });
 
 for (const name of ['createRefiner', 'createRefinerWeb']) test(`${name}: first Pruna failure is saved as completed and the client receives the stored GPT image`, async () => {

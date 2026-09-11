@@ -1,9 +1,8 @@
 const { applyResultUpscale, upscaleResultImage, markGenerationStage } = require("./resultUpscale");
 const logger = require("./logger");
 
-const GARMENTS = new Set(["clothing", "dress", "top", "bottom", "outerwear", "knitwear", "swimwear", "lingerie"]);
-const OTHER_PRODUCTS = new Set([
-  "shoes", "jewelry", "eyewear", "bag", "accessory", "accessories",
+const FINISH_PRODUCTS = new Set([
+  "jewelry", "eyewear",
   "earrings", "rings", "necklaces", "bracelets_chain", "bracelets_bangle",
   "ring", "necklace", "earring", "bracelet", "anklet",
 ]);
@@ -14,12 +13,11 @@ function shouldFinishRefinerMain(request = {}) {
   if (request.isRefinerMode !== true || request.isVariant === true || request.isVariation === true ||
       settings.isVariant === true || settings.isVariation === true) return false;
   const subtype = normalize(request.productSubtype ?? settings.productSubtype);
-  // The classifier also labels eyewear, bags and watches as clothing. Their
-  // subtype decides; a real garment (including outfits) remains excluded.
-  if (GARMENTS.has(subtype)) return false;
-  if (OTHER_PRODUCTS.has(subtype)) return true;
+  // Eyewear is classified as clothing/eyewear. A supplied subtype takes
+  // precedence: only eyewear and jewelry receive the automatic finish.
+  if (subtype) return FINISH_PRODUCTS.has(subtype);
   const category = normalize(request.productCategory ?? settings.productCategory ?? settings.productType);
-  return OTHER_PRODUCTS.has(category);
+  return FINISH_PRODUCTS.has(category);
 }
 
 // Called only after the main Refiner GPT result, never by variation routes.
