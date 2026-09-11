@@ -1,4 +1,4 @@
-const { NB2_EDIT_MODEL, buildNb2EditInput } = require("../utils/nb2ToolEdit");
+const { NB2_EDIT_MODEL, selectToolEditModel, buildNb2EditInput } = require("../utils/nb2ToolEdit");
 const { GPT25_EDIT_MODEL, buildEditInput, gpt25NearestRatio, probeImageDims } = require("../utils/gpt25Edit");
 const express = require("express");
 const router = express.Router();
@@ -4661,8 +4661,15 @@ router.post("/generate", async (req, res) => {
     let totalRetryAttempts = 0;
     let retryReasons = [];
 
-    // All tool versions and retries use Nano Banana 2 directly.
-    const falModel = NB2_EDIT_MODEL;
+    // 11 Eyl 2026 (kullanıcı kararı): v1 → nano-banana-2 1K, v2 → nano-banana-pro 2K.
+    // Öncesinde iki versiyon da NB2 2K'ya gidiyordu; 35 kredilik v2'nin çıktısı
+    // 10 kredilik v1 ile birebir aynıydı. Seçim retry'lar boyunca sabit kalır.
+    const { model: falModel, resolution: falResolution } = selectToolEditModel(
+      isRefinerMode
+        ? "v1"
+        : settings?.qualityVersion || settings?.quality_version || "v1",
+    );
+    logger.log(`🎨 [TOOL MODEL] ${falModel} · resolution=${falResolution}`);
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -4771,7 +4778,7 @@ router.post("/generate", async (req, res) => {
             output_format: "png",
             aspect_ratio: aspectRatioForRequest,
             num_images: 1,
-            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
+            resolution: falResolution, // v1 → 1K, v2 → 2K (selectToolEditModel)
             safety_tolerance: "6",
           };
           logger.log(
@@ -4789,7 +4796,7 @@ router.post("/generate", async (req, res) => {
             output_format: "png",
             aspect_ratio: aspectRatioForRequest,
             num_images: 1,
-            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
+            resolution: falResolution, // v1 → 1K, v2 → 2K (selectToolEditModel)
             safety_tolerance: "6",
           };
         }
@@ -5122,7 +5129,7 @@ router.post("/generate", async (req, res) => {
             output_format: "png",
             aspect_ratio: formattedRatio || "9:16",
             num_images: 1,
-            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
+            resolution: falResolution, // v1 → 1K, v2 → 2K (selectToolEditModel)
             safety_tolerance: "6",
           };
 
@@ -6404,8 +6411,8 @@ async function processBulkColorItem({
   const generationId = uuidv4();
   const startedAt = Date.now();
   const isV2 = qualityVersion === "v2";
-  // Bulk color follows the same direct NB2 policy as single generation.
-  const falModel = NB2_EDIT_MODEL;
+  // Toplu renk de tekil üretimle aynı politikayı izler: v1 → NB2 1K, v2 → NB Pro 2K.
+  const { model: falModel, resolution: falResolution } = selectToolEditModel(qualityVersion);
   const creditCost = isV2 ? 35 : 10;
 
   const baseSettings = {
@@ -6474,7 +6481,7 @@ async function processBulkColorItem({
       output_format: "png",
       aspect_ratio: "9:16",
       num_images: 1,
-      resolution: "2K",
+      resolution: falResolution,
       safety_tolerance: "6",
     });
 

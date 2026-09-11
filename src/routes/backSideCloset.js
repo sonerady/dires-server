@@ -1,4 +1,4 @@
-const { NB2_EDIT_MODEL, buildNb2EditInput } = require("../utils/nb2ToolEdit");
+const { NB2_EDIT_MODEL, selectToolEditModel, buildNb2EditInput } = require("../utils/nb2ToolEdit");
 const { GPT25_EDIT_MODEL, buildEditInput, gpt25NearestRatio, probeImageDims } = require("../utils/gpt25Edit");
 const { startGenerationHeartbeat } = require("../services/generationRecovery");
 const { getGenerationCreditCost } = require("../utils/generationCredits");
@@ -5104,6 +5104,8 @@ router.post("/generate", async (req, res) => {
     // (retry tetiklenseydi ReferenceError verir, direktifsiz prompt gönderirdi).
     // Bu iki değeri dış kapsamda tutuyoruz.
     let selectedFalModel = null;
+    // Retry bloğu iç kapsamın dışında; seçilen çözünürlük de dışarı taşınır.
+    let selectedFalResolution = "2K";
     let finalPromptForModel = null;
 
     for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
@@ -5202,9 +5204,11 @@ router.post("/generate", async (req, res) => {
         const qualityVersion = isRefinerMode
           ? "v1"
           : settings?.qualityVersion || settings?.quality_version || "v1";
-        // All tool versions and retries use Nano Banana 2 directly.
-        const falModel = NB2_EDIT_MODEL;
+        // 11 Eyl 2026 (kullanıcı kararı): v1 → nano-banana-2 1K, v2 → nano-banana-pro 2K.
+        // Öncesinde iki versiyon da NB2 2K'ya gidiyordu (v2'nin 35 kredisi karşılıksızdı).
+        const { model: falModel, resolution: falResolution } = selectToolEditModel(qualityVersion);
         selectedFalModel = falModel;
+        selectedFalResolution = falResolution;
 
         logger.log(
           `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model: ${falModel}`
@@ -5275,7 +5279,7 @@ router.post("/generate", async (req, res) => {
           output_format: "png",
           aspect_ratio: aspectRatioForRequest,
           num_images: 1,
-          resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
+          resolution: falResolution, // v1 → 1K, v2 → 2K (selectToolEditModel)
           safety_tolerance: "6",
         });
 
@@ -5625,7 +5629,7 @@ router.post("/generate", async (req, res) => {
             output_format: "png",
             aspect_ratio: formattedRatio || "9:16",
             num_images: 1,
-            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
+            resolution: selectedFalResolution, // v1 → 1K, v2 → 2K (selectToolEditModel)
             safety_tolerance: "6",
           };
 

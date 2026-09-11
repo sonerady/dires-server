@@ -14,29 +14,38 @@ function read(name) {
 const original={prompt:'Preserve source; use selected pose',image_urls:['https://test/source','https://test/product'],aspect_ratio:'9:16',resolution:'2K',input_fidelity:'high',safety_tolerance:'6',enable_web_search:true,num_images:1,output_format:'png'};
 function assertGpt(input){assert.equal(input.quality,'high'); // V1 genel kalite (app_config.gpt25_quality varsayılanı) 11 Eyl 2026'da high oldu
  assert.deepEqual(Array.from(input.image_urls),original.image_urls);for(const key of ['input_fidelity','resolution','aspect_ratio','enable_web_search','safety_tolerance'])assert.equal(key in input,false,key);assert.equal(input.prompt,original.prompt);assert.equal(input.image_size.width/input.image_size.height,9/16);}
+// 11 Eyl 2026 (kullanıcı kararı): araç ekranlarında v1 → nano-banana-2 1K,
+// v2 → nano-banana-pro 2K. Öncesinde iki versiyon da NB2 2K'ya gidiyordu.
 for (const name of ['changePose', 'changePoseWeb', 'changeProductColor', 'changeProductColorWeb', 'backSideCloset', 'backSideClosetWeb']) {
  const route = read(name);
- test(`${name}: single, bulk and retry calls use NB2 directly for both quality versions`, async () => {
-  const selectors = route.nodes.filter(n => n.type === 'VariableDeclarator' && n.id.name === 'falModel' && n.init);
-  assert.ok(selectors.length);
+ test(`${name}: v1 nano-banana-2 1K, v2 nano-banana-pro 2K on single, bulk and retry calls`, async () => {
+  // falModel artık selectToolEditModel'den destructuring ile geliyor.
+  const selectors = route.nodes.filter(n => n.type === 'VariableDeclarator'
+   && n.id.type === 'ObjectPattern'
+   && n.id.properties.some(pr => pr.value?.name === 'falModel')
+   && n.init);
+  assert.ok(selectors.length, 'selectToolEditModel seçicisi bulunmalı');
   const calls = route.nodes.filter(n => n.type === 'CallExpression' && n.callee?.object?.name === 'axios' && n.callee?.property?.name === 'post' && /\$\{(?:falModel|retryModel)\}/.test(route.code(n.arguments[0])));
   assert.equal(calls.length, name.startsWith('changeProductColor') ? 3 : 2, 'main, failed-status retry, and bulk where applicable');
   for (const qualityVersion of ['v1', 'v2']) {
-   const ctx = {...api, qualityVersion, settings: {qualityVersion}, isV2: qualityVersion === 'v2', req: {body: {}}, process: {env: {FAL_API_KEY: 'fixture'}}, requestBody: original, retryRequestBody: original};
-   for (const node of selectors) assert.equal(vm.runInNewContext(route.code(node.init), ctx), api.NB2_EDIT_MODEL);
+   const expected = api.selectToolEditModel(qualityVersion);
+   const ctx = {...api, qualityVersion, settings: {qualityVersion}, isRefinerMode: false, isV2: qualityVersion === 'v2', req: {body: {}}, process: {env: {FAL_API_KEY: 'fixture'}}, requestBody: original, retryRequestBody: original};
+   for (const node of selectors) assert.deepEqual(vm.runInNewContext(route.code(node.init), ctx), expected);
    const retries = route.nodes.filter(n => n.type === 'VariableDeclarator' && n.id.name === 'retryModel');
-   for (const node of retries) for (const selectedFalModel of [null, api.NB2_EDIT_MODEL]) assert.equal(vm.runInNewContext(route.code(node.init), {...ctx, selectedFalModel}), api.NB2_EDIT_MODEL);
+   for (const node of retries) for (const selectedFalModel of [null, expected.model]) assert.equal(vm.runInNewContext(route.code(node.init), {...ctx, selectedFalModel}), selectedFalModel || api.NB2_EDIT_MODEL);
    for (const call of calls) {
     let sent;
-    await vm.runInNewContext(route.code(call), {...ctx, falModel: api.NB2_EDIT_MODEL, retryModel: api.NB2_EDIT_MODEL, axios: {post: async (url, input) => {sent = {url, input};}}});
-    assert.equal(sent.url, 'https://fal.run/fal-ai/nano-banana-2/edit');
+    await vm.runInNewContext(route.code(call), {...ctx, falModel: expected.model, retryModel: expected.model, falResolution: expected.resolution, selectedFalResolution: expected.resolution, axios: {post: async (url, input) => {sent = {url, input};}}});
+    assert.equal(sent.url, `https://fal.run/${expected.model}`);
     assert.deepEqual(Array.from(sent.input.image_urls), original.image_urls);
     assert.equal(sent.input.prompt, original.prompt);
     assert.equal(sent.input.aspect_ratio, '9:16');
-    assert.equal(sent.input.resolution, '2K');
     for (const key of ['quality', 'image_size', 'input_fidelity', 'source_size']) assert.equal(key in sent.input, false, key);
    }
   }
+  // Çözünürlük artık sabit değil: istek gövdeleri seçilen değeri kullanmalı.
+  assert.ok(/resolution: (?:falResolution|selectedFalResolution)/.test(route.source), `${name}: resolution seçiciden gelmeli`);
+  assert.ok(!/resolution: "2K", \/\/ 2K çözünürlük/.test(route.source), `${name}: sabit 2K kalmamalı`);
   assert.equal(route.nodes.filter(n => n.type === 'AssignmentExpression' && n.left.name === 'falModel').length, 0, 'errors cannot switch to a different provider');
  });
 }

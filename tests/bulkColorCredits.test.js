@@ -24,8 +24,10 @@ for (const [quality, fee, paid, expected] of [['v1', 40, true, 50], ['v2', 40, t
         return { imageUrl: 'https://test/output.jpg', appliedMp: fee ? 16 : null, creditsCharged: fee };
       },
       axios: { post: async (url, input) => {
-        assert.equal(url, 'https://fal.run/fal-ai/nano-banana-2/edit');
-        assert.equal(input.resolution, '2K');
+        // 11 Eyl 2026: v1 → nano-banana-2 1K, v2 → nano-banana-pro 2K
+        const expected = nb2.selectToolEditModel(quality);
+        assert.equal(url, `https://fal.run/${expected.model}`);
+        assert.equal(input.resolution, expected.resolution);
         assert.deepEqual(Array.from(input.image_urls), ['https://test/input.jpg']);
         return { data: { images: [{ url: 'https://test/generated.jpg' }] } };
       } },
