@@ -18,6 +18,7 @@ const teamService = require("../services/teamService");
 const logger = require("../utils/logger");
 const { optimizeImageUrl } = require("../utils/imageOptimizer");
 const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
+const { finishRefinerMainResult } = require("../utils/refinerResultFinishing");
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -4692,11 +4693,23 @@ router.post("/generate", async (req, res) => {
 
         logger.log("✅ [REFINER MODE] GPT Image 2.5 başarılı:", gptImageResult);
 
-        // Generation'ı completed olarak güncelle (result_image_url ile - updateGenerationStatus içinde Supabase'e kaydediliyor)
-        await updateGenerationStatus(finalGenerationId, userId, "completed", {
-          result_image_url: gptImageResult,
-          enhanced_prompt: enhancedPrompt,
+        const upscaleOutcome = await finishRefinerMainResult({
+          request: req.body,
+          imageUrl: gptImageResult,
+          userId,
+          generationId: finalGenerationId,
         });
+
+        // Generation'ı completed olarak güncelle (result_image_url ile - updateGenerationStatus içinde Supabase'e kaydediliyor)
+        const refinerUpdated = await updateGenerationStatus(finalGenerationId, userId, "completed", {
+          result_image_url: upscaleOutcome.imageUrl,
+          enhanced_prompt: enhancedPrompt,
+          ...(upscaleOutcome.appliedMp ? {
+            upscaled_mp: upscaleOutcome.appliedMp,
+            pre_upscale_image_url: upscaleOutcome.preUpscaleUrl,
+          } : {}),
+        });
+        const refinerFinalUrl = refinerUpdated?.result_image_url || upscaleOutcome.imageUrl;
 
         logger.log("✅ [REFINER MODE] Generation completed olarak güncellendi");
 
@@ -4704,12 +4717,14 @@ router.post("/generate", async (req, res) => {
         return res.json({
           success: true,
           result: {
-            imageUrl: gptImageResult, // RefinerScreen bu format'ı bekliyor
-            output: [gptImageResult], // Diğer client'lar için
+            imageUrl: refinerFinalUrl, // RefinerScreen bu format'ı bekliyor
+            output: [refinerFinalUrl], // Diğer client'lar için
             prompt: enhancedPrompt,
             generationId: finalGenerationId,
             isRefinerMode: true,
             apiUsed: "gpt-image-2.5",
+            upscaledMp: upscaleOutcome.appliedMp,
+            preUpscaleImageUrl: refinerUpdated?.pre_upscale_image_url || upscaleOutcome.preUpscaleUrl,
           },
         });
       } catch (refinerError) {

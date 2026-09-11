@@ -1,3 +1,4 @@
+const { REFINER_GHOST_MANNEQUIN_DIRECTIVE } = require("../utils/refinerGhostMannequinPrompt");
 const { GPT25_EDIT_MODEL, buildEditInput, gpt25NearestRatio, probeImageDims, getGpt25QualityV2 } = require("../utils/gpt25Edit");
 const { startGenerationHeartbeat } = require("../services/generationRecovery");
 const { getGenerationCreditCost } = require("../utils/generationCredits");
@@ -18,7 +19,7 @@ const {
   buildStyleProfileGrid,
 } = require("../utils/styleReferenceImage");
 // 🔍 Sonuç netleştirme — model üretimiyle (referenceBrowserV7) ortak yardımcı
-const { applyResultUpscale } = require("../utils/resultUpscale");
+const { finishRefinerMainResult } = require("../utils/refinerResultFinishing");
 // 🎭 Trial'ın İLK çeşitlendirme partisi backend'de, completion anında başlar
 // (CreateModelPhotoScreen akışının aynısı — 27 Ağu 2026 kullanıcı isteği).
 // Refiner kaynağında varyasyon ÜRÜN modunda üretilir; variationRoutes bunu
@@ -4338,13 +4339,7 @@ router.post("/generate", async (req, res) => {
     // görünmez kolun içeriden desteklediği hacim, dirsekte yumuşak kavis ve
     // gövdeden doğal açıklık verilecek. Taban prompt'a dokunmadan (5 dalda
     // tekrarlanıyor) tek noktadan ekleniyor.
-    const ghostSleeveDirective = `GHOST MANNEQUIN — SLEEVE CONSTRUCTION: For any garment with sleeves, always construct the sleeves as if they are naturally supported by an invisible mannequin's arms. The sleeves must have clear internal volume and a hollow, tubular three-dimensional structure rather than appearing flat, collapsed, or hanging straight down.
-
-Position both sleeves slightly outward from the torso with a natural mannequin-like arm pose. Introduce a subtle bend around the elbow area so the sleeves follow a soft, controlled curve instead of forming a rigid straight line. The sleeve openings and cuffs should preserve realistic circular or oval volume, clearly suggesting an invisible arm inside the garment.
-
-Maintain natural spacing between the sleeves and the body. Do not let the sleeves stick tightly against the torso, collapse inward, overlap the body unnaturally, or appear empty and flattened. Preserve the garment's original sleeve length, width, cuffs, seams, fabric texture, construction, and proportions.
-
-The final result should resemble professional e-commerce ghost mannequin photography: symmetrical, structured, dimensional, clean, and naturally shaped by an invisible human form.`;
+    const ghostSleeveDirective = REFINER_GHOST_MANNEQUIN_DIRECTIVE;
 
     // 🎨 Renk dizisinde kullanıcının seçtiği renkler (18 Ağu 2026): istemci
     // yalnız ≥2 renk varken gönderiyor; burada da aynı eşik + temizlik var.
@@ -6123,16 +6118,15 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
           refinerFinalPrompt, refinerInputs, refinerOutputRatio,
         );
 
-        // 🔍 NETLEŞTİRME ADIMI — Results'taki MP butonu 4'ten büyük seçildiyse
-        // sonuç, kaydedilmeden önce o çözünürlüğe yükseltilir. Model üretimiyle
-        // (referenceBrowserV7) aynı ortak yardımcıyı kullanır.
-        const upscaleOutcome = await applyResultUpscale({
+        // Non-garment main results get an included Pruna 4 MP pass first.
+        // Explicit higher MP selections retain the existing paid flow.
+        const upscaleOutcome = await finishRefinerMainResult({
+          request: req.body,
           imageUrl: gptImageResult,
           upscaleMp,
           userId,
           generationId: finalGenerationId,
           ensureBaseCharge: () => deductCreditOnSuccess(finalGenerationId, userId),
-          logTag: "REFINER UPSCALE",
         });
 
         // Generation'ı completed olarak güncelle (result_image_url ile - updateGenerationStatus içinde Supabase'e kaydediliyor)

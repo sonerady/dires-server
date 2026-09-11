@@ -28,6 +28,7 @@ function setup(version, referenceImages = [PRIMARY, OTHER]) {
     express: { Router: () => router }, axios: {}, sharp: () => { throw Error('Unexpected image IO'); },
     '@supabase/supabase-js': { createClient: () => supabase }, uuid: { v4: () => 'fixture-id' },
     '@fal-ai/client': { fal: { config() {} } }, '../services/teamService': {},
+    '../utils/kitInputImages': { prepareKitInputImages: async urls => urls },
     '../utils/imageOptimizer': { optimizeKitImages: images => images },
     '../utils/kitImageRoute': { getKitRoute: () => 'gpt', generateKitImage: async input => {
       calls.push(JSON.parse(JSON.stringify(input))); return `https://fixture/scene-${calls.length}.jpg`;
@@ -78,8 +79,13 @@ for (const version of ['v1', 'v2']) {
     assert.doesNotMatch(ghost.prompt, /beige trousers/);
     assert.match(ghost.prompt, /one (?:single )?(?:primary )?(?:product|garment)/i);
     assert.match(ghost.prompt, /#FFFFFF/);
+    assert.equal(ghost.generationProfile, 'refiner');
+    assert.ok(ghost.prompt.includes(require('../src/utils/refinerGhostMannequinPrompt').REFINER_GHOST_MANNEQUIN_DIRECTIVE));
     // Pose, studio and detail still receive the existing styling references.
-    for (const call of h.calls.slice(0, 5)) assert.deepEqual(call.imageUrls, [STYLED, PRIMARY]);
+    for (const call of h.calls.slice(0, 5)) {
+      assert.deepEqual(call.imageUrls, [STYLED, PRIMARY]);
+      assert.equal(call.generationProfile, undefined);
+    }
     assert.ok(h.saved.length, 'completed scenes must still be persisted');
   });
 
@@ -97,6 +103,7 @@ test('retry ghost uses the same single primary product and persists the original
   const response = await h.run(true);
   assert.equal(response.statusCode, 200);
   assert.deepEqual(h.calls[0].imageUrls, [PRIMARY]);
+  assert.equal(h.calls[0].generationProfile, 'refiner');
   assert.equal(h.saved[0].index, 5);
   assert.equal(h.saved[0].id, 'canonical-generation');
 });

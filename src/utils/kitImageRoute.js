@@ -7,7 +7,7 @@
 const axios = require("axios");
 const { fal } = require("@fal-ai/client");
 const { createClient } = require("@supabase/supabase-js");
-const { GPT25_EDIT_MODEL, gpt25ImageSize } = require("./gpt25Edit");
+const { GPT25_EDIT_MODEL, gpt25ImageSize, buildEditInput } = require("./gpt25Edit");
 // Kitler GPT Image 2.5 Sunburst ile üretilir (araçlarla aynı model).
 const KIT_GPT25_MODEL = GPT25_EDIT_MODEL;
 const KIT_GPT25_QUALITY = "medium";
@@ -99,23 +99,24 @@ function toGptImageSize(value, fallback = "portrait_16_9") {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ─── GPT Image 2.5 (fal queue) ───
-async function callGpt25KitEdit({ prompt, imageUrls, imageSize, maxRetries = 2, tag = "KIT" }) {
+async function callGpt25KitEdit({ prompt, imageUrls, imageSize, maxRetries = 2, tag = "KIT", generationProfile }) {
     const urls = (imageUrls || []).filter(Boolean);
     if (!urls.length) throw new Error("No input images for GPT Image 2.5 kit edit");
+    // Refiner and ghost use the same model input builder and live quality setting.
+    // Other kit scenes retain their fixed medium quality.
+    const input = buildEditInput(KIT_GPT25_MODEL, {
+        prompt,
+        image_urls: urls,
+        image_size: imageSize,
+        ...(generationProfile === "refiner" ? {} : { quality: KIT_GPT25_QUALITY }),
+        num_images: 1,
+        output_format: "jpeg",
+    });
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-            console.log(`🎨 [${tag}_GPT25] attempt ${attempt}/${maxRetries}, image_size: ${typeof imageSize === "string" ? imageSize : `${imageSize.width}x${imageSize.height}`}, quality: ${KIT_GPT25_QUALITY}, images: ${urls.length}`);
-            const { request_id } = await fal.queue.submit(KIT_GPT25_MODEL, {
-                input: {
-                    prompt,
-                    image_urls: urls,
-                    image_size: imageSize,
-                    quality: KIT_GPT25_QUALITY, // kitler sabit medium (app_config.gpt25_quality yalnız araçları etkiler)
-                    num_images: 1,
-                    output_format: "jpeg",
-                },
-            });
+            console.log(`🎨 [${tag}_GPT25] attempt ${attempt}/${maxRetries}, image_size: ${typeof imageSize === "string" ? imageSize : `${imageSize.width}x${imageSize.height}`}, quality: ${input.quality}, images: ${urls.length}`);
+            const { request_id } = await fal.queue.submit(KIT_GPT25_MODEL, { input });
             if (!request_id) throw new Error("Fal.ai did not return a request_id");
 
             const maxPolls = 90;
@@ -202,14 +203,21 @@ async function callNanoBananaKitEdit({ prompt, imageUrls, aspectRatio, maxRetrie
  * @param {string} [p.aspectRatio] — "9:16" | "2:3" | "1024x1536" | GPT enum; varsayılan 9:16
  * @param {string} [p.tag] — log etiketi
  * @param {string} [p.route] — test/override; yoksa app_config.kit_route
+ * @param {string} [p.generationProfile] — "refiner" for ghost: same GPT quality as Refiner, no NB fallback
  */
-async function generateKitImage({ prompt, imageUrls, aspectRatio, tag = "KIT", route } = {}) {
+async function generateKitImage({ prompt, imageUrls, aspectRatio, tag = "KIT", route, generationProfile } = {}) {
     const primary = normalizeRoute(route) || getKitRoute();
     /* GPT 2.5: fal preset adı yerine orana göre ~4 MP sabit boyut (utils/gpt25Edit GPT25_IMAGE_SIZES); bilinmeyen oran → preset */
     const ratioKey = toAspectRatio(aspectRatio, null);
     const fixed = ratioKey ? gpt25ImageSize(ratioKey) : "auto";
     const gptSize = fixed && fixed !== "auto" ? fixed : toGptImageSize(aspectRatio);
     const nbRatio = toAspectRatio(aspectRatio);
+
+    if (generationProfile === "refiner") {
+        // Refiner stays on GPT across retries. Do not silently downgrade the
+        // ghost scene to a 1K Nano Banana result or obey the general kit route.
+        return callGpt25KitEdit({ prompt, imageUrls, imageSize: gptSize, tag, maxRetries: 3, generationProfile });
+    }
 
     const viaGpt = () => callGpt25KitEdit({ prompt, imageUrls, imageSize: gptSize, tag });
     const viaNb = () => callNanoBananaKitEdit({ prompt, imageUrls, aspectRatio: nbRatio, tag });

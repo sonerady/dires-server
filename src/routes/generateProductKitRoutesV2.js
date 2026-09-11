@@ -1,3 +1,4 @@
+const { prepareKitInputImages } = require("../utils/kitInputImages");
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
@@ -208,90 +209,9 @@ async function getOptimizedImageUrl(imageUrl) {
     }
 }
 
-// ─── GPT Image 2: aspect ratio sanitizer (3:1 limitini aşan input resimleri pad'ler) ───
-// fal.ai 3:1'e çok yakın oranlarda bile (ör. 2.997) reddedebiliyor — trigger 2.9, hedef 2.5.
+// Shared padding preserves the whole primary product/contact sheet for GPT.
 async function ensureMaxAspectRatio3to1ForKitInput(imageUrls, userId) {
-    const TRIGGER_RATIO = 2.9;
-    const TARGET_RATIO = 2.5;
-    const processedUrls = [];
-
-    for (const url of imageUrls || []) {
-        if (!url || typeof url !== "string") {
-            processedUrls.push(url);
-            continue;
-        }
-        try {
-            const response = await axios.get(url, {
-                responseType: "arraybuffer",
-                timeout: 20000,
-            });
-            const buf = Buffer.from(response.data);
-
-            const meta = await sharp(buf).metadata();
-            const W = meta.width || 0;
-            const H = meta.height || 0;
-            if (!W || !H) {
-                processedUrls.push(url);
-                continue;
-            }
-
-            const ratio = W >= H ? W / H : H / W;
-            if (ratio <= TRIGGER_RATIO) {
-                processedUrls.push(url);
-                continue;
-            }
-
-            console.log(`📐 [KIT_V2_GPT2_ASPECT] ${W}x${H} (ratio ${ratio.toFixed(3)}:1) > ${TRIGGER_RATIO}:1, padding uygulanıyor (hedef ${TARGET_RATIO}:1)...`);
-
-            let padTop = 0, padBottom = 0, padLeft = 0, padRight = 0;
-            let newW = W, newH = H;
-            if (W > H) {
-                newH = Math.ceil(W / TARGET_RATIO);
-                const totalPadV = newH - H;
-                padTop = Math.floor(totalPadV / 2);
-                padBottom = totalPadV - padTop;
-            } else {
-                newW = Math.ceil(H / TARGET_RATIO);
-                const totalPadH = newW - W;
-                padLeft = Math.floor(totalPadH / 2);
-                padRight = totalPadH - padLeft;
-            }
-
-            const padded = await sharp(buf)
-                .extend({
-                    top: padTop,
-                    bottom: padBottom,
-                    left: padLeft,
-                    right: padRight,
-                    background: { r: 255, g: 255, b: 255 },
-                })
-                .jpeg({ quality: 90 })
-                .toBuffer();
-
-            const timestamp = Date.now();
-            const randomId = uuidv4().substring(0, 8);
-            const fileName = `temp_${timestamp}_kit_gpt2_pad_${userId || "anonymous"}_${randomId}.jpg`;
-
-            const { error: upErr } = await supabase.storage
-                .from("reference")
-                .upload(fileName, padded, { contentType: "image/jpeg" });
-
-            if (upErr) {
-                console.warn(`❌ [KIT_V2_GPT2_ASPECT] Supabase upload failed:`, upErr.message);
-                processedUrls.push(url);
-                continue;
-            }
-
-            const { data: urlData } = supabase.storage.from("reference").getPublicUrl(fileName);
-            console.log(`✅ [KIT_V2_GPT2_ASPECT] Padded: ${newW}x${newH}, URL: ${urlData.publicUrl}`);
-            processedUrls.push(urlData.publicUrl);
-        } catch (err) {
-            console.warn(`⚠️ [KIT_V2_GPT2_ASPECT] Preprocess error:`, err.message);
-            processedUrls.push(url);
-        }
-    }
-
-    return processedUrls;
+    return prepareKitInputImages(imageUrls, userId, supabase);
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -344,18 +264,6 @@ const KIT_MACRO_SUFFIX =
     "foreshortening and specular highlights for the new viewpoint. Simply zooming into the source pixels, " +
     "mirroring it or nudging the crop is a failed edit.";
 
-const KIT_GHOST_SUFFIX =
-    "\n\nGHOST MANNEQUIN CONSTRUCTION: the garment is filled by an INVISIBLE body and holds its full " +
-    "three-dimensional form — shoulders shaped, chest with real depth, collar standing open with a clean hollow " +
-    "neckline that shows the interior, hem falling naturally. For any garment with sleeves, construct the sleeves " +
-    "as if naturally supported by invisible arms: clear internal volume, hollow tubular structure, a subtle bend " +
-    "around the elbow, cuffs preserving a realistic circular opening, and natural spacing between the sleeves and " +
-    "the torso. The sleeves must never look flat, collapsed, empty or stuck against the body. Preserve the " +
-    "garment's original sleeve length, width, cuffs, seams, fabric texture, construction and proportions. " +
-    "COMPLETELY remove every human part — no face, no hair, no skin, no hands, no neck, no mannequin pieces " +
-    "anywhere in the frame. The result must read as professional e-commerce ghost mannequin photography: " +
-    "symmetrical, structured, dimensional, clean and naturally shaped by an invisible human form.";
-
 /** Refiner disiplinini sahne tipine göre prompt'un sonuna ekler. */
 function applyKitRefinerContract(prompt, sceneType) {
     const base = String(prompt || "").trim();
@@ -363,22 +271,21 @@ function applyKitRefinerContract(prompt, sceneType) {
         return `${base}\n\n${KIT_PRODUCT_PRESERVATION_SUFFIX}${KIT_BACKGROUND_FIDELITY_SUFFIX}${KIT_MACRO_SUFFIX}`;
     }
     if (sceneType === "ghost") {
-        return `${base}\n\n${KIT_PRODUCT_PRESERVATION_SUFFIX}${KIT_BACKGROUND_FIDELITY_SUFFIX}${KIT_GHOST_SUFFIX}`;
+        return `${base}\n\n${KIT_PRODUCT_PRESERVATION_SUFFIX}${KIT_BACKGROUND_FIDELITY_SUFFIX}`;
     }
     return base;
 }
 
 // ─── Kit görsel üretimi: ortak yol (utils/kitImageRoute.js) ───
-// Tüm sahneler GPT Image 2.5 (medium) → hata olursa Nano Banana 2 (→ pro).
-// Sıra app_config.kit_route ile değiştirilebilir ("gpt" | "nb2").
+// Ghost uses the Refiner GPT quality profile; other scenes keep the configurable kit route.
 const KIT_V2_ASPECT_RATIO = "9:16";
-async function generateKitV2Scene(prompt, imageUrls, userId) {
+async function generateKitV2Scene(prompt, imageUrls, userId, generationProfile) {
     // GPT Image girişleri ≤ 3:1 olmalı — pad'le (pad gerekmiyorsa URL aynen döner)
     const inputUrls = await ensureMaxAspectRatio3to1ForKitInput(
         imageUrls,
         userId
     );
-    return generateKitImage({ prompt, imageUrls: inputUrls, aspectRatio: KIT_V2_ASPECT_RATIO, tag: "KIT_V2" });
+    return generateKitImage({ prompt, imageUrls: inputUrls, aspectRatio: KIT_V2_ASPECT_RATIO, tag: "KIT_V2", generationProfile });
 }
 
 // ─── Save generated image to user bucket ───
@@ -815,8 +722,8 @@ CRITICAL: Respond ONLY with a valid JSON object. No markdown, no code blocks, no
                             resultImageUrl: optimizedResultUrl, primaryProductImageUrl: optimizedReferenceUrl,
                         });
                         const prompt = applyKitRefinerContract(input.prompt, sceneTypes[index]);
-                        console.log(`🎨 [KIT_V2] Generating ${sceneTypes[index]} via kit route (${getKitRoute()}, 9:16)...`);
-                        const generatedUrl = await generateKitV2Scene(prompt, input.imageUrls, userId);
+                        console.log(`🎨 [KIT_V2] Generating ${sceneTypes[index]} via kit route (${input.generationProfile || getKitRoute()}, 9:16)...`);
+                        const generatedUrl = await generateKitV2Scene(prompt, input.imageUrls, userId, input.generationProfile);
 
                         const savedUrl = await saveGeneratedImageToUserBucket(
                             generatedUrl,
@@ -950,8 +857,8 @@ router.post("/retry-kit-scene", async (req, res) => {
         const prompt = applyKitRefinerContract(input.prompt, sceneType);
 
         // Generate the image — kit route (GPT Image 2.5 medium → NB2 fallback, 9:16)
-        console.log(`🔄 [KIT_V2_RETRY] Using kit route (${getKitRoute()}, 9:16) for scene ${sceneIndex} (${sceneType})`);
-        const generatedUrl = await generateKitV2Scene(prompt, input.imageUrls, userId);
+        console.log(`🔄 [KIT_V2_RETRY] Using kit route (${input.generationProfile || getKitRoute()}, 9:16) for scene ${sceneIndex} (${sceneType})`);
+        const generatedUrl = await generateKitV2Scene(prompt, input.imageUrls, userId, input.generationProfile);
         const savedUrl = await saveGeneratedImageToUserBucket(generatedUrl, userId || "anonymous", sceneType);
 
         // Save to reference_results.kits at correct position

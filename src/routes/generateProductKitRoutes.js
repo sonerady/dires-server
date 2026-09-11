@@ -1,3 +1,4 @@
+const { prepareKitInputImages } = require("../utils/kitInputImages");
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
@@ -690,16 +691,18 @@ Ghost_Mannequin_Prompt: [your generated prompt]
         // Generate images in parallel
         const imageGenerationPromises = imagePrompts.map(async (rawPrompt, index) => {
             try {
-                const { prompt, imageUrls } = buildProductKitSceneInput({
+                const { prompt, imageUrls, generationProfile } = buildProductKitSceneInput({
                     sceneType: imageTypes[index], prompt: rawPrompt,
                     resultImageUrl: optimizedResultUrl, primaryProductImageUrl: optimizedReferenceUrl,
                 });
                 console.log(`🎨 [PRODUCT_KIT] Generating ${imageTypes[index]} with ${imageUrls.length} input image(s)...`);
                 const generatedUrl = await generateKitImage({
                     prompt,
-                    imageUrls,
+                    imageUrls: generationProfile === "refiner"
+                        ? await prepareKitInputImages(imageUrls, userId, supabase) : imageUrls,
                     aspectRatio: "2:3",
                     tag: "PRODUCT_KIT",
+                    generationProfile,
                 });
 
                 // Save to user bucket

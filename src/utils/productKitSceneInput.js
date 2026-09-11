@@ -1,3 +1,5 @@
+const { REFINER_GHOST_MANNEQUIN_DIRECTIVE } = require("./refinerGhostMannequinPrompt");
+
 // Ghost mannequin is a product-only scene, not an edit of the styled outfit.
 // Keep this rule shared by mobile/tablet/Mac (V2 + retry) and web (V1).
 const SINGLE_PRODUCT_GHOST_PROMPT =
@@ -16,15 +18,9 @@ const SINGLE_PRODUCT_GHOST_PROMPT =
     "secondary garments, accessories, props, hangers, packaging and people. Do not add coordinating pieces " +
     "to complete a look. Preserve the primary garment's exact colour, cut, silhouette, proportions, material, " +
     "weave, print placement, embroidery, branding, stitching, seams, buttons, zippers and trims. " +
-    "Present it as professional ghost mannequin photography, with natural three-dimensional volume supported " +
-    "by an invisible body. Where applicable, shape the shoulders and chest, show a clean hollow neckline and " +
-    "interior depth, and give sleeves hollow tubular volume with a gentle elbow bend and open cuffs. " +
-    "No visible human parts or mannequin pieces. The complete garment, including every hem and sleeve, is " +
-    "centered and fully inside the frame, filling it with balanced white margins. Retouch wrinkles, creases, " +
-    "dust and lint for a freshly pressed, pristine catalog finish without altering the design. Use soft, even " +
-    "studio lighting, accurate colour and crisp fabric detail. The background is seamless, uniform pure white " +
-    "#FFFFFF edge to edge, without shadows, reflections, gradients, grey or cream tint. No added text, " +
-    "watermark, collage or split frame.";
+    "\n\n" + REFINER_GHOST_MANNEQUIN_DIRECTIVE +
+    "\n\nKIT BACKGROUND: The background is seamless, uniform pure white #FFFFFF edge to edge, without " +
+    "shadows, reflections, gradients, grey or cream tint. No added text, watermark, collage or split frame.";
 
 function getPrimaryProductImage(referenceImages) {
     const first = Array.isArray(referenceImages) ? referenceImages[0] : null;
@@ -41,7 +37,7 @@ function buildProductKitSceneInput({ sceneType, prompt, resultImageUrl, primaryP
         }
         // A prompt generated from the model/outfit photo can name extra clothes
         // even after that photo is removed. Do not carry it into this scene.
-        return { prompt: SINGLE_PRODUCT_GHOST_PROMPT, imageUrls: [primaryProductImageUrl] };
+        return { prompt: SINGLE_PRODUCT_GHOST_PROMPT, imageUrls: [primaryProductImageUrl], generationProfile: "refiner" };
     }
     return {
         prompt,

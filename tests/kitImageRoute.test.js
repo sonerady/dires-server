@@ -6,6 +6,7 @@ const Module = require('module');
 const calls = [];
 let gptShouldFail = false;
 let nbShouldFail = false;
+let refinerQuality = 'medium';
 const fakeFal = {
   config() {},
   queue: {
@@ -21,6 +22,10 @@ const origLoad = Module._load;
 Module._load = function (request, ...rest) {
   if (request === '@fal-ai/client') return { fal: fakeFal };
   if (request === 'axios') return fakeAxios;
+  if (request === './gpt25Edit') {
+    const actual = origLoad.call(this, request, ...rest);
+    return {...actual, buildEditInput: (model, input) => actual.buildEditInput(model, {...input, quality: input.quality || refinerQuality})};
+  }
   return origLoad.call(this, request, ...rest);
 };
 delete process.env.SUPABASE_URL; // no app_config lookup → default route
@@ -28,7 +33,7 @@ process.env.FAL_API_KEY = 'test';
 const kit = require('../src/utils/kitImageRoute');
 Module._load = origLoad;
 
-test.beforeEach(() => { calls.length = 0; gptShouldFail = false; nbShouldFail = false; });
+test.beforeEach(() => { calls.length = 0; gptShouldFail = false; nbShouldFail = false; refinerQuality = 'medium'; });
 
 test('default route is gpt and uses GPT Image 2.5 with fixed medium quality and ~4 MP fixed image_size', async () => {
   assert.equal(kit.getKitRoute(), 'gpt');
@@ -73,19 +78,32 @@ test('aspect mappings', () => {
   assert.equal(kit.toAspectRatio('weird'), '9:16');
 });
 
-test('ghost primary-only input is retained across GPT and Nano Banana fallback', async () => {
+test('ghost uses Refiner quality even when the general kit route selects Nano Banana', async () => {
   const { buildProductKitSceneInput } = require('../src/utils/productKitSceneInput');
   const scene = buildProductKitSceneInput({
     sceneType: 'ghost', prompt: 'Keep the added beige trousers',
     resultImageUrl: 'https://fixture/styled-outfit.jpg', primaryProductImageUrl: 'https://fixture/primary.jpg',
   });
+  refinerQuality = 'high';
+  await kit.generateKitImage({ ...scene, aspectRatio: '9:16', route: 'nb2' });
+  assert.equal(calls.length, 1);
+  const sent = calls[0];
+  assert.equal(sent.kind, 'gpt');
+  assert.equal(sent.model, 'openai/gpt-image-2.5/sunburst/edit');
+  assert.equal(sent.input.quality, 'high');
+  assert.equal(sent.input.output_format, 'jpeg');
+  assert.deepEqual(sent.input.image_size, {width: 1440, height: 2560});
+  assert.deepEqual(sent.input.image_urls, ['https://fixture/primary.jpg']);
+  assert.doesNotMatch(sent.input.prompt, /beige trousers/);
+  assert.match(sent.input.prompt, /ENTIRE product/);
+});
+
+test('ghost retries GPT without silently substituting a lower-resolution Nano Banana result', async () => {
   gptShouldFail = true;
-  await kit.generateKitImage({ ...scene, aspectRatio: '9:16' });
-  assert.ok(calls.some(c => c.kind === 'gpt'));
-  assert.ok(calls.some(c => c.kind === 'nb'));
-  for (const call of calls) {
-    const payload = call.kind === 'gpt' ? call.input : call.body;
-    assert.deepEqual(payload.image_urls, ['https://fixture/primary.jpg']);
-    assert.doesNotMatch(payload.prompt, /beige trousers/);
-  }
+  await assert.rejects(kit.generateKitImage({
+    prompt: 'Only the primary product', imageUrls: ['primary'], aspectRatio: '2:3', generationProfile: 'refiner',
+  }), /gpt down/);
+  assert.equal(calls.length, 3);
+  assert.ok(calls.every(call => call.kind === 'gpt'));
+  assert.ok(calls.every(call => call.input.image_urls[0] === 'primary'));
 });
