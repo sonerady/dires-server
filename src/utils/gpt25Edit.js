@@ -1,12 +1,12 @@
 // GPT Image 2.5 Sunburst edit schema. Do not forward provider-specific NB fields.
-// Kalite: app_config.gpt25_quality ("low" | "medium" | "high", varsayılan "medium") — sunucu 60 sn önbellekler,
+// Kalite: app_config.gpt25_quality ("low" | "medium" | "high", varsayılan "high") — sunucu 60 sn önbellekler,
 // tablo değişince yeniden deploy gerekmez. (nb2_thinking_level ile aynı desen.)
 const { createClient } = require('@supabase/supabase-js');
 const GPT25_EDIT_MODEL = 'openai/gpt-image-2.5/sunburst/edit';
 /** Kitler için Flare varyantı: aynı fiyat, daha düşük gecikme (Sunburst ince detay için araçlarda kalıyor). */
 const GPT25_FLARE_EDIT_MODEL = 'openai/gpt-image-2.5/flare/edit';
 const GPT25_QUALITIES = ['low', 'medium', 'high', 'xhigh'];
-const GPT25_DEFAULT_QUALITY = 'medium';
+const GPT25_DEFAULT_QUALITY = 'high'; // 11 Eyl 2026 (kullanıcı kararı): V1 genel kalite medium → high
 /** V2 (35 kredi) üretimleri: app_config.gpt25_quality_v2, varsayılan "high"; app_config.v2_model
  *  ("gpt25" | "nbpro", varsayılan "gpt25") V2'nin önce hangi sağlayıcıya gideceğini seçer —
  *  nano-banana-pro her durumda yedek olarak kalır. */

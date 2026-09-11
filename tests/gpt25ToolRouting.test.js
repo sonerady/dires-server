@@ -12,7 +12,8 @@ function read(name) {
  visit(ast);return {source,nodes,code:n=>source.slice(n.start,n.end)};
 }
 const original={prompt:'Preserve source; use selected pose',image_urls:['https://test/source','https://test/product'],aspect_ratio:'9:16',resolution:'2K',input_fidelity:'high',safety_tolerance:'6',enable_web_search:true,num_images:1,output_format:'png'};
-function assertGpt(input){assert.equal(input.quality,'medium');assert.deepEqual(Array.from(input.image_urls),original.image_urls);for(const key of ['input_fidelity','resolution','aspect_ratio','enable_web_search','safety_tolerance'])assert.equal(key in input,false,key);assert.equal(input.prompt,original.prompt);assert.equal(input.image_size.width/input.image_size.height,9/16);}
+function assertGpt(input){assert.equal(input.quality,'high'); // V1 genel kalite (app_config.gpt25_quality varsayılanı) 11 Eyl 2026'da high oldu
+ assert.deepEqual(Array.from(input.image_urls),original.image_urls);for(const key of ['input_fidelity','resolution','aspect_ratio','enable_web_search','safety_tolerance'])assert.equal(key in input,false,key);assert.equal(input.prompt,original.prompt);assert.equal(input.image_size.width/input.image_size.height,9/16);}
 for (const name of ['changePose', 'changePoseWeb', 'changeProductColor', 'changeProductColorWeb', 'backSideCloset', 'backSideClosetWeb']) {
  const route = read(name);
  test(`${name}: single, bulk and retry calls use NB2 directly for both quality versions`, async () => {
@@ -45,7 +46,7 @@ for(const name of ['createRefiner','createRefinerWeb'])test(`${name}: reference 
  vm.createContext(ctx);vm.runInContext(route.code(fn),ctx);
  const urls=['https://test/product','https://test/style','https://test/color','https://test/layout'];
  const result= name==='createRefiner'?await ctx.callFalAiGptImageEditForRefiner('prompt',urls,'16:9',1):await ctx.callFalAiGptImageEditForRefiner('prompt',urls,1,'16:9');
- assert.equal(result,'https://test/output');assert.equal(calls[0].model,api.GPT25_EDIT_MODEL);assert.deepEqual(Array.from(calls[0].input.image_urls),urls);assert.equal(calls[0].input.quality,'medium');assert.equal(calls[0].input.image_size.width/calls[0].input.image_size.height,16/9);assert.equal('input_fidelity'in calls[0].input,false);
+ assert.equal(result,'https://test/output');assert.equal(calls[0].model,api.GPT25_EDIT_MODEL);assert.deepEqual(Array.from(calls[0].input.image_urls),urls);assert.equal(calls[0].input.quality,'high');assert.equal(calls[0].input.image_size.width/calls[0].input.image_size.height,16/9);assert.equal('input_fidelity'in calls[0].input,false);
  if(name==='createRefiner'){
   const dispatch=route.nodes.find(n=>n.type==='VariableDeclarator'&&n.id.name==='gptImageResult'&&route.code(n.init).includes('refinerFinalPrompt'));
   let passed;await vm.runInNewContext('(async()=>'+route.code(dispatch.init)+')()', {refinerFinalPrompt:'staging',refinerInputs:urls,refinerOutputRatio:'16:9',callFalAiGptImageEditForRefiner:async(...args)=>{passed=args;}});assert.equal(passed[1],urls);

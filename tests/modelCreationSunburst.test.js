@@ -56,7 +56,7 @@ for (const route of ['referenceBrowserRoutesV7.js', 'referenceJewelryBrowserRout
     assert.deepEqual(calls.map(c=>c.model), Array(3).fill(SUNBURST_EDIT_MODEL));
     assert.deepEqual(calls[0].options.input.image_urls, refs);
     assert.deepEqual(calls[0].options.input.image_size, {width: 1440, height: 2560}); // 9:16 → ~4 MP sabit boyut
-    assert.equal(calls[0].options.input.quality, 'medium');
+    assert.equal(calls[0].options.input.quality, 'high'); // V1 genel kalite high
     assert.equal(calls[0].options.input.output_format, 'jpeg');
     assert.equal(calls[0].options.input.num_images, 1);
     assert.equal(calls[0].options.input.aspect_ratio, undefined);
