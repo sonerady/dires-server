@@ -72,3 +72,20 @@ test('aspect mappings', () => {
   assert.equal(kit.toAspectRatio('portrait_16_9'), '9:16');
   assert.equal(kit.toAspectRatio('weird'), '9:16');
 });
+
+test('ghost primary-only input is retained across GPT and Nano Banana fallback', async () => {
+  const { buildProductKitSceneInput } = require('../src/utils/productKitSceneInput');
+  const scene = buildProductKitSceneInput({
+    sceneType: 'ghost', prompt: 'Keep the added beige trousers',
+    resultImageUrl: 'https://fixture/styled-outfit.jpg', primaryProductImageUrl: 'https://fixture/primary.jpg',
+  });
+  gptShouldFail = true;
+  await kit.generateKitImage({ ...scene, aspectRatio: '9:16' });
+  assert.ok(calls.some(c => c.kind === 'gpt'));
+  assert.ok(calls.some(c => c.kind === 'nb'));
+  for (const call of calls) {
+    const payload = call.kind === 'gpt' ? call.input : call.body;
+    assert.deepEqual(payload.image_urls, ['https://fixture/primary.jpg']);
+    assert.doesNotMatch(payload.prompt, /beige trousers/);
+  }
+});

@@ -8,6 +8,7 @@ const { fal } = require("@fal-ai/client");
 const teamService = require("../services/teamService");
 const { optimizeKitImages } = require("../utils/imageOptimizer");
 const { generateKitImage, getKitRoute } = require("../utils/kitImageRoute");
+const { getPrimaryProductImage, buildProductKitSceneInput } = require("../utils/productKitSceneInput");
 const {
     callDeepSeekFlashRaw,
     isInvalidInputError,
@@ -371,10 +372,10 @@ function applyKitRefinerContract(prompt, sceneType) {
 // Tüm sahneler GPT Image 2.5 (medium) → hata olursa Nano Banana 2 (→ pro).
 // Sıra app_config.kit_route ile değiştirilebilir ("gpt" | "nb2").
 const KIT_V2_ASPECT_RATIO = "9:16";
-async function generateKitV2Scene(prompt, resultImageUrl, referenceImageUrl, userId) {
+async function generateKitV2Scene(prompt, imageUrls, userId) {
     // GPT Image girişleri ≤ 3:1 olmalı — pad'le (pad gerekmiyorsa URL aynen döner)
     const inputUrls = await ensureMaxAspectRatio3to1ForKitInput(
-        [resultImageUrl, referenceImageUrl].filter(Boolean),
+        imageUrls,
         userId
     );
     return generateKitImage({ prompt, imageUrls: inputUrls, aspectRatio: KIT_V2_ASPECT_RATIO, tag: "KIT_V2" });
@@ -780,7 +781,7 @@ CRITICAL: Respond ONLY with a valid JSON object. No markdown, no code blocks, no
                 const prompts = parseGeminiPrompts(geminiResponse);
 
                 // Step 2: Get reference image
-                let referenceImageUrl = imageUrl;
+                let referenceImageUrl = null;
                 if (canonicalRecordId) {
                     const { data: record } = await supabase
                         .from("reference_results")
@@ -788,14 +789,12 @@ CRITICAL: Respond ONLY with a valid JSON object. No markdown, no code blocks, no
                         .eq("generation_id", canonicalRecordId)
                         .maybeSingle();
 
-                    if (record?.reference_images?.length > 0) {
-                        referenceImageUrl = record.reference_images[0];
-                    }
+                    referenceImageUrl = getPrimaryProductImage(record?.reference_images);
                 }
 
                 // Step 3: Optimize images
                 const optimizedResultUrl = await getOptimizedImageUrl(imageUrl);
-                const optimizedReferenceUrl = await getOptimizedImageUrl(referenceImageUrl);
+                const optimizedReferenceUrl = referenceImageUrl ? await getOptimizedImageUrl(referenceImageUrl) : null;
 
                 // Step 4: Generate images in parallel — save each progressively
                 const imagePrompts = [
@@ -811,9 +810,13 @@ CRITICAL: Respond ONLY with a valid JSON object. No markdown, no code blocks, no
                     try {
                         // 🧩 detail + ghost sahneleri Refiner sözleşmesini alır
                         // (kimlik korunumu + zemin sadakati + makro/hayalet inşası).
-                        const prompt = applyKitRefinerContract(rawPrompt, sceneTypes[index]);
+                        const input = buildProductKitSceneInput({
+                            sceneType: sceneTypes[index], prompt: rawPrompt,
+                            resultImageUrl: optimizedResultUrl, primaryProductImageUrl: optimizedReferenceUrl,
+                        });
+                        const prompt = applyKitRefinerContract(input.prompt, sceneTypes[index]);
                         console.log(`🎨 [KIT_V2] Generating ${sceneTypes[index]} via kit route (${getKitRoute()}, 9:16)...`);
-                        const generatedUrl = await generateKitV2Scene(prompt, optimizedResultUrl, optimizedReferenceUrl, userId);
+                        const generatedUrl = await generateKitV2Scene(prompt, input.imageUrls, userId);
 
                         const savedUrl = await saveGeneratedImageToUserBucket(
                             generatedUrl,
@@ -914,7 +917,7 @@ router.post("/retry-kit-scene", async (req, res) => {
         console.log(`🔄 [KIT_V2_RETRY] Retrying scene ${sceneIndex} (${sceneType}) for record: ${canonicalRecordId}`);
 
         // Get reference image
-        let referenceImageUrl = imageUrl;
+        let referenceImageUrl = null;
         if (canonicalRecordId) {
             const { data: record } = await supabase
                 .from("reference_results")
@@ -922,14 +925,12 @@ router.post("/retry-kit-scene", async (req, res) => {
                 .eq("generation_id", canonicalRecordId)
                 .maybeSingle();
 
-            if (record?.reference_images?.length > 0) {
-                referenceImageUrl = record.reference_images[0];
-            }
+            referenceImageUrl = getPrimaryProductImage(record?.reference_images);
         }
 
         // Optimize images
-        const optimizedResultUrl = await getOptimizedImageUrl(imageUrl);
-        const optimizedReferenceUrl = await getOptimizedImageUrl(referenceImageUrl);
+        const optimizedResultUrl = sceneType === "ghost" ? null : await getOptimizedImageUrl(imageUrl);
+        const optimizedReferenceUrl = referenceImageUrl ? await getOptimizedImageUrl(referenceImageUrl) : null;
 
         // Use default prompt for the scene type
         const promptMap = {
@@ -942,14 +943,15 @@ router.post("/retry-kit-scene", async (req, res) => {
         };
         // 🧩 detail + ghost burada da Refiner sözleşmesini alır — yeniden
         // deneme yolu ana akıştan ayrı, atlanırsa iki kalite ortaya çıkardı.
-        const prompt = applyKitRefinerContract(
-            promptMap[sceneIndex] || defaultPrompts.changePose1,
-            sceneType,
-        );
+        const input = buildProductKitSceneInput({
+            sceneType, prompt: promptMap[sceneIndex] || defaultPrompts.changePose1,
+            resultImageUrl: optimizedResultUrl, primaryProductImageUrl: optimizedReferenceUrl,
+        });
+        const prompt = applyKitRefinerContract(input.prompt, sceneType);
 
         // Generate the image — kit route (GPT Image 2.5 medium → NB2 fallback, 9:16)
         console.log(`🔄 [KIT_V2_RETRY] Using kit route (${getKitRoute()}, 9:16) for scene ${sceneIndex} (${sceneType})`);
-        const generatedUrl = await generateKitV2Scene(prompt, optimizedResultUrl, optimizedReferenceUrl, userId);
+        const generatedUrl = await generateKitV2Scene(prompt, input.imageUrls, userId);
         const savedUrl = await saveGeneratedImageToUserBucket(generatedUrl, userId || "anonymous", sceneType);
 
         // Save to reference_results.kits at correct position
@@ -999,7 +1001,7 @@ router.post("/retry-kit-scene", async (req, res) => {
         res.status(isSensitive ? 422 : 500).json({
             success: false,
             error: error.message,
-            errorCode: isSensitive ? "CONTENT_FLAGGED" : "GENERATION_FAILED"
+            errorCode: isSensitive ? "CONTENT_FLAGGED" : error.code === "PRIMARY_PRODUCT_IMAGE_REQUIRED" ? error.code : "GENERATION_FAILED"
         });
     }
 });

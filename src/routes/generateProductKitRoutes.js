@@ -8,6 +8,7 @@ const teamService = require("../services/teamService");
 const { optimizeKitImages } = require("../utils/imageOptimizer");
 const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
 const { generateKitImage, getKitRoute } = require("../utils/kitImageRoute");
+const { getPrimaryProductImage, buildProductKitSceneInput } = require("../utils/productKitSceneInput");
 
 // Supabase client
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -639,7 +640,7 @@ Ghost_Mannequin_Prompt: [your generated prompt]
         // Step 2: Get reference_images from database for detail/ghost
         console.log("🔍 [PRODUCT_KIT] Step 2: Fetching reference_images from database...");
 
-        let referenceImageUrl = imageUrl; // Fallback to original
+        let referenceImageUrl = null; // Ghost must never fall back to the styled outfit.
         try {
             // recordId ile arama yap (daha güvenilir)
             if (recordId) {
@@ -650,13 +651,13 @@ Ghost_Mannequin_Prompt: [your generated prompt]
                     .maybeSingle();
 
                 if (!findError && record && record.reference_images && record.reference_images.length > 0) {
-                    referenceImageUrl = record.reference_images[0];
-                    console.log("✅ [PRODUCT_KIT] Found reference_image by ID:", referenceImageUrl.substring(0, 80) + "...");
+                    referenceImageUrl = getPrimaryProductImage(record.reference_images);
+                    console.log("✅ [PRODUCT_KIT] Primary reference available:", Boolean(referenceImageUrl));
                 } else {
                     console.log("⚠️ [PRODUCT_KIT] No reference_images found for recordId:", recordId);
                 }
             } else {
-                console.log("⚠️ [PRODUCT_KIT] No recordId provided, using imageUrl as reference");
+                console.log("⚠️ [PRODUCT_KIT] No recordId provided; primary product unavailable for ghost scene");
             }
         } catch (error) {
             console.log("⚠️ [PRODUCT_KIT] Reference image lookup error:", error.message);
@@ -668,7 +669,7 @@ Ghost_Mannequin_Prompt: [your generated prompt]
         // Optimized URLs to prevent 422 errors (Reve API has size limits)
         console.log("🔄 [PRODUCT_KIT] Optimizing source images before generation...");
         const optimizedResultUrl = await getOptimizedImageUrl(imageUrl);
-        const optimizedReferenceUrl = await getOptimizedImageUrl(referenceImageUrl);
+        const optimizedReferenceUrl = referenceImageUrl ? await getOptimizedImageUrl(referenceImageUrl) : null;
 
         const generatedImages = [];
         const imageTypes = ["pose1", "pose2", "studio1", "studio2", "detail", "ghost"];
@@ -683,17 +684,20 @@ Ghost_Mannequin_Prompt: [your generated prompt]
             prompts.ghostMannequin || "convert to professional ghost mannequin product photo: completely remove all model parts - no face, hair, skin, hands visible. Create realistic internal garment structure showing natural 3D fit with clean hollow neckline and interior depth. Preserve all garment details, fabric texture, stitching, seams, trims. Pure white background #FFFFFF, no shadows, no reflections. Soft even studio lighting. Amazon e-commerce catalog standard, centered. Apply a clean editorial color preset with natural tones, balanced contrast, soft highlights, accurate whites, and professional fashion color grading. Avoid heavy filters, oversaturation, or stylized effects."
         ];
 
-        // Her kit generation'da HER ZAMAN iki resim birlikte gönderilir:
-        // 1. optimizedResultUrl (client'ten gelen URL - modelli fotoğraf)
-        // 2. optimizedReferenceUrl (reference image - ürün fotoğrafı)
+        // Ghost gets only the first product upload. The other scenes retain
+        // the styled result plus product reference for outfit continuity.
 
         // Generate images in parallel
-        const imageGenerationPromises = imagePrompts.map(async (prompt, index) => {
+        const imageGenerationPromises = imagePrompts.map(async (rawPrompt, index) => {
             try {
-                console.log(`🎨 [PRODUCT_KIT] Generating ${imageTypes[index]} with BOTH result and reference images...`);
+                const { prompt, imageUrls } = buildProductKitSceneInput({
+                    sceneType: imageTypes[index], prompt: rawPrompt,
+                    resultImageUrl: optimizedResultUrl, primaryProductImageUrl: optimizedReferenceUrl,
+                });
+                console.log(`🎨 [PRODUCT_KIT] Generating ${imageTypes[index]} with ${imageUrls.length} input image(s)...`);
                 const generatedUrl = await generateKitImage({
                     prompt,
-                    imageUrls: [optimizedResultUrl, optimizedReferenceUrl],
+                    imageUrls,
                     aspectRatio: "2:3",
                     tag: "PRODUCT_KIT",
                 });
