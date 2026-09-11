@@ -97,38 +97,62 @@ test('NB2 input strips GPT sizing/quality without mutating edit images or source
  assert.equal(input.aspect_ratio, 'original');
 });
 
-// Reference Browser V2: GPT 2.5 Sunburst xhigh önce, hata → nano-banana-pro.
-for(const name of ['referenceBrowserRoutesV7','referenceJewelryBrowserRoutesV7'])test(`${name}: V2 submits Sunburst xhigh independently of shared quality, nano-banana-pro stays as fallback`,async()=>{
- const r=read(name);
- // 11 Eyl 2026: Reference Browser'da V2 her zaman Sunburst xhigh (app_config.v2_model'den bağımsız);
- // takı rotası ayarı kullanmayı sürdürür.
- if(name==='referenceBrowserRoutesV7'){
-  assert.ok(!r.source.includes('getV2Model() === "gpt25"'),'reference browser V2 koşulsuz olmalı');
-  assert.ok(r.source.includes('if (isV2 && !req.body.isBackSideAnalysis && !v2GptFailed && !legacyFlags.useNbproV2) {'),'koşulsuz V2 dalı (yalnız legacy filtresi hariç)');
- } else {
-  assert.ok(r.source.includes('getV2Model() === "gpt25"'),'v2 model switch');
+// Execute the actual dispatch through the HTTP request, including retry attempts.
+for (const name of ['referenceBrowserRoutesV7', 'referenceJewelryBrowserRoutesV7']) test(`${name}: all V2 users submit directly to NB Pro 2K`, async () => {
+ const r = read(name);
+ const model = r.nodes.find(n => n.type === 'VariableDeclarator' && n.id.name === 'falModel' && n.init?.value === 'fal-ai/nano-banana-pro/edit');
+ const send = r.nodes.find(n => n.type === 'CallExpression' && n.callee.object?.name === 'axios' && n.callee.property?.name === 'post' && r.code(n.arguments[0]).includes('${falModel}'));
+ const start = r.source.lastIndexOf('const falModel', model.start);
+ const dispatch = r.source.slice(start, send.end) + ';';
+ for (const legacy of [false, true]) for (const attempt of [1, 2]) {
+  const calls = [];
+  const ctx = {
+   isV2: true, qualityVersion: 'v2', req: {body: {}}, attempt,
+   legacyFlags: {useNbproV2: legacy, skipAutoPoolModel: legacy},
+   getV2Model: () => {throw Error('Global GPT configuration must not route V2');},
+   callFalAiGptImage2Edit: () => {throw Error('V2 must not submit GPT');},
+   isPoseChange: false, isMultipleImages: false, referenceImages: [],
+   enhancedPrompt: 'Preserve product and selected scene', imageInputArray: original.image_urls,
+   formattedRatio: '9:16', safetyTolerance: '4',
+   logger: {log() {}}, process: {env: {FAL_API_KEY: 'fixture'}},
+   axios: {post: async (url, input) => {calls.push({url, input}); return {}; }},
+  };
+  await vm.runInNewContext(`(async()=>{let requestBody;for(let once=0;once<1;once++){${dispatch}}})()`, ctx);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, 'https://fal.run/fal-ai/nano-banana-pro/edit');
+  assert.equal(calls[0].input.resolution, '2K');
+  assert.equal(calls[0].input.aspect_ratio, '9:16');
+  assert.deepEqual(calls[0].input.image_urls, original.image_urls);
+  assert.equal(calls[0].input.prompt, ctx.enhancedPrompt);
  }
- assert.ok(r.source.includes('v2GptFailed = true'),'v2 fallback flag');
- assert.ok(r.source.includes('const falModel = "fal-ai/nano-banana-pro/edit"'),'nb pro retained');
- const fn=r.nodes.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='callFalAiGptImage2Edit');
- const calls=[];const ctx={...api,SUNBURST_EDIT_MODEL:api.GPT25_EDIT_MODEL,isSunburstContentRejection:()=>false,logger:{log(){}},console:{error(){}},setTimeout:(cb)=>{cb();return 0;},fal:{queue:{submit:async(model,{input})=>{calls.push({model,input});return{request_id:'x'};},status:async()=>({status:'COMPLETED'}),result:async()=>({data:{images:[{url:'https://test/out'}]}})}}};
- vm.createContext(ctx);vm.runInContext(r.code(fn),ctx);
- const branch=r.nodes.find(n=>n.type==='IfStatement'&&r.code(n.test).includes('!v2GptFailed'));
- assert.ok(branch,'V2 generation dispatch');
- const refs=['https://test/product','https://test/style'];
- Object.assign(ctx,{
-  isV2:true,req:{body:{}},v2GptFailed:false,getV2Model:()=> 'gpt25',
-  legacyFlags:{useNbproV2:false,skipAutoPoolModel:false,isLegacy:false}, // legacy filtresi kapalı kullanıcı
-  getGpt25QualityV2:()=> 'low',getGpt25Quality:()=> 'medium',
-  ensureMaxAspectRatio3to1ForInput:async urls=>urls,
-  imageInputArray:refs,userId:'fixture',enhancedPrompt:'Preserve the garment and selected style.',
-  aspectRatioForRequest:'9:16',mapRatioToGptImage2Size:()=> 'portrait_16_9',
-  uuidv4:()=> 'fixture',retryReasons:[],
- });
- const result=await vm.runInContext(`(async()=>{let replicateResponse;for(let attempt=1;attempt<=1;attempt++){${r.code(branch)}}return replicateResponse;})()`,ctx);
- assert.equal(result.data.output[0],'https://test/out');
- assert.equal(calls.length,1);assert.equal(calls[0].model,api.GPT25_EDIT_MODEL);
- assert.equal(calls[0].input.quality,'xhigh');assert.deepEqual(calls[0].input.image_size,{width:1440,height:2560});
- assert.deepEqual(Array.from(calls[0].input.image_urls),refs);assert.equal(calls[0].input.prompt,ctx.enhancedPrompt);
- assert.equal(api.GPT25_DEFAULT_QUALITY_V2,'high');assert.equal(api.V2_DEFAULT_MODEL,'gpt25');
+});
+
+for (const name of ['referenceBrowserRoutesV7', 'referenceJewelryBrowserRoutesV7']) test(`${name}: V1 uses NB2 1K for trial, paid and legacy users`, async () => {
+ const r = read(name);
+ const provider = r.nodes.find(n => n.type === 'VariableDeclarator' && n.id.name === 'modelCreationProvider');
+ const branch = r.nodes.find(n => n.type === 'IfStatement' && r.code(n.test) === 'req.body.isBackSideAnalysis || !isV2');
+ for (const isTrialUser of [false, true]) for (const legacy of [false, true]) {
+  const calls = [];
+  const ctx = {
+   ...require('../src/utils/modelCreationModel'),
+   isV2: false, isTrialUser, req: {body: {}},
+   modelCreationOptions: {qualityVersion: 'v1'},
+   modelCreationProvider: vm.runInNewContext(r.code(provider.init)),
+   legacyFlags: {useNbproV2: legacy},
+   isGptEnabledForV1: () => {throw Error('V1 must not read the legacy GPT switch');},
+   callFalAiGptImage2Edit: () => {throw Error('V1 must not submit GPT');},
+   getNb2ThinkingLevel: async () => 'off',
+   enhancedPrompt: original.prompt, imageInputArray: original.image_urls,
+   aspectRatioForRequest: '9:16', safetyTolerance: '4', uuidv4: () => 'fixture',
+   logger: {log() {}}, process: {env: {FAL_API_KEY: 'fixture'}},
+   axios: {post: async (url, input) => {calls.push({url, input}); return {data: {images: [{url: 'https://test/result'}]}};}},
+  };
+  await vm.runInNewContext(`(async()=>{let replicateResponse;for(let attempt=1;attempt<=1;attempt++){${r.code(branch)}}})()`, ctx);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, 'https://fal.run/fal-ai/nano-banana-2/edit');
+  assert.equal(calls[0].input.resolution, '1K');
+  assert.equal(calls[0].input.aspect_ratio, '9:16');
+  assert.deepEqual(calls[0].input.image_urls, original.image_urls);
+  assert.equal(calls[0].input.prompt, original.prompt);
+ }
 });

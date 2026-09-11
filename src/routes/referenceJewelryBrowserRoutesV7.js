@@ -1,11 +1,10 @@
 const { supabaseAdmin: modelPoolDb } = require("../supabaseClient");
 const { LOCATION_DIRECTION, stampLocationReference, resolveUploadedLocationReference } = require("../services/referenceLocation");
-const { getModelCreationProvider } = require("../services/modelCreationConfig");
 const { buildModelHairDirection } = require("../utils/modelHairDirection");
 const { normalizeModelProfile, buildModelProfileDirective } = require("../utils/modelProfile");
 const { applyAutoPoolModel } = require("../utils/autoPoolModel");
 const { getLegacyFlags } = require("../utils/legacyModelUsers");
-const { getGpt25Quality, getV2Model, gpt25ImageSize } = require("../utils/gpt25Edit");
+const { getGpt25Quality, gpt25ImageSize } = require("../utils/gpt25Edit");
 const { SUNBURST_EDIT_MODEL, usesNb2ForModelCreation, usesSunburstForModelCreation, isSunburstContentRejection } = require("../utils/modelCreationModel");
 const { getGenerationCreditCost } = require("../utils/generationCredits");
 const { applyResultUpscale } = require("../utils/resultUpscale");
@@ -638,7 +637,7 @@ async function callFalAiGptImage2Edit(
   maxRetries = 3,
   model = "openai/gpt-image-2/edit",
   sunburstRatio = null,
-  qualityOverride = null, // Reference Browser V2: xhigh
+  qualityOverride = null, // Optional GPT quality override
 ) {
   if (model === SUNBURST_EDIT_MODEL && (!imageUrls?.length || imageUrls.length > 16)) {
     throw new Error("Sunburst model creation requires 1–16 reference images");
@@ -657,7 +656,7 @@ async function callFalAiGptImage2Edit(
           prompt: prompt,
           image_urls: imageUrls,
           image_size: effectiveImageSize,
-          quality: model === SUNBURST_EDIT_MODEL ? (qualityOverride || getGpt25Quality()) : "medium", // GPT 2.5: V2 → xhigh, V1 → gpt25_quality
+          quality: model === SUNBURST_EDIT_MODEL ? (qualityOverride || getGpt25Quality()) : "medium", // GPT 2.5: V1 → gpt25_quality
           num_images: 1,
           output_format: "jpeg",
         },
@@ -7419,14 +7418,13 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
       logger.warn("🎁 [TRIAL QUALITY] trial durumu okunamadı:", error.message);
     }
     let sunburstRejected = false;
-    let v2GptFailed = false; // V2: GPT 2.5 high başarısız → kalan denemeler nano-banana-pro
     // Snapshot once per generation so admin changes never switch an active retry.
     const modelCreationOptions = {
       qualityVersion,
       isBackSideAnalysis: req.body.isBackSideAnalysis,
       isPoseChange, isColorChange, isEditMode, isRefinerMode,
     };
-    const modelCreationProvider = await getModelCreationProvider(modelCreationOptions);
+    const modelCreationProvider = "gemini"; // All Reference Browser V1 creations use NB2.
 
     for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
       try {
@@ -7612,7 +7610,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
 
         // 🎨 Model dallanması:
         //   backSide analysis   → HER ZAMAN GPT Image 2 (v1 + v2, is_gpt bayrağından bağımsız)
-        //   model creation v1   → app_model_generation_config: gpt / gemini
+        //   model creation v1   → Nano Banana 2, 1K for all users
         //   other legacy v1     → app_config.is_gpt: GPT Image 2 / nano-banana-2
         //   v2 (non-backside)   → aşağıdaki nano-banana-pro akışı devam eder.
         if (req.body.isBackSideAnalysis || !isV2) {
@@ -7693,7 +7691,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
               output_format: "png",
               aspect_ratio: aspectRatioForRequest,
               num_images: 1,
-              resolution: "2K",
+              resolution: useNb2 ? "1K" : "2K",
               safety_tolerance: safetyTolerance,
               enable_web_search: true,
               ...(nb2ThinkingLevel !== "off"
@@ -7749,38 +7747,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
           }
         }
 
-        // 🎨 V2 (35 kredi) — 11 Eyl 2026: birincil model GPT Image 2.5 Sunburst, kalite
-        // Reference Browser'a özel xhigh; boyut ~3,7 MP tablo (gpt25Edit).
-        // app_config.v2_model = "nbpro" ise doğrudan nano-banana-pro. GPT hata verirse
-        // kalan denemeler aşağıdaki nano-banana-pro akışına düşer (her zaman yedek).
-        if (isV2 && !req.body.isBackSideAnalysis && !v2GptFailed && !legacyFlags.useNbproV2 && getV2Model() === "gpt25") {
-          try {
-            const v2Quality = "xhigh";
-            const sanitizedV2Urls = await ensureMaxAspectRatio3to1ForInput(imageInputArray, userId);
-            logger.log(
-              `🎨 [V2 GPT25] ${SUNBURST_EDIT_MODEL} quality=${v2Quality}, ratio=${aspectRatioForRequest}, images: ${sanitizedV2Urls?.length || 0}`,
-            );
-            const v2ResultUrl = await callFalAiGptImage2Edit(
-              enhancedPrompt,
-              sanitizedV2Urls,
-              mapRatioToGptImage2Size(aspectRatioForRequest),
-              2,
-              SUNBURST_EDIT_MODEL,
-              aspectRatioForRequest,
-              v2Quality,
-            );
-            replicateResponse = {
-              data: { id: `sunburst-v2-${uuidv4()}`, status: "succeeded", output: [v2ResultUrl], urls: { get: null } },
-            };
-            logger.log(`✅ [V2 GPT25] Başarılı, retry loop'tan çıkılıyor (attempt ${attempt})`);
-            break;
-          } catch (error) {
-            v2GptFailed = true;
-            retryReasons.push(`V2 GPT 2.5 failed → nano-banana-pro: ${String(error?.message || "").substring(0, 80)}`);
-            logger.warn(`🛟 [V2 GPT25→NBPRO] GPT Image 2.5 başarısız (${error?.message}); nano-banana-pro'ya geçiliyor`);
-          }
-        }
-
+        // V2: all users generate directly with Nano Banana Pro 2K.
         // Back side analysis veya v2 modunda quality "2K" olarak ayarla (nano-banana-pro için)
         const qualityParam =
           isV2 || req.body.isBackSideAnalysis ? "2K" : undefined;
