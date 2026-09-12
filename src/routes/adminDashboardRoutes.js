@@ -7,6 +7,8 @@ const {
   optimizeHistoryImages,
 } = require("../utils/imageOptimizer");
 const db = supabaseAdmin || supabase;
+router.use(require("./adminBannerRoutes")(db));
+router.use(require("./adminAnalyticsRoutes")(supabaseAdmin));
 
 // Enrich a kit-style row (product_kits / product_stories / product_unboxing_stories)
 // by transforming each JSONB image array element into { url, thumbnail, original }.
@@ -57,8 +59,12 @@ const FEATURE_CONFIG = {
     table: "reference_results",
     select:
       "id, user_id, generation_id, status, result_image_url, reference_images, location_image, aspect_ratio, created_at, credits_before_generation, credits_deducted, credits_after_generation, settings, quality_version, creation_mode, kits",
-    applyFilter: (query) =>
-      query.not("settings->gender", "is", null).eq("visibility", true),
+    applyFilter: (query) => {
+      for (const flag of ['isPoseChange', 'isColorChange', 'isBackSideCloset', 'isRefinerMode', 'isEditMode']) {
+        query = query.or(`settings->>${flag}.is.null,settings->>${flag}.neq.true`);
+      }
+      return query;
+    },
   },
   refiner: {
     table: "refiner_generations",

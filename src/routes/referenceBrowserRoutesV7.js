@@ -2034,7 +2034,7 @@ async function enhancePromptWithGemini(
     const hasValidSettings =
       settings &&
       Object.entries(settings).some(
-        ([key, value]) => value !== null && value !== undefined && value !== "",
+        ([key, value]) => key !== "analyticsModelImage" && value !== null && value !== undefined && value !== "",
       );
 
     logger.log("🎛️ [BACKEND GEMINI] Settings kontrolü:", hasValidSettings);
@@ -2358,7 +2358,8 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
             value !== "" &&
             key !== "measurements" &&
             key !== "type" &&
-            key !== "locationEnhancedPrompt", // Enhanced prompt'u settings text'inden hariç tut
+            key !== "analyticsModelImage" &&
+          key !== "locationEnhancedPrompt", // Enhanced prompt'u settings text'inden hariç tut
         )
         .map(([key, value]) => `${key}: ${value}`)
         .join(", ");
@@ -2385,6 +2386,7 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
           value !== "" &&
           key !== "measurements" &&
           key !== "type" &&
+          key !== "analyticsModelImage" &&
           key !== "locationEnhancedPrompt", // Enhanced prompt'u detay listesinden hariç tut
       )
       .map(
@@ -5182,6 +5184,10 @@ router.post("/generate", async (req, res) => {
     );
 
     modelPhoto = modelPhoto ? sanitizeImageUrl(modelPhoto) : modelPhoto;
+    // Analytics-only identity reference; never used to compose the generation prompt.
+    settings = { ...(settings || {}) };
+    delete settings.analyticsModelImage;
+    if (modelPhoto) settings.analyticsModelImage = modelPhoto;
 
     // ReferenceImages sanitization + model referansını yakala
     referenceImages = Array.isArray(referenceImages)

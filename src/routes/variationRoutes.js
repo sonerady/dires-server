@@ -1430,6 +1430,8 @@ async function startAutomaticTrialVariation({
       batchId,
       slot: index + 1,
       automaticTrial: true,
+      initiatedBy: "automatic_trial",
+      isTrialAtGeneration: true,
     },
   }));
 
@@ -1502,6 +1504,8 @@ async function startAutomaticTrialVariation({
               batchId,
               slot: index + 1,
               automaticTrial: true,
+              initiatedBy: "automatic_trial",
+              isTrialAtGeneration: true,
               variationMode: productMode ? "product" : "pose",
               ...(backAnalysis ? { backReferenceAnalysis: backAnalysis } : {}),
             },
@@ -1587,6 +1591,7 @@ router.post("/generate", async (req, res) => {
       extraImages = [],
       note = null,
       freeOnly = false,
+      automaticTrial = false,
       // 💍 "product" → Refiner kalıbı (ikinci açı + detay makro).
       // Gönderilmezse kaynak kaydın settings.isRefinerMode'u karar verir.
       variationMode = null,
@@ -1737,6 +1742,9 @@ router.post("/generate", async (req, res) => {
         model: VARIATION_MODEL,
         ...getVariationModelSettings(sourceSizeRatio || sourceAspectRatio),
         batchId,
+        automaticTrial: automaticTrial === true && access.isInTrial === true,
+        initiatedBy: automaticTrial === true && access.isInTrial === true ? "automatic_trial" : "user",
+        isTrialAtGeneration: access.isInTrial === true,
         slot: i + 1,
         variationMode: productMode ? "product" : "pose",
         ...(backAnalysis ? { backReferenceAnalysis: backAnalysis } : {}),
