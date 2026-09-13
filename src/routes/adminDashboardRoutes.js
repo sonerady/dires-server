@@ -1,3 +1,6 @@
+const { USER_SELECT } = require('../utils/adminUserFields');
+const { ADMIN_OWNER_FIELDS, adminGenerationOwner } = require('../utils/adminGenerationOwner');
+const { enrichAdminStyleReferences } = require('../utils/adminStyleReferences');
 const express = require("express");
 const router = express.Router();
 const { supabaseAdmin, supabase } = require("../supabaseClient");
@@ -6,9 +9,21 @@ const {
   getOriginalForModal,
   optimizeHistoryImages,
 } = require("../utils/imageOptimizer");
-const db = supabaseAdmin || supabase;
+const { adminVisibleData } = require('../utils/adminVisibleData');
+const db = adminVisibleData(supabaseAdmin || supabase);
+const { HIDDEN_ADMIN_USER_IDS } = require('../utils/adminVisibleData');
+router.use((req, res, next) => {
+  if (req.method === 'GET' && req.path.split('/').some(part => HIDDEN_ADMIN_USER_IDS.includes(part))) {
+    return res.status(404).json({ error: 'Kayıt bulunamadı.' });
+  }
+  if (req.method === 'GET' && HIDDEN_ADMIN_USER_IDS.includes(String(req.query.user_id || req.query.search || ''))) {
+    return res.set('Cache-Control', 'private, no-store').json({ success: true, data: [], total: 0, totalPages: 1 });
+  }
+  next();
+});
+router.use(require('./adminGenerationDetailRoutes')(db));
 router.use(require("./adminBannerRoutes")(db));
-router.use(require("./adminAnalyticsRoutes")(supabaseAdmin));
+router.use(require("./adminAnalyticsRoutes")(db));
 
 // Enrich a kit-style row (product_kits / product_stories / product_unboxing_stories)
 // by transforming each JSONB image array element into { url, thumbnail, original }.
@@ -288,7 +303,7 @@ router.get("/generations", async (req, res) => {
       if (userIds.length > 0) {
         const { data: users } = await db
           .from("users")
-          .select("id, email, is_pro, is_in_trial, has_used_trial, trial_started_at, credit_balance, theme_mode, platform, app_version")
+          .select(ADMIN_OWNER_FIELDS)
           .in("id", userIds);
 
         const userMap = {};
@@ -308,15 +323,7 @@ router.get("/generations", async (req, res) => {
           const user = userMap[item.user_id] || {};
           const result = {
             ...item,
-            user_email: user.email || null,
-            user_is_pro: user.is_pro ?? false,
-            user_is_in_trial: user.is_in_trial ?? false,
-            user_has_used_trial: user.has_used_trial ?? false,
-            user_trial_started_at: user.trial_started_at || null,
-            user_credit_balance: user.credit_balance ?? null,
-            user_theme_mode: user.theme_mode || null,
-            user_platform: user.platform || null,
-            user_app_version: user.app_version || null,
+            ...adminGenerationOwner(user),
           };
           if (feature === "unboxing-stories") {
             const pref = unboxingPrefsMap[item.user_id] || {};
@@ -363,6 +370,10 @@ router.get("/generations", async (req, res) => {
       }
     }
 
+    if (config.table === 'reference_results') {
+      enrichedData = await enrichAdminStyleReferences(db, enrichedData);
+    }
+
     res.json({
       success: true,
       data: enrichedData,
@@ -405,38 +416,7 @@ router.get("/users", async (req, res) => {
     const sortCol = allowedSort.has(sort) ? sort : "created_at";
     const ascending = direction === "asc";
 
-    const USER_SELECT = [
-      "id",
-      "supabase_user_id",
-      "email",
-      "full_name",
-      "company_name",
-      "avatar_url",
-      "credit_balance",
-      "is_pro",
-      "subscription_type",
-      "auth_provider",
-      "owner",
-      "device_id",
-      "received_initial_credit",
-      "initial_credit_date",
-      "created_at",
-      "updated_at",
-      "web_session_version",
-      "mobile_session_version",
-      "last_web_login",
-      "last_mobile_login",
-      "is_in_trial",
-      "has_used_trial",
-      "trial_started_at",
-      "active_team_id",
-      "team_max_members",
-      "team_subscription_active",
-      "platform",
-      "app_version",
-      "theme_mode",
-      "metadata_updated_at",
-    ].join(", ");
+
 
     let query = db
       .from("users")
@@ -1162,7 +1142,7 @@ router.get("/color-changes", async (req, res) => {
     if (userIds.length > 0) {
       const { data: users } = await db
         .from("users")
-        .select("id, email, is_pro, is_in_trial, trial_started_at, credit_balance")
+        .select(ADMIN_OWNER_FIELDS)
         .in("id", userIds);
       (users || []).forEach((u) => userMap.set(u.id, u));
     }
@@ -1172,11 +1152,7 @@ router.get("/color-changes", async (req, res) => {
         const u = userMap.get(r.user_id);
         return {
           ...r,
-          user_email: u?.email ?? null,
-          user_is_pro: u?.is_pro ?? false,
-          user_is_in_trial: u?.is_in_trial ?? false,
-          user_trial_started_at: u?.trial_started_at || null,
-          user_credit_balance: u?.credit_balance ?? null,
+          ...adminGenerationOwner(u),
         };
       }),
     );
@@ -1254,7 +1230,7 @@ router.get("/refiner", async (req, res) => {
     if (userIds.length > 0) {
       const { data: users } = await db
         .from("users")
-        .select("id, email, is_pro, is_in_trial, trial_started_at, credit_balance")
+        .select(ADMIN_OWNER_FIELDS)
         .in("id", userIds);
       (users || []).forEach((u) => userMap.set(u.id, u));
     }
@@ -1264,11 +1240,7 @@ router.get("/refiner", async (req, res) => {
         const u = userMap.get(r.user_id);
         return {
           ...r,
-          user_email: u?.email ?? null,
-          user_is_pro: u?.is_pro ?? false,
-          user_is_in_trial: u?.is_in_trial ?? false,
-          user_trial_started_at: u?.trial_started_at || null,
-          user_credit_balance: u?.credit_balance ?? null,
+          ...adminGenerationOwner(u),
         };
       }),
     );
@@ -1345,7 +1317,7 @@ router.get("/videos", async (req, res) => {
     if (userIds.length > 0) {
       const { data: users } = await db
         .from("users")
-        .select("id, email, is_pro, is_in_trial, trial_started_at, credit_balance")
+        .select(ADMIN_OWNER_FIELDS)
         .in("id", userIds);
       (users || []).forEach((u) => userMap.set(u.id, u));
     }
@@ -1355,11 +1327,7 @@ router.get("/videos", async (req, res) => {
         const u = userMap.get(r.user_id);
         return {
           ...r,
-          user_email: u?.email ?? null,
-          user_is_pro: u?.is_pro ?? false,
-          user_is_in_trial: u?.is_in_trial ?? false,
-          user_trial_started_at: u?.trial_started_at || null,
-          user_credit_balance: u?.credit_balance ?? null,
+          ...adminGenerationOwner(u),
         };
       }),
     );

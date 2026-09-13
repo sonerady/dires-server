@@ -1,3 +1,5 @@
+const { hideAdminPersonalAssets } = require('../utils/adminVisibleData');
+const { ADMIN_OWNER_FIELDS, adminGenerationOwner } = require('../utils/adminGenerationOwner');
 const express = require('express');
 const { optimizeForThumbnail } = require('../utils/imageOptimizer');
 const SOURCES = {
@@ -52,6 +54,7 @@ module.exports=function createAdminAnalyticsRouter(db) {
   try {
    const data=await memo('analytics:'+dates.from+dates.to,300000,async()=>{
     const {data,error}=await db.rpc('admin_analytics_report',{p_from:dates.from,p_to:dates.to});if(error)throw error;
+    await hideAdminPersonalAssets(db, data);
     for(const key of ['locations','models'])for(const item of data[key]||[])if(item.image)item.image=optimizeForThumbnail(item.image);
     return data;
    });res.set('Cache-Control','private, no-store').json(data);
@@ -88,9 +91,9 @@ module.exports=function createAdminAnalyticsRouter(db) {
    if(req.query.user_id)q=q.eq('user_id',String(req.query.user_id));
    const {data,error,count}=await q;if(error)throw error;
    const ids=[...new Set(data.map(r=>r.user_id).filter(x=>/^[0-9a-f-]{36}$/i.test(x)))];
-   const owners=ids.length?await db.from('users').select('id,email').in('id',ids):{data:[]};if(owners.error)throw owners.error;
-   const emails=new Map(owners.data.map(u=>[u.id,u.email]));
-   res.json({data:data.map(r=>({...r,user_email:emails.get(r.user_id)||null,original_image_url:r.original_image_url||r.source_image_url,thumbnail: r.result_image_url?optimizeForThumbnail(r.result_image_url):null})),total:count,totalPages:Math.max(1,Math.ceil(count/30))});
+   const owners=ids.length?await db.from('users').select(ADMIN_OWNER_FIELDS).in('id',ids):{data:[]};if(owners.error)throw owners.error;
+   const ownersById=new Map(owners.data.map(u=>[u.id,u]));
+   res.json({data:data.map(r=>({...r,...adminGenerationOwner(ownersById.get(r.user_id)),original_image_url:r.original_image_url||r.source_image_url,thumbnail: r.result_image_url?optimizeForThumbnail(r.result_image_url):null})),total:count,totalPages:Math.max(1,Math.ceil(count/30))});
   }catch(e){console.error('[Admin operations]',e.code||e.name);res.status(503).json({error:'Operations could not be loaded'})}
  });
  return router;

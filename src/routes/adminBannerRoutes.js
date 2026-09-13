@@ -1,3 +1,4 @@
+const { ADMIN_OWNER_FIELDS, adminGenerationOwner } = require('../utils/adminGenerationOwner');
 const express = require('express');
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -31,11 +32,11 @@ module.exports = function createAdminBannerRoutes(db) {
       const ids = [...new Set(rows.map(r => r.user_id).filter(id => UUID.test(id)))];
       const owners = new Map();
       if (ids.length) {
-        const { data: users, error: userError } = await db.from('users').select('id,email').in('id', ids);
+        const { data: users, error: userError } = await db.from('users').select(ADMIN_OWNER_FIELDS).in('id', ids);
         if (userError) throw userError;
-        (users || []).forEach(u => owners.set(u.id, u.email));
+        (users || []).forEach(u => owners.set(u.id, u));
       }
-      res.json({ success: true, data: rows.map(r => ({ ...r, user_email: owners.get(r.user_id) || null })), total: count || 0, page, totalPages: Math.max(1, Math.ceil((count || 0) / limit)) });
+      res.json({ success: true, data: rows.map(r => ({ ...r, ...adminGenerationOwner(owners.get(r.user_id)) })), total: count || 0, page, totalPages: Math.max(1, Math.ceil((count || 0) / limit)) });
     } catch (error) {
       console.error('[Admin/Banners]', error.message);
       res.status(500).json({ success: false, error: 'Failed to load banners' });

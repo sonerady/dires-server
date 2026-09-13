@@ -5,7 +5,8 @@ const router = express.Router();
 const { supabaseAdmin, supabase } = require("../supabaseClient");
 const { invalidateLegacyCache } = require("../utils/legacyModelUsers");
 
-const db = supabaseAdmin || supabase;
+const { adminVisibleData } = require('../utils/adminVisibleData');
+const db = adminVisibleData(supabaseAdmin || supabase);
 const TABLE = "legacy_model_users";
 const normalize = (email) => String(email || "").trim().toLowerCase();
 const isEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
