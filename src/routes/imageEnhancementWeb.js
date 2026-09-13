@@ -1,3 +1,4 @@
+const { changeUpscaleBalance } = require("../utils/upscaleCreditBalance");
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
@@ -39,7 +40,8 @@ router.post("/", async (req, res) => {
       contentModeration = false,
       userId: requestUserId,
     } = req.body;
-    userId = requestUserId;
+    userId = req.user?.id || requestUserId;
+    if (!userId || ["anonymous_user", "anonymous"].includes(userId)) return res.status(400).json({ success: false, error: "USER_ACCOUNT_REQUIRED" });
 
     console.log("1. Received request with data:", {
       imageUrl,
@@ -88,30 +90,19 @@ router.post("/", async (req, res) => {
           `✅ [BACKEND] Kredi yeterli! ${currentCredit} >= ${CREDIT_COST}, devam ediliyor...`
         );
 
-        // Krediyi doğru hesaptan düş (team owner veya kendisi)
-        const { error: updateError } = await supabase
-          .from("users")
-          .update({ credit_balance: currentCredit - CREDIT_COST })
-          .eq("id", creditOwnerId);
-
-        if (updateError) {
-          console.error("❌ Kredi düşme hatası:", updateError);
-          return res.status(500).json({
-            success: false,
-            error: "Kredi düşülemedi",
-          });
-        }
-
+        creditOwnerId = creditOwnerId || userId;
+        const charged = await changeUpscaleBalance(supabase, creditOwnerId, -CREDIT_COST);
         creditDeducted = true;
-        creditBalanceAfter = currentCredit - CREDIT_COST;
+        creditBalanceBefore = charged.before;
+        creditBalanceAfter = charged.after;
         console.log(
           `✅ ${CREDIT_COST} kredi düşüldü (${creditOwnerId === userId ? "kendi hesabından" : "team owner hesabından"}). Kalan: ${creditBalanceAfter}`
         );
       } catch (creditManagementError) {
         console.error("❌ Kredi yönetimi hatası:", creditManagementError);
-        return res.status(500).json({
+        return res.status(creditManagementError.status || 500).json({
           success: false,
-          error: "Kredi yönetimi sırasında hata oluştu",
+          error: creditManagementError.message,
         });
       }
     }
@@ -235,19 +226,7 @@ router.post("/", async (req, res) => {
         console.log(
           `💰 [BACKEND] Kredi iade ediliyor, creditOwnerId: ${creditOwnerId}, amount: ${CREDIT_COST}`
         );
-        const { data: currentOwnerCredit } = await supabase
-          .from("users")
-          .select("credit_balance")
-          .eq("id", creditOwnerId)
-          .single();
-
-        await supabase
-          .from("users")
-          .update({
-            credit_balance:
-              (currentOwnerCredit?.credit_balance || 0) + CREDIT_COST,
-          })
-          .eq("id", creditOwnerId);
+        await changeUpscaleBalance(supabase, creditOwnerId, CREDIT_COST);
 
         console.log(
           `✅ [BACKEND] ${CREDIT_COST} kredi iade edildi (hata nedeniyle) - ${creditOwnerId === userId ? "kendi hesabına" : "team owner hesabına"}`
@@ -333,18 +312,8 @@ async function processBulkUpscaleItem({ userId, imageUrl, index }) {
         const creditOwnerId = effective.creditOwnerId || userId;
         const currentCredit = effective.creditBalance || 0;
 
-        const { error: deductError } = await supabase.rpc(
-          "deduct_user_credit",
-          { user_id: creditOwnerId, credit_amount: BULK_CREDIT_COST }
-        );
-        if (deductError) {
-          console.error(
-            `❌ [BULK_UPSCALE] Credit deduct failed for ${creditOwnerId}:`,
-            deductError
-          );
-        } else {
-          creditsCharged = BULK_CREDIT_COST;
-        }
+        await changeUpscaleBalance(supabase, creditOwnerId, -BULK_CREDIT_COST);
+        creditsCharged = BULK_CREDIT_COST;
 
         const balanceAfter = currentCredit - creditsCharged;
 
@@ -375,9 +344,10 @@ async function processBulkUpscaleItem({ userId, imageUrl, index }) {
         }
       } catch (creditErr) {
         console.error(
-          "⚠️ [BULK_UPSCALE] credit/db error (non-blocking):",
+          "⚠️ [BULK_UPSCALE] credit/db error:",
           creditErr?.message
         );
+        if (!creditsCharged) throw creditErr;
       }
     }
 
@@ -429,7 +399,7 @@ router.post("/generate-bulk", async (req, res) => {
     } = req.body || {};
 
     const userId = req.user?.id || bodyUserId;
-    if (!userId) {
+    if (!userId || ["anonymous_user", "anonymous"].includes(userId)) {
       return res.status(400).json({
         success: false,
         error: "userId zorunludur",
@@ -479,6 +449,7 @@ router.post("/generate-bulk", async (req, res) => {
           "⚠️ [BULK_UPSCALE] Credit precheck atlandı:",
           creditErr?.message
         );
+        return res.status(503).json({ success: false, error: "CREDIT_BALANCE_UNAVAILABLE" });
       }
     }
 

@@ -1,3 +1,4 @@
+const { changeUpscaleBalance } = require("../utils/upscaleCreditBalance");
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
@@ -10,6 +11,7 @@ router.post("/", async (req, res) => {
   const CREDIT_COST = 5; // Image enhancement için kredi maliyeti
   let creditDeducted = false;
   let userId;
+  let creditOwnerId;
 
   try {
     const {
@@ -19,7 +21,8 @@ router.post("/", async (req, res) => {
       contentModeration = false,
       userId: requestUserId,
     } = req.body;
-    userId = requestUserId;
+    userId = req.user?.id || requestUserId;
+    if (!userId || ["anonymous_user", "anonymous"].includes(userId)) return res.status(400).json({ success: false, error: "USER_ACCOUNT_REQUIRED" });
 
     console.log("1. Received request with data:", {
       imageUrl,
@@ -35,7 +38,7 @@ router.post("/", async (req, res) => {
     }
 
     // 🔗 TEAM-AWARE: Kredi kontrolü ve düşme
-    let creditOwnerId = userId;
+    creditOwnerId = userId;
 
     if (userId && userId !== "anonymous_user") {
       try {
@@ -60,29 +63,17 @@ router.post("/", async (req, res) => {
           });
         }
 
-        // Krediyi doğru hesaptan düş
-        const { error: updateError } = await supabase
-          .from("users")
-          .update({ credit_balance: currentCredit - CREDIT_COST })
-          .eq("id", creditOwnerId);
-
-        if (updateError) {
-          console.error("❌ Kredi düşme hatası:", updateError);
-          return res.status(500).json({
-            success: false,
-            error: "Kredi düşülemedi",
-          });
-        }
-
+        creditOwnerId = creditOwnerId || userId;
+        const charged = await changeUpscaleBalance(supabase, creditOwnerId, -CREDIT_COST);
         creditDeducted = true;
         console.log(
           `✅ [V2] ${CREDIT_COST} kredi düşüldü (${creditOwnerId === userId ? "kendi hesabından" : "team owner hesabından"}). Kalan: ${currentCredit - CREDIT_COST}`
         );
       } catch (creditManagementError) {
         console.error("❌ Kredi yönetimi hatası:", creditManagementError);
-        return res.status(500).json({
+        return res.status(creditManagementError.status || 500).json({
           success: false,
-          error: "Kredi yönetimi sırasında hata oluştu",
+          error: creditManagementError.message,
         });
       }
     }
@@ -153,19 +144,7 @@ router.post("/", async (req, res) => {
     // 🔗 TEAM-AWARE: Hata durumunda kredi iade et (doğru hesaba)
     if (creditDeducted && creditOwnerId && creditOwnerId !== "anonymous_user") {
       try {
-        const { data: currentOwnerCredit } = await supabase
-          .from("users")
-          .select("credit_balance")
-          .eq("id", creditOwnerId)
-          .single();
-
-        await supabase
-          .from("users")
-          .update({
-            credit_balance:
-              (currentOwnerCredit?.credit_balance || 0) + CREDIT_COST,
-          })
-          .eq("id", creditOwnerId);
+        await changeUpscaleBalance(supabase, creditOwnerId, CREDIT_COST);
 
         console.log(`💰 [V2] ${CREDIT_COST} kredi iade edildi (hata nedeniyle) - ${creditOwnerId === userId ? "kendi hesabına" : "team owner hesabına"}`);
       } catch (refundError) {

@@ -1,3 +1,4 @@
+const { changeUpscaleBalance } = require("../utils/upscaleCreditBalance");
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
@@ -184,7 +185,7 @@ const getRemoteFileSize = async (url) => {
 };
 
 router.post("/", async (req, res) => {
-  // Hedef çözünürlük (MP) → kredi. İstemci göndermezse 4MP/5 kredi.
+  // Hedef çözünürlük (MP) → kredi. İstemci göndermezse 4MP/10 kredi.
   const targetMp = normalizeTargetMp(req.body?.targetMp);
   const CREDIT_COST = creditCostForMp(targetMp);
   let creditDeducted = false;
@@ -201,7 +202,10 @@ router.post("/", async (req, res) => {
       contentModeration = false,
       userId: requestUserId,
     } = req.body;
-    userId = requestUserId;
+    userId = req.user?.id || requestUserId;
+    if (!userId || ["anonymous_user", "anonymous"].includes(userId)) {
+      return res.status(400).json({ success: false, error: "USER_ACCOUNT_REQUIRED" });
+    }
 
     console.log("1. Received request with data:", {
       imageUrl,
@@ -250,30 +254,19 @@ router.post("/", async (req, res) => {
           `✅ [BACKEND] Kredi yeterli! ${currentCredit} >= ${CREDIT_COST}, devam ediliyor...`
         );
 
-        // Krediyi doğru hesaptan düş (team owner veya kendisi)
-        const { error: updateError } = await supabase
-          .from("users")
-          .update({ credit_balance: currentCredit - CREDIT_COST })
-          .eq("id", creditOwnerId);
-
-        if (updateError) {
-          console.error("❌ Kredi düşme hatası:", updateError);
-          return res.status(500).json({
-            success: false,
-            error: "Kredi düşülemedi",
-          });
-        }
-
+        const charged = await changeUpscaleBalance(supabase, creditOwnerId || userId, -CREDIT_COST);
+        creditOwnerId = creditOwnerId || userId;
+        creditBalanceBefore = charged.before;
         creditDeducted = true;
-        creditBalanceAfter = currentCredit - CREDIT_COST;
+        creditBalanceAfter = charged.after;
         console.log(
           `✅ ${CREDIT_COST} kredi düşüldü (${creditOwnerId === userId ? "kendi hesabından" : "team owner hesabından"}). Kalan: ${creditBalanceAfter}`
         );
       } catch (creditManagementError) {
         console.error("❌ Kredi yönetimi hatası:", creditManagementError);
-        return res.status(500).json({
+        return res.status(creditManagementError.status || 500).json({
           success: false,
-          error: "Kredi yönetimi sırasında hata oluştu",
+          error: creditManagementError.message,
         });
       }
     }
@@ -383,19 +376,7 @@ router.post("/", async (req, res) => {
         console.log(
           `💰 [BACKEND] Kredi iade ediliyor, creditOwnerId: ${creditOwnerId}, amount: ${CREDIT_COST}`
         );
-        const { data: currentOwnerCredit } = await supabase
-          .from("users")
-          .select("credit_balance")
-          .eq("id", creditOwnerId)
-          .single();
-
-        await supabase
-          .from("users")
-          .update({
-            credit_balance:
-              (currentOwnerCredit?.credit_balance || 0) + CREDIT_COST,
-          })
-          .eq("id", creditOwnerId);
+        await changeUpscaleBalance(supabase, creditOwnerId, CREDIT_COST);
 
         console.log(
           `✅ [BACKEND] ${CREDIT_COST} kredi iade edildi (hata nedeniyle) - ${creditOwnerId === userId ? "kendi hesabına" : "team owner hesabına"}`
@@ -427,7 +408,7 @@ router.post("/", async (req, res) => {
 // POST /api/imageEnhancement/generate-bulk
 // Body: { userId, sessionId, items: [{ imageUrl }] }
 // 1–20 item, paralel Fal.ai çağrısı (Promise.allSettled), credit yalnızca
-// başarılı item'lardan kesilir. Anonymous user destekli (DB/credit skip).
+// işlem öncesinde ayrılır, başarısız item için iade edilir. Cihaz hesabı desteklenir.
 // ============================================================================
 const BULK_MAX_ITEMS = 20;
 // Toplu modda kredi de hedef çözünürlüğe göre hesaplanır (tekil akışla aynı tablo).
@@ -460,11 +441,15 @@ async function processBulkUpscaleItem({
   targetMp = DEFAULT_UPSCALE_MP,
 }) {
   const startedAt = Date.now();
+  let creditsCharged = 0;
 
   try {
     if (typeof imageUrl !== "string" || !imageUrl.trim()) {
       throw new Error("INVALID_IMAGE_URL");
     }
+
+    await changeUpscaleBalance(supabase, creditOwnerId, -creditCostForMp(targetMp));
+    creditsCharged = creditCostForMp(targetMp);
 
     // Replicate p-image-upscale çağrısı (target modunda MP)
     const tFalStart = Date.now();
@@ -486,29 +471,7 @@ async function processBulkUpscaleItem({
       resultThumbUrl = savedBulk.thumbUrl;
     }
 
-    // ⚡ Critical: Credit kesimi sync (deduct atomic RPC, hızlı). HEAD + DB insert background'a.
-    let creditsCharged = 0;
-    if (userId && userId !== "anonymous_user" && creditOwnerId) {
-      try {
-        const { error: deductError } = await supabase.rpc(
-          "deduct_user_credit",
-          { user_id: creditOwnerId, credit_amount: creditCostForMp(targetMp) }
-        );
-        if (deductError) {
-          console.error(
-            `❌ [BULK_UPSCALE] Item ${index} credit deduct failed for ${creditOwnerId}:`,
-            deductError
-          );
-        } else {
-          creditsCharged = creditCostForMp(targetMp);
-        }
-      } catch (creditErr) {
-        console.error(
-          `⚠️ [BULK_UPSCALE] Item ${index} credit error:`,
-          creditErr?.message
-        );
-      }
-
+    if (creditsCharged > 0) {
       // 🚀 Fire-and-forget: file size lookup + DB insert (client'ı bekletmesin).
       // File size hesaplaması bittiğinde bulkBatches Map'e geriye yansıt — client
       // polling ile bunu sonraki tick'te görüp UI'da "X MB → Y MB" gösterebilir.
@@ -572,6 +535,10 @@ async function processBulkUpscaleItem({
       processingTimeSeconds: Math.floor(totalElapsed / 1000),
     };
   } catch (err) {
+    if (creditsCharged > 0) {
+      try { await changeUpscaleBalance(supabase, creditOwnerId, creditsCharged); }
+      catch (refundError) { console.error("[BULK_UPSCALE] Refund failed", { creditOwnerId, creditsCharged, error: refundError.message }); }
+    }
     const message = err?.message || "UNKNOWN_ERROR";
     console.error(
       `❌ [BULK_UPSCALE] Item ${index} failed:`,
@@ -610,7 +577,7 @@ router.post("/generate-bulk", async (req, res) => {
     } = req.body || {};
 
     const userId = req.user?.id || bodyUserId;
-    if (!userId) {
+    if (!userId || ["anonymous_user", "anonymous"].includes(userId)) {
       return res.status(400).json({
         success: false,
         error: "userId zorunludur",
@@ -669,7 +636,7 @@ router.post("/generate-bulk", async (req, res) => {
           "⚠️ [BULK_UPSCALE] Credit precheck atlandı:",
           creditErr?.message
         );
-        creditOwnerId = userId; // fallback
+        return res.status(503).json({ success: false, error: "CREDIT_BALANCE_UNAVAILABLE" });
       }
     }
 
@@ -747,7 +714,7 @@ router.post("/generate-bulk-async", async (req, res) => {
     } = req.body || {};
 
     const userId = req.user?.id || bodyUserId;
-    if (!userId) {
+    if (!userId || ["anonymous_user", "anonymous"].includes(userId)) {
       return res.status(400).json({ success: false, error: "userId zorunludur" });
     }
     if (!Array.isArray(items) || items.length === 0) {
@@ -791,7 +758,7 @@ router.post("/generate-bulk-async", async (req, res) => {
         }
       } catch (creditErr) {
         console.warn("⚠️ [BULK_UPSCALE_ASYNC] Credit precheck atlandı:", creditErr?.message);
-        creditOwnerId = userId;
+        return res.status(503).json({ success: false, error: "CREDIT_BALANCE_UNAVAILABLE" });
       }
     }
 
