@@ -41,7 +41,7 @@ for (const route of ['referenceBrowserRoutesV7.js', 'referenceJewelryBrowserRout
       const context = {
         buildModelHairDirection, settings, modelReferenceImage: { uri: 'model.jpg' },
         hairStyleImage: null, isEditMode: false, isRefinerMode: false,
-        isColorChange: false, isPoseChange: false, req: { body: {} },
+        isColorChange: false, isPoseChange: false, isBackSideAnalysis: false, req: { body: {} },
         enhancedPrompt: 'Style reference shoot brief',
       };
       vm.runInNewContext(source.slice(start, end), context);

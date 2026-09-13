@@ -1,3 +1,4 @@
+const { isFashionCampaignShoot, buildFashionFocusDirective, buildFashionPoseContext, buildFashionCampaignDirection, buildFashionCampaignEnhanceInstruction } = require("../utils/fashionCampaignPrompt");
 const { isFootwearShoot, buildFootwearDirection, buildFootwearEnhanceInstruction } = require("../utils/footwearPrompt");
 const { renderReferenceLabel } = require("../utils/referenceLabel");
 const { supabaseAdmin: modelPoolDb } = require("../supabaseClient");
@@ -2048,7 +2049,8 @@ async function enhancePromptWithGemini(
 
     // 🎯 Focus area — kullanıcı belirli bir çekim bölgesi seçtiyse (auto değilse)
     // prompt'un en başına sert, pazarlıksız bir talimat olarak yerleştir.
-    const focusAreaDirective = buildFocusAreaDirective(settings?.focusArea);
+    const focusAreaDirective = (isFashionCampaignShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis })
+      && buildFashionFocusDirective(settings)) || buildFocusAreaDirective(settings?.focusArea);
     if (focusAreaDirective) {
       logger.log(
         "🎯 [GEMINI] Focus area direktifi başa ekleniyor:",
@@ -2697,7 +2699,7 @@ DEFAULT POSE: No specific pose was provided — you have full creative freedom o
     const faceDescriptionSection = hasModelReference
       ? `
 
-    MODEL IDENTITY (USER-PROVIDED — PRESERVE EXACTLY): The user has provided a specific model reference image (attached) — THIS exact person is the model who wears the garment. Preserve their face, facial features, identity and skin tone exactly as seen in the model reference image. ${modelHairDirection || "Preserve their reference hairstyle unless explicit user hair or hijab instructions override it."} In your prompt, describe the model faithfully FROM that reference in natural photographic language (face shape, eyes and expression as they actually appear) so the image model reproduces the same person. Do NOT invent, alter, beautify, or replace any identity-bearing facial feature — the final photograph must be unmistakably the same person as in the model reference.${
+    MODEL IDENTITY (USER-PROVIDED — PRESERVE EXACTLY): The user has provided a specific model reference image (attached) — THIS exact person is the model who wears the garment. Preserve their face, facial features, identity and skin tone exactly as seen in the model reference image. ${modelHairDirection || "Preserve their reference hairstyle unless explicit user hair or hijab instructions override it."} In your prompt, describe the model faithfully FROM that reference in natural photographic language (face shape and eyes as they actually appear; facial expression may change with the directed pose and selected mood) so the image model reproduces the same person. Do NOT invent, alter, beautify, or replace any identity-bearing facial feature — the final photograph must be unmistakably the same person as in the model reference.${
       Number.isFinite(parsedAgeInt)
         ? `
 
@@ -3553,6 +3555,18 @@ ${promptForGemini}`;
           perspectivePromptSection, hairStylePromptSection, hairStyleTextSection,
           locationPromptSection, modelReferenceImageUrl ? faceDescriptionSection : "",
           focusAreaDirective].filter(Boolean).join("\n\n"),
+      });
+    }
+
+    if (isFashionCampaignShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis })) {
+      promptForGemini = buildFashionCampaignEnhanceInstruction({
+        settings, originalPrompt, customDetail: trimmedCustomDetail,
+        multipleAnglesCount, kombinItemCount, isMultipleProducts,
+        context: [ageSection, childPromptSection, bodyShapeMeasurementsSection,
+          settingsPromptSection, buildFashionPoseContext({ settings, hasUserPose, posePromptSection }),
+          perspectivePromptSection, hairStylePromptSection, hairStyleTextSection,
+          locationPromptSection, faceDescriptionSection, focusAreaDirective,
+          garmentTransformationDirectives].filter(Boolean).join("\n\n"),
       });
     }
 
@@ -4949,6 +4963,155 @@ async function stripLeakedStylePlate(resultUrl, userId) {
 // yeniden başlatmada sıfırlanır; üst sınır aşılırsa en eski kayıt düşer.
 const singleProfileTechAnalysisCache = new Map();
 const SINGLE_PROFILE_TECH_CACHE_MAX = 500;
+
+// Shared by the request handler and isolated generation verification.
+// Keeps final prompt assembly in production code, never in a test-specific prompt.
+function buildNb2GenerationRequest({ enhancedPrompt, imageInputArray, aspectRatioForRequest, useNb2, safetyTolerance, nb2ThinkingLevel }) {
+  return {
+              prompt: enhancedPrompt,
+              image_urls: imageInputArray,
+              output_format: "png",
+              aspect_ratio: aspectRatioForRequest,
+              num_images: 1,
+              resolution: useNb2 ? "1K" : "2K",
+              safety_tolerance: safetyTolerance,
+              enable_web_search: true,
+              ...(nb2ThinkingLevel !== "off"
+                ? { thinking_level: nb2ThinkingLevel }
+                : {}),
+            };
+}
+
+function applyGenerationFocus(enhancedPrompt, settings = {}, {
+  isColorChange = false, isPoseChange = false, isEditMode = false,
+  isRefinerMode = false, isBackSideAnalysis = false,
+} = {}) {
+    {
+      const focusDir = (isFashionCampaignShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis: isBackSideAnalysis })
+        && buildFashionFocusDirective(settings)) || buildFocusAreaDirective(settings?.focusArea);
+      if (focusDir) {
+        let body = enhancedPrompt || "";
+        const beforeLen = body.length;
+        // Gemini direktifi genellikle birebir kopyalıyor — tam metin eşleşmesiyle
+        // tüm kopyaları sök (başındaki/ortadaki fark etmez).
+        body = body.split(focusDir.trim()).join("").trimStart();
+        // Kalıntı bağlaç temizliği: "adhering strictly to the framing directive: "
+        // gibi direktife işaret eden yarım kalmış ifadeler sorun değil — model
+        // baştaki gerçek direktifi görecek.
+        if (body.length !== beforeLen) {
+          logger.log(
+            "🎯 [FOCUS AREA] Gövdeye gömülü direktif kopyaları temizlendi",
+          );
+        }
+        enhancedPrompt = `${focusDir}
+
+${body}`;
+        logger.log(
+          "🎯 [FOCUS AREA] enhancedPrompt'un başına sert direktif (tek kopya) yerleştirildi:",
+          settings?.focusArea,
+        );
+      }
+    }
+  return enhancedPrompt;
+}
+
+function finalizeGenerationPrompt(enhancedPrompt, {
+  settings = {}, customDetail = null, modelReferenceImage = null,
+  poseImage = null, hairStyleImage = null, styleReferenceUrl = null,
+  autoStyleGridUrl = null, autoStyleGenderDirective = '',
+  editorialCollagesForRequest = [], isColorChange = false,
+  isPoseChange = false, isEditMode = false, isRefinerMode = false,
+  isBackSideAnalysis = false,
+} = {}) {
+    const footwearShoot = isFootwearShoot(settings, {
+      isColorChange, isPoseChange, isEditMode, isRefinerMode,
+      isBackSideAnalysis: isBackSideAnalysis,
+    });
+    enhancedPrompt = footwearShoot
+      ? `${enhancedPrompt || ""}\n\n${buildFootwearDirection({
+          settings, hasStyleReference: Boolean(styleReferenceUrl || autoStyleGridUrl),
+          hasPoseReference: Boolean(poseImage),
+        })}`
+      : appendUniversalPhotorealism(enhancedPrompt);
+    logger.log(
+      "📷 [PHOTOREALISM] Model/cilt/kumaş/ortam/ışık/kamera gerçekçiliği final prompt'a eklendi",
+    );
+
+    // Gizli stil görselindeki kişinin cinsiyeti casting'i sürüklemesin. Bu blok
+    // stil + teknik analizden sonra, genel kullanıcı kilidinden hemen önce gelir.
+    if (autoStyleGenderDirective) {
+      enhancedPrompt = `${enhancedPrompt || ""}\n\n${autoStyleGenderDirective}`;
+      logger.log(
+        `⚥ [AUTO_STYLE] Kullanıcı cinsiyeti gizli stilin üstüne kilitlendi: ${settings?.gender}`,
+      );
+    }
+
+    // Apply after enhancement and style-reference bypasses, before explicit user locks.
+    const modelHairDirection = buildModelHairDirection({
+      hasModelReference: Boolean(modelReferenceImage),
+      settings, hairStyleImage,
+      isEditMode, isRefinerMode, isColorChange, isPoseChange,
+      isBackSideAnalysis: isBackSideAnalysis,
+    });
+    if (modelHairDirection) {
+      enhancedPrompt = `${enhancedPrompt || ""}\n\n${modelHairDirection}`;
+    }
+
+    // 🔒 ADD DETAIL + ADVANCED SETTINGS SON KİLİT
+    // Gemini bu alanları doğal brief'e dönüştürüyor; ancak uzun/yaratıcı prompt
+    // içinde bazılarını yumuşatabiliyor. Görüntü modeline giden metnin EN SONUNDA
+    // kullanıcı seçimlerini tekrar, kompakt ve doğrulanabilir şekilde sabitle.
+    // Explicit Add Detail değişiklikleri yalnız adı geçen noktada genel ürün
+    // koruma kuralına istisnadır; kıyafetin geri kalanı aynen korunur.
+    const allowFashionPoseInterpretation = isFashionCampaignShoot(settings, {
+      isColorChange, isPoseChange, isEditMode, isRefinerMode,
+      isBackSideAnalysis: isBackSideAnalysis,
+    });
+    let userInstructionLock = buildUserInstructionLock({
+      settings: settings || {},
+      customDetail,
+      // Catalog locations are analyzed into text, not attached to the renderer.
+      // Verified uploaded venues get LOCATION_DIRECTION when actually attached below.
+      hasLocationReference: false,
+      locationDescriptionIsSceneContext: true,
+      // 🧍 Stil modunda poz görseli isteğe EKLENMİYOR ve metne çevrilmiş
+      // durumda (settings.pose) — "attached pose reference" satırı orada
+      // yanlış hedef gösterirdi (model stil referansını poz sanabilir).
+      // Normal fashion generation uses built-in poses as text inspiration;
+      // dedicated pose/edit modes retain their existing reference behavior.
+      hasPoseReference: Boolean(poseImage) && !styleReferenceUrl &&
+        (!allowFashionPoseInterpretation || settings?.poseType !== "default"),
+      allowFashionPoseInterpretation,
+      hasHairReference: Boolean(hairStyleImage),
+      // Stil kompozisyonu ek insan gerektirebilir. Kullanıcının model ayarları
+      // yalnız ürünü giyen ana/hero kişiye uygulanmalı; yardımcı kişiyi silmemeli.
+      primaryModelOnly: Boolean(styleReferenceUrl || autoStyleGridUrl),
+    });
+    if (userInstructionLock) {
+      enhancedPrompt = appendUserInstructionLock(
+        enhancedPrompt,
+        userInstructionLock,
+      );
+      logger.log(
+        `🔒 [USER INSTRUCTION LOCK] Final prompt'a eklendi (${userInstructionLock.length} karakter):`,
+        userInstructionLock,
+      );
+    }
+
+    // Preserve the finished-campaign rules after enhancement/fallback and user locks.
+    // Explicit style references retain their own photographic language.
+    if (isFashionCampaignShoot(settings, {
+      isColorChange, isPoseChange, isEditMode, isRefinerMode,
+      isBackSideAnalysis: isBackSideAnalysis,
+    })) {
+      const campaignDirection = buildFashionCampaignDirection({
+        settings, hasStyleReference: Boolean(styleReferenceUrl || autoStyleGridUrl || editorialCollagesForRequest.length),
+      });
+      if (campaignDirection) enhancedPrompt += `\n\n${campaignDirection}`;
+    }
+
+  return enhancedPrompt;
+}
 
 router.post("/generate", async (req, res) => {
   // 🔎 Teşhis logu (21 Ağu): "polling 404: kayıt yok" vakalarında POST'un
@@ -6603,31 +6766,10 @@ Do NOT describe any person's face/identity or garments. PLAIN TEXT only, numbere
     // framing directive: ⚠️ ..."); startsWith kontrolü bunu görmüyordu ve final
     // prompt'ta aynı blok İKİ kez geçiyordu. Artık: gövdedeki TÜM kopyalar
     // temizlenir, sonra direktif başa bir kez konur.
-    {
-      const focusDir = buildFocusAreaDirective(settings?.focusArea);
-      if (focusDir) {
-        let body = enhancedPrompt || "";
-        const beforeLen = body.length;
-        // Gemini direktifi genellikle birebir kopyalıyor — tam metin eşleşmesiyle
-        // tüm kopyaları sök (başındaki/ortadaki fark etmez).
-        body = body.split(focusDir.trim()).join("").trimStart();
-        // Kalıntı bağlaç temizliği: "adhering strictly to the framing directive: "
-        // gibi direktife işaret eden yarım kalmış ifadeler sorun değil — model
-        // baştaki gerçek direktifi görecek.
-        if (body.length !== beforeLen) {
-          logger.log(
-            "🎯 [FOCUS AREA] Gövdeye gömülü direktif kopyaları temizlendi",
-          );
-        }
-        enhancedPrompt = `${focusDir}
-
-${body}`;
-        logger.log(
-          "🎯 [FOCUS AREA] enhancedPrompt'un başına sert direktif (tek kopya) yerleştirildi:",
-          settings?.focusArea,
-        );
-      }
-    }
+    enhancedPrompt = applyGenerationFocus(enhancedPrompt, settings, {
+      isColorChange, isPoseChange, isEditMode, isRefinerMode,
+      isBackSideAnalysis: req.body.isBackSideAnalysis,
+    });
 
     // 🧴💃 Natural skin + Fashion pose direktifleri artık STATIK prepend
     // edilmiyor. Gemini bunları enhancePromptWithGemini içinde "Opening
@@ -6891,69 +7033,12 @@ The final image must read as the SAME street-style photograph — same person-in
     // Gemini'nin çıktısı, stil-referansı gibi Gemini'yi atlayan dallar ve tüm
     // fallback promptları aynı noktada birleşir. Böylece hangi kalite modeli
     // seçilirse seçilsin fiziksel gerçekçilik talimatı final promptta bulunur.
-    const footwearShoot = isFootwearShoot(settings, {
-      isColorChange, isPoseChange, isEditMode, isRefinerMode,
-      isBackSideAnalysis: req.body.isBackSideAnalysis,
+    enhancedPrompt = finalizeGenerationPrompt(enhancedPrompt, {
+      settings, customDetail, modelReferenceImage, poseImage, hairStyleImage,
+      styleReferenceUrl, autoStyleGridUrl, autoStyleGenderDirective,
+      editorialCollagesForRequest, isColorChange, isPoseChange, isEditMode,
+      isRefinerMode, isBackSideAnalysis: req.body.isBackSideAnalysis,
     });
-    enhancedPrompt = footwearShoot
-      ? `${enhancedPrompt || ""}\n\n${buildFootwearDirection({
-          settings, hasStyleReference: Boolean(styleReferenceUrl || autoStyleGridUrl),
-          hasPoseReference: Boolean(poseImage),
-        })}`
-      : appendUniversalPhotorealism(enhancedPrompt);
-    logger.log(
-      "📷 [PHOTOREALISM] Model/cilt/kumaş/ortam/ışık/kamera gerçekçiliği final prompt'a eklendi",
-    );
-
-    // Gizli stil görselindeki kişinin cinsiyeti casting'i sürüklemesin. Bu blok
-    // stil + teknik analizden sonra, genel kullanıcı kilidinden hemen önce gelir.
-    if (autoStyleGenderDirective) {
-      enhancedPrompt = `${enhancedPrompt || ""}\n\n${autoStyleGenderDirective}`;
-      logger.log(
-        `⚥ [AUTO_STYLE] Kullanıcı cinsiyeti gizli stilin üstüne kilitlendi: ${settings?.gender}`,
-      );
-    }
-
-    // Apply after enhancement and style-reference bypasses, before explicit user locks.
-    const modelHairDirection = buildModelHairDirection({
-      hasModelReference: Boolean(modelReferenceImage),
-      settings, hairStyleImage,
-      isEditMode, isRefinerMode, isColorChange, isPoseChange,
-      isBackSideAnalysis: req.body.isBackSideAnalysis,
-    });
-    if (modelHairDirection) {
-      enhancedPrompt = `${enhancedPrompt || ""}\n\n${modelHairDirection}`;
-    }
-
-    // 🔒 ADD DETAIL + ADVANCED SETTINGS SON KİLİT
-    // Gemini bu alanları doğal brief'e dönüştürüyor; ancak uzun/yaratıcı prompt
-    // içinde bazılarını yumuşatabiliyor. Görüntü modeline giden metnin EN SONUNDA
-    // kullanıcı seçimlerini tekrar, kompakt ve doğrulanabilir şekilde sabitle.
-    // Explicit Add Detail değişiklikleri yalnız adı geçen noktada genel ürün
-    // koruma kuralına istisnadır; kıyafetin geri kalanı aynen korunur.
-    let userInstructionLock = buildUserInstructionLock({
-      settings: settings || {},
-      customDetail,
-      hasLocationReference: Boolean(locationImage),
-      // 🧍 Stil modunda poz görseli isteğe EKLENMİYOR ve metne çevrilmiş
-      // durumda (settings.pose) — "attached pose reference" satırı orada
-      // yanlış hedef gösterirdi (model stil referansını poz sanabilir).
-      hasPoseReference: Boolean(poseImage) && !styleReferenceUrl,
-      hasHairReference: Boolean(hairStyleImage),
-      // Stil kompozisyonu ek insan gerektirebilir. Kullanıcının model ayarları
-      // yalnız ürünü giyen ana/hero kişiye uygulanmalı; yardımcı kişiyi silmemeli.
-      primaryModelOnly: Boolean(styleReferenceUrl || autoStyleGridUrl),
-    });
-    if (userInstructionLock) {
-      enhancedPrompt = appendUserInstructionLock(
-        enhancedPrompt,
-        userInstructionLock,
-      );
-      logger.log(
-        `🔒 [USER INSTRUCTION LOCK] Final prompt'a eklendi (${userInstructionLock.length} karakter):`,
-        userInstructionLock,
-      );
-    }
 
     // Arkaplan silme kaldırıldı - direkt olarak finalImage kullanılacak
     backgroundRemovedImage = finalImage;
@@ -7631,19 +7716,10 @@ The final image must read as the SAME street-style photograph — same person-in
             const nanoModel = "fal-ai/nano-banana-2/edit";
             // 🧠 Render öncesi muhakeme — app_config.nb2_thinking_level ile yönetilir
             const nb2ThinkingLevel = await getNb2ThinkingLevel();
-            const nanoRequestBody = {
-              prompt: enhancedPrompt,
-              image_urls: imageInputArray,
-              output_format: "png",
-              aspect_ratio: aspectRatioForRequest,
-              num_images: 1,
-              resolution: useNb2 ? "1K" : "2K",
-              safety_tolerance: safetyTolerance,
-              enable_web_search: true,
-              ...(nb2ThinkingLevel !== "off"
-                ? { thinking_level: nb2ThinkingLevel }
-                : {}),
-            };
+            const nanoRequestBody = buildNb2GenerationRequest({
+              enhancedPrompt, imageInputArray, aspectRatioForRequest,
+              useNb2, safetyTolerance, nb2ThinkingLevel,
+            });
             logger.log(
               `🍌 [V1 NB2] fal.run/${nanoModel} çağrılıyor — images: ${imageInputArray?.length || 0}, aspect: ${aspectRatioForRequest}, thinking: ${nb2ThinkingLevel}`,
             );

@@ -51,7 +51,9 @@ function buildUserInstructionLock({
   customDetail = null,
   productCategory = null,
   hasLocationReference = false,
+  locationDescriptionIsSceneContext = false,
   hasPoseReference = false,
+  allowFashionPoseInterpretation = false,
   hasHairReference = false,
   primaryModelOnly = false,
   // 💎 Ürün çekimi (takı çekim tarzı 2): karede insan YOK. Modelle ilgili her
@@ -81,7 +83,7 @@ function buildUserInstructionLock({
     ? settings.locationEnhancedPrompt
     : settings.location;
   if (hasValue(location, ["auto"])) {
-    lines.push(`LOCATION / ENVIRONMENT: ${cleanText(location)}.`);
+    lines.push(`LOCATION / ENVIRONMENT: ${cleanText(location)}.${locationDescriptionIsSceneContext ? " Treat this saved description as a venue inventory. Stock empty/vacant and wide-shot wording describes the source setting, not the final subject placement or crop. Stage the model within it using the selected framing and one coherent scene lighting setup; explicit Add Detail instructions take priority." : ""}`);
   }
   if (hasLocationReference) {
     lines.push(
@@ -117,11 +119,15 @@ function buildUserInstructionLock({
     );
   }
   if (allowModelLines && hasValue(settings.pose, ["auto"])) {
-    lines.push(`${modelLabel} POSE: ${cleanText(settings.pose)}. Match it clearly in the body position and gesture.`);
+    lines.push(allowFashionPoseInterpretation
+      ? `${modelLabel} POSE INSPIRATION: ${cleanText(settings.pose)}. A nearby fashion stance and expression may replace a stiff literal copy; retain the overall intent and honor explicit Add Detail requirements and separately selected mood.`
+      : `${modelLabel} POSE: ${cleanText(settings.pose)}. Match it clearly in the body position and gesture.`);
   }
   if (hasPoseReference) {
     lines.push(
-      `${modelLabel} POSE REFERENCE: Match the attached pose reference's body position, stance, and gesture on the hero while preserving the selected identity and ${isJewelry ? "featured jewelry placement" : "garment"}.`,
+      allowFashionPoseInterpretation
+        ? `${modelLabel} POSE REFERENCE: Use the attached pose as flexible inspiration, not an exact stance or expression template. A nearby, more natural fashion interpretation is allowed; preserve identity, garment and explicit Add Detail requirements.`
+        : `${modelLabel} POSE REFERENCE: Match the attached pose reference's body position, stance, and gesture on the hero while preserving the selected identity and ${isJewelry ? "featured jewelry placement" : "garment"}.`,
     );
   }
   if (hasValue(settings.perspective, ["auto"])) {
