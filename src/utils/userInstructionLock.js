@@ -75,7 +75,7 @@ function buildUserInstructionLock({
 
   if (detail) {
     lines.push(
-      `ADD DETAIL — HIGHEST USER PRIORITY: "${detail}". Interpret the quoted request literally even when it is written in another language. Positive additions or changes must be unmistakably visible rather than subtly implied; anything explicitly excluded must be absent. If it intentionally asks to add or modify a product detail, accessory, prop, styling element, background feature, pose, or visual treatment, that explicitly requested change is an allowed exception to general product-preservation rules; preserve every other unmentioned product detail exactly.`,
+      `ADD DETAIL — HIGHEST USER PRIORITY: "${detail}". Interpret the quoted request literally even when it is written in another language. User clarification of the product type overrides automatic classification and cell labels; preserve the reference construction rather than redesigning it to match a mistaken label. Positive additions or changes must be unmistakably visible rather than subtly implied; anything explicitly excluded must be absent. If it intentionally asks to add or modify a product detail, accessory, prop, styling element, background feature, pose, or visual treatment, that explicitly requested change is an allowed exception to general product-preservation rules; preserve every other unmentioned product detail exactly.`,
     );
   }
 

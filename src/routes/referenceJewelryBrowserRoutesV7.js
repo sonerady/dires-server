@@ -1,3 +1,4 @@
+const { buildOutfitReferencePrompt, OUTFIT_IDENTITY_RULE, PRODUCT_INTERPRETATION_RULE } = require("../utils/productReferencePrompt");
 const { renderReferenceLabel } = require("../utils/referenceLabel");
 const { supabaseAdmin: modelPoolDb } = require("../supabaseClient");
 const { LOCATION_DIRECTION, stampLocationReference, resolveUploadedLocationReference } = require("../services/referenceLocation");
@@ -3546,14 +3547,15 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       promptForGemini += `
 
 🛍️ KOMBIN / OUTFIT COMPOSITION MODE — CRITICAL:
-The main reference image provided is a COMPOSITE GRID showing ${kombinItemCount} separate garment pieces laid out side by side in flat-lay form. These are NOT one single garment — they are distinct outfit items (e.g. top, bottom, outerwear, footwear, accessories) that must ALL be worn simultaneously on the model as a single cohesive outfit.
+The main reference is a COMPOSITE GRID containing ${kombinItemCount} product photographs, not necessarily that many distinct products. ${OUTFIT_IDENTITY_RULE}
+${PRODUCT_INTERPRETATION_RULE}
 
 Your enhanced prompt MUST explicitly instruct the generator to:
-1. Identify EACH individual garment cell in the grid (their order in the grid does not dictate styling order — analyze each visually).
+1. Identify EACH distinct product across the grid; several cells may show the same item. Analyze every view visually; cell order does not dictate styling order.
 2. Describe how each piece should be worn on the model (upper body vs. lower body, outer layer vs. base layer, footwear, accessories) and how they interact, respecting each garment's own intended fit and silhouette as shown in its grid cell.
 3. TUCKING / LAYERING NEUTRALITY — CRITICAL: Do NOT automatically tuck tops into bottoms. Only tuck a top into a bottom if the top is clearly a formal dress shirt paired with tailored trousers/skirt, OR the flat-lay of the top visibly shows a tucked-in styling. For casual shirts, t-shirts, sweatshirts, knitwear, oversized tops, cropped tops, hoodies, and any top whose intended wear is untucked → leave it fully UNTUCKED, hanging naturally over the waistband of the bottom. When in doubt, default to UNTUCKED. Do not invent tucking, belting, half-tucks, or "French tucks" unless the garment's own design clearly demands it.
 4. For EACH piece separately, preserve the exact color, pattern/print, stitching, fabric texture, trims, buttons, prints, length, hem, and construction details exactly as shown in its grid cell. Do NOT merge, simplify, redesign, shorten, lengthen, or adjust the fit of any piece.
-5. Describe the expected complete silhouette of the full outfit on the model once all ${kombinItemCount} pieces are worn together — but the silhouette must follow from the garments themselves, not from a default styling assumption.
+5. Describe the expected complete silhouette of the full outfit on the model once all visually distinct pieces are worn together — but the silhouette must follow from the garments themselves, not from a default styling assumption.
 6. Ensure the outfit looks natural, cohesive, and styled as a real editorial fashion look — no floating garments, no missing pieces, no duplicate garments.
 
 Start your enhanced prompt by explicitly listing what you see in the grid (one short sentence per piece) before the full prompt, so the downstream image generator has per-item grounding.`;
@@ -6708,9 +6710,7 @@ ${body}`;
       Array.isArray(kombinOriginalImages) &&
       kombinOriginalImages.length > 0
     ) {
-      enhancedPrompt += `
-
-KOMBIN REFERENCE IMAGES: In addition to the main combined grid image, ${kombinOriginalImages.length} individual product photo(s) are attached — each showing one garment separately. Use the grid image to understand how the outfit pieces should appear together on the model, and use the individual photos for faithful per-item detail reproduction (exact colors, prints, stitching, trims, proportions). Do NOT invent or alter any garment detail that is not visible in the individual photos.`;
+      enhancedPrompt += `\n\n${buildOutfitReferencePrompt({photoCount: kombinOriginalImages.length})}`;
       logger.log(
         `📸 [KOMBİN ORIG] enhancedPrompt'a ${kombinOriginalImages.length} tekil ürün direktifi eklendi`,
       );

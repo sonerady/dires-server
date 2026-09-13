@@ -1,4 +1,6 @@
-const { isFashionCampaignShoot, buildFashionFocusDirective, buildFashionPoseContext, buildFashionCampaignDirection, buildFashionCampaignEnhanceInstruction } = require("../utils/fashionCampaignPrompt");
+const { isBagShoot, buildBagFocusDirective, buildBagDirection, buildBagEnhanceInstruction } = require("../utils/bagCampaignPrompt");
+const { buildOutfitReferencePrompt, OUTFIT_IDENTITY_RULE, PRODUCT_INTERPRETATION_RULE } = require("../utils/productReferencePrompt");
+const { isFashionCampaignShoot, buildFashionFocusDirective, buildFashionPoseContext, buildFashionRenderDirection, buildFashionCampaignEnhanceInstruction } = require("../utils/fashionCampaignPrompt");
 const { isFootwearShoot, buildFootwearDirection, buildFootwearEnhanceInstruction } = require("../utils/footwearPrompt");
 const { renderReferenceLabel } = require("../utils/referenceLabel");
 const { supabaseAdmin: modelPoolDb } = require("../supabaseClient");
@@ -170,6 +172,15 @@ function normalizeProductSubtype(rawCategory, rawSubtype) {
   const v = String(rawSubtype || "").trim().toLowerCase();
   return PRODUCT_SUBTYPES[cat].includes(v) ? v : null;
 }
+// Bring the current detector result into the shared prompt AND persisted settings.
+// A new top-level category without subtype must not inherit a stale bag subtype.
+function resolveGenerationProductSettings(settings = {}, body = {}) {
+  const category = normalizeProductCategory(body.productCategory ?? settings?.productCategory);
+  const subtype = normalizeProductSubtype(category,
+    body.productSubtype ?? (body.productCategory != null ? null : settings?.productSubtype));
+  return { ...(settings || {}), productCategory: category, productSubtype: subtype };
+}
+
 async function callReplicateGeminiFlash(
   prompt,
   imageUrls = [],
@@ -1869,6 +1880,9 @@ function normalizePerspective(value) {
 // stok/yapay görünüm üretir.)
 function buildNarrativeFallbackPrompt(settings = {}, isMultipleProducts = false, modes = {}) {
   const s = settings || {};
+  if (isBagShoot(s, modes)) {
+    return `Create a new luxury accessories campaign photograph of the exact reference bag with a ${s.gender || ''} model of the selected age in ${s.locationEnhancedPrompt || s.location || 'the selected setting'}. ${buildBagFocusDirective(s)} ${buildBagDirection()}`;
+  }
   if (isFootwearShoot(s, modes)) {
     return `Replace the source product display with the exact referenced footwear naturally worn by a living ${s.gender || ""} model of the selected age, in ${s.locationEnhancedPrompt || s.location || "a restrained photographic setting"}. ${buildFootwearDirection({ settings: s })}`;
   }
@@ -2020,7 +2034,7 @@ async function enhancePromptWithGemini(
   isMultipleImages = false, // Çoklu resim modu mu?
   userId = null, // Compress için userId
   originalBase64Data = null, // Orijinal base64 verisi - URL'den tekrar indirmemek için
-  kombinItemCount = 0, // 🛍️ Kombin modunda grid içindeki tekil ürün sayısı (0 = kombin değil)
+  kombinItemCount = 0, // Legacy name: number of reference photos, NOT verified distinct products
   multipleAnglesCount = 0, // 📐 Aynı ürünün grid içindeki farklı açı sayısı
   modelReferenceImageUrl = null, // 👤 Kullanıcı belirli bir model fotoğrafı seçtiyse URL'i (varsa yüz icat edilmez, referanstaki kişi korunur; görsel Gemini'ye de eklenir)
   styleDirected = false, // Auto/street/style references retain their own beauty and lighting treatment.
@@ -2050,7 +2064,7 @@ async function enhancePromptWithGemini(
 
     // 🎯 Focus area — kullanıcı belirli bir çekim bölgesi seçtiyse (auto değilse)
     // prompt'un en başına sert, pazarlıksız bir talimat olarak yerleştir.
-    const focusAreaDirective = (isFashionCampaignShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis })
+    const focusAreaDirective = isBagShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis }) ? buildBagFocusDirective(settings) : (isFashionCampaignShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis })
       && buildFashionFocusDirective(settings)) || buildFocusAreaDirective(settings?.focusArea);
     if (focusAreaDirective) {
       logger.log(
@@ -3502,14 +3516,15 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       promptForGemini += `
 
 🛍️ KOMBIN / OUTFIT COMPOSITION MODE — CRITICAL:
-The main reference image provided is a COMPOSITE GRID showing ${kombinItemCount} separate garment pieces laid out side by side in flat-lay form. These are NOT one single garment — they are distinct outfit items (e.g. top, bottom, outerwear, footwear, accessories) that must ALL be worn simultaneously on the model as a single cohesive outfit.
+The main reference is a COMPOSITE GRID containing ${kombinItemCount} product photographs, not necessarily that many distinct products. ${OUTFIT_IDENTITY_RULE}
+${PRODUCT_INTERPRETATION_RULE}
 
 Your enhanced prompt MUST explicitly instruct the generator to:
-1. Identify EACH individual garment cell in the grid (their order in the grid does not dictate styling order — analyze each visually).
+1. Identify EACH distinct product across the grid; several cells may show the same item. Analyze every view visually; cell order does not dictate styling order.
 2. Describe how each piece should be worn on the model (upper body vs. lower body, outer layer vs. base layer, footwear, accessories) and how they interact, respecting each garment's own intended fit and silhouette as shown in its grid cell.
 3. TUCKING / LAYERING NEUTRALITY — CRITICAL: Do NOT automatically tuck tops into bottoms. Only tuck a top into a bottom if the top is clearly a formal dress shirt paired with tailored trousers/skirt, OR the flat-lay of the top visibly shows a tucked-in styling. For casual shirts, t-shirts, sweatshirts, knitwear, oversized tops, cropped tops, hoodies, and any top whose intended wear is untucked → leave it fully UNTUCKED, hanging naturally over the waistband of the bottom. When in doubt, default to UNTUCKED. Do not invent tucking, belting, half-tucks, or "French tucks" unless the garment's own design clearly demands it.
 4. For EACH piece separately, preserve the exact color, pattern/print, stitching, fabric texture, trims, buttons, prints, length, hem, and construction details exactly as shown in its grid cell. Do NOT merge, simplify, redesign, shorten, lengthen, or adjust the fit of any piece.
-5. Describe the expected complete silhouette of the full outfit on the model once all ${kombinItemCount} pieces are worn together — but the silhouette must follow from the garments themselves, not from a default styling assumption.
+5. Describe the expected complete silhouette of the full outfit on the model once all visually distinct pieces are worn together — but the silhouette must follow from the garments themselves, not from a default styling assumption.
 6. Ensure the outfit looks natural, cohesive, and styled as a real editorial fashion look — no floating garments, no missing pieces, no duplicate garments.
 
 Start your enhanced prompt by explicitly listing what you see in the grid (one short sentence per piece) before the full prompt, so the downstream image generator has per-item grounding.`;
@@ -3568,6 +3583,17 @@ ${promptForGemini}`;
           perspectivePromptSection, hairStylePromptSection, hairStyleTextSection,
           locationPromptSection, faceDescriptionSection, focusAreaDirective,
           garmentTransformationDirectives].filter(Boolean).join("\n\n"),
+      });
+    }
+
+    if (isBagShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis })) {
+      promptForGemini = buildBagEnhanceInstruction({
+        settings, originalPrompt, customDetail: trimmedCustomDetail, hasStyleReference: styleDirected,
+        multipleAnglesCount, kombinItemCount, isMultipleProducts,
+        context: [ageSection, childPromptSection, bodyShapeMeasurementsSection,
+          settingsPromptSection, buildFashionPoseContext({settings, hasUserPose}),
+          perspectivePromptSection, hairStylePromptSection, hairStyleTextSection,
+          locationPromptSection, faceDescriptionSection].filter(Boolean).join("\n\n"),
       });
     }
 
@@ -4988,7 +5014,7 @@ function applyGenerationFocus(enhancedPrompt, settings = {}, {
   isRefinerMode = false, isBackSideAnalysis = false,
 } = {}) {
     {
-      const focusDir = (isFashionCampaignShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis: isBackSideAnalysis })
+      const focusDir = isBagShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis }) ? buildBagFocusDirective(settings) : (isFashionCampaignShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis: isBackSideAnalysis })
         && buildFashionFocusDirective(settings)) || buildFocusAreaDirective(settings?.focusArea);
       if (focusDir) {
         let body = enhancedPrompt || "";
@@ -5024,6 +5050,14 @@ function finalizeGenerationPrompt(enhancedPrompt, {
   isPoseChange = false, isEditMode = false, isRefinerMode = false,
   isBackSideAnalysis = false,
 } = {}) {
+    const bagShoot = isBagShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis });
+    const fashionShoot = !bagShoot && isFashionCampaignShoot(settings, {
+      isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis,
+    });
+    const compactFashionDirection = fashionShoot ? buildFashionRenderDirection({
+      settings,
+      hasStyleReference: Boolean(styleDirected || styleReferenceUrl || autoStyleGridUrl || editorialCollagesForRequest.length),
+    }) : '';
     const footwearShoot = isFootwearShoot(settings, {
       isColorChange, isPoseChange, isEditMode, isRefinerMode,
       isBackSideAnalysis: isBackSideAnalysis,
@@ -5033,7 +5067,11 @@ function finalizeGenerationPrompt(enhancedPrompt, {
           settings, hasStyleReference: Boolean(styleReferenceUrl || autoStyleGridUrl),
           hasPoseReference: Boolean(poseImage),
         })}`
-      : appendUniversalPhotorealism(enhancedPrompt);
+      : bagShoot
+        ? `${enhancedPrompt || ""}\n\n${buildBagDirection({hasStyleReference: Boolean(styleDirected || styleReferenceUrl || autoStyleGridUrl || editorialCollagesForRequest.length)})}`
+      : compactFashionDirection
+        ? `${enhancedPrompt || ""}\n\n${compactFashionDirection}`
+        : appendUniversalPhotorealism(enhancedPrompt);
     logger.log(
       "📷 [PHOTOREALISM] Model/cilt/kumaş/ortam/ışık/kamera gerçekçiliği final prompt'a eklendi",
     );
@@ -5064,10 +5102,7 @@ function finalizeGenerationPrompt(enhancedPrompt, {
     // kullanıcı seçimlerini tekrar, kompakt ve doğrulanabilir şekilde sabitle.
     // Explicit Add Detail değişiklikleri yalnız adı geçen noktada genel ürün
     // koruma kuralına istisnadır; kıyafetin geri kalanı aynen korunur.
-    const allowFashionPoseInterpretation = isFashionCampaignShoot(settings, {
-      isColorChange, isPoseChange, isEditMode, isRefinerMode,
-      isBackSideAnalysis: isBackSideAnalysis,
-    });
+    const allowFashionPoseInterpretation = fashionShoot || bagShoot;
     let userInstructionLock = buildUserInstructionLock({
       settings: settings || {},
       customDetail,
@@ -5097,18 +5132,6 @@ function finalizeGenerationPrompt(enhancedPrompt, {
         `🔒 [USER INSTRUCTION LOCK] Final prompt'a eklendi (${userInstructionLock.length} karakter):`,
         userInstructionLock,
       );
-    }
-
-    // Preserve the finished-campaign rules after enhancement/fallback and user locks.
-    // Explicit style references retain their own photographic language.
-    if (isFashionCampaignShoot(settings, {
-      isColorChange, isPoseChange, isEditMode, isRefinerMode,
-      isBackSideAnalysis: isBackSideAnalysis,
-    })) {
-      const campaignDirection = buildFashionCampaignDirection({
-        settings, hasStyleReference: Boolean(styleDirected || styleReferenceUrl || autoStyleGridUrl || editorialCollagesForRequest.length),
-      });
-      if (campaignDirection) enhancedPrompt += `\n\n${campaignDirection}`;
     }
 
   return enhancedPrompt;
@@ -5322,7 +5345,7 @@ router.post("/generate", async (req, res) => {
 
     modelPhoto = modelPhoto ? sanitizeImageUrl(modelPhoto) : modelPhoto;
     // Analytics-only identity reference; never used to compose the generation prompt.
-    settings = { ...(settings || {}) };
+    settings = resolveGenerationProductSettings(settings, req.body);
     delete settings.analyticsModelImage;
     if (modelPhoto) settings.analyticsModelImage = modelPhoto;
 
@@ -6747,7 +6770,7 @@ Do NOT describe any person's face/identity or garments. PLAIN TEXT only, numbere
         isMultipleImages, // Çoklu resim modu mu?
         userId, // Compress için userId
         originalBase64ForGemini, // 🚀 Orijinal base64 - URL indirmesi atlanacak
-        Array.isArray(kombinOriginalImages) ? kombinOriginalImages.length : 0, // 🛍️ Kombin içindeki tekil ürün sayısı
+        Array.isArray(kombinOriginalImages) ? kombinOriginalImages.length : 0, // 🛍️ Referans fotoğraf sayısı; ayrı ürün sayısı değildir
         isMultipleAnglesMode ? multipleAnglesCount : 0, // 📐 Aynı ürünün farklı açı sayısı
         modelReferenceImage
           ? modelReferenceImage.uri || modelReferenceImage.url || null
@@ -6783,40 +6806,7 @@ Do NOT describe any person's face/identity or garments. PLAIN TEXT only, numbere
       Array.isArray(kombinOriginalImages) &&
       kombinOriginalImages.length > 0
     ) {
-      enhancedPrompt += `
-
-KOMBIN REFERENCE IMAGES: In addition to the main combined grid image, ${kombinOriginalImages.length} individual product photo(s) are attached — each showing one garment separately. Use the grid image to understand how the outfit pieces should appear together on the model, and use the individual photos for faithful per-item detail reproduction (exact colors, prints, stitching, trims, proportions). Do NOT invent or alter any garment detail that is not visible in the individual photos.`;
-
-      // 🏷️ Parça etiketleri varsa hücreleri isimlendir — model hangi hücrenin
-      // hangi ürün olduğunu (ve hangi hücrelerin AYNI ürünün farklı açıları
-      // olduğunu) sayım yerine açık etiketten öğrenir.
-      if (Array.isArray(kombinPieces) && kombinPieces.length > 0) {
-        const describe = (p) => {
-          const attrs = [p.color, p.pattern && p.pattern !== "solid" ? p.pattern : null]
-            .filter(Boolean)
-            .join(" ");
-          const noun = p.subtype || p.category || "item";
-          return attrs ? `${attrs} ${noun}` : noun;
-        };
-        const lines = kombinPieces
-          .filter((p) => Array.isArray(p?.cells) && p.cells.length > 0)
-          .map((p) => {
-            const cellsTxt = p.cells.map((c) => `Cell ${c}`).join(" & ");
-            return p.cells.length > 1
-              ? `${cellsTxt}: ${p.cells.length} different angles of the SAME ${describe(p)} — one single item, shown from multiple views.`
-              : `${cellsTxt}: ${describe(p)}.`;
-          });
-        if (lines.length > 0) {
-          enhancedPrompt += `
-
-GRID CELL MAP (cells numbered left-to-right, top-to-bottom):
-${lines.join("\n")}
-The outfit consists of exactly ${lines.length} distinct item(s). Dress the model in ALL of them together; never duplicate an item that appears in multiple cells.`;
-          logger.log(
-            `🏷️ [KOMBİN PIECES] ${lines.length} parça etiketi enhancedPrompt'a eklendi`,
-          );
-        }
-      }
+      enhancedPrompt += `\n\n${buildOutfitReferencePrompt({photoCount: kombinOriginalImages.length, pieces: kombinPieces})}`;
       logger.log(
         `📸 [KOMBİN ORIG] enhancedPrompt'a ${kombinOriginalImages.length} tekil ürün direktifi eklendi`,
       );

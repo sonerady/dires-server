@@ -1,3 +1,4 @@
+const { buildOutfitReferencePrompt } = require("../utils/productReferencePrompt");
 const { renderReferenceLabel } = require("../utils/referenceLabel");
 const express = require("express");
 const router = express.Router();
@@ -4898,9 +4899,7 @@ ${enhancedPrompt || ""}`;
       Array.isArray(kombinOriginalImages) &&
       kombinOriginalImages.length > 0
     ) {
-      enhancedPrompt += `
-
-KOMBIN REFERENCE IMAGES: In addition to the main combined grid image, ${kombinOriginalImages.length} individual product photo(s) are attached — each showing one garment separately. Use the grid image to understand how the outfit pieces should appear together on the model, and use the individual photos for faithful per-item detail reproduction (exact colors, prints, stitching, trims, proportions). Do NOT invent or alter any garment detail that is not visible in the individual photos.`;
+      enhancedPrompt += `\n\n${buildOutfitReferencePrompt({photoCount: kombinOriginalImages.length})}`;
       logger.log(
         `📸 [KOMBİN ORIG] enhancedPrompt'a ${kombinOriginalImages.length} tekil ürün direktifi eklendi`,
       );
