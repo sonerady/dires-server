@@ -1,3 +1,4 @@
+const { extractRevenueCatLite, reconcileTrialUser, sortTrialUsers } = require('../utils/adminTrialUsers');
 const { USER_SELECT } = require('../utils/adminUserFields');
 const { ADMIN_OWNER_FIELDS, adminGenerationOwner } = require('../utils/adminGenerationOwner');
 const { enrichAdminStyleReferences } = require('../utils/adminStyleReferences');
@@ -1349,10 +1350,9 @@ router.get("/videos", async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────
-// RevenueCat v2 customer helper
-// Calls GET /v2/projects/{project_id}/customers/{app_user_id} and extracts
-// the minimal subset the admin UI needs. Returns { ok, ... } shape so the
-// caller can render gracefully on partial failures.
+// RevenueCat customer helper: v1 subscriber info for the existing secret, or
+// the dedicated v2 subscriptions endpoint when a v2 key is configured.
+// Returns unknown on failure instead of inventing an inactive subscription.
 // ─────────────────────────────────────────────────────────────
 const RC_PROJECT_ID = process.env.REVENUECAT_PROJECT_ID || "proj2f06e69e";
 const RC_SECRET_KEY =
@@ -1367,11 +1367,17 @@ async function fetchRevenueCatCustomer(appUserId) {
   if (!appUserId) {
     return { ok: false, error: "Missing app_user_id" };
   }
-  const url = `https://api.revenuecat.com/v2/projects/${RC_PROJECT_ID}/customers/${encodeURIComponent(appUserId)}`;
+  const useV2 = !!process.env.REVENUECAT_V2_API_KEY && !process.env.REVENUECAT_SECRET_API_KEY;
+  const key = useV2 ? process.env.REVENUECAT_V2_API_KEY : RC_SECRET_KEY;
+  const url = useV2
+    ? `https://api.revenuecat.com/v2/projects/${RC_PROJECT_ID}/customers/${encodeURIComponent(appUserId)}/subscriptions?limit=100`
+    : `https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(appUserId)}`;
   try {
     const res = await fetch(url, {
+      signal: AbortSignal.timeout(10000),
       headers: {
-        Authorization: `Bearer ${RC_SECRET_KEY}`,
+        Authorization: `Bearer ${key}`,
+        // The configured legacy secret is a v1 key, not a v2 customer key.
         Accept: "application/json",
       },
     });
@@ -1383,55 +1389,11 @@ async function fetchRevenueCatCustomer(appUserId) {
       };
     }
     const body = await res.json();
-    return { ok: true, raw: body, ...extractRevenueCatLite(body) };
+    if (useV2 && body.next_page) return { ok: false, error: 'Subscription list incomplete' };
+    return { ok: true, raw: body, ...extractRevenueCatLite(useV2 ? { subscriptions: body } : body) };
   } catch (err) {
     return { ok: false, error: err.message || String(err) };
   }
-}
-
-function extractRevenueCatLite(customer) {
-  // RC v2 customer response shape (per docs):
-  //   { id, project_id, first_seen_at, last_seen_at, active_entitlements: { items: [...] },
-  //     subscriptions: { items: [{ store, product_identifier, period_type, ... }] }, ... }
-  if (!customer || typeof customer !== "object") return {};
-
-  const entitlements = Array.isArray(customer?.active_entitlements?.items)
-    ? customer.active_entitlements.items.map((e) => e.lookup_key || e.entitlement_id || e.id).filter(Boolean)
-    : [];
-
-  const subscriptionItems = Array.isArray(customer?.subscriptions?.items)
-    ? customer.subscriptions.items
-    : [];
-
-  // Pick the "freshest" subscription (most recent purchase / current period end)
-  const sub =
-    subscriptionItems.find((s) => s.status === "active" || s.status === "in_trial") ||
-    subscriptionItems[0] ||
-    null;
-
-  const periodType = sub?.current_period?.type || sub?.period_type || null;
-  const isInTrial =
-    periodType === "TRIAL" ||
-    periodType === "trial" ||
-    sub?.status === "in_trial";
-
-  return {
-    is_in_trial: Boolean(isInTrial),
-    entitlements,
-    trial_will_renew: sub?.auto_renewal_status === "WILL_RENEW" || sub?.will_renew === true,
-    trial_expires_at:
-      sub?.current_period?.expires_at ||
-      sub?.expires_date ||
-      sub?.expires_at ||
-      null,
-    subscription: sub
-      ? {
-          store: sub.store || null,
-          product_id: sub.product_identifier || sub.product_id || null,
-          status: sub.status || null,
-        }
-      : null,
-  };
 }
 
 // Concurrency-limited Promise.all — runs up to `limit` tasks in parallel.
@@ -1650,7 +1612,8 @@ function ymd(d) {
 
 // ─────────────────────────────────────────────────────────────
 // GET /api/admin-dashboard/trial-users
-// Active trial users only, sorted by trial_started_at DESC (newest first).
+// DB trial candidates, reconciled against RevenueCat for display only.
+// Valid trial dates sort newest first; missing dates sort last.
 // RC-enriched (will_renew / canceled detection) for the admin panel.
 // Use the existing POST /users/:id/credits {mode:"set",amount:100} to
 // cap a user's credit balance.
@@ -1663,43 +1626,19 @@ router.get("/trial-users", async (req, res) => {
         ? Math.min(requestedLimit, 500)
         : 100;
 
-    const { data: users, error } = await db
+    const { data: users, count, error } = await db
       .from("users")
       .select(
         "id, supabase_user_id, email, trial_started_at, credit_balance, platform, subscription_type, is_pro, is_in_trial, has_used_trial",
+        { count: "exact" },
       )
       .eq("is_in_trial", true)
-      .order("trial_started_at", { ascending: false })
+      .order("trial_started_at", { ascending: false, nullsFirst: false })
+      .order("id", { ascending: true })
       .limit(limit);
     if (error) throw error;
 
-    const now = new Date();
-    const rows = (users || []).map((u) => {
-      const startedAtMs = u.trial_started_at
-        ? new Date(u.trial_started_at).getTime()
-        : null;
-      const elapsedHours = startedAtMs
-        ? Math.max(0, Math.floor((now.getTime() - startedAtMs) / (60 * 60 * 1000)))
-        : 0;
-      const remainingHours = Math.max(
-        0,
-        TRIAL_DURATION_DAYS * 24 - elapsedHours,
-      );
-      return {
-        id: u.id,
-        supabase_user_id: u.supabase_user_id,
-        email: u.email,
-        trial_started_at: u.trial_started_at,
-        elapsed_hours: elapsedHours,
-        remaining_hours: remainingHours,
-        credit_balance: u.credit_balance,
-        platform: u.platform,
-        subscription_type: u.subscription_type,
-        is_pro: u.is_pro,
-        has_used_trial: u.has_used_trial,
-        rc: null,
-      };
-    });
+    const rows = (users || []).map(u => ({ ...u, rc: null }));
 
     if (RC_SECRET_KEY && rows.length > 0) {
       const rcResults = await withConcurrency(rows, 5, (u) =>
@@ -1715,11 +1654,12 @@ router.get("/trial-users", async (req, res) => {
       });
     }
 
-    res.json({
+    const reconciled = sortTrialUsers(rows.map(u => reconcileTrialUser(u, TRIAL_DURATION_DAYS)));
+    res.set("Cache-Control", "private, no-store").json({
       success: true,
       trial_duration_days: TRIAL_DURATION_DAYS,
-      total: rows.length,
-      users: rows,
+      total: count ?? rows.length,
+      users: reconciled,
     });
   } catch (error) {
     console.error("[Admin/TrialUsers] Full error:", JSON.stringify(error, null, 2));

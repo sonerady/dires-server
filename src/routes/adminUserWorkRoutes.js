@@ -1,3 +1,4 @@
+const { ADMIN_OWNER_FIELDS, adminGenerationOwner } = require('../utils/adminGenerationOwner');
 const express = require('express');
 const { optimizeForThumbnail } = require('../utils/imageOptimizer');
 const SOURCES = require('./adminAnalyticsRoutes').SOURCES;
@@ -27,7 +28,7 @@ module.exports = function adminUserWorkRoutes(db) {
     let cursor;
     try {if(!UUID.test(userId) || (feature && !SOURCES[feature])) throw Error();cursor=decodeCursor(req.query.cursor)} catch {return res.status(400).json({error:'Geçersiz çalışma bağlantısı.'})}
     try {
-      const owner=await db.from('users').select('id,email').eq('id',userId).maybeSingle();
+      const owner=await db.from('users').select(ADMIN_OWNER_FIELDS).eq('id',userId).maybeSingle();
       if(owner.error)throw owner.error;
       if(!owner.data)return res.status(404).json({error:'Kullanıcı bulunamadı.'});
       const entries=feature?[[feature,SOURCES[feature]]]:Object.entries(SOURCES);
@@ -42,7 +43,7 @@ module.exports = function adminUserWorkRoutes(db) {
       }));
       const candidates=chunks.flat().filter(row=>!cursor || compare(row,cursor)>0).sort(compare);
       const rows=candidates.slice(0,LIMIT);
-      res.set('Cache-Control','private, no-store').json({data:rows,owner:owner.data,nextCursor:candidates.length>LIMIT?encodeCursor(rows[rows.length-1]):null});
+      res.set('Cache-Control','private, no-store').json({data:rows,owner:{id:owner.data.id,email:owner.data.email,...adminGenerationOwner(owner.data)},nextCursor:candidates.length>LIMIT?encodeCursor(rows[rows.length-1]):null});
     } catch(error) {console.warn('[Admin user work]',error.code||error.name);res.status(503).json({error:'Kullanıcının çalışmaları yüklenemedi.'})}
   });
   return router;
