@@ -1,3 +1,4 @@
+const { renderReferenceLabel } = require("../utils/referenceLabel");
 const { supabaseAdmin: modelPoolDb } = require("../supabaseClient");
 const { LOCATION_DIRECTION, stampLocationReference, resolveUploadedLocationReference } = require("../services/referenceLocation");
 const { buildModelHairDirection } = require("../utils/modelHairDirection");
@@ -77,6 +78,7 @@ const {
 } = require("../utils/autoGlobalStyle");
 const { normalizeCreationMode } = require("../utils/creationMode");
 const {
+  stampStyleReferencePlate,
   STYLE_REFERENCE_PLATE_VARIANT,
   isCurrentStyleReferencePlateUrl,
 } = require("../utils/styleReferenceImage");
@@ -4746,56 +4748,6 @@ The PRIMARY/HERO person follows every user-selected model attribute and wears th
   return sections.join("\n\n");
 }
 
-// 🎬 Görselin altına "STYLE REFERENCE · CODE SR-1" siyah kod plakası basar (jpeg buffer döner).
-// Hem tekil stil referansında hem stil profili grid'inde kullanılır.
-async function stampStyleReferencePlate(rawBuf) {
-  const flattened = await sharp(rawBuf)
-    .rotate()
-    .flatten({ background: { r: 255, g: 255, b: 255 } })
-    .resize({ width: 1536, height: 1536, fit: "inside", withoutEnlargement: true })
-    .toBuffer();
-
-  const meta = await sharp(flattened).metadata();
-  const SW = meta.width || 800;
-  const SH = meta.height || 1200;
-
-  const PLATE_H = Math.min(72, Math.max(40, Math.round(SH * 0.045)));
-  const withPlate = await sharp(flattened)
-    .extend({ bottom: PLATE_H, background: { r: 10, g: 10, b: 12 } })
-    .toBuffer();
-
-  const plateFont = Math.max(
-    16,
-    Math.min(28, Math.round(PLATE_H * 0.4), Math.round(SW / 26)),
-  );
-  const horizontalPadding = Math.max(12, Math.round(SW * 0.025));
-  const availableTextWidth = Math.max(1, SW - horizontalPadding * 2);
-  const plateTextWidth = Math.min(
-    availableTextWidth,
-    Math.round(plateFont * 18.5),
-  );
-  const plateTextY = SH + Math.round(PLATE_H / 2);
-  const plateSvg = Buffer.from(`
-<svg xmlns="http://www.w3.org/2000/svg" width="${SW}" height="${SH + PLATE_H}">
-  <text x="${Math.round(SW / 2)}" y="${plateTextY}"
-        text-anchor="middle"
-        dominant-baseline="middle"
-        font-family="Helvetica, Arial, sans-serif"
-        font-size="${plateFont}"
-        font-weight="700"
-        fill="#FFFFFF"
-        letter-spacing="1"
-        textLength="${plateTextWidth}"
-        lengthAdjust="spacingAndGlyphs">STYLE REFERENCE · CODE SR-1</text>
-</svg>
-`);
-
-  return sharp(withPlate)
-    .composite([{ input: plateSvg, blend: "over" }])
-    .jpeg({ quality: 90 })
-    .toBuffer();
-}
-
 // 🎬 Stil profili fotoğraflarını tek bir beyaz zeminli grid kolaja birleştirir.
 // En fazla 6 kare kullanılır; { buffer, count } döner.
 async function buildStyleProfileGrid(imageUrls) {
@@ -7294,7 +7246,6 @@ The final image must read as the SAME street-style photograph — same person-in
 
         // 3) Alta şerit ekle (resim yüksekliğinin %10'u, min 90 max 160 px)
         const LABEL_H = Math.min(160, Math.max(90, Math.round(H * 0.1)));
-        const extendedH = H + LABEL_H;
 
         const withStrip = await sharp(flattened)
           .extend({
@@ -7303,24 +7254,15 @@ The final image must read as the SAME street-style photograph — same person-in
           })
           .toBuffer();
 
-        // 4) SVG metin overlay'i — responsive font (çok uzun olmayan İngilizce metin)
-        const fontSize = Math.min(72, Math.max(36, Math.round(W / 16)));
-        const labelText = "SIZE REFERENCE";
-        const textY = H + Math.round(LABEL_H / 2) + Math.round(fontSize / 3);
-        const svg = Buffer.from(`
-<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${extendedH}">
-  <text x="${Math.round(W / 2)}" y="${textY}"
-        text-anchor="middle"
-        font-family="Helvetica, Arial, sans-serif"
-        font-size="${fontSize}"
-        font-weight="700"
-        fill="#111827"
-        letter-spacing="2">${labelText}</text>
-</svg>
-`);
+        // Explicit bundled font, matching the shared style-reference labels.
+        const label = renderReferenceLabel({
+          width: W, height: LABEL_H, label: "SIZE REFERENCE",
+          fontSize: Math.min(72, Math.max(36, Math.round(W / 16))),
+          foreground: "#111827", background: "#FFFFFF",
+        });
 
         const composited = await sharp(withStrip)
-          .composite([{ input: svg, blend: "over" }])
+          .composite([{ input: label, left: 0, top: H, blend: "over" }])
           .jpeg({ quality: 90 })
           .toBuffer();
 

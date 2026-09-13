@@ -11,8 +11,9 @@
 const axios = require("axios");
 const sharp = require("sharp");
 const logger = require("./logger");
+const { renderReferenceLabel } = require("./referenceLabel");
 
-const STYLE_REFERENCE_PLATE_VARIANT = "compact-v2";
+const STYLE_REFERENCE_PLATE_VARIANT = "compact-v3-font";
 
 function isCurrentStyleReferencePlateUrl(url) {
   return (
@@ -60,29 +61,13 @@ async function stampStyleReferencePlate(
     Math.min(28, Math.round(PLATE_H * 0.4), Math.round(SW / 26)),
   );
   const horizontalPadding = Math.max(12, Math.round(SW * 0.025));
-  const availableTextWidth = Math.max(1, SW - horizontalPadding * 2);
-  // Metin genişliği etikete göre ölçeklenir; kısa etiketler ("COLOR 1")
-  // sabit 18.5 katsayısıyla plakayı boydan boya gerip çirkinleşiyordu.
-  const naturalTextWidth = Math.round(plateFont * (label.length * 0.62));
-  const plateTextWidth = Math.min(availableTextWidth, naturalTextWidth);
-  const plateTextY = SH + Math.round(PLATE_H / 2);
-  const plateSvg = Buffer.from(`
-<svg xmlns="http://www.w3.org/2000/svg" width="${SW}" height="${SH + PLATE_H}">
-  <text x="${Math.round(SW / 2)}" y="${plateTextY}"
-        text-anchor="middle"
-        dominant-baseline="middle"
-        font-family="Helvetica, Arial, sans-serif"
-        font-size="${plateFont}"
-        font-weight="700"
-        fill="#FFFFFF"
-        letter-spacing="1"
-        textLength="${plateTextWidth}"
-        lengthAdjust="spacingAndGlyphs">${label}</text>
-</svg>
-`);
+  const plate = renderReferenceLabel({
+    width: SW, height: PLATE_H, label, fontSize: plateFont,
+    padding: horizontalPadding,
+  });
 
   return sharp(withPlate)
-    .composite([{ input: plateSvg, blend: "over" }])
+    .composite([{ input: plate, left: 0, top: SH, blend: "over" }])
     .jpeg({ quality: 90 })
     .toBuffer();
 }

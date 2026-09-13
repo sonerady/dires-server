@@ -1,3 +1,4 @@
+const { renderReferenceLabel } = require("../utils/referenceLabel");
 const express = require("express");
 const router = express.Router();
 // Updated: Using Google Gemini API for prompt generation
@@ -5158,7 +5159,6 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
 
         // 3) Alta şerit ekle (resim yüksekliğinin %10'u, min 90 max 160 px)
         const LABEL_H = Math.min(160, Math.max(90, Math.round(H * 0.1)));
-        const extendedH = H + LABEL_H;
 
         const withStrip = await sharp(flattened)
           .extend({
@@ -5167,24 +5167,15 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
           })
           .toBuffer();
 
-        // 4) SVG metin overlay'i
-        const fontSize = Math.min(72, Math.max(36, Math.round(W / 16)));
-        const labelText = "SIZE REFERENCE";
-        const textY = H + Math.round(LABEL_H / 2) + Math.round(fontSize / 3);
-        const svg = Buffer.from(`
-<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${extendedH}">
-  <text x="${Math.round(W / 2)}" y="${textY}"
-        text-anchor="middle"
-        font-family="Helvetica, Arial, sans-serif"
-        font-size="${fontSize}"
-        font-weight="700"
-        fill="#111827"
-        letter-spacing="2">${labelText}</text>
-</svg>
-`);
+        // Explicit bundled font, matching the shared style-reference labels.
+        const label = renderReferenceLabel({
+          width: W, height: LABEL_H, label: "SIZE REFERENCE",
+          fontSize: Math.min(72, Math.max(36, Math.round(W / 16))),
+          foreground: "#111827", background: "#FFFFFF",
+        });
 
         const composited = await sharp(withStrip)
-          .composite([{ input: svg, blend: "over" }])
+          .composite([{ input: label, left: 0, top: H, blend: "over" }])
           .jpeg({ quality: 90 })
           .toBuffer();
 
