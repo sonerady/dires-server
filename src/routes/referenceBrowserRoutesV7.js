@@ -1,6 +1,6 @@
 const { isBagShoot, buildBagFocusDirective, buildBagDirection, buildBagEnhanceInstruction } = require("../utils/bagCampaignPrompt");
 const { buildOutfitReferencePrompt, OUTFIT_IDENTITY_RULE, PRODUCT_INTERPRETATION_RULE } = require("../utils/productReferencePrompt");
-const { isFashionCampaignShoot, buildFashionFocusDirective, buildFashionPoseContext, buildFashionRenderDirection, buildFashionCampaignEnhanceInstruction } = require("../utils/fashionCampaignPrompt");
+const { isFashionCampaignShoot, buildFashionFocusDirective, buildFashionPoseContext, buildFashionCampaignDirection, buildFashionCampaignEnhanceInstruction } = require("../utils/fashionCampaignPrompt");
 const { isFootwearShoot, buildFootwearDirection, buildFootwearEnhanceInstruction } = require("../utils/footwearPrompt");
 const { renderReferenceLabel } = require("../utils/referenceLabel");
 const { supabaseAdmin: modelPoolDb } = require("../supabaseClient");
@@ -5054,10 +5054,6 @@ function finalizeGenerationPrompt(enhancedPrompt, {
     const fashionShoot = !bagShoot && isFashionCampaignShoot(settings, {
       isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis,
     });
-    const compactFashionDirection = fashionShoot ? buildFashionRenderDirection({
-      settings,
-      hasStyleReference: Boolean(styleDirected || styleReferenceUrl || autoStyleGridUrl || editorialCollagesForRequest.length),
-    }) : '';
     const footwearShoot = isFootwearShoot(settings, {
       isColorChange, isPoseChange, isEditMode, isRefinerMode,
       isBackSideAnalysis: isBackSideAnalysis,
@@ -5069,9 +5065,7 @@ function finalizeGenerationPrompt(enhancedPrompt, {
         })}`
       : bagShoot
         ? `${enhancedPrompt || ""}\n\n${buildBagDirection({hasStyleReference: Boolean(styleDirected || styleReferenceUrl || autoStyleGridUrl || editorialCollagesForRequest.length)})}`
-      : compactFashionDirection
-        ? `${enhancedPrompt || ""}\n\n${compactFashionDirection}`
-        : appendUniversalPhotorealism(enhancedPrompt);
+      : appendUniversalPhotorealism(enhancedPrompt);
     logger.log(
       "📷 [PHOTOREALISM] Model/cilt/kumaş/ortam/ışık/kamera gerçekçiliği final prompt'a eklendi",
     );
@@ -5132,6 +5126,15 @@ function finalizeGenerationPrompt(enhancedPrompt, {
         `🔒 [USER INSTRUCTION LOCK] Final prompt'a eklendi (${userInstructionLock.length} karakter):`,
         userInstructionLock,
       );
+    }
+
+    // Restore the original detailed campaign appendix. Bag campaigns retain
+    // their specialized direction; explicit styles keep their own language.
+    if (fashionShoot) {
+      const campaignDirection = buildFashionCampaignDirection({
+        settings, hasStyleReference: Boolean(styleDirected || styleReferenceUrl || autoStyleGridUrl || editorialCollagesForRequest.length),
+      });
+      if (campaignDirection) enhancedPrompt += `\n\n${campaignDirection}`;
     }
 
   return enhancedPrompt;

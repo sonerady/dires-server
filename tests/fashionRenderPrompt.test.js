@@ -17,45 +17,17 @@ const context = {...require('../src/utils/bagCampaignPrompt'), ...fashion, ...fo
 vm.runInNewContext(`${realism}\n${finalizer}\nthis.finalize = finalizeGenerationPrompt; this.universal = appendUniversalPhotorealism;`, context);
 const finalize = context.finalize;
 
-test('standard final prompt replaces repeated briefs with one compact rule block and ends in user choices', () => {
-  const narrative = 'Create a new fashion campaign photograph. Garment and scene narrative.';
-  const settings = {productCategory: 'clothing', location: 'Coastal terrace', pose: 'Sideways gaze', gender: 'woman', age: '22'};
+test('standard generation restores full realism and campaign appendices in the original order', () => {
+  const narrative = 'Create a new fashion campaign photograph. Preserve the exact product.';
+  const settings = {productCategory: 'clothing', location: 'White studio', framing: 'close_up', gender: 'woman', age: '22'};
   const customDetail = 'パンツスタイルだと分かるように。足元はサンダルを履いて下さい。';
-  const p = finalize(narrative, {settings, customDetail, modelReferenceImage: 'identity.jpg'});
-  const oldLength = context.universal(narrative).length + fashion.buildFashionCampaignDirection({settings}).length + locks.buildUserInstructionLock({settings, customDetail}).length;
-  assert.ok(p.length < oldLength * 0.65, 'remove redundancy rather than merely rename headings');
-  assert.ok(p.startsWith(narrative));
-  assert.equal(p.split('FASHION PHOTOGRAPH — REFERENCE AND QUALITY RULES:').length - 1, 1);
-  assert.doesNotMatch(p, /PHOTOGRAPHIC REALISM — NON-NEGOTIABLE|FINISHED FASHION CAMPAIGN/);
-  assert.ok(p.includes(customDetail));
-  assert.match(p, /MODEL HAIRSTYLING/);
-  assert.ok(p.indexOf('USER-LOCKED REQUIREMENTS') > p.indexOf('MODEL HAIRSTYLING'));
-  assert.ok(p.endsWith('without showing it.'));
-});
-
-test('compact safeguards retain deliberately added fashion, fidelity, exposure and user exceptions', () => {
-  const p = fashion.buildFashionRenderDirection();
-  for (const phrase of [
-    'original fit and hem length', 'tiny emblems without inventing lettering',
-    'Do not tighten, tuck, cinch', 'fabric curvature', 'contact shadows',
-    'recognizable identity', 'No fixed pose recipe', 'selected mood prevail',
-    'explicitly broad smile or laugh', 'babies must be safely supported',
-    'camera-ready makeup', 'fine skin texture', 'Children receive age-appropriate grooming',
-    'hijab requirements', 'Do not invent a companion', 'adjacent surfaces coherently',
-    'explicitly requested dark or muted', 'white/cream distinctions',
-    "dark venue's character", 'No automatic warm grade', 'one horizon',
-    'without artificial blur masks', 'CGI surfaces', 'named changes; preserve everything else',
-  ]) assert.ok(p.includes(phrase), phrase);
-});
-
-test('white studio and close-up safeguards stay conditional', () => {
-  const p = fashion.buildFashionRenderDirection({settings: {location: 'White studio', framing: 'close_up'}});
-  assert.match(p, /CLEAN WHITE BACKDROP/);
-  assert.match(p, /including their reflections/);
-  assert.match(p, /behind-the-scenes equipment take precedence/);
-  assert.match(p, /without widening it/);
-  assert.doesNotMatch(p, /breathing room/);
-  assert.doesNotMatch(fashion.buildFashionRenderDirection({settings: {location: 'White House Garden'}}), /CLEAN WHITE BACKDROP/);
+  const p = finalize(narrative, {settings, customDetail});
+  const userLock = locks.buildUserInstructionLock({settings, customDetail, locationDescriptionIsSceneContext: true, allowFashionPoseInterpretation: true});
+  const fullCampaign = fashion.buildFashionCampaignDirection({settings});
+  assert.equal(p, `${context.universal(narrative)}\n\n${userLock}\n\n${fullCampaign}`);
+  for (const section of ['PHOTOGRAPHIC REALISM — NON-NEGOTIABLE', 'GARMENT-TO-BODY', 'FINISHED FASHION CAMPAIGN', 'FASHION BODY LANGUAGE', 'PROFESSIONAL FASHION PRESENTATION', 'EXPOSURE AND COLOR VITALITY', 'ON-LOCATION PHOTOGRAPHIC INTEGRATION', 'CLEAN WHITE BACKDROP']) assert.ok(p.includes(section));
+  assert.match(p, /User clarification of the product type overrides automatic classification/);
+  assert.doesNotMatch(p, /FASHION PHOTOGRAPH — REFERENCE AND QUALITY RULES/);
 });
 
 test('automatic/street/editorial/reference styles and other editing modes keep their existing instructions', () => {
@@ -77,9 +49,9 @@ test('reference instructions and long multilingual user details are never trunca
   const customDetail = 'Tesettür korunsun. 保留所有細節。 '.repeat(200) + 'FINAL USER REQUIREMENT';
   const settings = {hijabMode: true, hairColor: 'brown', accessories: 'bag', framing: 'full_body', measurements: {height: 178, waist: 64}, weather: 'rain', timeOfDay: 'night'};
   const p = finalize(input, {settings, customDetail, modelReferenceImage: 'identity.jpg'});
-  assert.ok(p.startsWith(input));
+  assert.ok(p.startsWith(input.trimEnd()));
   assert.ok(p.includes(customDetail));
   for (const choice of ['brown', 'bag', '178', '64', 'rain', 'night', 'head-to-toe', 'MODEST HIJAB']) assert.ok(p.includes(choice));
   assert.doesNotMatch(p, /MODEL HAIRSTYLING:/);
-  assert.match(finalize('Fallback product description', {}), /FASHION PHOTOGRAPH — REFERENCE AND QUALITY RULES/);
+  assert.match(finalize('Fallback product description', {}), /FINISHED FASHION CAMPAIGN/);
 });
