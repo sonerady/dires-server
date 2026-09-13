@@ -1,3 +1,4 @@
+const { isFootwearShoot, buildFootwearDirection, buildFootwearEnhanceInstruction } = require("../utils/footwearPrompt");
 const { renderReferenceLabel } = require("../utils/referenceLabel");
 const { supabaseAdmin: modelPoolDb } = require("../supabaseClient");
 const { LOCATION_DIRECTION, stampLocationReference, resolveUploadedLocationReference } = require("../services/referenceLocation");
@@ -1865,8 +1866,11 @@ function normalizePerspective(value) {
 // yerine akıcı, fotoğrafçı-brief tarzı 4 paragraflık cümlelere dönüştürür.
 // (Nano-banana narrative promptlarla en iyi sonucu verir; parametre yığını
 // stok/yapay görünüm üretir.)
-function buildNarrativeFallbackPrompt(settings = {}, isMultipleProducts = false) {
+function buildNarrativeFallbackPrompt(settings = {}, isMultipleProducts = false, modes = {}) {
   const s = settings || {};
+  if (isFootwearShoot(s, modes)) {
+    return `Replace the source product display with the exact referenced footwear naturally worn by a living ${s.gender || ""} model of the selected age, in ${s.locationEnhancedPrompt || s.location || "a restrained photographic setting"}. ${buildFootwearDirection({ settings: s })}`;
+  }
   const genderLower = (s.gender || "female").toLowerCase();
   const isMale = genderLower === "male" || genderLower === "man";
   const ageStr = s.age ? String(s.age) : "";
@@ -1963,11 +1967,12 @@ function buildNarrativeFallbackPrompt(settings = {}, isMultipleProducts = false)
 // 🔁 Basitleştirilmiş ikinci enhance denemesi — tam meta-prompt başarısız
 // olduğunda çok daha kısa bir talimatla Gemini'ye bir şans daha verir.
 // Başarısızsa null döner; çağıran narratif statik şablona düşer.
-async function attemptSimplifiedEnhance(settings, isMultipleProducts, imageUrl) {
+async function attemptSimplifiedEnhance(settings, isMultipleProducts, imageUrl, modes = {}) {
   try {
     const narrativeSeed = buildNarrativeFallbackPrompt(
       settings,
       isMultipleProducts,
+      modes,
     );
     const simplifiedInstruction = `You are a fashion photography prompt writer. Rewrite and enrich the draft prompt below into one flowing, vivid, positively-framed prompt for an AI image editing model, keeping every factual requirement (model, garment fidelity, setting, camera) intact and adding concrete fabric, light, and pose detail based on the attached garment image. Output ONLY the final prompt text, in English, with no headers, lists, or commentary.
 
@@ -3537,6 +3542,20 @@ ${promptForGemini}`;
 ${promptForGemini}`;
     }
 
+    // Footwear uses its own visual brief, not garment/face/stride defaults.
+    // Keep the existing visual classification; no extra classifier request.
+    if (isFootwearShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis })) {
+      promptForGemini = buildFootwearEnhanceInstruction({
+        settings, originalPrompt, customDetail: trimmedCustomDetail,
+        hasPoseReference: Boolean(poseImage), multipleAnglesCount, kombinItemCount,
+        context: [ageSection, childPromptSection, bodyShapeMeasurementsSection,
+          settingsPromptSection, hasUserPose ? posePromptSection : "",
+          perspectivePromptSection, hairStylePromptSection, hairStyleTextSection,
+          locationPromptSection, modelReferenceImageUrl ? faceDescriptionSection : "",
+          focusAreaDirective].filter(Boolean).join("\n\n"),
+      });
+    }
+
     logger.log("🤖 [GEMINI] Prompt oluşturuluyor:", promptForGemini);
 
     // Google Gemini API için resimleri base64'e çevir ve parts dizisine ekle
@@ -4056,10 +4075,11 @@ ${promptForGemini}`;
         settings,
         isMultipleProducts,
         imageUrl,
+        { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis },
       );
       enhancedPrompt =
         simplifiedRetry ||
-        buildNarrativeFallbackPrompt(settings, isMultipleProducts);
+        buildNarrativeFallbackPrompt(settings, isMultipleProducts, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis });
       logger.log(
         simplifiedRetry
           ? "🔁 [FALLBACK] Basitleştirilmiş enhance kullanılıyor"
@@ -4147,13 +4167,14 @@ ${promptForGemini}`;
       settings,
       isMultipleProducts,
       imageUrl,
+      { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis },
     );
     if (simplifiedRetryCatch) {
       logger.log("🔁 [CATCH-FALLBACK] Basitleştirilmiş enhance kullanılıyor");
       return simplifiedRetryCatch;
     }
     logger.log("🧵 [CATCH-FALLBACK] Narratif statik fallback prompt kullanılıyor");
-    return buildNarrativeFallbackPrompt(settings, isMultipleProducts);
+    return buildNarrativeFallbackPrompt(settings, isMultipleProducts, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis });
   }
 }
 
@@ -6870,7 +6891,16 @@ The final image must read as the SAME street-style photograph — same person-in
     // Gemini'nin çıktısı, stil-referansı gibi Gemini'yi atlayan dallar ve tüm
     // fallback promptları aynı noktada birleşir. Böylece hangi kalite modeli
     // seçilirse seçilsin fiziksel gerçekçilik talimatı final promptta bulunur.
-    enhancedPrompt = appendUniversalPhotorealism(enhancedPrompt);
+    const footwearShoot = isFootwearShoot(settings, {
+      isColorChange, isPoseChange, isEditMode, isRefinerMode,
+      isBackSideAnalysis: req.body.isBackSideAnalysis,
+    });
+    enhancedPrompt = footwearShoot
+      ? `${enhancedPrompt || ""}\n\n${buildFootwearDirection({
+          settings, hasStyleReference: Boolean(styleReferenceUrl || autoStyleGridUrl),
+          hasPoseReference: Boolean(poseImage),
+        })}`
+      : appendUniversalPhotorealism(enhancedPrompt);
     logger.log(
       "📷 [PHOTOREALISM] Model/cilt/kumaş/ortam/ışık/kamera gerçekçiliği final prompt'a eklendi",
     );

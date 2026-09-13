@@ -22,6 +22,7 @@ router.use((req, res, next) => {
   next();
 });
 router.use(require('./adminGenerationDetailRoutes')(db));
+router.use(require('./adminUserWorkRoutes')(db));
 router.use(require("./adminBannerRoutes")(db));
 router.use(require("./adminAnalyticsRoutes")(db));
 
