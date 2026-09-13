@@ -96,3 +96,12 @@ test('campaign brief commissions a new performance rather than a background repl
  assert.match(p,/Preserve the embroidery/);
  assert.match(p,/No prescribed hand position/);
 });
+
+test('standard campaigns retain professional makeup and light; style-directed shoots bypass presentation defaults',()=>{
+ const {buildFashionPresentationDirection}=require('../src/utils/fashionCampaignPrompt');
+ const p=buildFashionPresentationDirection();
+ for(const phrase of ['camera-ready makeup','fine skin texture','without reshaping','age-appropriate grooming','explicit user requests','supplemental light'])assert.ok(p.includes(phrase));
+ assert.match(buildFashionCampaignEnhanceInstruction({settings:{}}),/PROFESSIONAL FASHION PRESENTATION/);
+ assert.doesNotMatch(buildFashionCampaignEnhanceInstruction({settings:{},hasStyleReference:true}),/PROFESSIONAL FASHION PRESENTATION|camera-ready makeup/);
+ assert.equal(buildFashionCampaignDirection({hasStyleReference:true}),'');
+});

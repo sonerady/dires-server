@@ -2023,6 +2023,7 @@ async function enhancePromptWithGemini(
   kombinItemCount = 0, // 🛍️ Kombin modunda grid içindeki tekil ürün sayısı (0 = kombin değil)
   multipleAnglesCount = 0, // 📐 Aynı ürünün grid içindeki farklı açı sayısı
   modelReferenceImageUrl = null, // 👤 Kullanıcı belirli bir model fotoğrafı seçtiyse URL'i (varsa yüz icat edilmez, referanstaki kişi korunur; görsel Gemini'ye de eklenir)
+  styleDirected = false, // Auto/street/style references retain their own beauty and lighting treatment.
 ) {
   try {
     logger.log("🤖 [GEMINI] Google Gemini ile prompt iyileştirme başlatılıyor");
@@ -3560,7 +3561,7 @@ ${promptForGemini}`;
 
     if (isFashionCampaignShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis })) {
       promptForGemini = buildFashionCampaignEnhanceInstruction({
-        settings, originalPrompt, customDetail: trimmedCustomDetail,
+        settings, originalPrompt, customDetail: trimmedCustomDetail, hasStyleReference: styleDirected,
         multipleAnglesCount, kombinItemCount, isMultipleProducts,
         context: [ageSection, childPromptSection, bodyShapeMeasurementsSection,
           settingsPromptSection, buildFashionPoseContext({ settings, hasUserPose, posePromptSection }),
@@ -5018,7 +5019,7 @@ ${body}`;
 function finalizeGenerationPrompt(enhancedPrompt, {
   settings = {}, customDetail = null, modelReferenceImage = null,
   poseImage = null, hairStyleImage = null, styleReferenceUrl = null,
-  autoStyleGridUrl = null, autoStyleGenderDirective = '',
+  autoStyleGridUrl = null, autoStyleGenderDirective = '', styleDirected = false,
   editorialCollagesForRequest = [], isColorChange = false,
   isPoseChange = false, isEditMode = false, isRefinerMode = false,
   isBackSideAnalysis = false,
@@ -5105,7 +5106,7 @@ function finalizeGenerationPrompt(enhancedPrompt, {
       isBackSideAnalysis: isBackSideAnalysis,
     })) {
       const campaignDirection = buildFashionCampaignDirection({
-        settings, hasStyleReference: Boolean(styleReferenceUrl || autoStyleGridUrl || editorialCollagesForRequest.length),
+        settings, hasStyleReference: Boolean(styleDirected || styleReferenceUrl || autoStyleGridUrl || editorialCollagesForRequest.length),
       });
       if (campaignDirection) enhancedPrompt += `\n\n${campaignDirection}`;
     }
@@ -6751,6 +6752,7 @@ Do NOT describe any person's face/identity or garments. PLAIN TEXT only, numbere
         modelReferenceImage
           ? modelReferenceImage.uri || modelReferenceImage.url || null
           : null, // 👤 Model seçiliyse yüz icat edilmez, kimlik korunur (görsel Gemini'ye de gider)
+        Boolean(styleReferenceUrl || autoStyleProfile || autoStyleGridUrl || editorialCollagesForRequest.length),
       );
 
       // ⏳ Sadece Gemini prompt iyileştirme bekle
@@ -7036,6 +7038,7 @@ The final image must read as the SAME street-style photograph — same person-in
     enhancedPrompt = finalizeGenerationPrompt(enhancedPrompt, {
       settings, customDetail, modelReferenceImage, poseImage, hairStyleImage,
       styleReferenceUrl, autoStyleGridUrl, autoStyleGenderDirective,
+      styleDirected: Boolean(autoStyleProfile),
       editorialCollagesForRequest, isColorChange, isPoseChange, isEditMode,
       isRefinerMode, isBackSideAnalysis: req.body.isBackSideAnalysis,
     });
