@@ -17,6 +17,33 @@ const context = {...require('../src/utils/bagCampaignPrompt'), ...fashion, ...fo
 vm.runInNewContext(`${realism}\n${finalizer}\nthis.finalize = finalizeGenerationPrompt; this.universal = appendUniversalPhotorealism;`, context);
 const finalize = context.finalize;
 
+test('front-product visibility reaches both enhancement and rendering without fixing a single pose', () => {
+  const settings = {productCategory: 'clothing', productSubtype: 'dress', location: 'Ornate White Marble Grand Palace Staircase', hairStyle: 'side_bun_with_curls'};
+  const enhanced = fashion.buildFashionCampaignEnhanceInstruction({settings});
+  // Regression: the reported generation invented a look-back pose despite a front product photo.
+  const rendered = finalize('She gazes back toward the camera, her torso turned away.', {settings});
+  for (const prompt of [enhanced, rendered]) {
+    assert.match(prompt, /PRODUCT VIEWPOINT PRIORITY/);
+    assert.match(prompt, /DEFAULT FRONT-FACING GARMENT/);
+    assert.match(prompt, /overrides an automatically invented pose/);
+    assert.match(prompt, /do not impose a rigid frontal stance or direct eye contact/);
+    assert.match(prompt, /Hairstyle or identity references do not independently request a side- or rear-facing composition/);
+    assert.match(prompt, /primary product reference itself shows the back, preserve that view/);
+  }
+});
+
+test('explicit rear-view requests survive the visibility guard; specialized modes remain unaffected', () => {
+  const settings = {productCategory: 'clothing', pose: 'Back view'};
+  const customDetail = 'Arkadan çek, elbisenin sırt detayları görünsün.';
+  for (const p of [fashion.buildFashionCampaignEnhanceInstruction({settings, customDetail}), finalize('Requested back view', {settings, customDetail})]) {
+    assert.ok(p.includes(customDetail));
+    assert.match(p, /deliberately selected poses specifying a side or rear view take precedence/);
+  }
+  for (const options of [{isBackSideAnalysis: true}, {isPoseChange: true}, {styleDirected: true}, {styleReferenceUrl: 'style.jpg'}, {settings: {productCategory: 'clothing', productSubtype: 'bag'}}]) {
+    assert.doesNotMatch(finalize('Specialized requested view', options), /PRODUCT VIEWPOINT PRIORITY/);
+  }
+});
+
 test('standard generation restores full realism and campaign appendices in the original order', () => {
   const narrative = 'Create a new fashion campaign photograph. Preserve the exact product.';
   const settings = {productCategory: 'clothing', location: 'White studio', framing: 'close_up', gender: 'woman', age: '22'};
@@ -54,4 +81,30 @@ test('reference instructions and long multilingual user details are never trunca
   for (const choice of ['brown', 'bag', '178', '64', 'rain', 'night', 'head-to-toe', 'MODEST HIJAB']) assert.ok(p.includes(choice));
   assert.doesNotMatch(p, /MODEL HAIRSTYLING:/);
   assert.match(finalize('Fallback product description', {}), /FINISHED FASHION CAMPAIGN/);
+});
+
+// Actual regression: two Galata requests had four product views, no requested
+// pose, and generated lateral mid-stride directions. Exercise both stages.
+test('Galata multi-angle requests retain frontal output while preserving product evidence and crop', () => {
+  const settings = {productCategory: 'clothing', location: 'Magnificent Galata Tower in Historic Istanbul', gender: 'woman', numericAge: 22, focusArea: 'auto', isMultipleAnglesMode: true, multipleAnglesCount: 4, totalGenerations: 2};
+  const originalPrompt = 'Person will be in environment and background: Magnificent Galata Tower in Historic Istanbul. Age range: young (teenage model). Gender: woman';
+  const enhanced = fashion.buildFashionCampaignEnhanceInstruction({settings, originalPrompt, multipleAnglesCount: 4});
+  assert.ok(enhanced.includes(originalPrompt));
+  assert.match(enhanced, /4 views of ONE product/);
+  for (const draft of ['She is captured mid-stride, her body angled dynamically while her gaze remains fixed on the lens.', 'She pauses mid-stride and turns her head toward the lens.']) {
+    const rendered = finalize(draft, {settings, modelReferenceImage: 'identity.jpg'});
+    for (const p of [enhanced, rendered]) {
+      assert.match(p, /torso and the garment's front facing the camera/);
+      assert.match(p, /face looking toward the lens is not sufficient/);
+      assert.match(p, /not a request for alternate output viewpoints/);
+      assert.match(p, /multiple output images must retain the default front-facing direction/);
+      assert.match(p, /Honor the user's camera crop and focus area/);
+    }
+    assert.match(rendered, /MODEL HAIRSTYLING/);
+    assert.match(rendered, /PROFESSIONAL FASHION PRESENTATION/);
+    assert.match(rendered, /ON-LOCATION PHOTOGRAPHIC INTEGRATION/);
+  }
+  const side = finalize('User-requested side profile', {settings: {...settings, pose: 'Side profile', framing: 'close_up'}, customDetail: 'Yandan çek; yalnızca yaka detayı görünsün.'});
+  assert.match(side, /Yandan çek; yalnızca yaka detayı görünsün/);
+  assert.match(side, /deliberately selected poses specifying a side or rear view take precedence/);
 });
