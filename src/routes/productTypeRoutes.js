@@ -19,6 +19,7 @@ const axios = require("axios");
 const { fal } = require("@fal-ai/client");
 const { createClient } = require("@supabase/supabase-js");
 const logger = require("../utils/logger");
+const { classifyWithProvider, DEEPSEEK_TIMEOUT_MS } = require("../utils/productTypeProvider");
 
 const LUNA_MODEL = "openai/gpt-5.6-luna";
 // 🐋 26 Ağu 2026 (kullanıcı kararı): varsayılan sağlayıcı DEEPSEEK — eklenti
@@ -297,9 +298,8 @@ const MAX_IMAGES_PER_CALL = 6;
  *  istemci yerel dosyaları data URI olarak yolladığı için şart.
  *  Reasoning KAPALI tutuluyor: Luna'nın görünmez reasoning tokenı bütçeyi
  *  yiyip boş içerik döndürüyordu (13 Ağu bug'ı). */
-/** 🐋 DeepSeek sınıflandırma — TEK deneme (kullanıcı kararı, 26 Ağu 2026):
- *  hata alınca LLM zorlanmaz, route fallback cevabına düşer. */
-async function callDeepSeekClassify(images, context = null) {
+/** DeepSeek is primary; a failed or slow request falls back to Fal once. */
+async function callDeepSeekClassify(images, context = null, signal) {
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) throw new Error("DEEPSEEK_API_KEY tanımlı değil");
   const response = await axios.post(
@@ -332,7 +332,8 @@ async function callDeepSeekClassify(images, context = null) {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      timeout: 60000,
+      timeout: DEEPSEEK_TIMEOUT_MS,
+      signal,
     },
   );
   const output = (response.data?.choices?.[0]?.message?.content || "").trim();
@@ -340,7 +341,7 @@ async function callDeepSeekClassify(images, context = null) {
   return output;
 }
 
-async function callLunaVision(images, maxRetries = 2, context = null) {
+async function callLunaVision(images, maxRetries = 2, context = null, signal) {
   const credentials = process.env.FAL_API_KEY || process.env.FAL_KEY;
   if (!credentials) throw new Error("FAL_API_KEY tanımlı değil");
   fal.config({ credentials });
@@ -357,6 +358,7 @@ async function callLunaVision(images, maxRetries = 2, context = null) {
           max_tokens: 400,
         },
         logs: false,
+        abortSignal: signal,
       });
 
       // fal hatayı 200 gövdesinde `error` alanıyla da döndürebiliyor
@@ -415,14 +417,15 @@ router.post("/classify", async (req, res) => {
     }
 
     const started = Date.now();
-    // ⚠️ TEK deneme (kullanıcı kararı, 26 Ağu 2026): hangi sağlayıcı olursa
-    // olsun hata → yeniden deneme YOK, çapraz sağlayıcı YOK; catch'teki
-    // fallback cevabı döner (clothing + woman), kartlar onunla görünür.
-    const provider = await getProductTypeProvider();
-    const raw =
-      provider === "fal"
-        ? await callLunaVision(images, 1, ctx)
-        : await callDeepSeekClassify(images, ctx);
+    const preferredProvider = await getProductTypeProvider();
+    const { raw, provider } = await classifyWithProvider({
+      provider: preferredProvider,
+      deepseek: (signal) => callDeepSeekClassify(images, ctx, signal),
+      fal: (signal) => callLunaVision(images, 1, ctx, signal),
+      onFallback: (err) => logger.warn(
+        `🏷️ [PRODUCT_TYPE] DeepSeek unavailable (${err?.code || "provider_error"}); using fal/luna`,
+      ),
+    });
     let { category, subtype, form, color, pattern, gender, genderFallbackUsed, wearable, pieces } =
       normalize(raw);
     // 🧩 KOMBİN GÜVENCESİ (11 Eyl 2026, kullanıcı isteği): 1 giyim + 2 takı gibi
