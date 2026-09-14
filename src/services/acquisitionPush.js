@@ -6,13 +6,13 @@ function validToken(token, digest) {
   if (typeof token !== 'string' || token.length !== 64 || typeof digest !== 'string' || digest.length !== 64) return false;
   return timingSafeEqual(Buffer.from(hash(token)), Buffer.from(digest));
 }
-function localSlot(now, timezone, hour = 20) {
+function localSlot(now, timezone, hour = 20, { ignoreLocalTime = false } = {}) {
   if (!timezone || typeof timezone !== 'string') return null;
   try {
     const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {
       timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
     }).formatToParts(now).map(p => [p.type,p.value]));
-    if (Number(parts.hour) !== hour || Number(parts.minute) >= 15) return null;
+    if (!ignoreLocalTime && (Number(parts.hour) !== hour || Number(parts.minute) >= 15)) return null;
     const date = `${parts.year}-${parts.month}-${parts.day}`;
     return { date, weekday: new Date(`${date}T12:00:00Z`).getUTCDay() };
   } catch { return null; }
@@ -24,12 +24,12 @@ function localizedCampaign(language, weekday) {
   if (!messages?.[weekday]) return null;
   return { ...messages[weekday], id: `acquisition-v1-${weekday}`, language: lang };
 }
-function due(enrollment, now, hour) {
+function due(enrollment, now, hour, options) {
   return enrollment.subscribed === true && !enrollment.client_purchase_seen && UUID.test(enrollment.subscription_id || '')
     && ['ios','android'].includes(enrollment.platform)
     && now - new Date(enrollment.onboarding_completed_at || now) >= 24*3600e3
     && now - new Date(enrollment.last_seen_at) >= 4*3600e3
-    && localSlot(now, enrollment.timezone, hour);
+    && localSlot(now, enrollment.timezone, hour, options);
 }
 function buildPush(appId, subscriptionId, campaign, idempotencyKey, test = false) {
   if (!UUID.test(subscriptionId || '')) throw new Error('One exact subscription is required');
@@ -115,8 +115,10 @@ function createAcquisitionPush({ db, fetchImpl = fetch, env = process.env, clock
     check(await db.from('acquisition_push_enrollments').update(changes).eq('user_id',userId));
     return {status:200,eligible:allowed};
   }
-  async function sendOne(row, settings, {dryRun = true} = {}) {
-    const now=clock(), slot=due(row,now,settings.local_hour);
+  // Explicit operator catch-up only: bypass the clock window, never eligibility
+  // or the shared daily/idempotency ledger. The scheduled worker omits this flag.
+  async function sendOne(row, settings, {dryRun = true, ignoreLocalTime = false} = {}) {
+    const now=clock(), slot=due(row,now,settings.local_hour,{ignoreLocalTime});
     if (!slot) return {skipped:'not_due'};
     const campaign=localizedCampaign(row.language,slot.weekday);
     if (!campaign) return {skipped:'untranslated_language'};
@@ -135,7 +137,7 @@ function createAcquisitionPush({ db, fetchImpl = fetch, env = process.env, clock
     // Re-read immediately before submission; client changes and webhooks may
     // have arrived during the provider lookup/claim. Unknown state = no send.
     const current=check(await db.from('acquisition_push_enrollments').select('*').eq('user_id',row.user_id).single());
-    if (!due(current,clock(),settings.local_hour) || current.timezone!==row.timezone || current.language!==row.language || current.subscription_id!==row.subscription_id || !await eligible(row.user_id)) {
+    if (!due(current,clock(),settings.local_hour,{ignoreLocalTime}) || current.timezone!==row.timezone || current.language!==row.language || current.subscription_id!==row.subscription_id || !await eligible(row.user_id)) {
       check(await db.from('acquisition_push_deliveries').update({status:'skipped',reason:'eligibility_changed'}).eq('id',delivery.id));
       return {skipped:'eligibility_changed'};
     }

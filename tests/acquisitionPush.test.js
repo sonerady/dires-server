@@ -98,3 +98,19 @@ test('ambiguous provider failures reuse the UUID, successful repeats do not send
 test('dry-run never queries OneSignal or creates a delivery claim',async()=>{
  const h=harness();assert.equal((await h.svc.sendOne(row,{local_hour:20})).eligible,true);assert.equal(h.requests.length,0);assert.equal(h.deliveries.length,0);
 });
+test('operator catch-up bypasses only the local clock window and preserves local date',()=>{
+ const late=new Date('2026-09-07T22:30:00Z');
+ assert.equal(due(row,late,20),null);
+ assert.deepEqual(due(row,late,20,{ignoreLocalTime:true}),{date:'2026-09-08',weekday:2});
+ for(const change of [{subscribed:false},{client_purchase_seen:true},{platform:'web'},{onboarding_completed_at:null},{onboarding_completed_at:late.toISOString()},{last_seen_at:late.toISOString()},{subscription_id:null},{timezone:'invalid'}])assert.ok(!due({...row,...change},late,20,{ignoreLocalTime:true}));
+});
+test('operator catch-up rechecks purchases and shares normal daily idempotency',async()=>{
+ const h=harness();
+ assert.equal((await h.svc.sendOne(row,{local_hour:3},{dryRun:false})).skipped,'not_due');
+ assert.equal((await h.svc.sendOne(row,{local_hour:3},{dryRun:false,ignoreLocalTime:true})).sent,true);
+ assert.equal((await h.svc.sendOne(row,{local_hour:20},{dryRun:false})).skipped,'already_processed');
+ assert.equal(h.requests.filter(r=>r.body).length,1);
+ const changed=harness({eligibility:[true,false]});
+ assert.equal((await changed.svc.sendOne(row,{local_hour:3},{dryRun:false,ignoreLocalTime:true})).skipped,'eligibility_changed');
+ assert.equal(changed.requests.filter(r=>r.body).length,0);
+});
