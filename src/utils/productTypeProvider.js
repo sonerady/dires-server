@@ -1,5 +1,5 @@
 // Upload analysis must finish promptly even when a provider stops responding.
-const DEEPSEEK_TIMEOUT_MS = 6000;
+const DEEPSEEK_TIMEOUT_MS = 10000;
 const FAL_TIMEOUT_MS = 15000;
 
 async function callWithinDeadline(call, timeoutMs, provider) {
