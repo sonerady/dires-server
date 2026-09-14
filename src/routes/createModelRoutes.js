@@ -1,3 +1,4 @@
+const { listUserModels } = require('../services/userModelListing');
 const { starterPortraitInput, MODEL_T2I_API_URL } = require("../utils/starterPortraitInput");
 const { textModelCastingDirection, REFERENCE_ID_PHOTO_PROMPT, POOL_PORTRAIT_PROMPT } = require('../utils/modelPortraitPrompts');
 const { generateStarterModelNames } = require('../utils/starterModelNames');
@@ -1315,7 +1316,7 @@ router.use(require("./starterModelRoutes")({
 router.get("/user-models/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-    const { limit = 20, offset = 0 } = req.query;
+
 
 
     // UUID format validation
@@ -1332,19 +1333,11 @@ router.get("/user-models/:userId", async (req, res) => {
 
     let data;
     try {
-      const result = await supabase
-        .from("user_models")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("status", "completed")
-        .order("created_at", { ascending: false })
-        .range(offset, offset + limit - 1);
+      const result = await listUserModels(supabase, userId, req.query);
 
       if (result.error) {
         console.error("Supabase user models fetch hatası:", result.error);
-        const statusCode = result.error.message?.includes("fetch failed")
-          ? 503
-          : 500;
+        const statusCode = result.error.status || (result.error.message?.includes("fetch failed") ? 503 : 500);
         return res.status(statusCode).json({
           success: false,
           error:
