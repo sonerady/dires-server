@@ -6,7 +6,7 @@ const { GoogleGenAI } = require("@google/genai");
 const axios = require("axios");
 const { supabase } = require("../supabaseClient");
 const { optimizeImageUrl, optimizeLocationImages, cleanImageUrlForApi } = require("../utils/imageOptimizer");
-const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
+const { callStructuredText } = require("../utils/promptEnhanceProvider");
 
 // Gemini API setup
 const genAI = new GoogleGenAI({
@@ -14,10 +14,9 @@ const genAI = new GoogleGenAI({
 });
 
 // Replicate API üzerinden Gemini 2.5 Flash çağrısı yapan helper fonksiyon
-// Hata durumunda 3 kez tekrar dener
-async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
-  // Prompt enhance artık merkezi dispatcher'a yönleniyor (app_config: gemini/replicate)
-  return callGeminiFlash(prompt, imageUrls, maxRetries);
+// Location metadata is structured JSON with a bounded provider fallback.
+async function callLocationStructuredText(prompt) {
+  return callStructuredText(prompt, { maxOutputTokens: 4096, timeoutMs: 20000, signal: AbortSignal.timeout(45000) });
 }
 
 // Replicate'den gelen resmi Supabase storage'a kaydet
@@ -29,7 +28,7 @@ async function uploadImageToSupabaseStorage(imageUrl, userId, replicateId) {
     console.log("Replicate ID:", replicateId);
 
     // Replicate'den resmi indir
-    const imageResponse = await fetch(imageUrl);
+    const imageResponse = await fetch(imageUrl, { signal: AbortSignal.timeout(45000) });
     if (!imageResponse.ok) {
       throw new Error(`Resim indirilemedi: ${imageResponse.status}`);
     }
@@ -91,6 +90,7 @@ async function generateLocationWithImagen4Fast(prompt, userId) {
       "https://fal.run/fal-ai/nano-banana-2",
       {
         method: "POST",
+        signal: AbortSignal.timeout(180000),
         headers: {
           Authorization: `Key ${process.env.FAL_API_KEY}`,
           "Content-Type": "application/json",
@@ -240,7 +240,7 @@ OUTPUT FORMAT (valid JSON only):
 IMPORTANT: Return ONLY valid JSON, no explanations, no markdown, no code blocks.`;
 
     // Replicate Gemini Flash API çağrısı
-    const geminiResponse = await callReplicateGeminiFlash(prompt, [], 3);
+    const geminiResponse = await callLocationStructuredText(prompt);
 
     if (!geminiResponse) {
       console.error("❌ Replicate Gemini API response boş");
@@ -326,7 +326,7 @@ IMPORTANT: Return ONLY valid JSON, no explanations, no markdown, no code blocks.
       try {
         const retryPrompt = `Generate location tags. Each tag must be EXACTLY ONE WORD. Tags must be DIRECTLY RELATED to the location's main subject. Location: "${locationTitle}" - "${locationDescription || ""}". MANDATORY: Extract key words from title and description - the MAIN SUBJECT mentioned MUST be included in tags. Focus on main subjects, objects, places, styles mentioned. DO NOT use generic atmosphere tags. If location mentions specific objects (car, ship, building, etc.), these MUST be in the tags. Return JSON with languages: en, es, pt, fr, de, it, tr, ru, uk, ar, fa, zh, zh-tw, ja, ko, hi, id. Each language must have exactly 5 tags (minimum 5, maximum 5), each tag exactly one word. Return ONLY valid JSON, no explanations.`;
 
-        const retryGeminiResponse = await callReplicateGeminiFlash(retryPrompt, [], 3);
+        const retryGeminiResponse = await callLocationStructuredText(retryPrompt);
 
         if (retryGeminiResponse) {
           let cleanedRetryResponse = retryGeminiResponse.trim();
@@ -429,7 +429,7 @@ Create a detailed location photography prompt from: "${originalPrompt}"`;
     // Replicate Gemini Flash API çağrısı (built-in retry mekanizması ile)
     console.log("🤖 [REPLICATE-GEMINI] Location prompt API çağrısı başlatılıyor...");
 
-    const geminiResponse = await callReplicateGeminiFlash(promptForGemini, [], 3);
+    const geminiResponse = await callLocationStructuredText(promptForGemini);
 
     if (!geminiResponse) {
       throw new Error("Replicate Gemini API response is empty after retries");
@@ -732,53 +732,8 @@ router.post("/create-location", async (req, res) => {
     const finalLocationType =
       locationType || gptResult.locationType || "unknown";
 
-    // 3. Gemini ile çok dilli tag'ler oluştur
-    console.log("🏷️ Generating tags for location...");
-    console.log("🏷️ Tag generation params:", {
-      title: generatedTitle,
-      descriptionLength: enhancedPrompt?.length,
-      locationType: finalLocationType,
-    });
-    let locationTags = null;
-    try {
-      locationTags = await generateLocationTagsWithGPT(
-        generatedTitle,
-        enhancedPrompt,
-        finalLocationType
-      );
-      console.log(
-        "✅ Tags generated:",
-        Object.keys(locationTags).length,
-        "languages"
-      );
-    } catch (tagError) {
-      console.error("❌ Tag generation hatası:", tagError);
-      console.error("❌ Tag generation error details:", tagError.message);
-      console.error("❌ Tag generation stack:", tagError.stack);
-      console.log("⚠️ Tag generation başarısız, tekrar deneniyor...");
-
-      // Retry tag generation with a simpler approach
-      try {
-        console.log("🔄 Retrying tag generation...");
-        locationTags = await generateLocationTagsWithGPT(
-          generatedTitle,
-          enhancedPrompt,
-          finalLocationType
-        );
-        console.log(
-          "✅ Tags generated on retry:",
-          Object.keys(locationTags).length,
-          "languages"
-        );
-      } catch (retryError) {
-        console.error("❌ Tag generation retry de başarısız:", retryError);
-        console.error("❌ Retry error details:", retryError.message);
-        console.error("❌ Retry error stack:", retryError.stack);
-        // Tag generation başarısız olsa bile location creation devam etsin (tags null olarak kaydedilir)
-        console.log("⚠️ Tag generation başarısız, location tags olmadan kaydediliyor...");
-        locationTags = null;
-      }
-    }
+    // Tags enrich discovery; do not delay delivering an already-created image.
+    const locationTags = null;
 
     // 4. Supabase'e kaydet (zorla)
     console.log("🔍 DEBUG: Forcing database save...");
@@ -815,6 +770,17 @@ router.post("/create-location", async (req, res) => {
       console.log(
         "✅ Create location işlemi tamamlandı (Google Imagen-4-fast ile veritabanına kaydedildi)"
       );
+
+      // Persist first; enrichment can fail without hiding the generated location.
+      setImmediate(async () => {
+        try {
+          const tags = await generateLocationTagsWithGPT(generatedTitle, enhancedPrompt, finalLocationType);
+          if (tags) {
+            const { error } = await supabase.from("custom_locations").update({ tags }).eq("id", savedLocation.id);
+            if (error) throw error;
+          }
+        } catch (error) { console.warn("Location tags unavailable:", error.message); }
+      });
 
       res.json({
         success: true,
