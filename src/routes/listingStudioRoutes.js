@@ -43,6 +43,12 @@ const { getListingExampleUrls } = require("../utils/listingExamples");
 
 const router = express.Router();
 
+// 📎 İçerik girdileri: ek fotoğraflar (vision) + PDF/TXT metinleri — brief LLM'ine gider
+const MAX_CONTENT_IMAGES = 6;
+const MAX_CONTENT_DOCS = 4;
+const MAX_CONTENT_DOC_CHARS = 12000;
+const CONTENT_DOC_MAX_BYTES = 20 * 1024 * 1024;
+
 /* ───────────────────────── POST /content-doc ─────────────────────────
    📎 PDF / TXT → metin. İstemci dosyayı buraya yükler, çıkarılan metni alır ve
    üretim isteğinde options.contentDocs[{name,text}] olarak geri gönderir
@@ -117,11 +123,6 @@ const supabase =
 
 const LISTING_CREDIT_PER_IMAGE = Number(process.env.LISTING_CREDIT_PER_IMAGE || 10);
 const MAX_IMAGES_PER_REQUEST = 9;
-// 📎 İçerik girdileri: ek fotoğraflar (vision) + PDF/TXT metinleri — brief LLM'ine gider
-const MAX_CONTENT_IMAGES = 6;
-const MAX_CONTENT_DOCS = 4;
-const MAX_CONTENT_DOC_CHARS = 12000;
-const CONTENT_DOC_MAX_BYTES = 20 * 1024 * 1024;
 const SUPPORTED_RATIOS = new Set(["1:1", "4:5", "3:4", "4:3", "9:16", "16:9", "original"]);
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
