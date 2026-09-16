@@ -945,7 +945,7 @@ router.post('/forgot-password', async (req, res) => {
         });
 
         // Send reset email
-        const resetUrl = `https://app.diress.ai/reset-password?token=${resetToken}&userId=${user.id}`;
+        const resetUrl = `https://diress.ai/reset-password?token=${resetToken}&userId=${user.id}`;
         const userName = user.user_metadata?.company_name || user.user_metadata?.full_name || trimmedEmail.split('@')[0];
 
         const { data: emailData, error: emailError } = await resend.emails.send({
