@@ -22,7 +22,6 @@ const FAL_MODEL = "fal-ai/nano-banana-2/edit";
 // Set → kaynak (beyaz zeminli) fotoğraf + ürüne uygun ev yüzeyi ipucu
 const SETS = {
   ostwint: { src: "ostwint-before.webp", scene: "on a bathroom shelf or a bedroom dresser next to a few everyday items" },
-  dog1: { src: "dog1-before.webp", scene: "on a living-room rug or a wooden floor near a sofa" },
   dog2: { src: "dog2-before.webp", scene: "on a kitchen floor or a wooden table at home" },
   catcomb: { src: "catcomb-before.webp", scene: "on a sofa cushion or a wooden side table at home" },
   pot: { src: "pot-before.webp", scene: "on a home kitchen counter or stovetop with ordinary kitchen things around" },
