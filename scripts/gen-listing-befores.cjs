@@ -26,6 +26,7 @@ const SETS = {
   dog2: { src: "dog2-before.webp", scene: "on a kitchen floor or a wooden table at home" },
   catcomb: { src: "catcomb-before.webp", scene: "on a sofa cushion or a wooden side table at home" },
   pot: { src: "pot-before.webp", scene: "on a home kitchen counter or stovetop with ordinary kitchen things around" },
+  lamp: { src: "lamp-before.webp", scene: "on a bedroom nightstand or a living-room side table at home, lamp switched off" },
 };
 
 const PROMPT = (scene) => `Re-photograph the EXACT same product from this image as a casual but decent amateur smartphone photo taken at home, before any professional shoot. Place the product ${scene}. Bright natural daylight from a window, well exposed, NOT dark, NOT moody, colors true to life. Real home surface and background (never a white or plain studio backdrop), a little ordinary clutter is fine, slightly casual handheld framing, phone-camera look, no styling props arranged on purpose, no text, no added logos, no people, no hands. Keep the product identical in shape, color, material, label and proportions — unmistakably the same item, fully visible and in focus.`;
