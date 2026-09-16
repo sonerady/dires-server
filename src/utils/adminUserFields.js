@@ -29,5 +29,8 @@ const USER_SELECT = [
       "app_version",
       "theme_mode",
       "metadata_updated_at",
+      "preferred_language",
+      "country",
+      "country_updated_at",
     ].join(", ");
 module.exports = { USER_SELECT };

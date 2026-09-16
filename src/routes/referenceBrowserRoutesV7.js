@@ -1,3 +1,4 @@
+const { normalizeGenerationAge, ageDirective } = require("../utils/generationAge");
 const { isBagShoot, buildBagFocusDirective, buildBagDirection, buildBagEnhanceInstruction } = require("../utils/bagCampaignPrompt");
 const { buildOutfitReferencePrompt, OUTFIT_IDENTITY_RULE, PRODUCT_INTERPRETATION_RULE } = require("../utils/productReferencePrompt");
 const { isFashionCampaignShoot, buildFashionFocusDirective, buildFashionPoseContext, buildFashionCampaignDirection, buildFashionCampaignEnhanceInstruction } = require("../utils/fashionCampaignPrompt");
@@ -1565,6 +1566,10 @@ async function updateGenerationStatus(
 
     // Eğer completed status'a geçiyorsa ve result_image_url varsa, user bucket'e kaydet
     let finalUpdates = { ...updates };
+    if (finalUpdates.generationFailure) {
+      finalUpdates.settings = { ...(previousSettings || {}), generationFailure: finalUpdates.generationFailure };
+      delete finalUpdates.generationFailure;
+    }
 
     if (status === "completed" && updates.result_image_url) {
       logger.log("💾 Result image user bucket'ine kaydediliyor...");
@@ -5156,6 +5161,7 @@ router.post("/generate", async (req, res) => {
   // fal nano-banana güvenlik toleransı: "6" = en gevşek (varsayılan, gerçek kullanıcılar).
   // Güvenlik test hesabında (nodselemen) "1" = en katı'ya çekilir (çıplaklık üretimini zorlaştırır).
   let safetyTolerance = "6";
+  let generationStage = "preparation";
 
   try {
     let {
@@ -5199,6 +5205,8 @@ router.post("/generate", async (req, res) => {
       editorialMode = false, // 🎞️ Editorial mod: dahili stil kolajları her üretime eklenir
       enableAutomaticTrialVariation = false, // Trial ilk varyasyonu backend completion'da başlatır
     } = req.body;
+    ({ settings, prompt: promptText } = normalizeGenerationAge(settings, promptText));
+
 
     // 🎲 "Yapay Zekaya Bırak": kullanıcı model seçmediyse ve istenen yaş 18+ ise
     // model MUTLAKA havuzdan (`model_pool`) rastgele seçilir — kullanıcının kendi
@@ -7444,6 +7452,13 @@ The final image must read as the SAME street-style photograph — same person-in
     } catch (error) {
       logger.warn("🎁 [TRIAL QUALITY] trial durumu okunamadı:", error.message);
     }
+    generationStage = "image_provider";
+    const selectedAgeInstruction = ageDirective(settings);
+    if (selectedAgeInstruction) enhancedPrompt += `\n\n${selectedAgeInstruction}`;
+    // Preserve the exact renderer prompt even when the provider rejects the image.
+    await updateGenerationStatus(finalGenerationId, userId, "processing", {
+      enhanced_prompt: enhancedPrompt,
+    });
     let sunburstRejected = false;
     // Snapshot once per generation so admin changes never switch an active retry.
     const modelCreationOptions = {
@@ -8475,7 +8490,18 @@ The final image must read as the SAME street-style photograph — same person-in
     // ❌ Status'u failed'e güncelle (genel hata durumu)
     if (finalGenerationId) {
       await updateGenerationStatus(finalGenerationId, userId, "failed", {
-        // error_message kolonu yok, bu yüzden genel field kullan
+        generationFailure: {
+          stage: generationStage,
+          message: String(error.message || "Generation failed").slice(0, 1500),
+          httpStatus: error.response?.status || error.status || null,
+          details: Array.isArray(error.response?.data?.detail)
+            ? error.response.data.detail.slice(0, 6).map(item => ({
+                type: String(item?.type || "").slice(0, 100),
+                message: String(item?.msg || "").slice(0, 500),
+              }))
+            : String(error.response?.data?.error?.message || error.response?.data?.message || "").slice(0, 1500),
+          recordedAt: new Date().toISOString(),
+        },
         processing_time_seconds: 0,
       });
     }

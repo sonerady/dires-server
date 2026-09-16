@@ -414,13 +414,13 @@ async function callGeminiVisionClassifier(
 
 // Short JSON tasks must not inherit the English photographic-prompt instruction
 // or its large token budget and multi-minute retry chain.
-async function callStructuredText(prompt, { signal, maxOutputTokens = 512, timeoutMs = 20000 } = {}) {
+async function callStructuredText(prompt, { signal, maxOutputTokens = 512, timeoutMs = 20000, imageUrls = [] } = {}) {
   const systemInstruction = "Follow the user's requested JSON format and language exactly. Return only valid JSON, without markdown, commentary or additional text.";
   const options = { systemInstruction, maxOutputTokens, temperature: 0.7, timeoutMs, signal };
   const provider = await getPromptEnhanceProvider();
   const stages = {
-    deepseek: () => callDeepSeekFlashRaw(prompt, [], 1, systemInstruction, options),
-    replicate: () => callReplicateGeminiFlashRaw(prompt, [], 1, options),
+    deepseek: () => callDeepSeekFlashRaw(prompt, imageUrls, 1, systemInstruction, options),
+    replicate: () => callReplicateGeminiFlashRaw(prompt, imageUrls, 1, options),
   };
   const primary = provider === "deepseek" ? "deepseek" : "replicate";
   if (signal?.aborted) throw signal.reason;

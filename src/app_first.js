@@ -317,6 +317,7 @@ app.use("/api/teams", teamRoutes);
 
 // What's New routes
 app.use("/api/whats-new", whatsNewRoutes);
+app.use("/api/credit-refund", require("./routes/creditRefundRoutes"));
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, "0.0.0.0", () => {

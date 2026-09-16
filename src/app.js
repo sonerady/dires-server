@@ -1,4 +1,5 @@
 // app.js
+require("./utils/assertNodeVersion");
 require("dotenv").config();
 // Install before route/SDK imports: legacy console calls must redact secrets too.
 require("./utils/logRedaction").installLogRedaction();
@@ -218,6 +219,12 @@ app.use("/api/support/inbound", express.raw({ type: "application/json", limit: "
 
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
+// 🌍 Kullanıcı ülkesi — istek IP'sinden users.country (admin bayrak sütunu)
+{
+  const { createUserCountryMiddleware } = require("./middleware/userCountry");
+  const { supabaseAdmin: countryDb } = require("./supabaseClient");
+  if (countryDb) app.use(createUserCountryMiddleware(countryDb, console));
+}
 
 // Results klasörüne statik dosya erişimi sağla
 app.use("/results", express.static(path.join(__dirname, "../results")));
@@ -334,6 +341,8 @@ const { startSocialStudioScheduler } = require("./jobs/socialStudioScheduler");
 app.use("/api/social-studio", requireAdmin, socialStudioRoutes);
 startSocialStudioScheduler();
 app.use("/api", require("./routes/contentReportRoutes"));
+// 💳 Kredi iadesi — SimpleImageModal (ürün vs sonuç Gemini analizi, atomik iade)
+app.use("/api/credit-refund", require("./routes/creditRefundRoutes"));
 
 const downloadRoutes = require("./routes/downloadRoutes");
 app.use("/api/download", downloadRoutes);
@@ -499,6 +508,9 @@ app.use("/api/campaign-kit", campaignKitRoutes);
 // Banner Studio routes (LLM ile HTML kampanya banner'ı)
 const bannerStudioRoutes = require("./routes/bannerStudioRoutes");
 app.use("/api/banner-studio", bannerStudioRoutes);
+// 🛍️ Listing Image Studio — e-ticaret listeleme görselleri (15 Eyl 2026)
+const listingStudioRoutes = require("./routes/listingStudioRoutes");
+app.use("/api/listing-studio", listingStudioRoutes);
 
 // Support routes
 const supportRoutes = require("./routes/supportRoutes");
