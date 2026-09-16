@@ -183,3 +183,26 @@ test("style examples block appears only when examples are attached", () => {
   const without = buildListingPrompt({ type: "hero", marketplace: "amazon", style: "auto", brief, language: "en", ratio: "1:1" });
   assert.doesNotMatch(without, /STYLE EXAMPLE/);
 });
+
+test("brief prompt: content photos and files are described as seller evidence", () => {
+  const p = buildBriefPrompt({
+    details: "sunscreen", marketplace: "amazon", language: "tr",
+    contentImageCount: 2,
+    contentDocs: [{ name: "spec.pdf", text: "SPF 50+  \n\n  water resistant 80 min" }, { name: "", text: "   " }],
+  });
+  assert.match(p, /Images 2 to 3 are additional CONTENT photos/);
+  assert.match(p, /--- FILE: spec\.pdf ---/);
+  assert.match(p, /water resistant 80 min/);
+  assert.doesNotMatch(p, /--- FILE: document ---/);
+  const none = buildBriefPrompt({ details: "x", marketplace: "amazon", language: "en" });
+  assert.doesNotMatch(none, /CONTENT FILES|ATTACHED IMAGES/);
+});
+
+test("content files: per-file and total char budgets", () => {
+  const big = "a".repeat(20000);
+  const p = buildBriefPrompt({ details: "x", marketplace: "amazon", language: "en", contentDocs: [{ name: "a.pdf", text: big }, { name: "b.pdf", text: big }, { name: "c.pdf", text: big }] });
+  const total = (p.match(/a{1000}/g) || []).length * 1000;
+  assert.ok(total <= 24000, `total ${total}`);
+  assert.match(p, /--- FILE: b\.pdf ---/);
+  assert.doesNotMatch(p, /--- FILE: c\.pdf ---/);
+});

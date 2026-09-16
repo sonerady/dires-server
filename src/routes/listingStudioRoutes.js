@@ -21,6 +21,7 @@
 
 const express = require("express");
 const axios = require("axios");
+const multer = require("multer");
 const { createClient } = require("@supabase/supabase-js");
 const { fal } = require("@fal-ai/client");
 const { v4: uuidv4 } = require("uuid");
@@ -42,6 +43,64 @@ const { getListingExampleUrls } = require("../utils/listingExamples");
 
 const router = express.Router();
 
+/* ───────────────────────── POST /content-doc ─────────────────────────
+   📎 PDF / TXT → metin. İstemci dosyayı buraya yükler, çıkarılan metni alır ve
+   üretim isteğinde options.contentDocs[{name,text}] olarak geri gönderir
+   (dosya saklanmaz). pdf-parse yoksa 501 — `npm i pdf-parse`. */
+const contentDocUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: CONTENT_DOC_MAX_BYTES, files: 1 },
+});
+
+async function extractDocText(file) {
+  const name = String(file.originalname || "document");
+  const mime = String(file.mimetype || "");
+  if (/pdf/i.test(mime) || /\.pdf$/i.test(name)) {
+    let pdfParse;
+    try {
+      // eslint-disable-next-line global-require
+      pdfParse = require("pdf-parse");
+    } catch (e) {
+      const err = new Error("PDF_PARSER_MISSING");
+      err.status = 501;
+      throw err;
+    }
+    const out = await pdfParse(file.buffer, { max: 60 });
+    return { name, pages: Number(out.numpages || 0), text: String(out.text || "") };
+  }
+  if (/text\/plain|markdown/i.test(mime) || /\.(txt|md)$/i.test(name)) {
+    return { name, pages: 1, text: file.buffer.toString("utf8") };
+  }
+  const err = new Error("UNSUPPORTED_FILE");
+  err.status = 415;
+  throw err;
+}
+
+router.post("/content-doc", (req, res) => {
+  contentDocUpload.single("file")(req, res, async (upErr) => {
+    if (upErr) {
+      return res.status(413).json({ success: false, error: upErr.code === "LIMIT_FILE_SIZE" ? "FILE_TOO_LARGE" : upErr.message, code: "UPLOAD_ERROR" });
+    }
+    try {
+      if (!req.file?.buffer?.length) {
+        return res.status(400).json({ success: false, error: "file is required", code: "BAD_REQUEST" });
+      }
+      const doc = await extractDocText(req.file);
+      const text = doc.text.replace(/\r/g, "").replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+      if (!text) {
+        return res.status(422).json({ success: false, error: "NO_TEXT_FOUND", code: "NO_TEXT_FOUND" });
+      }
+      const clipped = text.slice(0, MAX_CONTENT_DOC_CHARS);
+      logger.log(`📎 [LISTING] content-doc "${doc.name}" pages:${doc.pages} chars:${text.length}${text.length > clipped.length ? ` (clipped→${clipped.length})` : ""}`);
+      return res.json({ success: true, name: doc.name, pages: doc.pages, chars: clipped.length, truncated: text.length > clipped.length, text: clipped });
+    } catch (e) {
+      const status = e?.status || 500;
+      logger.warn("📎 [LISTING] content-doc hata:", e?.message);
+      return res.status(status).json({ success: false, error: e?.message || "DOC_ERROR", code: e?.message || "DOC_ERROR" });
+    }
+  });
+});
+
 // ⚠️ SERVICE ROLE şart: listing_studio_results tablosunda anon rolünün hiçbir
 // yetkisi yok (RLS). referenceBrowserV7'nin okuduğu SUPABASE_SERVICE_KEY yerel
 // .env'de tanımlı değil (orada anon'a düşüyor ve reference_results'ın açık
@@ -58,6 +117,11 @@ const supabase =
 
 const LISTING_CREDIT_PER_IMAGE = Number(process.env.LISTING_CREDIT_PER_IMAGE || 10);
 const MAX_IMAGES_PER_REQUEST = 9;
+// 📎 İçerik girdileri: ek fotoğraflar (vision) + PDF/TXT metinleri — brief LLM'ine gider
+const MAX_CONTENT_IMAGES = 6;
+const MAX_CONTENT_DOCS = 4;
+const MAX_CONTENT_DOC_CHARS = 12000;
+const CONTENT_DOC_MAX_BYTES = 20 * 1024 * 1024;
 const SUPPORTED_RATIOS = new Set(["1:1", "4:5", "3:4", "4:3", "9:16", "16:9", "original"]);
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -138,13 +202,17 @@ async function generateOne({ prompt, imageUrl, ratio, exampleUrls = [] }) {
   return { url, provider: "gpt-image-2.5:sunburst:high" };
 }
 
-async function buildBrief({ details, marketplace, language, style, imageUrl }) {
+async function buildBrief({ details, marketplace, language, style, imageUrl, contentImages = [], contentDocs = [] }) {
   try {
-    const raw = await callStructuredText(buildBriefPrompt({ details, marketplace, language, style }), {
-      maxOutputTokens: 3200,
-      imageUrls: [imageUrl],
-      timeoutMs: 25000,
-    });
+    // 📎 Ek içerik fotoğrafları 2..N. görsel, dosya metinleri prompt'ta "CONTENT FILES"
+    const raw = await callStructuredText(
+      buildBriefPrompt({ details, marketplace, language, style, contentImageCount: contentImages.length, contentDocs }),
+      {
+        maxOutputTokens: 3200,
+        imageUrls: [imageUrl, ...contentImages],
+        timeoutMs: contentImages.length || contentDocs.length ? 40000 : 25000,
+      },
+    );
     return parseBrief(raw, details);
   } catch (e) {
     logger.warn("🛍️ [LISTING] brief LLM başarısız, ham metinden brief kuruluyor:", e?.message);
@@ -180,6 +248,14 @@ router.post("/generate", async (req, res) => {
         if (typeof v === "string" && v.trim()) typeNotes[k] = v.trim().slice(0, 400);
       }
     }
+    // 📎 İçerik girdileri (yalnız brief LLM'ine; görsel modeline gitmez)
+    const contentImages = (Array.isArray(options.contentImages) ? options.contentImages : [])
+      .filter((u) => typeof u === "string" && /^https?:\/\//i.test(u))
+      .slice(0, MAX_CONTENT_IMAGES);
+    const contentDocs = (Array.isArray(options.contentDocs) ? options.contentDocs : [])
+      .filter((d) => d && typeof d.text === "string" && d.text.trim())
+      .slice(0, MAX_CONTENT_DOCS)
+      .map((d) => ({ name: String(d.name || "document").slice(0, 120), text: String(d.text).slice(0, MAX_CONTENT_DOC_CHARS) }));
     const style = normalizeStyle(options.style);
     const ratio = SUPPORTED_RATIOS.has(options.ratio) ? options.ratio : "1:1";
     const language = String(options.language || "en").split(/[-_]/)[0].toLowerCase();
@@ -202,10 +278,10 @@ router.post("/generate", async (req, res) => {
     }
 
     const jobId = `lst_${Date.now()}_${uuidv4().slice(0, 8)}`;
-    logger.log(`🛍️ [LISTING] job:${jobId} user:${String(userId).slice(0, 8)} market:${marketplace} style:${style} ratio:${ratio} types:${imageTypes.join(",")}`);
+    logger.log(`🛍️ [LISTING] job:${jobId} user:${String(userId).slice(0, 8)} market:${marketplace} style:${style} ratio:${ratio} types:${imageTypes.join(",")} contentImages:${contentImages.length} contentDocs:${contentDocs.length}`);
 
-    // 1) Brief (ürün notları → yapılandırılmış metin)
-    const brief = await buildBrief({ details, marketplace, language, style, imageUrl });
+    // 1) Brief (ürün notları + içerik fotoğrafları/dosyaları → yapılandırılmış metin)
+    const brief = await buildBrief({ details, marketplace, language, style, imageUrl, contentImages, contentDocs });
 
     // 2) Satırlar (processing) — her tür ayrı kayıt
     // 🖼️ Stil örnekleri (şeritli) — brief ile paralel değil, hızlı (önbellekli)
