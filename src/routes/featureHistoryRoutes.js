@@ -435,6 +435,8 @@ const enrichPoseVariations = async (items, memberIds) => {
   const sourceIds = [
     ...new Set(
       items
+        // 🛍️ Listing setlerinin kimliği job_id; varyasyon tablosunda karşılığı yok
+        .filter((item) => item?.item_type !== "listing_studio_results")
         .map((item) => item?.generation_id || item?.id)
         .filter(Boolean)
         .map(String),
@@ -1444,6 +1446,84 @@ router.get("/unboxing-stories/:userId", async (req, res) => {
 });
 
 /**
+ * 🛍️ Listing Stüdyosu setleri — "Tümü" sekmesi için TEK KART (17 Eyl 2026).
+ *
+ * Diğer tablolarda bir satır = bir görsel; listing'de bir satır = bir KARE ve
+ * 8–12 kare tek bir sete ait. Geçmişte hepsi ayrı ayrı görünmesin diye burada
+ * job_id'ye göre gruplanır: kart hero karesini gösterir, kalanlar kit/varyant
+ * kartlarındaki gibi "+N" rozetiyle anlatılır ve kart açılınca setin tamamı
+ * şerit hâlinde gelir.
+ */
+const LISTING_MAX_FRAMES = 12;
+async function fetchListingJobs({ memberIds, ascending, perTableLimit }) {
+  if (MISSING_HISTORY_TABLES.has("listing_studio_results")) return [];
+  try {
+    const { data, error } = await retryQuery(() =>
+      supabase
+        .from("listing_studio_results")
+        .select("id, job_id, image_type, ratio, frame_index, variant_index, marketplace, source_image_url, result_image_url, status, created_at")
+        .in("user_id", memberIds)
+        .eq("status", "completed")
+        .not("result_image_url", "is", null)
+        .order("created_at", { ascending })
+        .limit(Math.min(600, Math.max(1, perTableLimit) * LISTING_MAX_FRAMES)),
+    );
+    if (error) {
+      if (isMissingRelationError(error.message)) {
+        MISSING_HISTORY_TABLES.add("listing_studio_results");
+        logger.log("ℹ️ [ALL] listing_studio_results tablosu yok, atlanıyor.");
+        return [];
+      }
+      logger.log("⚠️ [ALL] listing_studio_results hata:", error.message);
+      return [];
+    }
+    const byJob = new Map();
+    for (const row of data || []) {
+      if (!row.job_id) continue;
+      if (!byJob.has(row.job_id)) byJob.set(row.job_id, []);
+      byJob.get(row.job_id).push(row);
+    }
+    const jobs = [];
+    for (const [jobId, rowsRaw] of byJob.entries()) {
+      // Bir işin kareleri tek insert'te yazıldığı için created_at aynı; sıra frame_index'ten
+      const rows = rowsRaw.slice().sort((a, b) => (a.frame_index ?? 0) - (b.frame_index ?? 0));
+      const cover = rows.find((r) => r.image_type === "hero") || rows[0];
+      if (!cover?.result_image_url) continue;
+      jobs.push({
+        id: jobId,
+        generation_id: jobId,
+        item_type: "listing_studio_results",
+        status: "completed",
+        created_at: cover.created_at,
+        result_image_url: cover.result_image_url,
+        reference_image_url: cover.source_image_url || null,
+        settings: null,
+        listing_job_id: jobId,
+        listing_count: rows.length,
+        listing_marketplace: cover.marketplace || null,
+        listing_ratio: cover.ratio || null,
+        listing_images: rows.map((r) => ({
+          id: r.id,
+          url: r.result_image_url,
+          type: r.image_type,
+          ratio: r.ratio,
+          variant: r.variant_index ?? 0,
+        })),
+      });
+    }
+    jobs.sort((a, b) => {
+      const aT = new Date(a.created_at).getTime();
+      const bT = new Date(b.created_at).getTime();
+      return ascending ? aT - bT : bT - aT;
+    });
+    return jobs.slice(0, perTableLimit);
+  } catch (e) {
+    logger.log("⚠️ [ALL] listing grupları alınamadı:", e?.message);
+    return [];
+  }
+}
+
+/**
  * GET /all/:userId — TÜM feature tablolarını birleştirip tek listede döner.
  *
  * 7 ana history-bearing tablodan (`reference_results`, `pose_change_generations`,
@@ -1476,23 +1556,27 @@ router.get("/all/:userId", async (req, res) => {
     // Her tablodan en yeni N satırı çek (N = limit + offset; merge sonrası doğru sayıda yeni item kalsın)
     const perTableLimit = limit + offset;
 
-    const results = await Promise.all(
-      tables.map((t) =>
-        fetchMergedHistoryTable({
-          tableConfig: t,
-          memberIds,
-          ascending,
-          perTableLimit,
-        }),
+    const [results, listingJobs] = await Promise.all([
+      Promise.all(
+        tables.map((t) =>
+          fetchMergedHistoryTable({
+            tableConfig: t,
+            memberIds,
+            ascending,
+            perTableLimit,
+          }),
+        ),
       ),
-    );
+      // 🛍️ Listing setleri kare kare değil, set başına TEK kart olarak katılır
+      fetchListingJobs({ memberIds, ascending, perTableLimit }),
+    ]);
 
     // 🔁 Dedupe — backside akışı aynı sonucu HEM reference_results'a HEM
     // back_side_generations'a yazıyor; ALL sekmesinde aynı görsel iki kez
     // görünmesin. Aynı result URL'den reference_results versiyonu tercih
     // edilir (kits/stories/netleştirme gibi zengin alanları o taşır).
     const seenByUrl = new Map();
-    for (const row of results.flat()) {
+    for (const row of [...results.flat(), ...listingJobs]) {
       const key =
         row?.result_image_url || row?.result_video_url || `${row?.item_type}:${row?.id}`;
       const existing = seenByUrl.get(key);
