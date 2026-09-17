@@ -208,11 +208,11 @@ async function generateOne({ prompt, imageUrl, ratio, exampleUrls = [] }) {
   return { url, provider: "gpt-image-2.5:sunburst:high" };
 }
 
-async function buildBrief({ details, marketplace, language, style, imageUrl, contentImages = [], contentDocs = [] }) {
+async function buildBrief({ details, marketplace, language, style, imageUrl, contentImages = [], contentDocs = [], frameCounts = {} }) {
   try {
     // 📎 Ek içerik fotoğrafları 2..N. görsel, dosya metinleri prompt'ta "CONTENT FILES"
     const raw = await callStructuredText(
-      buildBriefPrompt({ details, marketplace, language, style, contentImageCount: contentImages.length, contentDocs }),
+      buildBriefPrompt({ details, marketplace, language, style, contentImageCount: contentImages.length, contentDocs, frameCounts }),
       {
         maxOutputTokens: 3200,
         imageUrls: [imageUrl, ...contentImages],
@@ -315,7 +315,7 @@ router.post("/generate", async (req, res) => {
     logger.log(`🛍️ [LISTING] job:${jobId} user:${String(userId).slice(0, 8)} market:${marketplace} style:${style} ratio:${ratio} frames:${frames.length} types:${frames.map((f) => `${f.type}${f.variantTotal > 1 ? `#${f.variantIndex + 1}` : ""}${f.ratio !== ratio ? `@${f.ratio}` : ""}`).join(",")} contentImages:${contentImages.length} contentDocs:${contentDocs.length}`);
 
     // 1) Brief (ürün notları + içerik fotoğrafları/dosyaları → yapılandırılmış metin)
-    const brief = await buildBrief({ details, marketplace, language, style, imageUrl, contentImages, contentDocs });
+    const brief = await buildBrief({ details, marketplace, language, style, imageUrl, contentImages, contentDocs, frameCounts: perType });
 
     // 2) Satırlar (processing) — her tür ayrı kayıt
     // 🖼️ Stil örnekleri (şeritli) — brief ile paralel değil, hızlı (önbellekli)
@@ -409,6 +409,86 @@ async function runJobInBackground({ jobId, userId, imageUrl, ratio, inserted, ac
     logger.error("🛍️ [LISTING] arka plan işi hatası:", e?.message);
   }
 }
+
+/* ───────────────────────── POST /retry ─────────────────────────
+   17 Eyl 2026 (kullanıcı isteği): düşen kare AYNI iş kartında yeniden üretilir.
+   Yeni jobId/yeni satır açılmaz — mevcut satır processing'e döner, prompt'u ve
+   oranı korunur, istemci aynı kartı yoklamaya devam eder. Kredi yine yalnız
+   başaran karede düşer. */
+
+router.post("/retry", async (req, res) => {
+  const startedAt = Date.now();
+  try {
+    const { userId, jobId, itemIds } = req.body || {};
+    if (!userId || !UUID_RE.test(String(userId))) {
+      return res.status(401).json({ success: false, error: "USER_REQUIRED", code: "USER_REQUIRED" });
+    }
+    if (!/^lst_[0-9]+_[0-9a-f]{8}$/.test(String(jobId))) {
+      return res.status(400).json({ success: false, error: "BAD_REQUEST", code: "BAD_REQUEST" });
+    }
+    const ids = Array.isArray(itemIds)
+      ? itemIds.filter((x) => typeof x === "string" && x.length <= 64).slice(0, MAX_IMAGES_PER_REQUEST)
+      : null;
+
+    let query = supabase
+      .from("listing_studio_results")
+      .select("id, image_type, prompt, ratio, source_image_url")
+      .eq("job_id", jobId)
+      .eq("user_id", userId)
+      .eq("status", "failed");
+    if (ids && ids.length) query = query.in("id", ids);
+    const { data: rows, error } = await query;
+    if (error) throw error;
+    if (!rows?.length) {
+      return res.status(404).json({ success: false, error: "NO_FAILED_ITEMS", code: "NO_FAILED_ITEMS" });
+    }
+
+    const access = await getUserAccess(userId);
+    if (!access) {
+      return res.status(404).json({ success: false, error: "USER_NOT_FOUND", code: "USER_NOT_FOUND" });
+    }
+    const totalCost = rows.length * LISTING_CREDIT_PER_IMAGE;
+    if (access.creditBalance < totalCost) {
+      return res.status(402).json({
+        success: false, error: "INSUFFICIENT_CREDITS", code: "INSUFFICIENT_CREDITS",
+        required: totalCost, currentCredit: access.creditBalance,
+      });
+    }
+
+    const imageUrl = rows[0].source_image_url;
+    if (!imageUrl) {
+      return res.status(409).json({ success: false, error: "SOURCE_MISSING", code: "SOURCE_MISSING" });
+    }
+
+    const { error: resetError } = await supabase
+      .from("listing_studio_results")
+      .update({ status: "processing", error: null, completed_at: null })
+      .in("id", rows.map((r) => r.id));
+    if (resetError) {
+      logger.error("🛍️ [LISTING] retry reset hatası:", resetError.message);
+      return res.status(500).json({ success: false, error: "DB_UPDATE_FAILED", code: "DB_UPDATE_FAILED" });
+    }
+
+    logger.log(`🔁 [LISTING] job:${jobId} tekrar — ${rows.map((r) => r.image_type).join(",")}`);
+    res.json({
+      success: true,
+      jobId,
+      items: rows.map((r) => ({ id: r.id, type: r.image_type, ratio: r.ratio, status: "processing", url: null })),
+      creditPerImage: LISTING_CREDIT_PER_IMAGE,
+    });
+
+    const exampleUrls = await getListingExampleUrls(supabase, logger);
+    runJobInBackground({
+      jobId, userId, imageUrl, ratio: rows[0].ratio, inserted: rows,
+      access, startedAt, total: rows.length, exampleUrls,
+    });
+  } catch (e) {
+    logger.error("🛍️ [LISTING] retry hatası:", e?.message);
+    if (!res.headersSent) {
+      return res.status(500).json({ success: false, error: e?.message || "INTERNAL", code: "INTERNAL" });
+    }
+  }
+});
 
 /* ───────────────────────── GET /job/:jobId ───────────────────────── */
 

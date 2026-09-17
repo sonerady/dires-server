@@ -254,3 +254,53 @@ test("brief: art direction tipografi/zemin/atmosfer alanlarını ister ve saklar
   assert.match(p, /typeface: high-contrast display serif/);
   assert.match(p, /background: warm oak/);
 });
+
+/* ── Aynı türden çoklu kare: brief'te ayrı plan, prompt'ta ayrı sahne ───── */
+
+test("brief: çoklu tür istendiğinde her kopya için ayrı plan (variants) ister", () => {
+  const p = buildBriefPrompt({ details: "x", marketplace: "etsy", language: "tr", frameCounts: { lifestyle: 3, hero: 1, features: 2 } });
+  assert.match(p, /MULTIPLE IMAGES OF THE SAME TYPE/);
+  assert.match(p, /lifestyle ×3, features ×2/);
+  assert.doesNotMatch(p, /hero ×/);
+  assert.doesNotMatch(buildBriefPrompt({ details: "x", marketplace: "etsy", language: "tr" }), /MULTIPLE IMAGES OF THE SAME TYPE/);
+});
+
+test("brief: variants ayrıştırılır ve her kopya kendi sahnesini alır", () => {
+  const brief = parseBrief(JSON.stringify({
+    frames: {
+      lifestyle: {
+        concept: "ortak", composition: "ortak kadraj", setting: "ortak oda", camera: "göz hizası", props: "yok",
+        variants: [
+          { concept: "sabah kahvaltı masası", composition: "geniş", setting: "mutfak tezgahı", camera: "yüksek açı", props: "fincan" },
+          { concept: "akşam oturma odası", composition: "yakın", setting: "kanepe", camera: "alçak açı", props: "battaniye" },
+          { concept: "balkon", composition: "orta", setting: "balkon korkuluğu", camera: "göz hizası", props: "bitki" },
+        ],
+      },
+    },
+  }), "x");
+  assert.equal(brief.frames.lifestyle.variants.length, 3);
+  const mk = (i) => buildListingPrompt({ type: "lifestyle", marketplace: "etsy", style: "auto", brief, language: "tr", ratio: "9:16", variantIndex: i, variantTotal: 3 });
+  const a = mk(0), b = mk(1), c = mk(2);
+  assert.match(a, /setting: mutfak tezgahı/);
+  assert.match(b, /setting: kanepe/);
+  assert.match(c, /setting: balkon korkuluğu/);
+  for (const p of [a, b, c]) assert.doesNotMatch(p, /setting: ortak oda/);
+});
+
+test("variants planı yoksa sonraki kopyalar ortak sahneyi devralmaz", () => {
+  const brief = parseBrief(JSON.stringify({
+    frames: { lifestyle: { concept: "ortak", composition: "ortak kadraj", setting: "ortak oda", camera: "göz hizası", props: "fincan" } },
+  }), "x");
+  const first = buildListingPrompt({ type: "lifestyle", marketplace: "etsy", style: "auto", brief, language: "tr", ratio: "9:16", variantIndex: 0, variantTotal: 3 });
+  const second = buildListingPrompt({ type: "lifestyle", marketplace: "etsy", style: "auto", brief, language: "tr", ratio: "9:16", variantIndex: 1, variantTotal: 3 });
+  assert.match(first, /setting: ortak oda/);
+  assert.doesNotMatch(second, /setting: ortak oda/);
+  assert.match(second, /invent one that shares NOTHING with the other 2 images of this type/);
+});
+
+test("tek kare: ortak plan aynen kullanılır (davranış değişmedi)", () => {
+  const brief = parseBrief(JSON.stringify({ frames: { lifestyle: { setting: "ortak oda", camera: "göz hizası" } } }), "x");
+  const p = buildListingPrompt({ type: "lifestyle", marketplace: "etsy", style: "auto", brief, language: "tr", ratio: "9:16" });
+  assert.match(p, /setting: ortak oda/);
+  assert.doesNotMatch(p, /invent one that shares NOTHING/);
+});
