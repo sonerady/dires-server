@@ -456,7 +456,9 @@ function buildListingPrompt({ type, marketplace, style, brief, language, ratio, 
     ...(brief || {}),
     headline: framePlan.headline || brief?.headline,
     ...(variantIndex > 0
-      ? { features: rotate(brief?.features, variantIndex), usageSteps: rotate(brief?.usageSteps, variantIndex), boxContents: brief?.boxContents }
+      // ⚠️ usageSteps ve boxContents DÖNDÜRÜLMEZ: kullanım adımları sıralı bir
+      // yönerge (1-2-3), döndürmek talimatı bozar. Yalnız özellikler döner.
+      ? { features: rotate(brief?.features, variantIndex) }
       : {}),
   };
   const variantBlock = variantDirection(t, variantIndex, variantTotal);

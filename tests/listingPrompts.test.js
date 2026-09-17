@@ -304,3 +304,12 @@ test("tek kare: ortak plan aynen kullanılır (davranış değişmedi)", () => {
   assert.match(p, /setting: ortak oda/);
   assert.doesNotMatch(p, /invent one that shares NOTHING/);
 });
+
+test("varyantlarda kullanım adımlarının SIRASI korunur (özellikler döner)", () => {
+  const brief = { ...fallbackBrief(""), usageSteps: ["Adim bir", "Adim iki", "Adim uc"] };
+  const a = buildListingPrompt({ type: "usage", marketplace: "etsy", style: "auto", brief, language: "tr", ratio: "9:16", variantIndex: 0, variantTotal: 3 });
+  const b = buildListingPrompt({ type: "usage", marketplace: "etsy", style: "auto", brief, language: "tr", ratio: "9:16", variantIndex: 2, variantTotal: 3 });
+  const steps = (p) => p.split("\n").filter((l) => l.startsWith("• ")).join("|");
+  assert.equal(steps(a), "• Adim bir|• Adim iki|• Adim uc");
+  assert.equal(steps(b), steps(a));
+});
