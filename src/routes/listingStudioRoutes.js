@@ -128,6 +128,12 @@ const LISTING_CREDIT_PER_IMAGE = Number(process.env.LISTING_CREDIT_PER_IMAGE || 
 // (ör. özellik infografiği ×3). Tür başına tavan 4, istek başına toplam 12.
 const MAX_IMAGES_PER_REQUEST = 12;
 const MAX_COUNT_PER_TYPE = 4;
+// 17 Eyl 2026: tavan 9→12 çıkınca tek istek 12 paralel GPT Image 2.5 "high"
+// çağrısı açıyordu; sağlayıcı hız sınırına takılınca kareler toplu düşüyordu.
+const LISTING_CONCURRENCY = Math.max(1, Number(process.env.LISTING_CONCURRENCY || 4));
+// Bu süreden eski "processing" satırı ölü sayılır (sunucu yeniden başlamış olabilir)
+const STALE_PROCESSING_MS = 30 * 60 * 1000;
+const { mapWithLimit } = require("../utils/concurrency");
 const SUPPORTED_RATIOS = new Set(["1:1", "4:5", "3:4", "4:3", "9:16", "16:9", "original"]);
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -209,17 +215,26 @@ async function generateOne({ prompt, imageUrl, ratio, exampleUrls = [] }) {
 }
 
 async function buildBrief({ details, marketplace, language, style, imageUrl, contentImages = [], contentDocs = [], frameCounts = {} }) {
+  // 🔢 Çoklu kare istenen her ek kopya brief'e bir "variants" planı daha ekler;
+  // sabit 3200 token'da JSON yarıda kesilip TÜM brief fallback'e düşüyordu.
+  const extraCopies = Object.values(frameCounts || {})
+    .reduce((n, c) => n + Math.max(0, Math.min(MAX_COUNT_PER_TYPE, Math.floor(Number(c) || 1)) - 1), 0);
+  const maxOutputTokens = Math.min(8000, 3200 + extraCopies * 420);
+  const timeoutMs = (contentImages.length || contentDocs.length ? 40000 : 25000) + extraCopies * 4000;
   try {
     // 📎 Ek içerik fotoğrafları 2..N. görsel, dosya metinleri prompt'ta "CONTENT FILES"
     const raw = await callStructuredText(
       buildBriefPrompt({ details, marketplace, language, style, contentImageCount: contentImages.length, contentDocs, frameCounts }),
-      {
-        maxOutputTokens: 3200,
-        imageUrls: [imageUrl, ...contentImages],
-        timeoutMs: contentImages.length || contentDocs.length ? 40000 : 25000,
-      },
+      { maxOutputTokens, imageUrls: [imageUrl, ...contentImages], timeoutMs },
     );
-    return parseBrief(raw, details);
+    const brief = parseBrief(raw, details, (issue) =>
+      logger.warn(`🛍️ [LISTING] brief ayrıştırma sorunu (bütçe ${maxOutputTokens}, ek kopya ${extraCopies}): ${issue}`),
+    );
+    // Sessiz kalite kaybının ikinci kapısı: JSON geçerli ama içi boş
+    if (!brief.productName && !(brief.features || []).length && !Object.values(brief.frames || {}).some((f) => f?.concept)) {
+      logger.warn(`🛍️ [LISTING] brief boş döndü — kareler yalnız şablon kurallarıyla üretilecek (bütçe ${maxOutputTokens})`);
+    }
+    return brief;
   } catch (e) {
     logger.warn("🛍️ [LISTING] brief LLM başarısız, ham metinden brief kuruluyor:", e?.message);
     return fallbackBrief(details);
@@ -320,10 +335,13 @@ router.post("/generate", async (req, res) => {
     // 2) Satırlar (processing) — her tür ayrı kayıt
     // 🖼️ Stil örnekleri (şeritli) — brief ile paralel değil, hızlı (önbellekli)
     const exampleUrls = await getListingExampleUrls(supabase, logger);
-    const rows = frames.map((f) => ({
+    const rows = frames.map((f, index) => ({
       user_id: userId,
       job_id: jobId,
       image_type: f.type,
+      // ⚠️ Tek insert'te tüm satırlar aynı created_at'i alıyor; sıra buradan gelir
+      frame_index: index,
+      variant_index: f.variantIndex,
       marketplace,
       style,
       ratio: f.ratio,
@@ -341,7 +359,7 @@ router.post("/generate", async (req, res) => {
     const { data: inserted, error: insertError } = await supabase
       .from("listing_studio_results")
       .insert(rows)
-      .select("id, image_type, prompt, ratio");
+      .select("id, image_type, prompt, ratio, frame_index, variant_index");
     if (insertError) {
       logger.error("🛍️ [LISTING] satır ekleme hatası:", insertError.message);
       return res.status(500).json({ success: false, error: "DB_INSERT_FAILED", code: "DB_INSERT_FAILED" });
@@ -352,7 +370,10 @@ router.post("/generate", async (req, res) => {
       success: true,
       jobId,
       brief,
-      items: inserted.map((row) => ({ id: row.id, type: row.image_type, ratio: row.ratio, status: "processing", url: null })),
+      items: inserted
+        .slice()
+        .sort((a, b) => (a.frame_index ?? 0) - (b.frame_index ?? 0))
+        .map((row) => ({ id: row.id, type: row.image_type, ratio: row.ratio, variant: row.variant_index ?? 0, status: "processing", url: null })),
       creditPerImage: LISTING_CREDIT_PER_IMAGE,
     });
 
@@ -366,10 +387,9 @@ router.post("/generate", async (req, res) => {
   }
 });
 
-async function runJobInBackground({ jobId, userId, imageUrl, ratio, inserted, access, startedAt, total, exampleUrls = [] }) {
+async function runJobInBackground({ jobId, userId, imageUrl, ratio, inserted, access, startedAt, total, exampleUrls = [], notify = true }) {
   try {
-    const settled = await Promise.allSettled(
-      inserted.map(async (row) => {
+    const settled = await mapWithLimit(inserted, LISTING_CONCURRENCY, async (row) => {
         const t0 = Date.now();
         try {
           const { url, provider } = await generateOne({ prompt: row.prompt, imageUrl, ratio: row.ratio || ratio, exampleUrls });
@@ -400,10 +420,11 @@ async function runJobInBackground({ jobId, userId, imageUrl, ratio, inserted, ac
           logger.warn(`🛍️ [LISTING] job:${jobId} ${row.image_type} başarısız: ${e?.message}`);
           return false;
         }
-      }),
-    );
+    });
     const done = settled.filter((r) => r.status === "fulfilled" && r.value === true).length;
-    if (done) sendGenerationCompletedNotification(userId, jobId, { source: "listing_studio" }).catch(() => {});
+    // Tekrar denemede bildirim yollanmaz: kullanıcı zaten ekranda, aynı iş için
+    // ikinci kez "görselleriniz hazır" bildirimi gitmesin.
+    if (done && notify) sendGenerationCompletedNotification(userId, jobId, { source: "listing_studio" }).catch(() => {});
     logger.log(`🛍️ [LISTING] job:${jobId} bitti — ${done}/${total} kare, ${Math.round((Date.now() - startedAt) / 1000)}s`);
   } catch (e) {
     logger.error("🛍️ [LISTING] arka plan işi hatası:", e?.message);
@@ -430,15 +451,21 @@ router.post("/retry", async (req, res) => {
       ? itemIds.filter((x) => typeof x === "string" && x.length <= 64).slice(0, MAX_IMAGES_PER_REQUEST)
       : null;
 
+    // Düşen kareler + sunucu yeniden başladığı için "processing"de asılı kalmış
+    // eski satırlar (30 dk+): ikisi de aynı kartta yeniden üretilebilir olmalı.
     let query = supabase
       .from("listing_studio_results")
-      .select("id, image_type, prompt, ratio, source_image_url")
+      .select("id, image_type, prompt, ratio, source_image_url, status, created_at, frame_index, variant_index")
       .eq("job_id", jobId)
       .eq("user_id", userId)
-      .eq("status", "failed");
+      .in("status", ["failed", "processing"]);
     if (ids && ids.length) query = query.in("id", ids);
-    const { data: rows, error } = await query;
+    const { data: found, error } = await query;
     if (error) throw error;
+    const staleBefore = Date.now() - STALE_PROCESSING_MS;
+    const rows = (found || [])
+      .filter((r) => r.status === "failed" || new Date(r.created_at).getTime() < staleBefore)
+      .sort((a, b) => (a.frame_index ?? 0) - (b.frame_index ?? 0));
     if (!rows?.length) {
       return res.status(404).json({ success: false, error: "NO_FAILED_ITEMS", code: "NO_FAILED_ITEMS" });
     }
@@ -473,14 +500,14 @@ router.post("/retry", async (req, res) => {
     res.json({
       success: true,
       jobId,
-      items: rows.map((r) => ({ id: r.id, type: r.image_type, ratio: r.ratio, status: "processing", url: null })),
+      items: rows.map((r) => ({ id: r.id, type: r.image_type, ratio: r.ratio, variant: r.variant_index ?? 0, status: "processing", url: null })),
       creditPerImage: LISTING_CREDIT_PER_IMAGE,
     });
 
     const exampleUrls = await getListingExampleUrls(supabase, logger);
     runJobInBackground({
       jobId, userId, imageUrl, ratio: rows[0].ratio, inserted: rows,
-      access, startedAt, total: rows.length, exampleUrls,
+      access, startedAt, total: rows.length, exampleUrls, notify: false,
     });
   } catch (e) {
     logger.error("🛍️ [LISTING] retry hatası:", e?.message);
@@ -501,15 +528,17 @@ router.get("/job/:jobId", async (req, res) => {
     }
     const { data, error } = await supabase
       .from("listing_studio_results")
-      .select("id, image_type, ratio, status, result_image_url, error, provider, credits_deducted")
+      .select("id, image_type, ratio, frame_index, variant_index, status, result_image_url, error, provider, credits_deducted")
       .eq("job_id", jobId)
       .eq("user_id", userId)
-      .order("created_at", { ascending: true });
+      .order("frame_index", { ascending: true });
     if (error) throw error;
     const items = (data || []).map((r) => ({
       id: r.id,
       type: r.image_type,
       ratio: r.ratio,
+      variant: r.variant_index ?? 0,
+      frameIndex: r.frame_index ?? 0,
       status: r.status,
       url: r.result_image_url,
       error: r.error,
@@ -537,15 +566,23 @@ router.get("/results/:userId", async (req, res) => {
     if (!UUID_RE.test(String(userId))) {
       return res.status(400).json({ success: false, error: "BAD_USER_ID" });
     }
-    const limit = Math.min(200, Math.max(1, Number(req.query.limit) || 60));
+    // ⚠️ Sınır SATIR değil İŞ bazlı: set başına kare sayısı 8'den 12'ye çıkınca
+    // satır sınırı geçmişte gösterilen set sayısını sessizce düşürüyordu.
+    const jobLimit = Math.min(40, Math.max(1, Number(req.query.jobs) || 12));
+    const rowLimit = Math.min(600, Math.max(1, Number(req.query.limit) || jobLimit * MAX_IMAGES_PER_REQUEST));
     const { data, error } = await supabase
       .from("listing_studio_results")
-      .select("id, job_id, image_type, marketplace, style, ratio, language, source_image_url, result_image_url, status, error, provider, credits_deducted, processing_time_seconds, created_at, completed_at")
+      .select("id, job_id, image_type, marketplace, style, ratio, frame_index, variant_index, language, source_image_url, result_image_url, status, error, provider, credits_deducted, processing_time_seconds, created_at, completed_at")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
-      .limit(limit);
+      .limit(rowLimit);
     if (error) throw error;
-    return res.json({ success: true, results: data || [] });
+    // Yalnız en yeni jobLimit işi döndür — yarım kalmış bir set geçmişte eksik görünmesin
+    const order = [];
+    for (const row of data || []) if (!order.includes(row.job_id)) order.push(row.job_id);
+    const keep = new Set(order.slice(0, jobLimit));
+    const results = (data || []).filter((r) => keep.has(r.job_id));
+    return res.json({ success: true, results, jobCount: keep.size });
   } catch (e) {
     return res.status(500).json({ success: false, error: e?.message || "INTERNAL" });
   }
@@ -576,4 +613,4 @@ router.delete("/result/:id", async (req, res) => {
 });
 
 module.exports = router;
-module.exports.__test = { LISTING_CREDIT_PER_IMAGE, SUPPORTED_RATIOS, MAX_IMAGES_PER_REQUEST, MAX_COUNT_PER_TYPE };
+module.exports.__test = { LISTING_CREDIT_PER_IMAGE, SUPPORTED_RATIOS, MAX_IMAGES_PER_REQUEST, MAX_COUNT_PER_TYPE, LISTING_CONCURRENCY };

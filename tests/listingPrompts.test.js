@@ -313,3 +313,39 @@ test("varyantlarda kullanım adımlarının SIRASI korunur (özellikler döner)"
   assert.equal(steps(a), "• Adim bir|• Adim iki|• Adim uc");
   assert.equal(steps(b), steps(a));
 });
+
+/* ── Eş zamanlılık havuzu + brief gözlemlenebilirliği ───────────────────── */
+
+test("mapWithLimit: sınırı aşmaz, sırayı korur, hatayı yutmaz", async () => {
+  const { mapWithLimit } = require("../src/utils/concurrency");
+  let live = 0;
+  let peak = 0;
+  const out = await mapWithLimit([1, 2, 3, 4, 5, 6, 7, 8], 3, async (n) => {
+    live += 1;
+    peak = Math.max(peak, live);
+    await new Promise((r) => setTimeout(r, 5));
+    live -= 1;
+    if (n === 4) throw new Error("dört patladı");
+    return n * 2;
+  });
+  assert.equal(peak, 3);
+  assert.equal(out.length, 8);
+  assert.deepEqual(out.map((r) => r.status), ["fulfilled", "fulfilled", "fulfilled", "rejected", "fulfilled", "fulfilled", "fulfilled", "fulfilled"]);
+  assert.equal(out[0].value, 2);
+  assert.equal(out[3].reason.message, "dört patladı");
+  assert.equal(out[7].value, 16);
+});
+
+test("parseBrief: kesilen JSON sessizce yutulmaz, sebep bildirilir", () => {
+  const issues = [];
+  const brief = parseBrief('{"productName":"Bebek uyku seti","features":[{"title":"Pam', "x", (m) => issues.push(m));
+  assert.equal(brief.productName, "");
+  assert.equal(issues.length, 1);
+  assert.match(issues[0], /ayrıştırılamadı|JSON yok/);
+});
+
+test("parseBrief: sağlam JSON'da uyarı üretilmez", () => {
+  const issues = [];
+  parseBrief(JSON.stringify({ productName: "X" }), "x", (m) => issues.push(m));
+  assert.deepEqual(issues, []);
+});

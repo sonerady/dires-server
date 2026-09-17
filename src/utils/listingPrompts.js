@@ -266,14 +266,23 @@ function fallbackBrief(details) {
   };
 }
 
-function parseBrief(raw, details) {
+// onIssue: brief sessizce boşalmasın diye — JSON kesilirse/gelmezse çağrılır.
+// (Kesilmiş JSON, tüm brief'in fallback'e düşmesi demek; logsuz fark edilmiyordu.)
+function parseBrief(raw, details, onIssue) {
   try {
     const text = String(raw || "");
     const start = text.indexOf("{");
     const end = text.lastIndexOf("}");
-    if (start < 0 || end < 0) return fallbackBrief(details);
+    if (start < 0 || end < 0) {
+      onIssue?.(`brief yanıtında JSON yok (${text.length} karakter)`);
+      return fallbackBrief(details);
+    }
+    if (end < text.length - 1 && text.slice(end + 1).trim()) onIssue?.("JSON sonrası fazladan metin vardı");
     const parsed = JSON.parse(text.slice(start, end + 1));
-    if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") return fallbackBrief(details);
+    if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") {
+      onIssue?.("brief JSON'u nesne değil");
+      return fallbackBrief(details);
+    }
     const base = fallbackBrief(details);
     const brief = { ...base, ...parsed };
     for (const key of ["productName", "category", "headline", "tagline", "audience"]) {
@@ -317,6 +326,8 @@ function parseBrief(raw, details) {
     if (!/^#[0-9a-f]{6}$/i.test(String(brief.colorHint || ""))) brief.colorHint = "";
     return brief;
   } catch (e) {
+    // En sık sebep: maxOutputTokens'a takılıp yarıda kesilen JSON.
+    onIssue?.(`brief JSON ayrıştırılamadı (${String(raw || "").length} karakter, muhtemelen kesildi): ${e?.message}`);
     return fallbackBrief(details);
   }
 }
