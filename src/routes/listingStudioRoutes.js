@@ -121,7 +121,9 @@ const supabase =
     { auth: { autoRefreshToken: false, persistSession: false } },
   );
 
-const LISTING_CREDIT_PER_IMAGE = Number(process.env.LISTING_CREDIT_PER_IMAGE || 10);
+// 17 Eyl 2026 (kullanıcı kararı): kare başına 5 kredi (istemcideki
+// LISTING_CREDIT_PER_IMAGE ile aynı olmalı).
+const LISTING_CREDIT_PER_IMAGE = Number(process.env.LISTING_CREDIT_PER_IMAGE || 5);
 // 17 Eyl 2026 (kullanıcı isteği): aynı türden birden fazla kare istenebilir
 // (ör. özellik infografiği ×3). Tür başına tavan 4, istek başına toplam 12.
 const MAX_IMAGES_PER_REQUEST = 12;
