@@ -1456,8 +1456,18 @@ router.get("/unboxing-stories/:userId", async (req, res) => {
  */
 const { compareListingFrames } = require("../utils/listingFrameOrder");
 const LISTING_MAX_FRAMES = 12;
+let warnedNoServiceRole = false;
 async function fetchListingJobs({ memberIds, ascending, perTableLimit }) {
   if (MISSING_HISTORY_TABLES.has("listing_studio_results")) return [];
+  // Anahtar yoksa variationSupabase sessizce anon'a düşer ve RLS boş liste
+  // döndürür — sonuç "hiç listing yok" gibi görünür. Bunu bir kez yüksek sesle söyle.
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (!warnedNoServiceRole) {
+      warnedNoServiceRole = true;
+      logger.warn("⚠️ [ALL] SUPABASE_SERVICE_ROLE_KEY tanımlı değil — listing setleri geçmişte GÖRÜNMEZ (listing_studio_results RLS'i anon'a kapalı).");
+    }
+    return [];
+  }
   try {
     // ⚠️ SERVICE ROLE şart: listing_studio_results RLS'inde anon rolünün hiçbir
     // yetkisi yok (diğer history tabloları anon'a açık). Bu dosyadaki varsayılan
