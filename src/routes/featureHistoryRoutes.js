@@ -1459,8 +1459,11 @@ const LISTING_MAX_FRAMES = 12;
 async function fetchListingJobs({ memberIds, ascending, perTableLimit }) {
   if (MISSING_HISTORY_TABLES.has("listing_studio_results")) return [];
   try {
+    // ⚠️ SERVICE ROLE şart: listing_studio_results RLS'inde anon rolünün hiçbir
+    // yetkisi yok (diğer history tabloları anon'a açık). Bu dosyadaki varsayılan
+    // `supabase` anon client'ı olduğu için sorgu hatasız ama BOŞ dönüyordu.
     const { data, error } = await retryQuery(() =>
-      supabase
+      variationSupabase
         .from("listing_studio_results")
         .select("id, job_id, image_type, ratio, frame_index, variant_index, marketplace, source_image_url, result_image_url, status, created_at")
         .in("user_id", memberIds)
