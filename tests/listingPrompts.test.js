@@ -239,11 +239,27 @@ test("variants: doğrulanmış olgular kopyalar arasında döndürülür", () =>
   assert.ok(second.indexOf('"Iki"') < second.indexOf('"Bir"'));
 });
 
-test("estetik: tipografi sistemi ve zemin/renk yönergesi her prompt'ta", () => {
-  const p = buildListingPrompt({ type: "lifestyle", marketplace: "shopify", style: "luxury", brief: fallbackBrief(""), language: "tr", ratio: "9:16" });
-  assert.match(p, /TYPOGRAPHIC SYSTEM/);
+test("estetik: tipografi/zemin kararı modele bırakılır, hazır tema dayatılmaz", () => {
+  const p = buildListingPrompt({ type: "lifestyle", marketplace: "shopify", style: "luxury", brief: fallbackBrief(""), language: "tr", ratio: "9:16", exampleCount: 2 });
+  assert.match(p, /TYPOGRAPHY IS A DESIGN DECISION, NOT A DEFAULT/);
   assert.match(p, /SURFACE, BACKGROUND & COLOR/);
-  assert.match(p, /Turkish diacritics must be complete/);
+  assert.match(p, /DO NOT CONVERGE/);
+  assert.match(p, /Turkish diacritics complete/);
+  // ⛔ Hazıra konduran kalıplar prompt'ta OLMAMALI
+  assert.doesNotMatch(p, /high-contrast display serif for beauty/);
+  assert.doesNotMatch(p, /neo-grotesque for tools/);
+  assert.doesNotMatch(p, /three hues in total is the ceiling/);
+  assert.doesNotMatch(p, /at most one short headline and three brief supporting labels/);
+  assert.doesNotMatch(p, /flat, crisp vector-style shapes/);
+  // Stil örnekleri yalnız üretim standardı; tasarım kararı kopyalanmaz
+  assert.match(p, /Do NOT take their design decisions/);
+  assert.doesNotMatch(p, /typographic scale/);
+});
+
+test("style auto: tek aksan reçetesi yerine serbest karar", () => {
+  const p = buildListingPrompt({ type: "features", marketplace: "generic", style: "auto", brief: fallbackBrief(""), language: "en", ratio: "1:1" });
+  assert.doesNotMatch(p, /pick the dominant product color as the single accent/);
+  assert.match(p, /STYLE: no preset/);
 });
 
 test("brief: art direction tipografi/zemin/atmosfer alanlarını ister ve saklar", () => {

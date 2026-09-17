@@ -131,6 +131,19 @@ const MAX_COUNT_PER_TYPE = 4;
 // 17 Eyl 2026: tavan 9→12 çıkınca tek istek 12 paralel GPT Image 2.5 "high"
 // çağrısı açıyordu; sağlayıcı hız sınırına takılınca kareler toplu düşüyordu.
 const LISTING_CONCURRENCY = Math.max(1, Number(process.env.LISTING_CONCURRENCY || 4));
+// 🖼️ Stil örnekleri (17 Eyl 2026): 4 sabit örnek HER karede gidince çıktılar
+// aynı tasarım diline yakınsıyordu. Kare başına yalnız birkaçı, rastgele seçilir;
+// 0 verilirse hiç gönderilmez.
+const LISTING_STYLE_EXAMPLES = Math.max(0, Math.min(4, Number(process.env.LISTING_STYLE_EXAMPLES ?? 2)));
+const pickExamples = (urls, count) => {
+  if (!count || !urls?.length) return [];
+  const pool = urls.slice();
+  for (let i = pool.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, Math.min(count, pool.length));
+};
 // Bu süreden eski "processing" satırı ölü sayılır (sunucu yeniden başlamış olabilir)
 const STALE_PROCESSING_MS = 30 * 60 * 1000;
 const { mapWithLimit } = require("../utils/concurrency");
@@ -351,7 +364,7 @@ router.post("/generate", async (req, res) => {
       brief,
       prompt: buildListingPrompt({
         type: f.type, marketplace, style, brief, language, ratio: f.ratio,
-        notes: typeNotes, exampleCount: exampleUrls.length,
+        notes: typeNotes, exampleCount: Math.min(LISTING_STYLE_EXAMPLES, exampleUrls.length),
         variantIndex: f.variantIndex, variantTotal: f.variantTotal,
       }),
       source_image_url: imageUrl,
@@ -393,7 +406,10 @@ async function runJobInBackground({ jobId, userId, imageUrl, ratio, inserted, ac
     const settled = await mapWithLimit(inserted, LISTING_CONCURRENCY, async (row) => {
         const t0 = Date.now();
         try {
-          const { url, provider } = await generateOne({ prompt: row.prompt, imageUrl, ratio: row.ratio || ratio, exampleUrls });
+          // Her kare kendi rastgele örnek alt kümesini görür — set içindeki kareler
+          // birbirinin tasarım kopyası olmasın diye.
+          const frameExamples = pickExamples(exampleUrls, LISTING_STYLE_EXAMPLES);
+          const { url, provider } = await generateOne({ prompt: row.prompt, imageUrl, ratio: row.ratio || ratio, exampleUrls: frameExamples });
           const storedUrl = await saveResultToUserBucket(url, userId);
           // Kredi: kare bazında, kare biter bitmez (başarısız kareye ücret yok)
           let charged = 0;
@@ -617,4 +633,4 @@ router.delete("/result/:id", async (req, res) => {
 });
 
 module.exports = router;
-module.exports.__test = { LISTING_CREDIT_PER_IMAGE, SUPPORTED_RATIOS, MAX_IMAGES_PER_REQUEST, MAX_COUNT_PER_TYPE, LISTING_CONCURRENCY };
+module.exports.__test = { LISTING_CREDIT_PER_IMAGE, SUPPORTED_RATIOS, MAX_IMAGES_PER_REQUEST, MAX_COUNT_PER_TYPE, LISTING_CONCURRENCY, LISTING_STYLE_EXAMPLES };
