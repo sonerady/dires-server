@@ -134,6 +134,7 @@ const LISTING_CONCURRENCY = Math.max(1, Number(process.env.LISTING_CONCURRENCY |
 // Bu süreden eski "processing" satırı ölü sayılır (sunucu yeniden başlamış olabilir)
 const STALE_PROCESSING_MS = 30 * 60 * 1000;
 const { mapWithLimit } = require("../utils/concurrency");
+const { compareListingFrames } = require("../utils/listingFrameOrder");
 const SUPPORTED_RATIOS = new Set(["1:1", "4:5", "3:4", "4:3", "9:16", "16:9", "original"]);
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -530,10 +531,9 @@ router.get("/job/:jobId", async (req, res) => {
       .from("listing_studio_results")
       .select("id, image_type, ratio, frame_index, variant_index, status, result_image_url, error, provider, credits_deducted")
       .eq("job_id", jobId)
-      .eq("user_id", userId)
-      .order("frame_index", { ascending: true });
+      .eq("user_id", userId);
     if (error) throw error;
-    const items = (data || []).map((r) => ({
+    const items = (data || []).slice().sort(compareListingFrames).map((r) => ({
       id: r.id,
       type: r.image_type,
       ratio: r.ratio,
@@ -581,7 +581,11 @@ router.get("/results/:userId", async (req, res) => {
     const order = [];
     for (const row of data || []) if (!order.includes(row.job_id)) order.push(row.job_id);
     const keep = new Set(order.slice(0, jobLimit));
-    const results = (data || []).filter((r) => keep.has(r.job_id));
+    // İşler yeniden eskiye; bir işin KARELERİ kendi içinde kanonik sırada
+    const rank = new Map(order.map((jobId, i) => [jobId, i]));
+    const results = (data || [])
+      .filter((r) => keep.has(r.job_id))
+      .sort((a, b) => (rank.get(a.job_id) - rank.get(b.job_id)) || compareListingFrames(a, b));
     return res.json({ success: true, results, jobCount: keep.size });
   } catch (e) {
     return res.status(500).json({ success: false, error: e?.message || "INTERNAL" });

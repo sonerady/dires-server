@@ -1454,6 +1454,7 @@ router.get("/unboxing-stories/:userId", async (req, res) => {
  * kartlarındaki gibi "+N" rozetiyle anlatılır ve kart açılınca setin tamamı
  * şerit hâlinde gelir.
  */
+const { compareListingFrames } = require("../utils/listingFrameOrder");
 const LISTING_MAX_FRAMES = 12;
 async function fetchListingJobs({ memberIds, ascending, perTableLimit }) {
   if (MISSING_HISTORY_TABLES.has("listing_studio_results")) return [];
@@ -1485,8 +1486,9 @@ async function fetchListingJobs({ memberIds, ascending, perTableLimit }) {
     }
     const jobs = [];
     for (const [jobId, rowsRaw] of byJob.entries()) {
-      // Bir işin kareleri tek insert'te yazıldığı için created_at aynı; sıra frame_index'ten
-      const rows = rowsRaw.slice().sort((a, b) => (a.frame_index ?? 0) - (b.frame_index ?? 0));
+      // Sıra: frame_index → kanonik tür sırası → varyant → id (eski setlerde
+      // frame_index hep 0 olduğu için tür sırası devreye girer)
+      const rows = rowsRaw.slice().sort(compareListingFrames);
       const cover = rows.find((r) => r.image_type === "hero") || rows[0];
       if (!cover?.result_image_url) continue;
       jobs.push({
