@@ -122,7 +122,10 @@ const supabase =
   );
 
 const LISTING_CREDIT_PER_IMAGE = Number(process.env.LISTING_CREDIT_PER_IMAGE || 10);
-const MAX_IMAGES_PER_REQUEST = 9;
+// 17 Eyl 2026 (kullanıcı isteği): aynı türden birden fazla kare istenebilir
+// (ör. özellik infografiği ×3). Tür başına tavan 4, istek başına toplam 12.
+const MAX_IMAGES_PER_REQUEST = 12;
+const MAX_COUNT_PER_TYPE = 4;
 const SUPPORTED_RATIOS = new Set(["1:1", "4:5", "3:4", "4:3", "9:16", "16:9", "original"]);
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -259,13 +262,41 @@ router.post("/generate", async (req, res) => {
       .map((d) => ({ name: String(d.name || "document").slice(0, 120), text: String(d.text).slice(0, MAX_CONTENT_DOC_CHARS) }));
     const style = normalizeStyle(options.style);
     const ratio = SUPPORTED_RATIOS.has(options.ratio) ? options.ratio : "1:1";
+    // 🔢 Tür başına adet ({features:3}) ve tür başına oran ({hero:"1:1"}) —
+    // ikisi de isteğe bağlı; yoksa adet 1, oran setin varsayılanı.
+    const typeCounts = {};
+    if (options.typeCounts && typeof options.typeCounts === "object") {
+      for (const [k, v] of Object.entries(options.typeCounts)) {
+        const n = Math.floor(Number(v));
+        if (imageTypes.includes(k) && Number.isFinite(n) && n > 1) typeCounts[k] = Math.min(MAX_COUNT_PER_TYPE, n);
+      }
+    }
+    const typeRatios = {};
+    if (options.typeRatios && typeof options.typeRatios === "object") {
+      for (const [k, v] of Object.entries(options.typeRatios)) {
+        if (imageTypes.includes(k) && SUPPORTED_RATIOS.has(v) && v !== ratio) typeRatios[k] = v;
+      }
+    }
+    // Plan: sırayı koru, toplam tavanda kes, sonra tür başına gerçek adedi say
+    const plan = [];
+    for (const type of imageTypes) {
+      const count = Math.min(MAX_COUNT_PER_TYPE, Math.max(1, typeCounts[type] || 1));
+      for (let i = 0; i < count; i++) plan.push({ type, ratio: typeRatios[type] || ratio });
+    }
+    const frames = plan.slice(0, MAX_IMAGES_PER_REQUEST);
+    const perType = frames.reduce((acc, f) => ({ ...acc, [f.type]: (acc[f.type] || 0) + 1 }), {});
+    const seen = {};
+    for (const f of frames) {
+      f.variantIndex = seen[f.type] = seen[f.type] === undefined ? 0 : seen[f.type] + 1;
+      f.variantTotal = perType[f.type];
+    }
     const language = String(options.language || "en").split(/[-_]/)[0].toLowerCase();
 
     const access = await getUserAccess(userId);
     if (!access) {
       return res.status(404).json({ success: false, error: "USER_NOT_FOUND", code: "USER_NOT_FOUND" });
     }
-    const totalCost = imageTypes.length * LISTING_CREDIT_PER_IMAGE;
+    const totalCost = frames.length * LISTING_CREDIT_PER_IMAGE;
     // 🔒 Kapı: PRO/deneme YA DA yeterli kredi. PRO'da da kredi düşer (CMP mantığı),
     // yalnız bakiye yetmiyorsa PRO olmayan reddedilir.
     if (access.creditBalance < totalCost) {
@@ -279,7 +310,7 @@ router.post("/generate", async (req, res) => {
     }
 
     const jobId = `lst_${Date.now()}_${uuidv4().slice(0, 8)}`;
-    logger.log(`🛍️ [LISTING] job:${jobId} user:${String(userId).slice(0, 8)} market:${marketplace} style:${style} ratio:${ratio} types:${imageTypes.join(",")} contentImages:${contentImages.length} contentDocs:${contentDocs.length}`);
+    logger.log(`🛍️ [LISTING] job:${jobId} user:${String(userId).slice(0, 8)} market:${marketplace} style:${style} ratio:${ratio} frames:${frames.length} types:${frames.map((f) => `${f.type}${f.variantTotal > 1 ? `#${f.variantIndex + 1}` : ""}${f.ratio !== ratio ? `@${f.ratio}` : ""}`).join(",")} contentImages:${contentImages.length} contentDocs:${contentDocs.length}`);
 
     // 1) Brief (ürün notları + içerik fotoğrafları/dosyaları → yapılandırılmış metin)
     const brief = await buildBrief({ details, marketplace, language, style, imageUrl, contentImages, contentDocs });
@@ -287,24 +318,28 @@ router.post("/generate", async (req, res) => {
     // 2) Satırlar (processing) — her tür ayrı kayıt
     // 🖼️ Stil örnekleri (şeritli) — brief ile paralel değil, hızlı (önbellekli)
     const exampleUrls = await getListingExampleUrls(supabase, logger);
-    const rows = imageTypes.map((type) => ({
+    const rows = frames.map((f) => ({
       user_id: userId,
       job_id: jobId,
-      image_type: type,
+      image_type: f.type,
       marketplace,
       style,
-      ratio,
+      ratio: f.ratio,
       language,
       product_details: details,
       brief,
-      prompt: buildListingPrompt({ type, marketplace, style, brief, language, ratio, notes: typeNotes, exampleCount: exampleUrls.length }),
+      prompt: buildListingPrompt({
+        type: f.type, marketplace, style, brief, language, ratio: f.ratio,
+        notes: typeNotes, exampleCount: exampleUrls.length,
+        variantIndex: f.variantIndex, variantTotal: f.variantTotal,
+      }),
       source_image_url: imageUrl,
       status: "processing",
     }));
     const { data: inserted, error: insertError } = await supabase
       .from("listing_studio_results")
       .insert(rows)
-      .select("id, image_type, prompt");
+      .select("id, image_type, prompt, ratio");
     if (insertError) {
       logger.error("🛍️ [LISTING] satır ekleme hatası:", insertError.message);
       return res.status(500).json({ success: false, error: "DB_INSERT_FAILED", code: "DB_INSERT_FAILED" });
@@ -315,12 +350,12 @@ router.post("/generate", async (req, res) => {
       success: true,
       jobId,
       brief,
-      items: inserted.map((row) => ({ id: row.id, type: row.image_type, status: "processing", url: null })),
+      items: inserted.map((row) => ({ id: row.id, type: row.image_type, ratio: row.ratio, status: "processing", url: null })),
       creditPerImage: LISTING_CREDIT_PER_IMAGE,
     });
 
     // 4) Arka planda üretim — hepsi eş zamanlı, her kare bitince kendi satırı
-    runJobInBackground({ jobId, userId, imageUrl, ratio, inserted, access, startedAt, total: imageTypes.length, exampleUrls });
+    runJobInBackground({ jobId, userId, imageUrl, ratio, inserted, access, startedAt, total: frames.length, exampleUrls });
   } catch (e) {
     logger.error("🛍️ [LISTING] generate hatası:", e);
     if (!res.headersSent) {
@@ -335,7 +370,7 @@ async function runJobInBackground({ jobId, userId, imageUrl, ratio, inserted, ac
       inserted.map(async (row) => {
         const t0 = Date.now();
         try {
-          const { url, provider } = await generateOne({ prompt: row.prompt, imageUrl, ratio, exampleUrls });
+          const { url, provider } = await generateOne({ prompt: row.prompt, imageUrl, ratio: row.ratio || ratio, exampleUrls });
           const storedUrl = await saveResultToUserBucket(url, userId);
           // Kredi: kare bazında, kare biter bitmez (başarısız kareye ücret yok)
           let charged = 0;
@@ -384,7 +419,7 @@ router.get("/job/:jobId", async (req, res) => {
     }
     const { data, error } = await supabase
       .from("listing_studio_results")
-      .select("id, image_type, status, result_image_url, error, provider, credits_deducted")
+      .select("id, image_type, ratio, status, result_image_url, error, provider, credits_deducted")
       .eq("job_id", jobId)
       .eq("user_id", userId)
       .order("created_at", { ascending: true });
@@ -392,6 +427,7 @@ router.get("/job/:jobId", async (req, res) => {
     const items = (data || []).map((r) => ({
       id: r.id,
       type: r.image_type,
+      ratio: r.ratio,
       status: r.status,
       url: r.result_image_url,
       error: r.error,
@@ -458,4 +494,4 @@ router.delete("/result/:id", async (req, res) => {
 });
 
 module.exports = router;
-module.exports.__test = { LISTING_CREDIT_PER_IMAGE, SUPPORTED_RATIOS };
+module.exports.__test = { LISTING_CREDIT_PER_IMAGE, SUPPORTED_RATIOS, MAX_IMAGES_PER_REQUEST, MAX_COUNT_PER_TYPE };

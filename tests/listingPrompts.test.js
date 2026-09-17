@@ -206,3 +206,51 @@ test("content files: per-file and total char budgets", () => {
   assert.match(p, /--- FILE: b\.pdf ---/);
   assert.doesNotMatch(p, /--- FILE: c\.pdf ---/);
 });
+
+/* ── 17 Eyl 2026: aynı türden birden fazla kare + estetik yönerge ───────── */
+
+test("single frame: no variant block (davranış değişmedi)", () => {
+  const p = buildListingPrompt({ type: "features", marketplace: "amazon", style: "auto", brief: fallbackBrief(""), language: "en", ratio: "1:1" });
+  assert.doesNotMatch(p, /SET VARIANT/);
+});
+
+test("variants: her kopya farklı görsel görev alır ve kopya sayısını bilir", () => {
+  const args = { type: "features", marketplace: "etsy", style: "auto", brief: fallbackBrief(""), language: "en", ratio: "4:5", variantTotal: 3 };
+  const a = buildListingPrompt({ ...args, variantIndex: 0 });
+  const b = buildListingPrompt({ ...args, variantIndex: 1 });
+  const c = buildListingPrompt({ ...args, variantIndex: 2 });
+  for (const p of [a, b, c]) assert.match(p, /SET VARIANT — image \d of 3/);
+  const role = (p) => p.split("SET VARIANT")[1].split("\n")[0];
+  assert.notEqual(role(a), role(b));
+  assert.notEqual(role(b), role(c));
+  assert.match(b, /single-feature spotlight/);
+});
+
+test("variants: liste tükenince başa döner ve ek fark ister", () => {
+  const p = buildListingPrompt({ type: "hero", marketplace: "amazon", style: "auto", brief: fallbackBrief(""), language: "en", ratio: "1:1", variantIndex: 5, variantTotal: 6 });
+  assert.match(p, /Every earlier treatment for this image type is already taken/);
+});
+
+test("variants: doğrulanmış olgular kopyalar arasında döndürülür", () => {
+  const brief = { ...fallbackBrief(""), features: [{ title: "Bir", subtitle: "", icon: "" }, { title: "Iki", subtitle: "", icon: "" }, { title: "Uc", subtitle: "", icon: "" }] };
+  const first = buildListingPrompt({ type: "features", marketplace: "etsy", style: "auto", brief, language: "en", ratio: "1:1", variantIndex: 0, variantTotal: 2 });
+  const second = buildListingPrompt({ type: "features", marketplace: "etsy", style: "auto", brief, language: "en", ratio: "1:1", variantIndex: 1, variantTotal: 2 });
+  assert.ok(first.indexOf('"Bir"') < first.indexOf('"Iki"'));
+  assert.ok(second.indexOf('"Iki"') < second.indexOf('"Bir"'));
+});
+
+test("estetik: tipografi sistemi ve zemin/renk yönergesi her prompt'ta", () => {
+  const p = buildListingPrompt({ type: "lifestyle", marketplace: "shopify", style: "luxury", brief: fallbackBrief(""), language: "tr", ratio: "9:16" });
+  assert.match(p, /TYPOGRAPHIC SYSTEM/);
+  assert.match(p, /SURFACE, BACKGROUND & COLOR/);
+  assert.match(p, /Turkish diacritics must be complete/);
+});
+
+test("brief: art direction tipografi/zemin/atmosfer alanlarını ister ve saklar", () => {
+  assert.match(buildBriefPrompt({ details: "x", marketplace: "etsy", language: "tr" }), /"typeface"[\s\S]*"background"[\s\S]*"mood"/);
+  const brief = parseBrief(JSON.stringify({ artDirection: { typeface: "high-contrast display serif", background: "warm oak", mood: "calm, warm, crafted" } }), "x");
+  assert.equal(brief.artDirection.typeface, "high-contrast display serif");
+  const p = buildListingPrompt({ type: "hero", marketplace: "etsy", style: "auto", brief, language: "en", ratio: "1:1" });
+  assert.match(p, /typeface: high-contrast display serif/);
+  assert.match(p, /background: warm oak/);
+});
