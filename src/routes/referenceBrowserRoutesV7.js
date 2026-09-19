@@ -1,7 +1,7 @@
 const { isBagShoot, buildBagFocusDirective, buildBagDirection, buildBagEnhanceInstruction } = require("../utils/bagCampaignPrompt");
 const { buildOutfitReferencePrompt, OUTFIT_IDENTITY_RULE, PRODUCT_INTERPRETATION_RULE } = require("../utils/productReferencePrompt");
 const { isFashionCampaignShoot, buildFashionFocusDirective, buildFashionPoseContext, buildFashionCampaignDirection, buildFashionCampaignEnhanceInstruction } = require("../utils/fashionCampaignPrompt");
-const { isFootwearShoot, buildFootwearDirection, buildFootwearEnhanceInstruction } = require("../utils/footwearPrompt");
+const { isFootwearShoot, buildFootwearDirection, buildFootwearEnhanceInstruction, buildMultiAngleProductScopeDirection } = require("../utils/footwearPrompt");
 const { renderReferenceLabel } = require("../utils/referenceLabel");
 const { supabaseAdmin: modelPoolDb } = require("../supabaseClient");
 const { LOCATION_DIRECTION, stampLocationReference, resolveUploadedLocationReference } = require("../services/referenceLocation");
@@ -1883,7 +1883,7 @@ function buildNarrativeFallbackPrompt(settings = {}, isMultipleProducts = false,
   if (isBagShoot(s, modes)) {
     return `Create a new luxury accessories campaign photograph of the exact reference bag with a ${s.gender || ''} model of the selected age in ${s.locationEnhancedPrompt || s.location || 'the selected setting'}. ${buildBagFocusDirective(s)} ${buildBagDirection()}`;
   }
-  if (isFootwearShoot(s, modes)) {
+  if (isFootwearShoot(s, { ...modes, isMultipleProducts })) {
     return `Replace the source product display with the exact referenced footwear naturally worn by a living ${s.gender || ""} model of the selected age, in ${s.locationEnhancedPrompt || s.location || "a restrained photographic setting"}. ${buildFootwearDirection({ settings: s })}`;
   }
   const genderLower = (s.gender || "female").toLowerCase();
@@ -1976,7 +1976,12 @@ function buildNarrativeFallbackPrompt(settings = {}, isMultipleProducts = false,
     p4 += ` This is professional newborn fashion photography: the newborn rests in a safe, gentle, supported position, softly and evenly lit, framed in an intimate close-up that emphasizes the baby's delicate features and the garment's details in a tender, serene atmosphere.`;
   }
 
-  return [p1, p2, p3, p4].join("\n\n");
+  const scopeDirection = Number(modes.multipleAnglesCount || s.multipleAnglesCount) > 1
+    ? buildMultiAngleProductScopeDirection({
+        photoCount: modes.multipleAnglesCount || s.multipleAnglesCount,
+        settings: s, modes: { ...modes, isMultipleProducts },
+      }) : "";
+  return [p1, p2, p3, p4, scopeDirection].filter(Boolean).join("\n\n");
 }
 
 // 🔁 Basitleştirilmiş ikinci enhance denemesi — tam meta-prompt başarısız
@@ -3531,12 +3536,9 @@ Start your enhanced prompt by explicitly listing what you see in the grid (one s
     }
 
     if (multipleAnglesCount && multipleAnglesCount > 1) {
-      promptForGemini += `
-
-📐 SAME PRODUCT / MULTIPLE ANGLES MODE — CRITICAL:
-The main reference image is a COMPOSITE GRID containing ${multipleAnglesCount} photographs of ONE AND THE SAME product captured from different angles and distances. The cells do NOT show separate garments and must NEVER be combined into an outfit.
-
-Analyze every cell together as complementary evidence of one product. Reconstruct a single, consistent garment on the model by preserving all visible front, side, back, silhouette, material, print, stitching, trim, hardware and proportion details. Resolve occluded details using the other angle cells, never duplicate the product, never create a collage in the output, and never treat detail close-ups as separate accessories. The final result must contain exactly one instance of this product, worn naturally by the model.`;
+      promptForGemini += `\n\n${buildMultiAngleProductScopeDirection({
+        photoCount: multipleAnglesCount, settings, modes: { isMultipleProducts, kombinItemCount },
+      })}`;
     }
 
     // 📝 Opening directives — skin / pose / user-detail intent'leri Gemini
@@ -3562,7 +3564,7 @@ ${promptForGemini}`;
 
     // Footwear uses its own visual brief, not garment/face/stride defaults.
     // Keep the existing visual classification; no extra classifier request.
-    if (isFootwearShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis })) {
+    if (isFootwearShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis, isMultipleProducts, kombinItemCount, multipleAnglesCount })) {
       promptForGemini = buildFootwearEnhanceInstruction({
         settings, originalPrompt, customDetail: trimmedCustomDetail,
         hasPoseReference: Boolean(poseImage), multipleAnglesCount, kombinItemCount,
@@ -4116,11 +4118,11 @@ ${promptForGemini}`;
         settings,
         isMultipleProducts,
         imageUrl,
-        { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis },
+        { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis, kombinItemCount, multipleAnglesCount },
       );
       enhancedPrompt =
         simplifiedRetry ||
-        buildNarrativeFallbackPrompt(settings, isMultipleProducts, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis });
+        buildNarrativeFallbackPrompt(settings, isMultipleProducts, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis, kombinItemCount, multipleAnglesCount });
       logger.log(
         simplifiedRetry
           ? "🔁 [FALLBACK] Basitleştirilmiş enhance kullanılıyor"
@@ -4208,14 +4210,14 @@ ${promptForGemini}`;
       settings,
       isMultipleProducts,
       imageUrl,
-      { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis },
+      { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis, kombinItemCount, multipleAnglesCount },
     );
     if (simplifiedRetryCatch) {
       logger.log("🔁 [CATCH-FALLBACK] Basitleştirilmiş enhance kullanılıyor");
       return simplifiedRetryCatch;
     }
     logger.log("🧵 [CATCH-FALLBACK] Narratif statik fallback prompt kullanılıyor");
-    return buildNarrativeFallbackPrompt(settings, isMultipleProducts, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis });
+    return buildNarrativeFallbackPrompt(settings, isMultipleProducts, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis, kombinItemCount, multipleAnglesCount });
   }
 }
 
@@ -5049,6 +5051,8 @@ function finalizeGenerationPrompt(enhancedPrompt, {
   editorialCollagesForRequest = [], isColorChange = false,
   isPoseChange = false, isEditMode = false, isRefinerMode = false,
   isBackSideAnalysis = false,
+  isMultipleProducts = false, isKombinMode = false,
+  kombinItemCount = 0, multipleAnglesCount = 0, isMultipleAnglesMode = false,
 } = {}) {
     const bagShoot = isBagShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis });
     const fashionShoot = !bagShoot && isFashionCampaignShoot(settings, {
@@ -5057,6 +5061,7 @@ function finalizeGenerationPrompt(enhancedPrompt, {
     const footwearShoot = isFootwearShoot(settings, {
       isColorChange, isPoseChange, isEditMode, isRefinerMode,
       isBackSideAnalysis: isBackSideAnalysis,
+      isMultipleProducts, isKombinMode, kombinItemCount, multipleAnglesCount, isMultipleAnglesMode,
     });
     enhancedPrompt = footwearShoot
       ? `${enhancedPrompt || ""}\n\n${buildFootwearDirection({
@@ -5410,7 +5415,7 @@ router.post("/generate", async (req, res) => {
     );
 
     // isMultipleProducts'ı değiştirilebilir hale getir (kombin modu için)
-    let isMultipleProducts = originalIsMultipleProducts;
+    let isMultipleProducts = originalIsMultipleProducts === true || req.body.isKombinMode === true;
 
     // userId'yi scope için ata
     userId = requestUserId;
@@ -6820,9 +6825,12 @@ Do NOT describe any person's face/identity or garments. PLAIN TEXT only, numbere
         Array.isArray(angleOriginalImages) && angleOriginalImages.length > 0;
       enhancedPrompt += `
 
-MULTIPLE-ANGLE PRODUCT REFERENCE: The main composite grid contains ${multipleAnglesCount} views of the same single product. Use all cells only to reconstruct that one product faithfully from every visible side.${hasAngleOriginals
-        ? ` In addition to the grid, ${angleOriginalImages.length} full-resolution individual photo(s) of the same product are attached — use these for faithful fine-detail reproduction (exact colors, prints, stitching, trims, fabric texture, proportions). Do NOT invent or alter any product detail that is not visible in these photos.`
-        : ""} The final photograph contains one instance of the product, never multiple garments, duplicates, or a collage.`;
+${buildMultiAngleProductScopeDirection({
+  photoCount: multipleAnglesCount, settings,
+  modes: { isMultipleProducts, isKombinMode: req.body.isKombinMode === true },
+})}${hasAngleOriginals
+        ? ` In addition to the grid, ${angleOriginalImages.length} full-resolution individual product photo(s) are attached — use these for faithful fine-detail reproduction (exact colors, prints, stitching, trims, fabric texture, proportions). Do NOT invent or alter any product detail that is not visible in these photos.`
+        : ""}`;
       logger.log(
         `📐 [MULTIPLE ANGLES] ${multipleAnglesCount} açılık tek ürün direktifi enhancedPrompt'a eklendi${hasAngleOriginals ? ` (+${angleOriginalImages.length} orijinal foto direktifi)` : ""}`,
       );
@@ -7034,6 +7042,9 @@ The final image must read as the SAME street-style photograph — same person-in
       styleDirected: Boolean(autoStyleProfile),
       editorialCollagesForRequest, isColorChange, isPoseChange, isEditMode,
       isRefinerMode, isBackSideAnalysis: req.body.isBackSideAnalysis,
+      isMultipleProducts, isKombinMode: req.body.isKombinMode === true,
+      kombinItemCount: Array.isArray(kombinOriginalImages) ? kombinOriginalImages.length : 0,
+      multipleAnglesCount, isMultipleAnglesMode,
     });
 
     // Arkaplan silme kaldırıldı - direkt olarak finalImage kullanılacak
