@@ -1,0 +1,7 @@
+-- 🍽️ Menü stil havuzu (Supabase'e uygulandı: menu_styles_pool)
+-- Auto Styles'ın menü karşılığı; çok dilli çeviri ve kategori ağacı YOKTUR.
+-- Tam içerik için Supabase migration geçmişine bakın; özet şema:
+--   menu_styles(id, name, notes, image_urls jsonb, tags jsonb,
+--               style_prompt, status, analysis_error, active,
+--               created_by, created_at, updated_at)
+-- style_prompt opsiyoneldir; kayıt sırasında model çağrılmaz.

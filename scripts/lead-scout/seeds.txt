@@ -1,0 +1,44 @@
+# Diress Lead Scout — Türkiye / genel giyim tohum listesi
+# Shopify olmayanlar otomatik elenir, korkmadan aday ekleyebilirsin.
+
+# --- makalelerden doğrulanmış TR Shopify mağazaları ---
+lesbenjamins.com
+miamano.com
+korendy.com.tr
+flavus.com
+quzu.com.tr
+sagaza.com
+tr.manuatelier.com
+wwfmarket.com
+
+# --- bilinen TR Shopify giyim/aksesuar ---
+freshscarfs.com
+
+# --- TR moda / D2C adayları (probe doğrulayacak) ---
+vakko.com
+ipekyol.com.tr
+machka.com.tr
+twistonline.com
+network.com.tr
+derimod.com.tr
+kigili.com
+damatwedding.com
+mavi.com
+colins.com.tr
+koton.com
+defacto.com.tr
+oxxoshop.com
+penti.com
+suwen.com.tr
+lescollection.com.tr
+nocturne.com.tr
+adl.com.tr
+peny.com.tr
+sudenaz.com.tr
+modanisa.com
+sefamerve.com
+tugba.com.tr
+armine.com
+kayra.com.tr
+alvina.com.tr
+setrms.com.tr

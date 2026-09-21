@@ -161,6 +161,9 @@ const adminAuthRoutes = require("./routes/adminAuthRoutes");
 const adminBulkEmailRoutes = require("./routes/adminBulkEmailRoutes");
 const adminAsoRoutes = require("./routes/adminAsoRoutes");
 const adminLegacyUserRoutes = require("./routes/adminLegacyUserRoutes");
+const adminKanbanRoutes = require("./routes/adminKanbanRoutes");
+const adminMenuStudioRoutes = require("./routes/adminMenuStudioRoutes");
+const adminMenuStyleRoutes = require("./routes/adminMenuStyleRoutes");
 const { startAsoCron } = require("./services/asoTracker");
 const { requireAdmin } = require("./middleware/requireAdmin");
 // User Visibility routes import
@@ -206,7 +209,7 @@ app.use(
   cors({
     origin: "*", // Tüm originlere izin ver
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-User-ID"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-User-ID", "X-Device-Id"],
   }),
 );
 
@@ -333,6 +336,14 @@ app.use("/api/admin-dashboard", requireAdmin, adminDashboardRoutes);
 app.use("/api/admin-dashboard", requireAdmin, adminBulkEmailRoutes);
 app.use("/api/admin-dashboard", requireAdmin, adminAsoRoutes);
 app.use("/api/admin-dashboard", requireAdmin, adminLegacyUserRoutes);
+// 🗂️ Yönetim panosu (Kanban) — admin panelindeki "Pano" sayfası
+app.use("/api/admin-dashboard", requireAdmin, adminKanbanRoutes);
+// 🍽️ Menü stüdyosu — restoranlara baskıya hazır yemek menüsü (GPT-6 Astra)
+app.use("/api/admin-dashboard", requireAdmin, adminMenuStudioRoutes);
+app.use("/api/admin-dashboard", requireAdmin, adminMenuStyleRoutes);
+// Chrome eklentisinin clip ucu — token taşımadığı için requireAdmin ALTINDA DEĞİL
+// (Banner Stüdyosu ucuyla aynı model). Yalnız görsel kabul eder, veri döndürmez.
+app.use("/api/menu-styles", adminMenuStyleRoutes.clipRouter); // menuStyleClip
 startAsoCron();
 
 // Social Studio — Instagram içerik otomasyonu (admin token ile korunur)
@@ -511,6 +522,10 @@ app.use("/api/banner-studio", bannerStudioRoutes);
 // 🛍️ Listing Image Studio — e-ticaret listeleme görselleri (15 Eyl 2026)
 const listingStudioRoutes = require("./routes/listingStudioRoutes");
 app.use("/api/listing-studio", listingStudioRoutes);
+app.use("/api/product-studio-catalog", require("./routes/productStudioCatalogRoutes"));
+app.use("/api/admin-dashboard", requireAdmin, require("./routes/adminProductStudioRoutes"));
+app.use("/api/custom-studio", require("./routes/customStudioRoutes"));
+app.use("/api/custom-tool-generations", require("./routes/customToolGenerationRoutes"));
 
 // Support routes
 const supportRoutes = require("./routes/supportRoutes");

@@ -35,3 +35,11 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 .whats-new-progress/
+
+# Shopify ürün/görsel toplama çıktıları (scripts/shopify-product-scrape.mjs)
+out/
+
+# VM'in silemediği artıklar — repoya girmesin
+_to_delete/
+# geçici çıktılar
+temp/

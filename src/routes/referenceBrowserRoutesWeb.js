@@ -1,3 +1,4 @@
+const { recordRefundCharge } = require("../services/refundChargeEvidence");
 const { buildOutfitReferencePrompt } = require("../utils/productReferencePrompt");
 const { renderReferenceLabel } = require("../utils/referenceLabel");
 const express = require("express");
@@ -1057,9 +1058,12 @@ async function deductCreditOnSuccess(generationId, userId) {
     logger.log(
       `💳 [TRACKING] Generation ${generationId} için kredi tracking bilgileri kaydediliyor...`,
     );
+    await recordRefundCharge({ generationId, userId, creditOwnerId, amount: totalCreditCost, debit: updateResult });
+
     const creditTrackingUpdates = {
       credits_before_generation: currentCredit,
       credits_deducted: totalCreditCost,
+      credit_owner_id: creditOwnerId,
       credits_after_generation: newBalance,
     };
 

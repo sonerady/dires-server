@@ -128,7 +128,7 @@ app.use(
   cors({
     origin: "*", // Tüm originlere izin ver
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-User-ID"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-User-ID", "X-Device-Id"],
   })
 );
 app.use(bodyParser.json({ limit: "50mb" }));

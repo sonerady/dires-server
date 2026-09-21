@@ -1,3 +1,4 @@
+const { referenceDirection, brandDirection } = require("./listingSellerInputs");
 // 🛍️ Listing Image Studio — prompt katmanı (15 Eyl 2026)
 //
 // Amazon / Etsy / Shopify tarzı ürün listeleme görselleri. Model çekimi
@@ -63,12 +64,21 @@ function languageName(code) {
   return LANGUAGE_NAMES[key] || "English";
 }
 
+// 🎨 Kullanıcının kendi tanımladığı set: "custom:<uuid>". Hazır türlerin
+// yanında birinci sınıf bir tür gibi davranır; yönergesi sabit bir kalıptan
+// değil, kullanıcının kendi yazdığı açıklamadan gelir (17 Eyl 2026).
+const CUSTOM_TYPE_RE = /^custom:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const isCustomType = (key) => CUSTOM_TYPE_RE.test(String(key || "").toLowerCase());
+const customSetId = (key) =>
+  isCustomType(key) ? String(key).toLowerCase().slice("custom:".length) : null;
+
 function normalizeImageTypes(list) {
   const arr = Array.isArray(list) ? list : [];
   const out = [];
   for (const raw of arr) {
     const key = String(raw || "").trim().toLowerCase();
-    if (IMAGE_TYPES.includes(key) && !out.includes(key)) out.push(key);
+    if ((IMAGE_TYPES.includes(key) || isCustomType(key)) && !out.includes(key))
+      out.push(key);
   }
   return out;
 }
@@ -106,13 +116,13 @@ const FRAME_VARIANTS = Object.freeze({
     "signature three-quarter hero angle: the product turned slightly, its most recognisable silhouette forward, filling the frame",
     "straight-on front elevation: square to camera, symmetrical, catalogue precision, a longer-lens feel than the three-quarter view",
     "elevated top-down or low heroic angle — whichever genuinely flatters this object — showing a face the other frames never show",
-    "the opposite side, back or underside of the product, still isolated and immaculately lit",
+    "another composition of the evidenced product face; show the back or underside ONLY if supplied in a product reference, never invent unseen construction",
   ],
   features: [
     "one dominant product view with up to three callouts arranged around the silhouette",
     "single-feature spotlight: ONE benefit only, a macro crop of exactly the part it lives on, one short headline and one label",
     "two stacked feature panels, each a different part of the product with its own crop and its own short label",
-    "component layout: the parts separated with generous air and thin leader lines, like an exploded technical poster",
+    "a close-up and full-product pairing with thin leader lines; separate components ONLY if the supplied evidence shows they are removable, never invent an exploded mechanism",
   ],
   lifestyle: [
     "wide environmental establishing shot of the room or place the product belongs to",
@@ -182,7 +192,7 @@ const CONTENT_DOCS_TOTAL_CHARS = 24000;
 function contentInputsBlock({ contentImageCount = 0, contentDocs = [] } = {}) {
   const parts = [];
   if (contentImageCount > 0) {
-    parts.push(`ATTACHED IMAGES: image 1 is the main product photograph. Images 2 to ${contentImageCount + 1} are additional CONTENT photos supplied by the seller (packaging, labels, spec stickers, detail shots, screenshots of the product page). Read every legible text, number, material, size, certification, care instruction and box-contents line from them; treat what you read as seller-supplied evidence exactly like the notes (source "notes", evidence = the text you read). Do not describe scenes from these extra photos as product features.`);
+    parts.push(`ATTACHED IMAGES: image 1 is the main product photograph. Images 2 to ${contentImageCount + 1} are additional CONTENT photos supplied by the seller (packaging, labels, spec stickers, detail shots, screenshots of the product page). Read every legible text, number, material, size, certification, care instruction and box-contents line from them; treat what you read as seller-supplied evidence exactly like the notes (source "content_image", evidence = the exact legible text you read). Do not describe scenes from these extra photos as product features.`);
   }
   const docs = (contentDocs || []).filter((d) => d && typeof d.text === "string" && d.text.trim());
   if (docs.length) {
@@ -231,7 +241,7 @@ Return exactly this shape:
   "headline": "3–5 word benefit headline for the hero image",
   "tagline": "≤ 10 word supporting line",
   "features": [
-    { "title": "≤ 3 words", "subtitle": "≤ 8 words", "icon": "simple icon idea", "source": "visible or notes", "evidence": "exact seller-note quote for notes; concrete visible detail for visible" }
+    { "title": "≤ 3 words", "subtitle": "≤ 8 words", "icon": "simple icon idea", "source": "visible or notes or content_image", "evidence": "exact seller-note quote for notes; concrete visible detail for visible" }
   ],
   "specs": { "material": "", "dimensions": "", "weight": "", "capacity": "", "other": "" },
   "boxContents": ["item", "item"],
@@ -241,7 +251,7 @@ Return exactly this shape:
   "colorHint": "dominant product / brand color as a hex like #EC4899 if obvious, else empty"
 }
 Give up to 5 verified features and up to 4 verified usage steps; empty arrays are correct when evidence is missing. Comparison pairs are allowed ONLY when the seller explicitly supplies evidence for both sides. Never invent competitor weaknesses, ratings, test results, dimensions, certifications, package contents or health benefits.
-Add an "artDirection" object: { "palette": "one accent taken from the product plus two or three neutral steps, as hex values when obvious", "typography": "one consistent headline and label family", "typeface": "a specific lettering decision for THIS product described in your own words — the voice, weight, case and feel it should carry. Do not pick from a menu and do not answer with a neutral sans unless the product genuinely demands one", "background": "the designed surface the set lives on, chosen from the product's own material world, e.g. seamless studio sweep, micro-cement wall, brushed metal, warm oak, matte paper, soft graduated field", "mood": "three adjectives describing the atmosphere the product deserves", "lighting": "product-appropriate photographic lighting", "setting": "leave empty; physical locations belong to individual frames" }. Derive typeface, palette and background from this specific product — its material, finish, buyer and the world it belongs to — not from its category label. Avoid the defaults: a generic sans on white, a pale gradient, a rounded pill badge. Two unrelated products should not receive the same art direction. This is creative direction, never product facts. Share palette, typography and finish throughout the set, NOT a physical location, props, surface, camera angle or lighting arrangement. Do not force a rustic, gold, pastel or technological style on unrelated products.
+Add an "artDirection" object: { "palette": "one accent taken from the product plus two or three neutral steps, as hex values when obvious", "typography": "one consistent headline and label family", "typeface": "a specific lettering decision for THIS product in your own words — the voice, weight, case and feel. REJECTED ANSWERS, do not write these or anything like them: 'serif headline with a sans body', 'modern serif and sans-serif', 'elegant serif for titles, clean sans for details', 'high-contrast display serif', 'modern and clean', 'minimal and neutral'. Those are the default every generator produces and they make every product look identical. Derive it instead of choosing it: look at the product in the photo and work out where its OWN lettering already exists in the real world — what is printed or moulded on the object and its packaging, how the place that sells it writes its name, the country and decade its design comes from, what the person who buys it reads. Describe that lettering in your own words, then say how it behaves: case, weight, rhythm, how tight, how loud. Your answer must point back at something visible in image 1", "background": "the designed surface the set lives on, chosen from the product's own material world, e.g. seamless studio sweep, micro-cement wall, brushed metal, warm oak, matte paper, soft graduated field", "mood": "three adjectives describing the atmosphere the product deserves", "lighting": "product-appropriate photographic lighting", "setting": "leave empty; physical locations belong to individual frames" }. Derive typeface, palette and background from this specific product — its material, finish, buyer and the world it belongs to — not from its category label. Avoid the defaults: a generic sans on white, a pale gradient, a rounded pill badge, a navy serif headline over a marble surface. Two unrelated products must not receive the same art direction, and neither must two different sessions for the same product: if your answer would fit a copper pot, a running shoe and a face cream equally well, it is wrong — start again and make it specific. This is creative direction, never product facts. Share palette, typography and finish throughout the set, NOT a physical location, props, surface, camera angle or lighting arrangement. Do not force a rustic, gold, pastel or technological style on unrelated products.
 Add "frames", an object keyed by hero, features, lifestyle, model, comparison, dimensions, detail, usage and package. Each value has {"concept":"one specific buyer question answered by this frame", "composition":"concrete camera angle, subject placement, foreground/background and graphic layout", "headline":"up to five words in the target language, or empty for photo-only frames", "setting":"unique physical or graphic environment for this frame", "camera":"viewpoint and crop", "props":"only relevant props; none for technical/graphic frames"}. Act as a commercial art director: plan genuinely different scenes and visual evidence for each frame, all belonging to ONE campaign. Derive scenes from the actual product, never a stock template. A pool float may have luminous water reflections and natural leisure scenes; a backpack may have a credible campus, carrying scene and visible pocket details. These are examples of reasoning, NOT recurring scenery to copy into other products. Show a feature in action only when verified, never invent waterproof demonstrations, unseen interiors or extra accessories. Do not put all frames into one collage; each is produced separately. Amazon hero remains an isolated white-background product photograph.
 VISUAL DIVERSITY PLAN: follow these separate visual roles:
 ${IMAGE_TYPES.map(type => `${type}: ${FRAME_VISUAL_ROLES[type]}`).join("\n")}
@@ -268,7 +278,9 @@ function fallbackBrief(details) {
 
 // onIssue: brief sessizce boşalmasın diye — JSON kesilirse/gelmezse çağrılır.
 // (Kesilmiş JSON, tüm brief'in fallback'e düşmesi demek; logsuz fark edilmiyordu.)
-function parseBrief(raw, details, onIssue) {
+function parseBrief(raw, details, onIssue, { contentDocs = [], contentImageCount = 0 } = {}) {
+  const evidenceText = [String(details || ""), ...contentDocs.map(d => String(d?.text || ""))].join("\n").normalize("NFKC").replace(/\s+/g, " ").toLowerCase();
+  const hasEvidence = value => typeof value === "string" && value.trim() && evidenceText.includes(value.normalize("NFKC").replace(/\s+/g, " ").trim().toLowerCase());
   try {
     const text = String(raw || "");
     const start = text.indexOf("{");
@@ -303,17 +315,17 @@ function parseBrief(raw, details, onIssue) {
       return [type, plan];
     }));
     brief.artDirection = Object.fromEntries(["palette", "typography", "typeface", "background", "mood", "lighting", "setting"].map(key => [key, typeof parsed.artDirection?.[key] === "string" ? parsed.artDirection[key].slice(0, 220) : ""]));
-    brief.features = Array.isArray(brief.features) && brief.features.length ? brief.features.filter(f => f && typeof f.title === "string" && f.title.trim() && (f.source === "visible" || (f.source === "notes" && typeof f.evidence === "string" && f.evidence.trim() && String(details || "").toLowerCase().includes(f.evidence.trim().toLowerCase())))).slice(0, 5).map(f => ({ title: f.title.slice(0, 80), subtitle: typeof f.subtitle === "string" ? f.subtitle.slice(0, 120) : "", icon: typeof f.icon === "string" ? f.icon.slice(0, 40) : "" })) : base.features;
+    brief.features = Array.isArray(brief.features) && brief.features.length ? brief.features.filter(f => f && typeof f.title === "string" && f.title.trim() && (f.source === "visible" || (f.source === "notes" && hasEvidence(f.evidence)) || (f.source === "content_image" && contentImageCount > 0 && typeof f.evidence === "string" && f.evidence.trim()))).slice(0, 5).map(f => ({ title: f.title.slice(0, 80), subtitle: typeof f.subtitle === "string" ? f.subtitle.slice(0, 120) : "", icon: typeof f.icon === "string" ? f.icon.slice(0, 40) : "" })) : base.features;
     brief.specs = Object.fromEntries(Object.keys(base.specs).map(k => [k, typeof brief.specs?.[k] === "string" ? brief.specs[k].slice(0, 160) : ""]));
     brief.boxContents = cleanList(brief.boxContents, 6);
     const comparisonInput = brief.comparison || {};
-    const noteContains = value => typeof value === "string" && value.trim().length > 0 && String(details || "").toLowerCase().includes(value.trim().toLowerCase());
+    const noteContains = hasEvidence;
     brief.comparison = {
       mode: comparisonInput.mode === "same_brand" ? (noteContains(comparisonInput.brandEvidence) ? "same_brand" : "buyer_guide") : comparisonInput.mode === "competitor" ? "competitor" : "buyer_guide",
       leftLabel: typeof comparisonInput.leftLabel === "string" ? comparisonInput.leftLabel.slice(0, 80) : "",
       rightLabel: typeof comparisonInput.rightLabel === "string" ? comparisonInput.rightLabel.slice(0, 80) : "",
       headline: typeof comparisonInput.headline === "string" ? comparisonInput.headline.slice(0, 100) : "",
-      rows: (Array.isArray(comparisonInput.rows) ? comparisonInput.rows : []).filter(r => r && typeof r.criterion === "string" && typeof r.ours === "string" && r.criterion.trim() && r.ours.trim() && typeof r.oursEvidence === "string" && r.oursEvidence.trim()).slice(0, 3).map(r => ({
+      rows: (Array.isArray(comparisonInput.rows) ? comparisonInput.rows : []).filter(r => r && typeof r.criterion === "string" && typeof r.ours === "string" && r.criterion.trim() && r.ours.trim() && noteContains(r.oursEvidence)).slice(0, 3).map(r => ({
         criterion: r.criterion.slice(0, 80), ours: r.ours.slice(0, 100),
         other: noteContains(r.otherEvidence) && typeof r.other === "string" ? r.other.slice(0, 100) : "",
       })),
@@ -439,12 +451,22 @@ ${featureLines(b)}`,
     ? `USAGE SEQUENCE: ${Math.min(3, b.usageSteps.length)} clear views showing these supplied steps with identical product construction and scale. One readable short caption per view, generous gutters and consistent photography.
 ${bulletList(b.usageSteps, 3)}`
     : `IN-USE PRODUCT PHOTOGRAPH: one credible view demonstrating the product's obvious function. No invented assembly instructions, performance claims, numbered steps or generic slogans. No added text.`,
+  // Kullanıcının kendi seti: yönerge onun cümlelerinden gelir. Ürün sadakati,
+  // uydurma-bilgi yasağı ve dil kuralları YİNE geçerli; burada değişen yalnız
+  // sahnenin ne olacağı.
+  custom: (b, set) => `CUSTOM FRAME REQUESTED BY THE SELLER. Their own direction for this image, in their words:
+"""
+${String(set?.brief || "").slice(0, 1500)}
+"""
+Interpret it as an art director: build ONE coherent commercial image that does what they asked, using the actual supplied product. ${set?.hasReference ? "A seller-supplied reference image accompanies this request: follow its composition, framing and graphic language, but the product itself must remain the supplied product, never the one in the reference." : ""} If their description asks for text, write it in the requested output language and keep it short; never invent specifications, claims or contents that are not verified below. If their description conflicts with product fidelity, keep the product truthful and satisfy the rest of their intent.`,
   package: (b) => `INCLUDED ITEMS: arrange only the explicitly confirmed sale contents with accurate quantities and relative sizes. Do not invent a gift box, charger, accessory or packaging from scene props. If contents are not specified, show only the reference product, without claiming a bundle. Labels only from this list:
 ${bulletList(b.boxContents, 6)}`,
 };
 
-function buildListingPrompt({ type, marketplace, style, brief, language, ratio, sourceHint, notes, exampleCount = 0, variantIndex = 0, variantTotal = 1 }) {
-  const t = IMAGE_TYPES.includes(type) ? type : "hero";
+function buildListingPrompt({ type, marketplace, style, brief, language, ratio, sourceHint, notes, exampleCount = 0, variantIndex = 0, variantTotal = 1, customSet = null, productReferences = [], brandProfile = null, primaryRole = "front" }) {
+  // Özel set: sabit tür kalıbı yok, yönerge kullanıcının kendi metninden gelir.
+  const custom = isCustomType(type) ? type : null;
+  const t = custom ? "custom" : IMAGE_TYPES.includes(type) ? type : "hero";
   const m = normalizeMarketplace(marketplace);
   const s = normalizeStyle(style);
   const lang = languageName(language);
@@ -457,7 +479,9 @@ function buildListingPrompt({ type, marketplace, style, brief, language, ratio, 
   // 🔢 Bu kopyanın kendi planı (frames.<type>.variants[i]) varsa onu kullan;
   // yoksa türün ortak planına düş. Ortak plan kopyalar arasında paylaşıldığında
   // üç "lifestyle" karesi aynı odada aynı açıdan çıkıyordu.
-  const basePlan = brief?.frames?.[t] || {};
+  // Özel sette brief LLM'inin bir plan üretmesi beklenmez (hazır tür listesine
+  // göre anahtarlanıyor); yönerge kullanıcının metni.
+  const basePlan = custom ? {} : brief?.frames?.[t] || {};
   const variantPlan = Array.isArray(basePlan.variants) ? basePlan.variants[variantIndex] : null;
   const hasVariantPlan = !!(variantPlan && ["concept", "composition", "setting", "camera", "props", "headline"].some((k) => variantPlan[k]));
   // Kendi planı YOKSA ve bu ilk kopya değilse: ortak sahneyi devralma, yeni kur.
@@ -475,10 +499,11 @@ function buildListingPrompt({ type, marketplace, style, brief, language, ratio, 
   const variantBlock = variantDirection(t, variantIndex, variantTotal);
   const cleanNote = (v) => String(v || "").replace(/\s+/g, " ").trim().slice(0, 400);
   const allNote = cleanNote(notes?._all);
-  const typeNote = cleanNote(notes?.[t]);
+  const typeNote = cleanNote(notes?.[custom || t]);
   // 🖼️ Şeritli stil örnekleri: yalnız tasarım mantığı; ürün/renk/yazı kopyalanmaz
+  const customReferenceBlock = customSet?.hasReference ? "\nIMAGE 2 IS THE SELLER DESIGN REFERENCE: follow its composition, camera, lighting and graphic hierarchy as requested. It is NOT one of the generic style examples. Image 1 and the explicitly numbered product views define the product; never copy another product, branding or unsupported claims from image 2.\n" : "";
   const exampleBlock = exampleCount > 0
-    ? `\nIMAGE INPUTS: image 1 is the ONLY product reference. The last ${exampleCount} images each carry a black band at the bottom reading "STYLE EXAMPLE · DESIGN LOGIC ONLY" — they are worked examples of finished marketplace listing images from OTHER products, supplied ONLY to set the production standard: the finish, resolution and retail polish a listing image needs, and the fact that product photography and graphic design coexist in one frame. Do NOT take their design decisions: not their typefaces, not their palettes, not their layouts, not their badge shapes, not their props, not their words, not their products, not their brand names. Your typography, colour and composition come from the product in image 1 — if this frame ends up looking like one of the examples, it is wrong; never copy or render the black band itself; never let their aesthetics override the marketplace/style direction or the seller instructions below. The product, palette and every word come exclusively from image 1 and the brief.\n`
+    ? `\nIMAGE INPUTS: image 1 is the primary product reference; additional product views are identified separately below. The last ${exampleCount} images each carry a black band at the bottom reading "STYLE EXAMPLE · DESIGN LOGIC ONLY" — they are worked examples of finished marketplace listing images from OTHER products, supplied ONLY to set the production standard: the finish, resolution and retail polish a listing image needs, and the fact that product photography and graphic design coexist in one frame. Do NOT take their design decisions: not their typefaces, not their palettes, not their layouts, not their badge shapes, not their props, not their words, not their products, not their brand names. Your typography, colour and composition come from the product in image 1 — if this frame ends up looking like one of the examples, it is wrong; never copy or render the black band itself; never let their aesthetics override the marketplace/style direction or the seller instructions below. The product, palette and every word come exclusively from image 1 and the brief.\n`
     : "";
   const sellerBlock = allNote || typeNote
     ? `\nSELLER INSTRUCTIONS — follow these exactly; they override scene, prop, background and wording preferences above and below, but never product fidelity, the verified-facts rule or the image-type requirements:${allNote ? `\n• For every frame: ${allNote}` : ""}${typeNote ? `\n• For this frame: ${typeNote}` : ""}\n`
@@ -486,25 +511,27 @@ function buildListingPrompt({ type, marketplace, style, brief, language, ratio, 
 
   return `Create a finished, retail-ready ${MARKET_LABELS[m] || "e-commerce"} product listing image from the reference product photo.
 
-${t === "comparison" ? buildComparisonDirection(frameBrief, m) : TYPE_BRIEF[t](frameBrief)}
+${custom ? TYPE_BRIEF.custom(frameBrief, customSet) : t === "comparison" ? buildComparisonDirection(frameBrief, m) : TYPE_BRIEF[t](frameBrief)}
 ${variantBlock}
-${exampleBlock}${sellerBlock}
+PRIMARY PRODUCT IMAGE 1: ${primaryRole} view.
+${customReferenceBlock}${referenceDirection(productReferences, customSet?.hasReference ? 3 : 2)}${exampleBlock}${sellerBlock}
 FRAME CREATIVE BRIEF: ${(!inheritsSharedScene && framePlan.concept) || "Answer the buyer question specific to this image type."}
 ART-DIRECTED COMPOSITION: ${(!inheritsSharedScene && framePlan.composition) || "Choose a purposeful viewpoint and clear visual hierarchy tailored to the product."}
 FRAME-LOCAL PLAN: ${inheritsSharedScene
     ? `no scene was planned for this copy — invent one that shares NOTHING with the other ${variantTotal - 1} images of this type: a different location or surface, a different light direction and time of day, a different viewpoint and shot scale, and a different reason for the buyer to look`
     : ["setting", "camera", "props"].map(key => framePlan[key] ? `${key}: ${framePlan[key]}` : "").filter(Boolean).join("; ")}
-MANDATORY VISUAL ROLE: ${FRAME_VISUAL_ROLES[t]}
+MANDATORY VISUAL ROLE: ${FRAME_VISUAL_ROLES[t] || "Follow the seller’s custom composition while keeping the actual product and verified facts unchanged."}
 This visual role takes precedence over any conflicting scene suggestion above or decorative marketplace/style direction below. The input image supplies product identity only: its surrounding scenery is not a background template. No scene reuse disguised by different labels.
 These scene directions cannot override product fidelity, supplied facts or the image-type requirements.
 
+${brandDirection(brandProfile, brandProfile?.logoUrl ? 2 + (customSet?.hasReference ? 1 : 0) + productReferences.length : null)}
 PRODUCT FIDELITY — NON-NEGOTIABLE: the product in the output is the EXACT product from the reference photo — same shape, proportions, colors, materials, pattern, logo and labels. Do not redesign, recolor, restyle or replace it. Reconstruct the scene around the unchanged product with matching perspective and physical contact, rather than a pasted cutout. Never reproduce source screenshot borders or background artifacts. ${sourceHint || ""}
 
 ${t === "hero" && m === "amazon"
   ? "AMAZON MAIN IMAGE: pure white RGB 255,255,255 background, single actual sale product occupying approximately 85% of the frame without cropping. No props, inset views, added text, graphics, logos or badges. Existing branding physically printed on the item stays intact. Main-image requirements override the selected decorative style."
   : `${marketDirection(m)}\n${STYLE_DIRECTION[s]}\n${accent}`}
 
-SET ART DIRECTION: ${Object.entries(brief?.artDirection || {}).filter(([key]) => ["palette", "typography", "typeface", "background", "mood"].includes(key)).map(([k,v]) => `${k}: ${v}`).join("; ") || "Decide the palette and lettering from this product and keep that decision consistent across the set."} Share these brand elements only. Lighting is designed separately for this frame’s visual role; do not inherit a shared setting or prop kit. Apply only when compatible with this image type. The set should feel commissioned for one brand, but each image answers a different buyer question. Avoid repeating the same headline, pose and centered layout on every image. No generic template stickers or decorative clutter.
+SET ART DIRECTION (saved store identity takes precedence when provided): ${Object.entries(brief?.artDirection || {}).filter(([key]) => ["palette", "typography", "typeface", "background", "mood"].includes(key)).map(([k,v]) => `${k}: ${v}`).join("; ") || "Decide the palette and lettering from this product and keep that decision consistent across the set."} Treat this as a STARTING POINT, not a rule: if the art direction above reads like a generic default (a serif headline with a sans body, "modern and clean", a neutral palette that would suit any product), ignore it and make your own specific decision for this product — a bland brief is not permission to ship a bland frame. Share these brand elements only. Lighting is designed separately for this frame’s visual role; do not inherit a shared setting or prop kit. Apply only when compatible with this image type. The set should feel commissioned for one brand, but each image answers a different buyer question. Avoid repeating the same headline, pose and centered layout on every image. No generic template stickers or decorative clutter.
 
 TYPOGRAPHY IS A DESIGN DECISION, NOT A DEFAULT: choose the lettering for THIS product — its material, its buyer, the world and era it belongs to — and commit to it. A hand-lettered script, a fat wood-type slab, an all-caps condensed poster face, a delicate high-contrast serif, a technical monospace, a soft rounded sans, a stencil, or two families in deliberate contrast are ALL legitimate answers. There is no house style here and no per-category lookup: decide from the product in front of you. What is not acceptable is the default everyone ships — a mid-weight neutral grotesque, centred, inside a rounded chip, over a pale gradient. Two different products must not come back wearing the same lettering. The only hard limits are craft, not taste: every word legible at thumbnail size, correctly spelled and kerned, ${lang} diacritics complete and correctly shaped, no filler text, no letterforms stretched or distorted past reading, and a safe margin of at least 4% from every edge.
 
@@ -532,4 +559,6 @@ module.exports = {
   parseBrief,
   fallbackBrief,
   buildListingPrompt,
+  isCustomType,
+  customSetId,
 };

@@ -1,209 +1,455 @@
-// 💳 Kredi iadesi (15 Eyl 2026, kullanıcı isteği)
-//
-//   GET  /api/credit-refund/status?userId&generationId  → buton durumu (uygun mu, önceki karar)
-//   POST /api/credit-refund/analyze {userId, generationId, languageCode}
-//        → ürün + sonuç etiketlenir → Gemini analizi → sunucu kararı → kredi iadesi (atomik RPC)
-//
-// Kurallar: üretim başına TEK talep (DB unique), günlük sınır ve azami yaş app_config'ten
-// (refund_enabled / refund_daily_limit / refund_max_age_days, 60 sn önbellek).
-// Kredi, kaydı düşülen tutar (reference_results.credits_deducted) üzerinden iade edilir.
 const express = require("express");
 const axios = require("axios");
 const { rateLimit } = require("express-rate-limit");
-const { v4: uuidv4 } = require("uuid");
-const { supabaseAdmin, supabase } = require("../supabaseClient");
-const teamService = require("../services/teamService");
-const logger = require("../utils/logger");
+const { supabaseAdmin } = require("../supabaseClient");
+const { requireAdmin } = require("../middleware/requireAdmin");
+const { refundIdentity } = require("../middleware/refundIdentity");
 const {
-  buildAnalysisPrompt, parseAnalysis, decideRefund, labelImage, PRODUCT_LABEL, RESULT_LABEL,
-  callRefundVision, extractProductUrls,
+  sendRefundNotification,
+  startRefundReviewWorker,
+} = require("../services/refundNotification");
+const {
+  buildAnalysisPrompt,
+  parseAnalysis,
+  decideRefund,
+  callRefundVision,
+  extractProductUrls,
 } = require("../utils/creditRefundAnalysis");
-
 const router = express.Router();
-const db = supabaseAdmin || supabase;
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-// ─── app_config (60 sn önbellek) ───
-const DEFAULT_CONFIG = { enabled: true, dailyLimit: 3, maxAgeDays: 14 };
-let configCache = { at: 0, value: DEFAULT_CONFIG };
-async function getRefundConfig() {
-  if (Date.now() - configCache.at < 60000) return configCache.value;
-  try {
-    const { data } = await db.from("app_config").select("refund_enabled, refund_daily_limit, refund_max_age_days").limit(1).maybeSingle();
-    if (data) {
-      configCache = { at: Date.now(), value: {
-        enabled: data.refund_enabled !== false,
-        dailyLimit: Number.isFinite(data.refund_daily_limit) ? data.refund_daily_limit : DEFAULT_CONFIG.dailyLimit,
-        maxAgeDays: Number.isFinite(data.refund_max_age_days) ? data.refund_max_age_days : DEFAULT_CONFIG.maxAgeDays,
-      } };
-    } else configCache = { at: Date.now(), value: DEFAULT_CONFIG };
-  } catch (_) { configCache = { at: Date.now(), value: configCache.value }; }
-  return configCache.value;
-}
-
-async function loadGeneration(userId, generationId) {
-  const id = String(generationId);
-  let q = db.from("reference_results")
-    .select("id, generation_id, user_id, result_image_url, pre_upscale_image_url, reference_images, credits_deducted, status, created_at, settings")
-    .eq("user_id", userId);
-  q = UUID_RE.test(id) ? q.or(`generation_id.eq.${id},id.eq.${id}`) : q.eq("generation_id", id);
-  const { data, error } = await q.order("created_at", { ascending: false }).limit(1);
-  if (error) throw error;
-  return (data || [])[0] || null;
-}
-
-async function loadExisting(userId, generationId) {
-  const { data, error } = await db.from("credit_refund_requests")
-    .select("id, status, verdict, product_match, render_quality, refund_percent, refunded_credits, defects, summary, created_at")
-    .eq("user_id", userId).eq("generation_id", String(generationId)).maybeSingle();
-  if (error) throw error;
-  return data || null;
-}
-
-async function countToday(userId) {
-  const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
-  const { count, error } = await db.from("credit_refund_requests")
-    .select("id", { count: "exact", head: true }).eq("user_id", userId).gte("created_at", since).neq("status", "error");
-  if (error) throw error;
-  return count || 0;
-}
-
-const publicRequest = (row) => row && ({
-  status: row.status, verdict: row.verdict, productMatch: row.product_match, renderQuality: row.render_quality,
-  refundPercent: row.refund_percent, refundedCredits: row.refunded_credits, defects: row.defects || [],
-  summary: row.summary, createdAt: row.created_at,
-});
-
-/** Uygunluk kontrolü — status ucu ve analyze aynı mantığı kullanır. */
-async function checkEligibility(userId, generationId) {
-  const config = await getRefundConfig();
-  if (!config.enabled) return { eligible: false, reason: "disabled", config };
-  const existing = await loadExisting(userId, generationId);
-  if (existing && existing.status !== "error") return { eligible: false, reason: "already_requested", existing, config };
-  const gen = await loadGeneration(userId, generationId);
-  if (!gen) return { eligible: false, reason: "not_found", config };
-  if (!gen.result_image_url) return { eligible: false, reason: "no_result", config, gen };
-  const deducted = Math.max(0, Number(gen.credits_deducted) || 0);
-  if (deducted <= 0) return { eligible: false, reason: "no_charge", config, gen };
-  const ageDays = (Date.now() - Date.parse(gen.created_at)) / 86400000;
-  if (Number.isFinite(ageDays) && ageDays > config.maxAgeDays) return { eligible: false, reason: "too_old", config, gen };
-  const productUrls = extractProductUrls(gen.reference_images);
-  if (!productUrls.length) return { eligible: false, reason: "no_product_photo", config, gen };
-  const used = await countToday(userId);
-  if (used >= config.dailyLimit) return { eligible: false, reason: "daily_limit", config, gen, dailyRemaining: 0 };
-  return { eligible: true, reason: "ok", config, gen, productUrls, creditsDeducted: deducted, dailyRemaining: config.dailyLimit - used };
-}
-
-router.get("/status", async (req, res) => {
-  try {
-    const { userId, generationId } = req.query;
-    if (!UUID_RE.test(String(userId || "")) || !generationId) return res.status(400).json({ success: false, error: "userId ve generationId gerekli" });
-    const e = await checkEligibility(userId, generationId);
-    return res.json({
-      success: true, eligible: e.eligible, reason: e.reason,
-      creditsDeducted: e.creditsDeducted ?? (e.gen ? Math.max(0, Number(e.gen.credits_deducted) || 0) : null),
-      dailyRemaining: e.dailyRemaining ?? null, dailyLimit: e.config.dailyLimit,
-      existing: publicRequest(e.existing),
+const db = supabaseAdmin;
+if (db && process.env.NODE_ENV !== "test") startRefundReviewWorker(db);
+const UUID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const check = (r) => {
+  if (r.error) throw r.error;
+  return r.data;
+};
+const publicRequest = (r) =>
+  r && {
+    id: r.id,
+    status: r.status,
+    verdict: r.verdict,
+    productMatch: r.product_match,
+    renderQuality: r.render_quality,
+    refundedCredits: r.refunded_credits,
+    refundPercent: r.refund_percent,
+    summary: r.summary,
+    reason: r.reason,
+    appealText: r.appeal_text,
+    adminNote: r.admin_note,
+    creditsDeducted: r.credits_deducted,
+    defects: r.defects,
+    createdAt: r.created_at,
+  };
+const wrap = (fn) => (req, res, next) =>
+  Promise.resolve(fn(req, res)).catch(next);
+router.use((req, res, next) =>
+  db ? next() : res.status(503).json({ success: false, reason: "unavailable" }),
+);
+router.get(
+  "/admin/requests",
+  requireAdmin,
+  wrap(async (req, res) => {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    let q = db
+      .from("credit_refund_requests")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false });
+    if (req.query.status === "pending" || !req.query.status)
+      q = q.in("status", ["review_pending", "appeal_pending", "error"]);
+    else if (req.query.status !== "all") q = q.eq("status", req.query.status);
+    const result = await q.range((page - 1) * 20, page * 20 - 1);
+    check(result);
+    res.json({ success: true, items: result.data, total: result.count, page });
+  }),
+);
+router.post(
+  "/admin/:id/decision",
+  requireAdmin,
+  wrap(async (req, res) => {
+    const { decision, note, verifiedOwner } = req.body || {};
+    if (verifiedOwner && !UUID.test(verifiedOwner))
+      return res.status(400).json({ success: false, reason: "invalid_owner" });
+    if (
+      !UUID.test(req.params.id) ||
+      !["approve", "reject"].includes(decision) ||
+      typeof note !== "string" ||
+      note.trim().length < 5 ||
+      note.length > 1500
+    )
+      return res
+        .status(400)
+        .json({ success: false, reason: "invalid_decision" });
+    const result = check(
+      await db.rpc("settle_credit_refund", {
+        p_id: req.params.id,
+        p_status: decision === "approve" ? "refunded" : "appeal_rejected",
+        p_admin: req.adminUser.email,
+        p_note: note.trim(),
+        p_analysis: verifiedOwner ? { verifiedOwner } : {},
+      }),
+    );
+    const row = await sendRefundNotification(db, result.request);
+    res.json({
+      success: true,
+      request: row,
+      alreadySettled: result.alreadySettled,
     });
-  } catch (err) {
-    logger.error("💳 [CREDIT_REFUND] status hata:", err.message);
-    return res.status(500).json({ success: false, error: "status failed" });
-  }
+  }),
+);
+router.post(
+  "/admin/:id/notify",
+  requireAdmin,
+  wrap(async (req, res) => {
+    if (!UUID.test(req.params.id)) return res.sendStatus(400);
+    const row = check(
+      await db
+        .from("credit_refund_requests")
+        .select("*")
+        .eq("id", req.params.id)
+        .single(),
+    );
+    res.json({ success: true, request: await sendRefundNotification(db, row) });
+  }),
+);
+router.use(refundIdentity(db));
+const limiter = rateLimit({
+  windowMs: 60000,
+  limit: 8,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
 });
-
-const analyzeLimiter = rateLimit({ windowMs: 60 * 1000, limit: 6, standardHeaders: "draft-7", legacyHeaders: false });
-
-async function fetchBuffer(url) {
-  const r = await axios.get(url, { responseType: "arraybuffer", timeout: 30000 });
-  return Buffer.from(r.data);
+const devPreview = require("../services/refundDevPreview");
+const preview = devPreview.createPreview({ loadGeneration, imageData });
+router.use("/dev", (req, res, next) =>
+  devPreview.enabled()
+    ? next()
+    : res.status(404).json({ success: false, reason: "dev_preview_disabled" }),
+);
+router.get(
+  "/dev/status",
+  wrap(async (req, res) => {
+    res.json(await preview.status(req.refundUserId, req.query.generationId));
+  }),
+);
+router.post(
+  "/dev/analyze",
+  limiter,
+  wrap(async (req, res) => {
+    res.json(
+      await preview.analyze(
+        req.refundUserId,
+        req.body?.generationId,
+        req.body?.languageCode,
+      ),
+    );
+  }),
+);
+router.post(
+  "/dev/appeal",
+  limiter,
+  wrap(async (req, res) => {
+    res.json(
+      preview.appeal(req.refundUserId, req.body?.requestId, req.body?.text),
+    );
+  }),
+);
+async function loadGeneration(userId, id) {
+  if (!UUID.test(String(id || ""))) return null;
+  return (check(
+    await db
+      .from("reference_results")
+      .select("*")
+      .eq("user_id", userId)
+      .or(`generation_id.eq.${id},id.eq.${id}`)
+      .order("created_at", { ascending: false })
+      .limit(1),
+  ) || [])[0];
 }
-async function uploadAnalysisImage(buffer, userId, tag) {
-  const fileName = `refund-analysis/${userId}/${Date.now()}_${tag}_${uuidv4().slice(0, 8)}.jpg`;
-  const { error } = await db.storage.from("reference").upload(fileName, buffer, { contentType: "image/jpeg" });
-  if (error) throw error;
-  return db.storage.from("reference").getPublicUrl(fileName).data.publicUrl;
-}
-
-router.post("/analyze", analyzeLimiter, async (req, res) => {
-  const started = Date.now();
-  const { userId, generationId, languageCode } = req.body || {};
-  if (!UUID_RE.test(String(userId || "")) || !generationId) return res.status(400).json({ success: false, error: "userId ve generationId gerekli" });
-  let requestId = null;
-  try {
-    const e = await checkEligibility(userId, generationId);
-    if (!e.eligible) {
-      return res.status(e.reason === "already_requested" ? 200 : 409).json({
-        success: e.reason === "already_requested", eligible: false, reason: e.reason, existing: publicRequest(e.existing),
-      });
-    }
-    const { gen, productUrls, creditsDeducted } = e;
-    const resultUrl = gen.pre_upscale_image_url || gen.result_image_url;
-
-    // 1) Kayıt aç (unique → yarış durumunda ikinci istek burada düşer)
-    const { data: inserted, error: insErr } = await db.from("credit_refund_requests").insert({
-      user_id: userId, generation_id: String(generationId), result_image_url: resultUrl, product_image_urls: productUrls,
-      credits_deducted: creditsDeducted, status: "analyzing", language_code: String(languageCode || "en").slice(0, 10),
-    }).select("id").single();
-    if (insErr) {
-      if (String(insErr.code) === "23505") {
-        const ex = await loadExisting(userId, generationId);
-        return res.json({ success: true, eligible: false, reason: "already_requested", existing: publicRequest(ex) });
-      }
-      throw insErr;
-    }
-    requestId = inserted.id;
-
-    // 2) Etiketli görseller (ürünler mavi, sonuç kırmızı şerit)
-    const labeled = [];
-    for (let i = 0; i < productUrls.length; i++) {
-      labeled.push(await labelImage(await fetchBuffer(productUrls[i]), PRODUCT_LABEL(i + 1, productUrls.length)));
-    }
-    labeled.push(await labelImage(await fetchBuffer(resultUrl), RESULT_LABEL()));
-    const analysisUrls = [];
-    for (let i = 0; i < labeled.length; i++) {
-      analysisUrls.push(await uploadAnalysisImage(labeled[i], userId, i < productUrls.length ? `product${i + 1}` : "result"));
-    }
-
-    // 3) Gemini analizi
-    const prompt = buildAnalysisPrompt({ languageCode, productCount: productUrls.length });
-    const { model, raw } = await callRefundVision(prompt, analysisUrls);
-    const analysis = parseAnalysis(raw);
-    if (!analysis) throw new Error("Analiz çıktısı çözümlenemedi");
-
-    // 4) Karar + iade
-    const decision = decideRefund(analysis, creditsDeducted);
-    let newBalance = null;
-    if (decision.credits > 0) {
-      const eff = await teamService.getEffectiveCredits(userId).catch(() => null);
-      const owner = eff?.creditOwnerId || userId;
-      const { data: rpc, error: rpcErr } = await db.rpc("refund_user_credit", { user_id: owner, credit_amount: decision.credits });
-      if (rpcErr || !rpc || rpc.success === false) throw new Error(`Kredi iadesi yazılamadı: ${rpcErr?.message || rpc?.error || "unknown"}`);
-      newBalance = rpc.new_balance;
-    }
-
-    const row = {
-      status: decision.status, verdict: decision.outcome, product_match: analysis.productMatch, render_quality: analysis.renderQuality,
-      confidence: analysis.confidence, refund_percent: decision.percent, refunded_credits: decision.credits, defects: analysis.defects,
-      summary: analysis.summary, model, raw_response: { raw, verdict: analysis.verdict }, analysis_image_urls: analysisUrls,
-      updated_at: new Date().toISOString(),
+async function eligibility(userId, id) {
+  const config =
+    check(
+      await db
+        .from("app_config")
+        .select("refund_enabled,refund_daily_limit,refund_max_age_days")
+        .limit(1)
+        .maybeSingle(),
+    ) || {};
+  const gen = await loadGeneration(userId, id);
+  if (!gen) return { eligible: false, reason: "not_found" };
+  const proof = check(
+    await db
+      .from("credit_refund_charges")
+      .select(
+        "credits,credit_owner_id,result_image_url,product_image_urls,created_at",
+      )
+      .eq("user_id", userId)
+      .eq("generation_id", String(gen.generation_id || gen.id))
+      .maybeSingle(),
+  );
+  // Kanıt satırı borçlanma anında yazıldığı için görsel alanları boş olabilir
+  // (üretim o an bitmemiştir). Yalnız DOLU alanlar generation satırının
+  // üzerine yazılır; boş olanlar generation'dan gelmeye devam eder — aksi
+  // halde result_image_url null'a ezilip "no_result" ile buton gizleniyordu.
+  if (proof) {
+    const overrides = {
+      credits_deducted: proof.credits,
+      credit_owner_id: proof.credit_owner_id,
+      created_at: proof.created_at,
     };
-    await db.from("credit_refund_requests").update(row).eq("id", requestId);
-    logger.log(`💳 [CREDIT_REFUND] ${userId} gen=${generationId} match=${analysis.productMatch} quality=${analysis.renderQuality} ` +
-      `verdict=${analysis.verdict}(${analysis.confidence}) → ${decision.outcome} ${decision.credits}/${creditsDeducted} kredi (${model}, ${Date.now() - started}ms)`);
-
-    return res.json({
-      success: true, eligible: true, reason: "ok",
-      status: decision.status, verdict: decision.outcome, refundPercent: decision.percent, refundedCredits: decision.credits,
-      creditsDeducted, productMatch: analysis.productMatch, renderQuality: analysis.renderQuality, confidence: analysis.confidence,
-      defects: analysis.defects, summary: analysis.summary, newBalance, model,
-    });
-  } catch (err) {
-    logger.error("💳 [CREDIT_REFUND] analyze hata:", err.message);
-    // Hatalı kaydı "error" olarak işaretle → kullanıcı yeniden deneyebilsin (unique çakışmasın diye silinir)
-    if (requestId) await db.from("credit_refund_requests").delete().eq("id", requestId).then(() => {}, () => {});
-    return res.status(502).json({ success: false, reason: "analysis_failed", error: "Analiz tamamlanamadı, lütfen tekrar dene." });
+    if (proof.result_image_url) {
+      overrides.result_image_url = proof.result_image_url;
+      overrides.pre_upscale_image_url = null;
+    }
+    if (
+      Array.isArray(proof.product_image_urls)
+        ? proof.product_image_urls.length
+        : proof.product_image_urls
+    )
+      overrides.reference_images = proof.product_image_urls;
+    Object.assign(gen, overrides);
   }
+  const aliases = [String(gen.id), String(gen.generation_id || gen.id)];
+  const existing = (check(
+    await db
+      .from("credit_refund_requests")
+      .select("*")
+      .eq("user_id", userId)
+      .in("generation_id", aliases)
+      .order("created_at")
+      .limit(1),
+  ) || [])[0];
+  if (
+    existing?.status === "analyzing" &&
+    Date.now() - Date.parse(existing.created_at) > 180000
+  ) {
+    const recovered = check(
+      await db
+        .from("credit_refund_requests")
+        .update({
+          status: "review_pending",
+          error_message: "Analysis interrupted; manual review required",
+        })
+        .eq("id", existing.id)
+        .eq("status", "analyzing")
+        .select("*")
+        .maybeSingle(),
+    );
+    if (recovered) Object.assign(existing, recovered);
+  }
+  if (existing)
+    return {
+      eligible: false,
+      reason: "already_requested",
+      existing: publicRequest(existing),
+      creditsDeducted: gen.credits_deducted,
+    };
+  const counted = await db
+    .from("credit_refund_requests")
+    .select("id", { head: true, count: "exact" })
+    .eq("user_id", userId)
+    .gte("created_at", new Date(Date.now() - 86400000).toISOString());
+  check(counted);
+  const remaining = Math.max(
+    0,
+    (config.refund_daily_limit ?? 3) - (counted.count || 0),
+  );
+  // Yaş penceresi app_config.refund_max_age_days'ten gelir. Önceden 24 saat
+  // KOD İÇİNDE sabitti ve config okunup kullanılmıyordu; değeri değiştirmek
+  // hiçbir şeyi değiştirmiyordu (17 Eyl 2026).
+  const maxAgeMs =
+    Math.max(1, Number(config.refund_max_age_days) || 1) * 86400000;
+  let reason = !config.refund_enabled
+    ? "disabled"
+    : !gen.result_image_url
+      ? "no_result"
+      : !gen.credits_deducted
+        ? "no_charge"
+        : Date.now() - Date.parse(gen.created_at) > maxAgeMs
+          ? "too_old"
+          : !extractProductUrls(gen.reference_images).length
+            ? "no_product_photo"
+            : !remaining
+              ? "daily_limit"
+              : "ok";
+  return {
+    eligible: reason === "ok",
+    reason,
+    gen,
+    creditsDeducted: gen.credits_deducted,
+    dailyRemaining: remaining,
+  };
+}
+router.get(
+  "/status",
+  wrap(async (req, res) => {
+    const { gen, ...status } = await eligibility(
+      req.refundUserId,
+      req.query.generationId,
+    );
+    res.json({ success: true, ...status });
+  }),
+);
+// Only trusted image hosts are downloaded. No redirects/private-network URLs.
+async function imageData(url) {
+  const u = new URL(url);
+  const storageHost = new URL(process.env.SUPABASE_URL).hostname;
+  if (
+    u.protocol !== "https:" ||
+    !(
+      u.hostname === storageHost ||
+      u.hostname === "api.diress.ai" ||
+      u.hostname === "diress.ai" ||
+      u.hostname.endsWith(".fal.media") ||
+      u.hostname === "replicate.delivery" ||
+      u.hostname.endsWith(".replicate.delivery")
+    )
+  )
+    throw new Error("Untrusted image host");
+  const response = await axios.get(url, {
+    responseType: "arraybuffer",
+    timeout: 20000,
+    maxRedirects: 0,
+    maxContentLength: 20 * 1024 * 1024,
+  });
+  const sharp = require("sharp");
+  const buffer = await sharp(response.data, { limitInputPixels: 40000000 })
+    .rotate()
+    .resize({
+      width: 1400,
+      height: 1400,
+      fit: "inside",
+      withoutEnlargement: true,
+    })
+    .jpeg({ quality: 90 })
+    .toBuffer();
+  return `data:image/jpeg;base64,${buffer.toString("base64")}`;
+}
+router.post(
+  "/analyze",
+  limiter,
+  wrap(async (req, res) => {
+    const { generationId, languageCode } = req.body || {};
+    // Initial review is visual-only. Written explanations belong to the appeal.
+    const reason = "";
+    const category = "general";
+    const e = await eligibility(req.refundUserId, generationId);
+    if (!e.eligible) {
+      const { gen, ...status } = e;
+      return res
+        .status(e.existing ? 200 : 409)
+        .json({ success: !!e.existing, ...status });
+    }
+    const gen = e.gen;
+    // New generations persist the charged owner. Legacy team charges require review, never guess another account.
+    const owner = null; // The claim RPC derives ownership exclusively from the private charge ledger.
+    const claimed = check(
+      await db.rpc("claim_credit_refund", {
+        p_user: req.refundUserId,
+        p_result: gen.id,
+        p_reason: reason.trim(),
+        p_category: category,
+        p_language: String(languageCode || "en").slice(0, 10),
+        p_owner: owner,
+      }),
+    );
+    if (claimed.existing)
+      return res.json({ success: true, ...publicRequest(claimed.existing) });
+    const row = claimed.request;
+    try {
+      const products = extractProductUrls(row.product_image_urls);
+      const images = await Promise.all(
+        [...products, row.result_image_url].map(imageData),
+      );
+      const prompt = buildAnalysisPrompt({
+        languageCode,
+        productCount: products.length,
+        reason,
+        category,
+        userDetails:
+          gen.settings?.additionalDetails ||
+          gen.settings?.additional_details ||
+          "",
+      });
+      const { model, raw } = await callRefundVision(prompt, images);
+      const analysis = parseAnalysis(raw);
+      if (!analysis) throw new Error("Invalid analysis response");
+      const decision = decideRefund(analysis, row.credits_deducted);
+      const result = check(
+        await db.rpc("settle_credit_refund", {
+          p_id: row.id,
+          p_status:
+            decision.status === "refunded" && !row.credit_owner_id
+              ? "review_pending"
+              : decision.status,
+          p_analysis: { ...analysis, model },
+        }),
+      );
+      return res.json({
+        success: true,
+        ...publicRequest(result.request),
+        newBalance: result.newBalance,
+      });
+    } catch (error) {
+      // Never delete a request or retry a credit mutation after an ambiguous network failure.
+      await db
+        .from("credit_refund_requests")
+        .update({
+          status: "review_pending",
+          error_message: String(error.message).slice(0, 300),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", row.id)
+        .eq("status", "analyzing");
+      const current = check(
+        await db
+          .from("credit_refund_requests")
+          .select("*")
+          .eq("id", row.id)
+          .single(),
+      );
+      return res.json({ success: true, ...publicRequest(current) });
+    }
+  }),
+);
+router.post(
+  "/appeal",
+  limiter,
+  wrap(async (req, res) => {
+    const { requestId, text } = req.body || {};
+    if (
+      !UUID.test(requestId || "") ||
+      typeof text !== "string" ||
+      text.trim().length < 20 ||
+      text.length > 2000
+    )
+      return res.status(400).json({ success: false, reason: "invalid_appeal" });
+    const changed = check(
+      await db
+        .from("credit_refund_requests")
+        .update({
+          status: "appeal_pending",
+          appeal_text: text.trim(),
+          appealed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", requestId)
+        .eq("user_id", req.refundUserId)
+        .eq("status", "rejected")
+        .is("appealed_at", null)
+        .select("*")
+        .maybeSingle(),
+    );
+    if (!changed)
+      return res
+        .status(409)
+        .json({ success: false, reason: "appeal_unavailable" });
+    res.json({ success: true, ...publicRequest(changed) });
+  }),
+);
+router.use((error, req, res, next) => {
+  console.error("[Refund]", error.message);
+  res.status(500).json({ success: false, reason: "request_failed" });
 });
-
 module.exports = router;
-module.exports._test = { checkEligibility, getRefundConfig };
+module.exports._test = { publicRequest, eligibility };

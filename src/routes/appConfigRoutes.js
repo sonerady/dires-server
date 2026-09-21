@@ -139,6 +139,7 @@ router.get("/app-config/version", async (req, res) => {
         // Çekim modu ön kapısı ve otomatik stil ana şalteri — config satırı
         // yoksa ikisi de AÇIK kabul edilir (bugünkü davranış).
         createModelStartModalEnabled: true,
+        customToolCreationVisible: true,
         autoGlobalStyleEnabled: true,
         videoCredits: { ...DEFAULT_VIDEO_CREDITS },
         lang,
@@ -173,6 +174,7 @@ router.get("/app-config/version", async (req, res) => {
       styleSuggestionsVisible: data.style_suggestions_visible === true,
       // ⚠️ Bu ikisi varsayılan AÇIK: kolon henüz eklenmemişse (undefined)
       // mevcut davranış korunmalı. Yalnız AÇIKÇA false kapatır.
+      customToolCreationVisible: data.custom_tool_creation_visible !== false,
       createModelStartModalEnabled:
         data.create_model_start_modal_enabled !== false,
       autoGlobalStyleEnabled: data.auto_global_style_enabled !== false,

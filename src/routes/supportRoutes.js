@@ -4,6 +4,7 @@ const { service } = require('../lib/supportMailRuntime');
 const { supabaseAdmin } = require('../supabaseClient');
 const { resolveSupportContext } = require('../lib/supportContext');
 const router = express.Router();
+router.use(require('./supportAssistantRoutes').createSupportAssistantRouter());
 
 // Contact is available to signed-out customers and native clients as well.
 // It only sends to our fixed support inbox, never to a client-supplied recipient.

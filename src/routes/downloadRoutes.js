@@ -6,6 +6,7 @@ const { createCanvas, loadImage, registerFont } = require("canvas");
 const sharp = require("sharp");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
+const { fullSizeCompressedUrl } = require("../utils/imageOptimizer");
 
 // ⚠️ Filigran fontu REPO'DAN gelir, sistemden DEĞİL.
 // Railway/Linux konteynerinde Arial (ve çoğu zaman hiçbir font) kurulu değil;
@@ -1291,7 +1292,34 @@ router.get("/image", async (req, res) => {
 
     const needsConfiguredOutput = addAiBadge || hasFormatOverride || hasQualityOverride;
 
+    // 🚀 Ücretli PRO + AI etiketi YOK: sunucunun görseli decode/encode edip
+    // baytları aktarmasına gerek yok. Format/kalite istense bile Cloudflare aynı
+    // piksel ölçüsünde üretiyor → istemci doğrudan CDN'den indirir.
+    // (SimpleImageModal her indirmede format+quality gönderdiği için eskiden bu
+    //  dal hiç çalışmıyor, her kare sunucudan akıyordu.)
+    const sourceIsPng = /\.png(\?|$)/i.test(String(imageUrl));
+    if (downloadAccess.canDownloadOriginal && !addAiBadge && requestedFormat !== "pdf") {
+      if (requestedFormat === "jpg" || requestedFormat === "webp") {
+        const cdnUrl = fullSizeCompressedUrl(imageUrl, quality, requestedFormat === "webp" ? "webp" : "jpeg");
+        if (cdnUrl !== imageUrl) {
+          console.log(`💎 [DOWNLOAD API] Ücretli Pro - CDN ${requestedFormat} redirect (sunucu işlemiyor)`);
+          return res.redirect(cdnUrl);
+        }
+      } else if (requestedFormat === "png" && sourceIsPng) {
+        // PNG istendi ve kaynak zaten PNG → alfa korunsun, orijinale yönlendir
+        console.log("💎 [DOWNLOAD API] Ücretli Pro - PNG orijinal redirect");
+        return res.redirect(imageUrl);
+      }
+    }
+
     if (downloadAccess.canDownloadOriginal && !needsConfiguredOutput) {
+      // 📦 compress=1: aynı piksel ölçüsünde ama JPEG olarak (4-6 MB PNG → ~600 KB).
+      // Yalnız şeffaf OLMAYAN kareler için; çağıran taraf açıkça ister.
+      if (String(req.query.compress || "") === "1") {
+        const compressed = fullSizeCompressedUrl(imageUrl, req.query.q);
+        console.log("💎 [DOWNLOAD API] Ücretli Pro - tam boyut sıkıştırılmış redirect");
+        return res.redirect(compressed);
+      }
       // Yalnızca ücretli Pro kullanıcı - orijinal resmi redirect et
       console.log("💎 [DOWNLOAD API] Ücretli Pro kullanıcı - orijinal resim redirect");
       return res.redirect(imageUrl);

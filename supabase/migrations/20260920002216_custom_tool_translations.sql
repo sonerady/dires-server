@@ -1,0 +1,3 @@
+alter table public.custom_studio_tools add column if not exists translations jsonb not null default '{}'::jsonb check(jsonb_typeof(translations)='object');
+comment on column public.custom_studio_tools.translations is 'Locale keyed copy: {tr:{title,description,controls:{controlId:{label,hint,options:{optionId:label}}}}}. Populate only source locale on creation; admin may add translations later. Generation instructions remain in screen_schema.';
+update public.custom_studio_tools set translations=jsonb_build_object(language,jsonb_build_object('title',coalesce(title,description),'description',coalesce(brief,description))) where translations='{}'::jsonb;

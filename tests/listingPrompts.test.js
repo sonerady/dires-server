@@ -129,7 +129,7 @@ test("comparison needs matching evidenced rows and Amazon limits it to confirmed
 test("unsupported alternative facts cannot turn into comparison values", () => {
  const brief=parseBrief(JSON.stringify({comparison:{mode:"same_brand",brandEvidence:"made up",rows:[{criterion:"Durability",ours:"Strong",oursEvidence:"visible edge",other:"Breaks",otherEvidence:"made up"}]}}),"plain notes");
  assert.equal(brief.comparison.mode,"buyer_guide");
- assert.equal(brief.comparison.rows[0].other,"");
+ assert.deepEqual(brief.comparison.rows, []);
  assert.doesNotMatch(buildListingPrompt({type:"comparison",brief}), /Breaks/);
 });
 
@@ -364,4 +364,44 @@ test("parseBrief: sağlam JSON'da uyarı üretilmez", () => {
   const issues = [];
   parseBrief(JSON.stringify({ productName: "X" }), "x", (m) => issues.push(m));
   assert.deepEqual(issues, []);
+});
+
+// 🎨 Özel set (17 Eyl 2026): kullanıcının kendi yazdığı yönerge prompt'a
+// birebir girer, hazır tür kalıplarından hiçbiri devreye girmez.
+test("a custom set carries the seller's own direction instead of a fixed template", () => {
+  const { isCustomType, customSetId, normalizeImageTypes, buildListingPrompt } = require("../src/utils/listingPrompts");
+  const key = "custom:11111111-2222-4333-8444-555555555555";
+  assert.equal(isCustomType(key), true);
+  assert.equal(isCustomType("hero"), false);
+  assert.equal(customSetId(key), "11111111-2222-4333-8444-555555555555");
+  assert.deepEqual(normalizeImageTypes([key, "hero", "nope"]), [key, "hero"]);
+  const prompt = buildListingPrompt({
+    type: key,
+    marketplace: "amazon",
+    style: "clean",
+    language: "tr",
+    ratio: "1:1",
+    brief: { productName: "Mum", headline: "Sıcak ışık" },
+    customSet: { label: "Hediye paketi", brief: "Ürün altın kurdeleli bir hediye kutusunun yanında dursun.", hasReference: true },
+  });
+  assert.ok(prompt.includes("CUSTOM FRAME REQUESTED BY THE SELLER"));
+  assert.ok(prompt.includes("altın kurdeleli"));
+  assert.ok(prompt.includes("seller-supplied reference image"));
+  // Hazır tür kalıpları sızmamalı
+  assert.ok(!prompt.includes("MAIN PRODUCT PHOTOGRAPH"));
+  assert.ok(!prompt.includes("FEATURE EXPLANATION"));
+});
+
+test("a custom set without a reference does not claim one exists", () => {
+  const { buildListingPrompt } = require("../src/utils/listingPrompts");
+  const prompt = buildListingPrompt({
+    type: "custom:11111111-2222-4333-8444-555555555555",
+    marketplace: "etsy",
+    style: "auto",
+    language: "en",
+    ratio: "4:5",
+    brief: { productName: "Candle" },
+    customSet: { label: "Gift", brief: "Show the product beside a gift box.", hasReference: false },
+  });
+  assert.ok(!prompt.includes("seller-supplied reference image"));
 });

@@ -18,7 +18,9 @@
 
 const express = require("express");
 const { customAlphabet } = require("nanoid");
+const axios = require("axios");
 const { supabase } = require("../supabaseClient");
+const { checkUserDownloadAccess, addWatermarkToImage } = require("./downloadRoutes");
 
 const router = express.Router();
 
@@ -30,7 +32,7 @@ const generateToken = customAlphabet(
 
 const WEB_APP_URL = process.env.WEB_APP_URL || "https://app.diress.ai";
 
-const VALID_SCOPES = new Set(["all_history", "albums", "album", "single_item"]);
+const VALID_SCOPES = new Set(["all_history", "albums", "album", "single_item", "image_group"]);
 const VALID_ITEM_TYPES = new Set([
   "reference_results",
   "pose_change_generations",
@@ -141,6 +143,7 @@ const createShareRow = async ({
   item_type = null,
   item_id = null,
   expiresAt = null,
+  payload = null,
 }) => {
   const token = await createUniqueShareToken();
   const { data, error } = await supabase
@@ -153,6 +156,7 @@ const createShareRow = async ({
       item_id,
       token,
       expires_at: expiresAt,
+      ...(payload ? { payload } : {}),
     })
     .select("*")
     .single();
@@ -160,6 +164,112 @@ const createShareRow = async ({
   if (error) throw error;
   return data;
 };
+
+// ─────────────────────────────────────────
+// 🔗 Grup paylaşımı (17 Eyl 2026): listing seti / varyant grubu / kit destesi
+// tek linkte paylaşılır. Görseller farklı yerlerde durduğu için (satır, JSON
+// kolonu, storage) token'ın payload'ı listeyi taşır.
+//
+// ⚠️ FİLİGRAN: paylaşılan sayfa HAM depolama URL'ini ASLA vermez. Hem önizleme
+// hem indirme /api/public/share/:token/i/:index üzerinden geçer; sunucu görseli
+// SAHİBİNİN planına göre servis eder (PRO değilse/denemedeyse filigranlı).
+// Aksi hâlde link, uygulamadaki filigran kapısını tamamen atlatırdı.
+// ─────────────────────────────────────────
+
+const MAX_GROUP_IMAGES = 24;
+// Yalnız kendi üretimlerimiz paylaşılabilir: Supabase storage public URL'i olmalı
+const isOwnStorageUrl = (url) =>
+  typeof url === "string" &&
+  /^https?:\/\//i.test(url) &&
+  /\/storage\/v1\/object\/public\//.test(url);
+
+const publicShareUrl = (token) => `${WEB_APP_URL}/share/${token}`;
+
+router.post("/share/group", async (req, res) => {
+  try {
+    const { userId, images, title = null, itemType = null } = req.body || {};
+    if (!userId) return res.status(400).json({ success: false, message: "Missing userId" });
+    const list = (Array.isArray(images) ? images : [])
+      .map((entry) => (typeof entry === "string" ? { url: entry } : entry))
+      .filter((entry) => isOwnStorageUrl(entry?.url))
+      .slice(0, MAX_GROUP_IMAGES)
+      .map((entry) => ({
+        url: String(entry.url),
+        label: typeof entry.label === "string" ? entry.label.slice(0, 80) : null,
+      }));
+    if (!list.length) {
+      return res.status(400).json({ success: false, message: "No shareable images" });
+    }
+
+    const row = await createShareRow({
+      userId,
+      scope: "image_group",
+      item_type: itemType ? String(itemType).slice(0, 60) : null,
+      payload: { title: typeof title === "string" ? title.slice(0, 120) : null, images: list },
+    });
+    return res.json({ success: true, token: row.token, url: publicShareUrl(row.token) });
+  } catch (err) {
+    console.error("❌ [SHARE] group share hatası:", err?.message);
+    return res.status(500).json({ success: false, message: err?.message || "Server error" });
+  }
+});
+
+// Görsel taşıyıcı — önizleme ve indirme AYNI kapıdan geçer, filigran burada uygulanır
+router.get("/public/share/:token/i/:index", async (req, res) => {
+  try {
+    const { token, index } = req.params;
+    const { data: row } = await supabase
+      .from("public_share_tokens")
+      .select("user_id, scope, payload, is_active, expires_at")
+      .eq("token", token)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (!row || row.scope !== "image_group") return res.status(404).send("Not found");
+    if (row.expires_at && new Date(row.expires_at) < new Date()) return res.status(410).send("Expired");
+
+    const images = Array.isArray(row.payload?.images) ? row.payload.images : [];
+    const item = images[Number(index)];
+    if (!item?.url) return res.status(404).send("Not found");
+
+    const access = await checkUserDownloadAccess(row.user_id);
+    // 💎 Sahibi ücretli PRO ise filigran YOK → baytları sunucudan geçirmenin
+    // anlamı da yok: depolamaya yönlendir, görsel Supabase CDN'inden doğrudan
+    // ve tam boyutta insin (uygulama içi /api/download/image de aynını yapıyor).
+    // Yetki HER istekte yeniden okunduğu için abonelik biterse yönlendirme durur.
+    if (access.canDownloadOriginal) {
+      return res.redirect(302, item.url);
+    }
+    const response = await axios.get(item.url, { responseType: "arraybuffer", timeout: 60000 });
+    let buffer = Buffer.from(response.data);
+    let contentType = String(response.headers?.["content-type"] || "image/png");
+
+    if (!access.canDownloadOriginal) {
+      // Sahibi PRO değil (ya da denemede) → uygulamadaki ile aynı filigran
+      try {
+        const marked = await addWatermarkToImage(buffer, { lang: access.preferredLanguage, isInTrial: access.isInTrial === true });
+        if (marked) {
+          buffer = Buffer.isBuffer(marked) ? marked : Buffer.from(marked);
+          contentType = "image/png";
+        }
+      } catch (wmErr) {
+        console.warn("⚠️ [SHARE] filigran uygulanamadı, görsel servis edilmiyor:", wmErr?.message);
+        return res.status(503).send("Unavailable");
+      }
+    }
+
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("Cache-Control", "public, max-age=300");
+    if (req.query.download) {
+      const ext = /jpe?g/i.test(contentType) ? "jpg" : "png";
+      const safe = String(item.label || `image-${Number(index) + 1}`).replace(/[^a-z0-9._-]+/gi, "-").slice(0, 60);
+      res.setHeader("Content-Disposition", `attachment; filename="${safe}.${ext}"`);
+    }
+    return res.send(buffer);
+  } catch (err) {
+    console.error("❌ [SHARE] görsel servis hatası:", err?.message);
+    return res.status(500).send("Server error");
+  }
+});
 
 // ─────────────────────────────────────────
 // POST /api/share/generate
@@ -343,7 +453,19 @@ router.get("/public/share/:token", async (req, res) => {
     // Scope'a göre veri topla
     let payload = { scope: tokenRow.scope };
 
-    if (tokenRow.scope === "all_history") {
+    if (tokenRow.scope === "image_group") {
+      const images = Array.isArray(tokenRow.payload?.images) ? tokenRow.payload.images : [];
+      const owner = await checkUserDownloadAccess(tokenRow.user_id);
+      payload.title = tokenRow.payload?.title || null;
+      payload.itemType = tokenRow.item_type || null;
+      payload.watermarked = !owner.canDownloadOriginal;
+      // ⚠️ Ham depolama URL'i gönderilmez — hepsi taşıyıcı uçtan geçer
+      payload.images = images.map((image, i) => ({
+        index: i,
+        label: image.label || null,
+        url: `/api/public/share/${tokenRow.token}/i/${i}`,
+      }));
+    } else if (tokenRow.scope === "all_history") {
       const tables = [
         { name: "reference_results", type: "reference_results", urlField: "result_image_url" },
         { name: "pose_change_generations", type: "pose_change_generations", urlField: "result_image_url" },

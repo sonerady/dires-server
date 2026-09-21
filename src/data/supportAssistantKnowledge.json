@@ -1,0 +1,121 @@
+{
+  "description": "Owner-confirmed support answers. Only approved entries are supplied to Gemini. Never infer approval or invent policy answers.",
+  "entries": [
+    {
+      "id": "trial",
+      "status": "approved",
+      "question": "Ücretsiz deneme nasıl çalışır, neleri kullanabilirim?",
+      "answer": "Diress ücretsiz denemesi 3 gün sürer. Video dışındaki tüm özellikler açıktır. Denemede belirli bir üretim sınırı vardır; sınırsız üretim veya sınırsız kredi sözü verme, doğrulanmış sayısal kredi/üretim limiti belirtme. Kullanıcı denemenin bitmesini beklemeden ücretli Pro pakete geçmeyi seçebilir. Pro geçişi bir satın almadır; fiyat ve ödeme koşulları satın alma ekranında kontrol edilmelidir. Denemeyi iptal etmek ile ücretli Pro satın almak ayrı işlemlerdir.",
+      "source": "Owner instructions; Apple/Google official guidance verified 2026-09-20"
+    },
+    {
+      "id": "trial-renewal",
+      "status": "approved",
+      "question": "Deneme sonunda otomatik ücret alınır mı?",
+      "answer": "Evet. Deneme zamanında iptal edilmezse 3 günün sonunda seçilen ücretli abonelik otomatik başlar. Kesin tutar ve yenileme tarihi satın alma ekranı ile ilgili mağazanın abonelik sayfasından kontrol edilmelidir; hesaba özel tarih veya fiyat tahmin etme. Apple, deneme yenilenmesin isteniyorsa bitişten en az 24 saat önce iptal edilmesini belirtir (https://support.apple.com/en-us/118428). Google Play denemesi için bitişten önce iptal etmeye yönlendir. Uygulamayı silmek aboneliği iptal etmez.",
+      "source": "Owner instructions; Apple/Google official guidance verified 2026-09-20"
+    },
+    {
+      "id": "cancel",
+      "status": "approved",
+      "question": "iPhone veya Android aboneliğimi nasıl iptal ederim?",
+      "answer": "Satın almanın yapıldığı mağazaya göre yol göster; bilinmiyorsa iPhone/Android ve hangi mağazadan satın alındığını sor. iPhone/iPad: Ayarlar > adınız / Apple Hesabı > Abonelikler > Diress > Aboneliği İptal Et, varsa ekrandaki onayı tamamla. Apple rehberi: https://support.apple.com/en-us/118428 . Android: Google Play Store > profil simgesi > Ödemeler ve abonelikler > Abonelikler > Diress > Aboneliği iptal et; ekrandaki adımları tamamla. Google Play abonelikleri: https://play.google.com/store/account/subscriptions ; rehber: https://support.google.com/googleplay/answer/7018481 . Satın alım yapılan Apple/Google hesabı kullanılmalıdır. Abonelik görünmüyorsa farklı mağaza hesabı kullanılmış olabilir; kesin neden iddia etme. İptal para iadesi değildir. İptali kullanıcı yapar; asistan iptal ettiğini söylemez. Web üzerinden satın alımın iptal yolu doğrulanmadı, bu durumda Bize Ulaşın formuna yönlendir.",
+      "source": "Owner instructions; Apple/Google official guidance verified 2026-09-20"
+    },
+    {
+      "id": "refund",
+      "status": "approved",
+      "question": "Yanlışlıkla satın aldım / para iadesi istiyorum.",
+      "answer": "Empati kur ve satın almanın yapıldığı mağazaya yönlendir. App Store satın alımları: https://reportaproblem.apple.com üzerinden Apple hesabıyla giriş yapıp iade talebi, neden ve ilgili Diress satın alımı seçilerek başvuru yapılabilir; rehber https://support.apple.com/en-us/118223 . Google Play satın alımları: https://support.google.com/googleplay/answer/15574897 üzerinden iade isteği adımları izlenir. Diress asistanı ödeme iadesi yapamaz veya onaylayamaz; mağaza üzerinden gönderilen talebin değerlendirmesi ve sonucu ilgili mağazanın kurallarına bağlıdır. Onay, tutar veya süre garantisi verme. “Hiçbir sorumluluğumuz yok”, “Google Play geliştiricileri iade yapamaz” gibi genel hukuki/teknik iddialar kurma. Mağaza geliştiriciyle iletişime geçmesini isterse ya da satın alma mağaza dışındaysa Bize Ulaşın formuna yönlendir. Gelecek yenilemeyi durdurmak isteyen kullanıcıya ayrıca abonelik iptal yolunu anlat; iade başvurusunun tek başına iptal olduğunu söyleme.",
+      "source": "Owner instructions; Apple/Google official guidance verified 2026-09-20"
+    },
+    {
+      "id": "failed-generation",
+      "status": "approved",
+      "question": "Görsel oluşmadı ama kredim düştü.",
+      "answer": "Kullanıcı sahibinin onayladığı politika: üretim hatasında düşülen kredi otomatik iade edilir. Bazı akışlarda kredi yalnızca başarılı sonuçtan sonra düşer; bunlarda iade edilecek kesinti olmayabilir. Hesabı göremediğin için bu kullanıcıya iade yapıldığını veya belirli sürede yatacağını söyleme. Bakiye yenilendiği halde sorun sürerse Bize Ulaşın formundan işlem zamanı, kullanılan özellik ve varsa oluşturma kimliğiyle destek istemesini öner. Para iadesi ile uygulama içi kredi iadesini karıştırma.",
+      "source": "Owner + server/src/routes/referenceBrowserRoutesV7.js",
+      "verifiedAt": "2026-09-20",
+      "verificationScope": "local source code / owner confirmation; not a live account lookup"
+    },
+    {
+      "id": "fashion-cost",
+      "status": "approved",
+      "question": "V1 ve V2 kaç kredi?",
+      "answer": "İncelenen güncel mobil Fashion Studio referenceBrowserV7 kodunda başarılı ana fotoğraf başına V1 10, V2 35 kredi. Bu maliyetler yalnız bu üretim akışına aittir; varyant, kit, video veya Listing için genelleme yapma. Kullanıcının sürümündeki oluşturma/onay ekranında gösterilen maliyet esas alınır; farklı tutar gördüğünü söylüyorsa ekran/özellik/sürüm sor, kesin kesinti yapıldığını iddia etme.",
+      "source": "client/screens/CreateModelPhotoScreen.js; server/src/routes/referenceBrowserRoutesV7.js",
+      "verifiedAt": "2026-09-20",
+      "verificationScope": "local source code / owner confirmation; not a live account lookup"
+    },
+    {
+      "id": "quality-refund-entry",
+      "status": "approved",
+      "question": "Görseli beğenmedim; kredi iadesi nerede?",
+      "answer": "Oluşturduğun ana görseli tam ekran aç, görsel ekranındaki Kredi iadesi / İade düğmesini kullan. Daha önce kullanıldıysa düğme yalnız ikon olarak görünebilir. Bu yol SimpleImageModal ana sonuç içindir; varyant ya da kit sonucu seçiliyken görünmeyebilir. Ana görsele dön ve gizlenmiş ekran kontrollerini aç. İlk inceleme için gerekçe yazmak zorunlu değil; sistem ürün referansı ve sonucu karşılaştırır. İnceleme ücretsizdir; iade, bu üretimde gerçekten kesilen krediyi aşamaz.",
+      "source": "client/components/SimpleImageModal.js; client/components/CreditRefundSheet.js",
+      "verifiedAt": "2026-09-20",
+      "verificationScope": "local source code / owner confirmation; not a live account lookup"
+    },
+    {
+      "id": "quality-refund-policy",
+      "status": "approved",
+      "question": "Hangi görsellere kredi iadesi yapılır?",
+      "answer": "Belirgin şekilde farklı/tanınmaz ürün, ürüne ait önemli detayın uydurulması veya kaybolması, ağır anatomi hatası ya da ciddi görsel bozulması iade incelemesinde değerlendirilebilir. Yalnız kişisel beğeni, doğal kırışıklık, poz, mekan, stil veya küçük ton/kadraj farkı iade garantisi değildir. Kullanıcının bilerek istediği değişiklik kusur sayılmaz. Sonuç onay, ret veya manuel inceleme olabilir; sohbet asistanı inceleme yapamaz ve karar/geri ödeme garantisi veremez.",
+      "source": "server/src/utils/creditRefundAnalysis.js",
+      "verifiedAt": "2026-09-20",
+      "verificationScope": "local source code / owner confirmation; not a live account lookup"
+    },
+    {
+      "id": "refund-eligibility",
+      "status": "approved",
+      "question": "İade butonu yok / süre doldu / limit doldu.",
+      "answer": "İade özelliğinin açık olması, uygun ana sonuç, kredi kesintisi, ürün referans fotoğrafı, başvuru süresi ve günlük inceleme hakkı sunucuda kontrol edilir. Süre ve günlük hak app_config ayarlarına bağlıdır: sabit 24 saat veya 3 hak vaadi verme. Daha önce başvurulan üretimde yeni başvuru yerine mevcut karar gösterilir. Kullanıcının gördüğü uygunluk mesajına göre yardımcı ol; veriyi görmeden kesin neden söyleme.",
+      "source": "server/src/routes/creditRefundRoutes.js: eligibility",
+      "verifiedAt": "2026-09-20",
+      "verificationScope": "local source code / owner confirmation; not a live account lookup"
+    },
+    {
+      "id": "refund-appeal",
+      "status": "approved",
+      "question": "Kredi iadesi reddedildi; itiraz edebilir miyim?",
+      "answer": "Reddedilen başvurunun sonuç ekranında itiraz seçeneği kullanılabilir. Tek seferlik itiraz metni 20–2000 karakter olmalıdır; ürünün somut hangi detayının bozulduğunu açıklaması faydalıdır. İtiraz ekibe iletilir; tekrar iade sözü verme. Onaylanan iade bir kez eklenir. Bekleyen başvuruda yeniden başvuru açtırmak yerine mevcut durumu takip etmesini öner.",
+      "source": "server/src/routes/creditRefundRoutes.js: /appeal; client/components/CreditRefundSheet.js",
+      "verifiedAt": "2026-09-20",
+      "verificationScope": "local source code / owner confirmation; not a live account lookup"
+    },
+    {
+      "id": "listing-help",
+      "status": "approved",
+      "question": "Listing Image Studio nasıl kullanılır?",
+      "answer": "Ürün fotoğrafını ve doğru ürün bilgilerini ekle, pazaryeri ve ihtiyaç duyduğun görsel türlerini seç. Ana görsel, özellik, kullanım, detay veya ölçü gibi kareler amaçlarına göre hazırlanır. Ürünün ön/arka/etiket/detay fotoğraflarını doğru rollerle eklemek sadakati artırır. Ölçü ve teknik özellikleri uydurma. Listing maliyeti yapılandırılabilir; oluşturma ekranındaki maliyeti esas al, V1/V2 moda fiyatlarını burada kullanma.",
+      "source": "server/src/routes/listingStudioRoutes.js; existing verified capabilities",
+      "verifiedAt": "2026-09-20",
+      "verificationScope": "local source code / owner confirmation; not a live account lookup"
+    },
+    {
+      "id": "faithfulness",
+      "status": "approved",
+      "question": "Ürünüm değişiyor; daha iyi sonuç nasıl alırım?",
+      "answer": "Net, iyi aydınlatılmış, ürünü kapatmayan fotoğraf kullan. Desteklenen ek açı alanına ön/arka/detay referanslarını ekle. Ana ürün ile yalnız kombin amaçlı parçaları açıkça ayır. Renk veya desen korunacaksa bunu belirt. Editorial/sokak stili ve mekan seçeneklerini amaca göre seç; sonuç sadakatini garanti etme. Önce hangi araçta hangi detayın değiştiğini sor.",
+      "source": "server/src/utils/footwearPrompt.js; verified fashion/listing workflows",
+      "verifiedAt": "2026-09-20",
+      "verificationScope": "local source code / owner confirmation; not a live account lookup"
+    },
+    {
+      "id": "kit-help",
+      "status": "approved",
+      "question": "E-ticaret kiti nedir; neden fiyat farklı?",
+      "answer": "Ana sonuç görselinin ekranındaki ilgili kit seçeneği farklı sunum görselleri üretir. Kit, tek bir V1/V2 ana fotoğraf üretimiyle aynı ücretlendirme değildir. SimpleImageModal güncel kit onayları genelde 30 kredi kullanır fakat sunucudan gelen kitCost ve ücretsiz kullanım durumu esas alınır; bütün kitlere veya kullanıcılara sabit ücret/ücretsiz hak sözü verme. Onay ekranındaki tutarı kontrol ettir.",
+      "source": "client/components/SimpleImageModal.js: kitCost, KIT_CREDIT_COST",
+      "verifiedAt": "2026-09-20",
+      "verificationScope": "local source code / owner confirmation; not a live account lookup"
+    },
+    {
+      "id": "pro-expiry-and-credits",
+      "status": "approved",
+      "question": "Aboneliğimi iptal edersem kredilerim yeterli mi; filigran ve Pro özellikleri ne olur?",
+      "answer": "Abonelik iptali veya iptal sonrası kullanım sorularında kısa ve tarafsız olarak şu bilgiyi paylaş: **Kredi bakiyesi, Pro üyeliği anlamına gelmez.** Krediler işlem/üretim yapmak içindir. **Pro erişimin sona erdiğinde yeni oluşturacağın sonuç görsellerine filigran eklenir ve bazı Pro özelliklerini kullanamazsın.** Kullanım koşullarında belirtilen filigransız sonuçlar ve Pro özellikleri için **aktif Pro üyelik gerekir**. Filigransız sonuçlar ve bu özellikler kullanıcı için önemliyse Pro üyeliğini sürdürmek bir seçenektir; karar kullanıcıya aittir. İptal işlemi ile mevcut Pro erişimin bitişini birbirine karıştırma: sırf iptal düğmesine basıldı diye erişimin anında kesildiğini söyleme. Kesin erişim bitişi mağazanın abonelik ekranından kontrol edilir. Eski indirilmiş görsellere sonradan filigran ekleneceğini, kredi bakiyesinin silineceğini veya bütün özelliklerin kapanacağını iddia etme; bunlar doğrulanmadı. İptal talebinde önce kredi bakiyesinin Pro üyelik anlamına gelmediğini ve Pro erişimi sona erdiğinde filigran ile özellik kısıtlarının geçerli olacağını kısa bir bilgilendirme olarak, önemli noktaları kalın yazarak açıkla. Hemen ardından aynı yanıtta platforma uygun App Store veya Google Play iptal adımlarını ve bağlantısını açıkça ver. Yönlendirme öncesinde ek onay ya da ikinci mesaj isteme. Önemli ayrımları Markdown **kalın** biçimde kullanıcının dilinde vurgula. İptal adımlarını gizleme, geciktirme veya üyelikte kalmayı şart koşma. Kullanıcı zaten iptal etmek istediğini netleştirdiyse tekrar tekrar üyelik önerme.",
+      "source": "Owner confirmation in this task; actual entitlement expiry must be distinguished from cancellation action"
+    }
+  ]
+}

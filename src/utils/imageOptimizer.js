@@ -345,7 +345,28 @@ const _supabaseRenderFallback = (imageUrl, { width, height, quality }) => {
   return `${imageUrl}${hasParams ? "&" : "?"}width=${width}&height=${height}`;
 };
 
+/**
+ * 📦 Tam boyut, sıkıştırılmış indirme URL'i (17 Eyl 2026).
+ *
+ * Listing kareleri 4–6 MB PNG olarak saklanıyor; galeriye kaydederken bu boyut
+ * indirmeyi kare başına 10–30 sn'ye çıkarıyordu. Cloudflare aynı PİKSEL
+ * ÖLÇÜSÜNDE (ör. 1440×2560) JPEG döndürüyor: 4.3 MB → 618 KB, ~7 kat.
+ * width/height VERİLMEZ — küçültme yok, yalnız yeniden kodlama.
+ *
+ * ⚠️ Alfa kanalı olan görsellerde KULLANILMAZ (JPEG şeffaflığı beyaza boyar).
+ * Çağıran taraf, karenin şeffaf olmadığını bildiğinde açıkça ister.
+ */
+const fullSizeCompressedUrl = (imageUrl, quality = 92, format = "jpeg") => {
+  if (!USE_CLOUDFLARE || !imageUrl) return imageUrl;
+  const originalUrl = getOriginalUrl(imageUrl);
+  if (!/^https?:\/\//i.test(String(originalUrl))) return imageUrl;
+  const q = Math.max(60, Math.min(100, Number(quality) || 92));
+  const f = format === "webp" ? "webp" : "jpeg";
+  return `${CLOUDFLARE_CDN_DOMAIN}/cdn-cgi/image/quality=${q},format=${f}/${originalUrl}`;
+};
+
 module.exports = {
+  fullSizeCompressedUrl,
   optimizeImageUrl,
   optimizeForThumbnail,
   getOriginalUrl,

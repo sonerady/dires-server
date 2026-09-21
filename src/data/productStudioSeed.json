@@ -1,0 +1,1978 @@
+[
+  {
+    "builtin_id": "product-retouch",
+    "position": 0,
+    "draft": {
+      "version": 1,
+      "title": "Ürün Rötuşu",
+      "description": "Ürün fotoğrafını net detaylarla profesyonel bir stüdyo çekimine dönüştür.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Ürün Rötuşu",
+          "description": "Ürün fotoğrafını net detaylarla profesyonel bir stüdyo çekimine dönüştür."
+        },
+        "en": {
+          "title": "Product Retouch",
+          "description": "Turn an everyday product photo into a polished studio photograph."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "",
+      "afterUrl": "",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-retouch/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-retouch/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-retouch/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-retouch/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-retouch/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-retouch/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "consistent-catalog-mode",
+    "position": 1,
+    "draft": {
+      "version": 1,
+      "title": "Tutarlı katalog görünümü",
+      "description": "Ürünleri ortak bir ışık, fon ve çekim diliyle katalog için hazırla.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Tutarlı katalog görünümü",
+          "description": "Ürünleri ortak bir ışık, fon ve çekim diliyle katalog için hazırla."
+        },
+        "en": {
+          "title": "Consistent Catalog Mode",
+          "description": "Give products consistent lighting, backgrounds and catalog styling."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/consistent-catalog-mode/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/consistent-catalog-mode/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/consistent-catalog-mode/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/consistent-catalog-mode/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/consistent-catalog-mode/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/consistent-catalog-mode/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/consistent-catalog-mode/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/consistent-catalog-mode/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "background-replace",
+    "position": 2,
+    "draft": {
+      "version": 1,
+      "title": "Arka plan değiştirme",
+      "description": "Ürününü farklı, özenle tasarlanmış bir sahneye taşı.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Arka plan değiştirme",
+          "description": "Ürününü farklı, özenle tasarlanmış bir sahneye taşı."
+        },
+        "en": {
+          "title": "Background Replace",
+          "description": "Place your product in a beautifully art-directed new setting."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/background-replace/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/background-replace/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/background-replace/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/background-replace/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/background-replace/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/background-replace/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/background-replace/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/background-replace/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "product-in-context",
+    "position": 3,
+    "draft": {
+      "version": 1,
+      "title": "Ürünü kullanım ortamına yerleştirme",
+      "description": "Ürününü gerçek kullanım ortamında, alışverişe ilham verecek şekilde göster.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Ürünü kullanım ortamına yerleştirme",
+          "description": "Ürününü gerçek kullanım ortamında, alışverişe ilham verecek şekilde göster."
+        },
+        "en": {
+          "title": "Product in Context",
+          "description": "Show your product in a real-life setting that inspires shoppers."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/product-in-context/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/product-in-context/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-in-context/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-in-context/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-in-context/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-in-context/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-in-context/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-in-context/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "scale-size-context",
+    "position": 4,
+    "draft": {
+      "version": 1,
+      "title": "Ürün boyutunu elde gösterme",
+      "description": "Ürünün boyutunu tanıdık nesnelerle anlat; ölçü uydurma.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Ürün boyutunu elde gösterme",
+          "description": "Ürünün boyutunu tanıdık nesnelerle anlat; ölçü uydurma."
+        },
+        "en": {
+          "title": "Scale / Size Context",
+          "description": "Make size easy to understand with familiar objects, without inventing measurements."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/scale-size-context/2-before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/scale-size-context/2-after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/scale-size-context/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/scale-size-context/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/scale-size-context/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/scale-size-context/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/scale-size-context/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/scale-size-context/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "relight-product",
+    "position": 5,
+    "draft": {
+      "version": 1,
+      "title": "Ürün ışığını değiştirme",
+      "description": "Ürününü dengeli ışık, doğal gölge ve zengin detaylarla aydınlat.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Ürün ışığını değiştirme",
+          "description": "Ürününü dengeli ışık, doğal gölge ve zengin detaylarla aydınlat."
+        },
+        "en": {
+          "title": "Relight Product",
+          "description": "Relight your product with balanced highlights, natural shadows and rich detail."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/relight-product/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/relight-product/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/relight-product/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/relight-product/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/relight-product/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/relight-product/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/relight-product/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/relight-product/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "color-variant-generator",
+    "position": 6,
+    "draft": {
+      "version": 1,
+      "title": "Renk seçenekleri",
+      "description": "Ürünün şeklini ve dokusunu koruyarak yeni bir renk seçeneği oluştur.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Renk seçenekleri",
+          "description": "Ürünün şeklini ve dokusunu koruyarak yeni bir renk seçeneği oluştur."
+        },
+        "en": {
+          "title": "Color Variant Generator",
+          "description": "Explore a new color while keeping the product's shape and texture."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/color-variant-generator/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/color-variant-generator/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/color-variant-generator/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/color-variant-generator/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/color-variant-generator/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/color-variant-generator/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/color-variant-generator/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/color-variant-generator/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "packaging-mockup",
+    "position": 7,
+    "draft": {
+      "version": 1,
+      "title": "Ambalaja tasarım uygulama",
+      "description": "Ambalaj tasarımını gerçekçi bir ürün sunumuna dönüştür.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Ambalaja tasarım uygulama",
+          "description": "Ambalaj tasarımını gerçekçi bir ürün sunumuna dönüştür."
+        },
+        "en": {
+          "title": "Packaging Mockup",
+          "description": "Bring a packaging design to life in a realistic product presentation."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/packaging-mockup/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/packaging-mockup/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/packaging-mockup/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/packaging-mockup/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/packaging-mockup/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/packaging-mockup/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/packaging-mockup/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/packaging-mockup/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "label-replace",
+    "position": 8,
+    "draft": {
+      "version": 1,
+      "title": "Etiket değiştirme",
+      "description": "Ürünün etiketini yüklenen yeni tasarımla, yüzeyine uyumlu şekilde değiştir.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Etiket değiştirme",
+          "description": "Ürünün etiketini yüklenen yeni tasarımla, yüzeyine uyumlu şekilde değiştir."
+        },
+        "en": {
+          "title": "Label Replace",
+          "description": "Apply your new label design with realistic perspective and surface detail."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/label-replace/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/label-replace/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/label-replace/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/label-replace/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/label-replace/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/label-replace/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/label-replace/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/label-replace/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "replace-product-parts",
+    "position": 9,
+    "draft": {
+      "version": 1,
+      "title": "Ürün parçasını değiştirme",
+      "description": "Belirttiğin ürün parçasını değiştir, kalan detayları koru.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Ürün parçasını değiştirme",
+          "description": "Belirttiğin ürün parçasını değiştir, kalan detayları koru."
+        },
+        "en": {
+          "title": "Replace Product Parts",
+          "description": "Replace a selected product part while preserving the rest."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/replace-product-parts/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/replace-product-parts/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/replace-product-parts/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/replace-product-parts/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/replace-product-parts/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/replace-product-parts/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/replace-product-parts/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/replace-product-parts/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "product-composition",
+    "position": 10,
+    "draft": {
+      "version": 1,
+      "title": "Ürünleri bir kompozisyonda birleştirme",
+      "description": "Ürünleri dengeli ve dikkat çekici tek bir kompozisyonda birleştir.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Ürünleri bir kompozisyonda birleştirme",
+          "description": "Ürünleri dengeli ve dikkat çekici tek bir kompozisyonda birleştir."
+        },
+        "en": {
+          "title": "Product Composition",
+          "description": "Arrange products into one balanced, eye-catching composition."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/product-composition/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/product-composition/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-composition/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-composition/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-composition/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-composition/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-composition/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-composition/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "bundle-builder",
+    "position": 11,
+    "draft": {
+      "version": 1,
+      "title": "Çoklu satış paketi",
+      "description": "Birlikte satılan ürünleri uyumlu bir set görselinde sun.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Çoklu satış paketi",
+          "description": "Birlikte satılan ürünleri uyumlu bir set görselinde sun."
+        },
+        "en": {
+          "title": "Bundle Builder",
+          "description": "Present products sold together as one cohesive bundle."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/bundle-builder/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/bundle-builder/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/bundle-builder/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/bundle-builder/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/bundle-builder/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/bundle-builder/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/bundle-builder/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/bundle-builder/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "before-after-generator",
+    "position": 12,
+    "draft": {
+      "version": 1,
+      "title": "Mobilya yenileme konsepti",
+      "description": "Mobilyanın formunu koruyarak yeni bir yüzey ve yenileme konsepti oluştur.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Mobilya yenileme konsepti",
+          "description": "Mobilyanın formunu koruyarak yeni bir yüzey ve yenileme konsepti oluştur."
+        },
+        "en": {
+          "title": "Before / After Generator",
+          "description": "Explore a furniture restoration concept while preserving the original structure."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/before-after-generator/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/before-after-generator/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/before-after-generator/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/before-after-generator/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/before-after-generator/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/before-after-generator/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/before-after-generator/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/before-after-generator/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "marketplace-ready-sizes",
+    "position": 13,
+    "draft": {
+      "version": 1,
+      "title": "Kadrajı düzeltme",
+      "description": "Ürününü seçtiğin görsel oranına uygun, ferah bir kadrajda sun.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Kadrajı düzeltme",
+          "description": "Ürününü seçtiğin görsel oranına uygun, ferah bir kadrajda sun."
+        },
+        "en": {
+          "title": "Marketplace Ready Sizes",
+          "description": "Reframe your product with breathing room for your selected image format."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/marketplace-ready-sizes/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/marketplace-ready-sizes/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/marketplace-ready-sizes/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/marketplace-ready-sizes/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/marketplace-ready-sizes/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/marketplace-ready-sizes/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/marketplace-ready-sizes/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/marketplace-ready-sizes/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "smart-canvas-expansion",
+    "position": 14,
+    "draft": {
+      "version": 1,
+      "title": "Görselin çevresini genişlet",
+      "description": "Mevcut fotoğrafı koru, kadrajın dışını yapay zekâyla tamamla. Aynı ürün ve ortam, daha geniş bir görsel.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Görselin çevresini genişlet",
+          "description": "Mevcut fotoğrafı koru, kadrajın dışını yapay zekâyla tamamla. Aynı ürün ve ortam, daha geniş bir görsel."
+        },
+        "en": {
+          "title": "AI Image Expand",
+          "description": "Keep the original photo and fill beyond its edges with AI. The same product and scene, with more room around them."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-expand-v1/0-before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-expand-v1/0-after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-expand-v1/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-expand-v1/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-expand-v1/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-expand-v1/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-expand-v1/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-expand-v1/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "batch-product-editing",
+    "position": 15,
+    "draft": {
+      "version": 1,
+      "title": "Toplu ürün düzenleme",
+      "description": "Ürün fotoğraflarında aynı temiz ve tutarlı çekim stilini uygula.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Toplu ürün düzenleme",
+          "description": "Ürün fotoğraflarında aynı temiz ve tutarlı çekim stilini uygula."
+        },
+        "en": {
+          "title": "Batch Product Editing",
+          "description": "Apply a clean, consistent photographic style across your products."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/batch-product-editing/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/batch-product-editing/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/batch-product-editing/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/batch-product-editing/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/batch-product-editing/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/batch-product-editing/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/batch-product-editing/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/batch-product-editing/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "reference-style",
+    "position": 16,
+    "draft": {
+      "version": 1,
+      "title": "Referans görselin stilini uygulama",
+      "description": "Referansın ışık ve atmosferini kendi ürününe uyarlayarak yeni bir sahne oluştur.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Referans görselin stilini uygulama",
+          "description": "Referansın ışık ve atmosferini kendi ürününe uyarlayarak yeni bir sahne oluştur."
+        },
+        "en": {
+          "title": "Reference Style",
+          "description": "Adapt a reference's lighting and mood to a fresh scene featuring your product."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/reference-style/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/reference-style/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/reference-style/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/reference-style/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/reference-style/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/reference-style/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/reference-style/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/reference-style/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "product-alignment",
+    "position": 17,
+    "draft": {
+      "version": 1,
+      "title": "Ürünleri hizalama",
+      "description": "Ürünün perspektifini düzelt, dengeli ve düzgün bir kadraj oluştur.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Ürünleri hizalama",
+          "description": "Ürünün perspektifini düzelt, dengeli ve düzgün bir kadraj oluştur."
+        },
+        "en": {
+          "title": "Product Alignment",
+          "description": "Correct perspective and create a neatly aligned composition."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/product-alignment/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/product-alignment/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-alignment/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-alignment/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-alignment/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-alignment/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-alignment/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-alignment/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "transparent-product-fix",
+    "position": 18,
+    "draft": {
+      "version": 1,
+      "title": "Şeffaf cam ürünü sahneleme",
+      "description": "Cam ve şeffaf yüzeylerin kenarlarını, parlaklığını ve hacmini belirginleştir.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Şeffaf cam ürünü sahneleme",
+          "description": "Cam ve şeffaf yüzeylerin kenarlarını, parlaklığını ve hacmini belirginleştir."
+        },
+        "en": {
+          "title": "Transparent Product Fix",
+          "description": "Define the edges, highlights and depth of glass and transparent products."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/transparent-product-fix/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/transparent-product-fix/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/transparent-product-fix/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/transparent-product-fix/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/transparent-product-fix/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/transparent-product-fix/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/transparent-product-fix/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/transparent-product-fix/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "jewelry-mode",
+    "position": 19,
+    "draft": {
+      "version": 1,
+      "title": "Mücevher çekimi",
+      "description": "Takının taş, metal ve işçilik detaylarını zarif bir yakın çekimde göster.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Mücevher çekimi",
+          "description": "Takının taş, metal ve işçilik detaylarını zarif bir yakın çekimde göster."
+        },
+        "en": {
+          "title": "Jewelry Mode",
+          "description": "Showcase gemstones, metal and craftsmanship in an elegant jewelry photograph."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/jewelry-mode/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/jewelry-mode/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/jewelry-mode/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/jewelry-mode/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/jewelry-mode/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/jewelry-mode/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/jewelry-mode/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/jewelry-mode/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "furniture-mode",
+    "position": 20,
+    "draft": {
+      "version": 1,
+      "title": "Mobilyayı şık bir salona yerleştirme",
+      "description": "Mobilyayı ölçeğine uygun, özenle tasarlanmış yeni bir yaşam alanında sun.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Mobilyayı şık bir salona yerleştirme",
+          "description": "Mobilyayı ölçeğine uygun, özenle tasarlanmış yeni bir yaşam alanında sun."
+        },
+        "en": {
+          "title": "Furniture Mode",
+          "description": "Stage furniture in a beautifully designed interior with believable scale."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/furniture-mode/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/furniture-mode/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/furniture-mode/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/furniture-mode/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/furniture-mode/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/furniture-mode/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/furniture-mode/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/furniture-mode/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "food-packaging-mode",
+    "position": 21,
+    "draft": {
+      "version": 1,
+      "title": "Kahve ambalajı sunumu",
+      "description": "Gıda ambalajını net, canlı ve iştah açıcı bir ürün çekiminde sun.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Kahve ambalajı sunumu",
+          "description": "Gıda ambalajını net, canlı ve iştah açıcı bir ürün çekiminde sun."
+        },
+        "en": {
+          "title": "Food / Packaging Mode",
+          "description": "Present food packaging in a crisp, vibrant and appetizing product photograph."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/food-packaging-mode/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/food-packaging-mode/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/food-packaging-mode/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/food-packaging-mode/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/food-packaging-mode/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/food-packaging-mode/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/food-packaging-mode/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/food-packaging-mode/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "electronics-mode",
+    "position": 22,
+    "draft": {
+      "version": 1,
+      "title": "Elektronik ürün çekimi",
+      "description": "Elektronik ürünün tasarımını ve bağlantı detaylarını modern bir çekimde öne çıkar.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Elektronik ürün çekimi",
+          "description": "Elektronik ürünün tasarımını ve bağlantı detaylarını modern bir çekimde öne çıkar."
+        },
+        "en": {
+          "title": "Electronics Mode",
+          "description": "Highlight an electronic product's design and connections in a modern product shot."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/electronics-mode/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/electronics-mode/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/electronics-mode/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/electronics-mode/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/electronics-mode/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/electronics-mode/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/electronics-mode/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/electronics-mode/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "hand-holding-product",
+    "position": 23,
+    "draft": {
+      "version": 1,
+      "title": "Ürünü elde tutma",
+      "description": "Ürünü doğal bir elde, gerçekçi tutuş ve oranlarla göster.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Ürünü elde tutma",
+          "description": "Ürünü doğal bir elde, gerçekçi tutuş ve oranlarla göster."
+        },
+        "en": {
+          "title": "Hand Holding Product",
+          "description": "Show your product held naturally in a hand with realistic proportions."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/hand-holding-product/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/hand-holding-product/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/hand-holding-product/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/hand-holding-product/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/hand-holding-product/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/hand-holding-product/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/hand-holding-product/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/hand-holding-product/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "product-with-person",
+    "position": 24,
+    "draft": {
+      "version": 1,
+      "title": "Saati insan üzerinde gösterme",
+      "description": "Ürünü kullanan bir kişiyle doğal ve profesyonel bir tanıtım görseli oluştur.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Saati insan üzerinde gösterme",
+          "description": "Ürünü kullanan bir kişiyle doğal ve profesyonel bir tanıtım görseli oluştur."
+        },
+        "en": {
+          "title": "Product With Person",
+          "description": "Create a professional lifestyle image of a person using your product."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/product-with-person/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/product-with-person/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-with-person/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-with-person/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-with-person/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-with-person/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-with-person/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-with-person/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "ugc-product-shot",
+    "position": 25,
+    "draft": {
+      "version": 1,
+      "title": "Doğal ev içi ürün çekimi",
+      "description": "Ürününü samimi, doğal ve sosyal medyaya uygun bir kullanım anında göster.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Doğal ev içi ürün çekimi",
+          "description": "Ürününü samimi, doğal ve sosyal medyaya uygun bir kullanım anında göster."
+        },
+        "en": {
+          "title": "UGC Product Shot",
+          "description": "Show your product in an authentic, relatable social-media moment."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/ugc-product-shot/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/ugc-product-shot/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/ugc-product-shot/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/ugc-product-shot/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/ugc-product-shot/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/ugc-product-shot/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/ugc-product-shot/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/ugc-product-shot/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "ad-creative-variations",
+    "position": 26,
+    "draft": {
+      "version": 1,
+      "title": "Farklı reklam konseptleri",
+      "description": "Ürünün için güçlü bir odak ve özgün kompozisyonla reklam görseli tasarla.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Farklı reklam konseptleri",
+          "description": "Ürünün için güçlü bir odak ve özgün kompozisyonla reklam görseli tasarla."
+        },
+        "en": {
+          "title": "Ad Creative Variations",
+          "description": "Design a product ad with a strong focal point and a fresh composition."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/ad-creative-variations/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/ad-creative-variations/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/ad-creative-variations/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/ad-creative-variations/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/ad-creative-variations/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/ad-creative-variations/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/ad-creative-variations/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/ad-creative-variations/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "detail-shots",
+    "position": 27,
+    "draft": {
+      "version": 1,
+      "title": "Deri ve toka yakın planı",
+      "description": "Ürünün malzeme ve işçilik detaylarını etkileyici bir yakın çekimde göster.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Deri ve toka yakın planı",
+          "description": "Ürünün malzeme ve işçilik detaylarını etkileyici bir yakın çekimde göster."
+        },
+        "en": {
+          "title": "Detail Shots",
+          "description": "Capture materials and craftsmanship in an expressive close-up."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/detail-shots/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/detail-shots/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/detail-shots/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/detail-shots/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/detail-shots/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/detail-shots/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/detail-shots/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/detail-shots/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "same-scene",
+    "position": 28,
+    "draft": {
+      "version": 1,
+      "title": "Kampanya sahnesine yerleştir",
+      "description": "Yeni ürünü referans sahnenin ışık, açı ve düzenine uyumlu şekilde yerleştir.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Kampanya sahnesine yerleştir",
+          "description": "Yeni ürünü referans sahnenin ışık, açı ve düzenine uyumlu şekilde yerleştir."
+        },
+        "en": {
+          "title": "Campaign Scene",
+          "description": "Place a new product into a reference scene with matching light and perspective."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/same-scene/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/same-scene/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/same-scene/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/same-scene/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/same-scene/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/same-scene/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/same-scene/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/same-scene/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "product-in-action",
+    "position": 29,
+    "draft": {
+      "version": 1,
+      "title": "Ürünü kullanılırken gösterme",
+      "description": "Ürünü işlevinin anlaşılacağı doğal bir kullanım anında göster.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Ürünü kullanılırken gösterme",
+          "description": "Ürünü işlevinin anlaşılacağı doğal bir kullanım anında göster."
+        },
+        "en": {
+          "title": "Product in Action",
+          "description": "Capture your product in action so its purpose is clear at a glance."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/product-in-action/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/product-in-action/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-in-action/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-in-action/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-in-action/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-in-action/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-in-action/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/product-in-action/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "fill-style",
+    "position": 30,
+    "draft": {
+      "version": 1,
+      "title": "Vazoyu çiçeklerle doldurma",
+      "description": "Ürünü uygun içeriklerle doldurarak kullanımını şık bir çekimde göster.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Vazoyu çiçeklerle doldurma",
+          "description": "Ürünü uygun içeriklerle doldurarak kullanımını şık bir çekimde göster."
+        },
+        "en": {
+          "title": "Fill & Style",
+          "description": "Style your product with suitable contents to show how it is used."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/fill-style/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/fill-style/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/fill-style/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/fill-style/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/fill-style/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/fill-style/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/fill-style/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/fill-style/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "gift-presentation",
+    "position": 31,
+    "draft": {
+      "version": 1,
+      "title": "Hediye paketi sunumu",
+      "description": "Ürünü zarif paketleme ve uyumlu detaylarla hediye sunumuna dönüştür.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Hediye paketi sunumu",
+          "description": "Ürünü zarif paketleme ve uyumlu detaylarla hediye sunumuna dönüştür."
+        },
+        "en": {
+          "title": "Gift Presentation",
+          "description": "Create a gift-ready presentation with elegant wrapping and coordinated details."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/gift-presentation/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/gift-presentation/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/gift-presentation/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/gift-presentation/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/gift-presentation/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/gift-presentation/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/gift-presentation/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/gift-presentation/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "invisible-support",
+    "position": 32,
+    "draft": {
+      "version": 1,
+      "title": "Çekim desteğini kaldırma",
+      "description": "Görünür destekleri kaldır, ürünü doğal formu ve gölgesiyle sun.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Çekim desteğini kaldırma",
+          "description": "Görünür destekleri kaldır, ürünü doğal formu ve gölgesiyle sun."
+        },
+        "en": {
+          "title": "Invisible Support",
+          "description": "Remove visible supports while preserving the product's form and natural shadows."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/invisible-support/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/invisible-support/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/invisible-support/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/invisible-support/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/invisible-support/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/invisible-support/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/invisible-support/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/invisible-support/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "texture-studio",
+    "position": 33,
+    "draft": {
+      "version": 1,
+      "title": "Ürün dokusu ve yakın detay",
+      "description": "Malzemenin dokusunu, örgüsünü veya yüzeyini net bir yakın çekimde öne çıkar.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Ürün dokusu ve yakın detay",
+          "description": "Malzemenin dokusunu, örgüsünü veya yüzeyini net bir yakın çekimde öne çıkar."
+        },
+        "en": {
+          "title": "Texture Studio",
+          "description": "Reveal the weave, grain or surface texture in a crisp close-up."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/texture-studio/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/texture-studio/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/texture-studio/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/texture-studio/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/texture-studio/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/texture-studio/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/texture-studio/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/texture-studio/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "ingredient-composition",
+    "position": 34,
+    "draft": {
+      "version": 1,
+      "title": "İçeriklerle ürün kompozisyonu",
+      "description": "Ürünü yalnızca doğrulanmış içerikleriyle özenli bir kompozisyonda sun.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "İçeriklerle ürün kompozisyonu",
+          "description": "Ürünü yalnızca doğrulanmış içerikleriyle özenli bir kompozisyonda sun."
+        },
+        "en": {
+          "title": "Ingredient Composition",
+          "description": "Style your product with its verified ingredients in an art-directed composition."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/ingredient-composition/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/ingredient-composition/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/ingredient-composition/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/ingredient-composition/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/ingredient-composition/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/ingredient-composition/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/ingredient-composition/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/ingredient-composition/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "splash-studio",
+    "position": 35,
+    "draft": {
+      "version": 1,
+      "title": "Su sıçramalı içecek çekimi",
+      "description": "Ürünün çevresinde kontrollü sıvı hareketiyle dinamik bir kampanya görseli oluştur.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Su sıçramalı içecek çekimi",
+          "description": "Ürünün çevresinde kontrollü sıvı hareketiyle dinamik bir kampanya görseli oluştur."
+        },
+        "en": {
+          "title": "Splash Studio",
+          "description": "Create a dynamic campaign photograph with a controlled splash around your product."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/splash-studio/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/splash-studio/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/splash-studio/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/splash-studio/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/splash-studio/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/splash-studio/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/splash-studio/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/splash-studio/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "on-skin-preview",
+    "position": 36,
+    "draft": {
+      "version": 1,
+      "title": "Cilt üzerinde ürün gösterimi",
+      "description": "Ürünün cilt üzerindeki renk ve dokusunu doğal bir yakın çekimde göster.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Cilt üzerinde ürün gösterimi",
+          "description": "Ürünün cilt üzerindeki renk ve dokusunu doğal bir yakın çekimde göster."
+        },
+        "en": {
+          "title": "On-Skin Preview",
+          "description": "Show the product's color and texture on skin in a natural close-up."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-v1/on-skin-preview/0-before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-v1/on-skin-preview/0-after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-v1/on-skin-preview/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-v1/on-skin-preview/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-v1/on-skin-preview/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-v1/on-skin-preview/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-v1/on-skin-preview/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-v1/on-skin-preview/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "plate-serve",
+    "position": 37,
+    "draft": {
+      "version": 1,
+      "title": "Kurabiyelerin fine-dining sunumu",
+      "description": "Yiyeceği taze, özenli ve iştah açıcı bir tabak sunumuna dönüştür.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Kurabiyelerin fine-dining sunumu",
+          "description": "Yiyeceği taze, özenli ve iştah açıcı bir tabak sunumuna dönüştür."
+        },
+        "en": {
+          "title": "Plate & Serve",
+          "description": "Create a fresh, appetizing plated presentation of your food."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/plate-serve/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/plate-serve/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/plate-serve/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/plate-serve/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/plate-serve/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/plate-serve/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/plate-serve/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/plate-serve/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "cut-slice",
+    "position": 38,
+    "draft": {
+      "version": 1,
+      "title": "Çikolatalı pasta ve dilim sunumu",
+      "description": "Yiyeceğin iç dokusunu gerçekçi bir kesit veya dilimle göster.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Çikolatalı pasta ve dilim sunumu",
+          "description": "Yiyeceğin iç dokusunu gerçekçi bir kesit veya dilimle göster."
+        },
+        "en": {
+          "title": "Cut & Slice",
+          "description": "Reveal a food product's inner texture with a realistic cut or slice."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/cut-slice/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/cut-slice/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/cut-slice/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/cut-slice/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/cut-slice/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/cut-slice/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/cut-slice/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/cut-slice/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "pack-to-serve",
+    "position": 39,
+    "draft": {
+      "version": 1,
+      "title": "Granola paketi ve kahvaltı sunumu",
+      "description": "Ambalajlı ürünü servis edilmiş haliyle birlikte iştah açıcı bir sahnede sun.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Granola paketi ve kahvaltı sunumu",
+          "description": "Ambalajlı ürünü servis edilmiş haliyle birlikte iştah açıcı bir sahnede sun."
+        },
+        "en": {
+          "title": "Pack to Serve",
+          "description": "Show the packaged product alongside an appetizing serving."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/pack-to-serve/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/pack-to-serve/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pack-to-serve/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pack-to-serve/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pack-to-serve/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pack-to-serve/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pack-to-serve/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pack-to-serve/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "switch-on",
+    "position": 40,
+    "draft": {
+      "version": 1,
+      "title": "Lambayı açık gösterme",
+      "description": "Lambanı açık halde, gerçekçi ışık yayılımı ve şık bir yaşam alanında göster.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Lambayı açık gösterme",
+          "description": "Lambanı açık halde, gerçekçi ışık yayılımı ve şık bir yaşam alanında göster."
+        },
+        "en": {
+          "title": "Switch On",
+          "description": "Show your lamp switched on, with realistic illumination in a beautifully styled space."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-v1/switch-on/0-before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-v1/switch-on/0-after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-v1/switch-on/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-v1/switch-on/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-v1/switch-on/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-v1/switch-on/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-v1/switch-on/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-refresh/20260920-v1/switch-on/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "curtain-studio",
+    "position": 41,
+    "draft": {
+      "version": 1,
+      "title": "Perdeyi asılı gösterme",
+      "description": "Perdeyi kumaşını koruyarak, doğal dökümlü ve aydınlık bir iç mekânda göster.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Perdeyi asılı gösterme",
+          "description": "Perdeyi kumaşını koruyarak, doğal dökümlü ve aydınlık bir iç mekânda göster."
+        },
+        "en": {
+          "title": "Curtain Studio",
+          "description": "Stage curtains in a bright interior while preserving their fabric and natural drape."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/curtain-studio/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/curtain-studio/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/curtain-studio/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/curtain-studio/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/curtain-studio/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/curtain-studio/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/curtain-studio/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/curtain-studio/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "bedding-studio",
+    "position": 42,
+    "draft": {
+      "version": 1,
+      "title": "Nevresimi yatağa serme",
+      "description": "Nevresimi desen ve dokusunu koruyarak şık bir yatak odasında sergile.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Nevresimi yatağa serme",
+          "description": "Nevresimi desen ve dokusunu koruyarak şık bir yatak odasında sergile."
+        },
+        "en": {
+          "title": "Bedding Studio",
+          "description": "Style bedding in an elegant bedroom while preserving its pattern and texture."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/bedding-studio/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/bedding-studio/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/bedding-studio/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/bedding-studio/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/bedding-studio/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/bedding-studio/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/bedding-studio/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/bedding-studio/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "frame-hang",
+    "position": 43,
+    "draft": {
+      "version": 1,
+      "title": "Tabloyu çerçeveleyip duvara asma",
+      "description": "Çerçeve veya tabloyu perspektifi doğru, şık bir duvar kompozisyonunda göster.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Tabloyu çerçeveleyip duvara asma",
+          "description": "Çerçeve veya tabloyu perspektifi doğru, şık bir duvar kompozisyonunda göster."
+        },
+        "en": {
+          "title": "Frame & Hang",
+          "description": "Display framed art in a stylish wall composition with accurate perspective."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/frame-hang/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/frame-hang/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/frame-hang/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/frame-hang/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/frame-hang/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/frame-hang/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/frame-hang/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/frame-hang/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "pet-product-showcase",
+    "position": 44,
+    "draft": {
+      "version": 1,
+      "title": "Evcil hayvan yatağını kullanımda gösterme",
+      "description": "Evcil hayvan ürününü gerçek kullanımını anlatan canlı bir sahnede göster.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Evcil hayvan yatağını kullanımda gösterme",
+          "description": "Evcil hayvan ürününü gerçek kullanımını anlatan canlı bir sahnede göster."
+        },
+        "en": {
+          "title": "Pet Product Showcase",
+          "description": "Show a pet product in a lively scene that makes its use clear."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/pet-product-showcase/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/pet-product-showcase/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pet-product-showcase/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pet-product-showcase/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pet-product-showcase/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pet-product-showcase/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pet-product-showcase/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pet-product-showcase/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "sticker-decal-preview",
+    "position": 45,
+    "draft": {
+      "version": 1,
+      "title": "Çıkartmayı şişeye uygulama",
+      "description": "Etiketi veya çıkartmayı uygun yüzeyde, kenar ve perspektifleri doğru şekilde göster.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Çıkartmayı şişeye uygulama",
+          "description": "Etiketi veya çıkartmayı uygun yüzeyde, kenar ve perspektifleri doğru şekilde göster."
+        },
+        "en": {
+          "title": "Sticker & Decal Preview",
+          "description": "Preview a sticker or decal on a suitable surface with realistic edges and perspective."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/sticker-decal-preview/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/sticker-decal-preview/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/sticker-decal-preview/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/sticker-decal-preview/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/sticker-decal-preview/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/sticker-decal-preview/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/sticker-decal-preview/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/sticker-decal-preview/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "pattern-extract-repeat",
+    "position": 46,
+    "draft": {
+      "version": 1,
+      "title": "Motiften tekrar eden desen",
+      "description": "Yüklenen deseni koruyarak düzenli ve tekrarlayan bir yüzey tasarımı oluştur.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Motiften tekrar eden desen",
+          "description": "Yüklenen deseni koruyarak düzenli ve tekrarlayan bir yüzey tasarımı oluştur."
+        },
+        "en": {
+          "title": "Pattern Extract & Repeat",
+          "description": "Turn your uploaded pattern into a consistent repeating surface design."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/pattern-extract-repeat/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/pattern-extract-repeat/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pattern-extract-repeat/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pattern-extract-repeat/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pattern-extract-repeat/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pattern-extract-repeat/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pattern-extract-repeat/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pattern-extract-repeat/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "sketch-to-product",
+    "position": 47,
+    "draft": {
+      "version": 1,
+      "title": "Çizimden seramik ürün konsepti",
+      "description": "Ürün çizimini formuna sadık, gerçekçi bir ürün görseline dönüştür.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Çizimden seramik ürün konsepti",
+          "description": "Ürün çizimini formuna sadık, gerçekçi bir ürün görseline dönüştür."
+        },
+        "en": {
+          "title": "Sketch to Product",
+          "description": "Turn a product sketch into a realistic image that stays true to its design."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/sketch-to-product/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/sketch-to-product/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/sketch-to-product/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/sketch-to-product/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/sketch-to-product/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/sketch-to-product/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/sketch-to-product/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/sketch-to-product/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "motion-select",
+    "position": 48,
+    "draft": {
+      "version": 1,
+      "title": "Kahve buharı için örnek kare",
+      "description": "Ürününü öne çıkaran kısa bir hareketli sunum için fotoğrafını hazırla.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Kahve buharı için örnek kare",
+          "description": "Ürününü öne çıkaran kısa bir hareketli sunum için fotoğrafını hazırla."
+        },
+        "en": {
+          "title": "Motion Select",
+          "description": "Bring your product photo to life with a short motion presentation."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/motion-select/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/motion-select/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/motion-select/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/motion-select/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/motion-select/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/motion-select/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/motion-select/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/motion-select/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "light-sweep",
+    "position": 49,
+    "draft": {
+      "version": 1,
+      "title": "Saat üzerinde ışık geçişi için örnek kare",
+      "description": "Ürünün yüzeyinde gezinen ışıkla malzeme ve formunu öne çıkar.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Saat üzerinde ışık geçişi için örnek kare",
+          "description": "Ürünün yüzeyinde gezinen ışıkla malzeme ve formunu öne çıkar."
+        },
+        "en": {
+          "title": "Light Sweep",
+          "description": "Reveal materials and shape with light sweeping across the product."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/light-sweep/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/light-sweep/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/light-sweep/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/light-sweep/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/light-sweep/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/light-sweep/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/light-sweep/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/light-sweep/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "unboxing-clip",
+    "position": 50,
+    "draft": {
+      "version": 1,
+      "title": "Kutu açılışı için örnek kare",
+      "description": "Ürünün paket açılışını anlatan kısa bir tanıtım videosu oluştur.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Kutu açılışı için örnek kare",
+          "description": "Ürünün paket açılışını anlatan kısa bir tanıtım videosu oluştur."
+        },
+        "en": {
+          "title": "Unboxing Clip",
+          "description": "Create a short product reveal inspired by an unboxing experience."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/unboxing-clip/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/unboxing-clip/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/unboxing-clip/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/unboxing-clip/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/unboxing-clip/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/unboxing-clip/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/unboxing-clip/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/unboxing-clip/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  },
+  {
+    "builtin_id": "pet-outfit-try-on",
+    "position": 51,
+    "draft": {
+      "version": 1,
+      "title": "Evcil hayvan giydirme",
+      "description": "Kıyafeti evcil hayvana doğal oturuşla giydir; desen ve detaylarını koru.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Evcil hayvan giydirme",
+          "description": "Kıyafeti evcil hayvana doğal oturuşla giydir; desen ve detaylarını koru."
+        },
+        "en": {
+          "title": "Pet Outfit Try-On",
+          "description": "Dress a pet naturally in your garment while preserving its pattern and details."
+        }
+      },
+      "buttonHue": 260,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/pet-outfit-try-on/before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-discovery/20260919-ecommerce-v3/pet-outfit-try-on/after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pet-outfit-try-on/1-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pet-outfit-try-on/1-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pet-outfit-try-on/2-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pet-outfit-try-on/2-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pet-outfit-try-on/3-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/tool-intros/20260919-v2/pet-outfit-try-on/3-after.webp"
+        }
+      ],
+      "screen": null
+    }
+  }
+]

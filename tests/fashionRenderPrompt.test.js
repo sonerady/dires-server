@@ -17,6 +17,36 @@ const context = {...require('../src/utils/bagCampaignPrompt'), ...fashion, ...fo
 vm.runInNewContext(`${realism}\n${finalizer}\nthis.finalize = finalizeGenerationPrompt; this.universal = appendUniversalPhotorealism;`, context);
 const finalize = context.finalize;
 
+test('shoe category cannot reintroduce a calf crop for outfits, multi-product or unverified multi-angle inputs', () => {
+  const settings = {productCategory:'shoes', productSubtype:'loafers', gender:'man', age:'35 years old', focusArea:'auto'};
+  const scenarios = [
+    {isMultipleProducts:true}, {isKombinMode:true}, {kombinItemCount:4},
+    {multipleAnglesCount:4, isMultipleAnglesMode:true},
+    {settings:{...settings, multipleAnglesCount:4, isMultipleAnglesMode:true}},
+  ];
+  for (const options of scenarios) {
+    for (const extra of [{}, {styleReferenceUrl:'editorial.jpg'}, {autoStyleGridUrl:'street.jpg'}]) {
+      const result = finalize('Preserve the supplied jacket, polo, trousers and loafers.', {settings, ...options, ...extra});
+      assert.doesNotMatch(result, /FOOTWEAR PHOTOGRAPHY:|TOP EDGE OF THE IMAGE|Use a footwear-led crop/);
+      assert.match(result, /jacket, polo, trousers and loafers/);
+    }
+  }
+  assert.match(finalize('Photograph the loafers.', {settings}), /Use a footwear-led crop/);
+});
+
+test('fallback retains the complete outfit and visual scope when enhancement fails', () => {
+  const fallbackSource = source.slice(source.indexOf('function buildNarrativeFallbackPrompt('), source.indexOf('async function attemptSimplifiedEnhance('));
+  const fallbackContext = {...context, normalizePerspective: () => '', an: () => 'a'};
+  vm.runInNewContext(`${fallbackSource}\nthis.fallback = buildNarrativeFallbackPrompt;`, fallbackContext);
+  const settings = {productCategory:'shoes', gender:'man', age:'35 years old'};
+  for (const scope of [{isMultiple:true, modes:{}}, {isMultiple:false, modes:{multipleAnglesCount:4}}]) {
+    const prompt = fallbackContext.fallback(settings, scope.isMultiple, scope.modes);
+    assert.doesNotMatch(prompt, /FOOTWEAR PHOTOGRAPHY:|Use a footwear-led crop/);
+    if (scope.isMultiple) assert.match(prompt, /All pieces work together/);
+    else assert.match(prompt, /retain every distinct product together as a complete outfit/);
+  }
+});
+
 test('front-product visibility reaches both enhancement and rendering without fixing a single pose', () => {
   const settings = {productCategory: 'clothing', productSubtype: 'dress', location: 'Ornate White Marble Grand Palace Staircase', hairStyle: 'side_bun_with_curls'};
   const enhanced = fashion.buildFashionCampaignEnhanceInstruction({settings});
