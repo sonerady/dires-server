@@ -1368,4 +1368,29 @@ router.get("/videoGenerationsV2/:userId", async (req, res) => {
   }
 });
 
+// 🧩 GERİYE UYUMLULUK (23 Eyl 2026): storyboard önizlemesi 22 Eyl'de kaldırıldı ve
+// /api/videoPreviewGrid/* rotası silindi. Mağazadaki ESKİ uygulama sürümleri hâlâ
+// "Önizleme" butonundan bu uçları çağırıyor; silinmiş rota Express'in HTML 404'ünü
+// döndürdüğü için istemcide response.json() patlıyor ve kullanıcı hata görüyordu.
+// Önizlemeyi geri getirmiyoruz (eski istemci ızgarayı ilk kare yapıp isGridPreview
+// gönderirdi; yeni hat ızgarayı bir kolaj gibi canlandırırdı). Bunun yerine eski
+// istemcinin anladığı biçimde düzgün JSON: generate → success:false + mesaj (eski
+// istemci mesajı gösterir), status → failed + errorMessage. Kullanıcı "Oluştur" ile
+// önizlemesiz devam eder. Yeni uygulamalar bu uçları çağırmaz.
+const PREVIEW_REMOVED_MESSAGES = {
+  tr: "Önizleme artık kullanılamıyor — videonu doğrudan oluşturabilirsin. En yeni özellikler için uygulamayı güncelle.",
+  en: "Preview is no longer available — you can create your video directly. Update the app for the newest features.",
+};
+const previewRemovedMessage = (req) => {
+  const lang = String(req.headers["accept-language"] || "").slice(0, 2).toLowerCase();
+  return PREVIEW_REMOVED_MESSAGES[lang] || PREVIEW_REMOVED_MESSAGES.en;
+};
+router.post("/videoPreviewGrid/generate", (req, res) => {
+  console.log(`🧩 [VIDEO-COMPAT] eski istemci önizleme istedi (kaldırıldı) user=${String(req.body?.userId || "-").slice(0, 8)}`);
+  res.json({ success: false, deprecated: true, message: previewRemovedMessage(req) });
+});
+router.get("/videoPreviewGrid/status/:previewId", (req, res) => {
+  res.json({ success: true, status: "failed", deprecated: true, errorMessage: previewRemovedMessage(req) });
+});
+
 module.exports = router;
