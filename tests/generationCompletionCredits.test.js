@@ -35,6 +35,8 @@ for (const route of ['changePose', 'changeProductColor', 'backSideCloset', 'crea
       const fn = vm.runInNewContext(source.slice(start, end) + '\ndeductCreditOnSuccess;', {
         supabase: db, console: quiet, logger: quiet,
         teamService: { getEffectiveCredits: async () => ({ creditOwnerId: 'owner', creditBalance: balance, isTeamCredit: true }) },
+        // İade kanıtı yazımı (services/refundChargeEvidence) — borçlanmayı etkilemez
+        recordRefundCharge: async () => true,
       });
       assert.equal(await fn('generation', 'member'), true);
       assert.equal(await fn('generation', 'member'), true);

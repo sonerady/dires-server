@@ -156,6 +156,9 @@ for (const name of ['referenceBrowserRoutesV7', 'referenceJewelryBrowserRoutesV7
    logger: {log() {}}, process: {env: {FAL_API_KEY: 'fixture'}},
    axios: {post: async (url, input) => {calls.push({url, input}); return {data: {images: [{url: 'https://test/result'}]}};}},
   };
+  // Dal, modül düzeyindeki yardımcıyı çağırıyor (13 Eyl'den beri) — varsa bağlama taşı
+  const nb2Builder = r.nodes.find(n => n.type === 'FunctionDeclaration' && n.id?.name === 'buildNb2GenerationRequest');
+  if (nb2Builder) ctx.buildNb2GenerationRequest = vm.runInNewContext(`(${r.code(nb2Builder)})`);
   await vm.runInNewContext(`(async()=>{let replicateResponse;for(let attempt=1;attempt<=1;attempt++){${r.code(branch)}}})()`, ctx);
   assert.equal(calls.length, 1);
   assert.equal(calls[0].url, 'https://fal.run/fal-ai/nano-banana-2/edit');
