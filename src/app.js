@@ -65,7 +65,7 @@ const generateImgToVidRouter = require("./routes/generateImgToVid");
 const generateImgToVidv2Router = require("./routes/generateImgToVidv2"); // Seedance 2.0
 const generateImgToVidv3Router = require("./routes/generateImgToVidv3"); // Veo 3.1 Fast
 const generateImgToVidWebRouter = require("./routes/generateImgToVidWeb");
-const videoPreviewGridRouter = require("./routes/videoPreviewGridRoutes"); // 🧩 Storyboard preview (nano-banana 6-scene grid)
+const videoSkillRouter = require("./routes/videoSkillRoutes"); // 🎬 Video stüdyosu: remix referans video yükleme
 const albumsRouter = require("./routes/albumsRoutes"); // 📁 History albums CRUD
 const shareRouter = require("./routes/shareRoutes"); // 🔗 Public share tokens + /api/public/share/:token
 const getPredictionsRouter = require("./routes/getPredictions");
@@ -184,6 +184,9 @@ const authRoutesWeb = require("./routes/authRoutesWeb");
 // Generate Product Kit routes import
 const generateProductKitRoutes = require("./routes/generateProductKitRoutes");
 const generateProductKitRoutesV2 = require("./routes/generateProductKitRoutesV2");
+const kitSourceRoutes = require("./routes/kitSourceRoutes");
+const customKitRoutes = require("./routes/customKitRoutes");
+const subscriptionStatusRoutes = require("./routes/subscriptionStatusRoutes");
 // Generate Product Story routes import
 const generateProductStoryRoutes = require("./routes/generateProductStoryRoutes");
 // Generate Street Icon Kit routes import
@@ -319,7 +322,7 @@ app.use("/api", generateImgToVidRouter);
 app.use("/api", generateImgToVidv2Router); // Seedance 2.0
 app.use("/api", generateImgToVidv3Router); // Veo 3.1 Fast
 app.use("/api", generateImgToVidWebRouter);
-app.use("/api", videoPreviewGridRouter); // 🧩 /api/videoPreviewGrid/generate
+app.use("/api", videoSkillRouter); // 🎬 /api/video-skills/upload-reference
 app.use("/api", albumsRouter); // 📁 /api/albums/*
 app.use("/api", shareRouter); // 🔗 /api/share/* + /api/public/share/:token (public)
 app.use("/api", posesRouter);
@@ -377,6 +380,8 @@ app.use("/api/referenceBrowserV4", referenceBrowserRoutesV4);
 app.use("/api/referenceBrowserV5", referenceBrowserRoutesV5);
 app.use("/api/referenceBrowserV6", referenceBrowserRoutesV6);
 app.use("/api/referenceBrowserV7", referenceBrowserRoutesV7);
+// 🛍️ Ürün Stüdyosu araç ekranları — V7 kopyası (studioToolKey dalı), 23 Eyl 2026
+app.use("/api/productStudio", require("./routes/productStudioRoutes"));
 app.use("/api/referenceJewelryBrowserV7", referenceJewelryBrowserRoutesV7);
 // Stil yönetimindeki okuma/yazma uçları yalnız oturum açmış admin tarafından
 // kullanılabilir. Public /global ve kullanıcı profili uçları aynı kalır.
@@ -499,6 +504,9 @@ app.use("/api", modelPosesRoutesWeb);
 // Generate Product Kit routes
 app.use("/api", generateProductKitRoutes);
 app.use("/api", generateProductKitRoutesV2);
+app.use("/api", kitSourceRoutes);
+app.use("/api", customKitRoutes);
+app.use("/api", subscriptionStatusRoutes);
 
 // Generate Product Story routes
 app.use("/api", generateProductStoryRoutes);

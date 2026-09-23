@@ -221,6 +221,26 @@ async function getUserTeam(userId) {
             .single();
 
         if (ownedTeam) {
+            // Koltuk onarımı: users.team_max_members (planın/paketin verdiği hak)
+            // teams.max_members'tan büyükse ekibi yükselt. Plan yenilemeleri
+            // yalnız users satırını güncelliyor; ekip satırı eski değerde
+            // (ör. biten ek paket sonrası 0) kalınca istemci "limit doldu"
+            // diyordu. YALNIZ yükseltir — koltuk düşürme webhook'un işi.
+            const proStatus = await checkProStatus(userId);
+            // hasTeamSubscription şartı: yalnız users satırındaki GERÇEK hak
+            // kullanılır; TIER_LIMITS tahmini (plus=2) webhook haritasıyla
+            // (plus=1) çelişiyor, fazladan koltuk vermesin.
+            if (proStatus.isPro && proStatus.hasTeamSubscription && proStatus.maxMembers > (ownedTeam.max_members || 0)) {
+                const { error: seatError } = await supabase
+                    .from('teams')
+                    .update({ max_members: proStatus.maxMembers })
+                    .eq('id', ownedTeam.id);
+                if (seatError) {
+                    console.error('[TeamService] getUserTeam seat repair failed:', seatError);
+                } else {
+                    logger.log('[TeamService] getUserTeam: repaired team max_members', ownedTeam.max_members, '→', proStatus.maxMembers);
+                }
+            }
             const teamData = await getTeamWithMembers(ownedTeam.id);
             return { ...teamData, role: 'owner' };
         }

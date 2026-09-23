@@ -42,7 +42,7 @@ const {
 } = require("../utils/listingPrompts");
 const { getListingExampleUrls } = require("../utils/listingExamples");
 
-const { normalizeProductReferences, normalizeBrand, referenceDirection } = require("../utils/listingSellerInputs");
+const { normalizeProductReferences, normalizeBrand, referenceDirection, primaryImageLine } = require("../utils/listingSellerInputs");
 const router = express.Router();
 
 // Export only persisted images belonging to this user/job. No client-supplied URLs.
@@ -278,7 +278,7 @@ async function buildBrief({ details, marketplace, language, style, imageUrl, con
   try {
     // 📎 Ek içerik fotoğrafları 2..N. görsel, dosya metinleri prompt'ta "CONTENT FILES"
     const raw = await callStructuredText(
-      buildBriefPrompt({ details, marketplace, language, style, contentImageCount: contentImages.length, contentDocs, frameCounts }) + `\nPRIMARY PRODUCT IMAGE 1: ${primaryRole} view. Do not assume unseen surfaces.\n` + referenceDirection(productReferences, 2 + contentImages.length) + (productReferences.length ? "\nFor legible text in additional product views use source content_image with the exact evidence quote." : "") + (brandProfile ? `\nSaved store identity: ${JSON.stringify(brandProfile)}. Keep this palette and typography across products; never change product colors. This overrides optional creative preferences only.` : ""),
+      buildBriefPrompt({ details, marketplace, language, style, contentImageCount: contentImages.length, contentDocs, frameCounts }) + `\n${primaryImageLine(primaryRole)} Do not assume unseen surfaces.\n` + referenceDirection(productReferences, 2 + contentImages.length) + (productReferences.length ? "\nFor legible text in additional product views use source content_image with the exact evidence quote." : "") + (brandProfile ? `\nSaved store identity: ${JSON.stringify(brandProfile)}. Keep this palette and typography across products; never change product colors. This overrides optional creative preferences only.` : ""),
       { maxOutputTokens, imageUrls: [imageUrl, ...contentImages, ...productReferences.map(r => r.url)], timeoutMs },
     );
     const brief = parseBrief(raw, details, (issue) =>
@@ -340,7 +340,7 @@ router.post("/generate", async (req, res) => {
         code: "BAD_REQUEST",
       });
     }
-    const primaryRole = ["front", "back", "label", "detail"].includes(options.primaryRole) ? options.primaryRole : "front";
+    const primaryRole = ["front", "back", "label", "detail", "auto"].includes(options.primaryRole) ? options.primaryRole : "front";
     const brandProfile = normalizeBrand(options.brandProfile);
     const style = normalizeStyle(options.style);
     const ratio = SUPPORTED_RATIOS.has(options.ratio) ? options.ratio : "1:1";

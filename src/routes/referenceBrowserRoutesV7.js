@@ -1,3 +1,4 @@
+const { setGenerationProgress, getGenerationProgress, clearGenerationProgress } = require("../services/generationProgress");
 const { recordRefundCharge } = require("../services/refundChargeEvidence");
 const { normalizeGenerationAge, ageDirective } = require("../utils/generationAge");
 const { isBagShoot, buildBagFocusDirective, buildBagDirection, buildBagEnhanceInstruction } = require("../utils/bagCampaignPrompt");
@@ -5216,6 +5217,22 @@ router.post("/generate", async (req, res) => {
     } = req.body;
     ({ settings, prompt: promptText } = normalizeGenerationAge(settings, promptText));
 
+    // 🩱 İç giyim / erotik ürün kilidi (23 Eyl 2026, kullanıcı isteği): client
+    // /api/product-type/intimate-check ile ürünü iç giyim bulduysa kullanıcının
+    // KENDİ seçtiği model fotoğrafı kullanılmaz — yalnız "Yapay Zekaya Bırak"
+    // (aşağıdaki havuz ataması) geçerlidir. Eski/değiştirilmiş client'lara karşı
+    // sınıflandırıcının "lingerie" / "swimwear" alt türü de aynı kilidi tetikler (bikini/mayo — 23 Eyl kullanıcı kararı).
+    // Farklı açılar / kombin modunda kilit YOK (23 Eyl kullanıcı kararı)
+    const intimateExemptMode = isMultipleAnglesMode === true || req.body?.isKombinMode === true;
+    const intimateLocked = !intimateExemptMode && (
+      req.body?.intimateProduct === true ||
+      ["lingerie", "swimwear"].includes(String(req.body?.productSubtype || "").toLowerCase()));
+    if (intimateLocked && modelPhoto && !isEditMode && !isRefinerMode && !isColorChange && !isPoseChange && !req.body?.isBackSideAnalysis) {
+      logger.log("🩱 [INTIMATE LOCK] iç giyim ürünü → kullanıcının model fotoğrafı yok sayıldı, AI havuzu kullanılacak");
+      modelPhoto = null;
+      modelProfile = null;
+    }
+
 
     // 🎲 "Yapay Zekaya Bırak": kullanıcı model seçmediyse ve istenen yaş 18+ ise
     // model MUTLAKA havuzdan (`model_pool`) rastgele seçilir — kullanıcının kendi
@@ -5819,6 +5836,8 @@ router.post("/generate", async (req, res) => {
 
     // 🔄 Status'u processing'e güncelle
     await updateGenerationStatus(finalGenerationId, userId, "processing");
+    // 🧭 Results kartındaki kullanıcı dostu aşama yazısı (services/generationProgress)
+    setGenerationProgress(finalGenerationId, "preparing");
 
     logger.log("🎛️ [BACKEND] Gelen settings parametresi:", settings);
     logger.log("🏞️ [BACKEND] Settings içindeki location:", settings?.location);
@@ -5954,6 +5973,7 @@ router.post("/generate", async (req, res) => {
 
     logger.log("Supabase'den alınan final resim URL'si:", finalImage);
 
+    setGenerationProgress(finalGenerationId, "product");
     // Aspect ratio'yu formatla
     const formattedRatio = formatAspectRatio(ratio || "9:16");
     logger.log(
@@ -6527,6 +6547,7 @@ Do NOT describe any person's face/identity or garments. PLAIN TEXT only, numbere
     }
 
     // 🚀 Paralel işlemler başlat
+    setGenerationProgress(finalGenerationId, "request");
     logger.log(
       "🚀 Paralel işlemler başlatılıyor: Gemini + Arkaplan silme + ControlNet hazırlığı...",
     );
@@ -6804,6 +6825,7 @@ Do NOT describe any person's face/identity or garments. PLAIN TEXT only, numbere
     }
 
     logger.log("✅ Gemini prompt iyileştirme tamamlandı");
+    setGenerationProgress(finalGenerationId, "scene");
 
     // 🎯 Focus area — Gemini rewrite edip kaldırmış olabileceği için enhancedPrompt'un
     // EN BAŞINA pazarlıksız olarak yeniden yerleştir. Gemini direktifi bazen başa
@@ -7468,6 +7490,7 @@ The final image must read as the SAME street-style photograph — same person-in
       logger.warn("🎁 [TRIAL QUALITY] trial durumu okunamadı:", error.message);
     }
     generationStage = "image_provider";
+    setGenerationProgress(finalGenerationId, "generating");
     const selectedAgeInstruction = ageDirective(settings);
     if (selectedAgeInstruction) enhancedPrompt += `\n\n${selectedAgeInstruction}`;
     // Preserve the exact renderer prompt even when the provider rejects the image.
@@ -8236,6 +8259,7 @@ The final image must read as the SAME street-style photograph — same person-in
           logger.log(
             `🔄 Retry ${retryAttempt}: Yeni prediction oluşturuluyor... (Model: ${falModel})`,
           );
+          setGenerationProgress(finalGenerationId, "retrying");
 
           const retryResponse = await axios.post(
             `https://fal.run/${falModel}`,
@@ -8354,6 +8378,7 @@ The final image must read as the SAME street-style photograph — same person-in
       // 🔍 NETLEŞTİRME ADIMI — kullanıcı Results'ta 4 MP'den yüksek bir kademe
       // seçtiyse sonuç, kaydedilmeden önce o çözünürlüğe yükseltilir. Hata
       // durumunda orijinal sonuçla devam edilir (üretim asla kaybolmaz).
+      if (Number(upscaleMp) > 4) setGenerationProgress(finalGenerationId, "upscaling");
       const upscaleOutcome = await applyResultUpscale({
         imageUrl: resultImageUrl,
         upscaleMp,
@@ -8362,10 +8387,12 @@ The final image must read as the SAME street-style photograph — same person-in
         ensureBaseCharge: () => deductCreditOnSuccess(finalGenerationId, userId),
         logTag: "MODEL UPSCALE",
       });
+      setGenerationProgress(finalGenerationId, "finishing");
       resultImageUrl = upscaleOutcome.imageUrl;
       const appliedUpscaleMp = upscaleOutcome.appliedMp;
       const preUpscaleImageUrl = upscaleOutcome.preUpscaleUrl;
 
+      clearGenerationProgress(finalGenerationId, "tamamlandı");
       const updatedGeneration = await updateGenerationStatus(
         finalGenerationId,
         userId,
@@ -8504,6 +8531,7 @@ The final image must read as the SAME street-style photograph — same person-in
 
     // ❌ Status'u failed'e güncelle (genel hata durumu)
     if (finalGenerationId) {
+      clearGenerationProgress(finalGenerationId, "hata");
       await updateGenerationStatus(finalGenerationId, userId, "failed", {
         generationFailure: {
           stage: generationStage,
@@ -9184,8 +9212,12 @@ router.get("/generation-status/:generationId", async (req, res) => {
         resultImageUrl: generation.result_image_url,
         upscaledMp: generation.upscaled_mp || null,
         preUpscaleImageUrl: generation.pre_upscale_image_url || null,
-        // ⏳ Ara aşama ("upscaling") — Results kartındaki durum rozeti için
-        stage: generation.settings?.stage || null,
+        // ⏳ Ara aşama — Results kartının altındaki kullanıcı dostu durum yazısı.
+        // Bellekteki canlı aşama öncelikli (services/generationProgress); yoksa eski
+        // settings.stage ("upscaling"). Tamamlanınca aşama taşınmaz.
+        stage: finalStatus === "processing" || finalStatus === "pending"
+          ? getGenerationProgress(generation.generation_id) || generation.settings?.stage || null
+          : null,
         resultImageThumbnail: thumbnailUrl,
         originalPrompt: generation.original_prompt,
         enhancedPrompt: generation.enhanced_prompt,

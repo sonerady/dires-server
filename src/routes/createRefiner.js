@@ -1,3 +1,4 @@
+const { recordRefundCharge } = require("../services/refundChargeEvidence");
 const { REFINER_GHOST_MANNEQUIN_DIRECTIVE } = require("../utils/refinerGhostMannequinPrompt");
 const { GPT25_EDIT_MODEL, buildEditInput, gpt25NearestRatio, probeImageDims, getGpt25QualityV2 } = require("../utils/gpt25Edit");
 const { startGenerationHeartbeat } = require("../services/generationRecovery");
@@ -1191,6 +1192,10 @@ async function deductCreditOnSuccess(generationId, userId) {
     logger.log(
       `✅ ${totalCreditCost} kredi başarıyla düşüldü (${isTeamCredit ? "team owner" : "user"}: ${creditOwnerId}). Yeni bakiye: ${newBalance}`,
     );
+
+    // 🪙 İade kanıtı (23 Eyl 2026): Ürün Stüdyosu da bir ANA üretimdir → iade edilebilir;
+    // kanıt satırı olmayan (kit/varyasyon/düzenleme) üretimler iade edilmez.
+    await recordRefundCharge({ generationId, userId, creditOwnerId, amount: totalCreditCost, debit: updateResult });
 
     // 💳 Kredi tracking bilgilerini generation'a kaydet
     logger.log(

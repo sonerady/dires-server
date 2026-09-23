@@ -1,6 +1,35 @@
-const { setGenerationProgress, clearGenerationProgress } = require("../services/generationProgress");
+// 🛍️ Ürün Stüdyosu araçları (23 Eyl 2026) — referenceBrowserRoutesV7.js'nin KOPYASI.
+//
+// Kullanıcı kararı: anasayfadaki Ürün Stüdyosu kartlarının gerçek ekranları
+// V7'nin hazır mantığını kullansın (kredi ön kontrolü, pending kayıt, başarıda
+// öde, kullanıcı klasörüne kayıt, push bildirimi, durum sorgulama ve geçmiş
+// uçları). Bu kopya /api/productStudio altında çalışır; V7'nin kendisine
+// dokunulmadı.
+//
+// Kopyaya eklenen tek davranış: `studioToolKey` içeren istekler moda hattına
+// (gizli stil, model havuzu, Gemini prompt yazımı, poz/saç/mekân) HİÇ girmez;
+// ortak hazırlıktan (kredi kontrolü, referans yükleme, pending kayıt) hemen
+// sonra `runStudioToolGeneration` ile GPT Image 2.5 Sunburst'e gider. İstem
+// ve seçenek doğrulaması utils/studioTools.js'de (tek kaynak), pazaryeri ana
+// görseli / banner tam ölçü son işlemesi utils/studioToolPost.js'de.
+const { setGenerationProgress, getGenerationProgress, clearGenerationProgress } = require("../services/generationProgress");
+const {
+  getTool: getStudioTool,
+  validateOptions: validateStudioOptions,
+  resolveRatio: resolveStudioRatio,
+  resolveImageSize: resolveStudioImageSize,
+  buildPrompt: buildStudioPrompt,
+  MAIN_IMAGE_SPECS: STUDIO_MAIN_IMAGE_SPECS,
+  EXACT_SIZES: STUDIO_EXACT_SIZES,
+} = require("../utils/studioTools");
+const { marketplaceMainImage, exactSize, standardOutput } = require("../utils/studioToolPost");
+const { GPT25_EDIT_MODEL: STUDIO_GPT25_EDIT_MODEL, buildEditInput: buildStudioEditInput } = require("../utils/gpt25Edit");
 const { recordRefundCharge } = require("../services/refundChargeEvidence");
+const { normalizeGenerationAge, ageDirective } = require("../utils/generationAge");
+const { isBagShoot, buildBagFocusDirective, buildBagDirection, buildBagEnhanceInstruction } = require("../utils/bagCampaignPrompt");
 const { buildOutfitReferencePrompt, OUTFIT_IDENTITY_RULE, PRODUCT_INTERPRETATION_RULE } = require("../utils/productReferencePrompt");
+const { isFashionCampaignShoot, buildFashionFocusDirective, buildFashionPoseContext, buildFashionCampaignDirection, buildFashionCampaignEnhanceInstruction } = require("../utils/fashionCampaignPrompt");
+const { isFootwearShoot, buildFootwearDirection, buildFootwearEnhanceInstruction, buildMultiAngleProductScopeDirection } = require("../utils/footwearPrompt");
 const { renderReferenceLabel } = require("../utils/referenceLabel");
 const { supabaseAdmin: modelPoolDb } = require("../supabaseClient");
 const { LOCATION_DIRECTION, stampLocationReference, resolveUploadedLocationReference } = require("../services/referenceLocation");
@@ -14,19 +43,6 @@ const { getGenerationCreditCost } = require("../utils/generationCredits");
 const { applyResultUpscale } = require("../utils/resultUpscale");
 const express = require("express");
 const router = express.Router();
-
-// Bu dosya BrowserV7'den bağımsız jewelry endpoint'idir. İstemci kategori
-// alanını eksik veya yanlış gönderse bile bu router kıyafet moduna düşmez.
-router.use((req, _res, next) => {
-  if (["POST", "PUT", "PATCH"].includes(req.method)) {
-    req.body = {
-      ...(req.body || {}),
-      productCategory: "jewelry",
-      jewelryPromptMode: true,
-    };
-  }
-  next();
-});
 const mime = require("mime");
 const { createClient } = require("@supabase/supabase-js");
 const axios = require("axios");
@@ -55,10 +71,6 @@ const {
   buildEditorialPromptBlock,
 } = require("../config/editorialStyle");
 const { optimizeImageUrl } = require("../utils/imageOptimizer");
-// 💎 Ürün çekimi tarzı = takı temizliğinin yapılmadığı tek tarz
-const {
-  PRODUCT_SHOT_STYLE_APPROACH,
-} = require("../utils/jewelryCleanStyleImage");
 const {
   evaluatePrompt: evaluateSafetyPrompt,
   hardenPrompt: hardenSafetyPrompt,
@@ -102,10 +114,6 @@ const {
   STYLE_REFERENCE_PLATE_VARIANT,
   isCurrentStyleReferencePlateUrl,
 } = require("../utils/styleReferenceImage");
-const {
-  buildJewelryGenerationPrompt,
-  normalizeJewelrySubtype,
-} = require("../utils/jewelryPrompt");
 
 // Supabase istemci oluştur
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -137,7 +145,7 @@ When reference images are involved, treat the product/garment reference as the i
 
 Photographic realism is non-negotiable. Ground every creative choice in real camera and material behavior: natural skin microtexture and anatomy, believable fabric physics, tangible environmental surfaces, physically consistent light direction and shadows, coherent perspective, plausible optics and unified photographic color science. Describe these properties specifically for the requested model, garment and setting instead of relying on the word "realistic" alone.
 
-Aim for imagery with genuine editorial character: decisive light, a confident grade, intentional composition — the kind of frame that belongs to a current high-end campaign, never a generic stock photo.`;
+Aim for professional fashion photography with believable light, intentional composition and accurate product colors. Color treatment follows an explicit style reference or user request when supplied; otherwise use neutral white balance and natural, faithful color reproduction.`;
 
 // Her V7 üretim modunda (normal, stil referansı, renk/poz değişimi, refiner,
 // backside, v1/v2) görsel modeline gitmeden önce eklenen ortak kalite tabanı.
@@ -149,7 +157,7 @@ Render the result as an authentic professional photograph captured in one physic
 
 GARMENT-TO-BODY & SCENE INTEGRATION — MANDATORY: Treat the product reference as the source of the garment's design, not as a flat layer to paste onto the model. Discard the source mannequin, hanger, display form, background, cutout edges and source-photo lighting completely. Reconstruct the exact garment as a real three-dimensional piece physically worn by the living model in the requested pose. Preserve its design, construction, colors, print and proportions while naturally adapting its worn geometry to the model's bust, waist, hips, shoulders and limbs through believable fabric thickness, weight, gravity, support and movement. Create pose-specific tension, compression, folds, drape, overlap, occlusion and contact shadows wherever fabric meets skin or another garment; hems and structured areas retain the stiffness appropriate to their actual material instead of holding the source mannequin silhouette. Prints, embroidery, seams, boning, trims and highlights follow the body's curved surface, perspective and fabric deformation without looking stretched, painted or projected. Relight the garment from scratch inside the final scene so its diffuse color, metallic or glossy response, highlights, shadows, bounce light and color cast come from the same sources that illuminate the model and environment. Skin-to-garment boundaries show natural pressure and contact, with no cutout edge, halo or pasted-on transition. The finished frame must look as though the model truly wore the garment when the photograph was captured, never as though the garment was composited afterward.
 
-Render every garment or product with true-to-reference fabric weave, stitching, seams, thickness, weight, gravity-driven drape, tension folds, compression and contact shadows. Make every visible surface in the environment physically tangible with credible material texture, scale, perspective, atmospheric depth and grounded foot contact. Use one consistent, motivated lighting setup across the model, garment and environment: matching direction, softness, color temperature, exposure, cast shadows, bounce light, reflections and highlight roll-off. Use plausible photographic optics with coherent lens perspective, natural depth-of-field transition, realistic dynamic range and restrained sensor or film texture. All subjects and objects must share the same perspective, focus logic, color science, grain and illumination so the frame reads as a genuine high-end fashion photograph rather than a composited or generated image. Avoid waxy or airbrushed skin, mannequin stiffness, malformed anatomy, floating subjects, cutout halos, fake blur, oversharpening, inconsistent shadows, plastic fabric and sterile CGI surfaces.`;
+Render every garment or product with true-to-reference fabric weave, stitching, seams, thickness, weight, gravity-driven drape, tension folds, compression and contact shadows. Make every visible surface in the environment physically tangible with credible material texture, scale, perspective, atmospheric depth and grounded foot contact. Use one consistent, motivated lighting setup across the model, garment and environment: matching direction, softness, color temperature, exposure, cast shadows, bounce light, reflections and highlight roll-off. Use plausible photographic optics with coherent lens perspective, natural depth-of-field transition, realistic dynamic range and natural photographic detail. All subjects and objects must share the same perspective, focus logic, color science and illumination so the frame reads as a genuine high-end fashion photograph rather than a composited or generated image. Avoid waxy or airbrushed skin, mannequin stiffness, malformed anatomy, floating subjects, cutout halos, fake blur, oversharpening, inconsistent shadows, plastic fabric and sterile CGI surfaces.`;
 
 function appendUniversalPhotorealism(prompt) {
   const base = String(prompt || "").trim();
@@ -176,15 +184,15 @@ function normalizeProductCategory(raw) {
 // (ör. shoes + ring) filtreyi boş havuza düşürür.
 const PRODUCT_SUBTYPES = {
   shoes: ["heels", "sneakers", "boots", "sandals", "flats", "loafers"],
-  // ⌚ 27 Ağu 2026: saat giyime taşındı — jewelry sözlüğünden çıktı.
-  jewelry: ["ring", "necklace", "earring", "bracelet", "anklet"],
+  jewelry: ["ring", "necklace", "earring", "bracelet", "watch", "anklet"],
   clothing: ["dress","top","bottom","outerwear","knitwear","swimwear","lingerie","bag","accessory"],
 };
-// 🎨 Jewelry çekim tarzı SAYISAL enum: 1 Editoryal · 2 Ürün çekimi ·
-// 3 Yakın plan. İstemci sayı ya da metin ("2") gönderebilir.
+// 🎨 Çekim tarzı SAYISAL enum (kullanıcı kararı 13 Ağu): 1 Editoryal ·
+// 2 Sanatsal · 3 E-ticaret. İstemci sayı ya da metin ("2") gönderebilir.
 function normalizeStyleApproach(raw) {
   const n = parseInt(raw, 10);
-  return Number.isInteger(n) && n >= 1 && n <= 3 ? n : null;
+  // 4 = Sokak Stili (19 Ağu 2026)
+  return Number.isInteger(n) && n >= 1 && n <= 4 ? n : null;
 }
 function normalizeProductSubtype(rawCategory, rawSubtype) {
   const cat = normalizeProductCategory(rawCategory);
@@ -192,6 +200,15 @@ function normalizeProductSubtype(rawCategory, rawSubtype) {
   const v = String(rawSubtype || "").trim().toLowerCase();
   return PRODUCT_SUBTYPES[cat].includes(v) ? v : null;
 }
+// Bring the current detector result into the shared prompt AND persisted settings.
+// A new top-level category without subtype must not inherit a stale bag subtype.
+function resolveGenerationProductSettings(settings = {}, body = {}) {
+  const category = normalizeProductCategory(body.productCategory ?? settings?.productCategory);
+  const subtype = normalizeProductSubtype(category,
+    body.productSubtype ?? (body.productCategory != null ? null : settings?.productSubtype));
+  return { ...(settings || {}), productCategory: category, productSubtype: subtype };
+}
+
 async function callReplicateGeminiFlash(
   prompt,
   imageUrls = [],
@@ -661,7 +678,7 @@ async function callFalAiGptImage2Edit(
           prompt: prompt,
           image_urls: imageUrls,
           image_size: effectiveImageSize,
-          quality: model === SUNBURST_EDIT_MODEL ? (qualityOverride || getGpt25Quality()) : "medium", // GPT 2.5: V1 → gpt25_quality
+          quality: model === SUNBURST_EDIT_MODEL ? (qualityOverride || getGpt25Quality()) : "medium", // GPT 2.5: V1 → gpt25_quality · eski modeller: medium
           num_images: 1,
           output_format: "jpeg",
         },
@@ -1493,12 +1510,12 @@ async function deductCreditOnSuccess(generationId, userId) {
     logger.log(
       `💳 [TRACKING] Generation ${generationId} için kredi tracking bilgileri kaydediliyor...`,
     );
-    // 🪙 İade kanıtı (23 Eyl 2026): giyim V7 gibi takı ana üretimleri de kanıt satırı yazar;
-    // yazmıyordu → takı iadeleri sahibi bilinmediği için hep admin kuyruğuna düşüyordu.
     await recordRefundCharge({ generationId, userId, creditOwnerId, amount: totalCreditCost, debit: updateResult });
+
     const creditTrackingUpdates = {
       credits_before_generation: currentCredit,
       credits_deducted: totalCreditCost,
+      credit_owner_id: creditOwnerId,
       credits_after_generation: newBalance,
     };
 
@@ -1579,8 +1596,15 @@ async function updateGenerationStatus(
 
     // Eğer completed status'a geçiyorsa ve result_image_url varsa, user bucket'e kaydet
     let finalUpdates = { ...updates };
+    // 🛍️ Ürün Stüdyosu: son işlenmiş görsel zaten user bucket'e yazıldı → tekrar indirip yükleme
+    const alreadyInUserBucket = finalUpdates.alreadyInUserBucket === true;
+    delete finalUpdates.alreadyInUserBucket;
+    if (finalUpdates.generationFailure) {
+      finalUpdates.settings = { ...(previousSettings || {}), generationFailure: finalUpdates.generationFailure };
+      delete finalUpdates.generationFailure;
+    }
 
-    if (status === "completed" && updates.result_image_url) {
+    if (status === "completed" && updates.result_image_url && !alreadyInUserBucket) {
       logger.log("💾 Result image user bucket'ine kaydediliyor...");
       try {
         // 1️⃣ Önce user'ın pro olup olmadığını kontrol et
@@ -1892,8 +1916,14 @@ function normalizePerspective(value) {
 // yerine akıcı, fotoğrafçı-brief tarzı 4 paragraflık cümlelere dönüştürür.
 // (Nano-banana narrative promptlarla en iyi sonucu verir; parametre yığını
 // stok/yapay görünüm üretir.)
-function buildNarrativeFallbackPrompt(settings = {}, isMultipleProducts = false) {
+function buildNarrativeFallbackPrompt(settings = {}, isMultipleProducts = false, modes = {}) {
   const s = settings || {};
+  if (isBagShoot(s, modes)) {
+    return `Create a new luxury accessories campaign photograph of the exact reference bag with a ${s.gender || ''} model of the selected age in ${s.locationEnhancedPrompt || s.location || 'the selected setting'}. ${buildBagFocusDirective(s)} ${buildBagDirection()}`;
+  }
+  if (isFootwearShoot(s, { ...modes, isMultipleProducts })) {
+    return `Replace the source product display with the exact referenced footwear naturally worn by a living ${s.gender || ""} model of the selected age, in ${s.locationEnhancedPrompt || s.location || "a restrained photographic setting"}. ${buildFootwearDirection({ settings: s })}`;
+  }
   const genderLower = (s.gender || "female").toLowerCase();
   const isMale = genderLower === "male" || genderLower === "man";
   const ageStr = s.age ? String(s.age) : "";
@@ -1978,23 +2008,29 @@ function buildNarrativeFallbackPrompt(settings = {}, isMultipleProducts = false)
   let p4 = normalizedPerspective
     ? `The photograph is composed from ${an(normalizedPerspective)} ${normalizedPerspective} viewpoint, `
     : `The photograph is composed at eye level with polished editorial framing, `;
-  p4 += `lit by a professional lighting design suited to the setting, with one clear key light direction, natural falloff, and true contact shadows. The color grade is confident — dense blacks, accurate whites, honest saturation — with crisp focus on the garment and lifelike skin and fabric texture. The final result is a single, hyper-realistic, high-end professional fashion photograph, polished to editorial standards and suitable for premium catalogs and campaigns.`;
+  p4 += `lit by a professional lighting design suited to the setting, with one clear key light direction, natural falloff, and true contact shadows. Use neutral white balance, faithful garment colors and natural skin tones, with crisp focus on the garment and lifelike skin and fabric texture. The final result is a single, hyper-realistic, high-end professional fashion photograph, polished to editorial standards and suitable for premium catalogs and campaigns.`;
 
   if (parsedAgeInt === 0) {
     p4 += ` This is professional newborn fashion photography: the newborn rests in a safe, gentle, supported position, softly and evenly lit, framed in an intimate close-up that emphasizes the baby's delicate features and the garment's details in a tender, serene atmosphere.`;
   }
 
-  return [p1, p2, p3, p4].join("\n\n");
+  const scopeDirection = Number(modes.multipleAnglesCount || s.multipleAnglesCount) > 1
+    ? buildMultiAngleProductScopeDirection({
+        photoCount: modes.multipleAnglesCount || s.multipleAnglesCount,
+        settings: s, modes: { ...modes, isMultipleProducts },
+      }) : "";
+  return [p1, p2, p3, p4, scopeDirection].filter(Boolean).join("\n\n");
 }
 
 // 🔁 Basitleştirilmiş ikinci enhance denemesi — tam meta-prompt başarısız
 // olduğunda çok daha kısa bir talimatla Gemini'ye bir şans daha verir.
 // Başarısızsa null döner; çağıran narratif statik şablona düşer.
-async function attemptSimplifiedEnhance(settings, isMultipleProducts, imageUrl) {
+async function attemptSimplifiedEnhance(settings, isMultipleProducts, imageUrl, modes = {}) {
   try {
     const narrativeSeed = buildNarrativeFallbackPrompt(
       settings,
       isMultipleProducts,
+      modes,
     );
     const simplifiedInstruction = `You are a fashion photography prompt writer. Rewrite and enrich the draft prompt below into one flowing, vivid, positively-framed prompt for an AI image editing model, keeping every factual requirement (model, garment fidelity, setting, camera) intact and adding concrete fabric, light, and pose detail based on the attached garment image. Output ONLY the final prompt text, in English, with no headers, lists, or commentary.
 
@@ -2041,10 +2077,10 @@ async function enhancePromptWithGemini(
   isMultipleImages = false, // Çoklu resim modu mu?
   userId = null, // Compress için userId
   originalBase64Data = null, // Orijinal base64 verisi - URL'den tekrar indirmemek için
-  kombinItemCount = 0, // 🛍️ Kombin modunda grid içindeki tekil ürün sayısı (0 = kombin değil)
+  kombinItemCount = 0, // Legacy name: number of reference photos, NOT verified distinct products
   multipleAnglesCount = 0, // 📐 Aynı ürünün grid içindeki farklı açı sayısı
   modelReferenceImageUrl = null, // 👤 Kullanıcı belirli bir model fotoğrafı seçtiyse URL'i (varsa yüz icat edilmez, referanstaki kişi korunur; görsel Gemini'ye de eklenir)
-  isJewelryPromptMode = false, // 💎 Takıda kumaş/giydirme ve otomatik yüz talimatları kullanılmaz
+  styleDirected = false, // Auto/street/style references retain their own beauty and lighting treatment.
 ) {
   try {
     logger.log("🤖 [GEMINI] Google Gemini ile prompt iyileştirme başlatılıyor");
@@ -2064,16 +2100,15 @@ async function enhancePromptWithGemini(
     const hasValidSettings =
       settings &&
       Object.entries(settings).some(
-        ([key, value]) => value !== null && value !== undefined && value !== "",
+        ([key, value]) => key !== "analyticsModelImage" && value !== null && value !== undefined && value !== "",
       );
 
     logger.log("🎛️ [BACKEND GEMINI] Settings kontrolü:", hasValidSettings);
 
     // 🎯 Focus area — kullanıcı belirli bir çekim bölgesi seçtiyse (auto değilse)
     // prompt'un en başına sert, pazarlıksız bir talimat olarak yerleştir.
-    const focusAreaDirective = isJewelryPromptMode
-      ? ""
-      : buildFocusAreaDirective(settings?.focusArea);
+    const focusAreaDirective = isBagShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis }) ? buildBagFocusDirective(settings) : (isFashionCampaignShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis })
+      && buildFashionFocusDirective(settings)) || buildFocusAreaDirective(settings?.focusArea);
     if (focusAreaDirective) {
       logger.log(
         "🎯 [GEMINI] Focus area direktifi başa ekleniyor:",
@@ -2110,7 +2145,7 @@ async function enhancePromptWithGemini(
     const hasUserPose =
       (typeof settings?.pose === "string" && settings.pose.trim().length > 0) ||
       Boolean(poseImage);
-    const includeOpenPoseDirective = !isJewelryPromptMode && !hasUserPose;
+    const includeOpenPoseDirective = !hasUserPose;
 
     // 📏 MODEL BODY SIZE & HEIGHT — kullanıcı client'te belirli bir
     // bodyShape (örn. "Petite", "Tall", "Plus Size") veya custom measurements
@@ -2124,9 +2159,7 @@ async function enhancePromptWithGemini(
       settings?.measurements &&
       typeof settings.measurements === "object";
     const measurements = hasCustomMeasurements ? settings.measurements : null;
-    const hasModelBodyDirective =
-      !isJewelryPromptMode &&
-      (Boolean(bodyShapeText) || Boolean(measurements));
+    const hasModelBodyDirective = Boolean(bodyShapeText) || Boolean(measurements);
 
     const openingDirectiveItems = [];
 
@@ -2150,17 +2183,15 @@ async function enhancePromptWithGemini(
       );
     }
 
-    if (!isJewelryPromptMode) {
-      openingDirectiveItems.push(
-        `NATURAL SKIN — Intent: the model's face must look like a real, healthy, well-groomed human in a professional fashion photograph — soft natural pores, subtle authentic skin texture, a matte-to-soft finish, clear and even-toned, with light natural makeup at most. Think "photoreal editorial model photographed in high resolution", the kind of honest, living skin seen in premium fashion campaigns. Facial lighting neutral and photographic. → Your task: write 2-3 flowing sentences that adapt this intent to THIS specific garment's TYPE / CATEGORY (tailoring, knitwear, activewear, eveningwear, swimwear, streetwear, etc.), its fabric & color palette, the ENVIRONMENT / LOCATION, and the overall ATMOSPHERE / MOOD (e.g. warm late-day glow on softly tanned skin for linen on a Mediterranean terrace; cool porcelain complexion with crisp studio key light for structured black eveningwear; fresh, healthy skin with light dew sheen for sportswear in an outdoor morning setting). Describe the skin the camera actually sees — positive, concrete, photographic.`,
-      );
-    }
+    openingDirectiveItems.push(
+      `NATURAL SKIN — Intent: the model's face must look like a real, healthy, well-groomed human in a professional fashion photograph — soft natural pores, subtle authentic skin texture, a matte-to-soft finish, clear and even-toned, with light natural makeup at most. Think "photoreal editorial model photographed in high resolution", the kind of honest, living skin seen in premium fashion campaigns. Facial lighting neutral and photographic. → Your task: write 2-3 flowing sentences that adapt this intent to THIS specific garment's TYPE / CATEGORY (tailoring, knitwear, activewear, eveningwear, swimwear, streetwear, etc.), its fabric & color palette, the ENVIRONMENT / LOCATION, and the overall ATMOSPHERE / MOOD while preserving the model's natural complexion and using balanced photographic color reproduction. Describe the skin the camera actually sees — positive, concrete, photographic.`,
+    );
     if (includeOpenPoseDirective) {
       openingDirectiveItems.push(
         `FASHION POSE — Intent: no specific pose was requested, so a dynamic fashion-editorial pose must be chosen that flatters THIS specific garment — never the stiff mannequin default (both arms hanging straight down at the sides, feet parallel, frontal symmetric stance, blank catalog expression). Hands enter pockets only if the garment clearly has visible pockets in the reference image, and hand placement always keeps key garment details (neckline, print, stitching, buttons, hem, logo) fully visible. The pose must feel like a professional lookbook / editorial shoot — natural, expressive, with believable weight and motion, chosen to showcase fit, drape, and silhouette. → Your task: write 2-3 flowing sentences that pick and describe ONE specific editorial pose tailored to THIS garment's TYPE / CATEGORY, silhouette, cut, fabric behavior, and intended styling — AND that also fits the ENVIRONMENT / LOCATION and ATMOSPHERE / MOOD of the scene (e.g. relaxed contrapposto with a gentle shoulder turn for a flowy summer dress on a cobblestone street; confident wide three-quarter stance with one hand at the waist for a structured tailored blazer in an urban plaza; mid-step walking frame with natural arm swing for sportswear on a running track; seated editorial pose leaning forward for eveningwear in a candlelit interior). Describe the pose in positive photographic prose — what the body IS doing.`,
       );
     }
-    if (!isJewelryPromptMode && trimmedCustomDetail) {
+    if (trimmedCustomDetail) {
       openingDirectiveItems.push(
         `USER DETAIL — Intent: the user has explicitly provided this non-negotiable additional detail that MUST be honored and clearly reflected in the scene: "${trimmedCustomDetail}". Treat this with the same strictness as skin and pose. → Your task: write 2-3 flowing sentences that integrate this user detail naturally into the garment + scene context, adapting it to the garment TYPE / CATEGORY, the ENVIRONMENT / LOCATION, and the ATMOSPHERE / MOOD (if it's a background / environment element, describe how it frames the composition with THIS garment and its setting; if it's a styling / mood / prop element, describe how it complements the fabric, color, silhouette, and lighting). The detail must stay clearly recognizable and visible in your prose.`,
       );
@@ -2394,7 +2425,8 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
             value !== "" &&
             key !== "measurements" &&
             key !== "type" &&
-            key !== "locationEnhancedPrompt", // Enhanced prompt'u settings text'inden hariç tut
+            key !== "analyticsModelImage" &&
+          key !== "locationEnhancedPrompt", // Enhanced prompt'u settings text'inden hariç tut
         )
         .map(([key, value]) => `${key}: ${value}`)
         .join(", ");
@@ -2421,6 +2453,7 @@ Child model (${parsedAge} years old). Use age-appropriate poses and expressions 
           value !== "" &&
           key !== "measurements" &&
           key !== "type" &&
+          key !== "analyticsModelImage" &&
           key !== "locationEnhancedPrompt", // Enhanced prompt'u detay listesinden hariç tut
       )
       .map(
@@ -2721,12 +2754,10 @@ DEFAULT POSE: No specific pose was provided — you have full creative freedom o
       hasModelReference, settings, hairStyleImage,
       isEditMode, isRefinerMode, isColorChange, isPoseChange, isBackSideAnalysis,
     });
-    const faceDescriptionSection = isJewelryPromptMode
-      ? ""
-      : hasModelReference
+    const faceDescriptionSection = hasModelReference
       ? `
 
-    MODEL IDENTITY (USER-PROVIDED — PRESERVE EXACTLY): The user has provided a specific model reference image (attached) — THIS exact person is the model who wears the garment. Preserve their face, facial features, identity and skin tone exactly as seen in the model reference image. ${modelHairDirection || "Preserve their reference hairstyle unless explicit user hair or hijab instructions override it."} In your prompt, describe the model faithfully FROM that reference in natural photographic language (face shape, eyes and expression as they actually appear) so the image model reproduces the same person. Do NOT invent, alter, beautify, or replace any identity-bearing facial feature — the final photograph must be unmistakably the same person as in the model reference.${
+    MODEL IDENTITY (USER-PROVIDED — PRESERVE EXACTLY): The user has provided a specific model reference image (attached) — THIS exact person is the model who wears the garment. Preserve their face, facial features, identity and skin tone exactly as seen in the model reference image. ${modelHairDirection || "Preserve their reference hairstyle unless explicit user hair or hijab instructions override it."} In your prompt, describe the model faithfully FROM that reference in natural photographic language (face shape and eyes as they actually appear; facial expression may change with the directed pose and selected mood) so the image model reproduces the same person. Do NOT invent, alter, beautify, or replace any identity-bearing facial feature — the final photograph must be unmistakably the same person as in the model reference.${
       Number.isFinite(parsedAgeInt)
         ? `
 
@@ -2755,9 +2786,9 @@ DEFAULT POSE: No specific pose was provided — you have full creative freedom o
     const styleDnaLibrary = `
     🎬 ART DIRECTION — DERIVE THE LOOK FROM THE GARMENT ITSELF:
 
-    Before writing the photography paragraph, silently answer this question: "If the brand behind THIS exact garment shot its own campaign, what would the photograph look like?" Read the garment's DNA — its fabric weight and surface, its color temperature, its price impression, its attitude (relaxed, sharp, romantic, sporty, rebellious, refined) — and design ONE distinctive visual identity for this shoot from that reading: a specific light source and direction with a clear quality (hard or soft, warm or cool), a confident color grade with named characteristics, a deliberate composition energy (still and sculptural, or caught mid-motion; centered and calm, or off-center and tense), and a lens behavior that serves it. Commit fully to that identity with concrete photographic language.
+    Before writing the photography paragraph, silently answer this question: "If the brand behind THIS exact garment shot its own campaign, what would the photograph look like?" Read the garment's DNA — its fabric weight and surface, its color temperature, its price impression, its attitude (relaxed, sharp, romantic, sporty, rebellious, refined) — and design ONE distinctive visual identity for this shoot from that reading: a specific light source and direction with a clear quality (hard or soft), a deliberate composition energy (still and sculptural, or caught mid-motion; centered and calm, or off-center and tense), and a lens behavior that serves it. Commit fully to that identity with concrete photographic language.
 
-    Every garment must produce a DIFFERENT answer — a crisp poplin shirt, a washed denim jacket, a silk slip dress, and a technical running shell each demand visibly different light, grade, and energy. The one outcome you never produce is the interchangeable default: soft frontal light, centered static model, neutral washed grade. If your photography paragraph could be pasted under any other garment without feeling wrong, redesign it until it belongs to THIS one only.`;
+    Every garment must produce a DIFFERENT answer — a crisp poplin shirt, a washed denim jacket, a silk slip dress, and a technical running shell each call for suitable light, composition and energy. Keep white balance neutral and product and skin colors natural unless an explicit style reference or user instruction specifies otherwise. If your photography paragraph could be pasted under any other garment without feeling wrong, redesign it until it belongs to THIS one only.`;
 
     // Nano-banana-2/Pro için genel garment transform talimatları (güvenli flag-safe versiyon).
     // Gemini image modelleri anlatı (narrative) tarzı, pozitif çerçeveli, kumaş/kamera
@@ -3348,26 +3379,6 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
       
       Generate a complete, detailed prompt that showcases both front and back garment details while maintaining all original design elements. REMEMBER: Your response must START with "Replace" and emphasize back design features.
       `;
-    } else if (isJewelryPromptMode) {
-      // 💎 Takı route'u Gemini'ye kıyafet/fabric/giydirme veya otomatik yüz
-      // tasarlatma talimatı vermez. Buradaki taslak daha sonra subtype'a özel
-      // jewelry prompt builder tarafından son kez ürün sadakatine kilitlenir.
-      promptForGemini = `
-      Write one concise, flowing English prompt for a premium photorealistic jewelry campaign image using the attached jewelry product reference as the immutable source of truth.
-
-      Analyze only the jewelry: its exact type, quantity, dimensions, proportions, metal color and finish, stones, settings, chain or links, clasp, engravings, texture and construction. Preserve every visible detail without redesigning, simplifying, duplicating, enlarging or inventing components.
-
-      Treat jewelry product images only as the exact product source. Treat the target model or jewelry campaign reference as the source for the person, anatomy, pose, crop and placement region—but never as the source for the new jewelry's size. Completely replace any placeholder jewelry already worn in that target region with the user's exact product while preserving the target model and every unrelated part of the photograph.
-
-      Ignore the placeholder jewelry's diameter, length, width, stone size and visual coverage completely. Determine scale only from reliable physical cues and construction in the user's product references; never use the apparent pixel size of an isolated macro product photo. A small or delicate uploaded product must remain small even when the target reference contains a large statement piece. If exact scale is unavailable, use a conservative, plausible real-world size for the detected subtype instead of enlarging the product to fill the old jewelry area. Recalculate its pixel size relative to the target ear, finger, neck, wrist or ankle while preserving the product's internal proportions.
-
-      Describe anatomically correct placement at true scale on the appropriate ear, neck, finger, wrist or ankle. Reconstruct the product as a real three-dimensional object physically mounted on the body, never as a flat overlay. Require correct fastening geometry, local perspective, body curvature, near/far occlusion, gravity, pressure, skin contact, micro contact shadows and reflected skin/environment color in the metal. No component may float, sink into anatomy, clip through skin or leave an impossible gap at its attachment point. Keep the complete jewelry piece commercially readable and shape the lighting for metal and gemstones with controlled highlights, physically credible reflections and refraction, accurate material response and sharp product detail.
-
-      The jewelry is the sole commercial hero. Keep any supporting human presence visually neutral and secondary. Limit descriptive detail to the jewelry, its anatomical contact area, product lighting and composition. Do not add garment replacement, fabric, drape, fit, body-shape or wardrobe instructions.
-
-      ${originalPrompt ? `USER CONTEXT: Preserve only jewelry-relevant explicit user requirements from: ${originalPrompt}` : ""}
-
-      Output only the finished jewelry photography prompt, with no headings, lists or commentary.`;
     } else {
       // NORMAL MODE - Standart garment replace
       promptForGemini = `
@@ -3389,7 +3400,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
 
       Paragraph 3 → Environment & Atmosphere. Describe the setting like a location scout: architecture or landscape, surface textures, depth layers (foreground / midground / background), ambient color palette, and the mood it creates. The environment supports and elevates the garment as an editorial backdrop. The original flat-lay background is fully replaced by this described scene, and only the garment itself carries over from the product photo — the final scene contains no hangers, clips, mannequin forms, or flat-lay artifacts.
 
-      Paragraph 4 → Photography, Light & Grade. Choose a camera, lens character, viewpoint, depth of field, lighting approach, and color treatment that genuinely serve this specific garment, pose, model, and location. Make these choices feel intentional and varied across generations: adapt the perspective, visual energy, contrast, depth, and mood to the scene rather than relying on a fixed studio recipe. Use precise professional photography language where it helps define the image, but never treat any particular focal length, lighting setup, or color grade as the default. For controlled studio shoots, a clean high-key commercial grade and balanced three-point softbox lighting can be appropriate. For premium editorial scenes, a medium-format film character with subtle fine grain can be appropriate. Use these only when they genuinely suit the garment, location, and intended mood; never apply them as a default recipe. The final result is a single, hyper-realistic, editorial-quality fashion photograph, seamlessly integrating model, garment, and environment at campaign-ready standards.
+      Paragraph 4 → Photography & Light. Choose a camera, lens character, viewpoint, depth of field and lighting approach that serve this specific garment, pose, model and location. Adapt composition and lighting to the scene using precise photographic language. Preserve faithful product colors, natural skin tones, neutral white balance and realistic tonal range. Stylized color treatment follows an explicit style reference or user request only. The final result is a single, hyper-realistic, professional fashion photograph, seamlessly integrating model, garment and environment.
 
       CRITICAL RULES:
 
@@ -3449,12 +3460,11 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
         isNewborn ? "newborn " : ""
       }fashion photography results.
 
-      🎥 CINEMATOGRAPHY & COLOR GRADE REQUIREMENTS (NON-NEGOTIABLE — this is what separates an editorial photograph from a lifeless stock photo):
+      🎥 PHOTOGRAPHY REQUIREMENTS:
       Your enhanced prompt MUST include a dedicated technical paragraph written in confident director-of-photography language, with CONCRETE specs chosen to flatter THIS garment and THIS scene:
       - CAMERA: name an exact focal length and aperture (e.g. "85mm at f/2.2 with a gently melted background", "35mm at f/5.6 holding the architecture crisp"), plus the camera height and angle relative to the model.
       - LIGHTING RECIPE: a specific key light direction and quality (hard vs soft), fill/shadow density, and ONE deliberate lighting character (crisp rim light, hard sun with graphic shadows, window-light falloff, etc.) — never the phrase "professional studio lighting" on its own.
-      - COLOR GRADE: a confident editorial grade described like a preset — rich contrast, deep blacks, controlled highlights, an intentional palette (e.g. "clean digital editorial with dense blacks and accurate whites", "Portra-like warm neutrals with high micro-contrast").
-      ✦ GRADE CHARACTER: the grade is always CONFIDENT — deep, dense blacks; clean, accurate whites; honest saturation where the garment demands it; controlled highlights with real tonal depth. Even when the scene calls for soft light, keep the light soft but the grade decisive: rich contrast, a deliberate palette, and shadows with genuine density.
+      - COLOR ACCURACY: use neutral white balance, faithful product colors, natural skin tones and realistic tonal range. Apply a stylized color treatment only when an explicit style reference or user instruction calls for it.
       The final image must feel like a frame from a current high-end fashion editorial — the kind people save to Pinterest/Behance mood boards — never like a generic stock catalog photo.
 
       ${styleDnaLibrary}
@@ -3535,10 +3545,7 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
     }
 
     // Eğer originalPrompt'ta "Model's pose" ibaresi yoksa ek cümle ekleyelim:
-    if (
-      !isJewelryPromptMode &&
-      (!originalPrompt || !originalPrompt.includes("Model's pose"))
-    ) {
+    if (!originalPrompt || !originalPrompt.includes("Model's pose")) {
       // Eğer poz seçilmemişse akıllı poz seçimi, seçilmişse belirtilen poz
       if (!settings?.pose && !poseImage) {
         promptForGemini += `Since no specific pose was provided, choose a confident, editorial fashion pose with full creative freedom over angle, framing, and the model's placement in the composition — expressive, natural body language (weight shifted onto one leg, a relaxed shoulder turn, a mid-step walking frame, a poised hand placement that stays clear of key design details). Hands rest naturally at the sides, on the waist, or in gentle motion — inside pockets only if the garment clearly has visible pockets in the reference. The one constant: every signature feature of the garment (neckline, sleeves, prints, seams, hem) remains clearly on display and well lit from the chosen angle.`;
@@ -3567,12 +3574,9 @@ Start your enhanced prompt by explicitly listing what you see in the grid (one s
     }
 
     if (multipleAnglesCount && multipleAnglesCount > 1) {
-      promptForGemini += `
-
-📐 SAME PRODUCT / MULTIPLE ANGLES MODE — CRITICAL:
-The main reference image is a COMPOSITE GRID containing ${multipleAnglesCount} photographs of ONE AND THE SAME product captured from different angles and distances. The cells do NOT show separate garments and must NEVER be combined into an outfit.
-
-Analyze every cell together as complementary evidence of one product. Reconstruct a single, consistent garment on the model by preserving all visible front, side, back, silhouette, material, print, stitching, trim, hardware and proportion details. Resolve occluded details using the other angle cells, never duplicate the product, never create a collage in the output, and never treat detail close-ups as separate accessories. The final result must contain exactly one instance of this product, worn naturally by the model.`;
+      promptForGemini += `\n\n${buildMultiAngleProductScopeDirection({
+        photoCount: multipleAnglesCount, settings, modes: { isMultipleProducts, kombinItemCount },
+      })}`;
     }
 
     // 📝 Opening directives — skin / pose / user-detail intent'leri Gemini
@@ -3594,6 +3598,43 @@ ${promptForGemini}`;
 (Keep the framing directive above verbatim as the opening of your enhanced prompt — do NOT rewrite, soften, or remove it.)
 
 ${promptForGemini}`;
+    }
+
+    // Footwear uses its own visual brief, not garment/face/stride defaults.
+    // Keep the existing visual classification; no extra classifier request.
+    if (isFootwearShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis, isMultipleProducts, kombinItemCount, multipleAnglesCount })) {
+      promptForGemini = buildFootwearEnhanceInstruction({
+        settings, originalPrompt, customDetail: trimmedCustomDetail,
+        hasPoseReference: Boolean(poseImage), multipleAnglesCount, kombinItemCount,
+        context: [ageSection, childPromptSection, bodyShapeMeasurementsSection,
+          settingsPromptSection, hasUserPose ? posePromptSection : "",
+          perspectivePromptSection, hairStylePromptSection, hairStyleTextSection,
+          locationPromptSection, modelReferenceImageUrl ? faceDescriptionSection : "",
+          focusAreaDirective].filter(Boolean).join("\n\n"),
+      });
+    }
+
+    if (isFashionCampaignShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis })) {
+      promptForGemini = buildFashionCampaignEnhanceInstruction({
+        settings, originalPrompt, customDetail: trimmedCustomDetail, hasStyleReference: styleDirected,
+        multipleAnglesCount, kombinItemCount, isMultipleProducts,
+        context: [ageSection, childPromptSection, bodyShapeMeasurementsSection,
+          settingsPromptSection, buildFashionPoseContext({ settings, hasUserPose, posePromptSection }),
+          perspectivePromptSection, hairStylePromptSection, hairStyleTextSection,
+          locationPromptSection, faceDescriptionSection, focusAreaDirective,
+          garmentTransformationDirectives].filter(Boolean).join("\n\n"),
+      });
+    }
+
+    if (isBagShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis })) {
+      promptForGemini = buildBagEnhanceInstruction({
+        settings, originalPrompt, customDetail: trimmedCustomDetail, hasStyleReference: styleDirected,
+        multipleAnglesCount, kombinItemCount, isMultipleProducts,
+        context: [ageSection, childPromptSection, bodyShapeMeasurementsSection,
+          settingsPromptSection, buildFashionPoseContext({settings, hasUserPose}),
+          perspectivePromptSection, hairStylePromptSection, hairStyleTextSection,
+          locationPromptSection, faceDescriptionSection].filter(Boolean).join("\n\n"),
+      });
     }
 
     logger.log("🤖 [GEMINI] Prompt oluşturuluyor:", promptForGemini);
@@ -4115,10 +4156,11 @@ ${promptForGemini}`;
         settings,
         isMultipleProducts,
         imageUrl,
+        { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis, kombinItemCount, multipleAnglesCount },
       );
       enhancedPrompt =
         simplifiedRetry ||
-        buildNarrativeFallbackPrompt(settings, isMultipleProducts);
+        buildNarrativeFallbackPrompt(settings, isMultipleProducts, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis, kombinItemCount, multipleAnglesCount });
       logger.log(
         simplifiedRetry
           ? "🔁 [FALLBACK] Basitleştirilmiş enhance kullanılıyor"
@@ -4206,13 +4248,14 @@ ${promptForGemini}`;
       settings,
       isMultipleProducts,
       imageUrl,
+      { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis, kombinItemCount, multipleAnglesCount },
     );
     if (simplifiedRetryCatch) {
       logger.log("🔁 [CATCH-FALLBACK] Basitleştirilmiş enhance kullanılıyor");
       return simplifiedRetryCatch;
     }
     logger.log("🧵 [CATCH-FALLBACK] Narratif statik fallback prompt kullanılıyor");
-    return buildNarrativeFallbackPrompt(settings, isMultipleProducts);
+    return buildNarrativeFallbackPrompt(settings, isMultipleProducts, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis, kombinItemCount, multipleAnglesCount });
   }
 }
 
@@ -4483,26 +4526,23 @@ function sanitizeStylePromptForOutput(stylePrompt, studioLocked) {
 }
 
 // 🎬 STYLE REFERENCE MODE — kompakt, deterministik prompt.
-// 💎🎬 ANLAMLANDIRMA PASI (13 Ağu 2026, kullanıcı kararı): takı modunda stil
-// referansının HAM teknik verisi (DP spec'i + profil analiz notları) NB2/NB Pro
-// prompt'una OLDUĞU GİBİ yapıştırılmaz. Önce Gemini bu malzemeyi takı çekimine
-// uygun TEK bir akıcı yaratıcı brief'e sentezler; jewelry builder CREATIVE
-// DIRECTION olarak bu sentezi kullanır. Sentezli yolda extractJewelryCompatible-
-// Direction'ın regex süzgeci ve 2800 karakter dilimi ATLANIR — o ikili, kıyafet
-// odaklı ham kompakt prompt'a karşı savunmaydı; anlamlı Gemini çıktısında
-// "gaze/expression/seams" geçen cümleleri silip metni ortasından kesiyordu.
-// Uzunluk sınırı bilerek YOK (kullanıcı kuralı: Gemini'ye yapay kısa sınır koyma).
-async function synthesizeJewelryStyleDirection({
+// Kullanıcı bir stil referans görseli yüklediğinde koca Gemini enhanced-prompt hattı
+// ÇALIŞTIRILMAZ; ortam/ışık/kamera/poz zaten referans görselden kopyalanacağı için
+// prompt yalnızca (1) referans direktifi + kod plakası işareti, (2) ürün sadakati,
+// (3) kullanıcının seçim/detay girdilerinden oluşur.
+// 👗🎬 ANLAMLANDIRMA PASI (13 Ağu 2026, kullanıcı kararı — jewelry V7 ile aynı
+// desen): stil referansının HAM teknik verisi (DP spec'i + profil analiz notları)
+// NB2/NB Pro prompt'una OLDUĞU GİBİ yapıştırılmaz. Gemini önce bu malzemeyi tek
+// bir akıcı yaratıcı brief'e sentezler; buildStyleReferencePrompt ham iki blok
+// yerine bu sentezi gömer. Sentez başarısızsa ham bloklar fallback (üretim asla
+// bozulmaz). Uzunluk sınırı bilerek YOK (kullanıcı kuralı: Gemini'ye yapay kısa
+// karakter sınırı koyma).
+async function synthesizeGarmentStyleDirection({
   styleReferenceUrl,
   technicalAnalysis = null,
   styleProfile = null, // { name, stylePrompt, imageCount } — kolaj profili modunda dolu
-  jewelrySubtype = null,
   settings = {},
   stamped = true,
-  // 💎 Ürün çekimi (tarz 2): sentez de MANKENSİZ yazılmalı. Aksi hâlde Gemini
-  // "editoryal portre, genç kadın" briefi yazıyor ve mankensiz referansa rağmen
-  // final prompt modele dönüyordu (17 Ağu bug'ı).
-  productShot = false,
 }) {
   const materials = [];
   if (styleProfile?.stylePrompt) {
@@ -4515,49 +4555,42 @@ async function synthesizeJewelryStyleDirection({
       `TECHNICAL CAMERA & LIGHTING ANALYSIS (director-of-photography spec of the reference):\n${technicalAnalysis}`,
     );
   }
-  const pieceName = jewelrySubtype || "jewelry piece";
+  const isCollage = Boolean(styleProfile);
   const modelBits = [
     settings?.age ? `age presentation ${settings.age}` : null,
     settings?.gender ? `gender presentation ${settings.gender}` : null,
     settings?.ethnicity ? `heritage ${settings.ethnicity}` : null,
   ].filter(Boolean);
 
-  const synthesisPrompt = `You are the creative director of a luxury jewelry campaign. The attached image is a photographic STYLE REFERENCE${
+  const synthesisPrompt = `You are the creative director of a high-end fashion campaign. The attached image is a photographic STYLE REFERENCE${
     stamped
       ? ` (ignore the black "STYLE REFERENCE" code plate along its bottom edge — it is an input marker, not part of the photograph)`
       : ""
-  }. It may be a collage grid of several frames from one brand aesthetic, or a single photograph.
+  }. ${
+    isCollage
+      ? "It is a collage grid of several frames that all belong to ONE brand aesthetic — treat the frames as examples of a photographic style, not sets to rebuild."
+      : "It is a single photograph whose shot conditions the new image must faithfully recreate."
+  }
 
-Write ONE flowing English creative direction for a NEW photorealistic ${
-    productShot
-      ? `PRODUCT photograph — a styled still life whose commercial hero is a ${pieceName} presented completely on its own, with NO person and NO body part anywhere in the frame`
-      : `campaign photograph whose commercial hero is a ${pieceName} worn by a model`
-  }. Translate the reference's photographic identity into meaningful, actionable direction — interpret, fuse and rewrite; never paste analysis fragments verbatim and never use numbered spec labels. Cover, woven naturally into prose:
+Write ONE flowing English creative direction for a NEW photorealistic fashion photograph in which a model wears the user's garment. The garment itself is defined elsewhere by separate product references — your direction covers everything EXCEPT the garment's design. Translate the reference's photographic identity into meaningful, actionable direction — interpret, fuse and rewrite; never paste analysis fragments verbatim and never use numbered spec labels. Weave naturally into prose:
 
-- ENVIRONMENT: the kind of ${
-    productShot
-      ? `set and its concrete elements (surface material, backdrop, props, depth layers), staged as a tabletop still life that serves the piece`
-      : `place and its concrete elements (architecture, materials, surfaces, depth layers), staged so the composition naturally serves a jewelry shot — the framing may move closer to the body region where the ${pieceName} lives while keeping the reference's spatial character`
-  }.
-- LIGHT: direction, hardness, time-of-day feel — and how that light should behave on precious metal and stones (controlled speculars, restrained sparkle, soft contact shadows).
-- COLOR GRADE: the reference's exact grade/preset feel (palette, saturation, contrast curve and black level, white-balance bias, grain or fade), carried like a fixed preset baked into the file.
-- CAMERA: capture-device character (phone-shot vs professional vs film — keep whatever the reference is), focal-length feel, aperture and depth of field, camera height and angle, crop — adapted only as much as a jewelry hero shot requires.
-${
-  productShot
-    ? `- STAGING & ARRANGEMENT: how the piece rests on the surface — the gravity-driven fall of any chain or cord, the resting facet of rigid pieces, spacing for a pair, contact shadows and any reflection in the surface, plus the negative space around it.`
-    : `- MODEL & POSE ENERGY: the posing register, attitude, gaze energy and motion state of the reference, translated into a pose that presents the ${pieceName} clearly with its body area unobstructed.${
-        modelBits.length ? ` The model reads as ${modelBits.join(", ")}.` : ""
-      }`
-}
+- ENVIRONMENT: ${
+    isCollage
+      ? "the FAMILY of places the frames share (architecture character, materials, urban/nature/indoor feel) — described so a NEW location of the same family can be invented, unless the frames share a plain studio set, which is then kept exactly as bare as shown."
+      : "the concrete visible elements of the location (type of place, architecture and materials, surfaces, furniture and fixed objects with their position, vegetation, depth layers) so the same kind of scene can be rebuilt rather than a vague look-alike."
+  }
+- LIGHT: direction, hardness, fill and shadow density, natural vs studio, time-of-day feel — and how it sculpts fabric and skin.
+- COLOR GRADE: the reference's exact grade/preset feel (palette, saturation, contrast curve and black level, white-balance bias, highlight roll-off, grain or fade), carried like a fixed preset baked into the file.
+- CAMERA: capture-device character (phone-shot vs professional vs film — keep whatever the reference is), focal-length feel, aperture and depth of field, camera height and angle, framing, crop and body coverage.
+- POSE & ENERGY: ${
+    isCollage
+      ? "the shared posing register, attitude, gaze energy and level of movement across the frames — the register a photographer would carry into the next frame of the same shoot, not any single literal gesture."
+      : "the subject's motion state and pose geometry (body orientation, weight distribution, limb configuration, head and gaze direction), plus any supporting object the pose depends on."
+  }${modelBits.length ? ` The model reads as ${modelBits.join(", ")}.` : ""}
 
 HARD RULES:
-- The ${pieceName}'s own design is defined elsewhere by product references — do NOT invent, describe or alter its design details; refer to it generically.
-${
-  productShot
-    ? `- This is a PRODUCT-ONLY still life: never introduce a model, hand, ear, neck, wrist, skin, hair or any human presence, and never describe wardrobe, pose, gaze or expression.`
-    : `- Do NOT give garment-replacement, fabric, drape or wardrobe-design instructions; any clothing is a neutral, secondary supporting element mentioned in at most one short phrase.
-- Do NOT describe or preserve any reference person's facial identity or biometric likeness; direction about gaze and expression ENERGY is welcome, identity is off-limits.`
-}
+- NEVER describe the reference wardrobe: no clothing, shoe, bag or accessory descriptions from the reference — the model's outfit comes exclusively from the user's separate product references.
+- Do NOT describe or preserve any reference person's facial identity or biometric likeness; direction about gaze and expression ENERGY is welcome, identity is off-limits.
 - PLAIN TEXT, flowing prose paragraphs, no headings, no lists, no markdown.
 - There is no character limit — write as richly and thoroughly as the shoot deserves; every sentence must add a concrete visual fact rather than repeating ideas.${
     materials.length
@@ -4571,10 +4604,6 @@ ${
   return out || null;
 }
 
-// Kullanıcı bir stil referans görseli yüklediğinde koca Gemini enhanced-prompt hattı
-// ÇALIŞTIRILMAZ; ortam/ışık/kamera/poz zaten referans görselden kopyalanacağı için
-// prompt yalnızca (1) referans direktifi + kod plakası işareti, (2) ürün sadakati,
-// (3) kullanıcının seçim/detay girdilerinden oluşur.
 function buildStyleReferencePrompt({
   settings = {},
   customDetail = null,
@@ -4583,9 +4612,11 @@ function buildStyleReferencePrompt({
   stamped = true,
   styleProfile = null, // { name, stylePrompt, imageCount } — stil profili (grid kolaj) modu
   technicalAnalysis = null, // Gemini'nin tekil referanstan çıkardığı teknik kamera/ışık analizi
+  // 👗🎬 Anlamlandırılmış sentez — varsa ham stylePrompt/technicalAnalysis
+  // blokları YERİNE bu gömülür (yukarıdaki synthesizeGarmentStyleDirection)
+  synthesizedDirection = null,
   hasUserPose = false, // 🧍 Kullanıcı AÇIKÇA poz seçtiyse: kullanıcının pozu referans pozunu EZER
   repeatPoseDirective = "", // Aynı gizli stil kullanıcıda tekrarlandıysa referans iskeletini kopyalama
-  jewelrySwapRequired = false, // 💎 Referansta takı DURUYOR (ürün çekimi tarzı): ürünle değiştir
 } = {}) {
   const refPointer = stamped
     ? `the attached image that carries a solid BLACK code plate along its bottom edge with the printed text "STYLE REFERENCE · CODE SR-1" (it is the LAST attached image)`
@@ -4686,7 +4717,13 @@ ${poseBullet}
 The PRIMARY/HERO person follows every user-selected age, gender, identity, ethnicity, hair, body and pose setting and wears the user's product. The supporting person remains secondary, is newly cast and age-appropriate for the visible relationship, and wears a newly invented complementary outfit suited to the scene and pose. The supporting person must not copy reference wardrobe, wear or duplicate the user's product, or cover its defining details. User model settings apply to the PRIMARY/HERO person, not automatically to the supporting person.`);
   }
 
-  if (styleProfile?.stylePrompt) {
+  // 👗🎬 Sentez varsa ham analiz blokları (profil notları + DP spec'i) HİÇ
+  // yazılmaz — anlamlandırılmış tek brief onların yerine geçer. Sentez yoksa
+  // (fallback) eski ham bloklar aynen devam eder.
+  if (synthesizedDirection) {
+    sections.push(`CREATIVE DIRECTION (the reference's photographic identity, distilled by the creative director — follow it):
+${synthesizedDirection}`);
+  } else if (styleProfile?.stylePrompt) {
     sections.push(`STYLE PROFILE ANALYSIS (art-director notes distilled from the reference frames — follow them):
 ${sanitizeStylePromptForOutput(styleProfile.stylePrompt, studioLocked)}`);
   }
@@ -4710,7 +4747,7 @@ ${sanitizeStylePromptForOutput(styleProfile.stylePrompt, studioLocked)}`);
 🎯 GRADE & PRESET ADHERENCE (HIGH PRIORITY): Apply the reference color treatment as if it were a fixed preset baked into the file: the same palette and saturation level, the same contrast curve and black level (lifted/matte vs crushed), the same white-balance bias, the same highlight roll-off, the same grain/texture and any fade. The exposure key must match too — if the references are high-key and airy, the output is high-key and airy. A technically clean but differently graded image is a failure.`);
   }
 
-  if (technicalAnalysis) {
+  if (technicalAnalysis && !synthesizedDirection) {
     sections.push(`TECHNICAL CAMERA & LIGHTING ANALYSIS (extracted from the style reference by a director of photography — follow these specs precisely):
 ${technicalAnalysis}`);
   }
@@ -4734,17 +4771,6 @@ GARMENT SOURCE OF TRUTH — HERO ONLY: The other attached product photo(s) are t
       ? " Multiple products are provided — the model wears them together as one coherent outfit, each piece reproduced faithfully."
       : ""
   }`);
-
-  // 💎 Ürün çekimi referansında takı kaldırılmadığı için kare içinde HÂLÂ bir
-  // takı duruyor ve tam olarak ürünün gireceği yerde duruyor. Model bunu ürün
-  // sanmasın: konum/ölçek/kadraj korunur, TAKININ KENDİSİ kullanıcınınkiyle
-  // birebir değiştirilir.
-  if (jewelrySwapRequired) {
-    sections.push(`💎 JEWELRY SWAP — THE REFERENCE PIECE IS NOT THE PRODUCT (NON-NEGOTIABLE, HIGHEST PRIORITY):
-The style reference still shows a piece of jewelry. That piece is NOT the product and must NOT appear in the output in any recognizable form — not its stones, metal color, chain or band type, clasp, pendant shape, motif, engraving, thickness or proportions. It is present only to show WHERE the product sits in the frame and HOW it is photographed.
-Replace it completely with the user's attached jewelry: put the user's piece in that exact position, at that scale, at that angle, inside that same crop and composition, lit and graded exactly the same way. Reproduce the user's piece with catalog-grade fidelity — its own stone cut, count and color, metal tone and finish, chain or band structure, clasp, links, settings, engravings and true proportions. Do not merge the two pieces, do not borrow a single element from the reference piece, and do not restyle, recolor, simplify or embellish the user's piece.
-Everything else the reference contributes stays: the surface or skin it rests on, background, props, light, shadows, reflections, color grade, camera angle and framing. If any part of the reference jewelry survives in the output, or the two pieces are blended, the result is FAILED.`);
-  }
 
   if (stamped) {
     sections.push(
@@ -5005,7 +5031,274 @@ async function stripLeakedStylePlate(resultUrl, userId) {
 const singleProfileTechAnalysisCache = new Map();
 const SINGLE_PROFILE_TECH_CACHE_MAX = 500;
 
+// Shared by the request handler and isolated generation verification.
+// Keeps final prompt assembly in production code, never in a test-specific prompt.
+function buildNb2GenerationRequest({ enhancedPrompt, imageInputArray, aspectRatioForRequest, useNb2, safetyTolerance, nb2ThinkingLevel }) {
+  return {
+              prompt: enhancedPrompt,
+              image_urls: imageInputArray,
+              output_format: "png",
+              aspect_ratio: aspectRatioForRequest,
+              num_images: 1,
+              resolution: useNb2 ? "1K" : "2K",
+              safety_tolerance: safetyTolerance,
+              enable_web_search: true,
+              ...(nb2ThinkingLevel !== "off"
+                ? { thinking_level: nb2ThinkingLevel }
+                : {}),
+            };
+}
+
+function applyGenerationFocus(enhancedPrompt, settings = {}, {
+  isColorChange = false, isPoseChange = false, isEditMode = false,
+  isRefinerMode = false, isBackSideAnalysis = false,
+} = {}) {
+    {
+      const focusDir = isBagShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis }) ? buildBagFocusDirective(settings) : (isFashionCampaignShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis: isBackSideAnalysis })
+        && buildFashionFocusDirective(settings)) || buildFocusAreaDirective(settings?.focusArea);
+      if (focusDir) {
+        let body = enhancedPrompt || "";
+        const beforeLen = body.length;
+        // Gemini direktifi genellikle birebir kopyalıyor — tam metin eşleşmesiyle
+        // tüm kopyaları sök (başındaki/ortadaki fark etmez).
+        body = body.split(focusDir.trim()).join("").trimStart();
+        // Kalıntı bağlaç temizliği: "adhering strictly to the framing directive: "
+        // gibi direktife işaret eden yarım kalmış ifadeler sorun değil — model
+        // baştaki gerçek direktifi görecek.
+        if (body.length !== beforeLen) {
+          logger.log(
+            "🎯 [FOCUS AREA] Gövdeye gömülü direktif kopyaları temizlendi",
+          );
+        }
+        enhancedPrompt = `${focusDir}
+
+${body}`;
+        logger.log(
+          "🎯 [FOCUS AREA] enhancedPrompt'un başına sert direktif (tek kopya) yerleştirildi:",
+          settings?.focusArea,
+        );
+      }
+    }
+  return enhancedPrompt;
+}
+
+function finalizeGenerationPrompt(enhancedPrompt, {
+  settings = {}, customDetail = null, modelReferenceImage = null,
+  poseImage = null, hairStyleImage = null, styleReferenceUrl = null,
+  autoStyleGridUrl = null, autoStyleGenderDirective = '', styleDirected = false,
+  editorialCollagesForRequest = [], isColorChange = false,
+  isPoseChange = false, isEditMode = false, isRefinerMode = false,
+  isBackSideAnalysis = false,
+  isMultipleProducts = false, isKombinMode = false,
+  kombinItemCount = 0, multipleAnglesCount = 0, isMultipleAnglesMode = false,
+} = {}) {
+    const bagShoot = isBagShoot(settings, { isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis });
+    const fashionShoot = !bagShoot && isFashionCampaignShoot(settings, {
+      isColorChange, isPoseChange, isEditMode, isRefinerMode, isBackSideAnalysis,
+    });
+    const footwearShoot = isFootwearShoot(settings, {
+      isColorChange, isPoseChange, isEditMode, isRefinerMode,
+      isBackSideAnalysis: isBackSideAnalysis,
+      isMultipleProducts, isKombinMode, kombinItemCount, multipleAnglesCount, isMultipleAnglesMode,
+    });
+    enhancedPrompt = footwearShoot
+      ? `${enhancedPrompt || ""}\n\n${buildFootwearDirection({
+          settings, hasStyleReference: Boolean(styleReferenceUrl || autoStyleGridUrl),
+          hasPoseReference: Boolean(poseImage),
+        })}`
+      : bagShoot
+        ? `${enhancedPrompt || ""}\n\n${buildBagDirection({hasStyleReference: Boolean(styleDirected || styleReferenceUrl || autoStyleGridUrl || editorialCollagesForRequest.length)})}`
+      : appendUniversalPhotorealism(enhancedPrompt);
+    logger.log(
+      "📷 [PHOTOREALISM] Model/cilt/kumaş/ortam/ışık/kamera gerçekçiliği final prompt'a eklendi",
+    );
+
+    // Gizli stil görselindeki kişinin cinsiyeti casting'i sürüklemesin. Bu blok
+    // stil + teknik analizden sonra, genel kullanıcı kilidinden hemen önce gelir.
+    if (autoStyleGenderDirective) {
+      enhancedPrompt = `${enhancedPrompt || ""}\n\n${autoStyleGenderDirective}`;
+      logger.log(
+        `⚥ [AUTO_STYLE] Kullanıcı cinsiyeti gizli stilin üstüne kilitlendi: ${settings?.gender}`,
+      );
+    }
+
+    // Apply after enhancement and style-reference bypasses, before explicit user locks.
+    const modelHairDirection = buildModelHairDirection({
+      hasModelReference: Boolean(modelReferenceImage),
+      settings, hairStyleImage,
+      isEditMode, isRefinerMode, isColorChange, isPoseChange,
+      isBackSideAnalysis: isBackSideAnalysis,
+    });
+    if (modelHairDirection) {
+      enhancedPrompt = `${enhancedPrompt || ""}\n\n${modelHairDirection}`;
+    }
+
+    // 🔒 ADD DETAIL + ADVANCED SETTINGS SON KİLİT
+    // Gemini bu alanları doğal brief'e dönüştürüyor; ancak uzun/yaratıcı prompt
+    // içinde bazılarını yumuşatabiliyor. Görüntü modeline giden metnin EN SONUNDA
+    // kullanıcı seçimlerini tekrar, kompakt ve doğrulanabilir şekilde sabitle.
+    // Explicit Add Detail değişiklikleri yalnız adı geçen noktada genel ürün
+    // koruma kuralına istisnadır; kıyafetin geri kalanı aynen korunur.
+    const allowFashionPoseInterpretation = fashionShoot || bagShoot;
+    let userInstructionLock = buildUserInstructionLock({
+      settings: settings || {},
+      customDetail,
+      // Catalog locations are analyzed into text, not attached to the renderer.
+      // Verified uploaded venues get LOCATION_DIRECTION when actually attached below.
+      hasLocationReference: false,
+      locationDescriptionIsSceneContext: true,
+      // 🧍 Stil modunda poz görseli isteğe EKLENMİYOR ve metne çevrilmiş
+      // durumda (settings.pose) — "attached pose reference" satırı orada
+      // yanlış hedef gösterirdi (model stil referansını poz sanabilir).
+      // Normal fashion generation uses built-in poses as text inspiration;
+      // dedicated pose/edit modes retain their existing reference behavior.
+      hasPoseReference: Boolean(poseImage) && !styleReferenceUrl &&
+        (!allowFashionPoseInterpretation || settings?.poseType !== "default"),
+      allowFashionPoseInterpretation,
+      hasHairReference: Boolean(hairStyleImage),
+      // Stil kompozisyonu ek insan gerektirebilir. Kullanıcının model ayarları
+      // yalnız ürünü giyen ana/hero kişiye uygulanmalı; yardımcı kişiyi silmemeli.
+      primaryModelOnly: Boolean(styleReferenceUrl || autoStyleGridUrl),
+    });
+    if (userInstructionLock) {
+      enhancedPrompt = appendUserInstructionLock(
+        enhancedPrompt,
+        userInstructionLock,
+      );
+      logger.log(
+        `🔒 [USER INSTRUCTION LOCK] Final prompt'a eklendi (${userInstructionLock.length} karakter):`,
+        userInstructionLock,
+      );
+    }
+
+    // Restore the original detailed campaign appendix. Bag campaigns retain
+    // their specialized direction; explicit styles keep their own language.
+    if (fashionShoot) {
+      const campaignDirection = buildFashionCampaignDirection({
+        settings, hasStyleReference: Boolean(styleDirected || styleReferenceUrl || autoStyleGridUrl || editorialCollagesForRequest.length),
+      });
+      if (campaignDirection) enhancedPrompt += `\n\n${campaignDirection}`;
+    }
+
+  return enhancedPrompt;
+}
+
+/**
+ * 🛍️ Ürün Stüdyosu üretimi: V7'nin ortak hazırlığından (kredi ön kontrolü,
+ * referans yükleme, pending kayıt) sonra çağrılır. Moda hattına girmez.
+ * Kredi V7'deki gibi BAŞARIDA düşer (updateGenerationStatus → deductCreditOnSuccess);
+ * hata olursa kayıt "failed" olur, kredi hiç düşmemiş olur.
+ */
+async function runStudioToolGeneration({ res, tool, options, meta, userId, generationId, imageUrls, ratio, customDetail, temporaryFiles }) {
+  const prompt = buildStudioPrompt(tool, {
+    values: options.values,
+    texts: options.texts,
+    details: customDetail || "",
+    productCount: meta.productCount,
+    refs: meta.refs,
+    variantIndex: meta.variantIndex,
+    variantTotal: meta.variantTotal,
+    language: meta.language,
+  });
+  logger.log(`🛍️ [STUDIO] ${tool.id} gen:${String(generationId).slice(0, 8)} görsel:${imageUrls.length} oran:${ratio} varyasyon:${meta.variantIndex + 1}/${meta.variantTotal}`);
+  setGenerationProgress(generationId, "generating");
+  try {
+    const input = buildStudioEditInput(STUDIO_GPT25_EDIT_MODEL, {
+      prompt,
+      image_urls: imageUrls,
+      aspect_ratio: ratio,
+      image_size: resolveStudioImageSize(tool, options.values) || undefined,
+      quality: "high",
+      num_images: 1,
+      output_format: "png",
+    });
+    let rawBuffer = null;
+    let lastError = null;
+    for (let attempt = 1; attempt <= 2 && !rawBuffer; attempt++) {
+      try {
+        const response = await axios.post(`https://fal.run/${STUDIO_GPT25_EDIT_MODEL}`, input, {
+          headers: { Authorization: `Key ${process.env.FAL_API_KEY || process.env.FAL_KEY}`, "Content-Type": "application/json" },
+          timeout: 300000,
+        });
+        const url = response.data?.images?.[0]?.url;
+        if (!url) throw new Error("GPT Image 2.5 görsel döndürmedi");
+        const binary = await axios.get(url, { responseType: "arraybuffer", timeout: 60000, maxContentLength: 60 * 1024 * 1024 });
+        rawBuffer = Buffer.from(binary.data);
+      } catch (error) {
+        lastError = error;
+        const detail = JSON.stringify(error.response?.data || "").toLowerCase();
+        if (/content_policy|safety|moderation/.test(detail)) { lastError = new Error("content_policy"); break; }
+        if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 2500));
+      }
+    }
+    if (!rawBuffer) throw lastError || new Error("generation_failed");
+
+    setGenerationProgress(generationId, "finishing");
+    let output;
+    if (tool.post?.type === "mainImage" && STUDIO_MAIN_IMAGE_SPECS[options.values.platform]) {
+      output = await marketplaceMainImage(rawBuffer, STUDIO_MAIN_IMAGE_SPECS[options.values.platform]);
+      output.meta.platform = options.values.platform;
+    } else if (tool.post?.type === "exact" && STUDIO_EXACT_SIZES[options.values[tool.post.from]]) {
+      output = await exactSize(rawBuffer, STUDIO_EXACT_SIZES[options.values[tool.post.from]]);
+      output.meta.format = options.values[tool.post.from];
+    } else {
+      output = await standardOutput(rawBuffer);
+    }
+
+    const fileName = `${userId}/${Date.now()}_studio_${tool.id}_${uuidv4().substring(0, 8)}.jpg`;
+    const { error: uploadError } = await supabase.storage
+      .from("user_image_results")
+      .upload(fileName, output.buffer, { contentType: "image/jpeg", cacheControl: "3600", upsert: false });
+    if (uploadError) throw new Error(`user bucket upload: ${uploadError.message}`);
+    const resultUrl = supabase.storage.from("user_image_results").getPublicUrl(fileName).data.publicUrl;
+
+    const { data: existing } = await supabase
+      .from("reference_results")
+      .select("settings")
+      .eq("generation_id", generationId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    await updateGenerationStatus(generationId, userId, "completed", {
+      result_image_url: resultUrl,
+      enhanced_prompt: prompt,
+      alreadyInUserBucket: true,
+      settings: { ...(existing?.settings || {}), studioToolMeta: output.meta },
+    });
+    clearGenerationProgress(generationId);
+    await cleanupTemporaryFiles(temporaryFiles || []);
+    return res.json({
+      success: true,
+      result: {
+        imageUrl: resultUrl,
+        output: [resultUrl],
+        generationId,
+        studioToolKey: tool.id,
+        meta: output.meta,
+        apiUsed: "gpt-image-2.5:sunburst:high",
+      },
+    });
+  } catch (error) {
+    const code = error.message === "content_policy" ? "content_policy" : "generation_failed";
+    console.error(`❌ [STUDIO] ${tool.id} gen:${String(generationId).slice(0, 8)} başarısız:`, error.message);
+    await updateGenerationStatus(generationId, userId, "failed", {
+      generationFailure: { code, stage: "studio_tool", tool: tool.id },
+    });
+    clearGenerationProgress(generationId);
+    await cleanupTemporaryFiles(temporaryFiles || []);
+    return res.status(code === "content_policy" ? 400 : 500).json({
+      success: false,
+      result: { errorCode: code === "content_policy" ? "CONTENT_POLICY" : "GENERATION_FAILED", generationId, message: error.message },
+    });
+  }
+}
+
 router.post("/generate", async (req, res) => {
+  // 🔎 Teşhis logu (21 Ağu): "polling 404: kayıt yok" vakalarında POST'un
+  // sunucuya ULAŞIP ulaşmadığını ayırt etmek için handler'ın İLK satırı.
+  // Başarısız generationId bu logda yoksa istek istemciden hiç çıkamamıştır.
+  logger.log(
+    `📥 [GENERATE] istek alındı gen:${String(req.body?.generationId || "-").slice(0, 8)} user:${String(req.body?.userId || "-").slice(0, 8)} imgs:${Array.isArray(req.body?.referenceImages) ? req.body.referenceImages.length : 0}`,
+  );
   // Kredi kontrolü ve düşme (kalite versiyonuna göre dinamik)
   let creditDeducted = false;
   let actualCreditDeducted = 10; // Default v1 için 10 kredi
@@ -5015,15 +5308,9 @@ router.post("/generate", async (req, res) => {
   // fal nano-banana güvenlik toleransı: "6" = en gevşek (varsayılan, gerçek kullanıcılar).
   // Güvenlik test hesabında (nodselemen) "1" = en katı'ya çekilir (çıplaklık üretimini zorlaştırır).
   let safetyTolerance = "6";
+  let generationStage = "preparation";
 
   try {
-    const isJewelryPromptMode =
-      req.body?.jewelryPromptMode === true &&
-      normalizeProductCategory(req.body?.productCategory) === "jewelry";
-    const jewelryProductSubtype = normalizeJewelrySubtype(
-      req.body?.productSubtype,
-    );
-
     let {
       ratio,
       promptText,
@@ -5055,6 +5342,7 @@ router.post("/generate", async (req, res) => {
       modelProfile = null,
       sizeReferenceImage = null, // 📏 SizeEditor'dan gelen boyut referans görseli (canvas çıktısı)
       kombinOriginalImages = null, // 📸 Kombin: grid'e ek olarak orijinal tekil ürün resimleri
+      kombinPieces = null, // 🏷️ Kombin: parça etiketleri [{cells:[1,..], category, subtype, color, pattern}] — hücreler 1-bazlı, kombinOriginalImages sırasıyla aynı
       angleOriginalImages = null, // 📐 Çoklu açı: grid'e ek olarak orijinal açı fotoğrafları (detay sadakati)
       isMultipleAnglesMode = false, // 📐 Aynı ürünün farklı açılarından oluşturulan grid
       multipleAnglesCount = 0, // 📐 Grid içindeki açı sayısı
@@ -5064,9 +5352,94 @@ router.post("/generate", async (req, res) => {
       editorialMode = false, // 🎞️ Editorial mod: dahili stil kolajları her üretime eklenir
       enableAutomaticTrialVariation = false, // Trial ilk varyasyonu backend completion'da başlatır
     } = req.body;
+    ({ settings, prompt: promptText } = normalizeGenerationAge(settings, promptText));
 
-    // 🎲 "Yapay Zekaya Bırak": model seçilmediyse ve yaş 18+ ise havuzdan rastgele
-    // model kullanılır (bkz. utils/autoPoolModel.js).
+    // 🛍️ Ürün Stüdyosu isteği: araç + seçenek doğrulaması, moda hattı tamamen kapalı
+    let studioTool = null;
+    let studioOptions = null;
+    let studioMeta = null;
+    if (req.body?.studioToolKey) {
+      studioTool = getStudioTool(req.body.studioToolKey);
+      if (!studioTool) {
+        return res.status(400).json({ success: false, result: { errorCode: "STUDIO_TOOL_NOT_FOUND", message: "Unknown studio tool" } });
+      }
+      try {
+        studioOptions = validateStudioOptions(studioTool, req.body.studioOptions || {});
+        const productCount = Math.floor(Number(req.body.studioProductCount));
+        const refs = Array.isArray(req.body.studioRefs) ? req.body.studioRefs : [];
+        const images = Array.isArray(referenceImages) ? referenceImages.length : 0;
+        if (!(productCount >= 1 && productCount <= (studioTool.upload?.max || 4))) throw new Error("product_count");
+        let refTotal = 0;
+        const normalizedRefs = [];
+        for (const spec of studioTool.refs || []) {
+          const entry = refs.find((r) => r && r.id === spec.id);
+          const count = entry ? Math.floor(Number(entry.count) || 0) : 0;
+          if (count < 0 || count > (spec.max || 1) || (spec.required && !count)) throw new Error("ref_count");
+          if (count) normalizedRefs.push({ id: spec.id, count });
+          refTotal += count;
+        }
+        if (refs.some((r) => !(studioTool.refs || []).some((spec) => spec.id === r?.id))) throw new Error("ref_unknown");
+        if (productCount + refTotal !== images) throw new Error("image_count");
+        const variantTotal = Math.min(4, Math.max(1, Math.floor(Number(req.body.studioVariantTotal) || 1)));
+        const variantIndex = Math.min(variantTotal - 1, Math.max(0, Math.floor(Number(req.body.studioVariantIndex) || 0)));
+        const language = /^[a-z]{2,3}(-[A-Za-z]{2,4})?$/.test(req.body.studioLanguage || "") ? req.body.studioLanguage : "en";
+        studioMeta = { productCount, refs: normalizedRefs, variantIndex, variantTotal, language };
+      } catch (validationError) {
+        logger.warn(`🛍️ [STUDIO] geçersiz istek (${req.body.studioToolKey}): ${validationError.message}`);
+        return res.status(400).json({ success: false, result: { errorCode: "INVALID_STUDIO_OPTIONS", message: "Invalid studio tool options" } });
+      }
+      ratio = resolveStudioRatio(studioTool, ratio, studioOptions.values);
+      promptText = promptText || `[${studioTool.id}] ${studioTool.title.en}`;
+      customDetail = typeof customDetail === "string" ? customDetail.slice(0, 1500) : "";
+      isEditMode = false;
+      isRefinerMode = false;
+      isColorChange = false;
+      isPoseChange = false;
+      modelPhoto = null;
+      modelProfile = null;
+      styleProfileId = null;
+      styleReferenceImage = null;
+      locationImage = null;
+      poseImage = null;
+      hairStyleImage = null;
+      editorialMode = false;
+      enableAutomaticTrialVariation = false;
+      upscaleMp = 4;
+      isMultipleAnglesMode = false;
+      multipleAnglesCount = 0;
+      settings = {
+        ...(settings || {}),
+        qualityVersion: "v1",
+        studioToolKey: studioTool.id,
+        studioOptions: studioOptions.values,
+        studioTexts: studioOptions.texts,
+        studioVariantIndex: studioMeta.variantIndex,
+        studioVariantTotal: studioMeta.variantTotal,
+        source: "product-studio",
+      };
+    }
+
+    // 🩱 İç giyim / erotik ürün kilidi (23 Eyl 2026, kullanıcı isteği): client
+    // /api/product-type/intimate-check ile ürünü iç giyim bulduysa kullanıcının
+    // KENDİ seçtiği model fotoğrafı kullanılmaz — yalnız "Yapay Zekaya Bırak"
+    // (aşağıdaki havuz ataması) geçerlidir. Eski/değiştirilmiş client'lara karşı
+    // sınıflandırıcının "lingerie" / "swimwear" alt türü de aynı kilidi tetikler (bikini/mayo — 23 Eyl kullanıcı kararı).
+    // Farklı açılar / kombin modunda kilit YOK (23 Eyl kullanıcı kararı)
+    const intimateExemptMode = isMultipleAnglesMode === true || req.body?.isKombinMode === true;
+    const intimateLocked = !intimateExemptMode && (
+      req.body?.intimateProduct === true ||
+      ["lingerie", "swimwear"].includes(String(req.body?.productSubtype || "").toLowerCase()));
+    if (intimateLocked && modelPhoto && !isEditMode && !isRefinerMode && !isColorChange && !isPoseChange && !req.body?.isBackSideAnalysis) {
+      logger.log("🩱 [INTIMATE LOCK] iç giyim ürünü → kullanıcının model fotoğrafı yok sayıldı, AI havuzu kullanılacak");
+      modelPhoto = null;
+      modelProfile = null;
+    }
+
+
+    // 🎲 "Yapay Zekaya Bırak": kullanıcı model seçmediyse ve istenen yaş 18+ ise
+    // model MUTLAKA havuzdan (`model_pool`) rastgele seçilir — kullanıcının kendi
+    // modellerinden DEĞİL (11 Eyl 2026 kullanıcı kararı). Yalnızca model çekimi
+    // akışı için geçerli; edit/refiner/renk/poz/arka taraf modlarında dokunulmaz.
     // 🧷 Eski model filtresi (admin → Legacy Users): bu kullanıcılar için hem V2
     // nano-banana-pro 2K'ya gider hem de "Yapay Zekaya Bırak" havuzdan model ATAMAZ.
     let legacyFlags = { useNbproV2: false, skipAutoPoolModel: false, isLegacy: false };
@@ -5084,6 +5457,7 @@ router.post("/generate", async (req, res) => {
     }
 
     if (
+      !studioTool &&
       !modelPhoto &&
       !legacyFlags.skipAutoPoolModel &&
       !isEditMode &&
@@ -5099,6 +5473,11 @@ router.post("/generate", async (req, res) => {
           age: settings?.age,
           logger,
         });
+        if (!autoPool) {
+          logger.log(
+            `🎲 [AUTO POOL MODEL] uygulanmadı (cinsiyet:${settings?.gender || "-"}, yaş:${settings?.age || "-"})`,
+          );
+        }
         if (autoPool) {
           modelPhoto = autoPool.modelPhoto;
           // Havuz modelinin ölçü profili YALNIZCA kullanıcı kendi beden/ölçü
@@ -5108,7 +5487,7 @@ router.post("/generate", async (req, res) => {
             (settings?.type === "custom_measurements" && settings?.measurements);
           modelProfile = userChoseBody ? modelProfile : autoPool.modelProfile;
           logger.log(
-            `🎲 [AUTO POOL MODEL] Takı: model seçilmemiş → havuzdan rastgele model (id:${autoPool.poolModelId}, cinsiyet:${settings?.gender || "-"}, yaş:${settings?.age || "-"})`,
+            `🎲 [AUTO POOL MODEL] Model seçilmemiş → havuzdan rastgele model kullanıldı (id:${autoPool.poolModelId}, cinsiyet:${settings?.gender || "-"}, yaş:${settings?.age || "-"})`,
           );
         }
       } catch (error) {
@@ -5205,6 +5584,10 @@ router.post("/generate", async (req, res) => {
     );
 
     modelPhoto = modelPhoto ? sanitizeImageUrl(modelPhoto) : modelPhoto;
+    // Analytics-only identity reference; never used to compose the generation prompt.
+    settings = resolveGenerationProductSettings(settings, req.body);
+    delete settings.analyticsModelImage;
+    if (modelPhoto) settings.analyticsModelImage = modelPhoto;
 
     // ReferenceImages sanitization + model referansını yakala
     referenceImages = Array.isArray(referenceImages)
@@ -5263,8 +5646,17 @@ router.post("/generate", async (req, res) => {
       requestUserId,
     );
 
+    // 🛍️ Normalizasyon (uri'siz girdiler düşer) sonrası sayı hâlâ araç tanımıyla tutmalı:
+    // görsel rolleri sıraya göre atandığı için eksik görsel yanlış rol demektir.
+    if (studioTool) {
+      const expected = studioMeta.productCount + studioMeta.refs.reduce((n, r) => n + r.count, 0);
+      if (modelReferenceImage || referenceImages.length !== expected) {
+        return res.status(400).json({ success: false, result: { errorCode: "INVALID_STUDIO_IMAGES", message: "Reference images do not match the studio tool" } });
+      }
+    }
+
     // isMultipleProducts'ı değiştirilebilir hale getir (kombin modu için)
-    let isMultipleProducts = originalIsMultipleProducts;
+    let isMultipleProducts = originalIsMultipleProducts === true || req.body.isKombinMode === true;
 
     // userId'yi scope için ata
     userId = requestUserId;
@@ -5581,11 +5973,12 @@ router.post("/generate", async (req, res) => {
       multipleAnglesCount,
       automaticTrialVariationRequested:
         enableAutomaticTrialVariation === true,
-      // 💎 27 Ağu 2026 (kullanıcı isteği): üretimin TAKI olduğu kalıcı kayda
-      // girer — geçmişten açılan SimpleImageModal, kit butonlarını bu bilgiyle
-      // gizler (takıda ürün kiti anlamsız). Bu rota YALNIZ takı ürettiği için
-      // damga koşulsuz.
-      productCategory: "jewelry",
+      // 🏷️ 27 Ağu 2026: sınıflandırılan ürün kategorisi kalıcı kayda girer
+      // (shoes/clothing; takı rotası kendi damgasını basıyor). Geçmiş modalı
+      // kit görünürlüğünü ve gelecekteki analizleri buna dayandırır.
+      ...(req.body?.productCategory
+        ? { productCategory: normalizeProductCategory(req.body.productCategory) }
+        : {}),
       ...(sessionId && { sessionId: sessionId }),
     };
 
@@ -5655,7 +6048,25 @@ router.post("/generate", async (req, res) => {
 
     // 🔄 Status'u processing'e güncelle
     await updateGenerationStatus(finalGenerationId, userId, "processing");
-    setGenerationProgress(finalGenerationId, "preparing"); // 🧭 Results kartı aşama yazısı
+    // 🧭 Results kartındaki kullanıcı dostu aşama yazısı (services/generationProgress)
+    setGenerationProgress(finalGenerationId, "preparing");
+
+    // 🛍️ Ürün Stüdyosu: moda hattına girmeden GPT Image 2.5 ile üret
+    if (studioTool) {
+      generationStage = "studio_tool";
+      return runStudioToolGeneration({
+        res,
+        tool: studioTool,
+        options: studioOptions,
+        meta: studioMeta,
+        userId,
+        generationId: finalGenerationId,
+        imageUrls: referenceImageUrls,
+        ratio,
+        customDetail,
+        temporaryFiles,
+      });
+    }
 
     logger.log("🎛️ [BACKEND] Gelen settings parametresi:", settings);
     logger.log("🏞️ [BACKEND] Settings içindeki location:", settings?.location);
@@ -5791,6 +6202,7 @@ router.post("/generate", async (req, res) => {
 
     logger.log("Supabase'den alınan final resim URL'si:", finalImage);
 
+    setGenerationProgress(finalGenerationId, "product");
     // Aspect ratio'yu formatla
     const formattedRatio = formatAspectRatio(ratio || "9:16");
     logger.log(
@@ -5805,10 +6217,6 @@ router.post("/generate", async (req, res) => {
     let styleReferenceUrl = null;
     let styleReferenceStamped = false;
     let styleProfileMeta = null; // { name, stylePrompt, imageCount } — stil profili modunda dolar
-    // 💎 Ürün çekimi (çekim tarzı 2) referansı: bu stillerde takı bilerek
-    // silinmedi, referansta ürün gözüküyor. Prompt'a "oradaki takı ÜRÜN DEĞİL,
-    // kullanıcının takısıyla DEĞİŞTİR" talimatı eklenmeli (kullanıcı, 17 Ağu 2026).
-    let jewelryProductShotReference = false;
     let editorialCollagesForRequest = []; // 🎞️ Editorial mod: bu istekte eklenecek kolaj URL'leri
     // 🌟 Otomatik global stil durumu:
     //   autoStyleMode "full" → styleProfileId doldurulur, mevcut stil hattı aynen çalışır
@@ -6001,8 +6409,8 @@ router.post("/generate", async (req, res) => {
           productCategory: normalizedAutoCategory,
           productSubtype: normalizedAutoSubtype,
           styleApproach: normalizedAutoApproach,
-          // 🚻 Zıt gender ETİKETLİ stiller havuz seçiminde elenir; etiketsiz
-          // stiller serbest (takı havuzunda etiket yok — pratikte etkisiz).
+          // 🚻 Zıt gender ETİKETLİ stiller (örn. man seçiliyken woman etiketli
+          // Sokak Stili) havuz seçiminde elenir; etiketsiz stiller serbest.
           userGender: settings?.gender ?? null,
           // 🔁 Stil rotasyonu: bu kullanıcının daha önce kullandığı stiller
           // mümkün oldukça yeniden seçilmez (havuz bitince kademeli sıfırlanır).
@@ -6125,21 +6533,9 @@ router.post("/generate", async (req, res) => {
         ) {
           throw new Error("Style profile is not owned by this user");
         }
-        const usesJewelryCleanAutoImages = Boolean(
-          autoStyleProfile?.uses_jewelry_clean_images &&
-            String(autoStyleProfile.id) === String(styleProfileRow.id),
-        );
-        const profileUrls = usesJewelryCleanAutoImages
-          ? autoStyleProfile.image_urls
-          : Array.isArray(styleProfileRow.image_urls)
-            ? styleProfileRow.image_urls
-            : [];
-        // Referansta takı DURUYORSA (ürün çekimi tarzı hiç temizlenmez) modele
-        // o takının ürün olmadığını ve yerine kullanıcının takısının konması
-        // gerektiğini açıkça söylemek şart.
-        jewelryProductShotReference =
-          Number(styleProfileRow.style_approach) === PRODUCT_SHOT_STYLE_APPROACH &&
-          !usesJewelryCleanAutoImages;
+        const profileUrls = Array.isArray(styleProfileRow.image_urls)
+          ? styleProfileRow.image_urls
+          : [];
         if (profileUrls.length === 0) {
           throw new Error("Style profile has no images");
         }
@@ -6149,14 +6545,10 @@ router.post("/generate", async (req, res) => {
         // üretilir, URL'si profile yazılır; sonraki üretimler onu kullanır.
         // (Profile fotoğraf eklenip çıkarıldığında bu alan NULL'a çekiliyor.)
         let gridCount = profileUrls.length;
-        const gridCacheColumn = usesJewelryCleanAutoImages
-          ? "jewelry_clean_stamped_grid_url"
-          : "stamped_grid_url";
-        const candidateGridUrl = usesJewelryCleanAutoImages
-          ? styleProfileRow.jewelry_clean_stamped_grid_url || null
-          : styleProfileRow.stamped_grid_url || null;
-        let cachedGridUrl = isCurrentStyleReferencePlateUrl(candidateGridUrl)
-          ? candidateGridUrl
+        let cachedGridUrl = isCurrentStyleReferencePlateUrl(
+          styleProfileRow.stamped_grid_url,
+        )
+          ? styleProfileRow.stamped_grid_url
           : null;
 
         if (!cachedGridUrl) {
@@ -6164,7 +6556,7 @@ router.post("/generate", async (req, res) => {
           gridCount = built.count;
           const stampedGrid = await stampStyleReferencePlate(built.buffer);
 
-          const gridFileName = `${usesJewelryCleanAutoImages ? "jewelry_clean_" : ""}style_profile_grid_${styleProfileRow.id}_${STYLE_REFERENCE_PLATE_VARIANT}_${uuidv4().substring(0, 8)}.jpg`;
+          const gridFileName = `style_profile_grid_${styleProfileRow.id}_${STYLE_REFERENCE_PLATE_VARIANT}_${uuidv4().substring(0, 8)}.jpg`;
           const { error: gridUpErr } = await supabase.storage
             .from("reference")
             .upload(gridFileName, stampedGrid, {
@@ -6184,7 +6576,7 @@ router.post("/generate", async (req, res) => {
           // yalnızca bir sonraki sefer kolaj tekrar kurulur.
           const { error: cacheErr } = await styleProfilesDb
             .from("style_profiles")
-            .update({ [gridCacheColumn]: cachedGridUrl })
+            .update({ stamped_grid_url: cachedGridUrl })
             .eq("id", styleProfileRow.id);
           if (cacheErr) {
             logger.warn(
@@ -6251,7 +6643,7 @@ router.post("/generate", async (req, res) => {
           const stampedAutoGrid = await stampStyleReferencePlate(
             builtAutoGrid.buffer,
           );
-          const autoGridFileName = `${autoStyleProfile.uses_jewelry_clean_images ? "jewelry_clean_" : ""}style_profile_grid_${autoStyleProfile.id}_${STYLE_REFERENCE_PLATE_VARIANT}_${uuidv4().substring(0, 8)}.jpg`;
+          const autoGridFileName = `style_profile_grid_${autoStyleProfile.id}_${STYLE_REFERENCE_PLATE_VARIANT}_${uuidv4().substring(0, 8)}.jpg`;
           const { error: autoGridUpErr } = await supabase.storage
             .from("reference")
             .upload(autoGridFileName, stampedAutoGrid, {
@@ -6278,11 +6670,7 @@ router.post("/generate", async (req, res) => {
           );
           const { error: autoCacheErr } = await autoStyleDb
             .from("style_profiles")
-            .update({
-              [autoStyleProfile.uses_jewelry_clean_images
-                ? "jewelry_clean_stamped_grid_url"
-                : "stamped_grid_url"]: autoStyleGridUrl,
-            })
+            .update({ stamped_grid_url: autoStyleGridUrl })
             .eq("id", autoStyleProfile.id);
           if (autoCacheErr) {
             logger.warn(
@@ -6328,9 +6716,6 @@ router.post("/generate", async (req, res) => {
     // doğrudan yüklenen tekil referans için Gemini'den kamera/ışık/grade reçetesi çıkar.
     // Başarısız olursa sessizce devam edilir (nano-banana referansı yine de görüyor).
     let styleReferenceTechAnalysis = null;
-    // 💎🎬 Takı modunda stil malzemesinin anlamlandırılmış sentezi (ham analiz
-    // yerine NB2/NB Pro'ya bu gider; null kalırsa eski kompakt yol çalışır)
-    let jewelryStyleSynthesizedDirection = null;
     // 🖼️ Tek karelik profil: analiz daha önce üretildiyse önbellekten al
     if (
       singleImageStyleProfileId &&
@@ -6565,6 +6950,33 @@ Do NOT describe any person's face/identity or garments. PLAIN TEXT only, numbere
         }
       }
 
+      // 👗🎬 ANLAMLANDIRMA PASI: ham analiz/profil notları final prompt'a
+      // yapıştırılmadan önce Gemini tek akıcı brief'e sentezler (jewelry V7
+      // ile aynı desen). Başarısızsa null kalır → builder ham blok fallback'ini
+      // kullanır, üretim asla bozulmaz.
+      let garmentStyleSynthesizedDirection = null;
+      try {
+        garmentStyleSynthesizedDirection =
+          await synthesizeGarmentStyleDirection({
+            styleReferenceUrl,
+            technicalAnalysis: styleReferenceTechAnalysis,
+            styleProfile: styleProfileMeta,
+            settings: settings || {},
+            stamped: styleReferenceStamped,
+          });
+        if (garmentStyleSynthesizedDirection) {
+          logger.log(
+            `👗🎬 [GARMENT STYLE SYNTH] Anlamlandırılmış yaratıcı brief hazır (${garmentStyleSynthesizedDirection.length} karakter) — ham analiz final prompt'a girmeyecek`,
+          );
+        }
+      } catch (synthErr) {
+        garmentStyleSynthesizedDirection = null;
+        logger.warn(
+          "👗🎬 [GARMENT STYLE SYNTH] Sentez başarısız — ham analiz blokları (eski yol) kullanılacak:",
+          synthErr?.message,
+        );
+      }
+
       enhancedPrompt = buildStyleReferencePrompt({
         settings: settings || {},
         customDetail,
@@ -6573,48 +6985,18 @@ Do NOT describe any person's face/identity or garments. PLAIN TEXT only, numbere
         stamped: styleReferenceStamped,
         styleProfile: styleProfileMeta,
         technicalAnalysis: styleReferenceTechAnalysis,
+        synthesizedDirection: garmentStyleSynthesizedDirection,
         // 🧍 Kullanıcı poz seçtiyse kullanıcının pozu referans/kolaj pozunu ezer
         hasUserPose: Boolean(
           poseImage ||
             (typeof settings?.pose === "string" && settings.pose.trim()),
         ),
         repeatPoseDirective: autoStyleRepeatPoseDirective,
-        jewelrySwapRequired: jewelryProductShotReference,
       });
       backgroundRemovedImage = finalImage;
       logger.log(
-        `🎬 [STYLE REFERENCE] Kompakt prompt kullanılıyor (${enhancedPrompt.length} karakter) — Gemini enhancement atlandı`,
+        `🎬 [STYLE REFERENCE] Kompakt prompt kullanılıyor (${enhancedPrompt.length} karakter${garmentStyleSynthesizedDirection ? ", stil sentezi gömülü" : ", ham analiz fallback"}) — Gemini enhancement atlandı`,
       );
-
-      // 💎🎬 TAKI + STİL: ham analiz/profil notları final prompt'a yapıştırılmaz;
-      // Gemini önce anlamlandırır. Sentez başarısızsa null kalır ve jewelry
-      // builder eski kompakt yolu (filtre + dilim) kullanır — üretim bozulmaz.
-      if (isJewelryPromptMode) {
-        try {
-          jewelryStyleSynthesizedDirection =
-            await synthesizeJewelryStyleDirection({
-              styleReferenceUrl,
-              technicalAnalysis: styleReferenceTechAnalysis,
-              styleProfile: styleProfileMeta,
-              jewelrySubtype: jewelryProductSubtype,
-              // Ürün çekimi stilinde sentez de mankensiz yazılır
-              productShot: jewelryProductShotReference,
-              settings: settings || {},
-              stamped: styleReferenceStamped,
-            });
-          if (jewelryStyleSynthesizedDirection) {
-            logger.log(
-              `💎🎬 [JEWELRY STYLE SYNTH] Anlamlandırılmış yaratıcı brief hazır (${jewelryStyleSynthesizedDirection.length} karakter) — ham analiz final prompt'a girmeyecek`,
-            );
-          }
-        } catch (synthErr) {
-          jewelryStyleSynthesizedDirection = null;
-          logger.warn(
-            "💎🎬 [JEWELRY STYLE SYNTH] Sentez başarısız — eski kompakt yol (filtre+dilim) kullanılacak:",
-            synthErr?.message,
-          );
-        }
-      }
     } else if (!isPoseChange) {
       // 🖼️ NORMAL MODE - Arkaplan silme işlemi (paralel)
       // Gemini prompt üretimini paralelde başlat
@@ -6658,12 +7040,12 @@ Do NOT describe any person's face/identity or garments. PLAIN TEXT only, numbere
         isMultipleImages, // Çoklu resim modu mu?
         userId, // Compress için userId
         originalBase64ForGemini, // 🚀 Orijinal base64 - URL indirmesi atlanacak
-        Array.isArray(kombinOriginalImages) ? kombinOriginalImages.length : 0, // 🛍️ Kombin içindeki tekil ürün sayısı
+        Array.isArray(kombinOriginalImages) ? kombinOriginalImages.length : 0, // 🛍️ Referans fotoğraf sayısı; ayrı ürün sayısı değildir
         isMultipleAnglesMode ? multipleAnglesCount : 0, // 📐 Aynı ürünün farklı açı sayısı
         modelReferenceImage
           ? modelReferenceImage.uri || modelReferenceImage.url || null
           : null, // 👤 Model seçiliyse yüz icat edilmez, kimlik korunur (görsel Gemini'ye de gider)
-        isJewelryPromptMode,
+        Boolean(styleReferenceUrl || autoStyleProfile || autoStyleGridUrl || editorialCollagesForRequest.length),
       );
 
       // ⏳ Sadece Gemini prompt iyileştirme bekle
@@ -6672,7 +7054,7 @@ Do NOT describe any person's face/identity or garments. PLAIN TEXT only, numbere
     }
 
     logger.log("✅ Gemini prompt iyileştirme tamamlandı");
-    setGenerationProgress(finalGenerationId, "generating");
+    setGenerationProgress(finalGenerationId, "scene");
 
     // 🎯 Focus area — Gemini rewrite edip kaldırmış olabileceği için enhancedPrompt'un
     // EN BAŞINA pazarlıksız olarak yeniden yerleştir. Gemini direktifi bazen başa
@@ -6680,33 +7062,10 @@ Do NOT describe any person's face/identity or garments. PLAIN TEXT only, numbere
     // framing directive: ⚠️ ..."); startsWith kontrolü bunu görmüyordu ve final
     // prompt'ta aynı blok İKİ kez geçiyordu. Artık: gövdedeki TÜM kopyalar
     // temizlenir, sonra direktif başa bir kez konur.
-    {
-      const focusDir = isJewelryPromptMode
-        ? ""
-        : buildFocusAreaDirective(settings?.focusArea);
-      if (focusDir) {
-        let body = enhancedPrompt || "";
-        const beforeLen = body.length;
-        // Gemini direktifi genellikle birebir kopyalıyor — tam metin eşleşmesiyle
-        // tüm kopyaları sök (başındaki/ortadaki fark etmez).
-        body = body.split(focusDir.trim()).join("").trimStart();
-        // Kalıntı bağlaç temizliği: "adhering strictly to the framing directive: "
-        // gibi direktife işaret eden yarım kalmış ifadeler sorun değil — model
-        // baştaki gerçek direktifi görecek.
-        if (body.length !== beforeLen) {
-          logger.log(
-            "🎯 [FOCUS AREA] Gövdeye gömülü direktif kopyaları temizlendi",
-          );
-        }
-        enhancedPrompt = `${focusDir}
-
-${body}`;
-        logger.log(
-          "🎯 [FOCUS AREA] enhancedPrompt'un başına sert direktif (tek kopya) yerleştirildi:",
-          settings?.focusArea,
-        );
-      }
-    }
+    enhancedPrompt = applyGenerationFocus(enhancedPrompt, settings, {
+      isColorChange, isPoseChange, isEditMode, isRefinerMode,
+      isBackSideAnalysis: req.body.isBackSideAnalysis,
+    });
 
     // 🧴💃 Natural skin + Fashion pose direktifleri artık STATIK prepend
     // edilmiyor. Gemini bunları enhancePromptWithGemini içinde "Opening
@@ -6718,7 +7077,7 @@ ${body}`;
       Array.isArray(kombinOriginalImages) &&
       kombinOriginalImages.length > 0
     ) {
-      enhancedPrompt += `\n\n${buildOutfitReferencePrompt({photoCount: kombinOriginalImages.length})}`;
+      enhancedPrompt += `\n\n${buildOutfitReferencePrompt({photoCount: kombinOriginalImages.length, pieces: kombinPieces})}`;
       logger.log(
         `📸 [KOMBİN ORIG] enhancedPrompt'a ${kombinOriginalImages.length} tekil ürün direktifi eklendi`,
       );
@@ -6729,9 +7088,12 @@ ${body}`;
         Array.isArray(angleOriginalImages) && angleOriginalImages.length > 0;
       enhancedPrompt += `
 
-MULTIPLE-ANGLE PRODUCT REFERENCE: The main composite grid contains ${multipleAnglesCount} views of the same single product. Use all cells only to reconstruct that one product faithfully from every visible side.${hasAngleOriginals
-        ? ` In addition to the grid, ${angleOriginalImages.length} full-resolution individual photo(s) of the same product are attached — use these for faithful fine-detail reproduction (exact colors, prints, stitching, trims, fabric texture, proportions). Do NOT invent or alter any product detail that is not visible in these photos.`
-        : ""} The final photograph contains one instance of the product, never multiple garments, duplicates, or a collage.`;
+${buildMultiAngleProductScopeDirection({
+  photoCount: multipleAnglesCount, settings,
+  modes: { isMultipleProducts, isKombinMode: req.body.isKombinMode === true },
+})}${hasAngleOriginals
+        ? ` In addition to the grid, ${angleOriginalImages.length} full-resolution individual product photo(s) are attached — use these for faithful fine-detail reproduction (exact colors, prints, stitching, trims, fabric texture, proportions). Do NOT invent or alter any product detail that is not visible in these photos.`
+        : ""}`;
       logger.log(
         `📐 [MULTIPLE ANGLES] ${multipleAnglesCount} açılık tek ürün direktifi enhancedPrompt'a eklendi${hasAngleOriginals ? ` (+${angleOriginalImages.length} orijinal foto direktifi)` : ""}`,
       );
@@ -6868,6 +7230,57 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
       }
     }
 
+    // 🧍 Otomatik stil kullanılan HER üretimde (FULL + SOFT) poz-kıyafet uyumu
+    // sert kurala bağlanır; tarz 4 (Sokak Stili) ayrıca kimlik güvenlik duvarı
+    // alır (19 Ağu 2026, kullanıcı isteği — telif/benzerlik riski sıfırlanacak).
+    //
+    // 👜 Aksesuar kuralı 1 Eyl 2026'da "birebir ayna"dan İKİ GRUPLU mantığa
+    // geçti (kullanıcı isteği). Eski kural referanstaki her aksesuarı aynen
+    // taşıyordu; bu, referans kişinin kırmızı tişörtünün üstündeki kemeri
+    // kullanıcının hiç kemer istemediği yeni kıyafete de zorla giydiriyordu.
+    // Yeni ayrım: (A) kişiye ait taşınan parçalar (gözlük, çanta, şapka, takı,
+    // saat) HER ZAMAN taşınır ama kullanıcının ürününün stil DNA'sına göre
+    // YENİDEN TASARLANIR; (B) kıyafete bağlı stil parçaları (kemer, kuşak,
+    // kravat, kıyafete sokulmuş atkı, üste katlanan zincir) yalnız kullanıcının
+    // ürünü gerçekten gerektiriyorsa gelir — gelmemesi hata değil, doğru sonuç.
+    // Envanter dışı aksesuar ekleme yasağı ise aynen duruyor.
+    if (autoStyleProfile) {
+      enhancedPrompt = `${enhancedPrompt || ""}
+
+🧍 POSE ↔ GARMENT COMPATIBILITY (NON-NEGOTIABLE, OVERRIDES ANY POSE-COPY INSTRUCTION): The poses in the style reference are a STARTING POINT, never a template to copy verbatim. Before posing the model, check every pose element against the USER'S actual garment: hands go into pockets ONLY if this garment really has pockets; a thumb hooks a belt loop ONLY if belt loops exist; popping a collar, tugging a hood, playing with a zipper, cuff or drawstring happens ONLY if the garment has that feature; a pose that would crush, fold or hide the garment's defining silhouette or details is FORBIDDEN. Whenever a reference pose element conflicts with the garment's real construction, REPLACE it with a natural, equally confident alternative (hand relaxed at the side, resting on the hip, adjusting a sleeve that does exist) while keeping the same energy and attitude. Reproducing a reference pose that is physically impossible or unflattering for THIS garment is a hard failure.`;
+      if (Number(autoStyleProfile.style_approach) === 4) {
+        enhancedPrompt = `${enhancedPrompt}
+
+🚫 STREET-STYLE IDENTITY FIREWALL (ABSOLUTE, HIGHEST PRIORITY): This generation uses a street-style reference photograph of a REAL person. That person's face and identity are legally OFF-LIMITS. The output person must be a COMPLETELY DIFFERENT human being: rebuild every identity-bearing feature from scratch — face shape, facial proportions, eye shape and color, brows, nose, lips, cheekbones, jawline, hairline, skin tone may all differ, and the overall "type" must read as a different person entirely. The output must fail any same-person, look-alike or celebrity-match comparison with the reference person. If the user supplied their own model reference elsewhere in this prompt, THAT user-provided identity is the only allowed face source; otherwise cast a brand-new, unrecognizable photoreal person. Copying, approximating or subtly echoing the reference person's face is a hard failure with legal consequences — when in doubt, make the person MORE different, never less.
+
+👜 STREET-STYLE ACCESSORY LOGIC (OVERRIDES ANY "IGNORE REFERENCE ACCESSORIES" RULE FOR THIS GENERATION): FIRST inventory exactly which accessories are ACTUALLY VISIBLE on the reference person (bag, jewelry, sunglasses/glasses, hat, scarf, belt, watch, headphones...). NOTHING outside that inventory may ever appear: ADDING an accessory the reference person is not visibly wearing is a hard failure — if the reference shows no sunglasses, the output has NO sunglasses; no hat means NO hat; no jewelry means NO jewelry. Never "complete" or "enrich" the look with extra styling. THEN sort every inventoried piece into one of the two groups below and treat the groups DIFFERENTLY.
+
+(A) BODY-WORN / CARRIED PIECES — sunglasses or glasses, hat or cap, handbag, shoulder bag, tote, backpack, watch, earrings, necklace, bracelet, rings, headphones. These belong to the PERSON, so they ALWAYS carry over. Keep the same KIND of piece and the same way it is worn or carried (a shoulder bag stays a shoulder bag on the same side; sunglasses held in the hand stay in the hand and are NOT moved onto the face). But do NOT copy the reference object literally: REDESIGN each piece so it belongs to the NEW outfit — re-choose its color, material, finish, hardware tone, scale and level of polish from the style DNA of the user's garment (its palette, fabric, formality and attitude), so the accessory reads as deliberately styled with THIS product instead of borrowed from another look. Same kind, same placement, new design.
+
+(B) GARMENT-DEPENDENT STYLING PIECES — belt, waist chain, belt bag worn across the outfit, tie, bow tie, suspenders, brooch or pin fastened to the fabric, scarf tied or tucked into the clothing, chain layered over a top, any piece that cinches, fastens to or sits on the clothing. These belong to the REFERENCE'S OUTFIT, not to the person, so they are CONDITIONAL. They carry over ONLY IF the user's garment genuinely invites them: a belt appears only if this garment actually has belt loops or a waist meant to be cinched AND the belt improves it; a tucked or tied scarf appears only if this garment's neckline and layering really support it. If the user's garment does not call for the piece, OMIT IT — leaving it out is the CORRECT result and never counts as removing an accessory. When in doubt, OMIT. Never force a reference belt, chain, tie or scarf onto a garment that was not designed for it, and never cinch, fold, cover or interrupt the product's silhouette just to make a reference styling piece fit.
+
+ACROSS BOTH GROUPS: if the user's own product is itself an accessory of a category present in the inventory (the user's product IS the bag, the glasses, the hat or the jewelry), the user's product REPLACES that reference piece entirely — never show two pieces of the same category. Render every carried-over piece as a similar generic item — never a brand-identical copy with visible logos — and never let any accessory cover, crowd or compete with the user's product's defining details; if a piece would obscure them, scale it down, reposition it slightly, or drop it.
+
+${
+  autoStyleMode === "soft"
+    ? // 📍 Kullanıcı MEKÂN seçti (20 Ağu, kullanıcı isteği): kompozisyon
+      // referanstan DONDURULUR, sahne kullanıcının mekânı olur ve o mekân
+      // kesinlikle amatör telefon çekimi dilinde işlenir. Eski fidelity lock
+      // burada kullanılamazdı — "aynı tür sokak sahnesi" derken kullanıcının
+      // mekân seçimiyle kafa kafaya çatışıyordu.
+      `🎬 STREET-STYLE COMPOSITION LOCK × USER'S LOCATION (ABSOLUTE, NON-NEGOTIABLE, OVERRIDES EVERY SCENE CUE FROM THE REFERENCE): The user explicitly selected a location, so this street-style shot is RE-STAGED at the user's location while the reference's photography stays frozen. Two hard rules apply simultaneously and neither may soften the other:
+(1) COMPOSITION IS FROZEN — copy the reference photograph's camera angle, camera height, focal-length feel, framing and crop, the subject's placement and scale in frame, the motion state, the foreground/background layering and the overall composition EXACTLY. Do not reframe, do not move the camera, do not "improve" or re-balance the composition in any way.
+(2) THE SCENE IS THE USER'S LOCATION — the environment, background, architecture, surfaces and atmosphere come ONLY from the user's chosen location described earlier in this prompt, fully present and recognizable. NOTHING of the reference's own street, buildings, walls, pavement, signage or scenery may appear, blend in or "leak" into the frame. Relocating back to the reference's scene, mixing the two places, or watering the user's location down into a generic street is a HARD FAILURE.
+(3) THE LOCATION IS SHOT STREET-STYLE — the user's location must be rendered in the SAME raw, candid, amateur smartphone language as the reference: handheld phone-camera realism, the reference's exact color grade, flash or natural-light character, grain, contrast and every visible photographic imperfection. It must look like someone spontaneously took THIS phone photo of the model AT the user's location — NEVER like a polished editorial, studio or cinematic rendering of that place.
+The final image must read as the SAME street-style photograph — same person-in-frame geometry, same camera, same grade — re-shot AT the user's chosen location.`
+    : `🎬 STREET-STYLE FIDELITY LOCK (EVERYTHING ELSE STAYS): Beyond the two sanctioned changes (the person's identity and the main garment) and the sanctioned pose adaptations for the garment, EVERYTHING that defines this photograph is preserved faithfully from the reference: the same theme and concept, the same kind of street/urban scene with its structural elements and depth, the same camera angle, focal-length feel, framing and crop, the same motion state and overall composition, the same lighting direction and quality, the same color grade, contrast, film/filter character and every visible photographic effect (grain, flare, motion blur of the background, bokeh character). The output must read as the SAME street-style shot re-taken with a different person wearing the user's product — never as a new concept, a new location type, a new camera setup or a differently graded photograph.`
+}`;
+      }
+      logger.log(
+        `🧍 [AUTO_STYLE] Poz-kıyafet uyum direktifi eklendi${Number(autoStyleProfile.style_approach) === 4 ? ` + Sokak Stili kimlik duvarı + ${autoStyleMode === "soft" ? "kompozisyon×kullanıcı-mekânı kilidi" : "fidelity lock"}` : ""}`,
+      );
+    }
+
     // FULL modda buildStyleReferencePrompt içine eklenir. SOFT modda (ve FULL
     // stil referansı kurulamadıysa) final promptta bulunmasını burada garanti et.
     if (
@@ -6886,80 +7299,16 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
     // Gemini'nin çıktısı, stil-referansı gibi Gemini'yi atlayan dallar ve tüm
     // fallback promptları aynı noktada birleşir. Böylece hangi kalite modeli
     // seçilirse seçilsin fiziksel gerçekçilik talimatı final promptta bulunur.
-    if (isJewelryPromptMode) {
-      enhancedPrompt = buildJewelryGenerationPrompt({
-        draftPrompt: enhancedPrompt,
-        // 💎🎬 Stil modunda anlamlandırılmış sentez ham draft'ın yerine geçer
-        // (regex süzgeci ve 2800 karakter dilimi uygulanmaz)
-        synthesizedDirection: jewelryStyleSynthesizedDirection,
-        productSubtype: jewelryProductSubtype,
-        settings: settings || {},
-        customDetail,
-        // 💎 Ürün çekimi tarzı → mankensiz natürmort prompt'u kurulur
-        productShot: jewelryProductShotReference,
-      });
-      logger.log(
-        `💎 [JEWELRY V7] Final prompt takıya özel yeniden kuruldu (subtype: ${jewelryProductSubtype || "auto"}${jewelryStyleSynthesizedDirection ? ", stil sentezi kullanıldı" : ""}${jewelryProductShotReference ? ", ÜRÜN ÇEKİMİ: mankensiz" : ""})`,
-      );
-    } else {
-      enhancedPrompt = appendUniversalPhotorealism(enhancedPrompt);
-      logger.log(
-        "📷 [PHOTOREALISM] Model/cilt/kumaş/ortam/ışık/kamera gerçekçiliği final prompt'a eklendi",
-      );
-    }
-
-    // Gizli stil görselindeki kişinin cinsiyeti casting'i sürüklemesin. Bu blok
-    // stil + teknik analizden sonra, genel kullanıcı kilidinden hemen önce gelir.
-    if (autoStyleGenderDirective && !isJewelryPromptMode) {
-      enhancedPrompt = `${enhancedPrompt || ""}\n\n${autoStyleGenderDirective}`;
-      logger.log(
-        `⚥ [AUTO_STYLE] Kullanıcı cinsiyeti gizli stilin üstüne kilitlendi: ${settings?.gender}`,
-      );
-    }
-
-    // Apply after enhancement and style-reference bypasses, before explicit user locks.
-    const modelHairDirection = buildModelHairDirection({
-      hasModelReference: Boolean(modelReferenceImage),
-      settings, hairStyleImage,
-      isEditMode, isRefinerMode, isColorChange, isPoseChange,
-      isBackSideAnalysis: req.body.isBackSideAnalysis,
+    enhancedPrompt = finalizeGenerationPrompt(enhancedPrompt, {
+      settings, customDetail, modelReferenceImage, poseImage, hairStyleImage,
+      styleReferenceUrl, autoStyleGridUrl, autoStyleGenderDirective,
+      styleDirected: Boolean(autoStyleProfile),
+      editorialCollagesForRequest, isColorChange, isPoseChange, isEditMode,
+      isRefinerMode, isBackSideAnalysis: req.body.isBackSideAnalysis,
+      isMultipleProducts, isKombinMode: req.body.isKombinMode === true,
+      kombinItemCount: Array.isArray(kombinOriginalImages) ? kombinOriginalImages.length : 0,
+      multipleAnglesCount, isMultipleAnglesMode,
     });
-    if (modelHairDirection) {
-      enhancedPrompt = `${enhancedPrompt || ""}\n\n${modelHairDirection}`;
-    }
-
-    // 🔒 ADD DETAIL + ADVANCED SETTINGS SON KİLİT
-    // Gemini bu alanları doğal brief'e dönüştürüyor; ancak uzun/yaratıcı prompt
-    // içinde bazılarını yumuşatabiliyor. Görüntü modeline giden metnin EN SONUNDA
-    // kullanıcı seçimlerini tekrar, kompakt ve doğrulanabilir şekilde sabitle.
-    // Explicit Add Detail değişiklikleri yalnız adı geçen noktada genel ürün
-    // koruma kuralına istisnadır; kıyafetin geri kalanı aynen korunur.
-    let userInstructionLock = buildUserInstructionLock({
-      settings: settings || {},
-      customDetail,
-      productCategory: isJewelryPromptMode ? "jewelry" : null,
-      hasLocationReference: Boolean(locationImage),
-      // 🧍 Stil modunda poz görseli isteğe EKLENMİYOR ve metne çevrilmiş
-      // durumda (settings.pose) — "attached pose reference" satırı orada
-      // yanlış hedef gösterirdi (model stil referansını poz sanabilir).
-      hasPoseReference: Boolean(poseImage) && !styleReferenceUrl,
-      hasHairReference: Boolean(hairStyleImage),
-      // Stil kompozisyonu ek insan gerektirebilir. Kullanıcının model ayarları
-      // yalnız ürünü giyen ana/hero kişiye uygulanmalı; yardımcı kişiyi silmemeli.
-      primaryModelOnly: Boolean(styleReferenceUrl || autoStyleGridUrl),
-      // 💎 Ürün çekiminde karede insan yok → modelle ilgili tüm kilitler düşer
-      productShot: jewelryProductShotReference,
-    });
-    if (userInstructionLock) {
-      enhancedPrompt = appendUserInstructionLock(
-        enhancedPrompt,
-        userInstructionLock,
-      );
-      logger.log(
-        `🔒 [USER INSTRUCTION LOCK] Final prompt'a eklendi (${userInstructionLock.length} karakter):`,
-        userInstructionLock,
-      );
-    }
 
     // Arkaplan silme kaldırıldı - direkt olarak finalImage kullanılacak
     backgroundRemovedImage = finalImage;
@@ -7354,7 +7703,9 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
       locationReferenceUrl = await uploadReferenceImageToSupabase(`data:image/jpeg;base64,${labelled.toString("base64")}`, userId);
       enhancedPrompt = `${enhancedPrompt}\n\n${LOCATION_DIRECTION}`;
     }
-    // 🎁 TRIAL: deneme süresindeki kullanıcıların NORMAL üretimleri her zaman "xhigh".
+    // 🎁 TRIAL: deneme süresindeki kullanıcıların NORMAL üretimleri her zaman
+    // "xhigh" kalitede çıkar (11 Eyl 2026 kullanıcı kararı). Varyasyonlar ve
+    // diğer araçlar kendi rotalarından geçtiği için etkilenmez.
     let isTrialUser = false;
     try {
       const { data: trialRow } = await supabase
@@ -7367,6 +7718,14 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
     } catch (error) {
       logger.warn("🎁 [TRIAL QUALITY] trial durumu okunamadı:", error.message);
     }
+    generationStage = "image_provider";
+    setGenerationProgress(finalGenerationId, "generating");
+    const selectedAgeInstruction = ageDirective(settings);
+    if (selectedAgeInstruction) enhancedPrompt += `\n\n${selectedAgeInstruction}`;
+    // Preserve the exact renderer prompt even when the provider rejects the image.
+    await updateGenerationStatus(finalGenerationId, userId, "processing", {
+      enhanced_prompt: enhancedPrompt,
+    });
     let sunburstRejected = false;
     // Snapshot once per generation so admin changes never switch an active retry.
     const modelCreationOptions = {
@@ -7635,19 +7994,10 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
             const nanoModel = "fal-ai/nano-banana-2/edit";
             // 🧠 Render öncesi muhakeme — app_config.nb2_thinking_level ile yönetilir
             const nb2ThinkingLevel = await getNb2ThinkingLevel();
-            const nanoRequestBody = {
-              prompt: enhancedPrompt,
-              image_urls: imageInputArray,
-              output_format: "png",
-              aspect_ratio: aspectRatioForRequest,
-              num_images: 1,
-              resolution: useNb2 ? "1K" : "2K",
-              safety_tolerance: safetyTolerance,
-              enable_web_search: true,
-              ...(nb2ThinkingLevel !== "off"
-                ? { thinking_level: nb2ThinkingLevel }
-                : {}),
-            };
+            const nanoRequestBody = buildNb2GenerationRequest({
+              enhancedPrompt, imageInputArray, aspectRatioForRequest,
+              useNb2, safetyTolerance, nb2ThinkingLevel,
+            });
             logger.log(
               `🍌 [V1 NB2] fal.run/${nanoModel} çağrılıyor — images: ${imageInputArray?.length || 0}, aspect: ${aspectRatioForRequest}, thinking: ${nb2ThinkingLevel}`,
             );
@@ -8138,6 +8488,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
           logger.log(
             `🔄 Retry ${retryAttempt}: Yeni prediction oluşturuluyor... (Model: ${falModel})`,
           );
+          setGenerationProgress(finalGenerationId, "retrying");
 
           const retryResponse = await axios.post(
             `https://fal.run/${falModel}`,
@@ -8256,6 +8607,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
       // 🔍 NETLEŞTİRME ADIMI — kullanıcı Results'ta 4 MP'den yüksek bir kademe
       // seçtiyse sonuç, kaydedilmeden önce o çözünürlüğe yükseltilir. Hata
       // durumunda orijinal sonuçla devam edilir (üretim asla kaybolmaz).
+      if (Number(upscaleMp) > 4) setGenerationProgress(finalGenerationId, "upscaling");
       const upscaleOutcome = await applyResultUpscale({
         imageUrl: resultImageUrl,
         upscaleMp,
@@ -8264,6 +8616,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
         ensureBaseCharge: () => deductCreditOnSuccess(finalGenerationId, userId),
         logTag: "MODEL UPSCALE",
       });
+      setGenerationProgress(finalGenerationId, "finishing");
       resultImageUrl = upscaleOutcome.imageUrl;
       const appliedUpscaleMp = upscaleOutcome.appliedMp;
       const preUpscaleImageUrl = upscaleOutcome.preUpscaleUrl;
@@ -8406,10 +8759,21 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
     console.error("Resim oluşturma hatası:", error);
 
     // ❌ Status'u failed'e güncelle (genel hata durumu)
-    clearGenerationProgress(finalGenerationId, "hata");
     if (finalGenerationId) {
+      clearGenerationProgress(finalGenerationId, "hata");
       await updateGenerationStatus(finalGenerationId, userId, "failed", {
-        // error_message kolonu yok, bu yüzden genel field kullan
+        generationFailure: {
+          stage: generationStage,
+          message: String(error.message || "Generation failed").slice(0, 1500),
+          httpStatus: error.response?.status || error.status || null,
+          details: Array.isArray(error.response?.data?.detail)
+            ? error.response.data.detail.slice(0, 6).map(item => ({
+                type: String(item?.type || "").slice(0, 100),
+                message: String(item?.msg || "").slice(0, 500),
+              }))
+            : String(error.response?.data?.error?.message || error.response?.data?.message || "").slice(0, 1500),
+          recordedAt: new Date().toISOString(),
+        },
         processing_time_seconds: 0,
       });
     }
@@ -9077,8 +9441,12 @@ router.get("/generation-status/:generationId", async (req, res) => {
         resultImageUrl: generation.result_image_url,
         upscaledMp: generation.upscaled_mp || null,
         preUpscaleImageUrl: generation.pre_upscale_image_url || null,
-        // ⏳ Ara aşama ("upscaling") — Results kartındaki durum rozeti için
-        stage: generation.settings?.stage || null,
+        // ⏳ Ara aşama — Results kartının altındaki kullanıcı dostu durum yazısı.
+        // Bellekteki canlı aşama öncelikli (services/generationProgress); yoksa eski
+        // settings.stage ("upscaling"). Tamamlanınca aşama taşınmaz.
+        stage: finalStatus === "processing" || finalStatus === "pending"
+          ? getGenerationProgress(generation.generation_id) || generation.settings?.stage || null
+          : null,
         resultImageThumbnail: thumbnailUrl,
         originalPrompt: generation.original_prompt,
         enhancedPrompt: generation.enhanced_prompt,
@@ -9249,6 +9617,9 @@ router.get("/user-generations/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
     const { status, platform } = req.query; // Opsiyonel: belirli statusleri filtrelemek için, platform: 'web' veya 'mobile'
+    // 🛍️ Ürün Stüdyosu: araç ekranı yalnız kendi üretimlerini ister (son 7 gün, en çok 30 gün)
+    const studioToolKey = typeof req.query.studioToolKey === "string" && /^[a-z0-9-]{2,48}$/.test(req.query.studioToolKey) ? req.query.studioToolKey : null;
+    const studioSinceHours = studioToolKey ? Math.min(720, Math.max(1, Number(req.query.sinceHours) || 168)) : 1;
 
     if (!userId) {
       return res.status(400).json({
@@ -9279,9 +9650,9 @@ router.get("/user-generations/:userId", async (req, res) => {
       `📊 [USER-GENERATIONS-V5] Team mode: ${isTeamMember}, Member IDs: ${memberIds.join(", ")}`,
     );
 
-    // 🕐 Her zaman son 1 saatlik data'yı döndür
+    // 🕐 Her zaman son 1 saatlik data'yı döndür (Ürün Stüdyosu aracı sorgusunda studioSinceHours)
     const oneHourAgo = new Date();
-    oneHourAgo.setHours(oneHourAgo.getHours() - 1);
+    oneHourAgo.setHours(oneHourAgo.getHours() - studioSinceHours);
     const oneHourAgoISO = oneHourAgo.toISOString();
 
     logger.log(
@@ -9303,6 +9674,7 @@ router.get("/user-generations/:userId", async (req, res) => {
       .in("user_id", memberIds)
       .gte("created_at", oneHourAgoISO) // Her zaman 1 saatlik filtreleme
       .order("created_at", { ascending: false });
+    if (studioToolKey) query = query.eq("settings->>studioToolKey", studioToolKey).limit(40);
 
     // Status filtresi varsa uygula
     if (status) {

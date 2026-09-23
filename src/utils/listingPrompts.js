@@ -1,4 +1,4 @@
-const { referenceDirection, brandDirection } = require("./listingSellerInputs");
+const { referenceDirection, brandDirection, primaryImageLine } = require("./listingSellerInputs");
 // 🛍️ Listing Image Studio — prompt katmanı (15 Eyl 2026)
 //
 // Amazon / Etsy / Shopify tarzı ürün listeleme görselleri. Model çekimi
@@ -513,7 +513,7 @@ function buildListingPrompt({ type, marketplace, style, brief, language, ratio, 
 
 ${custom ? TYPE_BRIEF.custom(frameBrief, customSet) : t === "comparison" ? buildComparisonDirection(frameBrief, m) : TYPE_BRIEF[t](frameBrief)}
 ${variantBlock}
-PRIMARY PRODUCT IMAGE 1: ${primaryRole} view.
+${primaryImageLine(primaryRole)}
 ${customReferenceBlock}${referenceDirection(productReferences, customSet?.hasReference ? 3 : 2)}${exampleBlock}${sellerBlock}
 FRAME CREATIVE BRIEF: ${(!inheritsSharedScene && framePlan.concept) || "Answer the buyer question specific to this image type."}
 ART-DIRECTED COMPOSITION: ${(!inheritsSharedScene && framePlan.composition) || "Choose a purposeful viewpoint and clear visual hierarchy tailored to the product."}

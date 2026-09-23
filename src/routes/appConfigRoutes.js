@@ -21,14 +21,15 @@ const normaliseLanguage = (lang = "") => {
 // Video üretim kredi maliyetleri — app_config.metadata.video_credits ile
 // uzaktan yönetilir. Anahtarlar: süre saniyeleri ("5"/"8"/"10") + 1080p ek
 // ücreti ("hd_surcharge"). Eksik/bozuk değerlerde bu defaultlar geçerli.
-const DEFAULT_VIDEO_CREDITS = { 5: 300, 8: 340, 10: 375, hd_surcharge: 60 };
+// 15 sn (23 Eyl 2026, kullanıcı kararı): 450 kredi; ses fal'da ek ücretsiz → fiyatı değiştirmez
+const DEFAULT_VIDEO_CREDITS = { 5: 300, 8: 340, 10: 375, 15: 450, hd_surcharge: 60 };
 
 const normaliseVideoCredits = (metadata) => {
   const raw =
     metadata && typeof metadata === "object" ? metadata.video_credits : null;
   const out = { ...DEFAULT_VIDEO_CREDITS };
   if (raw && typeof raw === "object") {
-    for (const key of ["5", "8", "10", "hd_surcharge"]) {
+    for (const key of ["5", "8", "10", "15", "hd_surcharge"]) {
       const value = Number(raw[key]);
       if (Number.isFinite(value) && value >= 0) out[key] = value;
     }

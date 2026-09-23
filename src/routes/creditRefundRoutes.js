@@ -154,17 +154,18 @@ router.post(
     );
   }),
 );
+// Ürün Stüdyosu / Renk gibi araçlar generation_id'yi "zamandamgası_i" biçiminde üretiyor
+// (UUID değil). Eskiden UUID olmayan her kimlik "not_found" dönüyordu → Ürün Stüdyosu
+// iadesi HİÇ çalışmıyordu (23 Eyl 2026). UUID olmayanlar yalnız generation_id (text)
+// kolonunda, sıkı bir karakter kümesiyle aranır (PostgREST filtre enjeksiyonu yok).
+const LOOSE_GENERATION_ID = /^[A-Za-z0-9_-]{6,80}$/;
 async function loadGeneration(userId, id) {
-  if (!UUID.test(String(id || ""))) return null;
-  return (check(
-    await db
-      .from("reference_results")
-      .select("*")
-      .eq("user_id", userId)
-      .or(`generation_id.eq.${id},id.eq.${id}`)
-      .order("created_at", { ascending: false })
-      .limit(1),
-  ) || [])[0];
+  const value = String(id || "");
+  const isUuid = UUID.test(value);
+  if (!isUuid && !LOOSE_GENERATION_ID.test(value)) return null;
+  let q = db.from("reference_results").select("*").eq("user_id", userId);
+  q = isUuid ? q.or(`generation_id.eq.${value},id.eq.${value}`) : q.eq("generation_id", value);
+  return (check(await q.order("created_at", { ascending: false }).limit(1)) || [])[0];
 }
 async function eligibility(userId, id) {
   const config =
@@ -175,8 +176,11 @@ async function eligibility(userId, id) {
         .limit(1)
         .maybeSingle(),
     ) || {};
+  // 🎛️ app_config.refund_enabled=false → istemci iade butonunu TAMAMEN gizler (23 Eyl 2026);
+  // bu yüzden `enabled` her yanıtta, geçmiş kararlar dahil, döner.
+  const enabled = !!config.refund_enabled; // reason "disabled" ile aynı ölçüt
   const gen = await loadGeneration(userId, id);
-  if (!gen) return { eligible: false, reason: "not_found" };
+  if (!gen) return { eligible: false, reason: "not_found", enabled };
   const proof = check(
     await db
       .from("credit_refund_charges")
@@ -241,9 +245,14 @@ async function eligibility(userId, id) {
     return {
       eligible: false,
       reason: "already_requested",
+      enabled,
       existing: publicRequest(existing),
       creditsDeducted: gen.credits_deducted,
     };
+  // 🧪 Deneme kullanıcısı iade alamaz (23 Eyl 2026, kullanıcı kararı) — RPC de reddeder.
+  const account = check(
+    await db.from("users").select("is_in_trial").eq("id", userId).maybeSingle(),
+  );
   const counted = await db
     .from("credit_refund_requests")
     .select("id", { head: true, count: "exact" })
@@ -257,11 +266,19 @@ async function eligibility(userId, id) {
   // Yaş penceresi app_config.refund_max_age_days'ten gelir. Önceden 24 saat
   // KOD İÇİNDE sabitti ve config okunup kullanılmıyordu; değeri değiştirmek
   // hiçbir şeyi değiştirmiyordu (17 Eyl 2026).
+  // 23 Eyl 2026 (kullanıcı kararı): iade en geç 24 saat — config daha uzun bir pencere
+  // verse bile 24 saati aşamaz (daha kısa verilebilir). RPC de aynı sınırı uygular.
   const maxAgeMs =
-    Math.max(1, Number(config.refund_max_age_days) || 1) * 86400000;
+    Math.min(1, Math.max(1 / 24, Number(config.refund_max_age_days) || 1)) * 86400000;
   let reason = !config.refund_enabled
     ? "disabled"
-    : !gen.result_image_url
+    : account?.is_in_trial === true
+      ? "trial"
+      : // Yalnız ANA üretimler (giyim/takı V7, web, Ürün Stüdyosu) borçlanırken iade kanıtı
+      // yazar. Kanıtı olmayan satır = kit / çeşitlendirme / düzenleme türevi → iade yok.
+      !proof
+      ? "not_main_generation"
+      : !gen.result_image_url
       ? "no_result"
       : !gen.credits_deducted
         ? "no_charge"
@@ -275,6 +292,7 @@ async function eligibility(userId, id) {
   return {
     eligible: reason === "ok",
     reason,
+    enabled,
     gen,
     creditsDeducted: gen.credits_deducted,
     dailyRemaining: remaining,

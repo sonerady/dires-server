@@ -85,6 +85,33 @@ async function resolveVariationSizeRatio(aspectRatio, sourceImageUrl) {
 }
 // Three independently prompted photographs per variation batch.
 const VARIATIONS_PER_BATCH = 3;
+// 🔍 ZOOM modu (23 Eyl 2026, kullanıcı isteği): Arka Pozlama ve Farklı Pozlama
+// sonuçlarında poz değişimi yerine AYNI sahnede 2 yakın çekim — Refiner'ın
+// otomatik detay çeşitlemesinin manken üstü karşılığı. Gemini analizi yok,
+// sabit istem: 1) yakın plan (bel/göğüs üstü), 2) ürün detay makrosu.
+const ZOOM_VARIATIONS_PER_BATCH = 2;
+
+function buildZoomVariationPrompts({ backView = false } = {}) {
+  const side = backView
+    ? " The hero shows the model from BEHIND: keep the camera behind the model so the BACK of the " +
+      "garment faces the lens exactly as in the hero; do not turn the model around and do not show the face."
+    : " Keep the same side of the model and the garment facing the camera as in the hero.";
+  const closeCrop =
+    "Re-photograph reference image 1 as a TIGHTER CLOSE-UP of the very same model wearing the very same " +
+    "garment, in the very same location, moments later. Move the camera closer: frame roughly from the " +
+    "waist or mid-thigh up so the garment fills most of the frame and its cut, fit, drape and fabric read " +
+    "clearly. Keep the same pose family (only a small, natural adjustment), the same light direction, the " +
+    "same colour grade and the same background, now naturally softer behind the model." + side;
+  const detail =
+    "Re-photograph reference image 1 as an editorial DETAIL CLOSE-UP of the garment ON the same model, in " +
+    "the same location and light: move the camera very close to the single most commercially valuable " +
+    "detail of the garment that is visible in the hero — the fabric texture and weave, the stitching, a " +
+    "collar, neckline, button, zip or closure, a print, a strap or a hem — and let that detail fill the " +
+    "frame with crisp focus and a shallow depth of field. Part of the model's body may frame the detail; " +
+    "the garment stays the subject. Show only details that really exist in the references; never invent " +
+    "new ones." + side;
+  return [closeCrop, detail].map((prompt) => `${prompt}\n\n${VARIATION_PRESERVATION_SUFFIX}`);
+}
 
 const FREE_FIRST_VARIATION = true;
 const VARIATION_CREDIT_COST = 10;
@@ -1085,6 +1112,8 @@ async function loadStoredSourceContext(userId, sourceGenerationId) {
         excludedLocationImages: [],
         aspectRatio: null,
         isProductShot: false,
+        isZoomSource: false,
+        isBackView: false,
         isJewelry: false,
       };
     }
@@ -1121,6 +1150,12 @@ async function loadStoredSourceContext(userId, sourceGenerationId) {
       // 💍 Refiner çıktısı mı? Öyleyse çeşitlendirme ÜRÜN modunda çalışır
       // (poz/mekân değil, ikinci açı + detay makro).
       isProductShot: settings?.isRefinerMode === true,
+      // 🔍 Arka Pozlama / Farklı Pozlama çıktısı → ZOOM modu (2 yakın çekim)
+      isZoomSource:
+        settings?.isBackSideCloset === true ||
+        settings?.isPoseChange === true ||
+        ["backSide", "poseChange"].includes(settings?.variationSource),
+      isBackView: settings?.isBackSideCloset === true || settings?.variationSource === "backSide",
       // 💎 Takı mı? Takıda İKİ varyant da MAKRO olur (28 Ağu 2026, kullanıcı
       // isteği): ikinci katalog açısı yerine iki FARKLI detayın makrosu.
       // Önce kayıtlı kategori, o yoksa (eski üretimler) prompt metni.
@@ -1404,13 +1439,15 @@ async function startAutomaticTrialVariation({
   const batchId = `trial_auto_${stableSourceId}`;
   // Deterministik id'ler: aynı completion iki kez işlense bile UNIQUE ikinci
   // fal üretimini engelliyor. Sayı VARIATIONS_PER_BATCH'e bağlı.
-  const generationIds = Array.from(
-    { length: VARIATIONS_PER_BATCH },
-    (_, i) => `var_auto_${stableSourceId}_${i + 1}`,
-  );
   // Refiner uses product-angle/detail prompts rather than model poses.
   // Resolve the prompt type before saving rows; all variations use the same model.
   const productMode = sourceContext.isProductShot === true;
+  // 🔍 Arka/Farklı Pozlama → 2 yakın çekim (zoom)
+  const zoomMode = !productMode && sourceContext.isZoomSource === true;
+  const generationIds = Array.from(
+    { length: zoomMode ? ZOOM_VARIATIONS_PER_BATCH : VARIATIONS_PER_BATCH },
+    (_, i) => `var_auto_${stableSourceId}_${i + 1}`,
+  );
 
   // Önce deterministik pending satırlarını ayır. Prompt analizi uzun sürse bile
   // client processing kartını hemen görür; eşzamanlı ikinci worker UNIQUE'e takılır.
@@ -1452,7 +1489,10 @@ async function startAutomaticTrialVariation({
   let prompts;
   let backAnalysis = null;
   try {
-    if (productMode) {
+    if (zoomMode) {
+      logger.log(`🔍 [TRIAL_VARIATION] Zoom modu (2 yakın çekim) — kaynak: ${sourceGenerationId}`);
+      prompts = buildZoomVariationPrompts({ backView: sourceContext.isBackView === true });
+    } else if (productMode) {
       logger.log(
         `💍 [TRIAL_VARIATION] Ürün modu (Refiner kalıbı)${
           sourceContext.isJewelry ? " · TAKI: iki kare de makro" : ""
@@ -1506,7 +1546,7 @@ async function startAutomaticTrialVariation({
               automaticTrial: true,
               initiatedBy: "automatic_trial",
               isTrialAtGeneration: true,
-              variationMode: productMode ? "product" : "pose",
+              variationMode: zoomMode ? "zoom" : productMode ? "product" : "pose",
               ...(backAnalysis ? { backReferenceAnalysis: backAnalysis } : {}),
             },
             updated_at: new Date().toISOString(),
@@ -1674,9 +1714,17 @@ router.post("/generate", async (req, res) => {
       sourceIsProductShot: sourceContext.isProductShot,
     });
 
+    // 🔍 Zoom: istemci "zoom" dediyse ya da kaynak Arka/Farklı Pozlama çıktısıysa
+    const zoomMode =
+      !productMode &&
+      (String(variationMode || "").toLowerCase() === "zoom" || sourceContext.isZoomSource === true);
+
     let backAnalysis = null;
     let prompts;
-    if (productMode) {
+    if (zoomMode) {
+      logger.log(`🔍 [VARIATION] Zoom modu (2 yakın çekim) — kaynak: ${sourceGenerationId}`);
+      prompts = buildZoomVariationPrompts({ backView: sourceContext.isBackView === true });
+    } else if (productMode) {
       logger.log(
         `💍 [VARIATION] Ürün modu (Refiner kalıbı)${
           sourceContext.isJewelry ? " · TAKI: iki kare de makro" : ""
@@ -1746,7 +1794,7 @@ router.post("/generate", async (req, res) => {
         initiatedBy: automaticTrial === true && access.isInTrial === true ? "automatic_trial" : "user",
         isTrialAtGeneration: access.isInTrial === true,
         slot: i + 1,
-        variationMode: productMode ? "product" : "pose",
+        variationMode: zoomMode ? "zoom" : productMode ? "product" : "pose",
         ...(backAnalysis ? { backReferenceAnalysis: backAnalysis } : {}),
       },
     }));

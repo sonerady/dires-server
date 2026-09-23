@@ -8,6 +8,7 @@ const {
 } = require("../utils/revenuecatSupersededProduct");
 const { applyRevenueCatTransfer } = require("../utils/revenuecatTransfer");
 const { applyRevenueCatBillingIssue } = require("../utils/revenuecatBillingIssue");
+const { syncCancelState } = require("../utils/revenuecatCancelState");
 
 const router = express.Router();
 
@@ -210,6 +211,14 @@ router.post("/webhookv2", async (req, res) => {
     console.log(`   Period Type: ${period_type}`);
     console.log(`   Is Trial Conversion: ${isTrialConversion}`);
 
+    // 🔴 İptal banner'ı durumu (23 Eyl 2026): her olayda önce iptal durumunu
+    // senkronla (ücretli dönem iptali → yaz; yeniden etkinleştirme/yenileme/
+    // bitiş → temizle). Hata akışı bozmaz. UNCANCELLATION başka dal işlemez.
+    await syncCancelState({ supabase, event, logPrefix: "RC_WEBHOOK_V2" });
+    if (type === "UNCANCELLATION") {
+      return res.status(200).json({ success: true, message: "Uncancellation processed — cancel banner cleared", event_type: type });
+    }
+
     // Sadece başarılı satın alma eventleri için kredi ekle
     const creditEvents = [
       "INITIAL_PURCHASE", // İlk satın alma
@@ -372,12 +381,30 @@ router.post("/webhookv2", async (req, res) => {
       if (isTeamPackage(cancelBaseProductId)) {
         console.log(`👥 TEAM SUBSCRIPTION CANCELLATION: ${cancelBaseProductId}`);
 
-        // Team subscription'ı deaktive et
+        // Ekip paketi bitti → koltuklar ANA PLANA düşer, sıfıra değil.
+        // Plus/Premium planları kendi koltuğunu verir (standard 0, plus 1,
+        // premium 2 — normal abonelik dalıyla aynı harita). Eskiden burada
+        // her şey 0'lanıp owner dışı TÜM üyeler siliniyordu: Plus'ı süren
+        // owner (House of Moda vakası, 12 Mar 2026) planının verdiği tek
+        // üyesini de kaybetti, teams.max_members 0'da kaldı ve istemci
+        // "limit doldu" diyerek yeniden davete izin vermedi.
+        const { data: planOwner } = await supabase
+          .from("users")
+          .select("is_pro, is_in_trial, subscription_type")
+          .eq("id", userId)
+          .single();
+        const PLAN_TEAM_SEATS = { standard: 0, plus: 1, premium: 2 };
+        const planSeats =
+          planOwner?.is_pro && !planOwner?.is_in_trial && planOwner?.subscription_type
+            ? PLAN_TEAM_SEATS[planOwner.subscription_type] ?? 0
+            : 0;
+        console.log(`👥 Team package ended → falling back to plan seats: ${planSeats}`);
+
         const { data: teamCancelData, error: teamCancelError } = await supabase
           .from("users")
           .update({
-            team_max_members: 0,
-            team_subscription_active: false,
+            team_max_members: planSeats,
+            team_subscription_active: planSeats > 0,
           })
           .eq("id", userId)
           .select();
@@ -387,7 +414,6 @@ router.post("/webhookv2", async (req, res) => {
           return res.status(500).json({ error: "Team subscription cancellation failed" });
         }
 
-        // Kullanıcının team'inin max_members'ını sıfırla
         const { data: userTeam } = await supabase
           .from("teams")
           .select("id")
@@ -397,35 +423,55 @@ router.post("/webhookv2", async (req, res) => {
         if (userTeam) {
           await supabase
             .from("teams")
-            .update({ max_members: 0 })
+            .update({ max_members: planSeats })
             .eq("id", userTeam.id);
-          console.log("✅ Team max_members reset to 0");
+          console.log(`✅ Team max_members set to plan seats (${planSeats})`);
 
-          // Owner hariç tüm team üyelerini sil
-          const { data: removedMembers, error: removeMembersError } = await supabase
+          // Yalnız koltuğu aşan üyeler çıkar — en eskiler kalır. Çıkanların
+          // active_team_id'si de temizlenir; aksi halde üyelikleri silinse de
+          // owner'ın kredisini kullanmaya devam ediyorlardı.
+          const { data: members } = await supabase
             .from("team_members")
-            .delete()
+            .select("id, user_id, joined_at")
             .eq("team_id", userTeam.id)
             .neq("role", "owner")
-            .select();
+            .order("joined_at", { ascending: true });
+          const overflow = (members || []).slice(planSeats);
 
-          if (removeMembersError) {
-            console.error("⚠️ Error removing team members:", removeMembersError);
+          if (overflow.length > 0) {
+            const { error: removeMembersError } = await supabase
+              .from("team_members")
+              .delete()
+              .in("id", overflow.map((m) => m.id));
+
+            if (removeMembersError) {
+              console.error("⚠️ Error removing team members:", removeMembersError);
+            } else {
+              await supabase
+                .from("users")
+                .update({ active_team_id: null })
+                .in("id", overflow.map((m) => m.user_id))
+                .eq("active_team_id", userTeam.id);
+              console.log(`✅ Removed ${overflow.length} team members over the plan limit`);
+            }
           } else {
-            console.log(`✅ Removed ${removedMembers?.length || 0} team members`);
+            console.log("✅ No team members over the plan limit — nobody removed");
           }
 
-          // Bekleyen davetleri de iptal et
-          const { error: cancelInvitesError } = await supabase
-            .from("team_invitations")
-            .update({ status: "cancelled" })
-            .eq("team_id", userTeam.id)
-            .eq("status", "pending");
+          // Boş koltuk kalmadıysa bekleyen davetler iptal
+          const keptCount = Math.min((members || []).length, planSeats);
+          if (keptCount >= planSeats) {
+            const { error: cancelInvitesError } = await supabase
+              .from("team_invitations")
+              .update({ status: "cancelled" })
+              .eq("team_id", userTeam.id)
+              .eq("status", "pending");
 
-          if (cancelInvitesError) {
-            console.error("⚠️ Error cancelling pending invitations:", cancelInvitesError);
-          } else {
-            console.log("✅ Pending invitations cancelled");
+            if (cancelInvitesError) {
+              console.error("⚠️ Error cancelling pending invitations:", cancelInvitesError);
+            } else {
+              console.log("✅ Pending invitations cancelled");
+            }
           }
         }
 
@@ -443,7 +489,6 @@ router.post("/webhookv2", async (req, res) => {
             store: store || "unknown",
             environment: environment || "unknown",
             event_type: type,
-            package_type: "team_subscription",
             purchased_at: new Date(purchased_at_ms || Date.now()),
             created_at: new Date().toISOString(),
           });
@@ -455,8 +500,8 @@ router.post("/webhookv2", async (req, res) => {
           success: true,
           message: `Team subscription ${type.toLowerCase()} processed`,
           user_id: userId,
-          team_max_members: 0,
-          team_subscription_active: false,
+          team_max_members: planSeats,
+          team_subscription_active: planSeats > 0,
           event_type: type,
         });
       }
@@ -729,7 +774,6 @@ router.post("/webhookv2", async (req, res) => {
           store: store || "unknown",
           environment: environment || "unknown",
           event_type: type,
-          package_type: "team_subscription",
           purchased_at: new Date(purchased_at_ms || Date.now()),
           created_at: new Date().toISOString(),
         });

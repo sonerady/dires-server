@@ -1,5 +1,7 @@
 // Reference order is part of the persisted job contract. Never derive it on retry.
-const ROLES = new Set(['front', 'back', 'label', 'detail']);
+// 'auto' (23 Eyl 2026): client artık rol sordurmuyor — görselin neyi gösterdiğini model belirler.
+// Eski sürümler front/back/label/detail göndermeye devam edebilir.
+const ROLES = new Set(['front', 'back', 'label', 'detail', 'auto']);
 const isImageUrl = value => typeof value === 'string' && /^https?:\/\//i.test(value) && value.length < 4096;
 function normalizeProductReferences(value, mainUrl) {
   const seen = new Set([mainUrl]);
@@ -7,6 +9,12 @@ function normalizeProductReferences(value, mainUrl) {
     if (!ref || !ROLES.has(ref.role) || !isImageUrl(ref.url) || seen.has(ref.url)) return false;
     seen.add(ref.url); return true;
   }).slice(0, 5).map(({url, role}) => ({url, role}));
+}
+// Ana görsel satırı: "auto" → hangi yüzü gösterdiğini model belirler
+function primaryImageLine(role) {
+  return role === 'auto'
+    ? 'PRIMARY PRODUCT IMAGE 1: the main product photo — identify yourself which side or view it shows.'
+    : `PRIMARY PRODUCT IMAGE 1: ${role} view.`;
 }
 function normalizeBrand(value) {
   if (!value || value.enabled !== true) return null;
@@ -21,10 +29,10 @@ function normalizeBrand(value) {
 }
 function referenceDirection(refs, firstIndex = 2) {
   if (!refs.length) return '';
-  return `\nADDITIONAL PRODUCT REFERENCES (same item, not style examples):\n${refs.map((r, i) => `IMAGE ${firstIndex + i}: ${r.role.toUpperCase()} view.`).join('\n')}\nUse the relevant supplied view when showing that surface or detail. Back views govern rear construction; label views supply only clearly legible label information; detail views govern seams, texture and fastenings. Never mirror the front to invent the back, mix products, or treat these views as additional sale items. Preserve the primary product's identity across every view.\n`;
+  return `\nADDITIONAL PRODUCT REFERENCES (same item, not style examples):\n${refs.map((r, i) => r.role === 'auto' ? `IMAGE ${firstIndex + i}: another view of the same product — identify yourself which surface or detail it shows (back, side, label, texture, fastening…).` : `IMAGE ${firstIndex + i}: ${r.role.toUpperCase()} view.`).join('\n')}\nUse the relevant supplied view when showing that surface or detail. Back views govern rear construction; label views supply only clearly legible label information; detail views govern seams, texture and fastenings. Never mirror the front to invent the back, mix products, or treat these views as additional sale items. Preserve the primary product's identity across every view.\n`;
 }
 function brandDirection(brand, logoIndex) {
   if (!brand) return '';
   return `\nSAVED STORE IDENTITY — overrides optional palette and typography suggestions, NOT product fidelity, verified facts or marketplace main-image restrictions. Store: ${JSON.stringify(brand.name)}. Graphic colors: ${brand.colors.join(', ') || 'derive from product'}. Lettering preference: ${JSON.stringify(brand.font || 'derive from product')} (visual reference, exact font rendering is not guaranteed). Keep these choices consistent across products. Never recolor the product. ${logoIndex ? `IMAGE ${logoIndex} is the STORE LOGO, not a product or style reference. Preserve its shape and lettering. Use unobtrusively only on secondary promotional frames where allowed; never add it to a restricted marketplace main image.` : 'Do not invent a store logo.'}\n`;
 }
-module.exports = { normalizeProductReferences, normalizeBrand, referenceDirection, brandDirection };
+module.exports = { normalizeProductReferences, normalizeBrand, referenceDirection, brandDirection, primaryImageLine };

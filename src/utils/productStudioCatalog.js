@@ -1,5 +1,9 @@
 const {normalizeSchema}=require('./customToolSchema');
 const {publicTool}=require('./customStudioBrief');
+const {optimizeImageUrl}=require('./imageOptimizer');
+// Ana ekran kartı ~90pt genişlikte iki yarım görsel gösteriyor; 720x1280 orijinal
+// yerine küçük kopya gönderilir (kaydırmada decode yükü). Giriş örnekleri tam boy kalır.
+const cardThumb=u=>u?optimizeImageUrl(u,{width:300,height:540,quality:75,fit:'scale-down'}):u;
 const SEED=require('../data/productStudioSeed.json');
 const BUILTINS=new Set(SEED.map(x=>x.builtin_id));
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -25,7 +29,7 @@ function normalizeDraft(v,{builtinId=null,publish=false}={}){
 function catalogCard(row,language){
  const d=row.published;if(!row.enabled||!d)return null;
  const tool=publicTool({id:row.id,language:d.language,title:d.title,description:d.description,brief:d.description,translations:d.translations,button_hue:d.buttonHue,screen_schema:d.screen,status:'completed',before_url:d.beforeUrl,after_url:d.afterUrl,intro_examples:d.introExamples},language);
- return {...tool,id:d.screen?row.id:row.builtin_id,sourceId:row.builtin_id,catalogId:row.id,managed:true,custom:!!d.screen,position:row.position};
+ return {...tool,beforeUrl:cardThumb(tool.beforeUrl),afterUrl:cardThumb(tool.afterUrl),id:d.screen?row.id:row.builtin_id,sourceId:row.builtin_id,catalogId:row.id,managed:true,custom:!!d.screen,position:row.position};
 }
 async function accessibleTool(db,id,owner){
  const result=await db.from('custom_studio_tools').select('*').eq('id',id).is('deleted_at',null).maybeSingle();if(result.error)throw result.error;

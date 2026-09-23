@@ -20,6 +20,7 @@ const { fal } = require("@fal-ai/client");
 const { createClient } = require("@supabase/supabase-js");
 const logger = require("../utils/logger");
 const { classifyWithProvider, DEEPSEEK_TIMEOUT_MS } = require("../utils/productTypeProvider");
+const { INTIMATE_PROMPT, parseIntimate } = require("../utils/intimateCheck");
 
 const LUNA_MODEL = "openai/gpt-5.6-luna";
 // 🐋 26 Ağu 2026 (kullanıcı kararı): varsayılan sağlayıcı DEEPSEEK — eklenti
@@ -299,7 +300,7 @@ const MAX_IMAGES_PER_CALL = 6;
  *  Reasoning KAPALI tutuluyor: Luna'nın görünmez reasoning tokenı bütçeyi
  *  yiyip boş içerik döndürüyordu (13 Ağu bug'ı). */
 /** DeepSeek is primary; a failed or slow request falls back to Fal once. */
-async function callDeepSeekClassify(images, context = null, signal) {
+async function callDeepSeekClassify(images, context = null, signal, promptText = null) {
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) throw new Error("DEEPSEEK_API_KEY tanımlı değil");
   const response = await axios.post(
@@ -312,7 +313,7 @@ async function callDeepSeekClassify(images, context = null, signal) {
           content: [
             {
               type: "text",
-              text: (CONTEXT_PREFIX[context] || "") + CLASSIFY_PROMPT,
+              text: promptText || (CONTEXT_PREFIX[context] || "") + CLASSIFY_PROMPT,
             },
             ...images.map((url) => ({
               type: "image_url",
@@ -341,7 +342,7 @@ async function callDeepSeekClassify(images, context = null, signal) {
   return output;
 }
 
-async function callLunaVision(images, maxRetries = 2, context = null, signal) {
+async function callLunaVision(images, maxRetries = 2, context = null, signal, promptText = null) {
   const credentials = process.env.FAL_API_KEY || process.env.FAL_KEY;
   if (!credentials) throw new Error("FAL_API_KEY tanımlı değil");
   fal.config({ credentials });
@@ -352,7 +353,7 @@ async function callLunaVision(images, maxRetries = 2, context = null, signal) {
       const result = await fal.subscribe("openrouter/router/vision", {
         input: {
           model: LUNA_MODEL,
-          prompt: (CONTEXT_PREFIX[context] || "") + CLASSIFY_PROMPT,
+          prompt: promptText || (CONTEXT_PREFIX[context] || "") + CLASSIFY_PROMPT,
           image_urls: images,
           temperature: 0,
           max_tokens: 400,
@@ -469,6 +470,40 @@ router.post("/classify", async (req, res) => {
       wearable: true,
       fallback: true,
     });
+  }
+});
+
+/* 🩱 İç giyim / erotik giyim tespiti (23 Eyl 2026, kullanıcı isteği) — AYRI uç.
+ * Model Oluştur'da ürün iç çamaşırı, gecelik/fantezi ya da erotik bir parçaysa
+ * kullanıcının kendi / gerçek model fotoğrafını seçmesi engellenir; yalnız
+ * "Yapay Zekaya Bırak" kalır (gerçek bir kişinin fotoğrafına iç giyim
+ * giydirilmesini önlemek için). Genel sınıflandırmadan ayrı tutuldu: o uç
+ * tarz kartlarını yönetiyor, bu uç yalnız güvenlik kararı veriyor.
+ * Hata/zaman aşımı → intimate:false (üretimi bloklamaz); sunucu üretim uçları
+ * ayrıca productSubtype==="lingerie" ile ikinci bir kilit uygular. */
+router.post("/intimate-check", async (req, res) => {
+  const safe = { success: true, intimate: false, category: "none", confidence: 0, fallback: true };
+  try {
+    const { imageUrl, imageBase64, images: imagesRaw } = req.body || {};
+    const images = (Array.isArray(imagesRaw) && imagesRaw.length ? imagesRaw : [imageUrl || imageBase64])
+      .filter((x) => typeof x === "string" && x.length > 0)
+      .slice(0, MAX_IMAGES_PER_CALL);
+    if (!images.length) return res.status(400).json({ success: false, error: "imageUrl, imageBase64 veya images gerekli" });
+    const totalBytes = images.reduce((n, img) => n + (img.startsWith("data:") ? img.length : 0), 0);
+    if (totalBytes > 8_000_000) return res.json(safe);
+    const started = Date.now();
+    const { raw, provider } = await classifyWithProvider({
+      provider: await getProductTypeProvider(),
+      deepseek: (signal) => callDeepSeekClassify(images, null, signal, INTIMATE_PROMPT),
+      fal: (signal) => callLunaVision(images, 1, null, signal, INTIMATE_PROMPT),
+      onFallback: (err) => logger.warn(`🩱 [INTIMATE] DeepSeek unavailable (${err?.code || "provider_error"}); using fal/luna`),
+    });
+    const result = parseIntimate(raw);
+    logger.log(`🩱 [INTIMATE] ${result.intimate ? "KİLİT" : "serbest"} ${result.category} ${result.confidence} (${images.length} görsel, ${Date.now() - started}ms, ${provider})`);
+    return res.json({ success: true, ...result });
+  } catch (err) {
+    logger.error("❌ [INTIMATE] hata:", err?.message);
+    return res.json(safe);
   }
 });
 

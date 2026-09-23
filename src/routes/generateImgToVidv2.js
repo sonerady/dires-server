@@ -11,7 +11,21 @@ const { fal } = require("@fal-ai/client");
 
 const { supabase, supabaseAdmin } = require("../supabaseClient");
 const teamService = require("../services/teamService");
-const { generateVideoGridPreview } = require("../utils/videoGridPreview");
+const {
+  sanitizeBrief,
+  isReferenceMode,
+  identityClause,
+  buildCommerceGeminiPrompt,
+  buildCommerceFallbackPrompt,
+} = require("../utils/commerceVideoPrompt");
+const {
+  SKILLS: VIDEO_SKILLS,
+  sanitizeSkill,
+  buildSkillGeminiPrompt,
+  buildSkillFallbackPrompt,
+  skillIdentityClause,
+  skillStyleSuffix,
+} = require("../utils/videoSkillPrompt");
 const {
   enforceTrialVideoLimit,
   incrementTrialVideoCount,
@@ -28,6 +42,12 @@ fal.config({
 });
 
 const SEEDANCE_MODEL_ID = "bytedance/seedance-2.0/enterprise/image-to-video";
+// 🛍️ E-ticaret "yeni sahne" modu (22 Eyl 2026): fotoğraf yalnız ürün referansı.
+// Aynı fal uygulaması (bytedance/seedance-2.0) → queue status/result çağrıları
+// SEEDANCE_MODEL_ID ile ortak çalışır; fiyat image-to-video ile aynı.
+const SEEDANCE_REF_MODEL_ID = "bytedance/seedance-2.0/enterprise/reference-to-video";
+// Referans modunda Seedance promptu her zaman @Image1 içerir → retry doğru modu bununla seçer
+const isReferencePrompt = (prompt) => typeof prompt === "string" && prompt.includes("@Image1");
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 
 async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 5) {
@@ -52,87 +72,26 @@ function buildFallbackVideoPrompt(userPrompt) {
   );
 }
 
-/**
- * 🧩 Grid mode — Gemini'ye verilen director template'in 6-cut versiyonu.
- * Tek-sahne dili (single tracking shot, two-three chained beats, etc.)
- * BANNED. Gemini sıralı 6 cinematic cut'tan oluşan bir editli klip yazar.
- */
-function buildGridGeminiPrompt(userPrompt, editModeInstructions = "", hasBackImage = false) {
-  return `
-You are a senior fashion film DIRECTOR + EDITOR writing shot notes for an AI Image-to-Video model. The INPUT IMAGE you receive is NOT a single scene — it is a 2×3 STORYBOARD GRID containing 6 separate scenes (cells) of the same model, same outfit, same environment. Each cell is one beat of a single fashion campaign clip, in this order: top-left → top-right → middle-left → middle-right → bottom-left → bottom-right.
-
-User Theme / Subject: "${userPrompt || ""}" (May be empty. Use as the narrative throughline of the 6-cut sequence; if empty, infer the most fitting fashion narrative from the cells themselves.)
-
-CORE DIRECTION:
-You are NOT designing one continuous take with one camera move and one model performing 2-3 beats. You are designing a 6-CUT EDITED CLIP — six discrete shots cut together at speed, each shot lifted directly from one of the storyboard cells, played in order, transitioning into the next via cinematic cuts (whip-pan, match-cut, speed-ramp, dolly continuation, snap focus). Roughly equal time per cut (~clip_duration / 6 seconds each). The viewer must feel they are watching a campaign edit cut to rhythm, not a single take.
-
-HOW TO READ THE STORYBOARD (silently):
-- Cell 1 = the OPENING beat (entrance, hero stance establishing the subject)
-- Cell 2 = the SECOND beat (dynamic motion that develops the story)
-- Cell 3 = the THIRD beat (strong silhouette / hero frame)
-- Cell 4 = the FOURTH beat (detail / texture / fabric accent)
-- Cell 5 = the FIFTH beat (commanding stance / power moment)
-- Cell 6 = the CLOSING beat (resolution that lands the subject)
-For each cell you describe its specific framing, the model's pose/motion seen in that cell, and the cut that takes us into the next cell.
-
-OUTPUT FORMAT — VERY IMPORTANT:
-Output a SINGLE flowing prose paragraph in English. Walk through the 6 cuts in order, weaving each cell's framing + the cut that transitions out of it. NO headings, NO numbered sections, NO "Cut 1:" labels, NO bullet points. The output is ONE dense, cinematic prose paragraph.
-
-WHAT THE PARAGRAPH MUST COVER (in flowing prose, naturally):
-- The model and outfit painted briefly (fabric, cut, pattern, accents) and the room as a continuous set held across all 6 cuts (same lighting, same scene — only framing/pose changes).
-- For EACH of the 6 cells: a specific framing (lens, angle, distance) + the model's beat from that cell + the cut/transition technique into the next cell. Six discrete shots — never collapse into "two or three chained beats".
-- Lighting that MIRRORS the image's existing direction across all cuts (no invented sunlight, no golden hour unless visibly present).
-- Editor's pass: rhythm of cuts, frame-rate feel, color grade amplifying the outfit's palette, depth-of-field choices that match each shot.
-
-EMBRACE: "cuts to", "match-cuts into", "whip-pans into", "snap focus pull onto", "speed ramp through", "hard cut to", "transitions seamlessly into", "the edit lands on".
-
-BANNED VOCABULARY (do NOT use — they collapse the 6-cut clip into a single take OR cause the grid to appear in the output):
-"a single tracking shot", "one continuous take", "the camera moves through" (singular continuous-take phrasing), "two or three chained beats", "the model performs a, then b, then c" (suggests one continuous take), "preserve the exact setting" (already locked — don't reiterate as if treating the grid as one scene), "slow cinematic push-in", "poised", "minimal movement", "the camera pulls back to reveal the storyboard", "the grid fades into view", "the six cells appear", "split-screen", "picture-in-picture", "we see the grid", "starts on the storyboard", "zooms out from the grid", "transitions through the grid layout".
-
-CRITICAL RENDER RULES (Seedance MUST follow):
-- ⛔ The grid layout itself is NEVER visible in the output video. Frame 0 starts ALREADY ON Cell 1's content as a full-screen 9:16 single shot — the camera does NOT zoom out from one cell to reveal the grid, does NOT linger on the grid composite, does NOT fade through the grid layout. The 6-cell composite is a storyboard reference, never a filmed scene.
-- Each of the 6 cuts renders as a FULL-SCREEN 9:16 single shot of that cell's action — never split-screen, never picture-in-picture, never a multi-cell composite.
-- The grid lines / gutters / borders / cell numbers in the input image are STORYBOARD ANNOTATIONS only — NEVER render them in the output video.
-- Identity, outfit, and environment continuity are LOCKED across all 6 cuts.
-${editModeInstructions}${
-    hasBackImage
-      ? `
-
-⭐ BACK-VIEW IMAGE PROVIDED — a SECOND reference of the back of the outfit. Seedance uses this as the END FRAME. Make the closing cut (Cell 6) resolve naturally to a back-view (180° pivot, walk-out, over-shoulder reveal).`
-      : ""
-  }
-HARD CONSTRAINTS:
-- Output ONLY the generated prompt text.
-- Keep under 2300 characters.
-- Walk through ALL 6 cuts. Never describe just 2-3 beats.
-- Always 9:16 vertical, fashion campaign film grade.
-`;
-}
-
-/**
- * 🧩 Grid mode — Gemini fail'lerse Seedance'a gönderilecek grid-aware
- * fallback. Mevcut buildFallbackVideoPrompt tek-sahne dili kullanıyor →
- * grid modunda kullanılamaz; bu fonksiyon 6-cut akışını anlatır.
- */
-function buildGridFallbackPrompt(userPrompt) {
-  const hint = (userPrompt || "").trim();
-  const subjectClause = hint
-    ? ` The 6 cuts together narrate the user's subject: "${hint.substring(0, 200)}".`
-    : "";
-  return (
-    "Six-cut fashion campaign edit, 9:16 vertical, derived from the input storyboard grid (2×3, 6 cells, top-left through bottom-right in reading order). The grid layout itself is NEVER visible in the output video — frame zero starts already inside Cell 1's content rendered as a full-screen 9:16 single shot, never a multi-cell composite, never a zoom-out from one cell to the grid, never a slow reveal of the storyboard. Each cut is a discrete full-screen shot taken from one cell, played in sequence with rhythmic cinematic cuts (whip-pan, match-cut, speed-ramp, snap focus pull, hard cut) — roughly equal time per cut (~clip_duration / 6 seconds each)." +
-    subjectClause +
-    " The opening cut establishes the model's entrance and the room (Cell 1 full-screen from frame 0); the second cut catches dynamic motion; the third lands a strong silhouette; the fourth is a detail / texture beat; the fifth holds a commanding stance; the closing cut resolves the narrative (direct gaze to camera, a final held hero pose, or a confident step toward camera). Identity, outfit, and environment continuity are locked across all 6 cuts — same model, same clothing, same scene, same lighting direction. The grid gutters, cell borders, split-screen layouts, picture-in-picture frames, and any visual annotations from the storyboard input are NEVER rendered in the output video — render only the model, the outfit, and the action depicted in each cell, one cell at a time, full-screen. Ultra-realistic editorial fashion campaign film grade, shallow depth of field, high-frame-rate with deliberate speed ramps at the cut points, color grade amplifying the outfit's tones against the existing room light, runway after-movie × campaign teaser feel, 8k."
-  );
-}
-
 async function generateVideoPrompt(
   imageUrl,
   userPrompt,
   editMode = false,
   hasBackImage = false,
-  isGridPreview = false
+  brief = null
 ) {
+  // 🛍️ Yeni client'lar brief gönderir → genel e-ticaret yönetmeni şablonu
+  if (brief) {
+    const clause = identityClause(brief, hasBackImage);
+    try {
+      const imageUrls = imageUrl && imageUrl.startsWith("http") ? [imageUrl] : [];
+      const enhanced = await callReplicateGeminiFlash(buildCommerceGeminiPrompt(brief, userPrompt, hasBackImage), imageUrls, 3);
+      console.log("🛍️ [VIDEO-V2] Commerce prompt:", `${String(enhanced).substring(0, 100)}...`);
+      return `${String(enhanced).trim()} ${clause}`;
+    } catch (error) {
+      console.error("❌ [VIDEO-V2] Commerce prompt enhancement failed:", error.message);
+      return `${buildCommerceFallbackPrompt(brief, userPrompt)} ${clause}`;
+    }
+  }
   try {
     const editModeInstructions = editMode
       ? `
@@ -147,10 +106,8 @@ async function generateVideoPrompt(
     `
       : "";
 
-    // 🧩 Grid mode: tek-sahne template'i çakışıyor → grid-aware Gemini template kullan
-    const promptForGemini = isGridPreview
-      ? buildGridGeminiPrompt(userPrompt, editModeInstructions, hasBackImage)
-      : `
+    // Eski (brief'siz) client'lar: moda kampanya şablonu
+    const promptForGemini = `
     You are a senior fashion film DIRECTOR + EDITOR writing shot notes for an AI Image-to-Video model. Your job: READ the input image with care — the outfit's character, the fabric behavior, the environment, the light, the mood — and then design a clip that feels authored, not templated.
 
     User Input: "${userPrompt}" (May be short, empty, or in another language. The image is the primary source of truth; the user input only refines intent.)
@@ -195,54 +152,32 @@ async function generateVideoPrompt(
     `;
 
     const imageUrls = imageUrl && imageUrl.startsWith("http") ? [imageUrl] : [];
-    let enhancedPrompt = await callReplicateGeminiFlash(promptForGemini, imageUrls, 3);
+    const enhancedPrompt = await callReplicateGeminiFlash(promptForGemini, imageUrls, 3);
 
     console.log("🎬 [VIDEO-V2] Enhanced prompt:", `${enhancedPrompt.substring(0, 100)}...`);
-
-    // 🧩 Grid preview akışında, input image bir 6 sahneli storyboard. Seedance'e
-    // grid'i sıralı kesitlerle animasyon yapması talimatını veren HARD direktifi
-    // enhanced prompt'un BAŞINA ekliyoruz.
-    if (isGridPreview) {
-      enhancedPrompt = buildGridStoryboardDirective() + "\n\n" + enhancedPrompt;
-      console.log("🧩 [VIDEO-V2] Grid storyboard direktifi prompt'un başına eklendi.");
-    }
 
     return enhancedPrompt;
   } catch (error) {
     console.error("❌ [VIDEO-V2] Prompt enhancement failed:", error.message);
-    // Gemini tamamen çöktü — grid mode için grid-aware fallback,
-    // normal mode için klasik fashion-clip fallback.
-    let fallback = isGridPreview
-      ? buildGridFallbackPrompt(userPrompt)
-      : buildFallbackVideoPrompt(userPrompt);
-    if (isGridPreview) {
-      fallback = buildGridStoryboardDirective() + "\n\n" + fallback;
-    }
-    console.log(
-      isGridPreview
-        ? "🛟 [VIDEO-V2] Using GRID fallback template prompt"
-        : "🛟 [VIDEO-V2] Using fallback fashion-clip template prompt"
-    );
+    const fallback = buildFallbackVideoPrompt(userPrompt);
+    console.log("🛟 [VIDEO-V2] Using fallback fashion-clip template prompt");
     return fallback;
   }
 }
 
-// 🧩 Grid preview akışında Seedance'e gönderilen sabit direktif. Input image
-// 2×3 grid (6 sahne) — sıralı animasyon, kesintili cinematic geçişler, hücre
-// metni yok (görsel sahneler).
-function buildGridStoryboardDirective() {
-  return `⚠️ GRID STORYBOARD INPUT — MANDATORY READING:
-The input image is NOT a single scene and NOT the first frame of the video. It is a 2×3 STORYBOARD REFERENCE containing 6 cells (top-left → top-right → middle-left → middle-right → bottom-left → bottom-right). The output video MUST never visually show this grid layout in any frame.
-
-⛔ THE GRID LAYOUT IS NEVER VISIBLE IN THE OUTPUT VIDEO:
-- Frame 0 (the very first frame) is Cell 1's content ALREADY rendered as a full-screen 9:16 single shot — NOT the grid composite, NOT a zoom-out from one cell, NOT a slow reveal of the storyboard.
-- The video MUST NEVER linger on, fade through, pull back to, zoom out from, or reveal the 2×3 grid layout. The grid lines, gutters, cell borders, and the multi-cell composite frame are STRICTLY INVISIBLE in every output frame.
-- Treat the grid input the way a director treats a paper storyboard on the desk: a planning artifact, never something the camera films.
-
-✅ HOW THE 6 CUTS PLAY:
-Play the cells IN ORDER, allocating roughly equal time per cell (~clip_duration / 6 seconds each). Each cell renders as a FULL-SCREEN 9:16 single shot. Transitions between cells are real cinematic cuts (whip pan, match-cut, speed-ramp, dolly continuation, snap focus) — NOT dissolves through the grid, NOT split-screen, NOT picture-in-picture. The viewer feels they are watching ONE seamless campaign edit that flows: Cell-1-fullscreen → cut → Cell-2-fullscreen → cut → … → Cell-6-fullscreen.
-
-Identity, outfit, and environment continuity are LOCKED across all 6 cuts — same model, same clothing, same scene, same lighting direction. Render only the model, the outfit, and the action depicted in each cell — never render the grid, gutters, borders, or any composite frame.`;
+/** 🎬 Video stüdyosu kartı → Gemini yönetmen talimatı (+ sabit ürün kimliği kuralı) */
+async function generateSkillPrompt(skillBrief, imageUrls, ctx) {
+  // Kalite kilidi (kart örneklerinin stil bloğu) + ürün kimliği kuralı her zaman sonda
+  const clause = `${skillStyleSuffix(skillBrief)} ${skillIdentityClause(skillBrief, ctx.imageCount)}`;
+  try {
+    const visionUrls = (imageUrls || []).filter((u) => /^https?:\/\//i.test(u)).slice(0, 3);
+    const enhanced = await callReplicateGeminiFlash(buildSkillGeminiPrompt(skillBrief, ctx), visionUrls, 3);
+    console.log("🎬 [VIDEO-SKILL] prompt:", `${String(enhanced).substring(0, 100)}...`);
+    return `${String(enhanced).trim()} ${clause}`;
+  } catch (error) {
+    console.error("❌ [VIDEO-SKILL] prompt enhancement failed:", error.message);
+    return `${buildSkillFallbackPrompt(skillBrief, ctx)} ${clause}`;
+  }
 }
 
 async function compressImage(buffer, maxSizeBytes = 9 * 1024 * 1024) {
@@ -746,7 +681,8 @@ async function persistFalVideoToSupabase(videoUrl, userId, generationId) {
 // ("5"/"8"/"10" saniye bazları + "hd_surcharge" 1080p ek ücreti). 60 sn'lik
 // in-memory cache ile her istekte DB'ye gidilmez; config okunamazsa ya da
 // migration'sız ortamda DEFAULT tablo devreye girer (mevcut fiyatlar).
-const DEFAULT_VIDEO_CREDITS = { 5: 300, 8: 340, 10: 375, hd_surcharge: 60 };
+// 15 sn (23 Eyl 2026, kullanıcı kararı): 450 kredi; ses fal'da ek ücretsiz → fiyatı değiştirmez
+const DEFAULT_VIDEO_CREDITS = { 5: 300, 8: 340, 10: 375, 15: 450, hd_surcharge: 60 };
 let _videoCreditCache = { cfg: { ...DEFAULT_VIDEO_CREDITS }, at: 0 };
 
 async function getVideoCreditConfig() {
@@ -760,7 +696,7 @@ async function getVideoCreditConfig() {
     const raw = data?.metadata?.video_credits;
     const cfg = { ...DEFAULT_VIDEO_CREDITS };
     if (raw && typeof raw === "object") {
-      for (const key of ["5", "8", "10", "hd_surcharge"]) {
+      for (const key of ["5", "8", "10", "15", "hd_surcharge"]) {
         const value = Number(raw[key]);
         if (Number.isFinite(value) && value >= 0) cfg[key] = value;
       }
@@ -787,7 +723,7 @@ function getCreditCost(duration, resolution = "720p", cfg = DEFAULT_VIDEO_CREDIT
 
 function normalizeDuration(duration) {
   const parsedDuration = Number(duration);
-  if ([5, 8, 10].includes(parsedDuration)) {
+  if ([5, 8, 10, 15].includes(parsedDuration)) {
     return parsedDuration;
   }
 
@@ -828,25 +764,35 @@ async function submitSeedanceGeneration({
   resolution,
   endUserId,
   endImageUrl,
+  referenceMode = isReferencePrompt(prompt),
+  imageUrls = null, // 🎬 video stüdyosu: tüm ürün görselleri (@Image1..N)
+  videoUrls = null, // 🎬 remix: referans video (@Video1)
+  generateAudio = false, // 🔊 fal'da ek ücretsiz; sesli kartlarda açık
 }) {
   const requestBody = {
     prompt,
-    image_url: imageUrl,
     duration: String(duration),
     aspect_ratio: aspectRatio,
     resolution,
-    generate_audio: false,
+    generate_audio: !!generateAudio,
     end_user_id: endUserId,
   };
 
-  // Arka görünüm (end_image_url) varsa ekle — video bu frame'e doğru geçiş yapar.
-  if (endImageUrl) {
-    requestBody.end_image_url = endImageUrl;
+  if (referenceMode) {
+    // 🛍️ Ürün referansı (+ varsa ikinci açı @Image2); sahne yeniden kurulur
+    requestBody.image_urls = Array.isArray(imageUrls) && imageUrls.length ? imageUrls.slice(0, 9) : [imageUrl, endImageUrl].filter(Boolean);
+    if (Array.isArray(videoUrls) && videoUrls.length) requestBody.video_urls = videoUrls.slice(0, 3);
+  } else {
+    requestBody.image_url = imageUrl;
+    // İkinci görsel (end_image_url) varsa ekle — video bu kareye doğru geçiş yapar.
+    if (endImageUrl) {
+      requestBody.end_image_url = endImageUrl;
+    }
   }
 
   console.log("🎬 [VIDEO-V2] Submitting to Seedance 2.0:", JSON.stringify(requestBody, null, 2));
 
-  const { request_id: requestId } = await fal.queue.submit(SEEDANCE_MODEL_ID, {
+  const { request_id: requestId } = await fal.queue.submit(referenceMode ? SEEDANCE_REF_MODEL_ID : SEEDANCE_MODEL_ID, {
     input: requestBody,
     webhookUrl: null,
   });
@@ -856,159 +802,6 @@ async function submitSeedanceGeneration({
   }
 
   return requestId;
-}
-
-// 🧩 Auto-grid pipeline: kullanıcı önizleme yapmadığında çağrılır.
-// Sırayla:
-//   1) nano-banana-2 ile 6-sahneli storyboard grid üretir (orijinal foto'dan)
-//   2) Üretilen grid URL'ini DB'de original_image_url olarak persist eder
-//   3) Grid-aware enhanced prompt üretir
-//   4) Seedance'a grid resmiyle submit eder, fal_request_id'i DB'ye yazar
-//   5) Mevcut startBackgroundProgression worker'ını başlatır (polling)
-// Grid hata verirse orijinal foto ile fallback yapar (video iptal olmaz).
-async function runGridThenSeedance(generationId, params) {
-  const {
-    userId,
-    originalImageUrl,
-    backImageUrl,
-    userPrompt,
-    normalizedDuration,
-    normalizedAspectRatio,
-    normalizedResolution,
-    editMode,
-  } = params;
-
-  try {
-    // 1) Grid üretimi (orijinal foto + opsiyonel kullanıcı promptu)
-    const gridResult = await generateVideoGridPreview({
-      supabase,
-      sourceUrl: originalImageUrl,
-      userPrompt,
-      logTag: `VIDEO-V2-GRID ${generationId}`,
-    });
-
-    let videoSourceUrl = originalImageUrl;
-    let isGridApplied = false;
-
-    if (gridResult.success && gridResult.gridUrl) {
-      videoSourceUrl = gridResult.gridUrl;
-      isGridApplied = true;
-      // 2) Grid URL'i DB'ye yaz — client polling original_image_url'i grid olarak görür
-      await supabase
-        .from("video_generations")
-        .update({
-          original_image_url: gridResult.gridUrl,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", generationId);
-      console.log(
-        `✅ [VIDEO-V2-GRID] ${generationId} grid hazır, video pipeline başlıyor`,
-      );
-    } else {
-      console.warn(
-        `⚠️ [VIDEO-V2-GRID] ${generationId} grid başarısız (${gridResult.error}), orijinal foto ile devam`,
-      );
-    }
-
-    // 3) Grid-aware enhanced prompt
-    const enhancedPrompt = await generateVideoPrompt(
-      videoSourceUrl,
-      userPrompt,
-      editMode,
-      !!backImageUrl,
-      isGridApplied,
-    );
-
-    // 4) Seedance submit
-    const requestId = await submitSeedanceGeneration({
-      imageUrl: videoSourceUrl,
-      prompt: enhancedPrompt,
-      duration: normalizedDuration,
-      aspectRatio: normalizedAspectRatio,
-      resolution: normalizedResolution,
-      endUserId: String(userId),
-      endImageUrl: backImageUrl,
-    });
-
-    console.log(`✅ [VIDEO-V2-GRID] ${generationId} Seedance request id: ${requestId}`);
-
-    await supabase
-      .from("video_generations")
-      .update({
-        fal_request_id: requestId,
-        enhanced_prompt: enhancedPrompt,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", generationId);
-
-    // predictions row — Seedance request_id ile insert
-    try {
-      await supabase.from("predictions").insert({
-        id: uuidv4(),
-        user_id: userId,
-        product_id: generationId,
-        prediction_id: requestId,
-        categories: "videos",
-      });
-    } catch (predErr) {
-      console.warn(
-        `⚠️ [VIDEO-V2-GRID] ${generationId} predictions insert hata:`,
-        predErr?.message,
-      );
-    }
-
-    // 5) Polling worker
-    startBackgroundProgression(generationId);
-  } catch (err) {
-    console.error(
-      `❌ [VIDEO-V2-GRID] ${generationId} pipeline failed:`,
-      err?.message,
-    );
-
-    // Generation'ı failed olarak işaretle + krediyi iade et
-    try {
-      await supabase
-        .from("video_generations")
-        .update({
-          status: "failed",
-          error_message: err?.message || "Grid+Seedance pipeline failed",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", generationId);
-    } catch (dbErr) {
-      console.error(
-        `❌ [VIDEO-V2-GRID] ${generationId} DB update hata:`,
-        dbErr?.message,
-      );
-    }
-
-    if (params.refundUserId && params.creditCost > 0) {
-      try {
-        const { data: currentUser } = await supabase
-          .from("users")
-          .select("credit_balance")
-          .eq("id", params.refundUserId)
-          .single();
-        if (currentUser) {
-          await supabase
-            .from("users")
-            .update({
-              credit_balance:
-                (currentUser.credit_balance || 0) + params.creditCost,
-            })
-            .eq("id", params.refundUserId);
-          console.log(
-            `💰 [VIDEO-V2-GRID] ${generationId} ${params.creditCost} credits refunded to ${params.refundUserId}`,
-          );
-        }
-      } catch (refundErr) {
-        console.error(
-          `❌ [VIDEO-V2-GRID] ${generationId} refund hata:`,
-          refundErr?.message,
-        );
-      }
-    }
-  }
 }
 
 router.post("/generateImgToVidv2", async (req, res) => {
@@ -1025,8 +818,22 @@ router.post("/generateImgToVidv2", async (req, res) => {
       resolution = "720p",
       aspect_ratio = "9:16",
       editMode = false,
-      isGridPreview = false, // 🧩 Storyboard grid mod (input = 6-scene grid)
+      brief: rawBrief = null, // 🛍️ e-ticaret brief'i (tür/sahne/kamera/insan) — yoksa eski moda akışı
+      // 🎬 Video stüdyosu kartları (23 Eyl 2026): skill + girdiler, ek ürün görselleri, referans video, ses
+      skill = null,
+      skillInputs = null,
+      product_images = null,
+      reference_video_url = null,
+      generate_audio = false,
     } = req.body;
+    const brief = sanitizeBrief(rawBrief);
+    const skillBrief = sanitizeSkill(skill, skillInputs);
+    const referenceVideoUrl =
+      typeof reference_video_url === "string" && /^https?:\/\//i.test(reference_video_url) ? reference_video_url : null;
+    // Remix referans videosuz olmaz — kredi düşmeden ÖNCE reddet
+    if (skillBrief?.skill === "remix" && !referenceVideoUrl) {
+      return res.status(400).json({ success: false, message: "Reference video is required for Video Remix" });
+    }
 
     if (!userId || !first_frame_image) {
       return res.status(400).json({
@@ -1148,95 +955,43 @@ router.post("/generateImgToVidv2", async (req, res) => {
       }
     }
 
-    const userPrompt =
-      prompt ||
-      "Model highlights special details of the outfit, smiling while gently turning left and right to showcase product details from both sides.";
-
-    // 🧩 Akış ayrımı:
-    //   isGridPreview=true  → client zaten grid'i first_frame_image olarak gönderdi
-    //                          (kullanıcı "Önizle" butonuna basmış); grid üretimi
-    //                          atlanır, doğrudan Seedance.
-    //   isGridPreview=false → kullanıcı önizlemedi; arka planda nano-banana ile
-    //                          grid üretilir, sonra Seedance grid'i first_frame
-    //                          olarak alır. HTTP yanıtı hemen 202 döner;
-    //                          tüm pipeline runGridThenSeedance içinde.
-    if (!isGridPreview) {
-      const generationId = uuidv4();
-      const insertPayload = {
-        id: generationId,
-        user_id: userId,
-        fal_request_id: null, // grid + seedance bittikten sonra set edilir
-        status: "processing",
-        original_image_url: imageUrl, // önce orijinal foto, grid hazır olunca güncellenecek
-        user_prompt: userPrompt,
-        enhanced_prompt: null,
-        duration: normalizedDuration,
-        aspect_ratio: normalizedAspectRatio,
-        resolution: normalizedResolution,
-        credits_used: creditCost,
-      };
-      if (backImageUrl) insertPayload.back_image_url = backImageUrl;
-
-      let { error: insertError } = await supabase
-        .from("video_generations")
-        .insert(insertPayload);
-
-      if (
-        insertError &&
-        /back_image_url/i.test(insertError.message || "") &&
-        insertPayload.back_image_url
-      ) {
-        console.warn(
-          "⚠️ [VIDEO-V2] back_image_url column missing — inserting without it"
-        );
-        delete insertPayload.back_image_url;
-        const retryInsert = await supabase
-          .from("video_generations")
-          .insert(insertPayload);
-        insertError = retryInsert.error;
-      }
-
-      if (insertError) {
-        console.error("❌ [VIDEO-V2] DB insert error:", insertError);
-        throw insertError;
-      }
-
-      // Fire-and-forget — client'ın HTTP isteği 30-60s nano-banana çağrısını
-      // beklemesin diye 202 hemen dönülür, pipeline arka planda çalışır.
-      runGridThenSeedance(generationId, {
-        userId,
-        originalImageUrl: imageUrl,
-        backImageUrl,
-        userPrompt,
-        normalizedDuration,
-        normalizedAspectRatio,
-        normalizedResolution,
-        editMode,
-        refundUserId: effectiveUserId,
-        creditCost,
-      }).catch((bgErr) => {
-        console.error(
-          `❌ [VIDEO-V2] runGridThenSeedance unhandled rejection (${generationId}):`,
-          bgErr?.message,
-        );
-      });
-
-      return res.status(202).json({
-        success: true,
-        message: "Video generation started (grid preview pipeline)",
-        generationId,
-        predictionId: null,
-      });
+    // 🎬 Video stüdyosu: ek ürün görselleri yüklenir (@Image2..N), toplam kart limitine kadar
+    let skillImageUrls = null;
+    if (skillBrief) {
+      const extra = (Array.isArray(product_images) ? product_images : [])
+        .filter((x) => typeof x === "string" && x.length > 0)
+        .slice(0, VIDEO_SKILLS[skillBrief.skill].maxImages - 1);
+      const uploaded = await Promise.all(extra.map(async (img) => {
+        if (img.startsWith("data:image/")) {
+          try { return await uploadImageToSupabase(img); } catch (err) { console.warn("⚠️ [VIDEO-SKILL] ek görsel yüklenemedi:", err?.message); return null; }
+        }
+        return /^https?:\/\//i.test(img) ? img : null;
+      }));
+      skillImageUrls = [imageUrl, ...uploaded.filter(Boolean)];
+      console.log(`🎬 [VIDEO-SKILL] ${skillBrief.skill}: ${skillImageUrls.length} görsel${referenceVideoUrl ? " + referans video" : ""}${generate_audio ? " + ses" : ""}`);
     }
 
-    // 🧩 isGridPreview=true: client'ın gönderdiği grid'i kullan, mevcut akış
-    const enhancedPrompt = await generateVideoPrompt(
-      imageUrl,
-      userPrompt,
-      editMode,
-      !!backImageUrl,
-      !!isGridPreview
-    );
+    const userPrompt =
+      prompt ||
+      (skillBrief ? [skillBrief.productName, skillBrief.sellingPoints, skillBrief.notes].filter(Boolean).join(" · ") : "") ||
+      (brief
+        ? ""
+        : "Model highlights special details of the outfit, smiling while gently turning left and right to showcase product details from both sides.");
+
+    // Storyboard grid akışı 22 Eyl 2026'da kaldırıldı: her istek doğrudan Seedance
+    const enhancedPrompt = skillBrief
+      ? await generateSkillPrompt(skillBrief, skillImageUrls, {
+          audio: !!generate_audio,
+          duration: normalizedDuration,
+          imageCount: skillImageUrls.length,
+        })
+      : await generateVideoPrompt(
+          imageUrl,
+          userPrompt,
+          editMode,
+          !!backImageUrl,
+          brief
+        );
 
     const requestId = await submitSeedanceGeneration({
       imageUrl,
@@ -1245,10 +1000,14 @@ router.post("/generateImgToVidv2", async (req, res) => {
       aspectRatio: normalizedAspectRatio,
       resolution: normalizedResolution,
       endUserId: String(userId),
-      endImageUrl: backImageUrl,
+      endImageUrl: skillBrief ? null : backImageUrl,
+      referenceMode: skillBrief ? true : isReferenceMode(brief),
+      imageUrls: skillImageUrls,
+      videoUrls: referenceVideoUrl ? [referenceVideoUrl] : null,
+      generateAudio: skillBrief ? !!generate_audio : false,
     });
 
-    console.log(`✅ [VIDEO-V2] Seedance request id: ${requestId}`);
+    console.log(`✅ [VIDEO-V2] Seedance request id: ${requestId}${isReferenceMode(brief) ? " (reference)" : ""}`);
 
     const generationId = uuidv4();
     const insertPayload = {
@@ -1364,9 +1123,8 @@ router.get("/videoStatusV2/:generationId", async (req, res) => {
       });
     }
 
-    // 🧩 Grid + Seedance pipeline: fal_request_id henüz set edilmemişse
-    // arka planda nano-banana grid üretimi devam ediyordur. Client'a
-    // "processing" döndür; fal API'sini boş requestId ile çağırma.
+    // fal_request_id yoksa (kaldırılan grid akışından kalma eski kayıt) fal'ı
+    // boş requestId ile çağırma; "processing" döndür.
     if (!generation.fal_request_id) {
       return res.status(200).json({
         success: true,

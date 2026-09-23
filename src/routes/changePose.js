@@ -1,5 +1,7 @@
+const { recordRefundCharge } = require("../services/refundChargeEvidence");
 const { NB2_EDIT_MODEL, selectToolEditModel, buildNb2EditInput } = require("../utils/nb2ToolEdit");
 const { GPT25_EDIT_MODEL, buildEditInput, gpt25NearestRatio, probeImageDims } = require("../utils/gpt25Edit");
+const { startAutomaticTrialVariation } = require("./variationRoutes");
 const { getGenerationCreditCost } = require("../utils/generationCredits");
 const express = require("express");
 const router = express.Router();
@@ -895,6 +897,9 @@ async function deductCreditOnSuccess(generationId, userId) {
       `✅ ${totalCreditCost} kredi başarıyla düşüldü (${isTeamCredit ? 'team owner' : 'user'}: ${creditOwnerId}). Yeni bakiye: ${newBalance}`
     );
 
+    // 🪙 İade kanıtı (23 Eyl 2026): kendi ekranı olan, ürünü koruyan ANA oluşturma → iade edilebilir
+    await recordRefundCharge({ generationId, userId, creditOwnerId, amount: totalCreditCost, debit: updateResult });
+
     // 💳 Kredi tracking bilgilerini generation'a kaydet
     logger.log(
       `💳 [TRACKING] Generation ${generationId} için kredi tracking bilgileri kaydediliyor...`
@@ -1095,6 +1100,26 @@ async function updateGenerationStatus(
             // Notification hatası generation'ı etkilemesin, sessizce devam et
           }
         );
+
+        // 🔍 Zoom çeşitlemesi (23 Eyl 2026): Refiner/V7 ile aynı — istek bayrağı
+        // varsa ve kullanıcı DENEMEDEYSE 2 yakın çekim backend'de otomatik başlar
+        // (variationRoutes zoom modu; deneme dışı kullanıcıda başlamaz).
+        if (
+          previousSettings?.automaticTrialVariationRequested === true &&
+          data?.[0]?.result_image_url
+        ) {
+          startAutomaticTrialVariation({
+            userId,
+            sourceGenerationId: generationId,
+            sourceImageUrl: data[0].result_image_url,
+            referenceImages: [
+              ...(Array.isArray(data[0].reference_images) ? data[0].reference_images : []),
+              data[0].pose_image,
+            ].filter(Boolean),
+          }).catch((error) => {
+            logger.error(`❌ [TRIAL_VARIATION/POSE] otomatik zoom başlatma hatası (${generationId}):`, error?.message || error);
+          });
+        }
       }
     }
 
@@ -4177,6 +4202,9 @@ router.post("/generate", async (req, res) => {
       totalGenerations: totalGenerations, // Pay-on-success için gerekli
       ...(sessionId && { sessionId: sessionId }),
       ...(isPoseChange && { isPoseChange: true }), // Pose change flag'i kaydet
+      // 🔍 Zoom çeşitlemesi: kaynak işareti + deneme otomasyonu isteği (23 Eyl 2026)
+      variationSource: "poseChange",
+      automaticTrialVariationRequested: req.body?.enableAutomaticTrialVariation === true,
     };
 
     // Kalite versiyonunu ayrı bir değişken olarak al

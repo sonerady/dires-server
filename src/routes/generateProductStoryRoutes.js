@@ -583,7 +583,20 @@ router.post("/generate-product-story", async (req, res) => {
         console.log("📝 [STORY] Step 1: Generating story prompts with Gemini...");
 
         // Build scene descriptions — use user preferences if available, otherwise defaults
-        const up = userPreferences || {};
+        let up = userPreferences || {};
+        // 🧰 Kendi kitin (22 Eyl 2026): istemci KitsScreen'den gelen özel kit tanımı bu
+        // isteğe özel 6 sahne talimatını, notu ve oranı ezer (kayıtlı tercihlere dokunmaz).
+        const customKit = req.body?.customKit;
+        if (customKit && Array.isArray(customKit.scenes) && customKit.scenes.length === 6) {
+            const text = (v, max) => String(v || "").replace(/\s+/g, " ").trim().slice(0, max);
+            up = {
+                ...up,
+                ...Object.fromEntries(customKit.scenes.map((scene, i) => [`scene_${i + 1}_instruction`, text(scene?.instruction, 400)])),
+                general_notes: [text(customKit.name, 40) && `Kit theme: ${text(customKit.name, 40)} — ${text(customKit.description, 160)}`, text(customKit.notes, 400)].filter(Boolean).join(". "),
+                ...(customKit.aspectRatio ? { aspect_ratio: text(customKit.aspectRatio, 6) } : {}),
+            };
+            console.log(`🧰 [STORY] Custom kit "${text(customKit.name, 40)}" overrides scene instructions`);
+        }
         const generalNotesLine = up.general_notes ? `\nUser's global style note: ${up.general_notes}\n` : '';
 
         // Scene descriptions: user custom or defaults
