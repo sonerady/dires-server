@@ -63,6 +63,7 @@ const getBalance = require("./routes/getBalance");
 const generatePredictionsRouter = require("./routes/generatePredictions");
 const generateImgToVidRouter = require("./routes/generateImgToVid");
 const generateImgToVidv2Router = require("./routes/generateImgToVidv2"); // Seedance 2.0
+const videoPreviewGridRouter = require("./routes/videoPreviewGridRoutes"); // 🧩 Storyboard önizleme — eski uygulama sürümleri için geri geldi (23 Eyl 2026)
 const generateImgToVidv3Router = require("./routes/generateImgToVidv3"); // Veo 3.1 Fast
 const generateImgToVidWebRouter = require("./routes/generateImgToVidWeb");
 const videoSkillRouter = require("./routes/videoSkillRoutes"); // 🎬 Video stüdyosu: remix referans video yükleme
@@ -319,6 +320,7 @@ app.use("/api/v2", registerAnonymousUserRouterV2);
 app.use("/api/v3", registerAnonymousUserRouterV3);
 app.use("/api/users", userMetadataRouter);
 app.use("/api", generateImgToVidRouter);
+app.use("/api", videoPreviewGridRouter); // 🧩 /api/videoPreviewGrid/generate + /status/:previewId
 app.use("/api", generateImgToVidv2Router); // Seedance 2.0
 app.use("/api", generateImgToVidv3Router); // Veo 3.1 Fast
 app.use("/api", generateImgToVidWebRouter);
