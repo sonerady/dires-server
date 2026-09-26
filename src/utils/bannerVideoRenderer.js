@@ -40,9 +40,24 @@ function resolveChromePath() {
       /* sıradakine bak */
     }
   }
-  const macChrome =
-    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-  if (fs.existsSync(macChrome)) return macChrome;
+  // 26 Eyl 2026: canlıda "Chromium not found" — Railway artık Railpack ile derliyor olabilir (nixpacks.toml okunmuyor);
+  // railpack.json apt ile /usr/bin/chromium kurar. PATH'te görünmese bile bilinen yollara da bak.
+  const knownPaths = [
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
+    "/usr/bin/google-chrome-stable",
+    "/nix/var/nix/profiles/default/bin/chromium",
+    "/root/.nix-profile/bin/chromium",
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  ];
+  for (const candidate of knownPaths) {
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  // Nix imajı: paket store'da ama PATH'e bağlanmamış olabilir
+  try {
+    const hit = fs.readdirSync("/nix/store").find((d) => /-chromium-\d/.test(d) && fs.existsSync(`/nix/store/${d}/bin/chromium`));
+    if (hit) return `/nix/store/${hit}/bin/chromium`;
+  } catch (e) { /* nix yok */ }
   throw new Error(
     "Chromium not found — set PUPPETEER_EXECUTABLE_PATH or add chromium to the image"
   );
