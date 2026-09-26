@@ -224,8 +224,11 @@ app.use("/api/lemonsqueezy", express.raw({ type: "application/json" }), lemonsqu
 // Resend signatures must be checked against the original bytes, before JSON parsing.
 app.use("/api/support/inbound", express.raw({ type: "application/json", limit: "1mb" }), require("./routes/supportWebhookRoutes").createSupportWebhookRouter(require("./lib/supportMailRuntime")));
 
-app.use(bodyParser.json({ limit: "50mb" }));
-app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
+// ⚠️ 26 Eyl 2026 (destek talebi, iPad 1.7.9 "413"): eski istemciler ürün fotoğraflarını TAM çözünürlükte
+// base64 gönderiyor (kombin modunda her ürünün orijinali ayrıca) → iPad Pro fotoğraflarıyla gövde 50 MB'ı
+// aşıp üretim başlamadan 413 alıyordu. Sınır 150 MB; yeni istemciler ayrıca göndermeden önce küçültür.
+app.use(bodyParser.json({ limit: "150mb" }));
+app.use(bodyParser.urlencoded({ limit: "150mb", extended: true }));
 // 🌍 Kullanıcı ülkesi — istek IP'sinden users.country (admin bayrak sütunu)
 {
   const { createUserCountryMiddleware } = require("./middleware/userCountry");
