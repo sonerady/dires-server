@@ -5005,14 +5005,17 @@ const SINGLE_PROFILE_TECH_CACHE_MAX = 500;
 
 // Shared by the request handler and isolated generation verification.
 // Keeps final prompt assembly in production code, never in a test-specific prompt.
-function buildNb2GenerationRequest({ enhancedPrompt, imageInputArray, aspectRatioForRequest, useNb2, safetyTolerance, nb2ThinkingLevel }) {
+// 🖼️ NB2'de her zaman 2K çalışacak kullanıcılar (varsayılan NB2 = 1K). 26 Eyl 2026, kullanıcı isteği.
+const NB2_2K_USER_IDS = new Set(["2a6a5480-458e-4412-88fc-7261f7b67867"]);
+
+function buildNb2GenerationRequest({ enhancedPrompt, imageInputArray, aspectRatioForRequest, useNb2, safetyTolerance, nb2ThinkingLevel, nb2Force2K = false }) {
   return {
               prompt: enhancedPrompt,
               image_urls: imageInputArray,
               output_format: "png",
               aspect_ratio: aspectRatioForRequest,
               num_images: 1,
-              resolution: useNb2 ? "1K" : "2K",
+              resolution: useNb2 && !nb2Force2K ? "1K" : "2K",
               safety_tolerance: safetyTolerance,
               enable_web_search: true,
               ...(nb2ThinkingLevel !== "off"
@@ -7765,9 +7768,11 @@ The final image must read as the SAME street-style photograph — same person-in
             const nanoModel = "fal-ai/nano-banana-2/edit";
             // 🧠 Render öncesi muhakeme — app_config.nb2_thinking_level ile yönetilir
             const nb2ThinkingLevel = await getNb2ThinkingLevel();
+            const nb2Force2K = useNb2 && NB2_2K_USER_IDS.has(String(userId || ""));
+            if (nb2Force2K) logger.log(`🖼️ [NB2] ${String(userId).slice(0, 8)} → 2K (kullanıcıya özel)`);
             const nanoRequestBody = buildNb2GenerationRequest({
               enhancedPrompt, imageInputArray, aspectRatioForRequest,
-              useNb2, safetyTolerance, nb2ThinkingLevel,
+              useNb2, safetyTolerance, nb2ThinkingLevel, nb2Force2K,
             });
             logger.log(
               `🍌 [V1 NB2] fal.run/${nanoModel} çağrılıyor — images: ${imageInputArray?.length || 0}, aspect: ${aspectRatioForRequest}, thinking: ${nb2ThinkingLevel}`,

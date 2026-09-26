@@ -155,6 +155,7 @@ for (const name of ['referenceBrowserRoutesV7', 'referenceJewelryBrowserRoutesV7
    aspectRatioForRequest: '9:16', safetyTolerance: '4', uuidv4: () => 'fixture',
    logger: {log() {}}, process: {env: {FAL_API_KEY: 'fixture'}},
    axios: {post: async (url, input) => {calls.push({url, input}); return {data: {images: [{url: 'https://test/result'}]}};}},
+   userId: 'fixture-user', NB2_2K_USER_IDS: new Set(), // kullanıcıya özel 2K listesi (V7) — fixture listede değil → 1K
   };
   // Dal, modül düzeyindeki yardımcıyı çağırıyor (13 Eyl'den beri) — varsa bağlama taşı
   const nb2Builder = r.nodes.find(n => n.type === 'FunctionDeclaration' && n.id?.name === 'buildNb2GenerationRequest');
