@@ -143,6 +143,20 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
   },
 });
 
+// Ekip lideri ücretli PRO mu (is_pro && deneme değil)? Bulunamazsa null.
+async function getTeamOwnerAccess(teamId) {
+  try {
+    const { data: team } = await supabase.from("teams").select("owner_id").eq("id", teamId).maybeSingle();
+    if (!team?.owner_id) return null;
+    const { data: owner } = await supabase.from("users").select("is_pro, is_in_trial").eq("id", team.owner_id).maybeSingle();
+    if (!owner) return null;
+    return { ownerId: team.owner_id, paidPro: owner.is_pro === true && owner.is_in_trial !== true };
+  } catch (e) {
+    console.error("❌ Team owner download access hatası:", e?.message);
+    return null;
+  }
+}
+
 // İndirmede filigransız dosyaya yalnızca ücretli Pro kullanıcı erişebilir.
 // Trial sırasında users.is_pro=true tutulduğu için is_in_trial ayrıca kontrol edilir.
 async function checkUserDownloadAccess(userId) {
@@ -158,7 +172,7 @@ async function checkUserDownloadAccess(userId) {
 
     const { data: user, error } = await supabase
       .from("users")
-      .select("is_pro, is_in_trial, preferred_language")
+      .select("is_pro, is_in_trial, preferred_language, active_team_id")
       .eq("id", userId)
       .single();
 
@@ -172,11 +186,20 @@ async function checkUserDownloadAccess(userId) {
       };
     }
 
-    const isPro = user?.is_pro === true;
+    let isPro = user?.is_pro === true;
     const isInTrial = user?.is_in_trial === true;
+    // 👥 26 Eyl 2026 (destek talebi): ekip üyesinin kendi is_pro'su false; PRO'yu ekip liderinden alır.
+    // Uygulama bunu /api/teams/effective-credits ile biliyordu ama bu kapı yalnız kendi satırına
+    // bakıyordu → üyenin indirdiği her görsel "PRO'ya geç" filigranıyla iniyordu. Lider deneme
+    // sürecindeyse temiz dosya yok (lider için de geçerli kural: ücretli PRO).
+    let viaTeam = false;
+    if (!isPro && user?.active_team_id) {
+      const owner = await getTeamOwnerAccess(user.active_team_id);
+      if (owner?.paidPro) { isPro = true; viaTeam = true; }
+    }
     const canDownloadOriginal = isPro && !isInTrial;
     console.log(
-      `👤 User ${userId.slice(0, 8)} download access: pro=${isPro}, trial=${isInTrial}, original=${canDownloadOriginal}`
+      `👤 User ${userId.slice(0, 8)} download access: pro=${isPro}${viaTeam ? " (team owner)" : ""}, trial=${isInTrial}, original=${canDownloadOriginal}`
     );
 
     return {
